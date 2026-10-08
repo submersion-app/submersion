@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:health/health.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 
@@ -245,11 +246,19 @@ class HealthKitService implements HealthImportService {
     final tempRange = _calculateTemperatureRange(samples);
     final avgHeartRate = _calculateAvgHeartRate(samples);
 
+    // HealthKit reports real instants, which the sample queries and offsets
+    // above need. Dives are stored as the wall clock the diver saw, flagged
+    // UTC, as every other importer produces them; handing on the instant
+    // shifted an Apple Watch dive by the device's UTC offset in the log, in
+    // duplicate matching and in checklist linking (issue #2810). The end keeps
+    // the real duration, so a DST change mid-dive cannot stretch it.
+    final wallClockStart = asWallClockUtc(startTime.toLocal());
+
     return ImportedDive(
       sourceId: workoutPoint.uuid,
       source: ImportSource.appleWatch,
-      startTime: startTime,
-      endTime: endTime,
+      startTime: wallClockStart,
+      endTime: wallClockStart.add(endTime.difference(startTime)),
       maxDepth: maxDepth,
       avgDepth: avgDepth > 0 ? avgDepth : null,
       minTemperature: tempRange.min,

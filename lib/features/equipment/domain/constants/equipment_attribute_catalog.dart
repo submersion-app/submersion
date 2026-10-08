@@ -11,7 +11,9 @@ import 'package:submersion/core/constants/enums.dart';
 /// - date:      valueNum unix milliseconds
 /// - url:       valueText holds the link as the diver typed it; [parseWebLink]
 ///              is the only thing allowed to turn it into a launchable Uri
-enum AttributeKind { text, number, thickness, choice, flag, date, url }
+/// - color:     valueText holds `#RRGGBB`, uppercase; `normalizeEquipmentColor`
+///              decides whether a stored value is a colour
+enum AttributeKind { text, number, thickness, choice, flag, date, url, color }
 
 /// Which block of the edit and detail forms an attribute belongs in.
 ///
@@ -27,6 +29,17 @@ enum AttributeGroup {
   /// lost luggage, theft or fire (issue #1517). Rendered with purchase date
   /// and price.
   purchase,
+
+  /// How the item looks: its colour, which tints its artwork on the diver
+  /// figure (issue #2326). Rendered as its own block of the edit form and
+  /// as its own row on the detail page.
+  appearance,
+
+  /// Written by the app, never by a form: identifiers a feature owns, such
+  /// as a cylinder's passport id (issue #2334). No form section renders this
+  /// group, and the detail page's spec rows skip it, but the edit page save
+  /// keeps it because it is in the type's catalog.
+  system,
 }
 
 /// Unit dimension for number attributes; drives UnitFormatter conversion.
@@ -68,6 +81,9 @@ abstract final class EquipmentAttrKeys {
   static const insulationLevel = 'insulation_level';
   static const fillMaterial = 'fill_material';
 
+  // The item's colour (issue #2326), read by the diver figure.
+  static const color = 'color';
+
   // Hose kind (issue #1805): LP regulator, HP gauge/transmitter, LPI inflator.
   static const hoseType = 'hose_type';
 
@@ -81,6 +97,11 @@ abstract final class EquipmentAttrKeys {
   // would rewrite attribute rows on every sync peer.
   static const identifier = 'tank_identifier';
 
+  // The physical tag identity of a cylinder (issue #2334): a UUID minted
+  // once, printed as a QR label and written to an NFC tag. System group,
+  // so no form ever shows it as a text field.
+  static const passportId = 'passport_id';
+
   // Purchase record (issue #1517).
   static const sku = 'sku';
   static const retailer = 'retailer';
@@ -90,6 +111,15 @@ abstract final class EquipmentAttrKeys {
   static const cellSlot = 'cell_slot';
   static const installedDate = 'installed_date';
   static const rechargeable = 'rechargeable';
+
+  // DPV mission planning (issue #2086). The three existing keys are named
+  // here so the planner never spells a raw string; the two tow factors are
+  // new and default when absent (see ScooterSpec).
+  static const dpvSpeedMps = 'speed_mps';
+  static const dpvBurnTimeH = 'burn_time_h';
+  static const dpvBatteryCapacityWh = 'battery_capacity_wh';
+  static const towSpeedFactor = 'tow_speed_factor';
+  static const towBurnFactor = 'tow_burn_factor';
 }
 
 class EquipmentAttributeDef {
@@ -153,6 +183,23 @@ abstract final class EquipmentAttributeCatalog {
       group: AttributeGroup.purchase,
     ),
   ];
+
+  /// The item's look (issue #2326), present for every type except the
+  /// consumables that live inside another item and `other`, which has no
+  /// artwork to tint.
+  static const List<EquipmentAttributeDef> appearance = [
+    EquipmentAttributeDef(
+      key: EquipmentAttrKeys.color,
+      kind: AttributeKind.color,
+      group: AttributeGroup.appearance,
+    ),
+  ];
+
+  static const Set<EquipmentType> _noAppearance = {
+    EquipmentType.o2Cell,
+    EquipmentType.battery,
+    EquipmentType.other,
+  };
 
   static const _size = EquipmentAttributeDef(
     key: EquipmentAttrKeys.size,
@@ -220,6 +267,17 @@ abstract final class EquipmentAttributeCatalog {
     key: 'depth_rating_m',
     kind: AttributeKind.number,
     dimension: AttributeDimension.depthM,
+  );
+  // A video light (#1997) is specced like a dive light, so it shares the
+  // light's definitions: one key, one label, one filter.
+  static const _lumens = EquipmentAttributeDef(
+    key: 'lumens',
+    kind: AttributeKind.number,
+  );
+  static const _beamType = EquipmentAttributeDef(
+    key: 'beam_type',
+    kind: AttributeKind.choice,
+    choiceKeys: ['spot', 'flood', 'adjustable'],
   );
 
   static const Map<EquipmentType, List<EquipmentAttributeDef>> _byType = {
@@ -292,6 +350,11 @@ abstract final class EquipmentAttributeCatalog {
         kind: AttributeKind.date,
       ),
       EquipmentAttributeDef(key: 'last_hydro_test', kind: AttributeKind.date),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.passportId,
+        kind: AttributeKind.text,
+        group: AttributeGroup.system,
+      ),
     ],
     EquipmentType.rebreather: [
       EquipmentAttributeDef(
@@ -413,6 +476,29 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['harness', 'waist_belt', 'thigh'],
       ),
     ],
+    EquipmentType.bag: [
+      // Lift bags are left out on purpose: they are lift devices, filed
+      // with the SMB, not luggage.
+      EquipmentAttributeDef(
+        key: 'bag_style',
+        kind: AttributeKind.choice,
+        choiceKeys: [
+          'duffel',
+          'roller',
+          'backpack',
+          'mesh',
+          'dry_bag',
+          'regulator_bag',
+          'catch_bag',
+        ],
+      ),
+      // How bags are sold: litres, or cubic feet for an imperial diver.
+      EquipmentAttributeDef(
+        key: 'capacity_l',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.volumeL,
+      ),
+    ],
     EquipmentType.fins: [
       _size,
       EquipmentAttributeDef(
@@ -508,17 +594,58 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['belt', 'integrated', 'trim', 'ankle'],
       ),
     ],
-    EquipmentType.light: [
-      EquipmentAttributeDef(key: 'lumens', kind: AttributeKind.number),
+    EquipmentType.light: [_lumens, _beamType],
+    EquipmentType.camera: [_depthRating],
+    // The camera's parts (#1997).
+    EquipmentType.lens: [
       EquipmentAttributeDef(
-        key: 'beam_type',
+        key: 'lens_type',
         kind: AttributeKind.choice,
-        choiceKeys: ['spot', 'flood', 'adjustable'],
+        choiceKeys: ['camera_lens', 'wet_lens', 'diopter'],
+      ),
+      // Quoted in millimetres in every unit system, so not a converted
+      // length.
+      EquipmentAttributeDef(key: 'focal_length_mm', kind: AttributeKind.number),
+    ],
+    EquipmentType.port: [
+      EquipmentAttributeDef(
+        key: 'port_type',
+        kind: AttributeKind.choice,
+        choiceKeys: ['dome', 'flat', 'macro'],
+      ),
+      _depthRating,
+    ],
+    EquipmentType.housing: [_depthRating],
+    EquipmentType.trayHandle: [
+      EquipmentAttributeDef(
+        key: 'tray_style',
+        kind: AttributeKind.choice,
+        choiceKeys: ['single_handle', 'double_handle', 'pistol_grip'],
       ),
     ],
-    EquipmentType.camera: [_depthRating],
-    EquipmentType.housing: [_depthRating],
-    EquipmentType.strobe: [_depthRating],
+    // Stored in metres, shown in cm or inches: arms are sold as 8" or 20 cm.
+    EquipmentType.armClamp: [
+      EquipmentAttributeDef(
+        key: 'arm_length_m',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.shortLengthM,
+      ),
+    ],
+    EquipmentType.strobe: [
+      _depthRating,
+      // The power figure every strobe is compared by: a distance at ISO 100,
+      // quoted in metres (GN 20) or feet (GN 66) for the same strobe, so it
+      // is stored in metres and shown in the diver's length unit.
+      EquipmentAttributeDef(
+        key: 'guide_number_m',
+        kind: AttributeKind.number,
+        dimension: AttributeDimension.lengthM,
+      ),
+    ],
+    EquipmentType.videoLight: [_lumens, _beamType, _depthRating],
+    // What the float lifts. It trims the rig, not the diver, so the buoyancy
+    // model reads it only for a BCD and never for a float.
+    EquipmentType.floatArm: [_liftCapacity],
     EquipmentType.dpv: [
       EquipmentAttributeDef(
         key: 'dpv_style',
@@ -562,6 +689,18 @@ abstract final class EquipmentAttributeCatalog {
         key: 'speed_mps',
         kind: AttributeKind.number,
         dimension: AttributeDimension.speedMps,
+      ),
+      // Towing a dead scooter's diver: the tower's speed as a fraction of
+      // rated, and the burn-rate multiplier. Absent means the planner's
+      // defaults (0.6 and 1.5), so a diver only fills these in to correct
+      // them for a ride-on or an unusually strong scooter.
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.towSpeedFactor,
+        kind: AttributeKind.number,
+      ),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.towBurnFactor,
+        kind: AttributeKind.number,
       ),
       // Shared verbatim with the camera and rebreather entries.
       EquipmentAttributeDef(
@@ -685,23 +824,36 @@ abstract final class EquipmentAttributeCatalog {
   };
 
   /// Curated attributes for [type]: type-specific first, then universal,
-  /// then the purchase record. Consumers that render one block at a time
-  /// filter on [EquipmentAttributeDef.group].
+  /// then the purchase record, then the item's appearance. Consumers that
+  /// render one block at a time filter on [EquipmentAttributeDef.group].
   static List<EquipmentAttributeDef> attributesFor(EquipmentType type) => [
     ...(_byType[type] ?? const []),
     ...universal,
     ...purchase,
+    if (!_noAppearance.contains(type)) ...appearance,
   ];
+
+  /// Whether items of [type] take a colour ([appearance]). A colour that
+  /// reaches a type without one is the diver's own field, not the item's
+  /// colour (issue #2520): see `keepStrayColorAsCustom`.
+  static bool hasColor(EquipmentType type) => !_noAppearance.contains(type);
 
   static final Map<String, EquipmentAttributeDef> _byKey = {
     for (final defs in _byType.values)
       for (final def in defs) def.key: def,
     for (final def in universal) def.key: def,
     for (final def in purchase) def.key: def,
+    for (final def in appearance) def.key: def,
   };
 
   /// Definition for a curated key, or null for unknown/custom keys.
   static EquipmentAttributeDef? defFor(String key) => _byKey[key];
+
+  /// Whether [key] is a curated attribute the app owns ([AttributeGroup.system],
+  /// such as a cylinder's passport id). Such values are identities, never
+  /// data to copy: exports leave them out and imports ignore them.
+  static bool isSystemKey(String key) =>
+      _byKey[key]?.group == AttributeGroup.system;
 }
 
 /// Turns a stored `url`-kind value into a launchable link, or null when it

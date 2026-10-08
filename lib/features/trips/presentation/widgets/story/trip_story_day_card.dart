@@ -15,21 +15,64 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const int _maxPhotoThumbnails = 6;
 
-/// One day chapter of the trip story.
-class TripStoryDayCard extends ConsumerWidget {
+/// One day chapter of the trip story: the day's own map when it has points
+/// (#2845), the summary band, the dive rows, photos and sightings.
+class TripStoryDayCard extends ConsumerStatefulWidget {
   final TripStoryDay day;
   final String tripId;
 
-  const TripStoryDayCard({super.key, required this.day, required this.tripId});
+  /// The day's map points (`TripStoryMapGeometry.pointsForDay`); none hides
+  /// the map.
+  final List<TripStoryMapPoint> mapPoints;
 
-  bool get _isPlanned => day.kind == TripStoryDayKind.future;
+  /// Opens the day's map fullscreen; null hides the expand button.
+  final void Function(TripStoryDay day, List<TripStoryMapPoint> points)?
+  onExpandMap;
+
+  const TripStoryDayCard({
+    super.key,
+    required this.day,
+    required this.tripId,
+    this.mapPoints = const [],
+    this.onExpandMap,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripStoryDayCard> createState() => _TripStoryDayCardState();
+}
+
+class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
+  /// The dive whose row a pin tap lit up; cleared by the same pin, another
+  /// pin, or opening the row.
+  String? _highlightedDiveId;
+  final Map<String, GlobalKey> _rowKeys = {};
+
+  TripStoryDay get day => widget.day;
+  String get tripId => widget.tripId;
+  bool get _isPlanned => day.kind == TripStoryDayKind.future;
+
+  void _onPinTap(String? diveId) {
+    setState(() => _highlightedDiveId = diveId);
+    final keyContext = diveId == null ? null : _rowKeys[diveId]?.currentContext;
+    if (keyContext == null) return;
+    // Only when the row is below the fold: the rows sit under the map, so a
+    // scroll for a row already in view would push the map off the top and
+    // every next pin tap would start with scrolling back up.
+    Scrollable.ensureVisible(
+      keyContext,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
@@ -57,6 +100,7 @@ class TripStoryDayCard extends ConsumerWidget {
         ((itinerary?.notes.trim().isNotEmpty ?? false) ||
             (itinerary?.portName?.trim().isNotEmpty ?? false));
     final hasBody =
+        widget.mapPoints.isNotEmpty ||
         day.dives.isNotEmpty ||
         day.media.isNotEmpty ||
         day.sightings.isNotEmpty ||
@@ -83,22 +127,52 @@ class TripStoryDayCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (widget.mapPoints.isNotEmpty) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    height: 180,
+                    child: TripDayMap(
+                      day: day,
+                      points: widget.mapPoints,
+                      highlightedDiveId: _highlightedDiveId,
+                      onDiveTap: _onPinTap,
+                      // Panning and zooming live in the fullscreen view; in
+                      // the card a drag scrolls the story.
+                      interactive: false,
+                      onExpand: widget.onExpandMap == null
+                          ? null
+                          : () => widget.onExpandMap!(day, widget.mapPoints),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               if (day.dives.isNotEmpty) ...[
                 _DaySummaryBand(day: day, units: units),
                 const SizedBox(height: 12),
                 ...day.dives.mapIndexed(
-                  (index, dive) => DiveListItem(
-                    summary: DiveSummary.fromDive(dive),
-                    diveTypeLabelResolver: diveTypeLabelResolver,
-                    diveTypeShortLabelResolver: diveTypeShortLabelResolver,
-                    diveTypeListVisibilityPredicate:
-                        diveTypeListVisibilityPredicate,
-                    // The story already holds the full Dive; pass it so the
-                    // configurable card can resolve fields absent from the
-                    // summary (tanks, SAC, buddies, weights).
-                    fullDive: dive,
-                    diveNumber: dive.diveNumber ?? index + 1,
-                    onTap: () => context.push('/dives/${dive.id}'),
+                  (index, dive) => KeyedSubtree(
+                    key: _rowKeys.putIfAbsent(dive.id, GlobalKey.new),
+                    child: DiveListItem(
+                      summary: DiveSummary.fromDive(dive),
+                      diveTypeLabelResolver: diveTypeLabelResolver,
+                      diveTypeShortLabelResolver: diveTypeShortLabelResolver,
+                      diveTypeListVisibilityPredicate:
+                          diveTypeListVisibilityPredicate,
+                      // The story already holds the full Dive; pass it so the
+                      // configurable card can resolve fields absent from the
+                      // summary (tanks, SAC, buddies, weights).
+                      fullDive: dive,
+                      diveNumber: dive.diveNumber ?? index + 1,
+                      isHighlighted: dive.id == _highlightedDiveId,
+                      onTap: () {
+                        if (_highlightedDiveId == dive.id) {
+                          setState(() => _highlightedDiveId = null);
+                        }
+                        context.push('/dives/${dive.id}');
+                      },
+                    ),
                   ),
                 ),
               ],

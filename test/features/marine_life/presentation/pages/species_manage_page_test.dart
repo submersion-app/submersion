@@ -6,9 +6,13 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/fab_clearance.dart';
+import '../../../../helpers/mock_providers.dart' show Override;
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -30,6 +34,7 @@ void main() {
   Widget host({
     required List<Species> species,
     Map<String, int> sightingCounts = const {},
+    List<Override> extra = const [],
   }) {
     return testApp(
       locale: const Locale('en'),
@@ -42,6 +47,7 @@ void main() {
         speciesSightingCountsProvider.overrideWith(
           (ref) async => sightingCounts,
         ),
+        ...extra,
       ],
       child: const SpeciesManagePage(),
     );
@@ -231,6 +237,30 @@ void main() {
         reason: 'select-all must skip species the repository refuses to delete',
       );
     });
+  });
+
+  testWidgets('the catalog query narrows the catalog (#2365)', (tester) async {
+    await tester.pumpWidget(
+      host(
+        species: [
+          _species(id: 's1', name: 'Aaa fish'),
+          _species(id: 's2', name: 'Bbb fish'),
+        ],
+        extra: [
+          speciesCatalogQueryProvider.overrideWith(
+            (ref) => ConditionNode(
+              FieldPath(['name']),
+              QueryOp.eq,
+              const StringValue('Bbb fish'),
+            ),
+          ),
+          entityQueryIdsProvider.overrideWith((ref, key) async => {'s2'}),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Bbb fish'), findsOneWidget);
+    expect(find.text('Aaa fish'), findsNothing);
   });
 }
 

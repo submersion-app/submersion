@@ -17,6 +17,7 @@ import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// The v2 chrome renders row labels outside the text field, so
 /// widgetWithText(TextFormField, label) no longer matches; resolve the
@@ -103,6 +104,12 @@ Widget _buildMergeHarness({
 }
 
 void main() {
+  // The code under test calls Open-Meteo; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+  });
+
   late SharedPreferences prefs;
 
   setUp(() async {
@@ -283,6 +290,58 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       expect(find.text('Please enter a site name'), findsOneWidget);
+    });
+
+    testWidgets('an unreadable max depth blocks save and says why (#1900)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(_rowField('Site Name *'), 'Blue Hole');
+      await tester.scrollUntilVisible(
+        find.textContaining('Maximum Depth'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.enterText(_rowField('Maximum Depth (m)'), '1..0');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    });
+
+    testWidgets('an unreadable depth in a section collapsed before Save still '
+        'blocks the save (#1900 review)', (tester) async {
+      tester.view.physicalSize = const Size(900, 3200);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _buildHarness(prefs: prefs, divers: const [], shareByDefault: false),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(_rowField('Site Name *'), 'Blue Hole');
+      await tester.scrollUntilVisible(
+        find.textContaining('Maximum Depth'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.enterText(_rowField('Maximum Depth (m)'), '1..0');
+      await tester.pumpAndSettle();
+
+      // Collapse the group, so its fields unmount before Save.
+      await tester.tap(find.text('Dive info').first);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Maximum Depth'), findsNothing);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
     });
 
     testWidgets('renders depth/difficulty/rating/gps/altitude sections', (

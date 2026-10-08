@@ -1,6 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -8,6 +7,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/title_with_subtitle.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
 
 /// A shared layout widget that manages the table mode state machine for all
 /// entity sections (Dives, Sites, Buddies, etc.).
@@ -33,6 +34,9 @@ class TableModeLayout extends ConsumerWidget {
 
   /// Title shown in the app bar.
   final String appBarTitle;
+
+  /// Optional muted line under [appBarTitle], such as the entry count.
+  final SubtitleText? appBarSubtitle;
 
   /// The table content widget (EntityTableView or similar).
   final Widget tableContent;
@@ -117,6 +121,7 @@ class TableModeLayout extends ConsumerWidget {
     super.key,
     required this.sectionKey,
     required this.appBarTitle,
+    this.appBarSubtitle,
     required this.tableContent,
     required this.detailBuilder,
     required this.summaryBuilder,
@@ -185,6 +190,7 @@ class TableModeLayout extends ConsumerWidget {
       masterBuilder: (context, onItemSelected, mdsSelectedId) {
         return _TableModeMaster(
           appBarTitle: appBarTitle,
+          appBarSubtitle: appBarSubtitle,
           tableContent: tableContent,
           mapContent: showMap ? mapContent : null,
           profilePanelContent: showProfile ? profilePanelContent : null,
@@ -192,6 +198,7 @@ class TableModeLayout extends ConsumerWidget {
           selectionAppBar: isSelectionMode ? selectionAppBar : null,
           isSelectionMode: isSelectionMode,
           selectedId: selectedId,
+          paneSelectedId: mdsSelectedId,
           onItemSelected: onItemSelected,
         );
       },
@@ -215,7 +222,13 @@ class TableModeLayout extends ConsumerWidget {
     return Scaffold(
       appBar: isSelectionMode && selectionAppBar != null
           ? selectionAppBar
-          : AppBar(title: Text(appBarTitle), actions: toggleActions),
+          : AppBar(
+              title: TitleWithSubtitle(
+                title: Text(appBarTitle),
+                subtitle: appBarSubtitle,
+              ),
+              actions: toggleActions,
+            ),
       body: body,
       floatingActionButton: floatingActionButton,
     );
@@ -259,6 +272,28 @@ class TableModeLayout extends ConsumerWidget {
 
     // Default: full-width table only
     return tableContent;
+  }
+
+  /// Points the detail pane being turned on at the highlighted row, so it
+  /// opens on the row the table shows lit instead of the summary.
+  ///
+  /// Only here, not whenever the pane is built: other pages link straight to
+  /// `?selected=<id>` without touching the highlight, which outlives the list
+  /// it was set in, so a pane opening with its page keeps the URL's choice.
+  /// A create or edit form left in the URL when the pane was turned off is
+  /// kept too, rather than moved onto a row nobody chose to edit.
+  void _openHighlightedInPane(BuildContext context) {
+    final id = selectedId;
+    final router = GoRouter.maybeOf(context);
+    if (id == null || router == null) return;
+    final uri = router.state.uri;
+    if (uri.queryParameters.containsKey('mode')) return;
+    if (uri.queryParameters['selected'] == id) return;
+    router.go(
+      uri
+          .replace(queryParameters: {...uri.queryParameters, 'selected': id})
+          .toString(),
+    );
   }
 
   /// Build the list of toggle action buttons for the app bar.
@@ -311,6 +346,7 @@ class TableModeLayout extends ConsumerWidget {
             ref
                 .read(settingsProvider.notifier)
                 .setShowDetailsPaneForSection(sectionKey, newValue);
+            if (newValue) _openHighlightedInPane(context);
           },
         ),
       );
@@ -374,12 +410,18 @@ class TableModeLayout extends ConsumerWidget {
 /// MasterDetailScaffold already provides the outer Scaffold.
 ///
 /// Bridges provider-driven [selectedId] changes to MasterDetailScaffold's
-/// URL-based selection via [onItemSelected] using a debounced timer. The
-/// delay (500ms) is longer than [kDoubleTapTimeout] (~300ms) so that a
-/// double-tap's [context.push] fires before the bridge can call
-/// [router.go], preventing the pushed page from being clobbered.
+/// URL-based selection via [onItemSelected], at the end of the frame that
+/// rebuilt the table with the new highlight (issue #2982).
+///
+/// The sync used to wait 500ms so a double-tap's [context.push] would land
+/// first, but the table stays mounted under the pushed page, so the late
+/// [router.go] clobbered the push, and every click lagged the detail pane.
+/// Syncing post-frame orders it the other way: the first tap's pointer-down
+/// sets the highlight and the route follows within that frame, well before
+/// the second tap can complete, so the push lands on top of it.
 class _TableModeMaster extends StatefulWidget {
   final String appBarTitle;
+  final SubtitleText? appBarSubtitle;
   final Widget tableContent;
   final Widget? mapContent;
   final Widget? profilePanelContent;
@@ -387,10 +429,14 @@ class _TableModeMaster extends StatefulWidget {
   final PreferredSizeWidget? selectionAppBar;
   final bool isSelectionMode;
   final String? selectedId;
+
+  /// The id the detail pane shows now, from MasterDetailScaffold's route.
+  final String? paneSelectedId;
   final void Function(String?)? onItemSelected;
 
   const _TableModeMaster({
     required this.appBarTitle,
+    this.appBarSubtitle,
     required this.tableContent,
     required this.toggleActions,
     this.mapContent,
@@ -398,6 +444,7 @@ class _TableModeMaster extends StatefulWidget {
     this.selectionAppBar,
     this.isSelectionMode = false,
     this.selectedId,
+    this.paneSelectedId,
     this.onItemSelected,
   });
 
@@ -406,27 +453,52 @@ class _TableModeMaster extends StatefulWidget {
 }
 
 class _TableModeMasterState extends State<_TableModeMaster> {
-  Timer? _syncTimer;
+  bool _syncScheduled = false;
+
+  /// Whether this table's page route is the one on top. A page pushed over
+  /// it, the full dive page say, still sees highlight changes reach this
+  /// table underneath.
+  bool _routeIsCurrent = true;
+
+  /// A sync skipped while another page covered the table, run once it pops.
+  bool _syncDeferred = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Depending on the route being current brings this back when that
+    // changes, so a sync deferred under a pushed page runs once it pops.
+    _routeIsCurrent = ModalRoute.isCurrentOf(context) ?? true;
+    if (_syncDeferred && _routeIsCurrent) _scheduleSync();
+  }
 
   @override
   void didUpdateWidget(_TableModeMaster oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.selectedId != oldWidget.selectedId) {
-      // Debounce: wait longer than kDoubleTapTimeout so that a double-tap's
-      // context.push fires first. If the widget is disposed (e.g. by the
-      // push navigation), the timer is cancelled in dispose().
-      _syncTimer?.cancel();
-      _syncTimer = Timer(const Duration(milliseconds: 500), () {
-        if (!mounted) return;
-        widget.onItemSelected?.call(widget.selectedId);
-      });
-    }
+    if (widget.selectedId != oldWidget.selectedId) _scheduleSync();
   }
 
-  @override
-  void dispose() {
-    _syncTimer?.cancel();
-    super.dispose();
+  /// Routes the detail pane to [selectedId] once the current frame ends.
+  /// Navigating during build is not allowed, and several highlight changes
+  /// in one frame collapse into a single navigation to the last of them.
+  void _scheduleSync() {
+    if (_syncScheduled) return;
+    _syncScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _syncScheduled = false;
+      if (!mounted) return;
+      // The full dive page steps to a neighbour by setting the highlight;
+      // going to the list route now would replace that page with the table.
+      if (!_routeIsCurrent) {
+        _syncDeferred = true;
+        return;
+      }
+      _syncDeferred = false;
+      // The embedded detail page steps to a neighbour by setting the
+      // highlight and going to the route itself; nothing is left to do.
+      if (widget.selectedId == widget.paneSelectedId) return;
+      widget.onItemSelected?.call(widget.selectedId);
+    });
   }
 
   @override
@@ -439,7 +511,10 @@ class _TableModeMasterState extends State<_TableModeMaster> {
           widget.selectionAppBar!
         else
           AppBar(
-            title: Text(widget.appBarTitle),
+            title: TitleWithSubtitle(
+              title: Text(widget.appBarTitle),
+              subtitle: widget.appBarSubtitle,
+            ),
             actions: widget.toggleActions,
           ),
         if (widget.profilePanelContent != null) widget.profilePanelContent!,

@@ -249,7 +249,7 @@ String _legacyBatchSummarySql(int n) =>
 // The two aggregation queries as they stood before plan 2d, unfiltered scope
 // (diver filter and dive filter clauses empty, leaving `WHERE p.is_primary =
 // 1` as the only predicate). Copied verbatim from
-// `git show 30234a3973e:lib/features/statistics/data/repositories/statistics_repository.dart`
+// `git show 30234a3973e:lib/features/insights/data/repositories/statistics_repository.dart`
 // (getAscentDescentRates at about line 2200, getTimeAtDepthRanges at about
 // line 2297), substituting 15 for `_rateWindowSeconds`, 3.0 for
 // `_sustainedTransitThreshold` and 4 for `_maxSampleGapFactor`.

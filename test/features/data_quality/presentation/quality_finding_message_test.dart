@@ -12,6 +12,8 @@ void main() {
   // were routed through the unit formatter rather than hardcoded.
   final fmt = QualityUnitFormatters(
     depth: (m) => 'D${m.toStringAsFixed(1)}',
+    depthRate: (mpm) => 'R${mpm.toStringAsFixed(1)}',
+    limitDepth: (m) => 'L${m.toStringAsFixed(1)}',
     pressure: (bar) => 'P${bar.toStringAsFixed(1)}',
     temperature: (c) => 'T${c.toStringAsFixed(1)}',
     sac: (lpm) => 'S${lpm.toStringAsFixed(1)}',
@@ -20,6 +22,7 @@ void main() {
     date: (d) => 'DATE(${d.year}-${d.month}-${d.day})',
     dateTime: (d) =>
         'WHEN(${d.year}-${d.month}-${d.day} ${d.hour}:${d.minute})',
+    time: (d) => 'TIME(${d.hour}:${d.minute})',
   );
 
   setUp(() {
@@ -147,12 +150,13 @@ void main() {
     });
   });
 
-  test('impossible_rate formats rate/min', () {
+  test('impossible_rate routes the rate through the rate formatter', () {
     final d = detailFor('impossible_rate', {
       'maxRateMetersPerMinute': 30.0,
       'durationSeconds': 10,
     });
-    expect(d, contains('D30.0/min'));
+    expect(d, contains('R30.0'));
+    expect(d, isNot(contains('/min')));
   });
 
   group('temp_anomaly', () {
@@ -213,6 +217,20 @@ void main() {
       );
     });
 
+    test('mixed branch names the two sources', () {
+      expect(
+        detailFor('pressure_anomaly', {'mixedSources': true, 'tankId': 't1'}),
+        contains('two sources'),
+      );
+    });
+
+    test('dropout branch counts the dropouts', () {
+      expect(
+        detailFor('pressure_anomaly', {'dropoutCount': 3, 'tankId': 't1'}),
+        contains('3 times'),
+      );
+    });
+
     test(
       'SAC branch routes L/min through the sac formatter, not hardcoded',
       () {
@@ -237,7 +255,8 @@ void main() {
     test('switch/MOD branch', () {
       final d = detailFor('gas_mod', {'switchDepth': 25.0, 'modMeters': 22.0});
       expect(d, contains('D25.0'));
-      expect(d, contains('D22.0'));
+      // The MOD is a limit: it goes through the rounded-down formatter.
+      expect(d, contains('L22.0'));
     });
 
     test('hypoxic-at-surface branch', () {
@@ -295,5 +314,69 @@ void main() {
 
   test('unknown detector yields an empty detail', () {
     expect(detailFor('nope', {}), isEmpty);
+  });
+
+  group('shared gear overlap (issue #2853)', () {
+    QualityFinding overlap({
+      List<String> parts = const [],
+      String annaName = 'Anna',
+    }) => QualityFinding(
+      id: 'f1',
+      diveId: 'a1',
+      relatedDiveId: 'b1',
+      detectorId: 'shared_gear_overlap',
+      detectorVersion: 1,
+      category: QualityCategory.time,
+      severity: QualitySeverity.info,
+      status: QualityStatus.open,
+      params: {
+        'equipmentId': 'light',
+        'itemName': 'Primary light',
+        'partIds': parts,
+        'dives': {
+          'a1': {
+            'diverId': 'anna',
+            'diverName': annaName,
+            'entryMs': DateTime.utc(2026, 7, 1, 10, 2).millisecondsSinceEpoch,
+            'linkKinds': ['gearList'],
+          },
+          'b1': {
+            'diverId': 'bill',
+            'diverName': 'Bill',
+            'entryMs': DateTime.utc(2026, 7, 1, 10, 5).millisecondsSinceEpoch,
+            'linkKinds': ['gearList'],
+          },
+        },
+      },
+      createdAt: DateTime.utc(2026, 7, 17),
+      updatedAt: DateTime.utc(2026, 7, 17),
+    );
+
+    test('names the item, both profiles and both times in UTC', () {
+      final m = buildFindingMessage(l10n, overlap(), fmt);
+      expect(m.title, 'Shared gear on overlapping dives');
+      expect(
+        m.detail,
+        "Primary light is on Anna's dive at TIME(10:2) and Bill's dive at "
+        'TIME(10:5).',
+      );
+    });
+
+    test('adds the installed parts', () {
+      final m = buildFindingMessage(
+        l10n,
+        overlap(parts: ['hose', 'octo']),
+        fmt,
+      );
+      expect(m.detail, endsWith('Includes 2 installed parts.'));
+    });
+
+    test('a profile with no name reads another profile', () {
+      final m = buildFindingMessage(l10n, overlap(annaName: ''), fmt);
+      expect(
+        m.detail,
+        startsWith("Primary light is on another profile's dive"),
+      );
+    });
   });
 }

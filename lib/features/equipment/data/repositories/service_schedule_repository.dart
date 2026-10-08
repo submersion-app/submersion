@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -106,7 +108,12 @@ class ServiceScheduleRepository {
     return schedule.copyWith(id: id, createdAt: now, updatedAt: now);
   }
 
-  Future<void> updateSchedule(domain.ServiceSchedule schedule) async {
+  /// Pass [notify] false inside a transaction and notify once after it
+  /// commits, as [createSchedule] does.
+  Future<void> updateSchedule(
+    domain.ServiceSchedule schedule, {
+    bool notify = true,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(
       _db.serviceSchedules,
@@ -131,7 +138,7 @@ class ServiceScheduleRepository {
       recordId: schedule.id,
       localUpdatedAt: now,
     );
-    SyncEventBus.notifyLocalChange();
+    if (notify) SyncEventBus.notifyLocalChange();
   }
 
   Future<void> deleteSchedule(String id) async {
@@ -161,12 +168,16 @@ class ServiceScheduleRepository {
     final kinds = await ServiceKindRepository().getAllKinds();
     final existing = await getSchedulesForEquipment(equipmentId);
     final existingKindIds = existing.map((s) => s.serviceKindId).toSet();
+    final hidden = await _hiddenServiceKinds(diverId);
     final now = DateTime.now();
     for (final kind in kinds) {
       if (!kind.isBuiltIn && kind.diverId != null && kind.diverId != diverId) {
         continue; // another diver's custom kind
       }
       if (!kind.autoAttach || !kind.appliesTo(type)) continue;
+      // Hidden by the owning diver (issue #401): an unwanted clock would
+      // only nag with due reminders.
+      if (kind.isBuiltIn && hidden.contains(kind.id)) continue;
       if (existingKindIds.contains(kind.id)) continue;
       await createSchedule(
         domain.ServiceSchedule(
@@ -179,6 +190,22 @@ class ServiceScheduleRepository {
         notify: notify,
       );
     }
+  }
+
+  /// The built-in service kinds [diverId] hid from the pickers (issue #401).
+  /// Read straight from diver_settings, as [getDueSoonWindowDays] does, so
+  /// equipment creation does not depend on the settings notifier.
+  Future<Set<String>> _hiddenServiceKinds(String? diverId) async {
+    if (diverId == null) return const {};
+    final row =
+        await (_db.select(_db.diverSettings)
+              ..where((t) => t.diverId.equals(diverId))
+              ..limit(1))
+            .getSingleOrNull();
+    return decodeHiddenBuiltIns(
+          row?.hiddenBuiltInIds,
+        )[BuiltInCatalog.serviceKinds.key] ??
+        const {};
   }
 
   /// The widest configured reminder-days value for [diverId] (default 30):

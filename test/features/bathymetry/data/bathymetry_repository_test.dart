@@ -155,11 +155,11 @@ void main() {
     // The key carries the request span and the selection generation, so a
     // change to either refetches instead of serving the old cached answer
     // forever.
-    expect(BathymetryRepository.keyFor(bonaire), '12.16,-68.30@8000v5');
+    expect(BathymetryRepository.keyFor(bonaire), '12.16,-68.30@8000v6');
     // Nearby coordinates share the key.
     expect(
       BathymetryRepository.keyFor(const GeoPoint(12.171, -68.281)),
-      '12.16,-68.30@8000v5',
+      '12.16,-68.30@8000v6',
     );
   });
 
@@ -266,6 +266,69 @@ void main() {
     expect(source.calls, 2); // retried
   });
 
+  group('fallback answers reached through a transient failure (issue '
+      '#1770)', () {
+    BathymetryGrid regionalGrid() => BathymetryGrid(
+      originLat: 12.14,
+      originLon: -68.31,
+      cellSizeLatDeg: 0.004,
+      cellSizeLonDeg: 0.004,
+      rows: 2,
+      cols: 2,
+      depthsMeters: const [10, 20, 30, 40],
+      sourceId: 'regional',
+      resolutionMeters: 2,
+      fetchedAt: DateTime.utc(2026, 7, 28),
+    );
+
+    BathymetryRepository tiered(BathymetrySource a, BathymetrySource b) =>
+        BathymetryRepository(
+          db: db,
+          resolver: BathymetryResolver(sources: [a, b]),
+        );
+
+    test('a fallback grid is shown but not cached, so the next call '
+        'retries the preferred tier and caches its grid', () async {
+      var regionalUp = false;
+      final regional = ScriptedSource(
+        () => regionalUp
+            ? BathymetryResolution.ok(regionalGrid())
+            : const BathymetryResolution.transientFailure(),
+      );
+      final fallback = ScriptedSource(() => BathymetryResolution.ok(wetGrid()));
+      final r = tiered(regional, fallback);
+
+      final first = await r.getGrid(bonaire);
+      expect(first!.sourceId, 'gmrt'); // still displayed right away
+      expect(await db.select(db.bathymetryCache).get(), isEmpty);
+      expect(await r.hasCachedAnswer(bonaire), isFalse);
+
+      regionalUp = true; // the hiccup is over
+      final second = await r.getGrid(bonaire);
+      expect(second!.sourceId, 'regional');
+      expect(regional.calls, 2);
+      final row = await db.select(db.bathymetryCache).getSingle();
+      expect(row.status, 'ok');
+      expect(row.sourceId, 'regional');
+    });
+
+    test('a dry fallback answer is not cached as empty', () async {
+      final regional = ScriptedSource(
+        () => const BathymetryResolution.transientFailure(),
+      );
+      final dryFallback = ScriptedSource(
+        () => const BathymetryResolution.empty(),
+      );
+      final r = tiered(regional, dryFallback);
+
+      expect(await r.getGrid(bonaire), isNull);
+      expect(await db.select(db.bathymetryCache).get(), isEmpty);
+      expect(await r.hasCachedAnswer(bonaire), isFalse);
+      expect(await r.getGrid(bonaire), isNull);
+      expect(regional.calls, 2); // retried, not pinned
+    });
+  });
+
   test('concurrent calls for one key share a single resolve', () async {
     final source = ScriptedSource(() => BathymetryResolution.ok(wetGrid()));
     final r = repo(source);
@@ -359,7 +422,7 @@ void main() {
       final baseKey = BathymetryRepository.keyFor(bonaire);
       final patchKey = BathymetryRepository.keyFor(bonaire, spanMeters: 500);
       expect(patchKey, isNot(baseKey));
-      expect(patchKey, endsWith('@500v5'));
+      expect(patchKey, endsWith('@500v6'));
       // Omitting spanMeters must reproduce the exact base-square key, so
       // every already-cached base row keeps matching untouched.
       expect(
@@ -501,7 +564,7 @@ void main() {
 
   test('the cache key carries the selection generation', () {
     final key = BathymetryRepository.keyFor(const GeoPoint(12.16, -68.29));
-    expect(key, endsWith('@8000v5'));
+    expect(key, endsWith('@8000v6'));
   });
 
   test('a row written under the previous generation is not reused', () {

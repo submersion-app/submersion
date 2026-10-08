@@ -49,9 +49,9 @@ Download straight from your computer.
 
 <br clear="all"><br>
 
-> **Confirmed working:** Shearwater Teric, Aqualung i300C, Aqualung i330R. Have a
-> different dive computer? [Help us expand this list](https://github.com/submersion-app/submersion/issues).
-> We are looking for testers.
+> **Will it work with my computer?** The [support matrix](https://submersion.app/computers/)
+> lists every model, the connections each platform can use, and what divers have
+> reported. Tried one that is not verified yet? [Tell us how it went](https://github.com/submersion-app/submersion/issues/new?template=computer-report.yml&labels=computer-report).
 
 <img align="right" width="50%" src="docs/assets/screenshots/readme/04-sites-maps.jpg" alt="Dive site list beside an interactive map with clustered markers and a dive heat map">
 
@@ -148,8 +148,13 @@ Most dive logging software falls into two categories: desktop applications stuck
 
 ## Download
 
-- **macOS / Windows / Linux / Android:** [GitHub Releases](https://github.com/submersion-app/submersion/releases)
 - **iOS:** [App Store](https://apps.apple.com/us/app/submersion-dive-log/id6757456915)
+- **Android:** [Google Play](https://play.google.com/store/apps/details?id=app.submersion),
+  or the APK from [GitHub Releases](https://github.com/submersion-app/submersion/releases)
+- **macOS / Windows / Linux:** [GitHub Releases](https://github.com/submersion-app/submersion/releases)
+
+New to Submersion? The [user guide](https://submersion.app/guide/) covers
+everything from your first dive to sync and backup.
 
 ### Beta channel
 
@@ -341,6 +346,8 @@ not depend on a developer account:
 	<true/>
 	<key>com.apple.security.device.bluetooth</key>
 	<true/>
+	<key>com.apple.security.device.camera</key>
+	<true/>
 	<key>com.apple.security.device.serial</key>
 	<true/>
 	<key>com.apple.security.device.usb</key>
@@ -439,17 +446,15 @@ The built app will be at `build\windows\x64\runner\Release\`.
 > tarball fails the same way, because three bundled libraries require
 > GLIBC_2.38. Upgrading the distribution is the only path.
 
-> **Where the packages are today:** the `.deb` and `.rpm` ship with every beta
-> build at
-> [submersion-app/beta-builds](https://github.com/submersion-app/beta-builds/releases).
-> They reach the stable
+> **Where to get them:** the `.deb`, `.rpm` and tarball are on the
 > [Releases page](https://github.com/submersion-app/submersion/releases) with
-> the next stable release; that page currently carries the tarball only.
+> every stable release, and with every beta build at
+> [submersion-app/beta-builds](https://github.com/submersion-app/beta-builds/releases).
 
 **Debian, Ubuntu, Mint, and derivatives**
 
 Download `Submersion-v<version>-Linux-amd64.deb` from
-[beta releases](https://github.com/submersion-app/beta-builds/releases), then:
+[Releases](https://github.com/submersion-app/submersion/releases), then:
 
 ```bash
 sudo apt install ./Submersion-*-Linux-amd64.deb
@@ -457,8 +462,8 @@ sudo apt install ./Submersion-*-Linux-amd64.deb
 
 **Fedora and RHEL**
 
-Download `Submersion-v<version>-Linux-x86_64.rpm` from the
-[beta releases](https://github.com/submersion-app/beta-builds/releases), then:
+Download `Submersion-v<version>-Linux-x86_64.rpm` from
+[Releases](https://github.com/submersion-app/submersion/releases), then:
 
 ```bash
 sudo dnf install ./Submersion-*-Linux-x86_64.rpm
@@ -570,13 +575,13 @@ lib/
 - **flutter_map:** OpenStreetMap integration
 - **libdivecomputer:** FFI bindings for dive computer communication
 
-See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed documentation.
+See the [architecture guide](docs/developer/architecture.md) for detailed documentation.
 
 </details>
 
 ## Roadmap
 
-See [FEATURE_ROADMAP.md](docs/FEATURE_ROADMAP.md) for what is built, what is in progress, and what is planned.
+See the [roadmap](docs/contributing/roadmap.md) for what is built, what is in progress, and what is planned.
 
 ## Contributing
 

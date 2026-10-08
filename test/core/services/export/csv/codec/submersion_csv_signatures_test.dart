@@ -3,6 +3,7 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/csv/codec/submersion_csv_signatures.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
+import 'package:submersion/core/services/export/csv/csv_fills_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
 
 import '../csv_dives_writer_test.dart' show imperial;
@@ -42,6 +43,14 @@ void main() {
         SubmersionCsvKind.equipment,
       );
     });
+
+    test('fills export matches in $label mode', () {
+      final csv = CsvFillsWriter(units).write(goldenFills());
+      expect(
+        SubmersionCsvSignatures.match(_headers(csv)),
+        SubmersionCsvKind.fills,
+      );
+    });
   }
 
   test("other apps' CSVs do not match", () {
@@ -59,6 +68,20 @@ void main() {
       isNull,
     );
     expect(SubmersionCsvSignatures.match(['Date', 'Time', 'Depth']), isNull);
+  });
+
+  test('a fills export is never read as a dives export, or the reverse', () {
+    // The two sheets share Date, Time, O2 %, Serial Number and Notes.
+    final fills = _headers(
+      CsvFillsWriter(CsvExportUnits.metric).write(goldenFills()),
+    );
+    expect(fills, isNot(contains('Dive Number')));
+    expect(SubmersionCsvSignatures.match(fills), SubmersionCsvKind.fills);
+    final dives = _headers(
+      CsvDivesWriter(CsvExportUnits.metric).write(goldenDives()),
+    );
+    expect(dives, isNot(contains('Fill ID')));
+    expect(SubmersionCsvSignatures.match(dives), SubmersionCsvKind.dives);
   });
 
   test('an equipment export from before the Tags column still matches', () {

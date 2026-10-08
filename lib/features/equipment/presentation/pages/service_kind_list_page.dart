@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
@@ -11,6 +12,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/exposure_interval_input.dart';
 import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_category_label.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -19,6 +22,8 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/shared/widgets/built_in_show_column.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Catalog management for service kinds: built-ins are read-only reference
 /// data; custom kinds support full CRUD.
@@ -63,6 +68,9 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
   @override
   Widget build(BuildContext context) {
     final kindsAsync = ref.watch(serviceKindsProvider);
+    final hidden = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.serviceKinds),
+    );
     final l10n = context.l10n;
 
     // Built-in kinds are reference data the repository refuses to delete
@@ -117,7 +125,19 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
               final custom = kinds.where((k) => !k.isBuiltIn).toList();
               return ListView(
                 children: [
-                  _SectionHeader(title: l10n.equipment_serviceKinds_builtIn),
+                  // The switches give way in selection mode, so the column's
+                  // label does too.
+                  if (_isSelectionMode)
+                    _SectionHeader(title: l10n.equipment_serviceKinds_builtIn)
+                  else
+                    BuiltInShowColumnHeader(
+                      title: l10n.equipment_serviceKinds_builtIn,
+                      titleStyle: Theme.of(context).textTheme.titleSmall
+                          ?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                      bottom: 4,
+                    ),
                   for (final kind in builtIn)
                     ListTile(
                       // Not selectable: the repository refuses to delete these,
@@ -130,6 +150,31 @@ class _ServiceKindListPageState extends ConsumerState<ServiceKindListPage> {
                       ),
                       title: Text(kind.name),
                       subtitle: Text(_intervalSummary(context, kind)),
+                      // A hidden built-in stays listed so it can be shown
+                      // again (issue #401).
+                      textColor: hidden.contains(kind.id)
+                          ? Theme.of(context).disabledColor
+                          : null,
+                      iconColor: hidden.contains(kind.id)
+                          ? Theme.of(context).disabledColor
+                          : null,
+                      // Yields to selection mode like the custom rows' trash.
+                      trailing: _isSelectionMode
+                          ? null
+                          : BuiltInShowSwitch(
+                              switchKey: builtInShowSwitchKey(
+                                BuiltInCatalog.serviceKinds,
+                                kind.id,
+                              ),
+                              shown: !hidden.contains(kind.id),
+                              onChanged: (shown) => ref
+                                  .read(settingsProvider.notifier)
+                                  .setBuiltInHidden(
+                                    BuiltInCatalog.serviceKinds,
+                                    kind.id,
+                                    !shown,
+                                  ),
+                            ),
                     ),
                   _SectionHeader(title: l10n.equipment_serviceKinds_custom),
                   if (custom.isEmpty)
@@ -401,6 +446,7 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _days,
+                  validator: numberValidator(context, integer: true),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l10n.equipment_scheduleDialog_intervalDays,
@@ -409,6 +455,7 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _dives,
+                  validator: numberValidator(context, integer: true),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l10n.equipment_scheduleDialog_intervalDives,
@@ -417,6 +464,7 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _hours,
+                  validator: numberValidator(context),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -429,6 +477,10 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                   TextFormField(
                     key: Key('service-kind-exposure-${unit.name}'),
                     controller: _exposure[unit],
+                    validator: numberValidator(
+                      context,
+                      integer: !unit.isFractional,
+                    ),
                     keyboardType: unit.isFractional
                         ? const TextInputType.numberWithOptions(decimal: true)
                         : TextInputType.number,
@@ -450,14 +502,12 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                     labelText: l10n.equipment_serviceKinds_defaultCostLabel,
                     hintText: l10n.equipment_serviceKinds_defaultCostHint,
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return null;
-                    final parsed = parseUserDecimal(value);
-                    if (parsed == null || parsed < 0) {
-                      return l10n.equipment_serviceDialog_costValidation;
-                    }
-                    return null;
-                  },
+                  validator: numberValidator(
+                    context,
+                    check: (cost) => cost < 0
+                        ? l10n.equipment_serviceDialog_costValidation
+                        : null,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 // Full width rather than sharing a row with the price: the
@@ -527,7 +577,8 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                   spacing: 8,
                   runSpacing: 4,
                   children: [
-                    for (final type in EquipmentType.values)
+                    for (final type
+                        in EquipmentType.values.sortedByLocalizedName(l10n))
                       FilterChip(
                         label: Text(type.localizedName(l10n)),
                         selected: _types.contains(type),
@@ -582,13 +633,19 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
           diverId: diverId,
           name: _name.text.trim(),
           applicableTypes: _types.toList(),
-          defaultIntervalDays: parseUserInt(_days.text),
-          defaultIntervalDives: parseUserInt(_dives.text),
-          defaultIntervalHours: parseUserDecimal(_hours.text),
+          defaultIntervalDays: serviceFieldNumber(
+            _days.text,
+            integer: true,
+          )?.toInt(),
+          defaultIntervalDives: serviceFieldNumber(
+            _dives.text,
+            integer: true,
+          )?.toInt(),
+          defaultIntervalHours: serviceFieldNumber(_hours.text),
           exposureIntervals: parseExposureIntervals({
             for (final e in _exposure.entries) e.key: e.value.text,
           }),
-          defaultCost: parseUserDecimal(_defaultCost.text),
+          defaultCost: serviceFieldNumber(_defaultCost.text),
           defaultCurrency: _defaultCurrency,
           defaultCategory: _defaultCategory,
           autoAttach: _autoAttach,
@@ -604,13 +661,19 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
           diverId: existing.diverId,
           name: _name.text.trim(),
           applicableTypes: _types.toList(),
-          defaultIntervalDays: parseUserInt(_days.text),
-          defaultIntervalDives: parseUserInt(_dives.text),
-          defaultIntervalHours: parseUserDecimal(_hours.text),
+          defaultIntervalDays: serviceFieldNumber(
+            _days.text,
+            integer: true,
+          )?.toInt(),
+          defaultIntervalDives: serviceFieldNumber(
+            _dives.text,
+            integer: true,
+          )?.toInt(),
+          defaultIntervalHours: serviceFieldNumber(_hours.text),
           exposureIntervals: parseExposureIntervals({
             for (final e in _exposure.entries) e.key: e.value.text,
           }),
-          defaultCost: parseUserDecimal(_defaultCost.text),
+          defaultCost: serviceFieldNumber(_defaultCost.text),
           defaultCurrency: _defaultCurrency,
           defaultCategory: _defaultCategory,
           autoAttach: _autoAttach,

@@ -15,6 +15,20 @@ typedef SeascapeAxisInputs = ({
   double verticalExaggeration,
 });
 
+/// The projection a scene reported [frame] for, rebuilt exactly. Anything
+/// layered onto or labelling a built scene afterwards (axes, an LOD patch,
+/// a played-back path) must use this, or it lands at a different place or
+/// vertical scale from the terrain it describes.
+SpatialProjection seascapeProjection(SeascapeAxisInputs frame) =>
+    SpatialProjection(
+      minEast: frame.minEast,
+      maxEast: frame.maxEast,
+      minNorth: frame.minNorth,
+      maxNorth: frame.maxNorth,
+      maxDepth: frame.maxDepth,
+      verticalExaggeration: frame.verticalExaggeration,
+    );
+
 /// The seascape's measurement chrome: a map-frame at the waterline (two
 /// distance axes along the south and west edges) plus a depth axis
 /// descending at the origin corner. No reference grids — axes, ticks, and

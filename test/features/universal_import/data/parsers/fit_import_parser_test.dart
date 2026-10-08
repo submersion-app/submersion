@@ -196,6 +196,15 @@ void main() {
     },
   );
 
+  test('omits n2Load and computerTissue when the file records no N2', () async {
+    final payload = await const FitImportParser().parse(_richFitBytes());
+    final d = payload.entities[ImportEntityType.dives]!.single;
+
+    expect(d.containsKey('computerTissue'), isFalse);
+    final profile = d['profile'] as List<Map<String, dynamic>>;
+    expect(profile.any((p) => p.containsKey('n2Load')), isFalse);
+  });
+
   test(
     'emits tank pressure, allTankPressures, exit GPS, and heart rate',
     () async {
@@ -257,6 +266,20 @@ void main() {
       );
     });
   });
+
+  test(
+    'a dive with a recorded profile is not flagged as profile-less',
+    () async {
+      final payload = await const FitImportParser().parse(_richFitBytes());
+
+      expect(
+        payload.warnings.where(
+          (w) => w.code == ImportWarningCode.profileUnreadable,
+        ),
+        isEmpty,
+      );
+    },
+  );
 
   group('dive name from source filename', () {
     ImportOptions optsWithFile(String name) => ImportOptions(

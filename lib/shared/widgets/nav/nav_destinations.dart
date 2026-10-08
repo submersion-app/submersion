@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/nav/nav_id_aliases.dart';
 import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
@@ -32,7 +33,7 @@ class NavDestination {
   /// Returns the localized label for this destination.
   final String Function(AppLocalizations) label;
 
-  /// Optional localized subtitle, used for Courses, Planning, and GPS Log.
+  /// Optional localized subtitle, used for Courses, Planning, and Tracks.
   final String Function(AppLocalizations)? subtitle;
 
   /// When `true`, this destination cannot be moved between primary and overflow.
@@ -118,7 +119,7 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
   // Species closes the logging-and-training run that precedes the analysis
   // surfaces: it is a record of what dives turned up, so it reads last before
   // Insights. Material has no fish glyph, so this borrows MDI's and reuses
-  // it for the selected state the way `gps-log` reuses its icon.
+  // it for the selected state.
   NavDestination(
     id: 'species',
     route: '/species',
@@ -149,12 +150,12 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     label: (l10n) => l10n.nav_transfer,
   ),
   NavDestination(
-    id: 'gps-log',
-    route: '/gps-log',
-    icon: Icons.gps_fixed,
-    selectedIcon: Icons.gps_fixed,
-    label: (l10n) => l10n.nav_gpsLog,
-    subtitle: (l10n) => l10n.tools_gpsLogger_subtitle,
+    id: 'tracks',
+    route: kTracksLocation,
+    icon: Icons.route_outlined,
+    selectedIcon: Icons.route,
+    label: (l10n) => l10n.nav_tracks,
+    subtitle: (l10n) => l10n.nav_tracksSubtitle,
   ),
   NavDestination(
     id: 'settings',

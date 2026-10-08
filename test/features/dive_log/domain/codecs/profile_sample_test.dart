@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
@@ -31,6 +32,8 @@ void main() {
     rbt: 1500,
     decoType: 2,
     tts: 900,
+    gf99: 47,
+    n2Load: 81,
   );
 
   test('fromPoint then toPoint is the identity on every point field', () {
@@ -45,6 +48,27 @@ void main() {
     expect(sample.toPoint(), point);
   });
 
+  test('toPoint drops a safety stop\'s ceiling (#2550)', () {
+    // A series stored before the import fix (or synced from a peer that
+    // has not updated) can still hold one; no reader may take it for a
+    // decompression ceiling.
+    const safety = ProfileSample(
+      timestamp: 300,
+      depth: 5.0,
+      ceiling: 5.0,
+      decoType: 1,
+    );
+    expect(safety.toPoint().ceiling, isNull);
+    expect(safety.toPoint().decoType, 1);
+    const deco = ProfileSample(
+      timestamp: 300,
+      depth: 9.0,
+      ceiling: 6.0,
+      decoType: 2,
+    );
+    expect(deco.toPoint().ceiling, 6.0);
+  });
+
   test('a minimal point maps with every optional field null', () {
     const minimal = DiveProfilePoint(timestamp: 0, depth: 0.0);
     final sample = profileSampleFromPoint(minimal);
@@ -54,6 +78,8 @@ void main() {
     expect(sample.temperature, isNull);
     expect(sample.heartRateSource, isNull);
     expect(sample.o2SensorMv6, isNull);
+    expect(sample.gf99, isNull);
+    expect(sample.n2Load, isNull);
     expect(sample.toPoint(), minimal);
   });
 
@@ -64,6 +90,6 @@ void main() {
     expect(a, b);
     expect(a.hashCode, b.hashCode);
     expect(a, isNot(c));
-    expect(a.props, hasLength(28));
+    expect(a.props, hasLength(30));
   });
 }

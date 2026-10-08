@@ -4,9 +4,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
-import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/presentation/helpers/asset_import_candidate.dart';
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
-import 'package:submersion/features/media/domain/value_objects/import_preview.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_view.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
@@ -73,15 +72,7 @@ class SpeciesPhotoImportHelper {
         const <AssetInfo>[];
     if (assets.isEmpty || !context.mounted) return;
 
-    final candidates = [
-      for (final a in assets)
-        ImportCandidate(
-          key: a.id,
-          title: a.filename ?? a.id,
-          takenAt: TripMediaScanner.toWallClockUtc(a.createDateTime),
-          preview: AssetImportPreview(a.id),
-        ),
-    ];
+    final candidates = [for (final a in assets) importCandidateForAsset(a)];
 
     SpeciesImportOutcome? outcome;
     await Navigator.of(context).push(

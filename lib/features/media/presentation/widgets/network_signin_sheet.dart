@@ -1,5 +1,5 @@
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3a.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3a.md`
 // Task 15. The plan is intentionally light here ("hostname read-only,
 // auth type segmented control, conditional fields, Save button calls
 // `urlTabNotifierProvider.notifier.saveCredentials(...)`") so the test

@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -469,11 +471,56 @@ void main() {
           Certification(
             id: '1',
             name: 'Open Water',
-            agency: CertificationAgency.padi,
+            agency: CertificationAgency.padi.name,
             createdAt: now,
             updatedAt: now,
           ),
         ],
+      );
+
+      expect(result.duplicates[ImportEntityType.certifications], {0});
+    });
+
+    test('a custom agency matches by its name on re-import (issue #690)', () {
+      final catalog = CertificationCatalog(
+        agencies: [
+          CustomCertificationAgency(
+            id: 'club-x-id',
+            diverId: 'a',
+            name: 'Club X',
+            colorArgb: 0xFF3B82F6,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ],
+      );
+      final result = checker.check(
+        payload: const ImportPayload(
+          entities: {
+            ImportEntityType.certifications: [
+              {'name': 'Club Diver', 'agency': 'Club X'},
+              {'name': 'Club Diver', 'agency': 'Club Y'},
+            ],
+          },
+        ),
+        existingDives: const [],
+        existingSites: const [],
+        existingTrips: const [],
+        existingEquipment: const [],
+        existingBuddies: const [],
+        existingDiveCenters: const [],
+        existingCertifications: [
+          Certification(
+            id: '1',
+            name: 'Club Diver',
+            agency: 'club-x-id',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ],
+        existingTags: const [],
+        existingDiveTypes: const [],
+        certificationCatalog: catalog,
       );
 
       expect(result.duplicates[ImportEntityType.certifications], {0});

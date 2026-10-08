@@ -11,7 +11,7 @@ import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
 
 /// Regression tests for the FK violations the on-device diagnosis surfaced
-/// (see docs/superpowers/findings/2026-06-02-icloud-sync-diagnosis.md and
+/// (see docs/design/findings/2026-06-02-icloud-sync-diagnosis.md and
 /// test/core/services/sync/_diagnose_apply_failures_test.dart).
 ///
 /// Two distinct intra-payload referential bugs are exercised:

@@ -43,6 +43,7 @@ import 'package:submersion/features/universal_import/data/parsers/uddf_import_pa
 import 'package:xml/xml.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 const _diverId = 'diver-gps-round-trip';
 const _diveId = 'dive-gps-1';
@@ -122,6 +123,12 @@ DiveSourceExport _source({
 }
 
 void main() {
+  // The code under test calls Open-Meteo; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+  });
+
   late AppDatabase db;
 
   setUp(() async {
@@ -450,26 +457,6 @@ void main() {
         hasLength(2),
         reason: 'both exported sources come back, not one synthesised row',
       );
-    });
-  });
-
-  group('simple dives import', () {
-    test('reads the dive GPS a dives-only export writes', () async {
-      final xml = await UddfExportService().generateDivesUddfContent([
-        _dive(
-          entry: const GeoPoint(-8.274, 115.593),
-          exit: const GeoPoint(-8.275, 115.594),
-        ),
-      ]);
-
-      final dive = (await ExportService().importDivesFromUddf(
-        xml,
-      ))['dives']!.single;
-
-      expect(dive['latitude'], closeTo(-8.274, 1e-12));
-      expect(dive['longitude'], closeTo(115.593, 1e-12));
-      expect(dive['exitLatitude'], closeTo(-8.275, 1e-12));
-      expect(dive['exitLongitude'], closeTo(115.594, 1e-12));
     });
   });
 

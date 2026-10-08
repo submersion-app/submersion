@@ -17,6 +17,9 @@ import 'package:submersion/features/data_quality/domain/quality_thresholds.dart'
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
+import 'package:submersion/features/data_quality/domain/services/shared_gear_overlap_rules.dart';
 
 class QualityContextBuilder {
   QualityContextBuilder({
@@ -42,6 +45,14 @@ class QualityContextBuilder {
   /// '' stands for the implicit default diver (a null diver_id).
   final Map<String, double> _ppO2MaxByDiver = {};
 
+  /// How many profiles the library holds, read once per [buildAll] batch:
+  /// with fewer than two, no dive can share gear with another profile's.
+  int? _profileCount;
+
+  /// Profile names by id, read once per [buildAll] batch for the shared
+  /// gear overlaps.
+  Map<String, String>? _diverNames;
+
   Future<List<DiveQualityContext>> buildAll(
     List<String> diveIds, {
     DateTime? now,
@@ -49,6 +60,8 @@ class QualityContextBuilder {
     final effectiveNow = now ?? DateTime.now();
     _ppO2MaxByDiver.clear();
     _knownSerialsByDiver.clear();
+    _profileCount = null;
+    _diverNames = null;
     final dives = await _diveRepo.getDivesByIds(diveIds);
     final out = <DiveQualityContext>[];
     for (final dive in dives) {
@@ -105,8 +118,14 @@ class QualityContextBuilder {
           QualitySample(t: p.timestamp, depth: p.depth, temp: p.temperature),
     ];
 
+    final sources = await _diveRepo.getDataSources(dive.id);
     final pressures = <String, List<QualityPressureSample>>{};
-    final tankSeries = await _tankSeries.getSeriesForDive(dive.id);
+    // The detectors read what the rest of the app reads: one source per
+    // stretch of a tank, never two recordings interleaved (#2440).
+    final tankSeries = selectTankSeriesPerSource(
+      await _tankSeries.getSeriesForDive(dive.id),
+      preferredSourceId: sources.where((s) => s.isPrimary).firstOrNull?.id,
+    );
     final byTank = <String, List<series.TankPressureSeries>>{};
     for (final s in tankSeries) {
       byTank.putIfAbsent(s.tankId, () => []).add(s);
@@ -137,7 +156,6 @@ class QualityContextBuilder {
         ),
     ];
 
-    final sources = await _diveRepo.getDataSources(dive.id);
     final neighbors = await _neighbors(dive);
     final carriesDiverData = await _carriesDiverData(dive.id);
 
@@ -154,7 +172,164 @@ class QualityContextBuilder {
       neighbors: neighbors,
       ppO2MaxBar: await _ppO2Max(dive.diverId),
       knownTransmitterSerials: await _knownSerials(dive.diverId),
+      sharedGearOverlaps: await _sharedGearOverlaps(dive),
     );
+  }
+
+  /// Other profiles' dives in the neighbour window that share an item with
+  /// [dive], through any of the links in `diveGearUsageSql` (issue #2853).
+  /// Times are rebuilt as UTC wall-clock instants, as [_neighbors] does.
+  Future<List<SharedGearOverlap>> _sharedGearOverlaps(domain.Dive dive) async {
+    final diverId = dive.diverId;
+    if (diverId == null) return const [];
+    _profileCount ??=
+        (await _db.customSelect('SELECT COUNT(*) AS n FROM divers').getSingle())
+            .read<int>('n');
+    if (_profileCount! < 2) return const [];
+
+    final mine = <String, Set<String>>{};
+    for (final r in await gearUsageForDives(_db, [dive.id])) {
+      mine.putIfAbsent(r.equipmentId, () => {}).add(r.linkKind);
+    }
+    if (mine.isEmpty) return const [];
+
+    final entry = dive.effectiveEntryTime;
+    // The end the detector uses, so the window reaches every dive it could
+    // pair with; a dive without one still looks around its entry.
+    final exit =
+        sharedGearExit(
+          entry: entry,
+          exit: dive.exitTime,
+          runtime: dive.runtime,
+          bottomTime: dive.bottomTime,
+        ) ??
+        entry;
+    final windowMs = QualityThresholds.neighborWindow.inMilliseconds;
+    final others = await _db
+        .customSelect(
+          'SELECT id, diver_id, entry_time, dive_date_time, exit_time, '
+          'runtime, bottom_time FROM dives '
+          'WHERE id != ?1 AND diver_id IS NOT NULL AND diver_id != ?2 '
+          'AND COALESCE(entry_time, dive_date_time) BETWEEN ?3 AND ?4',
+          variables: [
+            Variable.withString(dive.id),
+            Variable.withString(diverId),
+            Variable.withInt(entry.millisecondsSinceEpoch - windowMs),
+            Variable.withInt(exit.millisecondsSinceEpoch + windowMs),
+          ],
+        )
+        .get();
+    if (others.isEmpty) return const [];
+
+    // Other dive -> shared item -> link kinds on that dive.
+    final theirs = <String, Map<String, Set<String>>>{};
+    for (final r in await gearUsageForDives(_db, [
+      for (final o in others) o.read<String>('id'),
+    ])) {
+      if (!mine.containsKey(r.equipmentId)) continue;
+      theirs
+          .putIfAbsent(r.diveId, () => {})
+          .putIfAbsent(r.equipmentId, () => {})
+          .add(r.linkKind);
+    }
+    if (theirs.isEmpty) return const [];
+
+    final sharedIds = {for (final m in theirs.values) ...m.keys}.toList()
+      ..sort();
+    final names = <String, String>{};
+    // Assembly links of a gear row belong to its dive: a pair folds by the
+    // rows of its own two dives only, or a third dive nearby could make the
+    // two sides of the pair fold differently.
+    final viaByDive = <String, Map<String, Set<String>>>{};
+    final hosts = <String, Set<String>>{
+      for (final id in sharedIds) id: <String>{},
+    };
+    for (final chunk in seriesIdChunks(sharedIds)) {
+      for (final r in await (_db.select(
+        _db.equipment,
+      )..where((t) => t.id.isIn(chunk))).get()) {
+        names[r.id] = r.name;
+        if (r.parentEquipmentId case final host?) hosts[r.id]!.add(host);
+      }
+      for (final e in await (_db.select(
+        _db.equipmentComponents,
+      )..where((t) => t.componentEquipmentId.isIn(chunk))).get()) {
+        hosts[e.componentEquipmentId]!.add(e.parentEquipmentId);
+      }
+      for (final g
+          in await (_db.select(_db.diveEquipment)..where(
+                (t) =>
+                    t.equipmentId.isIn(chunk) &
+                    t.diveId.isIn([dive.id, ...theirs.keys]),
+              ))
+              .get()) {
+        if (g.viaEquipmentId case final via?) {
+          viaByDive
+              .putIfAbsent(g.diveId, () => {})
+              .putIfAbsent(g.equipmentId, () => {})
+              .add(via);
+        }
+      }
+    }
+    final installed = <String, List<String>>{};
+    for (final chunk in seriesIdChunks(sharedIds)) {
+      for (final r
+          in await (_db.select(_db.equipment)..where(
+                (t) =>
+                    t.parentEquipmentId.isIn(chunk) & t.isActive.equals(true),
+              ))
+              .get()) {
+        installed.putIfAbsent(r.parentEquipmentId!, () => []).add(r.id);
+      }
+    }
+    final diverNames = _diverNames ??= {
+      for (final r in await _db.select(_db.divers).get()) r.id: r.name,
+    };
+
+    final out = <SharedGearOverlap>[];
+    for (final o in others) {
+      final otherId = o.read<String>('id');
+      final items = theirs[otherId];
+      if (items == null) continue;
+      final entryMs =
+          o.read<int?>('entry_time') ?? o.read<int>('dive_date_time');
+      final durationSeconds =
+          o.read<int?>('runtime') ?? o.read<int?>('bottom_time');
+      final exitMs =
+          o.read<int?>('exit_time') ??
+          (durationSeconds != null ? entryMs + durationSeconds * 1000 : null);
+      final otherDiverId = o.read<String>('diver_id');
+      out.add(
+        SharedGearOverlap(
+          otherDiveId: otherId,
+          otherDiverId: otherDiverId,
+          otherDiverName: diverNames[otherDiverId] ?? '',
+          thisDiverName: diverNames[diverId] ?? '',
+          otherEntry: DateTime.fromMillisecondsSinceEpoch(entryMs, isUtc: true),
+          otherExit: exitMs == null
+              ? null
+              : DateTime.fromMillisecondsSinceEpoch(exitMs, isUtc: true),
+          items: [
+            for (final id in items.keys.toList()..sort())
+              SharedGearItem(
+                equipmentId: id,
+                name: names[id] ?? '',
+                thisLinkKinds: mine[id]!,
+                otherLinkKinds: items[id]!,
+                hostIds: {
+                  ...?hosts[id],
+                  ...?viaByDive[dive.id]?[id],
+                  ...?viaByDive[otherId]?[id],
+                },
+                installedPartIds: (installed[id] ?? const <String>[]).toList()
+                  ..sort(),
+              ),
+          ],
+        ),
+      );
+    }
+    out.sort((a, b) => a.otherDiveId.compareTo(b.otherDiveId));
+    return out;
   }
 
   /// [DiveQualityContext.carriesDiverData] for one dive. Read through the same

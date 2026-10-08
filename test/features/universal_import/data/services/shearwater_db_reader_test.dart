@@ -3,11 +3,77 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:sqlite3/sqlite3.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 
 import 'shearwater_test_helpers.dart';
 
+/// [bytes] after running [statements] against them: for an export whose
+/// schema the fixture builder does not write.
+Uint8List _rewritten(Uint8List bytes, List<String> statements) {
+  final dir = Directory.systemTemp.createTempSync('sw_rewrite_');
+  try {
+    final path = p.join(dir.path, 'fixture.db');
+    File(path).writeAsBytesSync(bytes);
+    final db = sqlite3.open(path);
+    try {
+      statements.forEach(db.execute);
+    } finally {
+      db.close();
+    }
+    return File(path).readAsBytesSync();
+  } finally {
+    dir.deleteSync(recursive: true);
+  }
+}
+
 void main() {
+  group('ShearwaterGf99Sample', () {
+    const a = ShearwaterGf99Sample(timeSeconds: 10, gf99: 42);
+    const b = ShearwaterGf99Sample(timeSeconds: 10, gf99: 42);
+    const c = ShearwaterGf99Sample(timeSeconds: 11, gf99: 42);
+    const d = ShearwaterGf99Sample(timeSeconds: 10, gf99: 41);
+
+    test('value equality is by time and gf99', () {
+      expect(a, b);
+      expect(a, isNot(c));
+      expect(a, isNot(d));
+      expect(a, isNot(10));
+    });
+
+    test('hashCode matches equality', () {
+      expect(a.hashCode, b.hashCode);
+      expect(a.hashCode, isNot(c.hashCode));
+    });
+
+    test('toString includes seconds and percent', () {
+      expect(a.toString(), 'ShearwaterGf99Sample(10 s, 42%)');
+    });
+  });
+
+  group('ShearwaterDbReader.decoModelName', () {
+    test('returns null for null, blank, and unknown codes', () {
+      expect(ShearwaterDbReader.decoModelName(null), isNull);
+      expect(ShearwaterDbReader.decoModelName(''), isNull);
+      expect(ShearwaterDbReader.decoModelName('  '), isNull);
+      expect(ShearwaterDbReader.decoModelName(42), isNull);
+      expect(ShearwaterDbReader.decoModelName('99'), isNull);
+    });
+
+    test('spells integer codes and numeric strings the same way', () {
+      expect(ShearwaterDbReader.decoModelName(0), 'GF');
+      expect(ShearwaterDbReader.decoModelName('0'), 'GF');
+      expect(ShearwaterDbReader.decoModelName(2), 'VPM-B/GFS');
+      expect(ShearwaterDbReader.decoModelName('2'), 'VPM-B/GFS');
+    });
+
+    test('passes a non-numeric name through', () {
+      expect(ShearwaterDbReader.decoModelName('VPM-B/GFS'), 'VPM-B/GFS');
+      expect(ShearwaterDbReader.decoModelName('  GF  '), 'GF');
+    });
+  });
+
   group('ShearwaterDbReader', () {
     group('isShearwaterCloudDb', () {
       test('returns true for valid Shearwater Cloud database', () async {
@@ -391,6 +457,282 @@ void main() {
       });
     });
 
+    group('computer tissue columns', () {
+      const records = [
+        ShearwaterTestLogRecord(currentTime: 0, currentDepth: 0, gf99: 5),
+        ShearwaterTestLogRecord(currentTime: 10000, currentDepth: 8, gf99: 12),
+        ShearwaterTestLogRecord(
+          currentTime: 20000,
+          currentDepth: 15,
+          gf99: null,
+        ),
+        ShearwaterTestLogRecord(currentTime: 30000, currentDepth: 20, gf99: 40),
+      ];
+
+      test('leaves the series empty and header values null when the '
+          'optional tables are absent (older export)', () async {
+        final bytes = createShearwaterTestDb(
+          dives: [const ShearwaterTestDive(diveId: 'old-export')],
+        );
+
+        expect(await ShearwaterDbReader.isShearwaterCloudDb(bytes), isTrue);
+        final dives = await ShearwaterDbReader.readDives(bytes);
+        final dive = dives.single;
+        expect(dive.gf99Samples, isEmpty);
+        expect(dive.startGFS, isNull);
+        expect(dive.gfMin, isNull);
+        expect(dive.gfMax, isNull);
+        expect(dive.decoModel, isNull);
+        expect(dive.startCNS, isNull);
+        expect(dive.endCNS, isNull);
+      });
+
+      test('reads the gf99 series joined on diveLogId, ordered by time, '
+          'with millisecond currentTime converted to seconds', () async {
+        final bytes = createShearwaterTestDb(
+          includeDiveLogRecords: true,
+          dives: [
+            ShearwaterTestDive(
+              diveId: 'gf-dive',
+              // Deliberately out of order: the reader must sort by time.
+              logRecords: [records[3], records[0], records[2], records[1]],
+            ),
+            const ShearwaterTestDive(
+              diveId: 'other-dive',
+              logRecords: [ShearwaterTestLogRecord(currentTime: 0, gf99: 99)],
+            ),
+          ],
+        );
+
+        final dives = await ShearwaterDbReader.readDives(bytes);
+        final dive = dives.firstWhere((d) => d.diveId == 'gf-dive');
+        expect(dive.gf99Samples.map((s) => s.timeSeconds), [0, 10, 30]);
+        expect(dive.gf99Samples.map((s) => s.gf99), [5, 12, 40]);
+
+        final other = dives.firstWhere((d) => d.diveId == 'other-dive');
+        expect(other.gf99Samples.map((s) => s.gf99), [99]);
+      });
+
+      test(
+        'keeps currentTime as seconds when rows are seconds apart',
+        () async {
+          final bytes = createShearwaterTestDb(
+            includeDiveLogRecords: true,
+            dives: [
+              const ShearwaterTestDive(
+                diveId: 'seconds',
+                logRecords: [
+                  ShearwaterTestLogRecord(currentTime: 0, gf99: 1),
+                  ShearwaterTestLogRecord(currentTime: 10, gf99: 2),
+                  ShearwaterTestLogRecord(currentTime: 20, gf99: 3),
+                ],
+              ),
+            ],
+          );
+
+          final dives = await ShearwaterDbReader.readDives(bytes);
+          expect(dives.single.gf99Samples.map((s) => s.timeSeconds), [
+            0,
+            10,
+            20,
+          ]);
+        },
+      );
+
+      test(
+        'returns an empty series when dive_log_records lacks gf99',
+        () async {
+          final bytes = createShearwaterTestDb(
+            includeDiveLogRecords: true,
+            includeGf99Column: false,
+            dives: [
+              const ShearwaterTestDive(
+                diveId: 'no-gf-column',
+                logRecords: [ShearwaterTestLogRecord(currentTime: 0)],
+              ),
+            ],
+          );
+
+          final dives = await ShearwaterDbReader.readDives(bytes);
+          expect(dives.single.gf99Samples, isEmpty);
+        },
+      );
+
+      test('returns an empty series when the dive has no records', () async {
+        final bytes = createShearwaterTestDb(
+          includeDiveLogRecords: true,
+          dives: [const ShearwaterTestDive(diveId: 'no-records')],
+        );
+
+        final dives = await ShearwaterDbReader.readDives(bytes);
+        expect(dives.single.gf99Samples, isEmpty);
+      });
+
+      test('reads header values from dive_logs', () async {
+        final bytes = createShearwaterTestDb(
+          includeDiveLogs: true,
+          dives: [
+            const ShearwaterTestDive(
+              diveId: 'header',
+              diveLog: ShearwaterTestDiveLog(
+                gfMin: 30,
+                gfMax: 70,
+                startCNS: 4,
+                endCNS: 21,
+                decoModel: 0,
+                startGFS: 18,
+              ),
+            ),
+          ],
+        );
+
+        final dive = (await ShearwaterDbReader.readDives(bytes)).single;
+        expect(dive.gfMin, 30);
+        expect(dive.gfMax, 70);
+        expect(dive.startCNS, 4.0);
+        expect(dive.endCNS, 21.0);
+        expect(dive.startGFS, 18.0);
+        expect(dive.decoModel, 'GF');
+      });
+
+      test('spells the integer deco model codes as Shearwater does', () async {
+        Future<String?> modelFor(Object? code) async {
+          final bytes = createShearwaterTestDb(
+            includeDiveLogs: true,
+            dives: [
+              ShearwaterTestDive(
+                diveId: 'model',
+                diveLog: ShearwaterTestDiveLog(decoModel: code),
+              ),
+            ],
+          );
+          return (await ShearwaterDbReader.readDives(bytes)).single.decoModel;
+        }
+
+        expect(await modelFor(0), 'GF');
+        expect(await modelFor(1), 'VPM-B');
+        expect(await modelFor(2), 'VPM-B/GFS');
+        expect(await modelFor(3), 'DCIEM');
+        expect(await modelFor('VPM-B/GFS'), 'VPM-B/GFS');
+        expect(await modelFor(''), isNull);
+        expect(await modelFor(null), isNull);
+        expect(await modelFor(42), isNull);
+      });
+
+      const headerLog = ShearwaterTestDiveLog(
+        gfMin: 30,
+        gfMax: 70,
+        decoModel: 0,
+        startGFS: 18,
+      );
+
+      test('still reads the dive when dive_logs has no diveId column, '
+          'losing only the header values', () async {
+        final bytes = _rewritten(
+          createShearwaterTestDb(
+            includeDiveLogs: true,
+            dives: [const ShearwaterTestDive(diveId: 'k', diveLog: headerLog)],
+          ),
+          ['ALTER TABLE dive_logs RENAME COLUMN diveId TO dive_key'],
+        );
+
+        final dive = (await ShearwaterDbReader.readDives(bytes)).single;
+        expect(dive.diveId, 'k');
+        expect(dive.gfMin, isNull);
+        expect(dive.startGFS, isNull);
+      });
+
+      test('matches dive_logs on an integer key as stored', () async {
+        // dive_details keyed by an integer and dive_logs with an untyped
+        // key column holding the same integer: its text form matches
+        // nothing there, so the key has to be bound as it was read.
+        final base = createShearwaterTestDb(
+          includeDiveLogs: true,
+          dives: [const ShearwaterTestDive(diveId: '7', diveLog: headerLog)],
+        );
+        final dir = Directory.systemTemp.createTempSync('sw_cols_');
+        final List<String> detailColumns;
+        try {
+          final path = p.join(dir.path, 'fixture.db');
+          File(path).writeAsBytesSync(base);
+          final db = sqlite3.open(path);
+          try {
+            detailColumns = [
+              for (final row in db.select("PRAGMA table_info('dive_details')"))
+                row['name'] as String,
+            ];
+          } finally {
+            db.close();
+          }
+        } finally {
+          dir.deleteSync(recursive: true);
+        }
+        final bytes = _rewritten(base, [
+          'ALTER TABLE dive_details RENAME TO dive_details_text',
+          'CREATE TABLE dive_details AS SELECT '
+              '${[for (final c in detailColumns) c == 'DiveId' ? 'CAST(DiveId AS INTEGER) AS DiveId' : c].join(', ')} '
+              'FROM dive_details_text',
+          'DROP TABLE dive_details_text',
+          'ALTER TABLE dive_logs RENAME TO dive_logs_text',
+          'CREATE TABLE dive_logs (diveId, gfMin, gfMax, startCNS, endCNS, '
+              'decoModel, vpmbConservatism, startGFS)',
+          'INSERT INTO dive_logs SELECT CAST(diveId AS INTEGER), gfMin, '
+              'gfMax, startCNS, endCNS, decoModel, vpmbConservatism, startGFS '
+              'FROM dive_logs_text',
+          'DROP TABLE dive_logs_text',
+        ]);
+
+        final dive = (await ShearwaterDbReader.readDives(bytes)).single;
+        expect(dive.diveId, '7');
+        expect(dive.gfMin, 30);
+        expect(dive.startGFS, 18.0);
+      });
+
+      test(
+        'leaves header values null when the dive has no dive_logs row',
+        () async {
+          final bytes = createShearwaterTestDb(
+            includeDiveLogs: true,
+            dives: [const ShearwaterTestDive(diveId: 'no-header')],
+          );
+
+          final dive = (await ShearwaterDbReader.readDives(bytes)).single;
+          expect(dive.startGFS, isNull);
+          expect(dive.decoModel, isNull);
+        },
+      );
+    });
+
+    group('committed fixtures', () {
+      Uint8List fixture(String name) =>
+          File('test/dives/$name').readAsBytesSync();
+
+      test('CCR export: tissue tables exist but are empty, EndGF99 lives in '
+          'the calculated values', () async {
+        final dives = await ShearwaterDbReader.readDives(
+          fixture('100_shearwater_cloud_export_with_one_ccr_dive.db.export'),
+        );
+        final dive = dives.single;
+        expect(dive.gf99Samples, isEmpty);
+        expect(dive.decoModel, isNull);
+        expect(dive.startGFS, isNull);
+        // dive_details.EndGF99 is a 0.0 placeholder in this export ...
+        expect(dive.endGF99, 0.0);
+        // ... while the value derived from the samples is the real one.
+        expect(dive.calculatedValues?['EndGF99'], 62.0);
+      });
+
+      test('cell demo export: no tissue tables at all still reads', () async {
+        final dives = await ShearwaterDbReader.readDives(
+          fixture('102_o2_cell_traffic_light_demo.db.export'),
+        );
+        final dive = dives.single;
+        expect(dive.gf99Samples, isEmpty);
+        expect(dive.endGF99, isNull);
+        expect(dive.calculatedValues, isNull);
+      });
+    });
+
     group('real fixture', () {
       late Uint8List dbBytes;
 
@@ -421,6 +763,40 @@ void main() {
             .where((d) => d.decompressedLogData != null)
             .toList();
         expect(withData, isNotEmpty);
+      });
+    });
+
+    // Each call copies the bytes to a temp file. A temp name built from the
+    // clock is shared by calls started in the same millisecond, so one call
+    // deleted or overwrote the file another was reading.
+    group('concurrent calls', () {
+      const calls = 50;
+      late Uint8List bytes;
+
+      setUpAll(() {
+        bytes = createShearwaterTestDb(
+          dives: const [ShearwaterTestDive(diveId: 'concurrent-1')],
+        );
+      });
+
+      test('every concurrent format check recognises the database', () async {
+        final results = await Future.wait([
+          for (var i = 0; i < calls; i++)
+            ShearwaterDbReader.isShearwaterCloudDb(bytes),
+        ]);
+
+        expect(results, everyElement(isTrue));
+      });
+
+      test('every concurrent read returns the dive', () async {
+        final results = await Future.wait([
+          for (var i = 0; i < calls; i++) ShearwaterDbReader.readDives(bytes),
+        ]);
+
+        expect(
+          results.map((dives) => dives.map((d) => d.diveId).toList()),
+          everyElement(['concurrent-1']),
+        );
       });
     });
   });

@@ -16,7 +16,7 @@ Found a bug? [Open an issue](https://github.com/submersion-app/submersion/issues
 
 ### Suggest Features
 
-Have an idea? Check the [roadmap](contributing/roadmap.md) first, then [open a discussion](https://github.com/submersion-app/submersion/discussions).
+Have an idea? Check the [roadmap](roadmap.md) first, then [open a discussion](https://github.com/submersion-app/submersion/discussions).
 
 ### Submit Code
 
@@ -72,7 +72,7 @@ git checkout -b feature/your-feature-name
 
 ### 1. Make Changes
 
-Follow the [code style guide](contributing/code-style.md).
+Follow the [code style guide](code-style.md).
 
 ### 2. Write Tests
 
@@ -116,7 +116,7 @@ Follow [conventional commits](https://www.conventionalcommits.org/):
 
 ### 5. Submit PR
 
-See [Pull Request Guidelines](contributing/pull-requests.md).
+See [Pull Request Guidelines](pull-requests.md).
 
 ## Project Structure
 
@@ -197,7 +197,31 @@ When adding features:
 
 1. Update relevant docs in `docs/`
 2. Add code comments for complex logic
-3. Update FEATURE_ROADMAP.md if applicable
+3. Update the [roadmap](roadmap.md) if applicable
+
+## Writing User Docs
+
+The user guide is the Markdown in [`docs/user/`](../user/README.md). The
+website shows it at [submersion.app/guide](https://submersion.app/guide/),
+reading `main` directly, so a merged change appears within a few minutes.
+
+- **One folder.** Every page sits directly in `docs/user/`; screenshots go
+  in `docs/user/images/`. Name pages in lowercase-kebab (`dive-sites.md`).
+- **Links are Markdown and file-relative:** `[Dive Sites](dive-sites.md)`,
+  `[Sync options](multi-device-sync.md#sync-options)`. Images likewise:
+  `![Alt text](images/name.png)`. The site cannot resolve a relative HTML
+  `<a href>` or `<img src>`.
+- **New pages go in [`_sidebar.md`](../user/_sidebar.md)**, or the site
+  cannot reach them.
+- **Callouts** use GitHub's syntax, which the site renders too:
+  `> [!NOTE]`, `> [!TIP]`, `> [!IMPORTANT]`, `> [!WARNING]`.
+- **Check what you write against the app.** Use the exact on-screen label
+  (the English strings are in `lib/l10n/arb/app_en.arb`) and the real menu
+  path.
+- No em-dashes and no emoji.
+
+`python3 scripts/check_docs_links.py` checks the links, anchors, sidebar
+and folder rules; CI runs it on every pull request.
 
 ## Code Review
 

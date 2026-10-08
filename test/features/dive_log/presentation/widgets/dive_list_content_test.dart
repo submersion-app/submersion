@@ -19,10 +19,13 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_table_vie
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 
 // ---------------------------------------------------------------------------
@@ -148,6 +151,52 @@ class _MockPaginatedNotifier
       PaginatedDiveListState(dives: dives, hasMore: false),
     );
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// The paginated list as the real notifier behaves on a filter change: it
+/// drops to a bare loading state, then answers with the first page.
+class _ReloadingPaginatedNotifier
+    extends StateNotifier<AsyncValue<PaginatedDiveListState>>
+    implements PaginatedDiveListNotifier {
+  _ReloadingPaginatedNotifier(Ref ref, this._dives)
+    : super(
+        AsyncValue.data(PaginatedDiveListState(dives: _dives, hasMore: false)),
+      ) {
+    ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
+      state = const AsyncValue.loading();
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (mounted) {
+          state = AsyncValue.data(
+            PaginatedDiveListState(dives: _dives, hasMore: false),
+          );
+        }
+      });
+    });
+  }
+
+  final List<DiveSummary> _dives;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A paginated list pinned to one [PaginatedDiveListState], counts included.
+class _StatePaginatedNotifier
+    extends StateNotifier<AsyncValue<PaginatedDiveListState>>
+    implements PaginatedDiveListNotifier {
+  _StatePaginatedNotifier(PaginatedDiveListState state)
+    : super(AsyncValue.data(state));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _MockDiveListNotifier extends StateNotifier<AsyncValue<List<Dive>>>
+    implements DiveListNotifier {
+  _MockDiveListNotifier(List<Dive> dives) : super(AsyncValue.data(dives));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -1067,8 +1116,7 @@ void main() {
             find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
 
         // Select, then check d1 -> selection mode with d1 as the anchor.
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
-        await tester.pumpAndSettle();
+        await enterSelectionViaMenu(tester);
         await tester.tap(tileFinder('d1'));
         await tester.pumpAndSettle();
         expect(tile('d1').isSelectionMode, isTrue);
@@ -1205,8 +1253,7 @@ void main() {
         (w) => w is CompactDiveListTile && w.diveId == id,
       );
 
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       expect(tile('d1').isSelectionMode, isTrue);
 
       await tester.tap(tileFinder('d2'));
@@ -1223,6 +1270,120 @@ void main() {
   // Deselect All action, positioned immediately after Select All so the two
   // read as a pair.
   // -------------------------------------------------------------------------
+
+  group('a new filter', () {
+    List<Dive> twoDives() => [
+      _makeDive(
+        id: 'd1',
+        diveNumber: 1,
+        site: const DiveSite(id: 's1', name: 'Aaa'),
+      ),
+      _makeDive(
+        id: 'd2',
+        diveNumber: 2,
+        site: const DiveSite(id: 's2', name: 'Bbb'),
+      ),
+    ];
+
+    // Table mode has no menu inside the list (issue #2775), so both modes
+    // enter through the controller a page would pass in.
+    Future<void> selectAllThenFilter(
+      WidgetTester tester,
+      SelectionController controller,
+    ) async {
+      await tester.pumpAndSettle();
+      controller.enterExplicit();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+      expect(find.text('2 selected'), findsOneWidget);
+
+      // The new filter's rows load first; the selection must survive that.
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveListContent)),
+      ).read(diveFilterProvider.notifier).state = const DiveFilterState(
+        favoritesOnly: true,
+      );
+      // One frame at once, as the app draws it, before the query answers.
+      await tester.pump();
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('keeps the checks that stay on screen (list)', (tester) async {
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
+      final summaries = twoDives().map(DiveSummary.fromDive).toList();
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...base,
+            diveListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            highlightedDiveIdProvider.overrideWith((ref) => null),
+            paginatedDiveListProvider.overrideWith(
+              (ref) => _ReloadingPaginatedNotifier(ref, summaries),
+            ),
+          ],
+          locale: const Locale('en'),
+          child: DiveListContent(
+            showAppBar: false,
+            selectionController: controller,
+          ),
+        ),
+      );
+      await selectAllThenFilter(tester, controller);
+      expect(find.text('2 selected'), findsOneWidget);
+    });
+
+    testWidgets('keeps the checks that stay on screen (table)', (tester) async {
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
+      final dives = twoDives();
+      final base = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...base,
+            diveListViewModeProvider.overrideWith((ref) => ListViewMode.table),
+            highlightedDiveIdProvider.overrideWith((ref) => null),
+            diveListNotifierProvider.overrideWith(
+              (ref) => _MockDiveListNotifier(dives),
+            ),
+            // A real id set takes a query's time, so the table has a loading
+            // frame.
+            queryFilteredDiveIdsProvider.overrideWith(
+              (ref, filter) => Future.delayed(
+                const Duration(milliseconds: 50),
+                () => const {'d1', 'd2'},
+              ),
+            ),
+            tableViewConfigProvider.overrideWith(
+              (ref) => _TestTableConfigNotifier(
+                TableViewConfig(
+                  columns: [
+                    TableColumnConfig(
+                      field: DiveField.siteName,
+                      isPinned: true,
+                    ),
+                    TableColumnConfig(field: DiveField.maxDepth),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          locale: const Locale('en'),
+          child: DiveListContent(
+            showAppBar: false,
+            selectionController: controller,
+          ),
+        ),
+      );
+      await selectAllThenFilter(tester, controller);
+      expect(find.text('2 selected'), findsOneWidget);
+    });
+  });
 
   group('selection toolbar deselect-all', () {
     List<Dive> fourDives() => [
@@ -1279,8 +1440,7 @@ void main() {
 
       // Enter selection mode and check d1 as the only selection. With 1 of 4
       // selected, both Select All and Deselect All are visible.
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(tileFinder('d1'));
       await tester.pumpAndSettle();
 
@@ -1342,8 +1502,7 @@ void main() {
       // One dive checked -> Compare is visible but disabled. Actions below
       // their minCount render disabled rather than hidden, so the action set
       // stays stable and users can see what an action needs.
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
-      await tester.pumpAndSettle();
+      await enterSelectionViaMenu(tester);
       await tester.tap(tileFinder('d1'));
       await tester.pumpAndSettle();
       expect(compare, findsOneWidget);
@@ -1372,7 +1531,8 @@ void main() {
           overrides: overrides,
           child: const DiveListContent(showAppBar: true),
         ),
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         rowRoot: find.byType(DiveListTile).first,
         firstRow: find.byWidgetPredicate(
           (w) => w is DiveListTile && w.diveId == 'd1',
@@ -1460,10 +1620,10 @@ void main() {
 
     for (final showAppBar in const [true, false]) {
       final bar = showAppBar ? 'app bar' : 'compact bar';
-      testWidgets('$bar advanced search pushes the search page', (
+      testWidgets('$bar overflow no longer offers Advanced Search', (
         tester,
       ) async {
-        final router = await pumpList(
+        await pumpList(
           tester,
           overrides: await detailedOverrides(),
           showAppBar: showAppBar,
@@ -1471,11 +1631,8 @@ void main() {
 
         await tester.tap(find.byIcon(Icons.more_vert).first);
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Advanced Search').last);
-        await tester.pumpAndSettle();
-
-        expect(find.text('search page'), findsOneWidget);
-        expect(router.routerDelegate.canPop(), isTrue);
+        // The Refine panel replaced it (#2773).
+        expect(find.text('Advanced Search'), findsNothing);
       });
     }
 
@@ -1498,5 +1655,132 @@ void main() {
         expect(find.text('Dive Log'), findsNothing);
       });
     }
+  });
+
+  // The title's subtitle counts the list (#2669): "3 dives" unfiltered,
+  // "1 of 3 dives" under a filter, in both the phone and desktop bars.
+  group('entry count subtitle', () {
+    Future<void> pumpCounted(
+      WidgetTester tester, {
+      required PaginatedDiveListState state,
+      required bool showAppBar,
+    }) async {
+      final base = await getBaseOverrides();
+      final router = GoRouter(
+        initialLocation: '/dives',
+        routes: [
+          GoRoute(
+            path: '/dives',
+            builder: (_, _) =>
+                Scaffold(body: DiveListContent(showAppBar: showAppBar)),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        testAppRouter(
+          router: router,
+          overrides: [
+            ...base,
+            diveListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            highlightedDiveIdProvider.overrideWith((ref) => null),
+            paginatedDiveListProvider.overrideWith(
+              (ref) => _StatePaginatedNotifier(state),
+            ),
+          ],
+          locale: const Locale('en'),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    final dives = [
+      for (var i = 1; i <= 3; i++)
+        DiveSummary.fromDive(_makeDive(id: 'd$i', diveNumber: i)),
+    ];
+
+    for (final showAppBar in const [true, false]) {
+      final bar = showAppBar ? 'app bar' : 'compact bar';
+
+      testWidgets('$bar counts an unfiltered list', (tester) async {
+        await pumpCounted(
+          tester,
+          state: PaginatedDiveListState(
+            dives: dives,
+            hasMore: false,
+            totalCount: 3,
+          ),
+          showAppBar: showAppBar,
+        );
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('3 dives'),
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('$bar counts a filtered list against the total', (
+        tester,
+      ) async {
+        await pumpCounted(
+          tester,
+          state: PaginatedDiveListState(
+            dives: dives.take(1).toList(),
+            hasMore: false,
+            totalCount: 1,
+            unfilteredTotalCount: 3,
+          ),
+          showAppBar: showAppBar,
+        );
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('1 of 3 dives'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+
+    // A paginated page holds at most 50 rows; the count is the SQL total, not
+    // the rows loaded so far.
+    testWidgets('counts the total, not the rows loaded', (tester) async {
+      await pumpCounted(
+        tester,
+        state: PaginatedDiveListState(
+          dives: dives,
+          hasMore: false,
+          totalCount: 812,
+        ),
+        showAppBar: true,
+      );
+
+      expect(find.text('812 dives'), findsOneWidget);
+    });
+
+    testWidgets('selection mode replaces the count with its own', (
+      tester,
+    ) async {
+      await pumpCounted(
+        tester,
+        state: PaginatedDiveListState(
+          dives: dives,
+          hasMore: false,
+          totalCount: 3,
+        ),
+        showAppBar: false,
+      );
+      expect(find.text('3 dives'), findsOneWidget);
+
+      await enterSelectionViaMenu(tester);
+
+      expect(find.text('3 dives'), findsNothing);
+    });
   });
 }

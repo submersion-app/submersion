@@ -8,6 +8,8 @@ import 'package:share_plus_platform_interface/share_plus_platform_interface.dart
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 
+import '../../../../helpers/fake_path_provider.dart';
+
 /// The share helpers write into getApplicationDocumentsDirectory(), a platform
 /// channel with no implementation under flutter_test. Unstubbed it never
 /// completes and the await hangs forever.
@@ -36,14 +38,20 @@ void main() {
   late Directory documents;
   final platform = _FakeSharePlatform();
 
-  // SharePlus.instance is a `static final` that captures SharePlatform.instance
-  // the first time it is read and keeps it for the life of the isolate, so the
-  // fake has to be in place before the first share.
-  setUpAll(() => SharePlatform.instance = platform);
+  // The harness pins a forwarder that looks the platform up on every share
+  // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+  // again when this file is done.
+  late SharePlatform originalSharePlatform;
+
+  setUpAll(() {
+    originalSharePlatform = SharePlatform.instance;
+    SharePlatform.instance = platform;
+  });
+  tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
   setUp(() {
     documents = Directory.systemTemp.createTempSync('save_and_share_file_test');
-    PathProviderPlatform.instance = _FakePathProvider(documents.path);
+    useFakePathProvider(_FakePathProvider(documents.path));
     platform.calls.clear();
   });
 

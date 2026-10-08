@@ -31,6 +31,7 @@ class EquipmentSortSheetLayout<T extends Enum> extends StatelessWidget {
     required this.fieldIcon,
     required this.onFieldSelected,
     this.showGrouping = true,
+    this.pageGrouping,
     this.footer,
   });
 
@@ -48,6 +49,11 @@ class EquipmentSortSheetLayout<T extends Enum> extends StatelessWidget {
   /// False where the list never groups (the Equipment table), so the sheet
   /// does not offer controls that change nothing on screen.
   final bool showGrouping;
+
+  /// Grouping only this page offers (the Equipment page's group by
+  /// location), drawn above the shared arrangement's controls. Null on the
+  /// dive surfaces, which share the arrangement and nothing else.
+  final Widget? pageGrouping;
   final Widget? footer;
 
   @override
@@ -106,6 +112,10 @@ class EquipmentSortSheetLayout<T extends Enum> extends StatelessWidget {
               const SizedBox(height: 8),
               const Divider(height: 1),
               if (showGrouping) ...[
+                if (pageGrouping != null) ...[
+                  pageGrouping!,
+                  const Divider(height: 1),
+                ],
                 const EquipmentGroupingControls(),
                 const Divider(height: 1),
               ],

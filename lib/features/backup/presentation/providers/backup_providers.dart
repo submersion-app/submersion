@@ -18,6 +18,7 @@ import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_ex
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/backup/presentation/providers/post_restore_safety_review.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -360,6 +361,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       // way a stale sweep brings them up to this build. Runs in the
       // background so the restore barrier does not wait on it.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
+      DerivedMetricsScheduler.instance.scheduleStaleSweep();
       state = const BackupOperationState(
         status: BackupOperationStatus.restoreComplete,
       );
@@ -561,6 +563,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       // way a stale sweep brings them up to this build. Runs in the
       // background so the restore barrier does not wait on it.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
+      DerivedMetricsScheduler.instance.scheduleStaleSweep();
       state = const BackupOperationState(
         status: BackupOperationStatus.restoreComplete,
       );
@@ -577,6 +580,49 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       rethrow;
     } on RestoreSourceMissingException {
       // Nothing was restored; see restoreFromBackup (issue #1344).
+      state = BackupOperationState(
+        status: BackupOperationStatus.error,
+        message: _l10n.backup_operation_restoreSourceMissing,
+      );
+    } catch (e) {
+      state = BackupOperationState(
+        status: BackupOperationStatus.error,
+        message: _l10n.backup_operation_restoreFailed('$e'),
+      );
+    }
+  }
+
+  /// Restore from a database copy a restore set aside next to the live
+  /// database (issue #1923). See [BackupService.restoreFromDatabaseCopy].
+  Future<void> restoreFromDatabaseCopy(
+    String path, {
+    RestoreMode mode = RestoreMode.merge,
+  }) async {
+    if (state.status == BackupOperationStatus.inProgress) return;
+
+    state = BackupOperationState(
+      status: BackupOperationStatus.inProgress,
+      message: _l10n.backup_operation_restoring,
+      isRestoring: true,
+    );
+
+    try {
+      await _service.restoreFromDatabaseCopy(
+        path,
+        mode: mode,
+        onMigrationProgress: _onRestoreMigrationProgress,
+      );
+      await _syncActiveDiverAfterRestore();
+      await _runPostRestoreSafetyReview();
+      // See restoreFromBackup.
+      SensorSummaryScheduler.instance.scheduleStaleSweep();
+      DerivedMetricsScheduler.instance.scheduleStaleSweep();
+      state = const BackupOperationState(
+        status: BackupOperationStatus.restoreComplete,
+      );
+      _ref.invalidate(backupHistoryProvider);
+    } on RestoreSourceMissingException {
+      // The copy was gone by the time the swap ran (issue #1344).
       state = BackupOperationState(
         status: BackupOperationStatus.error,
         message: _l10n.backup_operation_restoreSourceMissing,

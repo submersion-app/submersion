@@ -24,7 +24,7 @@ void main() {
       createdAt: DateTime.utc(2026, 1, 1),
       updatedAt: DateTime.utc(2026, 1, 1),
     ),
-    role: DiveRole.builtInBuddy(),
+    roles: [DiveRole.builtInBuddy()],
   );
 
   late List<List<Offset>>? savedStrokes;
@@ -35,7 +35,7 @@ void main() {
     savedCanvasSize = null;
   });
 
-  Future<void> openSheet(WidgetTester tester) async {
+  Future<void> openSheet(WidgetTester tester, {BuddyWithRole? who}) async {
     await tester.pumpWidget(
       testApp(
         // Pinned: the assertions match English strings.
@@ -44,7 +44,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showBuddySignatureRequestSheet(
               context: context,
-              buddyWithRole: buddyWithRole,
+              buddyWithRole: who ?? buddyWithRole,
               onSave: (strokes, canvasSize) {
                 savedStrokes = strokes;
                 savedCanvasSize = canvasSize;
@@ -197,5 +197,26 @@ void main() {
     );
     expect(doneButton.onPressed, isNull);
     expect(savedStrokes, isNull);
+  });
+
+  testWidgets("names every role the buddy holds (#1221)", (tester) async {
+    DiveRole builtIn(String id) => DiveRole(
+      id: id,
+      name: id,
+      isBuiltIn: true,
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+    await openSheet(
+      tester,
+      who: BuddyWithRole(
+        buddy: buddyWithRole.buddy,
+        roles: [
+          builtIn(DiveRole.instructorId),
+          builtIn(DiveRole.safetyDiverId),
+        ],
+      ),
+    );
+    expect(find.textContaining('Instructor, Safety Diver'), findsWidgets);
   });
 }

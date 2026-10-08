@@ -28,16 +28,24 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
+import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_summary_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -46,8 +54,11 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_name_index_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_history_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
@@ -71,6 +82,10 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/universal_import/presentation/providers/csv_preset_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
+import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/profile_hides_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 
 import '../helpers/mock_providers.dart';
 import '../helpers/test_database.dart';
@@ -211,6 +226,37 @@ void main() {
     ),
   ]);
 
+  _tickGroup('connections', [
+    (
+      name: 'connectionGraphProvider',
+      read: (c) => c.read(connectionGraphProvider(80).future),
+    ),
+    (
+      name: 'connectionsYearSpanProvider',
+      read: (c) => c.read(connectionsYearSpanProvider.future),
+    ),
+    (
+      name: 'connectionsSelectionDiveIdsProvider',
+      read: (c) => c.read(
+        connectionsSelectionDiveIdsProvider(
+          const NodeSelection(NodeRef(ConnectionKind.buddy, _id)),
+        ).future,
+      ),
+    ),
+    (
+      name: 'connectionsNodesByWireProvider',
+      read: (c) => c.read(connectionsNodesByWireProvider('buddy:$_id').future),
+    ),
+    (
+      name: 'connectionsSearchProvider',
+      read: (c) => c.read(connectionsSearchProvider('a').future),
+    ),
+    (
+      name: 'savedConnectionMapsProvider',
+      read: (c) => c.read(savedConnectionMapsProvider.future),
+    ),
+  ]);
+
   _tickGroup('certifications', [
     (
       name: 'allBuddyCertificationsProvider',
@@ -235,7 +281,7 @@ void main() {
     (
       name: 'certificationsByAgencyProvider',
       read: (c) => c.read(
-        certificationsByAgencyProvider(CertificationAgency.padi).future,
+        certificationsByAgencyProvider(CertificationAgency.padi.name).future,
       ),
     ),
     (
@@ -284,7 +330,7 @@ void main() {
     (
       name: 'coursesByAgencyProvider',
       read: (c) =>
-          c.read(coursesByAgencyProvider(CertificationAgency.padi).future),
+          c.read(coursesByAgencyProvider(CertificationAgency.padi.name).future),
     ),
     (
       name: 'inProgressCoursesProvider',
@@ -379,10 +425,6 @@ void main() {
       name: 'favoriteDiveComputerProvider',
       read: (c) => c.read(favoriteDiveComputerProvider.future),
     ),
-    (
-      name: 'primaryComputerIdProvider',
-      read: (c) => c.read(primaryComputerIdProvider(_id).future),
-    ),
   ]);
 
   _tickGroup('dive log', [
@@ -414,6 +456,14 @@ void main() {
     (
       name: 'diveStatisticsProvider',
       read: (c) => c.read(diveStatisticsProvider.future),
+    ),
+    (
+      name: 'diveListScopedStatisticsProvider',
+      read: (c) => c.read(diveListScopedStatisticsProvider.future),
+    ),
+    (
+      name: 'diveListScopedRecordsProvider',
+      read: (c) => c.read(diveListScopedRecordsProvider.future),
     ),
     (name: 'divesProvider', read: (c) => c.read(divesProvider.future)),
     (
@@ -520,6 +570,47 @@ void main() {
   ]);
 
   _tickGroup('equipment', [
+    (
+      name: 'equipmentHistoryProvider',
+      read: (c) => c.read(equipmentHistoryProvider(_id).future),
+    ),
+    (
+      name: 'allServiceKindsByIdProvider',
+      read: (c) => c.read(allServiceKindsByIdProvider.future),
+    ),
+    (
+      name: 'equipmentSharesProvider',
+      read: (c) => c.read(equipmentSharesProvider(_id).future),
+    ),
+    (
+      name: 'tripGearProvider',
+      read: (c) => c.read(tripGearProvider(_id).future),
+    ),
+    (
+      name: 'equipmentTripsProvider',
+      read: (c) => c.read(equipmentTripsProvider(_id).future),
+    ),
+    (
+      name: 'hiddenItemsProvider',
+      read: (c) => c.read(hiddenItemsProvider.future),
+    ),
+    (
+      name: 'isHiddenProvider',
+      read: (c) =>
+          c.read(isHiddenProvider((kind: SharedItemKind.trip, id: _id)).future),
+    ),
+    (
+      name: 'equipmentOwnershipEventsProvider',
+      read: (c) => c.read(equipmentOwnershipEventsProvider(_id).future),
+    ),
+    (
+      name: 'passportIdProvider',
+      read: (c) => c.read(passportIdProvider('missing').future),
+    ),
+    (
+      name: 'fillsForEquipmentProvider',
+      read: (c) => c.read(fillsForEquipmentProvider('missing').future),
+    ),
     (
       name: 'activeEquipmentClocksProvider',
       read: (c) => c.read(activeEquipmentClocksProvider.future),
@@ -865,6 +956,25 @@ void main() {
     (
       name: 'userCsvPresetsProvider',
       read: (c) => c.read(userCsvPresetsProvider.future),
+    ),
+  ]);
+
+  _tickGroup('query', [
+    (
+      name: 'queryNameIndexProvider',
+      read: (c) => c.read(queryNameIndexProvider.future),
+    ),
+    (
+      name: 'exploreLegacyBuddyNamesProvider',
+      read: (c) => c.read(exploreLegacyBuddyNamesProvider.future),
+    ),
+    (
+      name: 'savedQueriesProvider',
+      read: (c) => c.read(savedQueriesProvider('dives').future),
+    ),
+    (
+      name: 'savedQueryLoadsProvider',
+      read: (c) => c.read(savedQueryLoadsProvider(null).future),
     ),
   ]);
 }

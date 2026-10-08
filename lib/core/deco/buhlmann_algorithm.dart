@@ -60,6 +60,18 @@ class BuhlmannAlgorithm {
   /// Get current compartments state (read-only copy).
   List<TissueCompartment> get compartments => List.unmodifiable(_compartments);
 
+  /// A new engine with this one's configuration and surface-saturated
+  /// tissues, for read-only replays that must decompress exactly like this
+  /// engine without disturbing its state.
+  BuhlmannAlgorithm withSameConfig() => BuhlmannAlgorithm(
+    gfLow: gfLow,
+    gfHigh: gfHigh,
+    lastStopDepth: lastStopDepth,
+    stopIncrement: stopIncrement,
+    ascentRate: ascentRate,
+    environment: environment,
+  );
+
   /// Create compartments saturated at surface.
   static List<TissueCompartment> _createSurfaceSaturatedCompartments(
     DiveEnvironment environment,
@@ -153,17 +165,12 @@ class BuhlmannAlgorithm {
     double fHe = 0.0,
     BreathingConfig? breathing,
   }) {
-    final ambientPressure = environment.pressureAtDepth(depthMeters);
-    final double inspiredN2;
-    final double inspiredHe;
-    if (breathing != null) {
-      final inspired = breathing.inspiredAt(ambientPressure);
-      inspiredN2 = inspired.pN2;
-      inspiredHe = inspired.pHe;
-    } else {
-      inspiredN2 = calculateInspiredN2(ambientPressure, fN2);
-      inspiredHe = calculateInspiredHe(ambientPressure, fHe);
-    }
+    final (inspiredN2, inspiredHe) = _inspiredInert(
+      environment.pressureAtDepth(depthMeters),
+      fN2: fN2,
+      fHe: fHe,
+      breathing: breathing,
+    );
     final durationMinutes = durationSeconds / 60.0;
 
     final newCompartments = <TissueCompartment>[];
@@ -190,6 +197,25 @@ class BuhlmannAlgorithm {
 
     _compartments = newCompartments;
     _updateGfAnchor();
+  }
+
+  /// Inspired (N2, He) partial pressures at [ambientPressure]: from
+  /// [breathing] when given (a rebreather loop), else open circuit on
+  /// [fN2]/[fHe].
+  static (double, double) _inspiredInert(
+    double ambientPressure, {
+    required double fN2,
+    required double fHe,
+    BreathingConfig? breathing,
+  }) {
+    if (breathing != null) {
+      final inspired = breathing.inspiredAt(ambientPressure);
+      return (inspired.pN2, inspired.pHe);
+    }
+    return (
+      calculateInspiredN2(ambientPressure, fN2),
+      calculateInspiredHe(ambientPressure, fHe),
+    );
   }
 
   /// Grow the GF-low anchor to the current deepest GF-low ceiling. Runs after
@@ -939,6 +965,13 @@ class BuhlmannAlgorithm {
       );
     }
 
+    final ambientPressure = environment.pressureAtDepth(currentDepth);
+    final (inspiredN2, inspiredHe) = _inspiredInert(
+      ambientPressure,
+      fN2: fN2,
+      fHe: fHe,
+      breathing: breathing,
+    );
     return DecoStatus(
       compartments: List.unmodifiable(_compartments),
       ndlSeconds: ndl,
@@ -949,8 +982,10 @@ class BuhlmannAlgorithm {
       gfHigh: gfHigh,
       decoStops: stops,
       currentDepthMeters: currentDepth,
-      ambientPressureBar: environment.pressureAtDepth(currentDepth),
+      ambientPressureBar: ambientPressure,
       surfacePressureBar: environment.surfacePressureBar,
+      inspiredN2Bar: inspiredN2,
+      inspiredHeBar: inspiredHe,
     );
   }
 
@@ -979,11 +1014,12 @@ class BuhlmannAlgorithm {
   /// [gasSegments] must be non-empty and sorted by [startTimestamp].
   /// Each segment becomes active from its start timestamp onward until
   /// superseded by the next segment.
-  /// [ascentGasPlan] optionally overrides the ascent gas selection for TTS
-  /// and deco-schedule calculations. Null reproduces the legacy per-sample
-  /// single-gas behavior for open-circuit segments; for a segment carrying a
-  /// [ProfileGasSegment.setpoint], null instead derives the loop itself as
-  /// the ascent plan (see [_loopAscentPlanFor]).
+  /// [ascentGasPlan] optionally sets the ascent gas selection for TTS and
+  /// deco-schedule calculations on open-circuit segments; null reproduces the
+  /// legacy per-sample single-gas behavior. A segment carrying a
+  /// [ProfileGasSegment.setpoint] always ascends on the loop itself (see
+  /// [_loopAscentPlanFor]), so a CCR dive that bails out ascends on the loop
+  /// before the bailout and on [ascentGasPlan] after it.
   List<DecoStatus> processProfileWithGasSegments({
     required List<double> depths,
     required List<int> timestamps,
@@ -1096,7 +1132,11 @@ class BuhlmannAlgorithm {
           fN2: sampleGas.fN2,
           fHe: sampleGas.fHe,
           safetyStopTimeAccumulated: safetyStopTimeAccumulated,
-          ascentGas: ascentGasPlan ?? _loopAscentPlanFor(sampleGas),
+          // A loop sample ascends on the loop; a bailout (open-circuit)
+          // sample on the supplied plan (issue #577).
+          ascentGas: sampleGas.setpoint != null
+              ? _loopAscentPlanFor(sampleGas, depths[i])
+              : ascentGasPlan,
           breathing: _breathingFor(sampleGas),
         ),
       );
@@ -1139,12 +1179,25 @@ class BuhlmannAlgorithm {
   /// simulation keeps constant-ppO2 physics (inert fraction changes with depth
   /// as ppO2 stays fixed). Null for open-circuit segments.
   ///
+  /// A semi-closed loop ([ProfileGasSegment.loopHoldsSetpoint] false) does not
+  /// hold its measured ppO2 on the way up. Its ascent breathes the loop's
+  /// inert fractions at [depthMeters] instead: a constant loop FO2, close to a
+  /// constant-mass-flow SCR and conservative for a passive one, whose loop
+  /// gets richer as it shallows.
+  ///
   /// Memoized on (setpoint, fN2, fHe): the plan is requested once per profile
   /// sample but only changes when the active segment changes, so reusing the
   /// last instance avoids an allocation per sample on long profiles.
-  CcrLoopAscentGas? _loopAscentPlanFor(ProfileGasSegment gas) {
+  AscentGasPlan? _loopAscentPlanFor(ProfileGasSegment gas, double depthMeters) {
     final setpoint = gas.setpoint;
     if (setpoint == null) return null;
+    if (!gas.loopHoldsSetpoint) {
+      final ambient = environment.pressureAtDepth(depthMeters);
+      final pAlv = ambient - waterVaporPressure;
+      final inspired = _breathingFor(gas)!.inspiredAt(ambient);
+      if (pAlv <= 0) return FixedAscentGas(fN2: gas.fN2, fHe: gas.fHe);
+      return FixedAscentGas(fN2: inspired.pN2 / pAlv, fHe: inspired.pHe / pAlv);
+    }
     final cached = _loopPlanCache;
     if (cached != null &&
         _loopPlanSetpoint == setpoint &&

@@ -34,6 +34,13 @@ struct libdc_download_session {
     // localize); appending this message to error_buf puts the diagnosis in
     // the app log and the UI on every platform.
     char last_error[160];
+    // The product and model the device reported about itself when they
+    // differ from the descriptor the run was opened with (issue #422).
+    // Reset at the start of every run; read back through
+    // libdc_download_session_reported_device.
+    int has_reported_device;
+    unsigned int reported_model;
+    char reported_product[64];
 };
 
 // Data passed through the download pipeline callbacks.
@@ -45,6 +52,8 @@ typedef struct {
     int dive_count;
     unsigned int serial;
     unsigned int firmware;
+    unsigned int devinfo_model;
+    int has_devinfo_model;
     char *error_buf;
     size_t error_buf_size;
 } download_state_t;
@@ -250,6 +259,8 @@ static void event_callback(dc_device_t *device, dc_event_type_t event,
         const dc_event_devinfo_t *devinfo = (const dc_event_devinfo_t *)data;
         state->serial = devinfo->serial;
         state->firmware = devinfo->firmware;
+        state->devinfo_model = devinfo->model;
+        state->has_devinfo_model = 1;
     }
 }
 
@@ -883,6 +894,24 @@ libdc_download_session_t *libdc_download_session_new(void) {
     return session;
 }
 
+int libdc_download_session_reported_device(
+    const libdc_download_session_t *session,
+    char *product_out, size_t product_out_size, unsigned int *model_out) {
+    if (session == NULL || !session->has_reported_device ||
+        product_out == NULL || product_out_size == 0) {
+        return 0;
+    }
+    size_t len = strlen(session->reported_product);
+    if (len >= product_out_size) {
+        return 0;
+    }
+    memcpy(product_out, session->reported_product, len + 1);
+    if (model_out != NULL) {
+        *model_out = session->reported_model;
+    }
+    return 1;
+}
+
 void libdc_download_cancel(libdc_download_session_t *session) {
     if (session != NULL) {
         session->cancelled = 1;
@@ -923,6 +952,9 @@ int libdc_download_run(
     state.error_buf = error_buf;
     state.error_buf_size = error_buf_size;
     session->last_error[0] = '\0';
+    session->has_reported_device = 0;
+    session->reported_model = 0;
+    session->reported_product[0] = '\0';
 
     // 1. Find matching descriptor.
     state.descriptor = find_descriptor(vendor, product, model);
@@ -995,6 +1027,18 @@ int libdc_download_run(
 
     // 7. Download dives.
     status = dc_device_foreach(device, dive_callback, &state);
+
+    // A device can name a different model than the one it advertised
+    // (issue #422). Resolved here, where the opening descriptor is known,
+    // so every binding reads one answer from the session.
+    if (state.has_devinfo_model &&
+        libdc_resolve_reported_product(
+            vendor, product, dc_descriptor_get_model(state.descriptor),
+            state.devinfo_model, session->reported_product,
+            sizeof(session->reported_product))) {
+        session->reported_model = state.devinfo_model;
+        session->has_reported_device = 1;
+    }
 
     // 7b. Optional clock sync, only after a fully successful download so a
     // slow or failing timesync can never cost the diver their dives, and

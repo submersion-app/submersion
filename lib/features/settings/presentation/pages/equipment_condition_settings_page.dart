@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Exposure thresholds for service clocks, edited in the diver's units and
 /// stored metric, the sensor summary rebuild (phase 2) and the condition
@@ -336,11 +337,17 @@ class _ThresholdFieldState extends State<_ThresholdField> {
   Future<void> _commit() async {
     final text = _controller.text;
     if (text == _committed) return;
-    final parsed = parseUserDecimal(text);
-    if (parsed == null) {
-      setState(() => _error = context.l10n.equipmentConditionSettings_invalid);
+    final read = readNumber(text);
+    if (read is! NumberValue) {
+      // A threshold always has a value, so blank is an error here too.
+      setState(
+        () => _error = read is NumberBlank
+            ? context.l10n.numberInput_required
+            : invalidNumberText(context, text),
+      );
       return;
     }
+    final parsed = read.value;
     // Claim the text before awaiting so the Done action, which reaches both
     // the submit and the focus-loss path, writes once; give it back on
     // failure so the next Done or blur retries.

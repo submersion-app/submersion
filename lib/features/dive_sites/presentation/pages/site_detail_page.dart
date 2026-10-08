@@ -3,10 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -21,6 +25,7 @@ import 'package:submersion/features/site_scape/presentation/site_feature_marker_
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
 import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
+import 'package:submersion/features/site_scape/presentation/site_seascape_section.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -49,6 +54,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/section_properties_menu.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
@@ -209,6 +216,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             const SizedBox(height: kSiteDetailCardGap),
           ],
           SiteDetailHeader(site: site),
+          SharedByBanner(
+            kind: SharedItemKind.site,
+            itemId: site.id,
+            ownerId: site.diverId,
+            isShared: site.isShared,
+          ),
           const SizedBox(height: kSiteDetailCardGap),
           SiteDetailSectionList(
             sections: sections,
@@ -253,6 +266,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onSelected: (value) =>
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
+                openInConnectionsMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
               ],
             ),
@@ -290,6 +304,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           (context) => _buildDescriptionSection(context, site),
       SiteDetailSectionId.location: () =>
           watching((context, ref) => _buildLocationSection(context, ref, site)),
+      // The terrain needs coordinates to look up. A site whose bathymetry
+      // comes back empty keeps the card and shows the pane's no-data state,
+      // so the cards below never jump once the lookup finishes.
+      SiteDetailSectionId.seascape: () => site.hasCoordinates
+          ? (_) => SiteSeascapeSection(
+              siteId: site.id,
+              padding: _cardPadding,
+              onOpenFullscreen: () =>
+                  _showFullscreenMap(context, ref, site, initialScape3d: true),
+            )
+          : null,
       SiteDetailSectionId.depth: () =>
           watching((context, ref) => _buildDepthSection(context, ref, site)),
       SiteDetailSectionId.altitude: () => site.altitude != null
@@ -336,8 +361,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ref: ref,
               siteId: site.id,
             ),
-            onOpenDocument: (item) =>
-                DocumentOpenHelper.open(context, ref, item),
+            onOpenDocument: (item) => DocumentOpenHelper.open(
+              context,
+              ref,
+              item,
+              editableSiteId: site.id,
+            ),
           ),
       // Tags (issue #1765), after media as on a dive. Shown only when the
       // site has some, decided here so an empty card leaves no gap and, in
@@ -371,6 +400,19 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     DiveSite site,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    // Watched, as the trip page does, so the menu follows the profile once
+    // it has loaded (issue #2594); null until then (issue #2682).
+    final canDestroy = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
+      ownerId: site.diverId,
+    );
+    // A site this profile already removed offers Unhide (issue #2679).
+    final hidden = watchHiddenHere(
+      ref,
+      SharedItemKind.site,
+      site.id,
+      canDestroy: canDestroy != false,
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -452,18 +494,41 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               onSelected: (value) =>
                   _handleMenuAction(context, ref, value, site),
               itemBuilder: (context) => [
+                openInConnectionsMenuItem(context),
                 displayOptionsMenuItem(context, 'displayOptions'),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: const Icon(Icons.delete, color: Colors.red),
-                    title: Text(
-                      context.l10n.diveSites_detail_deleteMenu_label,
-                      style: const TextStyle(color: Colors.red),
+                // Delete for the owner; another profile only removes the
+                // shared site from itself (issue #2594); neither while the
+                // profile is unknown (issue #2682).
+                if (canDestroy == true)
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: const Icon(Icons.delete, color: Colors.red),
+                      title: Text(
+                        context.l10n.diveSites_detail_deleteMenu_label,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      contentPadding: EdgeInsets.zero,
                     ),
-                    contentPadding: EdgeInsets.zero,
+                  )
+                else if (hidden)
+                  PopupMenuItem(
+                    value: 'unhide',
+                    child: ListTile(
+                      leading: const Icon(Icons.visibility_outlined),
+                      title: Text(context.l10n.sharedItems_unhideAction),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  )
+                else if (canDestroy == false)
+                  PopupMenuItem(
+                    value: 'remove',
+                    child: ListTile(
+                      leading: const Icon(Icons.visibility_off_outlined),
+                      title: Text(context.l10n.sharedItems_removeAction),
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -478,16 +543,38 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     String action,
     DiveSite site,
   ) async {
+    if (action == kOpenInConnectionsAction) {
+      openInConnections(context, NodeRef(ConnectionKind.site, site.id));
+      return;
+    }
     if (action == 'displayOptions') {
       _displayOptionsMenu.open();
+      return;
+    }
+    if (action == 'remove') {
+      await _removeFromProfile(context, ref, site);
+      return;
+    }
+    if (action == 'unhide') {
+      // A failed unhide says so (issue #2677).
+      await runHideChange(
+        ScaffoldMessenger.of(context),
+        context.l10n,
+        () =>
+            ref.read(siteListNotifierProvider.notifier).unhideSites([site.id]),
+      );
       return;
     }
     if (action == 'delete') {
       final divers = await ref.read(allDiversProvider.future);
       final usage = await readSiteDeleteUsage(ref, [site.id]);
-      if (!context.mounted) return;
       final diverCount = divers.length;
       final isSharedDelete = site.isShared && diverCount >= 2;
+      // The other profiles' dives that lose the site (issue #2594).
+      final others = isSharedDelete
+          ? (await readDiveLinkCounts(ref, SharedItemKind.site, site.id)).others
+          : 0;
+      if (!context.mounted) return;
 
       final confirmed = await showDialog<bool>(
         context: context,
@@ -501,7 +588,14 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             withSiteDeleteUsage(
               ctx.l10n,
               isSharedDelete
-                  ? ctx.l10n.sites_deleteShared_body(site.name)
+                  ? [
+                      ctx.l10n.sites_deleteShared_body(site.name),
+                      ?otherProfilesDivesLine(
+                        ctx.l10n,
+                        SharedItemKind.site,
+                        others,
+                      ),
+                    ].join('\n\n')
                   : ctx.l10n.diveSites_detail_deleteDialog_content,
               usage,
             ),
@@ -523,9 +617,17 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       );
 
       if (confirmed == true) {
-        await ref
+        final deleted = await ref
             .read(siteListNotifierProvider.notifier)
             .deleteSite(widget.siteId);
+        if (!deleted) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(context.l10n.sharedItems_notOwner_site)),
+            );
+          }
+          return;
+        }
         ref.invalidate(sitesWithCountsProvider);
         ref.invalidate(sitesProvider);
 
@@ -545,6 +647,28 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     }
   }
 
+  /// Hides another profile's shared site from the active profile only
+  /// (issue #2594), with Undo.
+  Future<void> _removeFromProfile(
+    BuildContext context,
+    WidgetRef ref,
+    DiveSite site,
+  ) {
+    final notifier = ref.read(siteListNotifierProvider.notifier);
+    return removeSharedItemFromProfile(
+      context,
+      ref,
+      kind: SharedItemKind.site,
+      id: site.id,
+      name: site.name,
+      ownerId: site.diverId,
+      hide: () async => await notifier.hideSites([site.id]) == 1,
+      unhide: () => notifier.unhideSites([site.id]),
+      onRemoved: () =>
+          widget.embedded ? widget.onDeleted?.call() : context.go('/sites'),
+    );
+  }
+
   Widget _buildMapSection(BuildContext context, WidgetRef ref, DiveSite site) {
     final colorScheme = Theme.of(context).colorScheme;
     final siteLocation = LatLng(
@@ -552,9 +676,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       site.location!.longitude,
     );
 
-    // Flat 2D preview: the seascape lives behind the header's terrain
-    // button and the fullscreen map, both of which open a pane big enough
-    // to read. A 200px strip is not, so it carries no mode toggle.
+    // Flat 2D preview: the seascape has its own card further down, and the
+    // header's terrain button and the fullscreen map open it big. A 200px
+    // strip is too short to orbit, so it carries no mode toggle.
     return Card(
       clipBehavior: Clip.antiAlias,
       child: SizedBox(

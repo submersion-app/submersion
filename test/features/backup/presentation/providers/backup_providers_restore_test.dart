@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
@@ -91,6 +92,7 @@ class _RecordingBackupService extends BackupService {
   Future<BackupValidationResult> validateBackupFile(
     String filePath, {
     bool allowLiveDatabaseEncryption = false,
+    bool requireBackupExtension = true,
   }) async => const BackupValidationResult.valid(sizeBytes: 1);
 
   @override
@@ -123,6 +125,26 @@ class _RecordingBackupService extends BackupService {
     final progress = migrationProgressToEmit;
     if (progress != null) onMigrationProgress?.call(progress.$1, progress.$2);
   }
+
+  String? lastCopyPath;
+
+  @override
+  Future<void> restoreFromDatabaseCopy(
+    String path, {
+    RestoreMode mode = RestoreMode.merge,
+    void Function(int currentStep, int totalSteps)? onMigrationProgress,
+  }) async {
+    calls.add('restoreFromDatabaseCopy');
+    lastMode = mode;
+    lastCopyPath = path;
+    _gate(null);
+    if (copyError != null) throw copyError!;
+    final progress = migrationProgressToEmit;
+    if (progress != null) onMigrationProgress?.call(progress.$1, progress.$2);
+  }
+
+  /// When set, [restoreFromDatabaseCopy] throws this after recording.
+  Object? copyError;
 }
 
 /// Stands in for the real post-restore sweep so the notifier can be exercised
@@ -154,6 +176,17 @@ class _FakePostRestoreSafetyReview implements PostRestoreSafetyReview {
       cancelled: isCancelled?.call() ?? false,
     );
   }
+}
+
+/// A backup file path inside a fresh temp dir that is removed after the
+/// current test. Test processes run in parallel against one real $TMPDIR, so
+/// a name built from the clock alone is not unique across them.
+File _scratchBackupFile(String prefix) {
+  final dir = Directory.systemTemp.createTempSync(prefix);
+  addTearDown(() {
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
+  });
+  return File(p.join(dir.path, '${prefix}backup.db'));
 }
 
 void main() {
@@ -197,27 +230,15 @@ void main() {
 
   /// A throwaway backup file for the restoreFromFilePath entry point.
   Future<String> tempBackupPath(String tag) async {
-    final tmp = File(
-      '${Directory.systemTemp.path}/notifier_restore_${tag}_'
-      '${DateTime.now().microsecondsSinceEpoch}.db',
-    );
+    final tmp = _scratchBackupFile('notifier_restore_${tag}_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
     return tmp.path;
   }
 
   test('restoreFromFilePath threads the mode and completes', () async {
     final container = makeContainer();
-    final tmp = File(
-      '${Directory.systemTemp.path}/notifier_restore_'
-      '${DateTime.now().microsecondsSinceEpoch}.db',
-    );
+    final tmp = _scratchBackupFile('notifier_restore_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     await container
         .read(backupOperationProvider.notifier)
@@ -242,14 +263,8 @@ void main() {
       backupOperationProvider,
       (_, next) => messages.add(next.message),
     );
-    final tmp = File(
-      '${Directory.systemTemp.path}/notifier_restore_migration_'
-      '${DateTime.now().microsecondsSinceEpoch}.db',
-    );
+    final tmp = _scratchBackupFile('notifier_restore_migration_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     await container
         .read(backupOperationProvider.notifier)
@@ -343,14 +358,8 @@ void main() {
       'to idle so the page can prompt', () async {
     service.requireSecret = true;
     final container = makeContainer();
-    final tmp = File(
-      '${Directory.systemTemp.path}/notifier_enc_'
-      '${DateTime.now().microsecondsSinceEpoch}.db',
-    );
+    final tmp = _scratchBackupFile('notifier_enc_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     await expectLater(
       container
@@ -380,14 +389,8 @@ void main() {
       ..requireSecret = true
       ..correctSecret = 'right';
     final container = makeContainer();
-    final tmp = File(
-      '${Directory.systemTemp.path}/notifier_wrongpw_'
-      '${DateTime.now().microsecondsSinceEpoch}.db',
-    );
+    final tmp = _scratchBackupFile('notifier_wrongpw_');
     await tmp.writeAsString('db');
-    addTearDown(() async {
-      if (await tmp.exists()) await tmp.delete();
-    });
 
     // A wrong secret must propagate (not become an error state), so the
     // dialog stays open with its inline error instead of closing on success.
@@ -629,6 +632,59 @@ void main() {
     expect(state.status, BackupOperationStatus.error);
     expect(state.isRestoring, isFalse);
     expect(state.message, startsWith('Nothing was restored'));
+  });
+
+  group('restoreFromDatabaseCopy', () {
+    test('threads the path and mode, runs the sweep and completes', () async {
+      final sweep = _FakePostRestoreSafetyReview();
+      final container = makeContainer(sweep: sweep);
+
+      await container
+          .read(backupOperationProvider.notifier)
+          .restoreFromDatabaseCopy(
+            '/db/submersion.db.pre-restore.20260926T134501Z',
+            mode: RestoreMode.replace,
+          );
+
+      expect(service.calls, ['restoreFromDatabaseCopy']);
+      expect(
+        service.lastCopyPath,
+        '/db/submersion.db.pre-restore.20260926T134501Z',
+      );
+      expect(service.lastMode, RestoreMode.replace);
+      expect(sweep.calls, 1);
+      expect(
+        container.read(backupOperationProvider).status,
+        BackupOperationStatus.restoreComplete,
+      );
+    });
+
+    test('reports a refused copy as a failed restore', () async {
+      final container = makeContainer();
+      service.copyError = const BackupException('newer build');
+
+      await container
+          .read(backupOperationProvider.notifier)
+          .restoreFromDatabaseCopy('/db/copy');
+
+      final state = container.read(backupOperationProvider);
+      expect(state.status, BackupOperationStatus.error);
+      expect(state.message, contains('newer build'));
+    });
+
+    test('reports a vanished copy as nothing restored', () async {
+      final container = makeContainer();
+      service.sourceMissing = true;
+
+      await container
+          .read(backupOperationProvider.notifier)
+          .restoreFromDatabaseCopy('/db/copy');
+
+      final state = container.read(backupOperationProvider);
+      expect(state.status, BackupOperationStatus.error);
+      expect(state.isRestoring, isFalse, reason: 'the barrier must come down');
+      expect(state.message, startsWith('Nothing was restored'));
+    });
   });
 
   test('backup encryption providers wire their real dependencies', () async {

@@ -11,8 +11,10 @@ class Dl7Document {
   /// ZRH record-header fields (units live here), empty when missing.
   final List<String> zrhFields;
 
-  /// Raw text inside the first ZAR{...} block, empty string when absent.
-  final String zarContent;
+  /// Raw text inside each non-empty ZAR{...} block, in file order. A
+  /// multi-dive file may carry one per dive, so they are kept apart rather
+  /// than joined (#2211).
+  final List<String> zarBlocks;
 
   /// One record per ZDH/ZDP/ZDT group, in file order.
   final List<Dl7DiveRecord> dives;
@@ -24,7 +26,7 @@ class Dl7Document {
   const Dl7Document({
     this.fshFields = const [],
     this.zrhFields = const [],
-    this.zarContent = '',
+    this.zarBlocks = const [],
     this.dives = const [],
     this.readerWarnings = const [],
   });

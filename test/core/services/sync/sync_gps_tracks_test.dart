@@ -1,11 +1,15 @@
 // Only Value is needed here; a bare drift import collides with matcher's
 // isNull/isNotNull.
 import 'package:drift/drift.dart' show Value;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
+import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/track_point_codec.dart';
 
@@ -141,4 +145,44 @@ void main() {
       expect(row.trimStartTime, isNull);
     },
   );
+
+  group('deleteRecord evicts cached geometry (issue #1929)', () {
+    late LocalCacheDatabase local;
+
+    setUp(() {
+      local = LocalCacheDatabase(NativeDatabase.memory());
+      LocalCacheDatabaseService.instance.setTestDatabase(local);
+    });
+
+    tearDown(() async {
+      LocalCacheDatabaseService.instance.resetForTesting();
+      await local.close();
+    });
+
+    test('a track deleted by a peer leaves no cached LODs', () async {
+      final id = await seedTrack();
+      final other = await seedTrack();
+      final cache = TrackGeometryCacheRepository();
+      for (final lod in TrackLod.values) {
+        await cache.write(id, lod, const []);
+        await cache.write(other, lod, const []);
+      }
+
+      await serializer.deleteRecord('gpsTracks', id);
+
+      final rows = await local.select(local.gpsTrackGeometryCache).get();
+      expect(rows.map((r) => r.trackId).toSet(), {other});
+    });
+
+    test('a failed eviction does not fail the delete', () async {
+      final id = await seedTrack();
+      final failing = SyncDataSerializer(
+        evictTrackGeometry: (_) async => throw StateError('cache broken'),
+      );
+
+      await failing.deleteRecord('gpsTracks', id);
+
+      expect(await failing.fetchRecord('gpsTracks', id), isNull);
+    });
+  });
 }

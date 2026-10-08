@@ -102,7 +102,7 @@ class UnitAxis {
       max: metric ? 18 : _floorTo(units.convertDepth(18), 5),
       step: metric ? 1 : 5,
       decimals: 0,
-      symbol: '${units.depthSymbol}/min',
+      symbol: units.depthRateSymbol,
       toDisplayFn: units.convertDepth,
       toCanonicalFn: units.depthToMeters,
     );
@@ -121,7 +121,7 @@ class UnitAxis {
       max: metric ? maxL : _floorTo(units.convertVolume(maxL), 0.05),
       step: metric ? 1 : 0.05,
       decimals: metric ? 0 : 2,
-      symbol: '${units.volumeSymbol}/min',
+      symbol: units.rmvSymbol,
       toDisplayFn: units.convertVolume,
       toCanonicalFn: units.volumeToLiters,
     );

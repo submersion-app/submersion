@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/pdf_roboto.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -32,6 +33,9 @@ void main() {
     timeFormat: TimeFormat.twentyFourHour,
   );
   const units = UnitFormatter(AppSettings());
+
+  setUpAll(loadPdfRoboto);
+  tearDownAll(unloadPdfRoboto);
 
   setUp(() async {
     await setUpTestDatabase();
@@ -167,7 +171,7 @@ void main() {
       Certification(
         id: 'c1',
         name: 'Rescue Diver',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         cardNumber: 'CARD-9',
         issueDate: DateTime(2021, 4, 2),
         createdAt: DateTime(2021, 4, 2),

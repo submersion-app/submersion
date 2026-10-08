@@ -19,3 +19,10 @@ class SuuntoApiException implements Exception {
   @override
   String toString() => 'SuuntoApiException: $displayMessage';
 }
+
+/// The export is a Suunto activity, but not a dive (`ActivityType` is not
+/// scuba). A subtype so existing `on SuuntoApiException` handlers still
+/// catch it, while a file import can tell the diver why it was skipped.
+class SuuntoNotADiveException extends SuuntoApiException {
+  const SuuntoNotADiveException(super.message);
+}

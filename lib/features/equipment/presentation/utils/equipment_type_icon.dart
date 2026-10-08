@@ -104,11 +104,24 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return Icons.flashlight_on;
     case EquipmentType.camera:
       return Icons.camera_alt;
-    // Photo rig parts (issue #1487).
+    // Photo rig parts (issue #1487, #1997). The six #1997 parts have no
+    // shape in any icon font, so they are drawn.
+    case EquipmentType.lens:
+      return SubmersionIcons.lens;
+    case EquipmentType.port:
+      return SubmersionIcons.port;
     case EquipmentType.housing:
       return Icons.photo_camera_back;
+    case EquipmentType.trayHandle:
+      return SubmersionIcons.trayHandle;
+    case EquipmentType.armClamp:
+      return SubmersionIcons.armClamp;
     case EquipmentType.strobe:
       return Icons.flash_on;
+    case EquipmentType.videoLight:
+      return SubmersionIcons.videoLight;
+    case EquipmentType.floatArm:
+      return SubmersionIcons.floatArm;
     case EquipmentType.knife:
       return MdiIcons.knifeMilitary;
     // Crossed screwdriver and wrench: a save-a-dive kit, not one wrench, which
@@ -123,6 +136,10 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return SubmersionIcons.reel;
     case EquipmentType.dpv:
       return SubmersionIcons.dpv;
+    // An upright suitcase (#2952). It reads as luggage at list size, and a
+    // bag is carried to the dive rather than worn on it.
+    case EquipmentType.bag:
+      return Icons.luggage;
     case EquipmentType.o2Cell:
       return Icons.sensors;
     case EquipmentType.battery:

@@ -92,6 +92,12 @@ bool _groupingIsWellFormed(String text) {
   if (groupSep.isEmpty) return true;
 
   final decimalIndex = text.indexOf(symbols.DECIMAL_SEP);
+  // Grouping never follows the decimal separator, yet intl skips one there
+  // too, reading de "12,5.6" as 12.56.
+  if (decimalIndex >= 0 &&
+      text.substring(decimalIndex + 1).contains(groupSep)) {
+    return false;
+  }
   var integerPart = decimalIndex >= 0 ? text.substring(0, decimalIndex) : text;
 
   // Where the locale groups with a space it is a narrow no-break one, but a
@@ -123,6 +129,15 @@ int? parseUserInt(String text) {
   return value.toInt();
 }
 
+/// [parseUserInt], with [smartParseUserDecimal]'s correction of one
+/// unambiguous wrong-separator keystroke. A fraction is still rejected, not
+/// rounded, for the same reason as [parseUserInt].
+int? smartParseUserInt(String text) {
+  final value = smartParseUserDecimal(text);
+  if (value == null || value != value.roundToDouble()) return null;
+  return value.toInt();
+}
+
 /// [value] rendered for seeding an editable field, in the active locale's
 /// decimal convention and without grouping separators.
 ///
@@ -131,6 +146,9 @@ int? parseUserInt(String text) {
 ///
 /// The digits come from [double.toString], which yields the shortest decimal
 /// that reads back as the same double, and only the separator is localised.
+/// The value is first rounded to 15 significant digits, which keeps every
+/// digit of anything a diver typed but drops floating-point noise, so a
+/// downloaded 55% He seeds "55" rather than "55.00000000000001" (#2032).
 /// NumberFormat is the wrong tool for the digits here: it renders the exact
 /// binary value, so raising its 3-digit cap far enough to stop it rounding
 /// 12.345678 to 12.346 makes it start emitting noise instead (12.05 becomes

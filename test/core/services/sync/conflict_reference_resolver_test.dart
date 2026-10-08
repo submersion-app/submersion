@@ -106,6 +106,80 @@ void main() {
     expect(item.name, 'Wing');
   });
 
+  test("names a mission member's scooter through its equipment item", () async {
+    // scooterEquipmentId is a soft link with no Drift constraint (issue
+    // #2086), so it is mapped by name like switchToTankId.
+    await serializer.upsertRecord('equipment', {
+      'id': 'eq-dpv',
+      'name': 'Blacktip',
+      'type': 'other',
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+
+    final refs = await resolver.resolve('divePlanMissionMembers', {
+      'id': 'member-1',
+      'scooterEquipmentId': 'eq-dpv',
+      'createdAt': 1000,
+    });
+
+    final scooter = refFor(refs, 'scooterEquipmentId');
+    expect(scooter.targetType, 'equipment');
+    expect(scooter.name, 'Blacktip');
+  });
+
+  test('maps the soft links that hold another row id (#694)', () {
+    // None of these has a Drift constraint, so each is mapped by name; the
+    // conflict dialog otherwise compares and prints raw ids for them.
+    const expected = {
+      ('dives', 'diveType'): 'diveTypes',
+      ('dives', 'diverRole'): 'diveRoles',
+      ('diveBuddies', 'role'): 'diveRoles',
+      ('diveDiverRoles', 'roleId'): 'diveRoles',
+      ('diveBuddyRoles', 'roleId'): 'diveRoles',
+      ('diveTanks', 'regulatorEquipmentId'): 'equipment',
+      ('diveEquipment', 'viaEquipmentId'): 'equipment',
+      ('diveEquipment', 'viaSetId'): 'equipmentSets',
+      ('equipment', 'parentEquipmentId'): 'equipment',
+      ('equipmentComponents', 'componentEquipmentId'): 'equipment',
+      ('transmitters', 'transmitterEquipmentId'): 'equipment',
+      ('transmitters', 'diveComputerId'): 'diveComputers',
+      ('weightPresetEntries', 'presetId'): 'weightPresets',
+      ('buddies', 'linkedDiverId'): 'divers',
+    };
+    for (final MapEntry(key: (entity, field), value: target)
+        in expected.entries) {
+      expect(
+        ConflictReferenceResolver.targetTypeFor(entity, field),
+        target,
+        reason: '$entity.$field',
+      );
+    }
+    // `role` is a role id only on a dive buddy row.
+    expect(ConflictReferenceResolver.targetTypeFor('dives', 'role'), isNull);
+  });
+
+  test("names a dive buddy's role through its dive role row", () async {
+    await serializer.upsertRecord('diveRoles', {
+      'id': 'role-1',
+      'name': 'Instructor',
+      'isBuiltIn': false,
+      'sortOrder': 0,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+
+    final refs = await resolver.resolve('diveBuddies', {
+      'id': 'db-1',
+      'role': 'role-1',
+      'createdAt': 1000,
+    });
+
+    final role = refFor(refs, 'role');
+    expect(role.targetType, 'diveRoles');
+    expect(role.name, 'Instructor');
+  });
+
   test('marks a reference whose row is absent locally as missing', () async {
     await seedDive('dive-1');
 

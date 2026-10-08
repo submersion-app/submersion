@@ -60,7 +60,7 @@ BuddyWithRole _buddy({Uint8List? photo}) => BuddyWithRole(
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   ),
-  role: DiveRole.builtInBuddy(),
+  roles: [DiveRole.builtInBuddy()],
 );
 
 Future<void> _pump(

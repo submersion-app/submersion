@@ -257,5 +257,21 @@ void main() {
       // A higher ppO2 ceiling allows a richer O2 fraction.
       expect(deco.idealO2Percent, greaterThan(bottom.idealO2Percent));
     });
+
+    test('targets the plan best-mix END, not the Settings END limit '
+        '(issue #1499)', () {
+      final plan = _decoPlan().copyWith(bestMixEndMeters: 30.0);
+      final tightSettings = suggestBestMixForPlan(
+        plan,
+        const PlanEngineConfig(endLimitMeters: 20.0),
+        depthMeters: 60.0,
+      );
+      final looseSettings = suggestBestMixForPlan(
+        plan,
+        const PlanEngineConfig(endLimitMeters: 45.0),
+        depthMeters: 60.0,
+      );
+      expect(tightSettings.recommended.mix, looseSettings.recommended.mix);
+    });
   });
 }

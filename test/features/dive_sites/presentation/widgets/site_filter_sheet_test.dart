@@ -148,6 +148,25 @@ void main() {
       expect(applied!, closeTo(30.48, 0.01));
     });
 
+    testWidgets('a blank bound clears and a typo keeps the last bound '
+        '(#1900)', (tester) async {
+      _useTallSurface(tester);
+      final container = await _container(settings: const AppSettings());
+      addTearDown(container.dispose);
+      await _openSheet(tester, container);
+
+      final minField = find.widgetWithText(TextField, 'Min');
+      await tester.enterText(minField, '');
+      await tester.enterText(minField, '12');
+      await tester.enterText(minField, '1..2');
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
+      await tester.tap(find.text('Apply Filters'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(siteFilterProvider).minDepth, closeTo(12, 0.001));
+    });
+
     testWidgets('leaves a metric diver typing meters untouched', (
       tester,
     ) async {

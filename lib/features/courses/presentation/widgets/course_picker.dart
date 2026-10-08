@@ -7,7 +7,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// A widget for selecting a training course for a dive.
 class CoursePicker extends ConsumerWidget {
@@ -22,6 +24,7 @@ class CoursePicker extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return ListTile(
@@ -44,7 +47,7 @@ class CoursePicker extends ConsumerWidget {
       ),
       subtitle: selectedCourse != null
           ? Text(
-              '${selectedCourse!.agency.localizedName(context.l10n)} - ${selectedCourse!.isCompleted ? context.l10n.courses_status_completed : context.l10n.courses_status_inProgress}',
+              '${context.certificationCatalog.agency(selectedCourse!.agency).localizedName(context.l10n)} - ${selectedCourse!.isCompleted ? context.l10n.courses_status_completed : context.l10n.courses_status_inProgress}',
             )
           : Text(context.l10n.courses_picker_tapToLink),
       trailing: Row(
@@ -59,30 +62,40 @@ class CoursePicker extends ConsumerWidget {
           const Icon(Icons.chevron_right),
         ],
       ),
-      onTap: () => _showCoursePickerSheet(context, ref),
-    );
-  }
-
-  void _showCoursePickerSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (_, scrollController) => CoursePickerSheet(
-          scrollController: scrollController,
-          selectedCourse: selectedCourse,
-          onCourseSelected: (course) {
-            Navigator.of(sheetContext).pop();
-            onCourseSelected(course);
-          },
-        ),
+      onTap: () => showCoursePickerSheet(
+        context,
+        selectedCourse: selectedCourse,
+        onCourseSelected: onCourseSelected,
       ),
     );
   }
+}
+
+/// Opens [CoursePickerSheet] in a draggable modal sheet. The sheet closes
+/// before [onCourseSelected] runs.
+Future<void> showCoursePickerSheet(
+  BuildContext context, {
+  required Course? selectedCourse,
+  required ValueChanged<Course> onCourseSelected,
+}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (sheetContext) => DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.5,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (_, scrollController) => CoursePickerSheet(
+        scrollController: scrollController,
+        selectedCourse: selectedCourse,
+        onCourseSelected: (course) {
+          Navigator.of(sheetContext).pop();
+          onCourseSelected(course);
+        },
+      ),
+    ),
+  );
 }
 
 /// A bottom sheet widget for selecting a course from a list.
@@ -100,6 +113,7 @@ class CoursePickerSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final coursesAsync = ref.watch(courseListNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -122,9 +136,11 @@ class CoursePickerSheet extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                context.l10n.courses_picker_selectTitle,
-                style: Theme.of(context).textTheme.titleLarge,
+              Flexible(
+                child: Text(
+                  context.l10n.courses_picker_selectTitle,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
               TextButton.icon(
                 onPressed: () {
@@ -190,7 +206,7 @@ class CoursePickerSheet extends ConsumerWidget {
                   final startDateStr = formatter.formatDate(course.startDate);
 
                   final courseLabel =
-                      '${course.agency.localizedName(context.l10n)} ${course.name}, ${context.l10n.courses_card_started(startDateStr)}${isSelected ? ', ${context.l10n.courses_picker_selected}' : ''}${course.isInProgress ? ', ${context.l10n.courses_picker_active}' : ''}';
+                      '${context.certificationCatalog.agency(course.agency).localizedName(context.l10n)} ${course.name}, ${context.l10n.courses_card_started(startDateStr)}${isSelected ? ', ${context.l10n.courses_picker_selected}' : ''}${course.isInProgress ? ', ${context.l10n.courses_picker_active}' : ''}';
 
                   return Semantics(
                     label: courseLabel,
@@ -214,7 +230,7 @@ class CoursePickerSheet extends ConsumerWidget {
                       ),
                       title: Text(course.name),
                       subtitle: Text(
-                        '${course.agency.localizedName(context.l10n)} - ${context.l10n.courses_card_started(startDateStr)}',
+                        '${context.certificationCatalog.agency(course.agency).localizedName(context.l10n)} - ${context.l10n.courses_card_started(startDateStr)}',
                       ),
                       trailing: isSelected
                           ? Icon(Icons.check_circle, color: colorScheme.primary)

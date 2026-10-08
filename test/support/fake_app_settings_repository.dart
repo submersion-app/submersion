@@ -101,6 +101,14 @@ class FakeAppSettingsRepository implements AppSettingsRepository {
   Future<void> setNavAlwaysHideLabels(bool value) =>
       setRawSetting('nav_always_hide_labels', value ? 'true' : 'false');
 
+  @override
+  Future<bool> getEquipmentGroupByLocation() async =>
+      await getRawSetting('equipment_group_by_location') == 'true';
+
+  @override
+  Future<void> setEquipmentGroupByLocation(bool value) =>
+      setRawSetting('equipment_group_by_location', value ? 'true' : 'false');
+
   /// Last value stored through [setBlenderPreferences], if any.
   BlenderPreferences? blenderPreferences;
 

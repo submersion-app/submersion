@@ -156,6 +156,59 @@ void main() {
       });
     }
   });
+
+  group('DeviceListPage help dialog', () {
+    // Garmin has no libdivecomputer backend, so the help dialog must not list
+    // it among the brands downloaded over Bluetooth or USB, and must say
+    // where its dives come in instead (#2624).
+    Future<void> openHelp(WidgetTester tester, Locale locale) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            allDiveComputersProvider.overrideWith((ref) async => const []),
+          ],
+          locale: locale,
+          child: const DeviceListPage(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.help_outline));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('keeps Garmin out of the download brands and points at '
+        'the import paths', (tester) async {
+      await openHelp(tester, const Locale('en'));
+
+      expect(
+        find.text(
+          'Shearwater, Suunto, Mares, Scubapro, Oceanic, Aqualung, '
+          'Cressi, and 50+ more models.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'Garmin watches are not downloaded here. Import their dives from '
+          'Transfer > File Import or Transfer > Cloud.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('fills each import path into its own slot', (tester) async {
+      await openHelp(tester, const Locale('de'));
+
+      expect(
+        find.text(
+          'Garmin-Uhren werden hier nicht heruntergeladen. Importieren Sie '
+          'ihre Tauchgänge über Übertragung > Dateiimport oder '
+          'Übertragung > Cloud.',
+        ),
+        findsOneWidget,
+      );
+    });
+  });
 }
 
 /// Records the ids bulk delete reached the notifier with.

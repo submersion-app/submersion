@@ -35,8 +35,8 @@ void main() {
     id: '',
     buddyId: buddyId,
     name: levelName,
-    agency: CertificationAgency.cmas,
-    level: CertificationLevel.values.byName(levelName),
+    agency: CertificationAgency.cmas.name,
+    level: CertificationLevel.values.byName(levelName).name,
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),
   );
@@ -48,8 +48,8 @@ void main() {
       await certRepo.createCertification(cmasCert('b1', 'cmas1StarDiver'));
       await certRepo.createCertification(cmasCert('b1', 'cmas3StarDiver'));
       final buddy = await buddyRepo.getBuddyById('b1');
-      expect(buddy!.certificationAgency, CertificationAgency.cmas);
-      expect(buddy.certificationLevel, CertificationLevel.cmas3StarDiver);
+      expect(buddy!.certificationAgency, CertificationAgency.cmas.name);
+      expect(buddy.certificationLevel, CertificationLevel.cmas3StarDiver.name);
     },
   );
 
@@ -62,7 +62,7 @@ void main() {
       final buddies = await buddyRepo.getAllBuddies();
       expect(
         buddies.firstWhere((b) => b.id == 'b1').certificationLevel,
-        CertificationLevel.cmas2StarDiver,
+        CertificationLevel.cmas2StarDiver.name,
       );
       expect(
         buddies.firstWhere((b) => b.id == 'bNoCerts').certificationLevel,
@@ -93,16 +93,16 @@ void main() {
           byDive[diveId]!.singleWhere((w) => w.buddy.id == buddyId).buddy;
       expect(
         on('d1', 'b1').certificationLevel,
-        CertificationLevel.cmas2StarDiver,
+        CertificationLevel.cmas2StarDiver.name,
       );
-      expect(on('d1', 'b1').certificationAgency, CertificationAgency.cmas);
+      expect(on('d1', 'b1').certificationAgency, CertificationAgency.cmas.name);
       expect(
         on('d2', 'b1').certificationLevel,
-        CertificationLevel.cmas2StarDiver,
+        CertificationLevel.cmas2StarDiver.name,
       );
       expect(on('d1', 'bNoCerts').certificationLevel, isNull);
       expect(
-        byDive['d1']!.singleWhere((w) => w.buddy.id == 'b1').role.id,
+        byDive['d1']!.singleWhere((w) => w.buddy.id == 'b1').primaryRole.id,
         DiveRole.diveGuideId,
         reason: 'roles are kept as the lean load returns them',
       );

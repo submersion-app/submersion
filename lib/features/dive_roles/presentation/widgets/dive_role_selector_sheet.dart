@@ -1,94 +1,165 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 
-/// Result wrapper distinguishing "cancelled" (showDiveRoleSelector returns
-/// null) from "explicitly chose no role" (DiveRoleSelection(null)).
-class DiveRoleSelection {
-  final DiveRole? role;
-  const DiveRoleSelection(this.role);
-}
-
-/// Bottom sheet listing [roles] (credential-backed ones first), with an
-/// optional "No role" entry and an optional "Add custom role..." row that
-/// creates a role via [onCreateCustomRole] and returns it selected.
-Future<DiveRoleSelection?> showDiveRoleSelector(
+/// Bottom sheet for picking the roles a person holds on a dive (issue
+/// #1221). Every row is a checkbox; Done returns the ticked roles in
+/// DiveRoleSet order, and dismissing returns null so the caller changes
+/// nothing. Ticking Solo clears the rest and ticking anything else clears
+/// Solo ([DiveRoleSet.toggle]). Credential-backed roles come first.
+/// [allowEmpty] adds a "No role" row that clears every tick (the diver's own
+/// role); a buddy's caller maps an empty result to Buddy. "Add custom
+/// role..." creates a role via [onCreateCustomRole] and ticks it.
+Future<List<DiveRole>?> showDiveRoleSelector(
   BuildContext context, {
   required String title,
   required List<DiveRole> roles,
   Set<String> credentialRoleIds = const {},
-  bool allowNone = false,
-  String? selectedRoleId,
+  bool allowEmpty = false,
+  List<String> selectedRoleIds = const [],
   Future<DiveRole?> Function(String name)? onCreateCustomRole,
+
+  /// Built-in roles the diver hid from the pickers (issue #401). A ticked
+  /// role stays even when hidden.
+  Set<String> hiddenRoleIds = const {},
+
+  /// Roles to offer even when hidden: the ones the record had when its
+  /// editor opened, so a change can be undone in place.
+  Iterable<String?> keepRoleIds = const [],
 }) {
-  final orderedRoles = [
-    ...roles.where((r) => credentialRoleIds.contains(r.id)),
-    ...roles.where((r) => !credentialRoleIds.contains(r.id)),
-  ];
-  return showModalBottomSheet<DiveRoleSelection>(
+  final shownRoles = visibleBuiltIns(
+    roles,
+    hiddenRoleIds,
+    isBuiltIn: (r) => r.isBuiltIn,
+    idOf: (r) => r.id,
+    keep: [...selectedRoleIds, ...keepRoleIds],
+  );
+  return showModalBottomSheet<List<DiveRole>>(
     context: context,
     isScrollControlled: true,
-    builder: (ctx) => SafeArea(
+    builder: (ctx) => _DiveRoleSelectorSheet(
+      title: title,
+      roles: shownRoles,
+      credentialRoleIds: credentialRoleIds,
+      allowEmpty: allowEmpty,
+      selectedRoleIds: selectedRoleIds,
+      onCreateCustomRole: onCreateCustomRole,
+    ),
+  );
+}
+
+class _DiveRoleSelectorSheet extends StatefulWidget {
+  const _DiveRoleSelectorSheet({
+    required this.title,
+    required this.roles,
+    required this.credentialRoleIds,
+    required this.allowEmpty,
+    required this.selectedRoleIds,
+    required this.onCreateCustomRole,
+  });
+
+  final String title;
+  final List<DiveRole> roles;
+  final Set<String> credentialRoleIds;
+  final bool allowEmpty;
+  final List<String> selectedRoleIds;
+  final Future<DiveRole?> Function(String name)? onCreateCustomRole;
+
+  @override
+  State<_DiveRoleSelectorSheet> createState() => _DiveRoleSelectorSheetState();
+}
+
+class _DiveRoleSelectorSheetState extends State<_DiveRoleSelectorSheet> {
+  late List<String> _ticked = DiveRoleSet.normalize(widget.selectedRoleIds);
+  late final List<DiveRole> _roles = [...widget.roles];
+
+  List<DiveRole> get _ordered => [
+    ..._roles.where((r) => widget.credentialRoleIds.contains(r.id)),
+    ..._roles.where((r) => !widget.credentialRoleIds.contains(r.id)),
+  ];
+
+  void _done() {
+    final byId = {for (final r in _roles) r.id: r};
+    Navigator.pop(context, [
+      for (final id in _ticked) byId[id] ?? DiveRole.synthetic(id),
+    ]);
+  }
+
+  Future<void> _addCustomRole() async {
+    final created = await _showAddCustomRoleDialog(
+      context,
+      widget.onCreateCustomRole!,
+    );
+    if (created == null || !mounted) return;
+    setState(() {
+      if (!_roles.any((r) => r.id == created.id)) _roles.add(created);
+      if (!_ticked.contains(created.id)) {
+        _ticked = DiveRoleSet.toggle(_ticked, created.id);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SafeArea(
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(title, style: Theme.of(ctx).textTheme.titleMedium),
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _done,
+                    child: Text(l10n.common_action_done),
+                  ),
+                ],
+              ),
             ),
             const Divider(),
-            if (allowNone)
+            if (widget.allowEmpty)
               ListTile(
-                leading: Icon(
-                  selectedRoleId == null
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
-                  color: selectedRoleId == null
-                      ? Theme.of(ctx).colorScheme.primary
-                      : null,
-                ),
-                title: Text(ctx.l10n.buddies_picker_noRole),
-                onTap: () => Navigator.pop(ctx, const DiveRoleSelection(null)),
+                leading: const Icon(Icons.block),
+                title: Text(l10n.buddies_picker_noRole),
+                selected: _ticked.isEmpty,
+                onTap: () => setState(() => _ticked = const []),
               ),
-            ...orderedRoles.map(
-              (role) => ListTile(
-                leading: Icon(
-                  credentialRoleIds.contains(role.id)
-                      ? Icons.workspace_premium
-                      : role.id == selectedRoleId
-                      ? Icons.radio_button_checked
-                      : Icons.person,
-                  color: role.id == selectedRoleId
-                      ? Theme.of(ctx).colorScheme.primary
-                      : null,
+            for (final role in _ordered)
+              CheckboxListTile(
+                value: _ticked.contains(role.id),
+                controlAffinity: ListTileControlAffinity.leading,
+                secondary: widget.credentialRoleIds.contains(role.id)
+                    ? const Icon(Icons.workspace_premium)
+                    : null,
+                title: Text(role.localizedName(l10n)),
+                onChanged: (_) => setState(
+                  () => _ticked = DiveRoleSet.toggle(_ticked, role.id),
                 ),
-                title: Text(role.localizedName(ctx.l10n)),
-                onTap: () => Navigator.pop(ctx, DiveRoleSelection(role)),
               ),
-            ),
-            if (onCreateCustomRole != null)
+            if (widget.onCreateCustomRole != null)
               ListTile(
                 leading: const Icon(Icons.add),
-                title: Text(ctx.l10n.buddies_picker_addCustomRole),
-                onTap: () async {
-                  final created = await _showAddCustomRoleDialog(
-                    ctx,
-                    onCreateCustomRole,
-                  );
-                  if (created != null && ctx.mounted) {
-                    Navigator.pop(ctx, DiveRoleSelection(created));
-                  }
-                },
+                title: Text(l10n.buddies_picker_addCustomRole),
+                onTap: _addCustomRole,
               ),
             const SizedBox(height: 16),
           ],
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 Future<DiveRole?> _showAddCustomRoleDialog(

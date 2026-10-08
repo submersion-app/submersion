@@ -1,0 +1,150 @@
+// pre-push: scans lib/l10n/arb/
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/domain/entities/custom_certification_agency.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/query/app_query_registry.dart';
+import 'package:submersion/features/query/presentation/app_query_labels.dart';
+import 'package:submersion/features/query/presentation/query_label_lookup.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+import '../../../helpers/test_app.dart';
+
+/// The registry names labels by ARB key; these pin that every key resolves
+/// to a real string and that enum values show their localized names.
+void main() {
+  final en = l10nForLocaleTag('en');
+
+  test('every plain query_ key in app_en.arb resolves through the lookup', () {
+    final arb =
+        jsonDecode(File('lib/l10n/arb/app_en.arb').readAsStringSync())
+            as Map<String, dynamic>;
+    // Keys with placeholders generate methods, not getters, and are not in
+    // the lookup.
+    final keys = arb.entries
+        .where(
+          (e) =>
+              e.key.startsWith('query_') &&
+              e.value is String &&
+              !(e.value as String).contains('{'),
+        )
+        .map((e) => e.key);
+    expect(keys, isNotEmpty);
+    for (final key in keys) {
+      expect(
+        queryLabelForKey(en, key),
+        isNot(key),
+        reason:
+            '$key is missing from query_label_lookup.dart; '
+            'run python3 scripts/gen_query_label_lookup.py',
+      );
+    }
+  });
+
+  test('every registry label key resolves, an unknown key returns itself', () {
+    for (final entity in appQueryRegistry.entities) {
+      for (final f in entity.fields) {
+        expect(queryLabelForKey(en, f.labelKey), isNot(f.labelKey));
+      }
+      for (final r in entity.relations) {
+        expect(queryLabelForKey(en, r.labelKey), isNot(r.labelKey));
+      }
+      final entityKey = 'query_entity_${entity.subject.name}';
+      expect(queryLabelForKey(en, entityKey), isNot(entityKey));
+    }
+    expect(queryLabelForKey(en, 'query_no_such_key'), 'query_no_such_key');
+  });
+
+  testWidgets('AppQueryLabels localises fields, entities, ops and enums', (
+    tester,
+  ) async {
+    late AppQueryLabels labels;
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) {
+            labels = AppQueryLabels(context);
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    final dives = appQueryRegistry.entityFor(QuerySubject.dives);
+    expect(labels.field(dives.field('depth')!), 'Max depth');
+    expect(labels.relation(dives.relation('site')!), 'Site');
+    expect(labels.entity(QuerySubject.sites), 'Dive sites');
+    expect(labels.op(QueryOp.gte), 'at least');
+    expect(labels.op(QueryOp.isEmpty), 'is not set');
+    expect(labels.enumValue(dives.field('waterType')!, 'salt'), 'Salt Water');
+    expect(labels.enumValue(dives.field('weekday')!, 'monday'), 'Mon');
+    expect(labels.enumValue(dives.field('sacTrend')!, 'rising'), 'Rising');
+    expect(labels.enumValue(dives.field('finalStop')!, 'noStop'), 'No stop');
+    final rule = appQueryRegistry
+        .entityFor(QuerySubject.findings)
+        .field('rule')!;
+    expect(labels.enumValue(rule, 'rapidAscent'), 'Rapid ascents');
+    expect(labels.enumValue(rule, 'noSuchRule'), 'noSuchRule');
+    // An unknown enum value falls back to its stored name.
+    expect(labels.enumValue(dives.field('waterType')!, 'brine'), 'brine');
+    final certs = appQueryRegistry.entityFor(QuerySubject.certifications);
+    expect(labels.enumValue(certs.field('agency')!, 'padi'), 'PADI');
+    expect(labels.enumValue(certs.field('level')!, 'rescue'), 'Rescue Diver');
+    final courses = appQueryRegistry.entityFor(QuerySubject.courses);
+    expect(labels.enumValue(courses.field('agency')!, 'padi'), 'PADI');
+    final species = appQueryRegistry.entityFor(QuerySubject.species);
+    expect(
+      labels.enumValue(species.field('category')!, 'plant'),
+      'Plant/Algae',
+    );
+  });
+
+  testWidgets('a custom agency or level labels with its name (issue #690)', (
+    tester,
+  ) async {
+    late AppQueryLabels labels;
+    final catalog = CertificationCatalog(
+      agencies: [
+        CustomCertificationAgency(
+          id: 'club-x-id',
+          diverId: 'a',
+          name: 'Club X',
+          colorArgb: 0xFF3B82F6,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          certificationCatalogSyncProvider.overrideWithValue(catalog),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) {
+              labels = AppQueryLabels(context);
+              return const SizedBox();
+            },
+          ),
+        ),
+      ),
+    );
+    final certs = appQueryRegistry.entityFor(QuerySubject.certifications);
+    expect(labels.enumValue(certs.field('agency')!, 'club-x-id'), 'Club X');
+    expect(labels.enumValue(certs.field('agency')!, 'padi'), 'PADI');
+    final courses = appQueryRegistry.entityFor(QuerySubject.courses);
+    expect(labels.enumValue(courses.field('agency')!, 'club-x-id'), 'Club X');
+  });
+}

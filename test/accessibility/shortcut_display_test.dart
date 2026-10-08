@@ -7,6 +7,7 @@ import 'package:submersion/core/accessibility/shortcut_registry.dart';
 void main() {
   setUp(() {
     ShortcutCatalog.instance.clear();
+    AppShortcuts.debugReset();
     AppShortcuts.ensureRegistered();
   });
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -13,10 +14,16 @@ import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/liveaboard_details.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
+
+const _log = LoggerService('tripEditPage');
 
 class TripEditPage extends ConsumerStatefulWidget {
   final String? tripId;
@@ -24,12 +31,17 @@ class TripEditPage extends ConsumerStatefulWidget {
   final void Function(String savedId)? onSaved;
   final VoidCallback? onCancel;
 
+  /// The section the form scrolls to once the trip has loaded; null opens
+  /// at the top (#2880).
+  final TripEditSection? initialSection;
+
   const TripEditPage({
     super.key,
     this.tripId,
     this.embedded = false,
     this.onSaved,
     this.onCancel,
+    this.initialSection,
   });
 
   @override
@@ -38,6 +50,7 @@ class TripEditPage extends ConsumerStatefulWidget {
 
 class _TripEditPageState extends ConsumerState<TripEditPage> {
   final _formKey = GlobalKey<FormState>();
+  final _planningKey = GlobalKey();
   final _nameController = TextEditingController();
   final _locationController = TextEditingController();
   final _resortController = TextEditingController();
@@ -45,6 +58,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   final _notesController = TextEditingController();
   final _expectedDivesController = TextEditingController();
   final _expectedRuntimeController = TextEditingController();
+  final _diversSharingController = TextEditingController();
+  final _divesPerDayController = TextEditingController();
 
   TripType _tripType = TripType.shore;
   final _vesselNameController = TextEditingController();
@@ -73,6 +88,13 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   Trip? _originalTrip;
 
   bool get isEditing => widget.tripId != null;
+
+  /// A day trip's end follows its start. A day trip stored before the form
+  /// enforced that can span several days; its end stays editable until the
+  /// trip is one day, so the row never locks on a range it contradicts.
+  bool get _endDateLocked =>
+      _tripType == TripType.dayTrip &&
+      calendarDaysBetween(_startDate, _endDate) == 0;
 
   @override
   void initState() {
@@ -110,6 +132,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     _notesController.addListener(_onFieldChanged);
     _expectedDivesController.addListener(_onFieldChanged);
     _expectedRuntimeController.addListener(_onFieldChanged);
+    _diversSharingController.addListener(_onFieldChanged);
+    _divesPerDayController.addListener(_onFieldChanged);
     _vesselNameController.addListener(_onFieldChanged);
     _operatorController.addListener(_onFieldChanged);
     _cabinTypeController.addListener(_onFieldChanged);
@@ -140,6 +164,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         _expectedDivesController.text = trip.expectedDives?.toString() ?? '';
         _expectedRuntimeController.text =
             trip.expectedRuntimeMinutes?.toString() ?? '';
+        _diversSharingController.text = '${trip.diversSharingCylinders}';
+        _divesPerDayController.text = trip.divesPerDayTarget?.toString() ?? '';
         _tripType = trip.tripType;
 
         // Load liveaboard details if applicable
@@ -167,13 +193,21 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           _isLoading = false;
           _hasChanges = false;
         });
+        if (widget.initialSection == TripEditSection.planning) {
+          // The form replaces the spinner on the next frame.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final planning = _planningKey.currentContext;
+            if (planning != null) Scrollable.ensureVisible(planning);
+          });
+        }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error('Failed to load trip', error: e, stackTrace: stackTrace);
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.trips_edit_snackBar_errorLoading('$e')),
+            content: Text(context.l10n.trips_edit_snackBar_errorLoading),
           ),
         );
       }
@@ -189,6 +223,8 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     _notesController.dispose();
     _expectedDivesController.dispose();
     _expectedRuntimeController.dispose();
+    _diversSharingController.dispose();
+    _divesPerDayController.dispose();
     _vesselNameController.dispose();
     _operatorController.dispose();
     _cabinTypeController.dispose();
@@ -243,9 +279,23 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     onSelectionChanged: (selected) {
                       setState(() {
                         _tripType = selected.first;
+                        // A day trip is one calendar day. Switching away
+                        // leaves the dates alone for the diver to widen.
+                        if (_tripType == TripType.dayTrip) {
+                          _endDate = _startDate;
+                        }
                         _hasChanges = true;
                       });
                     },
+                  ),
+                  const SizedBox(height: 8),
+                  // Says what each type is for, so a diver with a single
+                  // local dive learns that Day Trip is its home (#2625).
+                  Text(
+                    _tripTypeDescription(context, _tripType),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -291,18 +341,25 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     ),
                   ),
 
-                  // End date
+                  // End date, locked on a one-day Day Trip.
                   Semantics(
                     button: true,
+                    enabled: !_endDateLocked,
                     label:
-                        '${context.l10n.trips_edit_label_endDate}: ${units.formatDate(_endDate)}. Tap to change',
+                        '${context.l10n.trips_edit_label_endDate}: ${units.formatDate(_endDate)}'
+                        '${_endDateLocked ? '' : '. Tap to change'}',
                     child: ListTile(
                       leading: const Icon(Icons.event),
                       title: Text(context.l10n.trips_edit_label_endDate),
                       subtitle: Text(units.formatDate(_endDate)),
-                      onTap: () => _selectDate(context, false),
+                      enabled: !_endDateLocked,
+                      onTap: _endDateLocked
+                          ? null
+                          : () => _selectDate(context, false),
                       contentPadding: EdgeInsets.zero,
-                      trailing: const Icon(Icons.edit),
+                      trailing: Icon(
+                        _endDateLocked ? Icons.lock_outline : Icons.edit,
+                      ),
                     ),
                   ),
 
@@ -495,6 +552,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     // Capacity
                     TextFormField(
                       controller: _capacityController,
+                      // The filter keeps '-', so "-3" saves as none rather than as 3.
+                      inputFormatters: numberInputFormatters(),
+                      validator: numberValidator(context, integer: true),
                       decoration: InputDecoration(
                         labelText: context.l10n.trips_edit_label_capacity,
                         prefixIcon: const Icon(Icons.people),
@@ -561,6 +621,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   // two overrides. Empty means estimate from history.
                   Text(
                     context.l10n.trips_edit_sectionTitle_planning,
+                    key: _planningKey,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -568,6 +629,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _expectedDivesController,
+                    // The filter keeps '-', so "-3" saves as none rather than as 3.
+                    inputFormatters: numberInputFormatters(),
+                    validator: numberValidator(context, integer: true),
                     decoration: InputDecoration(
                       labelText: context.l10n.trips_edit_label_expectedDives,
                       prefixIcon: const Icon(Icons.scuba_diving),
@@ -578,10 +642,41 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _expectedRuntimeController,
+                    // The filter keeps '-', so "-3" saves as none rather than as 3.
+                    inputFormatters: numberInputFormatters(),
+                    validator: numberValidator(context, integer: true),
                     decoration: InputDecoration(
                       labelText: context.l10n.trips_edit_label_expectedRuntime,
                       prefixIcon: const Icon(Icons.timer_outlined),
                       hintText: context.l10n.trips_edit_hint_expectedRuntime,
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  // Fill forecast (#2325): who breathes from the trip's
+                  // cylinders, and a dives-per-day target. Blank sharing is
+                  // one diver; a blank target falls back to the expected
+                  // dives, else only the days the diver plans (#2903).
+                  TextFormField(
+                    controller: _diversSharingController,
+                    inputFormatters: numberInputFormatters(),
+                    validator: numberValidator(context, integer: true),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_diversSharing,
+                      prefixIcon: const Icon(Icons.groups_outlined),
+                      hintText: context.l10n.trips_edit_hint_diversSharing,
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _divesPerDayController,
+                    inputFormatters: numberInputFormatters(),
+                    validator: numberValidator(context, integer: true),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.trips_edit_label_divesPerDay,
+                      prefixIcon: const Icon(Icons.today_outlined),
+                      hintText: context.l10n.trips_edit_hint_divesPerDay,
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -598,23 +693,38 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                                       .l10n
                                       .common_label_shareWithAllProfiles,
                                 ),
+                                // Only the owner changes sharing (#2594).
+                                subtitle: _mayShare() != false
+                                    ? null
+                                    : Text(
+                                        context.l10n.sharedItems_shareOwnerOnly(
+                                          sharedItemOwnerName(
+                                            divers,
+                                            _originalTrip?.diverId,
+                                            context.l10n,
+                                          ),
+                                        ),
+                                      ),
                                 value: _isShared,
-                                onChanged: (v) async {
-                                  if (!v &&
-                                      isEditing &&
-                                      (_originalTrip?.isShared ?? false)) {
-                                    final confirmed =
-                                        await _showUnshareConfirmDialog(
-                                          context,
-                                        );
-                                    if (!mounted) return;
-                                    if (confirmed != true) return;
-                                  }
-                                  setState(() {
-                                    _isShared = v;
-                                    _hasChanges = true;
-                                  });
-                                },
+                                onChanged: _mayShare() != true
+                                    ? null
+                                    : (v) async {
+                                        if (!v &&
+                                            isEditing &&
+                                            (_originalTrip?.isShared ??
+                                                false)) {
+                                          final confirmed =
+                                              await _showUnshareConfirmDialog(
+                                                context,
+                                              );
+                                          if (!mounted) return;
+                                          if (confirmed != true) return;
+                                        }
+                                        setState(() {
+                                          _isShared = v;
+                                          _hasChanges = true;
+                                        });
+                                      },
                               )
                             : const SizedBox.shrink(),
                         orElse: () => const SizedBox.shrink(),
@@ -769,6 +879,15 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     );
   }
 
+  String _tripTypeDescription(BuildContext context, TripType type) {
+    return switch (type) {
+      TripType.shore => context.l10n.trips_type_description_shore,
+      TripType.liveaboard => context.l10n.trips_type_description_liveaboard,
+      TripType.resort => context.l10n.trips_type_description_resort,
+      TripType.dayTrip => context.l10n.trips_type_description_dayTrip,
+    };
+  }
+
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final initialDate = isStartDate
         ? _startDate
@@ -787,7 +906,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       setState(() {
         if (isStartDate) {
           _startDate = pickedDate;
-          if (_startDate.isAfter(_endDate)) {
+          if (_tripType == TripType.dayTrip || _startDate.isAfter(_endDate)) {
             _endDate = _startDate;
           }
         } else {
@@ -869,6 +988,17 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
 
   /// Asks the user to confirm un-sharing an existing shared trip.
   /// Returns [true] if confirmed, [false] or [null] to cancel.
+  /// Whether the active profile may change this trip's sharing: always for
+  /// a new trip, and only the owner for an existing one (issue #2594); null
+  /// while the profile is unknown, which locks it without naming an owner
+  /// (issue #2682). Read during build, so it watches the active profile.
+  bool? _mayShare() => _originalTrip == null
+      ? true
+      : canDestroySharedItemOnceKnown(
+          ref.watch(validatedCurrentDiverIdProvider),
+          ownerId: _originalTrip?.diverId,
+        );
+
   Future<bool?> _showUnshareConfirmDialog(BuildContext ctx) {
     final tripName = _nameController.text.trim().isNotEmpty
         ? _nameController.text.trim()
@@ -892,10 +1022,14 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     );
   }
 
-  static int? _positiveOrNull(String text) {
-    final parsed = int.tryParse(text.trim());
-    return parsed != null && parsed > 0 ? parsed : null;
-  }
+  /// A whole number above zero, or null for blank and for zero or below,
+  /// as before. The field validators have already stopped unreadable text,
+  /// which used to save as null and erase the stored value (#1900).
+  static int? _positiveOrNull(String text) =>
+      switch (readNumber(text, integer: true)) {
+        NumberValue(:final value) when value > 0 => value.toInt(),
+        NumberValue() || NumberBlank() || NumberInvalid() => null,
+      };
 
   Future<void> _saveTrip() async {
     if (!_formKey.currentState!.validate()) return;
@@ -935,6 +1069,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
         expectedRuntimeMinutes: _positiveOrNull(
           _expectedRuntimeController.text,
         ),
+        // Blank or non-positive is the default: one diver, the estimate.
+        diversSharingCylinders:
+            _positiveOrNull(_diversSharingController.text) ?? 1,
+        divesPerDayTarget: _positiveOrNull(_divesPerDayController.text),
         createdAt: _originalTrip?.createdAt ?? now,
         updatedAt: now,
       );
@@ -965,7 +1103,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           cabinType: _cabinTypeController.text.trim().isEmpty
               ? null
               : _cabinTypeController.text.trim(),
-          capacity: capacityText.isEmpty ? null : int.tryParse(capacityText),
+          capacity: _positiveOrNull(capacityText),
           embarkPort: _embarkPortController.text.trim().isEmpty
               ? null
               : _embarkPortController.text.trim(),
@@ -988,11 +1126,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           await itineraryRepo.saveAll(days);
         }
       } else if (isEditing && _originalLiveaboardDetails != null) {
-        // Type changed away from liveaboard - clean up details
+        // Type changed away from liveaboard: the vessel details go, since only
+        // a liveaboard has them. The itinerary stays; every trip type has one
+        // (#2845), and its maritime days keep their labels.
         final liveaboardRepo = LiveaboardDetailsRepository();
         await liveaboardRepo.deleteByTripId(savedId);
-        final itineraryRepo = ItineraryDayRepository();
-        await itineraryRepo.deleteByTripId(savedId);
       }
 
       // Scan for candidate dives (on create, or when dates changed on edit)
@@ -1072,11 +1210,12 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           context.pop(savedId);
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _log.error('Failed to save trip', error: e, stackTrace: stackTrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.trips_edit_snackBar_errorSaving('$e')),
+            content: Text(context.l10n.trips_edit_snackBar_errorSaving),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

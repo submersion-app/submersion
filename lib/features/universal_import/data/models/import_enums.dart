@@ -6,6 +6,7 @@ enum ImportFormat {
   submersionDivesCsv,
   submersionSitesCsv,
   submersionEquipmentCsv,
+  submersionFillsCsv,
   uddf,
   macdiveXml,
   macdiveSqlite,
@@ -20,6 +21,20 @@ enum ImportFormat {
   danDl7,
   ratioXml,
   sqlite,
+
+  /// A Seacraft ENC / ENC3 / ENC3-PRO navigation console log (spec
+  /// 2026-09-10-underwater-nav-track-design.md). Deliberately
+  /// `isSupported == false`: this is a measured underwater route, not a
+  /// dive log, so the dive parser registry never sees it -- detection hands
+  /// it to `NavTrackImportReviewPage` instead of the universal import
+  /// pipeline.
+  navTrack,
+
+  /// A Suunto app "export as JSON" (or a saved cloud sml export). Like
+  /// [navTrack] it is a hand-off: the Suunto importer reads it into a dive
+  /// the way the Suunto Cloud import does (so its DiveRoute arrives too,
+  /// issue #1445), not the universal parser registry.
+  suuntoJson,
   unknown;
 
   String get displayName => switch (this) {
@@ -27,6 +42,7 @@ enum ImportFormat {
     submersionDivesCsv => 'Submersion Dives CSV',
     submersionSitesCsv => 'Submersion Sites CSV',
     submersionEquipmentCsv => 'Submersion Equipment CSV',
+    submersionFillsCsv => 'Submersion Fills CSV',
     uddf => 'UDDF',
     macdiveXml => 'MacDive XML',
     macdiveSqlite => 'MacDive SQLite',
@@ -41,6 +57,8 @@ enum ImportFormat {
     danDl7 => 'DAN DL7',
     ratioXml => 'Ratio XML',
     sqlite => 'SQLite Database',
+    navTrack => 'Seacraft ENC log',
+    suuntoJson => 'Suunto JSON',
     unknown => 'Unknown',
   };
 
@@ -49,12 +67,20 @@ enum ImportFormat {
   /// so a message about the file's columns cannot point at one (#2152).
   bool get mapsColumns => this == csv;
 
+  /// Recognised, but imported by a dedicated flow rather than the universal
+  /// pipeline: the wizard keeps the file on the file-selection step and
+  /// shows that flow's hand-off card, a batch lists it as needing
+  /// individual import, and a shared or dropped file opens the flow
+  /// directly.
+  bool get isHandoff => this == navTrack || this == suuntoJson;
+
   /// Whether this format has a parser implemented in v1.5.
   bool get isSupported => switch (this) {
     csv ||
     submersionDivesCsv ||
     submersionSitesCsv ||
     submersionEquipmentCsv ||
+    submersionFillsCsv ||
     uddf ||
     subsurfaceXml ||
     fit ||
@@ -171,6 +197,11 @@ class SourceOverrideOption {
       sourceApp: SourceApp.submersion,
       format: ImportFormat.submersionEquipmentCsv,
       displayName: 'Submersion (Equipment CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.submersion,
+      format: ImportFormat.submersionFillsCsv,
+      displayName: 'Submersion (Fills CSV)',
     ),
     SourceOverrideOption(
       sourceApp: SourceApp.subsurface,
@@ -315,7 +346,11 @@ enum ImportEntityType {
   tags,
   diveTypes,
   serviceRecords,
-  media;
+  media,
+
+  /// Cylinder fills from the fills CSV (cylinder passports phase 5). Keyed
+  /// by passport id, never by an imported item.
+  fills;
 
   String get displayName => switch (this) {
     dives => 'Dives',
@@ -331,6 +366,7 @@ enum ImportEntityType {
     diveTypes => 'Dive Types',
     serviceRecords => 'Service Records',
     media => 'Photos',
+    fills => 'Fills',
   };
 
   String get shortName => switch (this) {
@@ -347,5 +383,6 @@ enum ImportEntityType {
     diveTypes => 'Types',
     serviceRecords => 'Service',
     media => 'Photos',
+    fills => 'Fills',
   };
 }

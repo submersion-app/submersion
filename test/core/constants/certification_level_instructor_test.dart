@@ -16,6 +16,12 @@ void main() {
       CertificationLevel.bsacNationalInstructor,
       CertificationLevel.ffessmMf1,
       CertificationLevel.ffessmMf2,
+      CertificationLevel.acucOpenWaterInstructor,
+      CertificationLevel.acucAdvancedInstructor,
+      CertificationLevel.acucInstructorTrainer,
+      CertificationLevel.acucInstructorTrainerEvaluator,
+      CertificationLevel.danInstructor,
+      CertificationLevel.danInstructorTrainer,
     };
     for (final level in CertificationLevel.values) {
       expect(
@@ -30,6 +36,10 @@ void main() {
       CertificationLevel.cmas3StarDiverAssistantInstructor.isInstructorLevel,
       isFalse,
     );
+    // ACUC's teaching assistant and DAN's provider credentials do not
+    // certify divers (issue #690).
+    expect(CertificationLevel.acucTeachingAssistant.isInstructorLevel, isFalse);
+    expect(CertificationLevel.danDemp.isInstructorLevel, isFalse);
   });
 
   test('diveGuide sits directly below diveMaster on every ladder that has '

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/utils/table_value_compare.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
@@ -188,17 +189,13 @@ class _EntityTableViewState<T, F extends EntityField>
       if (va == null) return 1;
       if (vb == null) return -1;
 
-      int cmp;
-      if (va is String && vb is String) {
-        cmp = collator.compare(va, vb);
-      } else if (va is Comparable && vb is Comparable) {
-        cmp = va.compareTo(vb);
-      } else {
-        cmp = collator.compare(
-          widget.adapter.formatValue(field, va, widget.units),
-          widget.adapter.formatValue(field, vb, widget.units),
-        );
-      }
+      final cmp = compareTableValues(
+        va,
+        vb,
+        collator: collator,
+        formatted: (value) =>
+            widget.adapter.formatValue(field, value, widget.units),
+      );
 
       return ascending ? cmp : -cmp;
     });

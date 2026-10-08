@@ -39,7 +39,8 @@ class FakeSource implements BathymetrySource {
   @override
   final double minKnownFraction;
   final bool coversIt;
-  final BathymetryGrid? result; // null => throw transient
+  final BathymetryGrid? result; // null => throw [error]
+  final BathymetryFetchException error;
   final double cellSizeMeters;
   int fetchCount = 0;
   double? lastSpanMeters;
@@ -50,6 +51,7 @@ class FakeSource implements BathymetrySource {
     this.minKnownFraction = 0.60,
     this.coversIt = true,
     this.result,
+    this.error = const BathymetryFetchException('down'),
     this.cellSizeMeters = 100,
   });
 
@@ -63,7 +65,7 @@ class FakeSource implements BathymetrySource {
     fetchCount++;
     lastSpanMeters = spanMeters;
     final r = result;
-    if (r == null) throw const BathymetryFetchException('down');
+    if (r == null) throw error;
     return r;
   }
 }
@@ -133,6 +135,122 @@ void main() {
     final b = FakeSource('b', result: gridWith(wet, 'b'));
     final res = await BathymetryResolver(sources: [a, b]).resolve(p);
     expect(res.grid!.sourceId, 'b');
+  });
+
+  group('a transient failure on the way to an answer (issue #1770)', () {
+    test('a fallback grid won after a higher tier failed is returned but '
+        'not definitive', () async {
+      // The preferred tier (swissBATHY3D, say) hiccuped mid-fetch. The
+      // global grid is still worth showing now, but it only won because
+      // the better source failed, so it must not be cached as final.
+      final regional = FakeSource('regional', global: false); // throws
+      final globalSource = FakeSource('global', result: gridWith(wet, 'g'));
+      final res = await BathymetryResolver(
+        sources: [regional, globalSource],
+      ).resolve(p);
+      expect(res.grid!.sourceId, 'g');
+      expect(res.definitive, isFalse);
+    });
+
+    test('an unexpected Error from a higher tier also makes the fallback '
+        'grid non-definitive', () async {
+      final b = FakeSource('b', result: gridWith(wet, 'b'));
+      final res = await BathymetryResolver(
+        sources: [_ErrorSource(), b],
+      ).resolve(p);
+      expect(res.grid!.sourceId, 'b');
+      expect(res.definitive, isFalse);
+    });
+
+    test('a higher tier rejected on coverage is not a failure: the '
+        'fallback grid stays definitive', () async {
+      // Falling through on the known-cell floor means "this source does
+      // not really cover here", which is a stable answer, not a hiccup.
+      final holey = <double?>[50.0, null, null, null, null];
+      final a = FakeSource('a', result: gridOf(holey, 'a'));
+      final b = FakeSource('b', result: gridWith(wet, 'b'));
+      final res = await BathymetryResolver(sources: [a, b]).resolve(p);
+      expect(res.grid!.sourceId, 'b');
+      expect(res.definitive, isTrue);
+    });
+
+    test('a failing regional tier + a dry global answer is transient, '
+        'not a cacheable empty', () async {
+      // A global model that knows nothing about an Alpine lake calling it
+      // dry must not pin the cell once the lake source failed to answer.
+      final regional = FakeSource('regional', global: false); // throws
+      final globalDry = FakeSource('global', result: gridWith(dry, 'g'));
+      final res = await BathymetryResolver(
+        sources: [regional, globalDry],
+      ).resolve(p);
+      expect(res.grid, isNull);
+      expect(res.definitive, isFalse);
+    });
+
+    test('a source answering "no data here" is not a failure: the fallback '
+        'grid stays definitive', () async {
+      // swissBATHY3D throws this when every tile in the span is a confirmed
+      // gap. That repeats identically on every visit, so treating it as a
+      // hiccup would re-download the fallback grid forever.
+      final noData = FakeSource(
+        'nodata',
+        global: false,
+        error: const BathymetryNoDataException('no tiles in span'),
+      );
+      final b = FakeSource('b', result: gridWith(wet, 'b'));
+      final res = await BathymetryResolver(sources: [noData, b]).resolve(p);
+      expect(res.grid!.sourceId, 'b');
+      expect(res.definitive, isTrue);
+    });
+
+    test('a source answering "no data here" + a dry global answer is a '
+        'definitive empty', () async {
+      final noData = FakeSource(
+        'nodata',
+        global: false,
+        error: const BathymetryNoDataException('no tiles in span'),
+      );
+      final globalDry = FakeSource('dry', result: gridWith(dry, 'd'));
+      final res = await BathymetryResolver(
+        sources: [noData, globalDry],
+      ).resolve(p);
+      expect(res.grid, isNull);
+      expect(res.definitive, isTrue);
+    });
+
+    test('a probe that throws makes the fallback grid non-definitive: it '
+        'could not say whether it covers, so it might have won', () async {
+      final res = await BathymetryResolver(
+        sources: [
+          _ThrowingProbeSource(),
+          FakeSource('b', result: gridWith(wet, 'b')),
+        ],
+      ).resolve(p);
+      expect(res.grid!.sourceId, 'b');
+      expect(res.definitive, isFalse);
+    });
+
+    test('a probe that throws + a dry global answer is transient', () async {
+      final res = await BathymetryResolver(
+        sources: [
+          _ThrowingProbeSource(),
+          FakeSource('dry', result: gridWith(dry, 'd')),
+        ],
+      ).resolve(p);
+      expect(res.grid, isNull);
+      expect(res.definitive, isFalse);
+    });
+
+    test('a dry global answer + a later tier failing is transient', () async {
+      // Any tier that did not answer might have had water.
+      final globalDry = FakeSource('dry', result: gridWith(dry, 'd'));
+      final down = FakeSource('down'); // throws
+      final res = await BathymetryResolver(
+        sources: [globalDry, down],
+      ).resolve(p);
+      expect(res.grid, isNull);
+      expect(res.definitive, isFalse);
+    });
   });
 
   test('dry grid from a GLOBAL source is a definitive empty', () async {

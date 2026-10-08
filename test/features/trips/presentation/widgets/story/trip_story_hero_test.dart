@@ -3,26 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
-import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
-import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
-
-/// Records saveAll without touching the database.
-class _FakeItineraryRepo extends ItineraryDayRepository {
-  List<ItineraryDay>? saved;
-
-  @override
-  Future<void> saveAll(List<ItineraryDay> days) async {
-    saved = days;
-  }
-}
 
 DateTime _dayOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
@@ -70,11 +58,12 @@ TripStory _story(
   Trip trip, {
   List<TripChecklistItem> checklist = const [],
   DateTime? today,
+  List<ItineraryDay> itinerary = const [],
 }) {
   return buildTripStory(
     trip: trip,
     dives: [],
-    itineraryDays: [],
+    itineraryDays: itinerary,
     mediaByDiveId: {},
     sightingsByDiveId: {},
     checklistItems: checklist,
@@ -87,6 +76,8 @@ Future<void> pumpHero(
   TripStory story, {
   VoidCallback? onScan,
   List<Override> extra = const [],
+  bool showEmptyState = true,
+  bool showChecklist = true,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -98,7 +89,12 @@ Future<void> pumpHero(
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: TripStoryHero(story: story, onScanForDives: onScan),
+            child: TripStoryHero(
+              story: story,
+              onScanForDives: onScan,
+              showEmptyState: showEmptyState,
+              showChecklist: showChecklist,
+            ),
           ),
         ),
       ),
@@ -108,7 +104,16 @@ Future<void> pumpHero(
 }
 
 void main() {
-  testWidgets('planned liveaboard shows countdown, checklist, generate CTA', (
+  testWidgets('showEmptyState false keeps the countdown and drops the '
+      'empty state', (tester) async {
+    final now = DateTime.now();
+    final trip = _trip(start: _daysFrom(now, 12), end: _daysFrom(now, 19));
+    await pumpHero(tester, _story(trip), showEmptyState: false);
+    expect(find.text('12 days until departure'), findsOneWidget);
+    expect(find.text('No dives or itinerary yet'), findsNothing);
+  });
+
+  testWidgets('planned liveaboard shows countdown and checklist', (
     tester,
   ) async {
     final today = _dayOnly(DateTime.now());
@@ -128,19 +133,31 @@ void main() {
 
     expect(find.textContaining('until departure'), findsOneWidget);
     expect(find.text('1 of 2 done'), findsOneWidget);
-    expect(find.text('Generate itinerary'), findsOneWidget);
   });
 
-  testWidgets('planned shore trip hides the generate itinerary CTA', (
-    tester,
-  ) async {
-    // generateForTrip emits embark/disembark days and only the liveaboard
-    // layout has an itinerary editor, so a shore trip must not expose the CTA.
+  testWidgets('showChecklist false keeps the countdown and drops the '
+      'checklist card (#2881)', (tester) async {
     final today = _dayOnly(DateTime.now());
     final trip = _trip(start: _daysFrom(today, 40), end: _daysFrom(today, 47));
-    await pumpHero(tester, _story(trip));
+    final story = _story(
+      trip,
+      checklist: [_check('a', done: true), _check('Service regulator')],
+    );
+    await pumpHero(tester, story, showChecklist: false);
 
     expect(find.textContaining('until departure'), findsOneWidget);
+    expect(find.text('1 of 2 done'), findsNothing);
+    expect(find.text('Service regulator'), findsNothing);
+  });
+
+  testWidgets('the hero never offers itinerary generation', (tester) async {
+    final today = _dayOnly(DateTime.now());
+    final trip = _trip(
+      start: _daysFrom(today, 12),
+      end: _daysFrom(today, 19),
+      tripType: TripType.liveaboard,
+    );
+    await pumpHero(tester, _story(trip));
     expect(find.text('Generate itinerary'), findsNothing);
   });
 
@@ -168,30 +185,5 @@ void main() {
     expect(find.text('No dives or itinerary yet'), findsOneWidget);
     await tester.tap(find.text('Find matching dives'));
     expect(scanned, isTrue);
-  });
-
-  testWidgets('tapping Generate itinerary saves generated days', (
-    tester,
-  ) async {
-    final now = DateTime.now();
-    final today = _dayOnly(now);
-    final trip = _trip(
-      start: _daysFrom(today, 40),
-      end: _daysFrom(today, 43),
-      tripType: TripType.liveaboard,
-    );
-    final story = _story(trip, today: now);
-    final fakeRepo = _FakeItineraryRepo();
-    await pumpHero(
-      tester,
-      story,
-      extra: [itineraryDayRepositoryProvider.overrideWithValue(fakeRepo)],
-    );
-
-    await tester.tap(find.text('Generate itinerary'));
-    await tester.pump();
-    // One generated day per calendar day of the 4-day trip.
-    expect(fakeRepo.saved, isNotNull);
-    expect(fakeRepo.saved!.length, 4);
   });
 }

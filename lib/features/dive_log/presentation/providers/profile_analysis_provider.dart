@@ -18,16 +18,20 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_gas_schedule.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
+import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/otu_window_totals.dart';
 
 /// Reports which data source was actually used for each metric in the current profile.
 /// Updated as a side-effect of profileAnalysisProvider.
@@ -50,7 +54,12 @@ final diveComputerEventsProvider =
         ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
       );
       final dbEvents = await repository.getEventsForDive(diveId);
-      return dbEvents.map(mapDiveProfileEventToProfileEvent).toList();
+      // The manufacturer tells the marker label whether an event's value is
+      // a Suunto native code (#1523).
+      return withComputerManufacturers(
+        dbEvents.map(mapDiveProfileEventToProfileEvent).toList(),
+        (id) async => (await repository.getComputerById(id))?.manufacturer,
+      );
     });
 
 /// Combines pressure data from one or more tanks into a single pressure series.
@@ -259,86 +268,102 @@ List<ProfileGasSegment> buildProfileGasSegments(
 /// bailout, else air. The FIRST tank must not be assumed to be the diluent --
 /// on imported CCR dives it is often the O2-richer loop/bailout mix
 /// (issue #455: dive 003's first tank is EAN40, the diluent is air).
+///
+/// [tanks] scopes the search to the analysed computer's cylinders on a
+/// multi-source dive; defaults to every tank.
 @visibleForTesting
-GasMix resolveCcrDiluentMix(Dive dive) {
-  final diluentTank = dive.diluentTank;
-  if (diluentTank != null) return diluentTank.gasMix;
+GasMix resolveCcrDiluentMix(Dive dive, {List<DiveTank>? tanks}) {
+  final candidates = tanks ?? dive.tanks;
+  for (final tank in candidates) {
+    if (tank.role == TankRole.diluent) return tank.gasMix;
+  }
   final diluentGas = dive.diluentGas;
   if (diluentGas != null) return diluentGas;
-  for (final tank in dive.tanks) {
-    if (tank.role == TankRole.oxygenSupply || tank.role == TankRole.bailout) {
-      continue;
-    }
+  // Roles read as the CCR switch classifier reads them: an untagged cylinder
+  // that is not pure O2 is the diluent, ahead of any cylinder tagged for open
+  // circuit, and an untagged pure-O2 cylinder is the O2 supply, never it.
+  for (final tank in candidates) {
+    if (ccrCylinderRole(tank) == TankRole.diluent) return tank.gasMix;
+  }
+  for (final tank in candidates) {
+    final role = ccrCylinderRole(tank);
+    if (role == TankRole.oxygenSupply || role == TankRole.bailout) continue;
     return tank.gasMix;
   }
   return const GasMix();
 }
 
-/// Builds the CCR gas schedule for decompression analysis: the diluent's
-/// inert fractions with the loop ppO2 as each segment's setpoint, so the
-/// engine loads tissues at constant ppO2 (inspired inert = ambient - loop
-/// ppO2, split by the diluent's He:N2 ratio) and holds the setpoint through
-/// the TTS ascent.
+/// The gas schedule a rebreather dive's tissues load from, or null when the
+/// loop cannot be modelled. The analysis then withholds tissue loading rather
+/// than load the first cylinder as open circuit, which on an imported CCR dive
+/// is the O2 supply or a bailout as often as not (issue #2593).
 ///
-/// [loopPpO2Curve] is the per-sample resolved loop ppO2
-/// ([resolveRebreatherPpO2]: measured cells / dc-supplied ppO2, falling back
-/// to recorded setpoint samples), aligned with [timestamps]. A new segment
-/// starts when the value moves more than [setpointTolerance] bar from the
-/// active segment's setpoint -- tracking real setpoint switches without
-/// emitting a segment per noisy cell sample. [fallbackSetpoint] (the
-/// dive-level setpoint) is used as a constant when no curve exists. Returns
-/// null when neither exists: with no loop ppO2 information the loop cannot
-/// be modeled and callers keep the legacy path.
+/// [profile] is the series being analysed (one computer's on a multi-source
+/// dive) and [rebreatherPpO2] its resolved loop ppO2.
+///
+/// CCR: the loop ppO2 ([rebreatherPpO2]: measured, else recorded setpoint
+/// samples, else the dive-level setpoint) over the diluent.
+///
+/// SCR: a semi-closed loop holds no setpoint, so only a MEASURED loop ppO2
+/// (cells or computer-supplied) describes it. Its loop is supply gas with O2
+/// taken out, so the inspired inert pressure is ambient less that ppO2, split
+/// by the supply's He:N2 ratio: the CCR model with the supply as diluent.
+///
+/// [gasSwitches] are this computer's recorded switches and [tanks] the
+/// cylinders it breathed (default every tank); on CCR they switch the diluent
+/// or bail out (issue #577). SCR ignores them.
+///
+/// Null for open-circuit and gauge dives, which are not loop dives.
 @visibleForTesting
-List<ProfileGasSegment>? buildCcrProfileGasSegments({
-  required List<int> timestamps,
-  required List<double>? loopPpO2Curve,
-  required GasMix diluentMix,
-  double? fallbackSetpoint,
-  double setpointTolerance = 0.05,
+List<ProfileGasSegment>? buildRebreatherProfileGasSegments(
+  Dive dive, {
+  required List<DiveProfilePoint> profile,
+  required RebreatherPpO2? rebreatherPpO2,
+  List<GasSwitchWithTank> gasSwitches = const [],
+  List<DiveTank>? tanks,
 }) {
-  final fN2 = diluentMix.isAir
-      ? airN2Fraction
-      : (100.0 - diluentMix.o2 - diluentMix.he) / 100.0;
-  final fHe = diluentMix.he / 100.0;
-
-  final curve =
-      loopPpO2Curve != null && loopPpO2Curve.length == timestamps.length
-      ? loopPpO2Curve
-      : null;
-  if (curve == null) {
-    if (fallbackSetpoint == null) return null;
-    return [
-      ProfileGasSegment(
-        startTimestamp: 0,
-        fN2: fN2,
-        fHe: fHe,
-        setpoint: fallbackSetpoint,
-      ),
-    ];
-  }
-
-  final segments = <ProfileGasSegment>[
-    ProfileGasSegment(
-      startTimestamp: 0,
-      fN2: fN2,
-      fHe: fHe,
-      setpoint: curve[0],
-    ),
-  ];
-  for (int i = 1; i < timestamps.length; i++) {
-    if ((curve[i] - segments.last.setpoint!).abs() > setpointTolerance) {
-      segments.add(
-        ProfileGasSegment(
-          startTimestamp: timestamps[i],
-          fN2: fN2,
-          fHe: fHe,
-          setpoint: curve[i],
-        ),
+  final timestamps = [for (final p in profile) p.timestamp];
+  switch (dive.diveMode) {
+    case DiveMode.ccr:
+      return buildCcrProfileGasSegments(
+        timestamps: timestamps,
+        loopPpO2Curve: rebreatherPpO2?.curve,
+        diluentMix: resolveCcrDiluentMix(dive, tanks: tanks),
+        fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
+        // A switch before the first sample is one the builder drops; the
+        // classifier must not run its loop/OC state through it either.
+        gasChanges: classifyCcrGasChanges([
+          for (final s in gasSwitches)
+            if (timestamps.isEmpty || s.gasSwitch.timestamp >= timestamps.first)
+              s,
+        ], tanks ?? dive.tanks),
       );
-    }
+    case DiveMode.scr:
+      final measured = profile.any(
+        (p) => p.ppO2 != null || _cellAverage(p) != null,
+      );
+      if (!measured) return null;
+      // The measured ppO2 is what was breathed, not a value the loop holds:
+      // the simulated ascent must not carry it to the surface.
+      final segments = buildCcrProfileGasSegments(
+        timestamps: timestamps,
+        loopPpO2Curve: rebreatherPpO2?.curve,
+        diluentMix: resolveCcrDiluentMix(dive),
+      );
+      if (segments == null) return null;
+      return [
+        for (final segment in segments)
+          ProfileGasSegment(
+            startTimestamp: segment.startTimestamp,
+            fN2: segment.fN2,
+            fHe: segment.fHe,
+            setpoint: segment.setpoint,
+            loopHoldsSetpoint: false,
+          ),
+      ];
+    case DiveMode.oc || DiveMode.gauge:
+      return null;
   }
-  return segments;
 }
 
 /// Maps the dive's recorded cylinders to the gas set the ideal ascent may use.
@@ -347,23 +372,37 @@ List<ProfileGasSegment>? buildCcrProfileGasSegments({
 /// it via [O2ToxicityCalculator.calculateMod]. No gases are invented -- only
 /// cylinders recorded on the dive. [gasSet] filters per the diver setting; the
 /// back gas is always retained as the ascent floor.
+///
+/// [forCcrBailout] is the gas set a CCR dive ascends on after a bailout: the
+/// diluent is left out (it is the loop's gas), and the O2 supply is kept under
+/// either [gasSet], since a bailed-out diver can breathe it open circuit
+/// shallow and the analysis already loads tissues on it when they do.
 @visibleForTesting
 List<AvailableGas> buildAvailableGases(
   Dive dive, {
   required double maxPpO2,
   required AscentGasSet gasSet,
+  bool forCcrBailout = false,
+  List<DiveTank>? tanks,
 }) {
   bool keep(DiveTank t) {
+    // A CCR bailout reads cylinder roles the way its switches are read, so
+    // an untagged diluent is left out here exactly as a tagged one is.
+    final role = forCcrBailout ? ccrCylinderRole(t) : t.role;
+    if (forCcrBailout) {
+      if (role == TankRole.diluent) return false;
+      if (role == TankRole.oxygenSupply) return true;
+    }
     if (gasSet == AscentGasSet.allCarried) return true;
-    return t.role == TankRole.backGas ||
-        t.role == TankRole.deco ||
-        t.role == TankRole.stage ||
-        t.role == TankRole.bailout;
+    return role == TankRole.backGas ||
+        role == TankRole.deco ||
+        role == TankRole.stage ||
+        role == TankRole.bailout;
   }
 
   final gases = <AvailableGas>[];
   final seen = <String>{};
-  for (final tank in dive.tanks.where(keep)) {
+  for (final tank in (tanks ?? dive.tanks).where(keep)) {
     final fO2 = tank.gasMix.o2 / 100.0;
     final fHe = tank.gasMix.he / 100.0;
     final fN2 = (1.0 - fO2 - fHe).clamp(0.0, 1.0);
@@ -425,6 +464,44 @@ ProfileAnalysisService _resolveAnalysisService(
   );
 }
 
+/// The NDL the calculated curve holds while in deco (see
+/// [BuhlmannAlgorithm.calculateNdl]); the chart, tooltip and safety review
+/// all read a negative NDL as a deco obligation.
+const int _ndlInDeco = -1;
+
+/// Whether the computer reported a mandatory deco stop at [point].
+///
+/// Computers report a no-stop time only while out of deco; at a stop the
+/// sample carries the stop instead, so its stored NDL is null (or zero, from
+/// Subsurface and Diving Log imports). Such a sample is in deco by the
+/// computer's own model, which may disagree with the calculated one (VPM,
+/// RGBM, other gradient factors), so it must not fall back to the calculated
+/// NDL (#2551). Safety and deep stops are not deco: deep stops are
+/// recommended stops that also occur on no-deco dives, and the statistics
+/// deco scan does not count them either.
+bool _isComputerDecoSample(DiveProfilePoint point) =>
+    point.decoType == kDecoTypeDecoStop;
+
+/// The computer's CNS curve, one value per [profile] sample.
+///
+/// Many computers log CNS only every few samples (the OSTC family on every
+/// Nth one), and a sample without a reading is not the computer saying CNS
+/// changed: CNS moves over minutes. So each sample holds the last computer
+/// reading, and only the samples before the first reading take the
+/// [calculated] value. Filling every gap from [calculated] instead would make
+/// the curve step between two models wherever they disagree (#2545).
+List<double> _overlayComputerCns(
+  List<DiveProfilePoint> profile,
+  List<double>? calculated,
+) {
+  double? held;
+  return List<double>.generate(profile.length, (i) {
+    held = profile[i].cns ?? held;
+    return held ??
+        (calculated != null && i < calculated.length ? calculated[i] : 0.0);
+  });
+}
+
 /// Overlays computer-reported decompression data onto a calculated
 /// [ProfileAnalysis].
 ///
@@ -432,7 +509,8 @@ ProfileAnalysisService _resolveAnalysisService(
 /// controlled by its own [MetricDataSource] parameter. When a source is
 /// [MetricDataSource.computer] and computer data exists in the profile,
 /// those values take priority over the Buhlmann-calculated values. Points
-/// without computer data fall back to the calculated values.
+/// without computer data fall back to the calculated values, except that a
+/// computer NDL sample at a deco stop reads as in deco.
 ///
 /// The deco stop band ([decoStopSource]) resolves against the incoming
 /// (calculated) [ProfileAnalysis.decoStopCurve] rather than against the
@@ -452,6 +530,7 @@ ProfileAnalysisService _resolveAnalysisService(
   MetricDataSource decoStopSource = MetricDataSource.calculated,
   MetricDataSource gtrSource = MetricDataSource.calculated,
   RebreatherPpO2? rebreatherPpO2,
+  bool measuredPpO2Only = false,
 }) {
   // A zero is not a reading. Computers that do not measure one of these
   // still leave a zero in every sample, so a series that is zero from end to
@@ -461,20 +540,25 @@ ProfileAnalysisService _resolveAnalysisService(
   // leaving a stop depth of zero through a stop and a no-stop time of zero
   // for the rest of the dive.
   final hasComputerNdl = profile.any((p) => p.ndl != null && p.ndl! > 0);
+  // A deco flag is a reading in its own right: some sources (DAN DL7, Diving
+  // Log, the Cressi Leonardo) record the obligation but no NDL numbers.
+  final hasComputerDeco = profile.any(_isComputerDecoSample);
   final hasComputerCeiling = profile.any(
     (p) => p.ceiling != null && p.ceiling! > 0,
   );
   final hasComputerTts = profile.any((p) => p.tts != null && p.tts! > 0);
-  final hasComputerCns = profile.any((p) => p.cns != null);
   // Air-integrated computers log their own GTR (libdc RBT, stored in
   // seconds); a null sample is the computer blanking its display.
   final hasComputerGtr = profile.any((p) => p.rbt != null);
 
-  final useNdl = ndlSource == MetricDataSource.computer && hasComputerNdl;
+  final useNdl =
+      ndlSource == MetricDataSource.computer &&
+      (hasComputerNdl || hasComputerDeco);
   final useCeiling =
       ceilingSource == MetricDataSource.computer && hasComputerCeiling;
   final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
-  final useCns = cnsSource == MetricDataSource.computer && hasComputerCns;
+  final useCns =
+      cnsSource == MetricDataSource.computer && hasComputerCns(profile);
   final useGtr = gtrSource == MetricDataSource.computer && hasComputerGtr;
   // Resolved independently of useCeiling: the deco stop band must not be
   // dragged along when the user picks "computer" for the ceiling line alone.
@@ -487,7 +571,9 @@ ProfileAnalysisService _resolveAnalysisService(
   // into the analysis (see [resolveRebreatherPpO2]) so the CNS/OTU numbers match
   // the displayed ppO2. Callers that already resolved it pass it in to avoid a
   // second pass over the profile; otherwise resolve it here.
-  final resolved = rebreatherPpO2 ?? resolveRebreatherPpO2(profile);
+  final resolved =
+      rebreatherPpO2 ??
+      resolveRebreatherPpO2(profile, measuredOnly: measuredPpO2Only);
   final resolvedPpO2 = resolved?.curve;
   final o2SensorCurves = resolved?.sensorCurves;
   final ppO2FromSensorAverage = resolved?.fromSensorAverage ?? false;
@@ -524,12 +610,19 @@ ProfileAnalysisService _resolveAnalysisService(
 
   final overlaid = analysis.copyWith(
     ndlCurve: useNdl
-        ? List<int>.generate(
-            profile.length,
-            (i) =>
-                profile[i].ndl ??
-                (i < analysis.ndlCurve.length ? analysis.ndlCurve[i] : 0),
-          )
+        ? List<int>.generate(profile.length, (i) {
+            final ndl = profile[i].ndl;
+            if (_isComputerDecoSample(profile[i]) &&
+                (ndl == null || ndl <= 0)) {
+              return _ndlInDeco;
+            }
+            final calculated = i < analysis.ndlCurve.length
+                ? analysis.ndlCurve[i]
+                : 0;
+            // Without one positive reading the stored NDLs are zero
+            // placeholders, not readings, so only the deco flag is taken.
+            return hasComputerNdl ? ndl ?? calculated : calculated;
+          })
         : null,
     ceilingCurve: useCeiling
         ? List<double>.generate(
@@ -560,16 +653,7 @@ ProfileAnalysisService _resolveAnalysisService(
             return 0;
           })
         : null,
-    cnsCurve: useCns
-        ? List<double>.generate(
-            profile.length,
-            (i) =>
-                profile[i].cns ??
-                (analysis.cnsCurve != null && i < analysis.cnsCurve!.length
-                    ? analysis.cnsCurve![i]
-                    : 0.0),
-          )
-        : null,
+    cnsCurve: useCns ? _overlayComputerCns(profile, analysis.cnsCurve) : null,
     // The computer's GTR verbatim: a null sample stays blank rather than
     // borrowing the calculated value, because this source exists to show
     // what the diver's display actually read.
@@ -686,10 +770,16 @@ typedef RebreatherPpO2 = ({
 /// display the ppO2 curve and to drive the CNS/OTU calculation, so the two never
 /// disagree. ppO2 priority is computer ppO2 (dc_supplied) -> cell average ->
 /// setpoint, never the OC depth x FO2 fallback (the CCR ppO2 source rule).
-RebreatherPpO2? resolveRebreatherPpO2(List<DiveProfilePoint> profile) {
+///
+/// [measuredOnly] drops the setpoint fallback, for a semi-closed loop: it holds
+/// no setpoint, so a recorded one says nothing about what was breathed.
+RebreatherPpO2? resolveRebreatherPpO2(
+  List<DiveProfilePoint> profile, {
+  bool measuredOnly = false,
+}) {
   final hasComputerPpO2 = profile.any((p) => p.ppO2 != null);
   final hasCells = profile.any((p) => _cellAverage(p) != null);
-  final hasSetpoint = profile.any((p) => p.setpoint != null);
+  final hasSetpoint = !measuredOnly && profile.any((p) => p.setpoint != null);
   final hasSensorData = hasComputerPpO2 || hasCells;
   final hasRebreatherPpO2 = hasSensorData || hasSetpoint;
   if (!hasRebreatherPpO2) return null;
@@ -890,7 +980,76 @@ final analysisDiveProvider = FutureProvider.family<Dive?, String>((
   return repository.getDiveForAnalysis(diveId);
 });
 
+/// The primary of [sources]: the row flagged primary, or the first row when
+/// none is, the same rule [activeSourceProfileProvider] resolves the chart's
+/// series with.
+DiveDataSource primaryDataSource(List<DiveDataSource> sources) =>
+    sources.where((s) => s.isPrimary).firstOrNull ?? sources.first;
+
+/// The samples the dive-level analysis ([profileAnalysisProvider]) replays.
+///
+/// [sourceProfile] and [source] are set when [points] is one source's own
+/// bucket rather than `dive.profile`.
+typedef DiveAnalysisSeries = ({
+  List<DiveProfilePoint> points,
+  SourceProfile? sourceProfile,
+  DiveDataSource? source,
+});
+
+/// The series [profileAnalysisProvider] analyses: the one the chart draws
+/// when nothing is selected.
+///
+/// On a dive whose chart draws one source at a time
+/// ([usesPerSourceRendering]) that is the primary source's own samples.
+/// `dive.profile` there is every computer's samples interleaved by
+/// timestamp, and neighbouring samples from two computers disagree by their
+/// clock offset: replayed as one dive, every step between them reads as a
+/// sudden rise or descent (#2888). Everywhere else it is `dive.profile`.
+///
+/// A primary that owns no samples (a metadata-only source promoted to
+/// primary) falls back to `dive.profile` only while that is not interleaved,
+/// meaning at most one other source recorded the dive or the recordings
+/// follow one another. Otherwise there is no one recording to analyse, and
+/// this is null.
+///
+/// Null too when the dive has no profile.
+final diveAnalysisSeriesProvider =
+    FutureProvider.family<DiveAnalysisSeries?, String>((ref, diveId) async {
+      final dive = await ref.watch(analysisDiveProvider(diveId).future);
+      if (dive == null || dive.profile.isEmpty) return null;
+      final DiveAnalysisSeries whole = (
+        points: dive.profile,
+        sourceProfile: null,
+        source: null,
+      );
+      final sources = await ref.watch(diveDataSourcesProvider(diveId).future);
+      // One source can never render per source, so answer it without reading
+      // the buckets: the common case, and sourceProfilesProvider is a database
+      // round trip.
+      if (sources.length < 2) return whole;
+      final profiles = await ref.watch(sourceProfilesProvider(diveId).future);
+      if (!usesPerSourceRendering(sources, profiles.values)) return whole;
+      final primary = primaryDataSource(sources);
+      final own = profiles[primary.id];
+      if (own == null || own.points.isEmpty) {
+        final recorded = [
+          for (final p in profiles.values)
+            if (p.points.isNotEmpty) p,
+        ];
+        return recorded.length < 2 || sourceProfilesAreSequential(recorded)
+            ? whole
+            : null;
+      }
+      return (points: own.points, sourceProfile: own, source: primary);
+    });
+
 /// Provider for profile analysis of a specific dive.
+///
+/// Replays the samples [diveAnalysisSeriesProvider] picks: on a dive with
+/// several computers, the primary source's own. Every reader of the dive's
+/// analysis (the safety review, the residual CNS, tissue and OTU carried into
+/// the next dive, the deco classification, the planner) therefore sees the
+/// dive the chart draws, never two computers' samples interleaved.
 ///
 /// Recursively computes residual CNS from previous dives: looks up the
 /// previous dive via [profileAnalysisProvider] (different dive ID), applies
@@ -919,7 +1078,23 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
       return null;
     }
 
-    return await computeAnalysisForProfile(ref, dive, dive.profile);
+    final series = await ref.watch(diveAnalysisSeriesProvider(diveId).future);
+    if (series == null) return null;
+    final own = series.sourceProfile;
+    final source = series.source;
+    if (own == null || source == null) {
+      return await computeAnalysisForProfile(ref, dive, series.points);
+    }
+    return await computeAnalysisForProfile(
+      ref,
+      dive,
+      own.points,
+      computerId: own.computerId,
+      sourceId: own.sourceId,
+      // No source flagged primary: the first row stands in, with its own GFs.
+      decoSource: source.isPrimary ? null : source,
+      perSource: true,
+    );
   } catch (e, stackTrace) {
     _log.error(
       'Failed to analyze profile for dive: $diveId',
@@ -930,6 +1105,22 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
   }
 });
 
+/// A [ProfileAnalysisService] configured from [inputs] alone, for the paths
+/// that resolve no per-dive gradient factors or environment.
+ProfileAnalysisService _analysisServiceFor(AnalysisSettings inputs) =>
+    ProfileAnalysisService(
+      gfLow: inputs.gfLowFraction,
+      gfHigh: inputs.gfHighFraction,
+      ppO2WarningThreshold: inputs.ppO2MaxWorking,
+      ppO2CriticalThreshold: inputs.ppO2MaxDeco,
+      cnsWarningThreshold: inputs.cnsWarningThreshold,
+      ascentRateWarning: inputs.ascentRateWarning,
+      ascentRateCritical: inputs.ascentRateCritical,
+      lastStopDepth: inputs.lastStopDepth,
+      decoStopIncrement: inputs.decoStopIncrement,
+      cnsCalculationMethod: inputs.cnsCalculationMethod,
+    );
+
 /// Runs the full analysis pipeline over [profile] samples of [dive].
 ///
 /// Extracted from [profileAnalysisProvider] so per-source analysis
@@ -937,8 +1128,24 @@ final profileAnalysisProvider = FutureProvider.family<ProfileAnalysis?, String>(
 /// data source's own samples. [computerId] scopes tank data to the owning
 /// computer: null keeps the legacy behavior (all tanks, used for
 /// single-source dives); non-null restricts gas mix and tank pressures to
-/// that computer's tanks plus unattributed (manually added) tanks, which
-/// belong to the dive rather than to either computer.
+/// the tanks that computer breathed ([DiveTank.isUsedBy]): its own, the
+/// cylinders it shares with another computer, and unattributed (manually
+/// added) tanks, which belong to the dive rather than to either computer.
+///
+/// [sourceId] is the data source [profile] belongs to; with [computerId] it
+/// picks that source's own pressure series on each tank.
+///
+/// [decoSource] is the non-primary data source whose samples [profile] is:
+/// its own recorded gradient factors and deco algorithm drive the
+/// recompute. The dive row carries only the primary computer's (or the
+/// diver's edit of them), so a consolidated secondary analysed with those
+/// shows another computer's ceiling, deco status and tissue loading. Null
+/// reads them from [dive].
+///
+/// [perSource] marks the analysis of one data source's samples rather than
+/// the whole dive. It scopes which computer's events displace computed ones
+/// (see [mergeEvents]), and is what tells a source with no computer apart
+/// from a dive-level analysis, since both pass a null [computerId].
 ///
 /// Throws on failure; callers wrap with their own error handling.
 Future<ProfileAnalysis?> computeAnalysisForProfile(
@@ -946,46 +1153,76 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
   Dive dive,
   List<DiveProfilePoint> profile, {
   String? computerId,
+  String? sourceId,
+  DiveDataSource? decoSource,
+  bool perSource = false,
 }) async {
   {
+    // Every settings-derived input below (gradient factors, ppO2 and ascent
+    // thresholds, the legend's per-metric sources) is read from one snapshot,
+    // taken once the active diver's settings have loaded. Before then the
+    // settings are the `const AppSettings()` placeholder (#1859) or, right
+    // after a diver switch, the previous diver's (#2564). A safety review and
+    // the deco classification are persisted from this analysis, and the
+    // snapshot's fingerprint stamped on it below says which settings they
+    // came from (#2592).
+    await awaitCurrentDiverSettings(ref);
+    final inputs = ref.watch(analysisSettingsProvider);
     final diveId = dive.id;
     if (dive.isGauge) {
       // Gauge dives log depth+time only: no gas or decompression. Use the
       // user-configured analysis service (so ascent-rate thresholds match other
       // modes) but skip the gas/GF/residual work and the computer-deco overlay;
       // return a profile-only analysis, still surfacing any dive-computer events.
-      final analysis = ref
-          .watch(profileAnalysisServiceProvider)
+      final analysis = _analysisServiceFor(inputs)
           .analyze(
             diveId: diveId,
             depths: profile.map((p) => p.depth).toList(),
             timestamps: profile.map((p) => p.timestamp).toList(),
             diveMode: DiveMode.gauge,
-          );
+          )
+          .copyWith(inputsFingerprint: inputs.fingerprint);
       final dbEvents = await ref.watch(
         diveComputerEventsProvider(diveId).future,
       );
       return dbEvents.isEmpty
           ? analysis
-          : analysis.copyWith(events: mergeEvents(analysis.events, dbEvents));
+          : analysis.copyWith(
+              events: mergeEvents(
+                analysis.events,
+                dbEvents,
+                analyzedSource: perSource ? (computerId: computerId) : null,
+              ),
+            );
     }
+    // A computer breathed the tanks it owns, the ones it shares with another
+    // computer (a consolidated cylinder both logged), and unattributed ones.
     final tanks = computerId == null
         ? dive.tanks
-        : dive.tanks
-              .where((t) => t.computerId == null || t.computerId == computerId)
-              .toList();
+        : dive.tanks.where((t) => t.isUsedBy(computerId)).toList();
     final tankIds = {for (final t in tanks) t.id};
     final repository = ref.watch(diveRepositoryProvider);
     // Resolve GF values: use dive-specific if provided, else user settings.
     // Resolved here rather than inside the isolate because only this side
     // knows the dive; the source is stamped onto the returned analysis below
     // so a display can name the origin of every deco number it prints (#1047).
+    final (
+      recordedGfLow,
+      recordedGfHigh,
+      recordedAlgorithm,
+    ) = decoSource != null
+        ? (
+            decoSource.gradientFactorLow,
+            decoSource.gradientFactorHigh,
+            decoSource.decoAlgorithm,
+          )
+        : (dive.gradientFactorLow, dive.gradientFactorHigh, dive.decoAlgorithm);
     final gfSource = GradientFactorSource.resolve(
-      diveGfLow: dive.gradientFactorLow,
-      diveGfHigh: dive.gradientFactorHigh,
-      settingsGfLow: ref.watch(gfLowProvider),
-      settingsGfHigh: ref.watch(gfHighProvider),
-      recordedAlgorithm: dive.decoAlgorithm,
+      diveGfLow: recordedGfLow,
+      diveGfHigh: recordedGfHigh,
+      settingsGfLow: inputs.gfLow,
+      settingsGfHigh: inputs.gfHigh,
+      recordedAlgorithm: recordedAlgorithm,
     );
     if (gfSource.origin == GfOrigin.computer) {
       _log.debug(
@@ -1003,15 +1240,20 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     if (tanks.isNotEmpty) {
       // Load per-tank pressure data from the tank_pressure_series table
       final tankPressureRepo = ref.watch(tankPressureRepositoryProvider);
-      final allTankPressures = await tankPressureRepo.getTankPressuresForDive(
-        diveId,
-      );
-      // Scope pressure curves to the requested computer's tanks; null keeps
-      // every tank (primary-source / legacy behavior).
+      // Scope pressure curves to the requested computer: its own series on
+      // each tank it breathed. A cylinder two computers share carries both
+      // computers' series, and the dive-wide read prefers the primary's, so
+      // a secondary would otherwise analyse another computer's curve
+      // (#2560). Null keeps every tank (primary-source / legacy behavior).
       final tankPressures = computerId == null
-          ? allTankPressures
+          ? await tankPressureRepo.getTankPressuresForDive(diveId)
           : <String, List<TankPressurePoint>>{
-              for (final entry in allTankPressures.entries)
+              for (final entry
+                  in (await tankPressureRepo.getTankPressuresForComputer(
+                    diveId,
+                    computerId,
+                    sourceId: sourceId,
+                  )).entries)
                 if (tankIds.contains(entry.key)) entry.key: entry.value,
             };
 
@@ -1036,30 +1278,17 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       heFraction = primaryTank.gasMix.he / 100.0;
     }
 
-    // Read per-metric source preferences from legend state.
-    // Use select() to only watch the per-metric source fields — toggling
-    // visibility or expanding menu sections should NOT trigger a full
-    // Buhlmann recalculation.
-    final ndlSource = ref.watch(
-      profileLegendProvider.select((s) => s.ndlSource),
-    );
-    // The ceiling line has no source toggle; it always uses the calculated
-    // (exact, continuous) curve, so no ceilingSource is read here (issue #755).
-    final ttsSource = ref.watch(
-      profileLegendProvider.select((s) => s.ttsSource),
-    );
-    final cnsSource = ref.watch(
-      profileLegendProvider.select((s) => s.cnsSource),
-    );
-    final decoStopSource = ref.watch(
-      profileLegendProvider.select((s) => s.decoStopSource),
-    );
-    final gtrSource = ref.watch(
-      profileLegendProvider.select((s) => s.gtrSource),
-    );
-    final gtrReserveBar = ref.watch(
-      settingsProvider.select((s) => s.gtrReservePressure),
-    );
+    // Per-metric source preferences from the legend, via the snapshot, which
+    // selects only those fields: toggling visibility or expanding menu
+    // sections does NOT trigger a full Buhlmann recalculation. The ceiling
+    // line has no source toggle; it always uses the calculated (exact,
+    // continuous) curve, so no ceilingSource is read here (issue #755).
+    final ndlSource = inputs.ndlSource;
+    final ttsSource = inputs.ttsSource;
+    final cnsSource = inputs.cnsSource;
+    final decoStopSource = inputs.decoStopSource;
+    final gtrSource = inputs.gtrSource;
+    final gtrReserveBar = inputs.gtrReservePressure;
 
     final useComputerCns = cnsSource == MetricDataSource.computer;
     final computerCns = useComputerCns ? extractComputerCns(profile) : null;
@@ -1067,10 +1296,14 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     // Compute residual CNS (skip if this dive has computer CNS data)
     final startCns = computerCns != null
         ? computerCns.cnsStart
-        : await _computeResidualCns(ref, diveId);
+        : await _computeResidualCns(ref, diveId, inputs);
 
     // Compute residual tissue state from previous dives (48h cutoff)
-    final startCompartments = await _computeResidualTissueState(ref, diveId);
+    final startCompartments = await _computeResidualTissueState(
+      ref,
+      diveId,
+      inputs,
+    );
 
     // Compute cumulative OTU from earlier same-day dives
     final startOtu = await _computeResidualOtu(ref, diveId);
@@ -1080,46 +1313,73 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     // always agree.
     final rebreatherPpO2 = dive.diveMode == DiveMode.oc
         ? null
-        : resolveRebreatherPpO2(profile);
-    final gasSegments = switch (dive.diveMode) {
-      DiveMode.oc => buildProfileGasSegments(
-        dive,
-        // Scope switches to this computer's own tanks: on a multi-source
-        // dive, getGasSwitchesForDive returns every computer's switches on
-        // its own clock, and mixing another computer's timestamps into this
-        // source's schedule can produce a non-monotonic list that
-        // BuhlmannAlgorithm rejects outright (#garmin-cloud-merge-analysis-
-        // blank), silently blanking every decompression/gas overlay.
+        : resolveRebreatherPpO2(
+            profile,
+            measuredOnly: dive.diveMode == DiveMode.scr,
+          );
+    // Scope switches to this computer's own gas plan: on a multi-source
+    // dive, getGasSwitchesForDive returns every computer's switches on its
+    // own clock, and mixing another computer's timestamps into this source's
+    // schedule can produce a non-monotonic list that BuhlmannAlgorithm
+    // rejects outright (#garmin-cloud-merge-analysis-blank), silently
+    // blanking every decompression/gas overlay. A switch must go to a tank
+    // this computer breathed, and be its own or unattributed: a cylinder two
+    // computers share carries both computers' switches (#2560).
+    Future<List<GasSwitchWithTank>> scopedGasSwitches() async =>
         (await repository.getGasSwitchesForDive(diveId))
             .where(
               (gs) =>
-                  computerId == null || tankIds.contains(gs.gasSwitch.tankId),
+                  computerId == null ||
+                  (tankIds.contains(gs.gasSwitch.tankId) &&
+                      gs.gasSwitch.appliesTo(computerId)),
             )
-            .toList(),
+            .toList();
+    final gasSegments = switch (dive.diveMode) {
+      DiveMode.oc => buildProfileGasSegments(
+        dive,
+        await scopedGasSwitches(),
         tanks: tanks,
         // A secondary computer's own bucket on a multi-source dive can
         // start before the merged timeline's zero point (it was switched on
         // earlier); seed the schedule there instead of a hardcoded 0.
         startTimestamp: timestamps.isEmpty ? 0 : timestamps.first,
       ),
-      DiveMode.ccr => buildCcrProfileGasSegments(
-        timestamps: timestamps,
-        loopPpO2Curve: rebreatherPpO2?.curve,
-        diluentMix: resolveCcrDiluentMix(dive),
-        fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
+      // A CCR diver's switches change the diluent or bail out (#577).
+      DiveMode.ccr => buildRebreatherProfileGasSegments(
+        dive,
+        profile: profile,
+        rebreatherPpO2: rebreatherPpO2,
+        gasSwitches: await scopedGasSwitches(),
+        tanks: tanks,
       ),
-      // Gauge dives return a profile-only analysis before this point; the arm
-      // exists only for exhaustiveness.
-      DiveMode.scr || DiveMode.gauge => null,
+      // Gauge dives return a profile-only analysis before this point; they
+      // take the rebreather arm only for exhaustiveness (it returns null).
+      DiveMode.scr || DiveMode.gauge => buildRebreatherProfileGasSegments(
+        dive,
+        profile: profile,
+        rebreatherPpO2: rebreatherPpO2,
+      ),
     };
-    final ascentMaxPpO2 = ref.watch(ppO2MaxDecoProvider);
-    final ascentGases = dive.diveMode == DiveMode.oc
-        ? buildAvailableGases(
-            dive,
-            maxPpO2: ascentMaxPpO2,
-            gasSet: ref.watch(ascentGasSetProvider),
-          )
-        : null;
+    final ascentMaxPpO2 = inputs.ppO2MaxDeco;
+    // OC ascends on its carried gases; a CCR dive that bailed out ascends
+    // from its bailout samples on what it carried, the O2 supply included
+    // and the diluent left out.
+    final ascentGases = switch (dive.diveMode) {
+      DiveMode.oc => buildAvailableGases(
+        dive,
+        maxPpO2: ascentMaxPpO2,
+        gasSet: inputs.ascentGasSet,
+      ),
+      DiveMode.ccr when hasOpenCircuitBailout(gasSegments) =>
+        buildAvailableGases(
+          dive,
+          maxPpO2: ascentMaxPpO2,
+          gasSet: inputs.ascentGasSet,
+          forCcrBailout: true,
+          tanks: tanks,
+        ),
+      _ => null,
+    };
     // Run Buhlmann analysis on a background isolate to keep UI responsive
     _log.debug(
       'Analyzing profile for dive $diveId with ${depths.length} points, '
@@ -1131,13 +1391,13 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       _ProfileAnalysisInput(
         gfLow: gfSource.lowFraction,
         gfHigh: gfSource.highFraction,
-        ppO2WarningThreshold: ref.watch(ppO2MaxWorkingProvider),
-        ppO2CriticalThreshold: ref.watch(ppO2MaxDecoProvider),
-        cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
-        ascentRateWarning: ref.watch(ascentRateWarningProvider),
-        ascentRateCritical: ref.watch(ascentRateCriticalProvider),
-        lastStopDepth: ref.watch(lastStopDepthProvider),
-        decoStopIncrement: ref.watch(decoStopIncrementProvider),
+        ppO2WarningThreshold: inputs.ppO2MaxWorking,
+        ppO2CriticalThreshold: inputs.ppO2MaxDeco,
+        cnsWarningThreshold: inputs.cnsWarningThreshold,
+        ascentRateWarning: inputs.ascentRateWarning,
+        ascentRateCritical: inputs.ascentRateCritical,
+        lastStopDepth: inputs.lastStopDepth,
+        decoStopIncrement: inputs.decoStopIncrement,
         diveId: diveId,
         depths: depths,
         timestamps: timestamps,
@@ -1155,7 +1415,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         startOtu: startOtu,
         gasSegments: gasSegments,
         ascentGases: ascentGases,
-        cnsCalculationMethod: ref.watch(cnsCalculationMethodProvider),
+        cnsCalculationMethod: inputs.cnsCalculationMethod,
         environment: DiveEnvironment.forConditions(
           altitudeMeters: dive.altitude,
           waterType: dive.waterType,
@@ -1168,8 +1428,30 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     );
     // The isolate only ever saw two fractions, so it stamped the conservative
     // settings origin. Restore the source resolved above, whose fractions are
-    // the very ones it decompressed with.
-    final analysis = computed.copyWith(gfSource: gfSource);
+    // the very ones it decompressed with. The fingerprint records the
+    // settings snapshot every other input above came from.
+    final analysis = computed.copyWith(
+      gfSource: gfSource,
+      inputsFingerprint: inputs.fingerprint,
+    );
+
+    // After a bailout the chart's ppO2 is the gas breathed, not the cells'
+    // reading of the abandoned loop (#577).
+    final displayedPpO2 =
+        rebreatherPpO2 != null &&
+            dive.diveMode == DiveMode.ccr &&
+            hasOpenCircuitBailout(gasSegments)
+        ? (
+            curve: breathedPpO2Curve(
+              loopCurve: rebreatherPpO2.curve,
+              analysedCurve: analysis.ppO2Curve,
+              timestamps: timestamps,
+              segments: gasSegments!,
+            ),
+            fromSensorAverage: rebreatherPpO2.fromSensorAverage,
+            sensorCurves: rebreatherPpO2.sensorCurves,
+          )
+        : rebreatherPpO2;
 
     // Overlay computer-reported deco data where available
     final (overlaid, sourceInfo) = overlayComputerDecoData(
@@ -1182,7 +1464,8 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       cnsSource: cnsSource,
       decoStopSource: decoStopSource,
       gtrSource: gtrSource,
-      rebreatherPpO2: rebreatherPpO2,
+      rebreatherPpO2: displayedPpO2,
+      measuredPpO2Only: dive.diveMode == DiveMode.scr,
     );
 
     // Publish actual source info for legend badge display. Guard with
@@ -1210,7 +1493,11 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
     if (dbEvents.isEmpty) {
       return withCns;
     }
-    final merged = mergeEvents(withCns.events, dbEvents);
+    final merged = mergeEvents(
+      withCns.events,
+      dbEvents,
+      analyzedSource: perSource ? (computerId: computerId) : null,
+    );
     return withCns.copyWith(events: merged);
   }
 }
@@ -1220,13 +1507,17 @@ typedef DiveSourceKey = ({String diveId, String? sourceId});
 
 /// Analysis computed from one data source's own samples -- the exact
 /// series the chart draws, index for index. On multi-source dives EVERY
-/// source (the primary included) is computed from its own bucket:
-/// `dive.profile` can be a merged superset of the primary's samples (e.g.
-/// dives consolidated by older app versions flagged both computers'
-/// rows primary), and index-pairing a merged-length analysis against the
-/// primary's bucket stretches every chart curve. Single-source dives
-/// delegate to [profileAnalysisProvider] so its cache and residual-CNS
-/// recursion are shared.
+/// source is computed from its own bucket: `dive.profile` can be a merged
+/// superset of the primary's samples (e.g. dives consolidated by older app
+/// versions flagged both computers' rows primary), and index-pairing a
+/// merged-length analysis against the primary's bucket stretches every
+/// chart curve.
+///
+/// The primary's bucket is what [profileAnalysisProvider] analyses, so the
+/// primary (by null, by its own id, or by a stale id) and single-source
+/// dives delegate to it: one cached analysis, whichever key the chart, the
+/// overlays and the safety review read it under, sharing its residual-CNS
+/// recursion.
 final sourceProfileAnalysisProvider =
     FutureProvider.family<ProfileAnalysis?, DiveSourceKey>((ref, key) async {
       try {
@@ -1254,36 +1545,36 @@ final sourceProfileAnalysisProvider =
         if (!usesPerSourceRendering(sources, profiles.values)) {
           return await ref.watch(profileAnalysisProvider(key.diveId).future);
         }
-        final primaryId =
-            sources.where((s) => s.isPrimary).map((s) => s.id).firstOrNull ??
-            sources.first.id;
+        final primary = primaryDataSource(sources);
         // A stale id (the selection outliving its source row, e.g. right
         // after a split) resolves to the primary, exactly as
         // activeSourceProfileProvider resolves the chart's series, so the
         // analysis is never computed over a different series than the one
-        // drawn. Falling through to the dive-level analysis here would pair
-        // merged-length curves with the primary's bucket (#543).
-        final requested = key.sourceId;
-        final effectiveSourceId =
-            requested != null && sources.any((s) => s.id == requested)
-            ? requested
-            : primaryId;
-        final dive = await ref.watch(analysisDiveProvider(key.diveId).future);
-        if (dive == null) return null;
-        final sourceProfile = profiles[effectiveSourceId];
-        if (sourceProfile == null) {
-          // Bucket unavailable (still loading, or stale id): fall back to
-          // the dive-level analysis rather than blanking the panels.
-          return await ref.watch(profileAnalysisProvider(key.diveId).future);
-        }
-        if (sourceProfile.points.isEmpty) {
+        // drawn (#543).
+        final source =
+            sources.where((s) => s.id == key.sourceId).firstOrNull ?? primary;
+        final sourceProfile = profiles[source.id];
+        // A source that owns no samples draws an empty chart.
+        if (sourceProfile != null && sourceProfile.points.isEmpty) {
           return null;
         }
+        // The primary's own samples are the dive-level analysis. A bucket
+        // that is unavailable falls back to it too, rather than blanking the
+        // panels.
+        if (source.id == primary.id || sourceProfile == null) {
+          return await ref.watch(profileAnalysisProvider(key.diveId).future);
+        }
+        final dive = await ref.watch(analysisDiveProvider(key.diveId).future);
+        if (dive == null) return null;
         return await computeAnalysisForProfile(
           ref,
           dive,
           sourceProfile.points,
           computerId: sourceProfile.computerId,
+          sourceId: sourceProfile.sourceId,
+          // A secondary computer's own GFs; the dive row holds the primary's.
+          decoSource: source.isPrimary ? null : source,
+          perSource: true,
         );
       } catch (e, stackTrace) {
         _log.error(
@@ -1301,7 +1592,11 @@ final sourceProfileAnalysisProvider =
 /// Fetches the previous dive, gets its full profile analysis (which itself
 /// recursively accounts for even earlier dives), then applies exponential
 /// decay based on the surface interval.
-Future<double> _computeResidualCns(Ref ref, String diveId) async {
+Future<double> _computeResidualCns(
+  Ref ref,
+  String diveId,
+  AnalysisSettings inputs,
+) async {
   try {
     final repository = ref.watch(diveRepositoryProvider);
 
@@ -1314,22 +1609,27 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
     if (previousDive == null) return 0.0;
 
     // Short-circuit: if the legend's CNS source is set to computer and the
-    // previous dive has computer CNS, use its last CNS sample directly
-    // instead of full analysis. The profile is fetched only when this
-    // branch is taken (times-only lookup otherwise).
-    // Use select() to avoid invalidating on unrelated legend state changes.
-    final cnsSource = ref.watch(
-      profileLegendProvider.select((s) => s.cnsSource),
-    );
-    final useComputerCns = cnsSource == MetricDataSource.computer;
+    // previous dive has computer CNS, use its last CNS reading directly
+    // instead of full analysis. The samples are fetched only when this
+    // branch is taken (times-only lookup otherwise), and they are the series
+    // the previous dive's own analysis replays: on a dive with several
+    // computers the merged samples interleave every computer's CNS, so their
+    // last reading may be another computer's (#2545).
+    final useComputerCns = inputs.cnsSource == MetricDataSource.computer;
     if (useComputerCns) {
-      final previousProfile = await repository.getMergedProfile(
-        previousDive.id,
+      final previousSeries = await ref.read(
+        diveAnalysisSeriesProvider(previousDive.id).future,
       );
-      final prevComputerCns = extractComputerCns(previousProfile);
-      if (prevComputerCns != null) {
+      // No series means overlapping computers with no one recording to
+      // analyse, and no analysis to fall back to below either, so the
+      // residual would drop to zero. Take the highest of the computers' own
+      // last readings instead: the conservative one, never a mix of two.
+      final prevCnsEnd = previousSeries == null
+          ? await _highestSourceCnsEnd(ref, previousDive.id)
+          : extractComputerCns(previousSeries.points)?.cnsEnd;
+      if (prevCnsEnd != null) {
         return CnsTable.cnsAfterSurfaceInterval(
-          prevComputerCns.cnsEnd,
+          prevCnsEnd,
           surfaceInterval.inMinutes,
         );
       }
@@ -1357,6 +1657,20 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
   }
 }
 
+/// The highest last computer CNS reading among [diveId]'s data sources, each
+/// read from that source's own samples; null when none logged a CNS series.
+Future<double?> _highestSourceCnsEnd(Ref ref, String diveId) async {
+  final profiles = await ref.read(sourceProfilesProvider(diveId).future);
+  double? highest;
+  for (final profile in profiles.values) {
+    final cnsEnd = extractComputerCns(profile.points)?.cnsEnd;
+    if (cnsEnd != null && (highest == null || cnsEnd > highest)) {
+      highest = cnsEnd;
+    }
+  }
+  return highest;
+}
+
 /// Computes residual tissue compartment state from previous dives.
 ///
 /// Mirrors the recursive CNS lookback pattern: fetches the previous dive's
@@ -1369,6 +1683,7 @@ Future<double> _computeResidualCns(Ref ref, String diveId) async {
 Future<List<TissueCompartment>?> _computeResidualTissueState(
   Ref ref,
   String diveId,
+  AnalysisSettings inputs,
 ) async {
   try {
     final repository = ref.watch(diveRepositoryProvider);
@@ -1398,9 +1713,10 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
         previousAnalysis.decoStatuses.last.compartments;
 
     // Apply Schreiner off-gassing for the surface interval
-    final gfLow = ref.watch(gfLowDecimalProvider);
-    final gfHigh = ref.watch(gfHighDecimalProvider);
-    final algorithm = BuhlmannAlgorithm(gfLow: gfLow, gfHigh: gfHigh);
+    final algorithm = BuhlmannAlgorithm(
+      gfLow: inputs.gfLowFraction,
+      gfHigh: inputs.gfHighFraction,
+    );
     algorithm.setCompartments(List.from(endOfDiveCompartments));
     algorithm.calculateSegment(
       depthMeters: 0,
@@ -1420,10 +1736,13 @@ Future<List<TissueCompartment>?> _computeResidualTissueState(
   }
 }
 
-/// Computes cumulative OTU from earlier dives on the same calendar day.
+/// Computes cumulative OTU accrued earlier on the same calendar day, before
+/// this dive started.
 ///
-/// Non-recursive: queries all dives on the same day, gets each dive's
-/// profile analysis, and sums their per-dive OTU values.
+/// Non-recursive: queries the dives around that day, gets each earlier
+/// dive's profile analysis, and sums the OTU it accrued between midnight and
+/// this dive's start. A dive that began the evening before and crossed
+/// midnight contributes only its post-midnight part (see [sumOtuInWindow]).
 ///
 /// Returns 0.0 if no earlier dives exist on the same day.
 Future<double> _computeResidualOtu(Ref ref, String diveId) async {
@@ -1442,29 +1761,23 @@ Future<double> _computeResidualOtu(Ref ref, String diveId) async {
     );
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
-    // Get all dives on the same day
-    final sameDayDives = await repository.getDiveTimesInRange(
-      startOfDay,
+    final nearbyDives = await repository.getDiveTimesInRange(
+      startOfDay.subtract(otuWindowLookback),
       endOfDay,
     );
 
-    // Sum OTU from dives that occurred BEFORE this one
-    double totalOtu = 0.0;
-    for (final dive in sameDayDives) {
-      if (dive.id == diveId) continue;
-      final diveTime = dive.entryTime ?? dive.dateTime;
-      if (diveTime.isBefore(diveDate)) {
-        // Read (not watch) to avoid cascading Riverpod invalidations.
-        final analysis = await ref.read(
-          profileAnalysisProvider(dive.id).future,
-        );
-        if (analysis != null) {
-          totalOtu += analysis.o2Exposure.otu;
-        }
-      }
-    }
-
-    return totalOtu;
+    // Only dives that began BEFORE this one count toward its residual.
+    return await sumOtuInWindow(
+      dives: nearbyDives.where(
+        (dive) =>
+            dive.id != diveId &&
+            (dive.entryTime ?? dive.dateTime).isBefore(diveDate),
+      ),
+      from: startOfDay,
+      to: diveDate,
+      // Read (not watch) to avoid cascading Riverpod invalidations.
+      analysisOf: (id) => ref.read(profileAnalysisProvider(id).future),
+    );
   } catch (e, stackTrace) {
     _log.error(
       'Failed to calculate residual OTU for: $diveId',
@@ -1497,7 +1810,12 @@ final residualTissueStateProvider =
       ref,
       diveId,
     ) async {
-      return _computeResidualTissueState(ref, diveId);
+      await awaitCurrentDiverSettings(ref);
+      return _computeResidualTissueState(
+        ref,
+        diveId,
+        ref.watch(analysisSettingsProvider),
+      );
     });
 
 /// Provider that exposes the residual OTU from earlier same-day dives.
@@ -1544,32 +1862,35 @@ final weeklyOtuProvider = FutureProvider.family<double, String>((
     final sevenDaysAgo = endOfDay.subtract(const Duration(days: 7));
 
     final weekDives = await repository.getDiveTimesInRange(
-      sevenDaysAgo,
+      sevenDaysAgo.subtract(otuWindowLookback),
       endOfDay,
     );
 
-    double totalOtu = 0.0;
-    for (final dive in weekDives) {
-      // Count the current dive and any dive that occurred at or before it, but
-      // skip dives logged LATER than the current dive. The query window spans
-      // the current dive's whole calendar day, so without this guard a later
-      // same-day dive would inflate the rolling total -- and the card derives
-      // "Prior" as (weekly - thisDive), wrongly attributing the future dive's
-      // OTU to this dive's prior exposure (issue #407). Mirrors the same-day
-      // ordering discipline in [_computeResidualOtu].
-      final diveTime = dive.entryTime ?? dive.dateTime;
-      if (dive.id != diveId && diveTime.isAfter(diveDate)) continue;
+    // Count the current dive and any dive that occurred at or before it, but
+    // skip dives logged LATER than the current dive. The query window spans
+    // the current dive's whole calendar day, so without this guard a later
+    // same-day dive would inflate the rolling total -- and the card derives
+    // "Prior" as (weekly - thisDive), wrongly attributing the future dive's
+    // OTU to this dive's prior exposure (issue #407). Mirrors the same-day
+    // ordering discipline in [_computeResidualOtu].
+    final counted = weekDives.where(
+      (dive) =>
+          dive.id == diveId ||
+          !(dive.entryTime ?? dive.dateTime).isAfter(diveDate),
+    );
 
+    // The window closes at the end of the dive's day, or at the dive's own
+    // end if it crossed midnight, so the dive always counts in full here.
+    final currentEnd = currentDive.effectiveExitTime;
+    return await sumOtuInWindow(
+      dives: counted,
+      from: sevenDaysAgo,
+      to: currentEnd.isAfter(endOfDay) ? currentEnd : endOfDay,
       // Read (not watch) to avoid cascading Riverpod invalidations.
       // Each profileAnalysisProvider independently watches settings,
       // so ref.read is sufficient for aggregation.
-      final analysis = await ref.read(profileAnalysisProvider(dive.id).future);
-      if (analysis != null) {
-        totalOtu += analysis.o2Exposure.otu;
-      }
-    }
-
-    return totalOtu;
+      analysisOf: (id) => ref.read(profileAnalysisProvider(id).future),
+    );
   } catch (e, stackTrace) {
     _log.error(
       'Failed to calculate weekly OTU for: $diveId',
@@ -1655,16 +1976,16 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
     // (CNS/OTU) and the display overlay so the two always agree.
     final rebreatherPpO2 = dive.diveMode == DiveMode.oc
         ? null
-        : resolveRebreatherPpO2(dive.profile);
+        : resolveRebreatherPpO2(
+            dive.profile,
+            measuredOnly: dive.diveMode == DiveMode.scr,
+          );
 
-    final gasSegments = dive.diveMode == DiveMode.ccr
-        ? buildCcrProfileGasSegments(
-            timestamps: timestamps,
-            loopPpO2Curve: rebreatherPpO2?.curve,
-            diluentMix: resolveCcrDiluentMix(dive),
-            fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
-          )
-        : null;
+    final gasSegments = buildRebreatherProfileGasSegments(
+      dive,
+      profile: dive.profile,
+      rebreatherPpO2: rebreatherPpO2,
+    );
 
     final ascentGases = dive.diveMode == DiveMode.oc
         ? buildAvailableGases(
@@ -1713,6 +2034,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       decoStopSource: MetricDataSource.computer,
       gtrSource: MetricDataSource.computer,
       rebreatherPpO2: rebreatherPpO2,
+      measuredPpO2Only: dive.diveMode == DiveMode.scr,
     );
     return overlaid;
   } catch (e, stackTrace) {

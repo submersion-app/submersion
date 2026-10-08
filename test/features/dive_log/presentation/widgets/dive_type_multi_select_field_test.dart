@@ -7,12 +7,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_multi_select_field.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 void main() {
   DiveTypeEntity type(String id, String name) => DiveTypeEntity(
     id: id,
     name: name,
+    isBuiltIn: true,
     createdAt: DateTime(2026),
     updatedAt: DateTime(2026),
   );
@@ -21,9 +25,14 @@ void main() {
     required List<String> selected,
     required ValueChanged<List<String>> onChanged,
     bool allowEmpty = false,
+    MockSettingsNotifier? settings,
+    List<String> keepTypeIds = const [],
   }) {
     return ProviderScope(
       overrides: [
+        settingsProvider.overrideWith(
+          (ref) => settings ?? MockSettingsNotifier(),
+        ),
         diveTypesProvider.overrideWith(
           (ref) async => [
             type('shore', 'Shore'),
@@ -40,6 +49,7 @@ void main() {
             selectedTypeIds: selected,
             onChanged: onChanged,
             allowEmpty: allowEmpty,
+            keepTypeIds: keepTypeIds,
           ),
         ),
       ),
@@ -362,5 +372,75 @@ void main() {
 
       expect(reported, ['recreational', 'wreck']);
     });
+  });
+
+  testWidgets('the checklist leaves out hidden types', (tester) async {
+    await tester.pumpWidget(
+      harness(
+        selected: ['shore'],
+        onChanged: (_) {},
+        settings: MockSettingsNotifier(
+          const AppSettings(
+            hiddenBuiltInIds: {
+              'diveTypes': {'night'},
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(InputDecorator));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(CheckboxListTile, 'Wreck'), findsOneWidget);
+    expect(find.widgetWithText(CheckboxListTile, 'Night'), findsNothing);
+  });
+
+  testWidgets('a hidden type the dive already has stays in the checklist', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      harness(
+        selected: ['night'],
+        onChanged: (_) {},
+        settings: MockSettingsNotifier(
+          const AppSettings(
+            hiddenBuiltInIds: {
+              'diveTypes': {'night'},
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(InputDecorator));
+    await tester.pumpAndSettle();
+    final night = find.widgetWithText(CheckboxListTile, 'Night');
+    expect(night, findsOneWidget);
+    expect(tester.widget<CheckboxListTile>(night).value, isTrue);
+  });
+
+  testWidgets('a hidden type the dive had stays after it is unticked', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      harness(
+        selected: ['shore'],
+        onChanged: (_) {},
+        keepTypeIds: const ['night'],
+        settings: MockSettingsNotifier(
+          const AppSettings(
+            hiddenBuiltInIds: {
+              'diveTypes': {'night'},
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(InputDecorator));
+    await tester.pumpAndSettle();
+    final night = find.widgetWithText(CheckboxListTile, 'Night');
+    expect(night, findsOneWidget);
+    expect(tester.widget<CheckboxListTile>(night).value, isFalse);
   });
 }

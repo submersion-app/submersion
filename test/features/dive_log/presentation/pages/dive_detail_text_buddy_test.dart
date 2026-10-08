@@ -65,7 +65,7 @@ BuddyWithRole _linkedBuddy() => BuddyWithRole(
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   ),
-  role: DiveRole.builtInBuddy(),
+  roles: [DiveRole.builtInBuddy()],
 );
 
 Future<void> _pump(
@@ -74,6 +74,8 @@ Future<void> _pump(
   String? textBuddy,
   String? textDiveMaster,
   String? diverRoleId,
+  List<String>? diverRoleIds,
+  List<DiveRole> roles = const [],
   List<BuddyWithRole> linked = const [],
   FakeLegacyBuddyConversionService? service,
 }) async {
@@ -83,7 +85,7 @@ Future<void> _pump(
     diveMaster: textDiveMaster,
     dateTime: DateTime(2026, 3, 15, 10, 0),
     buddy: textBuddy,
-    diverRoleId: diverRoleId,
+    diverRoleIds: diverRoleIds ?? [?diverRoleId],
   );
 
   await tester.pumpWidget(
@@ -104,7 +106,7 @@ Future<void> _pump(
         buddySignaturesForDiveProvider(
           dive.id,
         ).overrideWith((ref) async => <Signature>[]),
-        allDiveRolesProvider.overrideWith((ref) async => <DiveRole>[]),
+        allDiveRolesProvider.overrideWith((ref) async => roles),
         legacyBuddyConversionServiceProvider.overrideWithValue(
           service ?? FakeLegacyBuddyConversionService(),
         ),
@@ -292,5 +294,43 @@ void main() {
       expect(service.planForCalls, 1);
       expect(find.text(_en.buddies_linkText_sheetTitle), findsOneWidget);
     });
+  });
+
+  testWidgets("shows my roles and each buddy's roles, joined (#1221)", (
+    tester,
+  ) async {
+    final epoch = DateTime(2026);
+    final builtIns = [
+      for (final id in DiveRole.builtInIds)
+        DiveRole(
+          id: id,
+          name: id,
+          isBuiltIn: true,
+          createdAt: epoch,
+          updatedAt: epoch,
+        ),
+    ];
+    DiveRole role(String id) => builtIns.firstWhere((r) => r.id == id);
+    await _pump(
+      tester,
+      prefs,
+      diverRoleIds: const [DiveRole.diveGuideId, DiveRole.diveMasterId],
+      roles: builtIns,
+      linked: [
+        BuddyWithRole(
+          buddy: Buddy(
+            id: 'b1',
+            name: 'Alice Adams',
+            createdAt: epoch,
+            updatedAt: epoch,
+          ),
+          roles: [role(DiveRole.instructorId), role(DiveRole.safetyDiverId)],
+        ),
+      ],
+    );
+
+    expect(find.text('Dive Guide, Divemaster'), findsOneWidget);
+    expect(find.text('Instructor, Safety Diver'), findsOneWidget);
+    expect(find.text(_en.diveLog_detail_buddyCount(1)), findsOneWidget);
   });
 }

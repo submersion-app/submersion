@@ -1,8 +1,9 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/services/sequential_tank_merge.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -106,6 +107,24 @@ class DiveMergeBuilder {
       if (v != null) return v;
     }
     return null;
+  }
+
+  /// A snapshot is a start/end pair, so the combined dive starts in the
+  /// earliest segment's start state and ends in the latest segment's end
+  /// state. Another segment's state would sit in the middle of the combined
+  /// dive, so it is never used for either end; a side the end segment did
+  /// not report stays null.
+  ComputerTissueSnapshot? _mergedComputerTissue(List<Dive> sorted) {
+    final first = sorted.first.computerTissue;
+    final last = sorted.last.computerTissue;
+    final start = first?.start;
+    final end = last?.end;
+    if (start == null && end == null) return null;
+    return ComputerTissueSnapshot(
+      algorithm: (end != null ? last?.algorithm : null) ?? first?.algorithm,
+      start: start,
+      end: end,
+    );
   }
 
   String _mergedNotes(List<Dive> sorted) =>
@@ -214,13 +233,7 @@ class DiveMergeBuilder {
     );
     final mergedWeights = [
       for (final w in weightSource.weights)
-        DiveWeight(
-          id: idGen(),
-          diveId: mergedId,
-          weightType: w.weightType,
-          amountKg: w.amountKg,
-          notes: w.notes,
-        ),
+        w.copyWith(id: idGen(), diveId: mergedId),
     ];
 
     // Custom fields: union by key, first-in-order wins.
@@ -334,7 +347,9 @@ class DiveMergeBuilder {
       tanks: mergedTanks,
       buddy: _firstNonNull(sorted, (d) => d.buddy),
       diveMaster: _firstNonNull(sorted, (d) => d.diveMaster),
-      diverRoleId: _firstNonNull(sorted, (d) => d.diverRoleId),
+      // Every role the diver held on any source (issue #1221), Solo
+      // yielding to another role as DiveRoleSet.normalize has it.
+      diverRoleIds: DiveRoleSet.union([for (final d in sorted) d.diverRoleIds]),
       rating: _firstNonNull(sorted, (d) => d.rating),
       visibility: _firstNonNull(sorted, (d) => d.visibility),
       visibilityMeters: _firstNonNull(sorted, (d) => d.visibilityMeters),
@@ -352,6 +367,7 @@ class DiveMergeBuilder {
       gradientFactorHigh: _firstNonNull(sorted, (d) => d.gradientFactorHigh),
       decoAlgorithm: _firstNonNull(sorted, (d) => d.decoAlgorithm),
       decoConservatism: _firstNonNull(sorted, (d) => d.decoConservatism),
+      computerTissue: _mergedComputerTissue(sorted),
       diveComputerModel: _firstNonNull(sorted, (d) => d.diveComputerModel),
       diveComputerSerial: _firstNonNull(sorted, (d) => d.diveComputerSerial),
       diveComputerFirmware: _firstNonNull(

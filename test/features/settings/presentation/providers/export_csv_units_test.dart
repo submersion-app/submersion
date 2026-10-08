@@ -23,6 +23,8 @@ import 'package:submersion/features/equipment/data/repositories/equipment_compon
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
@@ -62,6 +64,18 @@ void main() {
           _NoSiteClassification(),
         ),
         equipmentTagRepositoryProvider.overrideWithValue(_OneTag()),
+        // The equipment CSV reads each item's current place (v268).
+        currentEquipmentLocationsProvider.overrideWith(
+          (ref) async => {
+            'e1': EquipmentLocation(
+              id: 'g',
+              name: 'Garage',
+              kind: EquipmentLocationKind.storage,
+              createdAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+          },
+        ),
         settingsProvider.overrideWith((ref) => _ImperialSettings()),
         exportServiceProvider.overrideWithValue(export),
       ],
@@ -116,6 +130,21 @@ void main() {
     },
   );
 
+  test("the equipment CSV gets each exported item's place name", () async {
+    final export = _FakeExportService();
+    final notifier = (await loaded(
+      export,
+    )).read(exportNotifierProvider.notifier);
+    for (final run in <Future<void> Function()>[
+      () => notifier.exportEquipmentToCsv(),
+      () => notifier.saveEquipmentCsvToFile(),
+    ]) {
+      export.locationNames = null;
+      await run();
+      expect(export.locationNames, {'e1': 'Garage'});
+    }
+  });
+
   test('My units builds the export units from the diver settings', () async {
     final export = _FakeExportService();
     await make(export)
@@ -149,6 +178,7 @@ class _FixedDivesRepository implements DiveRepository {
 class _FakeExportService implements ExportService {
   CsvExportUnits? units;
   Map<String, List<String>>? tagNames;
+  Map<String, String>? locationNames;
 
   @override
   Future<String> exportDivesToCsv(
@@ -201,10 +231,12 @@ class _FakeExportService implements ExportService {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     Map<String, List<String>> tagNames = const {},
+    Map<String, String> locationNames = const {},
     CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     this.units = units;
     this.tagNames = tagNames;
+    this.locationNames = locationNames;
     return '/tmp/e.csv';
   }
 
@@ -213,11 +245,13 @@ class _FakeExportService implements ExportService {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     Map<String, List<String>> tagNames = const {},
+    Map<String, String> locationNames = const {},
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
   }) async {
     this.units = units;
     this.tagNames = tagNames;
+    this.locationNames = locationNames;
     return '/tmp/e.csv';
   }
 

@@ -4,13 +4,17 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
     as series;
+import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 
 /// Splits one data source's computer data out of a dive into a new dive —
 /// the inverse of DiveConsolidationService. The source's profile rows,
@@ -79,10 +83,14 @@ class DiveSplitService {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     // Series move by computer attribution. A computer-less source cannot be
-    // attributed at the row level, so only non-primary null-computer series
-    // follow it (never user-edited isPrimary series) and no tanks,
-    // pressures, or events move. This follows the retired unlinkComputer's
-    // convention.
+    // attributed at the row level by computer, so only non-primary
+    // null-computer profile series follow it (never user-edited isPrimary
+    // series) and no events move. This follows the retired unlinkComputer's
+    // convention. Pressure series are the exception: one that names the
+    // source moves with it whatever its computer, cloning the tank it sits
+    // on (issue #2440). So are a computer-less source's tanks: one with no
+    // computer that names the source is its (issue #2716). A source with a
+    // computer moves its tanks by the computer rule, as before.
 
     bool ownedByComputer(String? computerId) =>
         source.computerId != null && computerId == source.computerId;
@@ -112,10 +120,28 @@ class DiveSplitService {
         for (final s in allProfileSeries)
           if (profileBelongsToSource(s)) s,
       ];
+      // A series that names its source moves with exactly that source,
+      // computer or not (issue #2440); an unattributed one falls back to the
+      // computer rule.
       final movingPressures = [
         for (final s in allPressureSeries)
-          if (ownedByComputer(s.computerId)) s,
+          if (s.sourceId == null
+              ? ownedByComputer(s.computerId)
+              : s.sourceId == source.id)
+            s,
       ];
+      // Read here too, before step 2 deletes the source row:
+      // dive_tanks.source_id is ON DELETE SET NULL (v251), so reading after
+      // would lose the ownership signal the tank rule below reads.
+      final allTanks = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      // A source with a computer keeps the computer rule exactly; only a
+      // computer-less one, which that rule can never match, claims the
+      // computer-less tanks that name it.
+      bool tankBelongsToSource(DiveTank t) => source.computerId != null
+          ? ownedByComputer(t.computerId)
+          : t.computerId == null && t.sourceId == source.id;
 
       // 1. New dive: copy the original row, attribute it to the source's
       // computer, override summary fields with the source's snapshot, and
@@ -142,7 +168,17 @@ class DiveSplitService {
                   diveComputerSerial: Value(source.computerSerial),
                   maxDepth: Value(source.maxDepth ?? diveRow.maxDepth),
                   avgDepth: Value(source.avgDepth ?? diveRow.avgDepth),
-                  bottomTime: Value(source.duration ?? diveRow.bottomTime),
+                  // Derived from the series that move with the source; its
+                  // duration is the runtime it measured, never a bottom time.
+                  bottomTime: Value(
+                    sourceBottomTimeSeconds(
+                          movingProfiles,
+                          sourceId: source.id,
+                          computerId: source.computerId,
+                          runtimeSeconds: source.duration,
+                        ) ??
+                        diveRow.bottomTime,
+                  ),
                   waterTemp: Value(source.waterTemp ?? diveRow.waterTemp),
                   entryTime: Value(
                     source.entryTime?.millisecondsSinceEpoch ??
@@ -173,6 +209,16 @@ class DiveSplitService {
         recordId: newDiveId,
         localUpdatedAt: now,
       );
+      // The diver's own roles travel with the copied row (issue #1221): the
+      // scalar came across in the copy, the rest of the set lives in the
+      // junction.
+      final roleLinks = DiveRoleLinkRepository();
+      await roleLinks.writeDiverRoles(
+        newDiveId,
+        (await roleLinks.diverRoleIdsForDives([diveRow.id]))[diveRow.id] ??
+            const [],
+        now: now,
+      );
 
       // 2. The source row becomes the new dive's primary source.
       final newSourceId = _uuid.v4();
@@ -198,16 +244,14 @@ class DiveSplitService {
       // 3. Tanks (clone-on-demand, inherited from the retired
       // unlinkComputer path). A tank owned by the departing source moves
       // only when nothing remaining still references it: another
-      // computer's (or unattributed) pressure rows or events, or any gas
-      // switch — switches carry no computer attribution and always stay
-      // with the original dive's gas plan. A still-referenced tank stays
+      // computer's (or unattributed) pressure rows, events or gas switches,
+      // or another computer that shares the cylinder. The departing
+      // computer's own switches move with it (step 7b). A still-referenced
+      // tank stays
       // behind with its attribution cleared, and a clone on the new dive
       // carries the departing computer's rows. Departing pressure rows on
       // a tank the source never owned get the same clone-on-demand
       // treatment.
-      final allTanks = await (_db.select(
-        _db.diveTanks,
-      )..where((t) => t.diveId.equals(diveId))).get();
       final allEvents = await (_db.select(
         _db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -221,7 +265,7 @@ class DiveSplitService {
 
       final tankIdMap = <String, String>{};
       final movedTankIds = <String>[];
-      for (final tank in allTanks.where((t) => ownedByComputer(t.computerId))) {
+      for (final tank in allTanks.where(tankBelongsToSource)) {
         final hasRemainingRefs =
             allPressureSeries.any(
               (r) => r.tankId == tank.id && !ownedByComputer(r.computerId),
@@ -229,7 +273,15 @@ class DiveSplitService {
             allEvents.any(
               (r) => r.tankId == tank.id && !ownedByComputer(r.computerId),
             ) ||
-            switchRows.any((r) => r.tankId == tank.id);
+            // Another computer's switch (or an unattributed one, which
+            // belongs to the dive's gas plan) still needs the tank here.
+            switchRows.any(
+              (r) => r.tankId == tank.id && !ownedByComputer(r.computerId),
+            ) ||
+            // Another computer breathed this cylinder too (a consolidated
+            // tank both logged), so it cannot leave the original dive.
+            (decodeSharedComputerIds(tank.sharedComputerIds)?.isNotEmpty ??
+                false);
 
         final freshId = _uuid.v4();
         tankIdMap[tank.id] = freshId;
@@ -238,7 +290,13 @@ class DiveSplitService {
             .insert(
               tank
                   .toCompanion(false)
-                  .copyWith(id: Value(freshId), diveId: Value(newDiveId)),
+                  .copyWith(
+                    id: Value(freshId),
+                    diveId: Value(newDiveId),
+                    sourceId: Value(newSourceId),
+                    // The new dive has this one computer only.
+                    sharedComputerIds: const Value(null),
+                  ),
             );
         await _sync.markRecordPending(
           entityType: 'diveTanks',
@@ -247,8 +305,36 @@ class DiveSplitService {
         );
 
         if (hasRemainingRefs) {
-          await (_db.update(_db.diveTanks)..where((t) => t.id.equals(tank.id)))
-              .write(const DiveTanksCompanion(computerId: Value(null)));
+          // A computer that shares the cylinder takes it over (#2560): left
+          // unattributed it would become every remaining computer's, and a
+          // third computer on its own gas would start the dive on it.
+          final sharers = [
+            for (final c
+                in decodeSharedComputerIds(tank.sharedComputerIds) ??
+                    const <String>[])
+              if (c != source.computerId) c,
+          ];
+          final heir = sharers.firstOrNull;
+          final heirSourceId = heir == null
+              ? null
+              : sources.where((s) => s.computerId == heir).firstOrNull?.id;
+          // A link to the source that left goes with this clock rather than
+          // the FK's silent SET NULL (v251). Only that one: the computer
+          // rule also selects tanks of another source of the same computer
+          // (a combined dive's other half), which stays.
+          await (_db.update(
+            _db.diveTanks,
+          )..where((t) => t.id.equals(tank.id))).write(
+            DiveTanksCompanion(
+              computerId: Value(heir),
+              sourceId: tank.sourceId == source.id
+                  ? Value(heirSourceId)
+                  : const Value.absent(),
+              sharedComputerIds: heir == null
+                  ? const Value.absent()
+                  : Value(encodeSharedComputerIds(sharers.skip(1))),
+            ),
+          );
           await _sync.markRecordPending(
             entityType: 'diveTanks',
             recordId: tank.id,
@@ -259,12 +345,9 @@ class DiveSplitService {
         }
       }
 
-      // Shared tanks the departing computer recorded pressures on but
-      // never owned: clone them so the moved rows have a home.
-      for (final s in movingPressures) {
-        if (tankIdMap.containsKey(s.tankId)) continue;
-        final tank = allTanks.where((t) => t.id == s.tankId).firstOrNull;
-        if (tank == null) continue;
+      // The departing computer's own copy, on the new dive, of a cylinder
+      // it used but did not own.
+      Future<void> cloneForDepartingComputer(DiveTank tank) async {
         final freshId = _uuid.v4();
         tankIdMap[tank.id] = freshId;
         await _db
@@ -276,11 +359,52 @@ class DiveSplitService {
                     id: Value(freshId),
                     diveId: Value(newDiveId),
                     computerId: Value(source.computerId),
+                    sourceId: Value(newSourceId),
+                    sharedComputerIds: const Value(null),
                   ),
             );
         await _sync.markRecordPending(
           entityType: 'diveTanks',
           recordId: freshId,
+          localUpdatedAt: now,
+        );
+      }
+
+      // Shared tanks the departing computer recorded pressures on but
+      // never owned: clone them so the moved rows have a home.
+      for (final s in movingPressures) {
+        if (tankIdMap.containsKey(s.tankId)) continue;
+        final tank = allTanks.where((t) => t.id == s.tankId).firstOrNull;
+        if (tank == null) continue;
+        await cloneForDepartingComputer(tank);
+      }
+
+      // Cylinders the departing computer shared with another (tanks a
+      // consolidation merged): it breathed them too, so the new dive gets
+      // its own copy and the original stops listing it.
+      for (final tank in allTanks) {
+        final sharers =
+            decodeSharedComputerIds(tank.sharedComputerIds) ?? const <String>[];
+        if (source.computerId == null || !sharers.contains(source.computerId)) {
+          continue;
+        }
+        if (!tankIdMap.containsKey(tank.id)) {
+          await cloneForDepartingComputer(tank);
+        }
+        await (_db.update(
+          _db.diveTanks,
+        )..where((t) => t.id.equals(tank.id))).write(
+          DiveTanksCompanion(
+            sharedComputerIds: Value(
+              encodeSharedComputerIds(
+                sharers.where((c) => c != source.computerId),
+              ),
+            ),
+          ),
+        );
+        await _sync.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: tank.id,
           localUpdatedAt: now,
         );
       }
@@ -319,6 +443,7 @@ class DiveSplitService {
           diveId: newDiveId,
           tankId: tankIdMap[s.tankId] ?? s.tankId,
           computerId: s.computerId,
+          sourceId: newSourceId,
           samples: s.samples,
           now: now,
         );
@@ -349,27 +474,67 @@ class DiveSplitService {
         );
       }
 
-      // 8. Delete the originals, children before parents, tombstoning each
-      // row (the original dive survives; without explicit tombstones peers
-      // that already pulled these rows keep them forever). Gas switches
-      // never move, and only unreferenced tanks were moved.
-      await _tankSeries.deleteByIds([for (final s in movingPressures) s.id]);
-      await _profileSeries.deleteByIds([for (final s in movingProfiles) s.id]);
-      for (final row in eventRows) {
-        await _sync.logDeletion(
-          entityType: 'diveProfileEvents',
-          recordId: row.id,
+      // 7b. Gas switches the departing computer logged (v258, #2582) go
+      // with its gas plan, onto its copy of the tank. Unattributed switches
+      // belong to the dive and stay, as every switch did before v258.
+      final movingSwitches = [
+        for (final r in switchRows)
+          if (ownedByComputer(r.computerId) && tankIdMap.containsKey(r.tankId))
+            r,
+      ];
+      for (final row in movingSwitches) {
+        final freshId = _uuid.v4();
+        await _db
+            .into(_db.gasSwitches)
+            .insert(
+              row
+                  .toCompanion(false)
+                  .copyWith(
+                    id: Value(freshId),
+                    diveId: Value(newDiveId),
+                    tankId: Value(tankIdMap[row.tankId]!),
+                  ),
+            );
+        await _sync.markRecordPending(
+          entityType: 'gasSwitches',
+          recordId: freshId,
+          localUpdatedAt: now,
         );
       }
+
+      // 8. Delete the originals, children before parents, and tombstone
+      // them (the original dive survives; without explicit tombstones peers
+      // that already pulled these rows keep them forever): the moved events
+      // by one scope tombstone, the rest per row. Only the departing
+      // computer's own gas switches move, and only unreferenced tanks were
+      // moved.
+      if (movingSwitches.isNotEmpty) {
+        final ids = [for (final r in movingSwitches) r.id];
+        await (_db.delete(_db.gasSwitches)..where((t) => t.id.isIn(ids))).go();
+        await _sync.logDeletions(entityType: 'gasSwitches', recordIds: ids);
+      }
+      await _tankSeries.deleteByIds([for (final s in movingPressures) s.id]);
+      await _profileSeries.deleteByIds([for (final s in movingProfiles) s.id]);
       if (eventRows.isNotEmpty) {
         await (_db.delete(
           _db.diveProfileEvents,
         )..where((t) => t.id.isIn([for (final r in eventRows) r.id]))).go();
-      }
-      for (final id in movedTankIds) {
-        await _sync.logDeletion(entityType: 'diveTanks', recordId: id);
+        // One tombstone for every event this source's computer recorded on
+        // the dive, instead of one per event (#1926). eventRows is exactly
+        // that set (ownedByComputer), so the scope removes on a peer what
+        // was removed here. ownedByComputer never matches a null computer,
+        // so the id is set whenever an event moved; asserting it keeps a
+        // broken invariant from widening the scope to every event on the
+        // dive.
+        await _sync.logScopedDeletion(
+          EventScopeTombstone(diveId: diveId, computerId: source.computerId!),
+        );
       }
       if (movedTankIds.isNotEmpty) {
+        await _sync.logDeletions(
+          entityType: 'diveTanks',
+          recordIds: movedTankIds,
+        );
         await (_db.delete(
           _db.diveTanks,
         )..where((t) => t.id.isIn(movedTankIds))).go();
@@ -414,7 +579,15 @@ class DiveSplitService {
           diveComputerSerial: Value(promoted.computerSerial),
           maxDepth: Value(promoted.maxDepth ?? diveRow.maxDepth),
           avgDepth: Value(promoted.avgDepth ?? diveRow.avgDepth),
-          bottomTime: Value(promoted.duration ?? diveRow.bottomTime),
+          bottomTime: Value(
+            sourceBottomTimeSeconds(
+                  allProfileSeries.where((s) => !movingProfiles.contains(s)),
+                  sourceId: promoted.id,
+                  computerId: promoted.computerId,
+                  runtimeSeconds: promoted.duration,
+                ) ??
+                diveRow.bottomTime,
+          ),
           waterTemp: Value(promoted.waterTemp ?? diveRow.waterTemp),
           entryTime: Value(
             promoted.entryTime?.millisecondsSinceEpoch ?? diveRow.entryTime,

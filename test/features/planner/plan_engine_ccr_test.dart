@@ -30,13 +30,17 @@ const _bailoutTank = DiveTank(
   role: TankRole.bailout,
 );
 
-List<PlanSegment> _segments({double depth = 60.0, int minutes = 25}) => [
+List<PlanSegment> _segments({
+  double depth = 60.0,
+  int minutes = 25,
+  GasMix gasMix = _diluent,
+}) => [
   PlanSegment.travel(
     id: 'seg-1',
     fromDepth: 0,
     targetDepth: depth,
     tankId: 'dil',
-    gasMix: _diluent,
+    gasMix: gasMix,
     order: 0,
     ratePerMinute: 18.0,
   ),
@@ -45,7 +49,7 @@ List<PlanSegment> _segments({double depth = 60.0, int minutes = 25}) => [
     depth: depth,
     durationMinutes: minutes,
     tankId: 'dil',
-    gasMix: _diluent,
+    gasMix: gasMix,
     order: 1,
   ),
 ];
@@ -53,6 +57,7 @@ List<PlanSegment> _segments({double depth = 60.0, int minutes = 25}) => [
 domain.DivePlan _plan({
   domain.PlanMode mode = domain.PlanMode.ccr,
   List<DiveTank> tanks = const [_diluentTank, _o2Tank, _bailoutTank],
+  List<PlanSegment>? segments,
 }) {
   return domain.DivePlan(
     id: 'plan-1',
@@ -61,7 +66,7 @@ domain.DivePlan _plan({
     gfLow: 50,
     gfHigh: 80,
     tanks: tanks,
-    segments: _segments(),
+    segments: segments ?? _segments(),
     createdAt: DateTime(2026, 7, 5),
     updatedAt: DateTime(2026, 7, 5),
   );
@@ -114,6 +119,45 @@ void main() {
       expect(
         outcome.issues.map((i) => i.type),
         isNot(contains(PlanIssueType.ppO2Critical)),
+      );
+    });
+
+    test('a lean diluent within Dil MOD raises no issue', () {
+      final outcome = engine.compute(_plan());
+      // _diluent is 18% O2: ~1.27 bar at 60 m, under the 1.6 bar default.
+      expect(
+        outcome.issues.map((i) => i.type),
+        isNot(contains(PlanIssueType.diluentModExceeded)),
+      );
+    });
+
+    test('a diluent that would exceed Dil MOD at depth raises an issue', () {
+      const richDiluent = GasMix(o2: 30, he: 25);
+      final outcome = engine.compute(
+        _plan(segments: _segments(gasMix: richDiluent)),
+      );
+      // 30% O2 at 60 m on the plan's default salt water (1025 kg/m3, not
+      // the flat 1 bar/10 m assumption) is ~7.029 bar ambient, so ~2.109
+      // bar, over the 1.6 bar default Dil MOD.
+      final issue = outcome.issues.firstWhere(
+        (i) => i.type == PlanIssueType.diluentModExceeded,
+      );
+      expect(issue.value, closeTo(2.109, 0.001));
+      expect(issue.threshold, closeTo(1.6, 1e-9));
+    });
+
+    test('an OC plan never raises diluentModExceeded', () {
+      const richDiluent = GasMix(o2: 30, he: 25);
+      final outcome = engine.compute(
+        _plan(
+          mode: domain.PlanMode.oc,
+          tanks: const [_diluentTank],
+          segments: _segments(gasMix: richDiluent),
+        ),
+      );
+      expect(
+        outcome.issues.map((i) => i.type),
+        isNot(contains(PlanIssueType.diluentModExceeded)),
       );
     });
 

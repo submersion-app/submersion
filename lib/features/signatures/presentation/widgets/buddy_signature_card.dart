@@ -6,7 +6,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_list_display.dart';
 
 /// Card displaying a buddy's signature status
 class BuddySignatureCard extends ConsumerWidget {
@@ -75,7 +75,7 @@ class BuddySignatureCard extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                       Text(
-                        buddyWithRole.role.localizedName(context.l10n),
+                        buddyWithRole.roles.joinedLocalizedNames(context.l10n),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

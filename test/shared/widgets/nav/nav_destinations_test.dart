@@ -48,10 +48,16 @@ void main() {
         'insights',
         'planning',
         'transfer',
-        'gps-log',
+        'tracks',
         'settings',
         'more',
       ]);
+    });
+
+    test('Tracks takes GPS Log\'s place and route', () {
+      final tracks = kNavDestinations.firstWhere((d) => d.id == 'tracks');
+      expect(tracks.route, '/tracks');
+      expect(kNavDestinations.map((d) => d.id), isNot(contains('gps-log')));
     });
 
     test(
@@ -84,13 +90,17 @@ void main() {
         'insights',
         'planning',
         'transfer',
-        'gps-log',
+        'tracks',
         'settings',
       ]);
     });
 
     test('has exactly 15 entries', () {
       expect(movableNavIds.length, 15);
+    });
+
+    test('Connections lives in Insights, not in the nav', () {
+      expect(kNavDestinations.map((d) => d.id), isNot(contains('connections')));
     });
   });
 }

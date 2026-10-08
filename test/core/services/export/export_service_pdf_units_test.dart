@@ -13,12 +13,22 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
+import '../../../helpers/global_test_defaults.dart';
+import '../../../helpers/mock_channels.dart';
 import '../../../helpers/pdf_text.dart';
 import '../../../helpers/test_database.dart';
+import '../../../helpers/fake_hosts.dart';
 
 /// The ExportService facade must hand the diver's units through to the trip
 /// report and course training log PDFs, not just the underlying services.
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory shareDir;
@@ -58,6 +68,7 @@ void main() {
       (call) async => null,
     );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await shareDir.exists()) await shareDir.delete(recursive: true);
@@ -69,7 +80,7 @@ void main() {
   });
 
   tearDown(() async {
-    debugCanShareFiles = null;
+    applyGlobalTestDefaults();
     await tearDownTestDatabase();
   });
 
@@ -100,7 +111,7 @@ void main() {
       id: 'course-1',
       diverId: 'diver-1',
       name: 'Advanced Open Water',
-      agency: CertificationAgency.padi,
+      agency: CertificationAgency.padi.name,
       startDate: DateTime(2026, 5, 1),
       createdAt: DateTime(2026, 5, 1),
       updatedAt: DateTime(2026, 5, 2),

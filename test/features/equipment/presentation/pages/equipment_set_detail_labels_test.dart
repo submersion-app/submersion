@@ -82,8 +82,11 @@ void main() {
       EquipmentItem(id: 'm', name: 'Blue one', type: EquipmentType.mask),
     ]);
     // No brand, model or identifier: the row falls back to the type name.
-    expect(find.text('Blue one'), findsOneWidget);
-    expect(find.text('Mask'), findsOneWidget);
+    // Scoped to the list: the figure above it also names each item.
+    Finder inRow(String text) =>
+        find.descendant(of: find.byType(ListTile), matching: find.text(text));
+    expect(inRow('Blue one'), findsOneWidget);
+    expect(inRow('Mask'), findsOneWidget);
   });
 
   testWidgets('ungrouped, an identifier alone does not push out the type', (

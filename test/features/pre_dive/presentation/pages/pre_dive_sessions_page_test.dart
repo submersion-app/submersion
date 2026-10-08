@@ -274,7 +274,7 @@ void main() {
       locale: const Locale('de'),
     );
 
-    expect(find.textContaining('bei'), findsOneWidget);
+    expect(find.textContaining(' um '), findsOneWidget);
     expect(find.textContaining(' at '), findsNothing);
   });
 

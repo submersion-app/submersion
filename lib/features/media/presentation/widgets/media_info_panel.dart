@@ -255,6 +255,14 @@ class _OriginSection extends ConsumerWidget {
     final l10n = context.l10n;
     final deviceId = origin.originDeviceId;
     final thisDevice = ref.watch(currentDeviceIdProvider).value;
+    // Until this device's own id resolves, "another device" would be a
+    // guess, so an unresolved id reads as this device: the row was stamped
+    // locally in the overwhelmingly common case.
+    final linkedElsewhere =
+        deviceId != null && thisDevice != null && deviceId != thisDevice;
+    final peerName = linkedElsewhere
+        ? ref.watch(originDeviceLabelProvider(deviceId))
+        : null;
     final pointer = origin.pointer;
     final isLocalFile = origin.sourceType == MediaSourceType.localFile;
 
@@ -307,21 +315,13 @@ class _OriginSection extends ConsumerWidget {
         if (deviceId != null)
           DiveDetailRow(
             label: l10n.media_info_linkedOn,
-            // Until this device's own id resolves, "another device" would be
-            // a guess, so an unresolved id reads as this device: the row was
-            // stamped locally in the overwhelmingly common case.
-            value: (thisDevice == null || deviceId == thisDevice)
-                ? l10n.media_info_thisDevice
-                : (ref.watch(originDeviceLabelProvider(deviceId)) ??
-                      l10n.media_info_otherDevice),
+            value: linkedElsewhere
+                ? (peerName ?? l10n.media_info_otherDevice)
+                : l10n.media_info_thisDevice,
           ),
         DiveDetailRow(
           label: l10n.media_info_status,
-          value: switch (origin.health) {
-            OriginHealth.healthy => l10n.media_info_statusFound,
-            OriginHealth.missing => l10n.media_info_statusMissing,
-            OriginHealth.neverVerified => l10n.media_info_statusUnchecked,
-          },
+          value: _statusLabel(l10n, linkedElsewhere, peerName),
         ),
         if (origin.lastVerifiedAt != null)
           DiveDetailRow(
@@ -333,6 +333,29 @@ class _OriginSection extends ConsumerWidget {
       ],
     );
   }
+
+  /// The verdict columns sync, and a device that cannot reach another
+  /// device's path records nothing (MediaItemVerifier), so a verdict on a
+  /// row linked elsewhere was recorded over there. Calling it "this device"
+  /// contradicted the Serving block whenever this device fell back to the
+  /// cloud store (issue #2458).
+  String _statusLabel(
+    AppLocalizations l10n,
+    bool linkedElsewhere,
+    String? peerName,
+  ) => switch (origin.health) {
+    OriginHealth.neverVerified => l10n.media_info_statusUnchecked,
+    OriginHealth.healthy when !linkedElsewhere => l10n.media_info_statusFound,
+    OriginHealth.missing when !linkedElsewhere => l10n.media_info_statusMissing,
+    OriginHealth.healthy =>
+      peerName == null
+          ? l10n.media_info_statusFoundElsewhere
+          : l10n.media_info_statusFoundOn(peerName),
+    OriginHealth.missing =>
+      peerName == null
+          ? l10n.media_info_statusMissingElsewhere
+          : l10n.media_info_statusMissingFrom(peerName),
+  };
 }
 
 class _BackupSection extends ConsumerWidget {

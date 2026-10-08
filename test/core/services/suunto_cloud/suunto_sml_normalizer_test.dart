@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_api_exception.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_sml_normalizer.dart';
 
-Map<String, dynamic> _cloudFixture() => {
+Map<String, dynamic> _cloudFixture({
+  Map<String, dynamic> diveHeaderExtra = const {},
+}) => {
   'Summary': {
     'Samples': [
       {
@@ -41,6 +43,7 @@ Map<String, dynamic> _cloudFixture() => {
               ],
               'LowGf': 30,
               'HighGf': 85,
+              ...diveHeaderExtra,
             },
           },
         },
@@ -202,5 +205,114 @@ void main() {
         ),
       );
     });
+  });
+
+  group('SuuntoSmlNormalizer.parse (cloud shape tissue state)', () {
+    test('hoists StartTissue, EndTissue and Algorithm onto Diving', () {
+      final export = SuuntoSmlNormalizer.parse(
+        _cloudFixture(
+          diveHeaderExtra: {
+            'Algorithm': 'Suunto Fused2 RGBM',
+            'StartTissue': {
+              'Nitrogen': [79000, 79000],
+            },
+            'EndTissue': {
+              'Nitrogen': [89665, 97105],
+              'CNS': 0.132,
+            },
+          },
+        ),
+      );
+
+      final diving = export.header['Diving'] as Map<String, dynamic>;
+      expect(diving['Algorithm'], 'Suunto Fused2 RGBM');
+      expect(diving['StartTissue'], {
+        'Nitrogen': [79000, 79000],
+      });
+      expect(diving['EndTissue'], {
+        'Nitrogen': [89665, 97105],
+        'CNS': 0.132,
+      });
+      // The existing hoists still ride along.
+      expect(diving['GfLow'], 30);
+    });
+
+    test('leaves the tissue keys absent when the DiveHeader has none', () {
+      final export = SuuntoSmlNormalizer.parse(_cloudFixture());
+      final diving = export.header['Diving'] as Map<String, dynamic>;
+      expect(diving.containsKey('StartTissue'), isFalse);
+      expect(diving.containsKey('EndTissue'), isFalse);
+      expect(diving.containsKey('Algorithm'), isFalse);
+    });
+
+    test('keeps the DeviceLog shape Diving block as-is', () {
+      final json = {
+        'DeviceLog': {
+          'Header': {
+            'ActivityType': 51,
+            'DateTime': '2024-05-01T10:00:00Z',
+            'Diving': {
+              'Algorithm': 'Suunto Fused2 RGBM',
+              'StartTissue': {
+                'Nitrogen': [79000],
+              },
+            },
+          },
+          'Samples': <Map<String, dynamic>>[],
+        },
+      };
+
+      final export = SuuntoSmlNormalizer.parse(json);
+      final diving = export.header['Diving'] as Map<String, dynamic>;
+      expect(diving['Algorithm'], 'Suunto Fused2 RGBM');
+      expect(diving['StartTissue'], {
+        'Nitrogen': [79000],
+      });
+    });
+  });
+
+  test('throws SuuntoNotADiveException for a non-dive activity', () {
+    expect(
+      () => SuuntoSmlNormalizer.parse({
+        'DeviceLog': {
+          'Header': {'ActivityType': 3},
+          'Samples': const [],
+        },
+      }),
+      throwsA(isA<SuuntoNotADiveException>()),
+    );
+  });
+
+  // #1445: the route rides inside each cloud Sample, so the flattening
+  // must carry it through untouched.
+  test('passes DiveRoute through from the cloud Sample attribute', () {
+    final export = SuuntoSmlNormalizer.parse({
+      'Summary': {
+        'Samples': [
+          {
+            'Attributes': {
+              'suunto/sml': {
+                'Header': {'ActivityType': 51},
+              },
+            },
+          },
+        ],
+      },
+      'Data': {
+        'Samples': [
+          {
+            'TimeISO8601': '2026-04-19T10:00:00.000Z',
+            'Attributes': {
+              'suunto/sml': {
+                'Sample': {
+                  'DiveRoute': {'X': 1.0, 'Y': 2.0, 'Z': 3.0},
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+    expect(export.samples.single['DiveRoute'], {'X': 1.0, 'Y': 2.0, 'Z': 3.0});
   });
 }

@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/features/dive_import/data/services/dive_reimport_service.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -10,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
@@ -161,6 +164,82 @@ void main() {
               ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
             .get();
     expect(tanks.map((t) => t.id), ['tank-a', isNot('tank-a')]);
+  });
+
+  test('writes the usage duration the parse records (#1496)', () async {
+    // A dive imported before v259 has no usage_duration; a resync is the
+    // only way to supply what MacDive recorded.
+    final diveId = await seedDive(notes: '', buddy: '');
+    await seedTank(diveId, id: 'tank-a', tankOrder: 0);
+
+    await service.applyReimport(
+      diveId: diveId,
+      diveData: {
+        'tanks': [
+          {'order': 0, 'usageDuration': const Duration(minutes: 30)},
+          {'order': 1, 'usageDuration': const Duration(minutes: 12)},
+        ],
+      },
+      now: DateTime(2026, 9, 3),
+    );
+
+    final tanks =
+        await (db.select(db.diveTanks)
+              ..where((t) => t.diveId.equals(diveId))
+              ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+            .get();
+    expect(tanks.map((t) => t.usageDuration), [30 * 60, 12 * 60]);
+  });
+
+  test('keeps a stored usage duration the parse does not report', () async {
+    final diveId = await seedDive(notes: '', buddy: '');
+    await seedTank(diveId, id: 'tank-a', tankOrder: 0);
+    await db.customStatement('UPDATE dive_tanks SET usage_duration = 1500');
+
+    await service.applyReimport(
+      diveId: diveId,
+      diveData: {
+        'tanks': [
+          {'order': 0, 'startPressure': 200.0},
+        ],
+      },
+      now: DateTime(2026, 9, 3),
+    );
+
+    final tank = await db.select(db.diveTanks).getSingle();
+    expect(tank.usageDuration, 1500);
+  });
+
+  test('a brand-new tank takes the file\'s source (#2716)', () async {
+    final diveId = await seedDive(notes: '', buddy: '');
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: 'src-file',
+            diveId: diveId,
+            importedAt: DateTime.utc(2026),
+            createdAt: DateTime.utc(2026),
+          ).copyWith(isPrimary: const Value(true)),
+        );
+    await seedTank(diveId, id: 'tank-a', tankOrder: 0);
+
+    await service.applyReimport(
+      diveId: diveId,
+      diveData: {
+        'tanks': [
+          {'order': 0, 'startPressure': 200.0},
+          {'order': 1, 'startPressure': 207.0},
+        ],
+      },
+      now: DateTime(2026, 9, 3),
+    );
+
+    final tanks = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    expect(tanks, hasLength(2));
+    expect(tanks.map((t) => t.sourceId), everyElement('src-file'));
   });
 
   test(
@@ -1107,6 +1186,40 @@ void main() {
       expect(dive.decoConservatism, 1);
     });
 
+    test('writes the computer tissue snapshot the file parse carries, and '
+        'clears one it no longer reports', () async {
+      const tissue = ComputerTissueSnapshot(
+        algorithm: 'zhl_16c',
+        start: ComputerTissueState(n2LoadPercent: 0),
+        end: ComputerTissueState(n2LoadPercent: 86, cnsPercent: 12),
+      );
+      final diveId = await seedDive(notes: '', buddy: '');
+      await seedSource(diveId, id: 'src-file');
+
+      Future<String?> stored() async => (await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle()).computerTissueJson;
+
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {
+          'dateTime': DateTime(2026, 9, 1, 9),
+          'computerTissue': tissue,
+        },
+        now: DateTime(2026, 9, 3),
+      );
+      expect(ComputerTissueSnapshot.decode(await stored()), tissue);
+
+      // Like the summary columns beside it, the snapshot belongs to the
+      // parse: a fixed parser that stops emitting one clears it.
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {'dateTime': DateTime(2026, 9, 1, 9)},
+        now: DateTime(2026, 9, 4),
+      );
+      expect(await stored(), isNull);
+    });
+
     test('rewrites the dive mode the parse reports', () async {
       final diveId = await seedDive(notes: '', buddy: '');
       await seedSource(diveId, id: 'src-file');
@@ -1332,10 +1445,16 @@ void main() {
         now: DateTime(2026, 9, 3),
       );
 
-      final tombstones = await (db.select(
-        db.deletionLog,
-      )..where((t) => t.entityType.equals('diveProfileEvents'))).get();
-      expect(tombstones.map((r) => r.recordId), ['ev-old']);
+      // One tombstone for the dive's events, not one per event (#1926).
+      final tombstones = await db.select(db.deletionLog).get();
+      expect(
+        tombstones.where((r) => r.entityType == 'diveProfileEvents'),
+        isEmpty,
+      );
+      final scope = tombstones.singleWhere(
+        (r) => r.entityType == EventScopeTombstone.entityType,
+      );
+      expect(scope.recordId, diveId);
 
       final pending = await syncRepository.getPendingRecords();
       final pendingEvents = [
@@ -1346,6 +1465,12 @@ void main() {
         db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).get();
       expect(pendingEvents, unorderedEquals(fresh.map((e) => e.id)));
+      // A peer deletes only events that predate the scope; the fresh ones
+      // must be newer or they would go too.
+      final scopeClock = Hlc.parse(scope.originHlc!);
+      for (final e in fresh) {
+        expect(Hlc.parse(e.hlc!).compareTo(scopeClock), greaterThan(0));
+      }
     });
   });
 
@@ -1388,11 +1513,12 @@ void main() {
       expect(source.gradientFactorHigh, isNull);
     });
 
-    test('snapshots the derived bottom time, not the absent duration '
-        'key', () async {
+    test('snapshots the runtime, not the absent duration key or a derived '
+        'bottom time', () async {
       // UDDF never sets `duration`, so reading it alone left the Sources panel
       // advertising the duration of the profile the resync had just deleted.
-      // The synthesised source row stores the derived bottom time.
+      // The source row stores the runtime the parse reports, never a bottom
+      // time derived from the profile (issue #2421).
       final diveId = await seedDive(notes: '', buddy: '');
       await db
           .into(db.diveDataSources)
@@ -1420,7 +1546,7 @@ void main() {
       final source = await (db.select(
         db.diveDataSources,
       )..where((t) => t.id.equals('src-1'))).getSingle();
-      expect(source.duration, 1200);
+      expect(source.duration, 25 * 60);
     });
 
     test('derives the snapshot window the way the first import '

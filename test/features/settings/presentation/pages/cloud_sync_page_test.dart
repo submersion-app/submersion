@@ -1305,6 +1305,23 @@ void main() {
       expect(banner.style?.color, scheme.onSecondaryContainer);
     });
 
+    testWidgets('names peers too old to receive this device\'s changes', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        selectedProvider: CloudProviderType.icloud,
+        syncState: const SyncState(
+          olderSchemaPeerLabels: [(name: 'Stable iPad', shortId: 'aaa11111')],
+        ),
+      );
+
+      expect(
+        find.textContaining('Stable iPad runs an older version of Submersion'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('no update banner when no newer-schema peers were held', (
       tester,
     ) async {
@@ -1711,6 +1728,34 @@ void main() {
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
       await tester.pumpAndSettle();
       expect(handles.merge.mergeCalls, 0);
+    });
+
+    testWidgets('merge confirm says the merge can be undone', (tester) async {
+      // The success snackbar offers Undo, so the confirm text must not claim
+      // the merge is permanent.
+      await pumpPage(
+        tester,
+        duplicateGroups: [makeGroup(name: 'Bob', duplicateCount: 1)],
+      );
+
+      await tester.tap(find.text('Merge'));
+      await tester.pumpAndSettle();
+
+      final dialog = find.byType(AlertDialog);
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.textContaining('cannot be undone'),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: dialog,
+          matching: find.textContaining('You can undo this right after'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('merge confirm runs merge and shows undo snackbar', (

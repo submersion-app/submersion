@@ -22,8 +22,10 @@ const _log = LoggerService('BathymetryRepository');
 /// while [SwissBathyTileCacheRepository] still dedupes the actual tile
 /// downloads (see swissbathy3d_source.dart), so this never multiplies
 /// network requests. Definitive negatives cache as 'empty'; transient
-/// failures write NO row so the next visit retries. Never throws: null
-/// simply means "no real terrain available right now".
+/// failures write NO row so the next visit retries, and so does a grid the
+/// resolver only reached because a better source failed transiently (a
+/// provisional [BathymetryResolution]). Never throws: null simply means
+/// "no real terrain available right now".
 ///
 /// Known trade-off, deliberately deferred to issue #1511: keying Swiss
 /// coordinates raw also gives up the outer cache's coalescing for them, so
@@ -62,7 +64,13 @@ class BathymetryRepository {
   /// them) changes what some ALREADY-v4-cached Rotsee/Vierwaldstättersee-
   /// area coordinates should have resolved to, so those rows need one
   /// more forced re-resolution too.
-  static const String selectionGeneration = 'v5';
+  ///
+  /// v6 (#1770): before that fix, a grid won only because a better source
+  /// failed transiently was cached as a final answer. Those rows look
+  /// exactly like legitimate ones and `_load` serves them before the
+  /// resolver runs, so without this bump a site already downgraded by one
+  /// network hiccup would stay downgraded forever.
+  static const String selectionGeneration = 'v6';
   static const double quantumDeg = 0.02;
 
   final LocalCacheDatabase _db;
@@ -147,6 +155,56 @@ class BathymetryRepository {
     final q = quantize(c);
     return '${q.lat.toStringAsFixed(2)},${q.lon.toStringAsFixed(2)}'
         '@$span$selectionGeneration';
+  }
+
+  /// Whether [key] is one [keyFor] could still build, so a lookup can still
+  /// reach its row. Anything else is one of the inert leftovers [keyFor]
+  /// describes, and the local cache sweep deletes it (issue #1929).
+  ///
+  /// The generation has to match exactly: a generation 1 key ends in a bare
+  /// `@8000`, so a prefix or substring test would keep every generation.
+  ///
+  /// A quantized base-square key stores its cell corner rather than the site,
+  /// and flooring can put that corner inside a lake box while the site itself
+  /// is outside every lake, so it cannot be rebuilt from the key alone. It is
+  /// current at any span the base square uses. Every other key carries the raw
+  /// coordinate it was built from, so it is current exactly when [keyFor]
+  /// rebuilds it byte for byte. That catches a lake key under a level the lake
+  /// no longer documents, a lake coordinate keyed without its level, and a
+  /// raw-coordinate key at a span that never keys by the raw coordinate.
+  static bool isCurrentKey(String key) {
+    final parts = key.split('@');
+    if (parts.length < 2 || parts.length > 3) return false;
+    final spanGeneration = _currentSpanGeneration.firstMatch(parts[1]);
+    if (spanGeneration == null) return false;
+    final span = double.parse(spanGeneration.group(1)!);
+    // A long enough digit run parses to infinity, which keyFor's round()
+    // throws on. The sweep checks every cached key and must not abort on one.
+    if (!span.isFinite || span <= 0) return false;
+
+    final coordinate = parts[0].split(',');
+    if (coordinate.length != 2) return false;
+    final lat = double.tryParse(coordinate[0]);
+    final lon = double.tryParse(coordinate[1]);
+    // tryParse accepts NaN and Infinity, which keyFor would format back into
+    // an identical key; no real coordinate produces either.
+    if (lat == null || !lat.isFinite || lat.abs() > 90) return false;
+    if (lon == null || !lon.isFinite || lon.abs() > 180) return false;
+
+    if (parts.length == 2 && coordinate.every(_hasTwoDecimals)) {
+      return !_isPatchSpan(span);
+    }
+    return keyFor(GeoPoint(lat, lon), spanMeters: span) == key;
+  }
+
+  static final RegExp _currentSpanGeneration = RegExp(
+    '^([0-9]+)${RegExp.escape(selectionGeneration)}\$',
+  );
+
+  /// The shape `toStringAsFixed(2)` gives a quantized cell corner.
+  static bool _hasTwoDecimals(String value) {
+    final dot = value.indexOf('.');
+    return dot >= 0 && value.length - dot - 1 == 2;
   }
 
   /// Whether the cache holds a DEFINITIVE answer (grid or empty) for this
@@ -295,6 +353,11 @@ class BathymetryRepository {
         fetchCenter,
         spanMeters,
       ).downsampleTo(maxDim);
+      // A provisional grid won only because a better source failed
+      // transiently (issue #1770): show it, but write no row, so the next
+      // resolve retries the preferred source instead of the cache pinning
+      // this fallback forever.
+      if (!res.definitive) return grid;
       await _db
           .into(_db.bathymetryCache)
           .insertOnConflictUpdate(

@@ -1,8 +1,7 @@
-import 'package:uuid/uuid.dart';
-
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/safety_finding_identity.dart';
 
 /// Pure rules engine for the post-dive safety review.
 ///
@@ -19,7 +18,19 @@ class SafetyReviewService {
   /// violating rates were measured over instead of a zero-length range, raise
   /// the sawtooth bar to four 6 m teeth, and credit safety-stop time from
   /// 2 m to 6.5 m.
-  static const int engineVersion = 2;
+  /// v3: rebreather dives are graded on the loop, never on the first
+  /// cylinder breathed as open circuit; one whose loop cannot be modelled has
+  /// no tissue loading to grade (issue #2593).
+  /// v4: with the NDL source set to the dive computer, a sample at the
+  /// computer's deco stop reads as in deco instead of taking the calculated
+  /// NDL, which can change the missed deco stop rule's answer (#2551).
+  /// v5: a dive with several computers is graded on the primary source's own
+  /// samples, not every computer's interleaved by timestamp, whose clock
+  /// offsets read as rapid ascents no computer recorded (#2888). A finding
+  /// whose span moves onto the primary's own samples is a new finding, so a
+  /// dismissal made on the interleaved one does not carry over.
+  /// v6: late and missed deco gas switches against the ideal ascent (#2939).
+  static const int engineVersion = 6;
 
   const SafetyReviewService();
 
@@ -29,7 +40,12 @@ class SafetyReviewService {
     required DateTime now,
     String Function()? idGenerator,
   }) {
-    final nextId = idGenerator ?? const Uuid().v4;
+    // Deterministic by default (see withDeterministicIds), so two devices
+    // reviewing the same dive converge on one set of rows; the counter only
+    // keeps the ids distinct until then. A caller-supplied generator is kept
+    // verbatim for tests that pin ids.
+    var placeholder = 0;
+    final nextId = idGenerator ?? () => 'pending-${placeholder++}';
     final findings = <SafetyFinding>[];
 
     findings.addAll(_rapidAscentFindings(diveId, analysis, now, nextId));
@@ -37,8 +53,44 @@ class SafetyReviewService {
     findings.addAll(_omittedSafetyStopFindings(diveId, analysis, now, nextId));
     findings.addAll(_sawtoothFindings(diveId, analysis, now, nextId));
     findings.addAll(_highSurfaceGfFindings(diveId, analysis, now, nextId));
+    findings.addAll(_lateGasSwitchFindings(diveId, analysis, now, nextId));
 
-    return findings;
+    return idGenerator == null
+        ? withDeterministicIds(diveId, findings)
+        : findings;
+  }
+
+  /// Extra deco from one late or missed gas switch at or above which the
+  /// finding is significant rather than a caution. A late switch that cost
+  /// no deco at all is only info.
+  static const int _significantExtraDecoSeconds = 300;
+
+  List<SafetyFinding> _lateGasSwitchFindings(
+    String diveId,
+    ProfileAnalysis analysis,
+    DateTime now,
+    String Function() nextId,
+  ) {
+    final efficiency = analysis.gasSwitchEfficiency;
+    if (efficiency == null || !efficiency.evaluated) return const [];
+    return [
+      for (final window in efficiency.windows)
+        SafetyFinding(
+          id: nextId(),
+          diveId: diveId,
+          ruleId: SafetyRuleId.lateGasSwitch,
+          severity: window.extraDecoSeconds >= _significantExtraDecoSeconds
+              ? SafetySeverity.significant
+              : window.extraDecoSeconds > 0
+              ? SafetySeverity.caution
+              : SafetySeverity.info,
+          startTimestamp: window.idealTimestamp,
+          endTimestamp: window.endTimestamp,
+          value: window.extraDecoSeconds.toDouble(),
+          engineVersion: engineVersion,
+          createdAt: now,
+        ),
+    ];
   }
 
   /// Contiguous ceiling-violation ranges shorter than this are ignored as

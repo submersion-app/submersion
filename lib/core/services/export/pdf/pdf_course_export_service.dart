@@ -1,35 +1,49 @@
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 
 /// Handles PDF export for training course logs.
 class PdfCourseExportService {
-  /// File names stay ISO no matter what the diver reads in the document, so a
-  /// folder of exports still sorts chronologically (#964).
-  static final _fileNameDate = DateFormat('yyyy-MM-dd');
-
   /// Export a training course log to PDF with instructor signatures.
   ///
   /// Creates a professional training log document containing:
   /// - Course information (name, agency, dates, instructor)
   /// - List of training dives with depth, duration, and notes
   /// - Instructor signature on each dive entry
+  ///
+  /// [localization] is the language the log prints in; the course page passes
+  /// the app language (#2252). Null prints English.
   Future<String> exportCourseTrainingLogToPdf(
     Course course,
     List<Dive> trainingDives, {
     required PdfDateFormatter dates,
     required UnitFormatter units,
+    PdfLocalization? localization,
+    CertificationCatalog? catalog,
   }) async {
-    final pdf = pw.Document();
+    final cat = catalog ?? CertificationCatalog.builtInOnly;
+    final loc = localization ?? PdfLocalization.english();
+    final l10n = loc.l10n;
+    // Month names and AM/PM in the log's language (#2252).
+    final localDates = dates.inLanguage(loc.languageCode);
+    // Roboto, not the built-in Helvetica: Helvetica stops at U+00FF, so a
+    // translated label such as Hungarian "Időtartam" would print boxes.
+    await PdfFonts.instance.initialize();
+    final pdf = pw.Document(theme: await PdfFonts.instance.themeFor(loc));
 
     // Load signatures for all training dives in one read
     final diveSignatures = await SignatureStorageService()
@@ -50,12 +64,13 @@ class PdfCourseExportService {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
+        textDirection: loc.textDirection,
         build: (context) => pw.Center(
           child: pw.Column(
             mainAxisAlignment: pw.MainAxisAlignment.center,
             children: [
               pw.Text(
-                'Training Log',
+                l10n.pdf_trainingLog,
                 style: const pw.TextStyle(
                   fontSize: 32,
                   fontWeight: pw.FontWeight.bold,
@@ -73,7 +88,7 @@ class PdfCourseExportService {
               ),
               pw.SizedBox(height: 15),
               pw.Text(
-                course.agency.displayName,
+                cat.agency(course.agency).localizedName(l10n),
                 style: const pw.TextStyle(
                   fontSize: 18,
                   color: PdfColors.grey700,
@@ -88,21 +103,32 @@ class PdfCourseExportService {
                 ),
                 child: pw.Column(
                   children: [
-                    _buildInfoRow('Instructor', course.instructorDisplay),
+                    _buildInfoRow(
+                      l10n.pdf_instructor,
+                      course.instructorDisplay,
+                    ),
                     if (course.instructorNumber != null)
-                      _buildInfoRow('Instructor #', course.instructorNumber!),
+                      _buildInfoRow(
+                        l10n.pdf_instructorNumber,
+                        course.instructorNumber!,
+                      ),
                     if (course.location != null)
-                      _buildInfoRow('Location', course.location!),
+                      _buildInfoRow(l10n.pdf_location, course.location!),
                     pw.SizedBox(height: 10),
-                    _buildInfoRow('Start Date', dates.date(course.startDate)),
+                    _buildInfoRow(
+                      l10n.pdf_startDate,
+                      localDates.date(course.startDate),
+                    ),
                     if (course.completionDate != null)
                       _buildInfoRow(
-                        'Completion Date',
-                        dates.date(course.completionDate!),
+                        l10n.pdf_completionDate,
+                        localDates.date(course.completionDate!),
                       ),
                     _buildInfoRow(
-                      'Status',
-                      course.isCompleted ? 'Completed' : 'In Progress',
+                      l10n.pdf_status,
+                      course.isCompleted
+                          ? l10n.pdf_statusCompleted
+                          : l10n.pdf_statusInProgress,
                     ),
                   ],
                 ),
@@ -111,12 +137,21 @@ class PdfCourseExportService {
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
-                  _buildStatBox('${trainingDives.length}', 'Training Dives'),
+                  _buildStatBox(
+                    '${trainingDives.length}',
+                    l10n.pdf_trainingDives,
+                  ),
                   pw.SizedBox(width: 30),
-                  _buildStatBox('${totalRuntime.inMinutes}', 'Total Minutes'),
+                  _buildStatBox(
+                    '${totalRuntime.inMinutes}',
+                    l10n.pdf_totalMinutes,
+                  ),
                   if (maxDepth != null) ...[
                     pw.SizedBox(width: 30),
-                    _buildStatBox(units.formatDepth(maxDepth), 'Max Depth'),
+                    _buildStatBox(
+                      units.formatDepth(maxDepth),
+                      l10n.pdf_maxDepth,
+                    ),
                   ],
                 ],
               ),
@@ -134,11 +169,12 @@ class PdfCourseExportService {
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
+          textDirection: loc.textDirection,
           build: (context) => pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                'Training Dives',
+                l10n.pdf_trainingDives,
                 style: const pw.TextStyle(
                   fontSize: 18,
                   fontWeight: pw.FontWeight.bold,
@@ -147,7 +183,7 @@ class PdfCourseExportService {
               ),
               pw.SizedBox(height: 5),
               pw.Text(
-                '${course.name} - ${course.agency.displayName}',
+                '${course.name} - ${cat.agency(course.agency).localizedName(l10n)}',
                 style: const pw.TextStyle(
                   fontSize: 12,
                   color: PdfColors.grey600,
@@ -159,8 +195,9 @@ class PdfCourseExportService {
                 (dive) => _buildDiveEntry(
                   dive,
                   diveSignatures[dive.id],
-                  dates,
+                  localDates,
                   units,
+                  l10n,
                 ),
               ),
             ],
@@ -176,9 +213,10 @@ class PdfCourseExportService {
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           crossAxisAlignment: pw.CrossAxisAlignment.start,
+          textDirection: loc.textDirection,
           build: (context) => [
             pw.Text(
-              'Course Notes',
+              l10n.pdf_courseNotes,
               style: const pw.TextStyle(
                 fontSize: 18,
                 fontWeight: pw.FontWeight.bold,
@@ -200,9 +238,11 @@ class PdfCourseExportService {
     }
 
     final bytes = await pdf.save();
-    final fileName =
-        'training_log_${course.name.replaceAll(RegExp(r'[^\w]'), '_')}_${_fileNameDate.format(DateTime.now())}.pdf';
-    return saveAndShareFileBytes(bytes, fileName, 'application/pdf');
+    return saveAndShareFileBytes(
+      bytes,
+      trainingLogFileName(course.name, DateTime.now()),
+      'application/pdf',
+    );
   }
 
   // ==================== Widget Helpers ====================
@@ -260,6 +300,7 @@ class PdfCourseExportService {
     List<Signature>? signatures,
     PdfDateFormatter dates,
     UnitFormatter units,
+    AppLocalizations l10n,
   ) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 15),
@@ -275,7 +316,7 @@ class PdfCourseExportService {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text(
-                'Dive ${dive.diveNumber ?? "-"}',
+                l10n.pdf_tripDiveTitle('${dive.diveNumber ?? "-"}'),
                 style: const pw.TextStyle(
                   fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
@@ -303,18 +344,21 @@ class PdfCourseExportService {
           pw.Row(
             children: [
               if (dive.maxDepth != null)
-                _buildInfoChip('Max Depth', units.formatDepth(dive.maxDepth)),
+                _buildInfoChip(
+                  l10n.pdf_maxDepth,
+                  units.formatDepth(dive.maxDepth),
+                ),
               if (dive.effectiveRuntime != null) ...[
                 pw.SizedBox(width: 20),
                 _buildInfoChip(
-                  'Duration',
-                  '${pdfDiveDurationMinutes(dive)} min',
+                  l10n.pdf_duration,
+                  l10n.pdf_minutes(pdfDiveDurationMinutes(dive)),
                 ),
               ],
               if (dive.waterTemp != null) ...[
                 pw.SizedBox(width: 20),
                 _buildInfoChip(
-                  'Water Temp',
+                  l10n.pdf_waterTemp,
                   units.formatTemperature(dive.waterTemp, decimals: 0),
                 ),
               ],
@@ -335,7 +379,7 @@ class PdfCourseExportService {
             pw.Row(
               children: [
                 pw.Text(
-                  'Verified by: ',
+                  l10n.pdf_labelValue(l10n.pdf_verifiedBy, ''),
                   style: const pw.TextStyle(
                     fontSize: 9,
                     fontWeight: pw.FontWeight.bold,
@@ -347,75 +391,19 @@ class PdfCourseExportService {
                     spacing: 8,
                     runSpacing: 4,
                     children: signatures
-                        .map((sig) => _buildSignatureBlock(sig, dates))
+                        .map(
+                          (sig) => PdfSharedComponents.buildSignatureBlock(
+                            sig,
+                            dates: dates,
+                            l10n: l10n,
+                          ),
+                        )
                         .toList(),
                   ),
                 ),
               ],
             ),
           ],
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildSignatureBlock(Signature signature, PdfDateFormatter dates) {
-    pw.ImageProvider? signatureImage;
-    if (signature.hasImage) {
-      try {
-        signatureImage = pw.MemoryImage(signature.imageData!);
-      } catch (_) {
-        // Ignore image load errors
-      }
-    }
-
-    return pw.Container(
-      width: 80,
-      padding: const pw.EdgeInsets.all(4),
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey300),
-        borderRadius: pw.BorderRadius.circular(4),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.center,
-        children: [
-          if (signatureImage != null)
-            pw.SizedBox(
-              height: 30,
-              child: pw.Image(signatureImage, fit: pw.BoxFit.contain),
-            )
-          else
-            pw.SizedBox(
-              height: 30,
-              child: pw.Center(
-                child: pw.Text(
-                  '[Signature]',
-                  style: const pw.TextStyle(
-                    fontSize: 8,
-                    color: PdfColors.grey500,
-                  ),
-                ),
-              ),
-            ),
-          pw.SizedBox(height: 2),
-          pw.Text(
-            signature.signerName,
-            style: const pw.TextStyle(
-              fontSize: 7,
-              fontWeight: pw.FontWeight.bold,
-            ),
-            textAlign: pw.TextAlign.center,
-          ),
-          pw.Text(
-            signature.isBuddySignature ? 'Buddy' : 'Instructor',
-            style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey600),
-            textAlign: pw.TextAlign.center,
-          ),
-          pw.Text(
-            dates.date(signature.signedAt),
-            style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey600),
-            textAlign: pw.TextAlign.center,
-          ),
         ],
       ),
     );
@@ -440,3 +428,11 @@ class PdfCourseExportService {
     );
   }
 }
+
+/// `training_log_<course>_<yyyy-MM-dd>.pdf`, the course name as a
+/// [fileNameSegment] and the date as a [fileNameDate].
+String trainingLogFileName(String courseName, DateTime date) => exportFileName([
+  'training_log',
+  fileNameSegment(courseName),
+  fileNameDate(date),
+], 'pdf');

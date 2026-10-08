@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/macdive_sqlite_parser.dart';
 
@@ -9,12 +10,11 @@ import '../../../../fixtures/macdive_sqlite/build_synthetic_db.dart';
 
 void main() {
   test('MacDiveSqliteParser emits media entries from ZDIVEIMAGE', () async {
-    final path =
-        '${Directory.systemTemp.path}/msp_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-    final dbFile = buildSyntheticMacDiveDb(path);
+    final dir = Directory.systemTemp.createTempSync('msp_');
     addTearDown(() {
-      if (dbFile.existsSync()) dbFile.deleteSync();
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
+    final dbFile = buildSyntheticMacDiveDb(p.join(dir.path, 'msp.sqlite'));
 
     final payload = await const MacDiveSqliteParser().parse(
       Uint8List.fromList(await dbFile.readAsBytes()),

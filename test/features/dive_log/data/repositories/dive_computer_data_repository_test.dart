@@ -31,6 +31,7 @@ void main() {
     double? maxDepth,
     double? avgDepth,
     int? duration,
+    int? runtime,
     double? waterTemp,
     int? entryTime,
     int? exitTime,
@@ -54,6 +55,7 @@ void main() {
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
             bottomTime: Value(duration),
+            runtime: Value(runtime),
             waterTemp: Value(waterTemp),
             entryTime: Value(entryTime),
             exitTime: Value(exitTime),
@@ -312,7 +314,8 @@ void main() {
         diveComputerSerial: 'SN-999',
         maxDepth: 40.0,
         avgDepth: 22.5,
-        duration: 2700,
+        duration: 2400,
+        runtime: 2700,
         waterTemp: 19.0,
         entryTime: entryMs,
         exitTime: exitMs,
@@ -334,6 +337,7 @@ void main() {
       expect(r.computerSerial, equals('SN-999'));
       expect(r.maxDepth, equals(40.0));
       expect(r.avgDepth, equals(22.5));
+      // The runtime, not the 2400 s bottom time (issue #2421).
       expect(r.duration, equals(2700));
       expect(r.waterTemp, equals(19.0));
       expect(r.entryTime?.millisecondsSinceEpoch, equals(entryMs));

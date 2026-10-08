@@ -87,6 +87,89 @@ class ValueConverter {
   }
 
   // ---------------------------------------------------------------------------
+  /// Parse a duration however a dive log or spreadsheet wrote it (#1809).
+  ///
+  /// - Clock style: M:SS or H:MM:SS, with optional fractional seconds and an
+  ///   optional trailing minute word ("45:00 min").
+  /// - Unit style: number-unit parts, largest unit first, such as "45 min",
+  ///   "45'30\"", "1h 5m" or "1h05". A part without a unit is minutes when it
+  ///   comes first, and otherwise takes the next unit down from the part
+  ///   before it, which must have one ("1h05" but not "45 30").
+  /// - A decimal comma reads as a decimal point ("45,5" is 45.5 minutes).
+  ///
+  /// The result is rounded to whole seconds. Returns null when [raw] is null,
+  /// blank, negative, or not a duration.
+  Duration? parseFlexibleDuration(String? raw) {
+    if (raw == null) return null;
+    final s = raw.trim().toLowerCase();
+    if (s.isEmpty) return null;
+    final seconds = s.contains(':')
+        ? _clockDurationSeconds(s)
+        : _unitDurationSeconds(s);
+    // A cell too large to hold is unreadable: round() throws on infinity,
+    // and nothing above the transformer catches.
+    if (seconds == null || !seconds.isFinite) return null;
+    if (seconds > _maxDurationSeconds) return null;
+    return Duration(seconds: seconds.round());
+  }
+
+  /// Larger than any real dive by far, and well inside an int.
+  static const _maxDurationSeconds = 1e9;
+
+  static final _wholeNumber = RegExp(r'^\d+$');
+  static final _decimalNumber = RegExp(r'^\d+(?:[.,]\d+)?$');
+  static final _trailingMinuteWord = RegExp(r'\s*(?:minutes?|mins?)$');
+
+  double? _clockDurationSeconds(String s) {
+    final parts = s.replaceFirst(_trailingMinuteWord, '').split(':');
+    if (parts.length < 2 || parts.length > 3) return null;
+    final leading = parts.sublist(0, parts.length - 1);
+    if (!leading.every(_wholeNumber.hasMatch)) return null;
+    if (!_decimalNumber.hasMatch(parts.last)) return null;
+    // Doubles, not ints: int.parse throws past 64 bits.
+    final minutes = leading.fold(
+      0.0,
+      (sum, part) => sum * 60 + double.parse(part),
+    );
+    return minutes * 60 + double.parse(parts.last.replaceAll(',', '.'));
+  }
+
+  static final _unitPart = RegExp(
+    r"""(\d+(?:[.,]\d+)?)\s*(hours?|hrs?|h|minutes?|mins?|m|'|seconds?|secs?|s|")?\s*""",
+  );
+
+  /// Seconds in an hour, a minute and a second, indexed by unit rank.
+  static const _secondsPerUnit = [3600, 60, 1];
+
+  double? _unitDurationSeconds(String s) {
+    var index = 0;
+    var total = 0.0;
+    int? previousRank;
+    var previousHadUnit = true;
+    while (index < s.length) {
+      final part = _unitPart.matchAsPrefix(s, index);
+      if (part == null) return null;
+      final unit = part[2];
+      if (unit == null && !previousHadUnit) return null;
+      final rank = switch (unit?[0]) {
+        null => previousRank == null ? 1 : previousRank + 1,
+        'h' => 0,
+        's' || '"' => 2,
+        _ => 1,
+      };
+      if (rank > 2 || (previousRank != null && rank <= previousRank)) {
+        return null;
+      }
+      final value = double.parse(part[1]!.replaceAll(',', '.'));
+      total += value * _secondsPerUnit[rank];
+      previousRank = rank;
+      previousHadUnit = unit != null;
+      index = part.end;
+    }
+    return total;
+  }
+
+  // ---------------------------------------------------------------------------
   /// Map a visibility string to a canonical identifier.
   ///
   /// Accepted identifiers: 'excellent', 'good', 'moderate', 'poor', 'unknown'.
@@ -377,33 +460,19 @@ class ValueTransformService {
     return _roundTo(cuft * 28.3168, 1);
   }
 
-  /// Convert minutes string to Duration. Returns null if input is not valid.
-  Duration? minutesToSeconds(String value) {
-    final minutes = _parseDouble(value);
-    if (minutes == null) return null;
-    return Duration(seconds: (minutes * 60).round());
-  }
+  /// Convert a minutes string to Duration. Returns null if input is not valid.
+  ///
+  /// Reads the value with [ValueConverter.parseFlexibleDuration], so a cell
+  /// written as "00:45:00" is 45 minutes, not 4500 (#1809).
+  Duration? minutesToSeconds(String value) =>
+      const ValueConverter().parseFlexibleDuration(value);
 
-  /// Convert H:M:S or M:S string to Duration.
-  Duration? hmsToSeconds(String value) {
-    final parts = value.split(':');
-    if (parts.length == 3) {
-      final h = int.tryParse(parts[0]);
-      final m = int.tryParse(parts[1]);
-      final s = int.tryParse(parts[2]);
-      if (h != null && m != null && s != null) {
-        return Duration(hours: h, minutes: m, seconds: s);
-      }
-    }
-    if (parts.length == 2) {
-      final m = int.tryParse(parts[0]);
-      final s = int.tryParse(parts[1]);
-      if (m != null && s != null) {
-        return Duration(minutes: m, seconds: s);
-      }
-    }
-    return null;
-  }
+  /// Convert an H:M:S or M:S string to Duration.
+  ///
+  /// Reads the value with [ValueConverter.parseFlexibleDuration], so a bare
+  /// number such as "42" is 42 minutes rather than unreadable (#1809).
+  Duration? hmsToSeconds(String value) =>
+      const ValueConverter().parseFlexibleDuration(value);
 
   // ======================== Scale Conversions ========================
 

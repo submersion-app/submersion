@@ -1,4 +1,7 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/services/quality_prefilters.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_registry.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -22,9 +25,96 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  test('registry contains all 12 detectors with unique ids', () {
+  test('shared gear candidates are dives sharing an item with another '
+      "profile's dive in the window", () async {
+    final db = DatabaseService.instance.database;
+    final ten = DateTime.utc(2026, 5, 1, 10).millisecondsSinceEpoch;
+    const hour = 3600 * 1000;
+    for (final id in ['bill', 'anna']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'light',
+            name: 'light',
+            type: 'light',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    for (final (id, diver, at) in [
+      ('b1', 'bill', ten),
+      ('a1', 'anna', ten),
+      ('b2', 'bill', ten + hour),
+      ('n1', null, ten),
+      ('a2', 'anna', ten + 72 * hour),
+    ]) {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: id,
+              diverId: Value(diver),
+              diveDateTime: at,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await db
+          .into(db.diveEquipment)
+          .insert(
+            DiveEquipmentCompanion.insert(diveId: id, equipmentId: 'light'),
+          );
+    }
+    final candidates = await prefilters.candidatesByDetector();
+    // b2 pairs with a1 (an hour apart, inside the window); n1 has no
+    // profile; a2 is three days away from every other dive.
+    expect(candidates['shared_gear_overlap'], {'b1', 'a1', 'b2'});
+  });
+
+  // A detector without a candidate set never runs in a full library scan,
+  // yet counts as run, so the scan retires all of its findings (#2870).
+  test('every registered detector has a candidate set', () async {
+    final candidates = await prefilters.candidatesByDetector();
+    expect(
+      candidates.keys.toSet(),
+      containsAll(kQualityDetectors.map((d) => d.id)),
+    );
+  });
+
+  test('unknown transmitter candidates carry a real serial', () async {
+    for (final (id, serial) in [
+      ('real', ' 0012 '),
+      ('zeros', '000'),
+      ('blank', '  '),
+      ('none', null),
+    ]) {
+      await diveRepo.createDive(
+        domain.Dive(
+          id: id,
+          dateTime: DateTime.utc(2026, 6, 1),
+          tanks: [domain.DiveTank(id: 't-$id', transmitterSerial: serial)],
+        ),
+      );
+    }
+    final candidates = await prefilters.candidatesByDetector();
+    expect(candidates['unknown_transmitter'], {'real'});
+  });
+
+  test('registry contains all 13 detectors with unique ids', () {
     final ids = kQualityDetectors.map((d) => d.id).toList();
-    expect(ids.toSet(), hasLength(12));
+    expect(ids.toSet(), hasLength(13));
     expect(
       ids.toSet(),
       containsAll({
@@ -40,6 +130,7 @@ void main() {
         'tank_assignment',
         'unknown_transmitter',
         'source_conflict',
+        'shared_gear_overlap',
       }),
     );
     // Each bump is what raises the "new checks are available" banner, so an

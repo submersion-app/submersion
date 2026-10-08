@@ -1,5 +1,5 @@
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3a.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3a.md`
 // Task 15 (initial scaffold) + Task 16 (NetworkThumbnail swap).
 //
 // Mirrors `FileReviewPane` (Phase 2) in shape, but the URL tab's

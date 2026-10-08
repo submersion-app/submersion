@@ -36,8 +36,8 @@ final _now = DateTime(2026, 8, 9);
 
 Certification _makeCert({
   String name = 'Open Water Diver',
-  CertificationAgency agency = CertificationAgency.padi,
-  CertificationLevel? level,
+  String agency = 'padi',
+  String? level,
   String? cardNumber,
   DateTime? issueDate,
   DateTime? expiryDate,
@@ -277,7 +277,7 @@ void main() {
         tester,
         certification: _makeCert(
           name: 'PADI : Open Water',
-          level: CertificationLevel.openWater,
+          level: CertificationLevel.openWater.name,
         ),
       );
 
@@ -292,7 +292,7 @@ void main() {
         tester,
         certification: _makeCert(
           name: 'Cenote Guide Course',
-          level: CertificationLevel.openWater,
+          level: CertificationLevel.openWater.name,
         ),
       );
 
@@ -312,7 +312,7 @@ void main() {
         width: 280,
         certification: _makeCert(
           name: 'Advanced Open Water Diver and Enriched Air Specialist',
-          level: CertificationLevel.advancedOpenWater,
+          level: CertificationLevel.advancedOpenWater.name,
           cardNumber: '1802G4921',
           issueDate: DateTime(2018, 3, 14),
           expiryDate: DateTime(2030, 3, 14),

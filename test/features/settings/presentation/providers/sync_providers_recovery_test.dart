@@ -1,8 +1,10 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
@@ -64,6 +66,47 @@ void main() {
   Uint8List b(String s) => Uint8List.fromList(s.codeUnits);
 
   group('repairSync', () {
+    // Repair sweeps leftover sync temp files. Pointed at a private directory:
+    // under `flutter test` the real one is the machine-wide systemTemp, shared
+    // with every concurrent test process, which this sweep must not touch.
+    // Scoped to this group so the other tests keep path_provider's fallback.
+    late Directory appTemp;
+
+    setUp(() async {
+      appTemp = await Directory.systemTemp.createTemp('repair_sync_temp_');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            (call) async =>
+                call.method == 'getTemporaryDirectory' ? appTemp.path : null,
+          );
+    });
+
+    tearDown(() async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('plugins.flutter.io/path_provider'),
+            null,
+          );
+      if (appTemp.existsSync()) await appTemp.delete(recursive: true);
+    });
+
+    test('sweeps an aged sync temp file and spares a fresh one', () async {
+      final container = await makeContainer();
+      final leftover = File(p.join(appTemp.path, 'ssv1_base_dev_0.abc.json'))
+        ..writeAsStringSync('stale')
+        ..setLastModifiedSync(
+          DateTime.now().subtract(const Duration(hours: 2)),
+        );
+      final inFlight = File(p.join(appTemp.path, 'ssv1_adopt_dev_1'))
+        ..writeAsStringSync('being written');
+
+      await container.read(syncStateProvider.notifier).repairSync();
+
+      expect(leftover.existsSync(), isFalse);
+      expect(inFlight.existsSync(), isTrue);
+    });
+
     test('clears the last-accepted epoch marker', () async {
       final container = await makeContainer();
       await LibraryEpochStore(prefs).setLastAccepted(marker);

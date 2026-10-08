@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_3d/domain/spatial/vertical_exaggeration.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Opens the terrain-appearance editor for the seascape views. [siteId],
 /// when given, shows the per-site vertical-exaggeration section (issue
@@ -478,7 +479,11 @@ class _LevelRowState extends State<_LevelRow> {
     // Read in the diver's locale, matching _formatDisplay. A blanket
     // replaceAll(',', '.') would misread the en_US thousands separator,
     // turning "1,250" into 1.25 (#1091).
-    final typed = parseUserDecimal(_controller.text);
+    final typed = switch (readNumber(_controller.text)) {
+      NumberValue(:final value) => value,
+      // Nothing to apply; an unreadable box shows its own error.
+      NumberBlank() || NumberInvalid() => null,
+    };
     if (typed == null || !typed.isFinite || typed <= 0) return null;
     final appearance = _appearance;
     if (appearance == null || widget.index >= appearance.customLevels.length) {
@@ -540,7 +545,14 @@ class _LevelRowState extends State<_LevelRow> {
               textInputAction: TextInputAction.done,
               // The bare number read as ambiguous between metres and feet
               // (issue #1094); the box now carries the diver's own unit.
-              decoration: InputDecoration(suffixText: widget.unitSymbol),
+              decoration: InputDecoration(
+                suffixText: widget.unitSymbol,
+                // Unreadable text used to be ignored without a word (#1900).
+                errorText: invalidNumberText(context, _controller.text),
+                errorMaxLines: 3,
+              ),
+              // Rebuild for the error line as the diver types.
+              onChanged: (_) => setState(() {}),
               onTapOutside: (_) => _focusNode.unfocus(),
               onEditingComplete: _focusNode.unfocus,
               onSubmitted: (_) => _focusNode.unfocus(),

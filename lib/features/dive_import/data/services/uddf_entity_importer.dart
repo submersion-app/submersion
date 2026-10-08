@@ -6,9 +6,17 @@ import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/services/csv_fill_importer.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
+import 'package:submersion/features/dive_import/data/services/additional_computer_writer.dart';
+import 'package:submersion/features/dive_import/data/services/currency_restorer.dart';
 import 'package:submersion/features/dive_import/data/services/import_map_readers.dart';
+import 'package:submersion/features/dive_import/data/services/import_weight_mapper.dart';
+import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
+import 'package:submersion/features/dive_import/data/services/restored_source_attribution.dart';
 import 'package:submersion/features/dive_import/domain/import_source_file.dart';
 import 'package:submersion/features/dive_import/domain/resyncable_import_formats.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
@@ -25,6 +33,8 @@ import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
@@ -34,6 +44,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -47,7 +58,10 @@ import 'package:submersion/features/site_types/data/repositories/site_type_repos
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/dive_import/data/services/import_equipment_location_linker.dart';
 import 'package:submersion/features/dive_import/data/services/import_equipment_tag_linker.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
@@ -67,13 +81,18 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/import_tank_defaults.dart';
 import 'package:uuid/uuid.dart';
+import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
+import 'package:submersion/features/certification_agencies/data/services/certification_import_resolver.dart';
 
 /// Bundles all repositories needed for UDDF import.
 class ImportRepositories {
@@ -129,9 +148,25 @@ class ImportRepositories {
   /// equipment is not linked to its tags (issue #1942).
   final EquipmentTagRepository? equipmentTagRepository;
 
+  /// Optional for the same reason; when either is null, the locations in a
+  /// Submersion equipment CSV are skipped (v268).
+  final EquipmentLocationRepository? equipmentLocationRepository;
+  final EquipmentLocationMoveRepository? equipmentLocationMoveRepository;
+
   /// Optional for the same reason; when null, the site features in the
   /// source are skipped rather than failing the import (issue #2200).
   final SiteFeatureRepository? siteFeatureRepository;
+
+  /// Optional for the same reason; when null, the fills in a Submersion
+  /// fills CSV are skipped rather than failing the import (cylinder
+  /// passports phase 5). Both are needed: the fills repository stores the
+  /// row, the passport repository finds the cylinder it links to.
+  final CylinderFillRepository? cylinderFillRepository;
+  final CylinderPassportRepository? cylinderPassportRepository;
+
+  /// Optional for the same reason; when null, the certification currency
+  /// rows in a full backup (issue #2267) are skipped.
+  final CertificationCurrencyRepository? certificationCurrencyRepository;
 
   const ImportRepositories({
     required this.tripRepository,
@@ -154,8 +189,13 @@ class ImportRepositories {
     this.siteTypeRepository,
     this.siteClassificationRepository,
     this.equipmentTagRepository,
+    this.equipmentLocationRepository,
+    this.equipmentLocationMoveRepository,
     this.siteFeatureRepository,
     this.speciesRepository,
+    this.cylinderFillRepository,
+    this.cylinderPassportRepository,
+    this.certificationCurrencyRepository,
   });
 }
 
@@ -177,6 +217,7 @@ class UddfImportSelections {
   final Set<int> equipmentSets;
   final Set<int> dives;
   final Set<int> courses;
+  final Set<int> fills;
 
   const UddfImportSelections({
     this.trips = const {},
@@ -191,6 +232,7 @@ class UddfImportSelections {
     this.equipmentSets = const {},
     this.dives = const {},
     this.courses = const {},
+    this.fills = const {},
   });
 
   /// Create selections with all items selected.
@@ -207,6 +249,7 @@ class UddfImportSelections {
       equipmentSets: _allIndices(data.equipmentSets.length),
       dives: _allIndices(data.dives.length),
       courses: _allIndices(data.courses.length),
+      fills: _allIndices(data.fills.length),
     );
   }
 
@@ -227,6 +270,7 @@ class UddfEntityImportResult {
   final int sites;
   final int dives;
   final int courses;
+  final int fills;
   final List<String> diveIds;
 
   /// The persisted dive id created for each imported source-dive index.
@@ -253,6 +297,7 @@ class UddfEntityImportResult {
     this.sites = 0,
     this.dives = 0,
     this.courses = 0,
+    this.fills = 0,
     this.diveIds = const [],
     this.diveIdByIndex = const {},
     this.restoredDataSources = 0,
@@ -269,7 +314,8 @@ class UddfEntityImportResult {
       diveTypes +
       sites +
       dives +
-      courses;
+      courses +
+      fills;
 
   String get summary {
     final parts = <String>[];
@@ -284,6 +330,7 @@ class UddfEntityImportResult {
     if (courses > 0) parts.add('$courses courses');
     if (diveTypes > 0) parts.add('$diveTypes custom dive types');
     if (tags > 0) parts.add('$tags tags');
+    if (fills > 0) parts.add('$fills fills');
     return parts.isEmpty ? 'No data imported' : 'Imported ${parts.join(', ')}';
   }
 }
@@ -311,13 +358,26 @@ class UddfEntityImporter {
 
   final ImportedFileRepository _importedFiles;
 
+  /// Custom certification agencies and levels: an imported agency that names
+  /// no built-in becomes one, owned by the importing diver (issue #690).
+  final CustomCertificationRepository _customCertifications;
+
+  /// Whether an agency created by an import starts shared, from the
+  /// "Share by default" setting.
+  final bool _shareCustomAgenciesByDefault;
+
   UddfEntityImporter({
     TankPresetEntity? defaultTankPreset,
     int defaultStartPressure = 200,
     bool applyDefaultTankToImports = false,
     String placeNameLanguage = LocationService.defaultLanguageCode,
     ImportedFileRepository? importedFiles,
+    CustomCertificationRepository? customCertifications,
+    bool shareCustomAgenciesByDefault = false,
   }) : _defaultTankPreset = defaultTankPreset,
+       _customCertifications =
+           customCertifications ?? CustomCertificationRepository(),
+       _shareCustomAgenciesByDefault = shareCustomAgenciesByDefault,
        _defaultStartPressure = defaultStartPressure,
        _applyDefaultTankToImports = applyDefaultTankToImports,
        _placeNameLanguage = placeNameLanguage,
@@ -403,6 +463,11 @@ class UddfEntityImporter {
     ImportCancellationToken? cancelToken,
   }) async {
     final now = DateTime.now();
+    final certResolver = CertificationImportResolver(
+      _customCertifications,
+      diverId: diverId,
+      shareByDefault: _shareCustomAgenciesByDefault,
+    );
 
     // ID mappings for cross-references
     final tripIdMapping = <String, String>{};
@@ -461,6 +526,24 @@ class UddfEntityImporter {
       now,
     );
 
+    // Cylinder fills (passports phase 5) are keyed by passport id, not by
+    // an imported item, so they need only the diver and the two passport
+    // repositories. CsvFillImporter keeps each row's id, skips one already
+    // here or deleted here, and links the fill to the diver's cylinder that
+    // holds its passport id.
+    final fillsCount =
+        repositories.cylinderFillRepository == null ||
+            repositories.cylinderPassportRepository == null
+        ? 0
+        : await CsvFillImporter(
+            fills: repositories.cylinderFillRepository,
+            passports: repositories.cylinderPassportRepository,
+          ).importRows(
+            data.fills,
+            selected: selections.fills,
+            diverId: diverId,
+          );
+
     final buddiesCount = await _importBuddies(
       data.buddies,
       selections.buddies,
@@ -470,6 +553,7 @@ class UddfEntityImporter {
       buddyIdMapping,
       now,
       onProgress,
+      certResolver,
     );
 
     final diveCentersCount = await _importDiveCenters(
@@ -482,14 +566,31 @@ class UddfEntityImporter {
       onProgress,
     );
 
+    final certIdMapping = <String, String>{};
     final certificationsCount = await _importCertifications(
       data.certifications,
       selections.certifications,
       repositories.certificationRepository,
       diverId,
+      certIdMapping,
       now,
       onProgress,
+      certResolver,
     );
+
+    // Certification currency (issue #2267): custom rules restore with no
+    // selection step, and prefs and events ride along with the
+    // certifications just created, as service records do with equipment.
+    final currencyRepository = repositories.certificationCurrencyRepository;
+    if (currencyRepository != null) {
+      await CurrencyRestorer(currencyRepository).restore(
+        rules: data.currencyRules,
+        prefs: data.currencyPrefs,
+        events: data.currencyEvents,
+        diverId: diverId,
+        certIdMapping: certIdMapping,
+      );
+    }
 
     final tagsCount = await _importTags(
       data.tags,
@@ -512,6 +613,20 @@ class UddfEntityImporter {
         items: data.equipment,
         equipmentIdMapping: equipmentIdMapping,
         tagIdMapping: tagIdMapping,
+      );
+    }
+
+    // Equipment locations (v268), from the Submersion equipment CSV.
+    final locationRepository = repositories.equipmentLocationRepository;
+    final moveRepository = repositories.equipmentLocationMoveRepository;
+    if (locationRepository != null && moveRepository != null) {
+      await ImportEquipmentLocationLinker(
+        places: locationRepository,
+        moves: moveRepository,
+      ).link(
+        items: data.equipment,
+        equipmentIdMapping: equipmentIdMapping,
+        diverId: diverId,
       );
     }
 
@@ -589,6 +704,7 @@ class UddfEntityImporter {
       buddyIdMapping,
       now,
       onProgress,
+      certResolver,
     );
 
     final divesResult = await _importDives(
@@ -611,6 +727,7 @@ class UddfEntityImporter {
       sourceFileBytes: sourceFileBytes,
       sourceFilesById: sourceFilesById,
       retainSourceDiveNumbers: retainSourceDiveNumbers,
+      sourceHasTrips: data.trips.isNotEmpty,
       now: now,
       dataSourcesByDiveRef: data.dataSourcesByDiveRef,
       onProgress: onProgress,
@@ -640,6 +757,7 @@ class UddfEntityImporter {
       sites: sitesCount,
       dives: divesResult.count,
       courses: coursesCount,
+      fills: fillsCount,
       diveIds: divesResult.diveIds,
       diveIdByIndex: divesResult.diveIdByIndex,
       restoredDataSources: divesResult.restoredDataSources,
@@ -941,6 +1059,7 @@ class UddfEntityImporter {
     Map<String, String> idMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
+    CertificationImportResolver certResolver,
   ) async {
     if (selected.isEmpty) return 0;
     onProgress?.call(ImportPhase.buddies, 0, selected.length);
@@ -971,22 +1090,29 @@ class UddfEntityImporter {
       // issue #553: buddy certs live in the certifications table now (setting
       // them on the Buddy entity would be ignored). Create a buddy-owned cert
       // row from the parsed certification, if any.
-      final certLevel = _parseEnum(
-        buddyData['certificationLevel'],
-        CertificationLevel.values,
-      );
-      final certAgency = _parseEnum(
-        buddyData['certificationAgency'],
-        CertificationAgency.values,
-      );
-      if (certLevel != null || certAgency != null) {
+      final levelText = _certificationText(buddyData['certificationLevel']);
+      final agencyText = _certificationText(buddyData['certificationAgency']);
+      // An agency that names no built-in becomes a custom agency (issue
+      // #690); level text that matches nothing is dropped, as before, so it
+      // alone never creates a certification.
+      final givenAgencyId = agencyText == null
+          ? null
+          : await certResolver.agencyId(agencyText);
+      final agencyId = givenAgencyId ?? CertificationAgency.other.name;
+      final levelId = await certResolver.levelId(agencyId, levelText);
+      if (levelId != null || givenAgencyId != null) {
         await certRepository.createCertification(
           Certification(
             id: '',
             buddyId: newId,
-            name: certLevel?.displayName ?? certAgency?.displayName ?? name,
-            agency: certAgency ?? CertificationAgency.other,
-            level: certLevel,
+            name:
+                CertificationLevel.fromId(levelId)?.displayName ??
+                (levelId != null ? levelText : null) ??
+                CertificationAgency.fromId(agencyId)?.displayName ??
+                agencyText ??
+                name,
+            agency: agencyId,
+            level: levelId,
             createdAt: now,
             updatedAt: now,
           ),
@@ -1063,8 +1189,10 @@ class UddfEntityImporter {
     Set<int> selected,
     CertificationRepository repository,
     String diverId,
+    Map<String, String> idMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
+    CertificationImportResolver certResolver,
   ) async {
     if (selected.isEmpty) return 0;
     onProgress?.call(ImportPhase.certifications, 0, selected.length);
@@ -1077,8 +1205,13 @@ class UddfEntityImporter {
       if (name == null || name.isEmpty) continue;
 
       final newId = _uuid.v4();
-      final agency = _parseCertificationAgency(certData['agency']);
-      final level = _parseCertificationLevel(certData['level']);
+      final agency = await certResolver.agencyId(
+        _certificationText(certData['agency']),
+      );
+      final level = await certResolver.levelId(
+        agency,
+        _certificationText(certData['level']),
+      );
 
       final certification = Certification(
         id: newId,
@@ -1097,6 +1230,8 @@ class UddfEntityImporter {
       );
 
       await repository.createCertification(certification);
+      final uddfId = certData['uddfId'];
+      if (uddfId is String && uddfId.isNotEmpty) idMapping[uddfId] = newId;
       count++;
       onProgress?.call(ImportPhase.certifications, count, selected.length);
     }
@@ -1964,6 +2099,7 @@ class UddfEntityImporter {
     Map<String, String> buddyIdMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
+    CertificationImportResolver certResolver,
   ) async {
     if (selected.isEmpty) return 0;
     onProgress?.call(ImportPhase.courses, 0, selected.length);
@@ -1978,7 +2114,9 @@ class UddfEntityImporter {
       final uddfId = courseData['uddfId'] as String?;
       final newId = _uuid.v4();
 
-      final agency = _parseCertificationAgency(courseData['agency']);
+      final agency = await certResolver.agencyId(
+        _certificationText(courseData['agency']),
+      );
 
       // Map instructor buddy reference to new ID
       String? instructorId;
@@ -2140,6 +2278,18 @@ class UddfEntityImporter {
       }
     }
 
+    // The further computers a dive was worn with, so each source row they
+    // become links to its own device (issue #2672).
+    for (final i in selected) {
+      for (final entry in AdditionalComputerWriter.entriesOf(items[i])) {
+        await register(
+          model: entry['diveComputerModel'] as String?,
+          serial: entry['diveComputerSerial'] as String?,
+          firmware: entry['diveComputerFirmware'] as String?,
+        );
+      }
+    }
+
     return idByKey;
   }
 
@@ -2264,6 +2414,7 @@ class UddfEntityImporter {
     Uint8List? sourceFileBytes,
     Map<String, ImportSourceFile> sourceFilesById = const {},
     bool retainSourceDiveNumbers = false,
+    bool sourceHasTrips = false,
     required DateTime now,
     Map<String, List<Map<String, dynamic>>> dataSourcesByDiveRef = const {},
     ImportProgressCallback? onProgress,
@@ -2311,6 +2462,9 @@ class UddfEntityImporter {
     // One instance for the run: its lookup cache collapses a batch of dives
     // at the same location into a single elevation request.
     final altitudeEnricher = DiveAltitudeEnricher();
+    final additionalComputers = AdditionalComputerWriter(
+      diveRepository: repos.diveRepository,
+    );
 
     // Register the computers this batch names, once per distinct device,
     // before any dive is written. The filter, the statistics SQL, and "View
@@ -2383,6 +2537,10 @@ class UddfEntityImporter {
       return storedIdByKey[key];
     }
 
+    // The trips the diver can see, read on the first dive placed by date.
+    // Trips are imported before dives, so the file's own are here.
+    List<Trip>? diverTrips;
+
     for (final i in sortedSelected) {
       if (cancelToken?.isCancelled ?? false) break;
 
@@ -2391,39 +2549,8 @@ class UddfEntityImporter {
       // Build profile (include setpoint/ppO2 sensor readings)
       final profileData = diveData['profile'] as List<Map<String, dynamic>>?;
       final profile =
-          profileData
-              ?.map(
-                (p) => DiveProfilePoint(
-                  timestamp: p['timestamp'] as int? ?? 0,
-                  depth: asDoubleOrNull(p['depth']) ?? 0.0,
-                  temperature: asDoubleOrNull(p['temperature']),
-                  heartRate: p['heartRate'] as int?,
-                  cns: asDoubleOrNull(p['cns']),
-                  ndl: p['ndl'] as int?,
-                  tts: p['tts'] as int?,
-                  ceiling: asDoubleOrNull(p['ceiling']),
-                  rbt: p['rbt'] as int?,
-                  decoType: p['decoType'] as int?,
-                  setpoint: asDoubleOrNull(p['setpoint']),
-                  ppO2: asDoubleOrNull(p['ppO2']),
-                  o2Sensor1: asDoubleOrNull(p['o2Sensor1']),
-                  o2Sensor2: asDoubleOrNull(p['o2Sensor2']),
-                  o2Sensor3: asDoubleOrNull(p['o2Sensor3']),
-                  o2Sensor4: asDoubleOrNull(p['o2Sensor4']),
-                  o2Sensor5: asDoubleOrNull(p['o2Sensor5']),
-                  o2Sensor6: asDoubleOrNull(p['o2Sensor6']),
-                  // UDDF carries no millivolt field; these arrive only via the
-                  // libdivecomputer path that shares this map (issue #810).
-                  o2SensorMv1: p['o2SensorMv1'] as int?,
-                  o2SensorMv2: p['o2SensorMv2'] as int?,
-                  o2SensorMv3: p['o2SensorMv3'] as int?,
-                  o2SensorMv4: p['o2SensorMv4'] as int?,
-                  o2SensorMv5: p['o2SensorMv5'] as int?,
-                  o2SensorMv6: p['o2SensorMv6'] as int?,
-                ),
-              )
-              .toList() ??
-          [];
+          profileData?.map(profilePointFromImport).toList() ??
+          <DiveProfilePoint>[];
 
       // Build tanks
       final tanks = _buildTanks(diveData);
@@ -2496,13 +2623,7 @@ class UddfEntityImporter {
       final weights =
           weightsData
               ?.map(
-                (w) => DiveWeight(
-                  id: _uuid.v4(),
-                  diveId: diveId,
-                  weightType: w['type'] as WeightType? ?? WeightType.integrated,
-                  amountKg: w['amount'] as double? ?? 0.0,
-                  notes: w['notes'] as String? ?? '',
-                ),
+                (w) => weightFromImportData(w, id: _uuid.v4(), diveId: diveId),
               )
               .toList() ??
           [];
@@ -2530,7 +2651,23 @@ class UddfEntityImporter {
         }
       }
 
-      final dateTime = diveData['dateTime'] as DateTime? ?? now;
+      final sourceDateTime = diveData['dateTime'] as DateTime?;
+      final dateTime = sourceDateTime ?? now;
+      // A dive with no trip joins the diver's trip whose dates cover it
+      // (#2618). MacDive has no trips at all, so every trip the diver had
+      // made showed 0 dives after a MacDive import. A file that has trips
+      // leaves a dive out of them on purpose, so only a dive whose own trip
+      // was not imported is placed by date there. An undated dive would be
+      // placed by the import clock, so it is not placed at all.
+      // A merged batch says per dive whether its own file had trips.
+      final fileHasTrips =
+          diveData[PayloadMerger.sourceHasTripsKey] as bool? ?? sourceHasTrips;
+      if (linkedTripId == null &&
+          sourceDateTime != null &&
+          (tripRef != null || !fileHasTrips)) {
+        diverTrips ??= await repos.tripRepository.getAllTrips(diverId: diverId);
+        linkedTripId = tripForDiveDate(sourceDateTime, diverTrips)?.id;
+      }
       // CSV imports provide only 'duration' (used as bottomTime); fall back
       // to it for runtime so the total dive time is populated.
       final durationValue = diveData['duration'] as Duration?;
@@ -2560,13 +2697,16 @@ class UddfEntityImporter {
       final diveMode =
           _parseEnum(diveData['diveMode'], DiveMode.values) ?? DiveMode.oc;
       final isPlanned = diveData['isPlanned'] as bool? ?? false;
-      // The diver's own role, as this diver's copy of it. A custom role this
-      // diver lacks (its definition never arrived) leaves the dive with no
-      // role rather than one this diver's role list cannot resolve.
-      final diverRoleValue = diveData['diverRoleId'];
-      final diverRoleId = diverRoleValue is String && diverRoleValue.isNotEmpty
-          ? await localRoleId(diverRoleValue)
-          : null;
+      // The diver's own roles (several since #1221), each as this diver's
+      // copy of it. A custom role this diver lacks (its definition never
+      // arrived) is dropped rather than kept as one this diver's role list
+      // cannot resolve.
+      final diverRoleValue = diveData['diverRoleIds'];
+      final diverRoleIds = DiveRoleSet.normalize([
+        if (diverRoleValue is List)
+          for (final id in diverRoleValue.whereType<String>())
+            if (id.isNotEmpty) ?await localRoleId(id),
+      ]);
       final isFavorite = diveData['isFavorite'] as bool? ?? false;
       final excludedFromStats = diveData['excludedFromStats'] as bool? ?? false;
       final excludedFromGasStats =
@@ -2614,6 +2754,9 @@ class UddfEntityImporter {
         decoAlgorithm: diveData['decoAlgorithm'] as String?,
         gradientFactorLow: diveData['gradientFactorLow'] as int?,
         gradientFactorHigh: diveData['gradientFactorHigh'] as int?,
+        // Dive-level tissue state the computer reported, as the parser
+        // found it (a ComputerTissueSnapshot, or its JSON map or text).
+        computerTissue: ComputerTissueSnapshot.from(diveData['computerTissue']),
         diveComputerModel: diveData['diveComputerModel'] as String?,
         diveComputerSerial: diveData['diveComputerSerial'] as String?,
         diveComputerFirmware: diveData['diveComputerFirmware'] as String?,
@@ -2667,7 +2810,7 @@ class UddfEntityImporter {
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
-        diverRoleId: diverRoleId,
+        diverRoleIds: diverRoleIds,
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,
@@ -2792,8 +2935,17 @@ class UddfEntityImporter {
         );
       }
 
+      // A backup of a dive several sources recorded says which of them
+      // recorded each pressure series (issue #2492). Those series are
+      // written once the source rows exist, below, in place of the
+      // waypoint pressures, which hold only the series the app drew.
+      final perSourceSeries =
+          _entriesForDive(diveData, dataSourcesByDiveRef).isEmpty
+          ? const <RestoredTankSeries>[]
+          : restoredTankPressureSeries(diveData, tanks);
+
       // Store per-tank pressure data
-      if (profileData != null && tanks.isNotEmpty) {
+      if (profileData != null && tanks.isNotEmpty && perSourceSeries.isEmpty) {
         await _storeTankPressures(
           profileData,
           tanks,
@@ -2937,6 +3089,15 @@ class UddfEntityImporter {
       final diveSourceFileName = source?.fileName ?? sourceFileName;
       final diveSourceFormat = source?.format ?? sourceFormat;
 
+      // Whose dive this is in a multi-diver logbook, so a resync replays
+      // this diver's copy of a shared buddy dive and not another's (#1921).
+      // Stored as the file itself emits it: the resync re-parses the one
+      // stored file with no batch merger in between.
+      final diverKey = diveData[SourceDiver.mapKey] as String?;
+      final sourceDiverKey = diverKey != null && sourceFileId != null
+          ? SourceDiver.unqualifyForFile(diverKey, sourceFileId)
+          : diverKey;
+
       if (sourceEntries.isEmpty) {
         final dataSourceId = _uuid.v4();
 
@@ -2959,9 +3120,12 @@ class UddfEntityImporter {
                     ),
             ),
             sourceUuid: Value(diveData['sourceUuid'] as String?),
+            sourceDiverKey: Value(sourceDiverKey),
             maxDepth: Value(asDoubleOrNull(diveData['maxDepth'])),
             avgDepth: Value(asDoubleOrNull(diveData['avgDepth'])),
-            duration: Value(dive.bottomTime?.inSeconds),
+            // The runtime the file reports; bottom time is derived and never
+            // stored in its place (issue #2421).
+            duration: Value(dive.runtime?.inSeconds),
             waterTemp: Value(asDoubleOrNull(diveData['waterTemp'])),
             entryTime: Value(dive.entryTime),
             exitTime: Value(dive.exitTime),
@@ -2974,21 +3138,90 @@ class UddfEntityImporter {
             createdAt: Value(now),
           ),
         );
+        // The pressure series were written before their source row existed
+        // (issue #2440): attribute them now, so a later consolidation keeps
+        // them apart from another source's series of the same cylinder.
+        await repos.tankPressureRepository.stampSourceWhereNull(
+          diveId,
+          dataSourceId,
+        );
       } else {
         // One insert for the whole batch, so the profile-adoption rule sees
         // the dive's real source count rather than a half-written dive.
-        await repos.diveRepository.saveComputerReadings(
-          _restoredSourceCompanions(
-            entries: sourceEntries,
-            diveId: diveId,
-            computerIdByKey: computerIdByKey,
-            fallbackComputerId: computerId,
-            sourceFileName: diveSourceFileName,
-            now: now,
-          ),
+        final restored = _restoredSourceCompanions(
+          entries: sourceEntries,
+          diveId: diveId,
+          computerIdByKey: computerIdByKey,
+          fallbackComputerId: computerId,
+          sourceFileName: diveSourceFileName,
+          now: now,
         );
+        await repos.diveRepository.saveComputerReadings(restored);
         restoredDataSources += sourceEntries.length;
+        // Each series under the restored row of the <source> that recorded
+        // it, and the computer of the one its computer recorded; a series
+        // that named neither keeps neither. The companions are built in
+        // entry order, so entry i is restored as row i.
+        final sourceIdByOrdinal = <int, String>{
+          for (var i = 0; i < sourceEntries.length; i++)
+            if (sourceEntries[i]['ordinal'] case final int ordinal)
+              ordinal: restored[i].id.value,
+        };
+        final computerIdByOrdinal = <int, String?>{
+          for (var i = 0; i < sourceEntries.length; i++)
+            if (sourceEntries[i]['ordinal'] case final int ordinal)
+              ordinal: restored[i].computerId.value,
+        };
+        if (perSourceSeries.isNotEmpty) {
+          await repos.tankPressureRepository.insertTankSeries(diveId, [
+            for (final s in perSourceSeries)
+              (
+                tankId: s.tankId,
+                sourceId: sourceIdByOrdinal[s.sourceOrdinal],
+                computerId: computerIdByOrdinal[s.computerOrdinal],
+                samples: s.samples,
+              ),
+          ]);
+        }
+        // Each tank row under its own source and computer (#2716).
+        final tankLinks = restoredTankAttribution(
+          diveData,
+          tanks,
+          sourceIdByOrdinal: sourceIdByOrdinal,
+          computerIdByOrdinal: computerIdByOrdinal,
+        );
+        if (tankLinks.isNotEmpty) {
+          await repos.diveRepository.restoreTankAttribution(tankLinks);
+        }
+        // Only a single restored source owns the series unambiguously; with
+        // several, nothing in the file says which recorded them.
+        if (restored.length == 1 && restored.single.id.present) {
+          await repos.tankPressureRepository.stampSourceWhereNull(
+            diveId,
+            restored.single.id.value,
+          );
+        }
       }
+
+      // Every further computer the dive was worn with (issue #2672). After
+      // the primary source, never before: that row adopts the dive's
+      // unattributed samples only while it is the dive's sole source.
+      await additionalComputers.write(
+        computers: AdditionalComputerWriter.entriesOf(diveData),
+        diveId: diveId,
+        entryTime: dive.entryTime,
+        tankIds: [for (final tank in tanks) tank.id],
+        usedComputerIds: {?computerId},
+        computerIdFor: (entry) =>
+            computerIdByKey[computerKeyFor(
+              entry['diveComputerModel'] as String?,
+              entry['diveComputerSerial'] as String?,
+            )],
+        sourceFileName: diveSourceFileName,
+        sourceFileFormat: diveSourceFormat?.name ?? 'uddf',
+        now: now,
+        onSkippedEvent: _log.warning,
+      );
 
       count++;
       onProgress?.call(ImportPhase.dives, count, selected.length);
@@ -3111,6 +3344,9 @@ class UddfEntityImporter {
           role: role,
           order: t['order'] as int? ?? 0,
           transmitterSerial: t['transmitterSerial'] as String?,
+          // How long the source log says the tank was breathed (MacDive,
+          // issue #1496).
+          usageDuration: t['usageDuration'] as Duration?,
         );
       }).toList();
     }
@@ -3240,29 +3476,9 @@ class UddfEntityImporter {
     String diveId,
     TankPressureRepository repository,
   ) async {
-    final pressuresByTank =
-        <String, List<({int timestamp, double pressure})>>{};
-
-    for (final p in profileData) {
-      final timestamp = p['timestamp'] as int? ?? 0;
-
-      final allTankPressures =
-          p['allTankPressures'] as List<Map<String, dynamic>>?;
-      if (allTankPressures != null && allTankPressures.isNotEmpty) {
-        for (final tp in allTankPressures) {
-          final pressure = tp['pressure'] as double?;
-          final tankIdx = tp['tankIndex'] as int? ?? 0;
-          if (pressure != null && tankIdx >= 0 && tankIdx < tanks.length) {
-            final tankId = tanks[tankIdx].id;
-            pressuresByTank.putIfAbsent(tankId, () => []).add((
-              timestamp: timestamp,
-              pressure: pressure,
-            ));
-          }
-        }
-      }
-    }
-
+    final pressuresByTank = tankPressuresFromImport(profileData, [
+      for (final tank in tanks) tank.id,
+    ]);
     if (pressuresByTank.isNotEmpty) {
       await repository.insertTankPressures(diveId, pressuresByTank);
     }
@@ -3277,6 +3493,15 @@ class UddfEntityImporter {
     BuddyRepository repository, {
     required Future<String?> Function(String roleId) localRoleId,
   }) async {
+    // Roles per person, collected from every source before any link is
+    // written (issue #1221): the standard elements infer roles that add up
+    // (DiveRoleSet.accumulate), while Submersion's exact <buddyroles> set,
+    // when present, is the person's whole set.
+    final inferred = <String, List<String>>{};
+    final exact = <String, List<String>>{};
+    void infer(String buddyId, String roleId) =>
+        inferred.putIfAbsent(buddyId, () => []).add(roleId);
+
     // Link referenced buddies (from pre-imported buddy entities)
     final buddyRefsValue = diveData['buddyRefs'];
     final buddyRefs = buddyRefsValue is List
@@ -3285,7 +3510,7 @@ class UddfEntityImporter {
     for (final buddyRef in buddyRefs) {
       final newBuddyId = buddyIdMapping[buddyRef];
       if (newBuddyId != null) {
-        await repository.addBuddyToDive(diveId, newBuddyId, DiveRole.buddyId);
+        infer(newBuddyId, DiveRole.buddyId);
       }
     }
 
@@ -3297,11 +3522,7 @@ class UddfEntityImporter {
     for (final guideRef in guideRefs) {
       final newGuideId = buddyIdMapping[guideRef];
       if (newGuideId != null) {
-        await repository.addBuddyToDive(
-          diveId,
-          newGuideId,
-          DiveRole.diveGuideId,
-        );
+        infer(newGuideId, DiveRole.diveGuideId);
       }
     }
 
@@ -3319,7 +3540,7 @@ class UddfEntityImporter {
       if (buddy.diverId == null) {
         await repository.updateBuddy(buddy.copyWith(diverId: diverId));
       }
-      await repository.addBuddyToDive(diveId, buddy.id, DiveRole.buddyId);
+      infer(buddy.id, DiveRole.buddyId);
       inlineIds.add(buddy.id);
     }
 
@@ -3336,15 +3557,16 @@ class UddfEntityImporter {
       if (guide.diverId == null) {
         await repository.updateBuddy(guide.copyWith(diverId: diverId));
       }
-      await repository.addBuddyToDive(diveId, guide.id, DiveRole.diveGuideId);
+      infer(guide.id, DiveRole.diveGuideId);
       inlineIds.add(guide.id);
     }
 
     // Exact roles from Submersion's private <buddyroles> block (issue
-    // #1737). Applied last: addBuddyToDive keeps one row per person, so
-    // these override any role inferred from the standard elements. A role
-    // this diver lacks can only be a custom role whose definition never
-    // arrived, which the standard elements carried as a plain buddy.
+    // #1737), one entry per role since #1221. They replace whatever the
+    // standard elements inferred for that person. A role this diver lacks
+    // can only be a custom role whose definition never arrived: it is
+    // dropped, and stands in as a plain buddy only when nothing else of the
+    // person's resolves (normalizeBuddy).
     final roleRefsValue = diveData['buddyRoleRefs'];
     final roleRefs = roleRefsValue is List ? roleRefsValue : const [];
     for (final entry in roleRefs) {
@@ -3354,10 +3576,18 @@ class UddfEntityImporter {
       if (buddyRef is! String || roleId is! String || roleId.isEmpty) continue;
       final newBuddyId = buddyIdMapping[buddyRef];
       if (newBuddyId == null) continue;
-      await repository.addBuddyToDive(
+      final localId = await localRoleId(roleId);
+      final roles = exact.putIfAbsent(newBuddyId, () => []);
+      if (localId != null) roles.add(localId);
+    }
+
+    for (final buddyId in {...inferred.keys, ...exact.keys}) {
+      await repository.addBuddyToDiveWithRoles(
         diveId,
-        newBuddyId,
-        await localRoleId(roleId) ?? DiveRole.buddyId,
+        buddyId,
+        exact.containsKey(buddyId)
+            ? DiveRoleSet.normalizeBuddy(exact[buddyId]!)
+            : DiveRoleSet.accumulate(inferred[buddyId]!),
       );
     }
 
@@ -3455,26 +3685,14 @@ class UddfEntityImporter {
     return EquipmentStatus.active;
   }
 
-  CertificationAgency _parseCertificationAgency(dynamic value) {
-    if (value is CertificationAgency) return value;
-    if (value is String) {
-      // A named-but-unrecognised agency is "other", not PADI. Defaulting to
-      // PADI relabels real cards from agencies outside the enum (#912).
-      return _parseEnumValue(value, CertificationAgency.values) ??
-          (value.trim().isEmpty
-              ? CertificationAgency.padi
-              : CertificationAgency.other);
-    }
-    return CertificationAgency.padi;
-  }
-
-  CertificationLevel? _parseCertificationLevel(dynamic value) {
-    if (value is CertificationLevel) return value;
-    if (value is String) {
-      return _parseEnumValue(value, CertificationLevel.values);
-    }
-    return null;
-  }
+  /// Parsed agency or level text: parsers emit either an enum value or the
+  /// file's own text (issue #690).
+  static String? _certificationText(Object? value) => switch (value) {
+    final CertificationAgency a => a.name,
+    final CertificationLevel l => l.name,
+    final String s => s,
+    _ => null,
+  };
 
   T? _parseEnumValue<T extends Enum>(String value, List<T> values) {
     final lowerValue = value.toLowerCase();

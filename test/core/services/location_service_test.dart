@@ -21,6 +21,7 @@ import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/core/services/location_service.dart';
 
 import '../../helpers/fake_nominatim.dart';
+import '../../helpers/fake_hosts.dart';
 
 /// A square sea area covering [size] degrees from its lower-left corner.
 SeaArea _seaArea(String name, double lon, double lat, double size) => SeaArea(
@@ -51,6 +52,12 @@ SeaArea _seaArea(String name, double lon, double lat, double size) => SeaArea(
 );
 
 void main() {
+  // The code under test calls Nominatim; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('nominatim.openstreetmap.org');
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final service = LocationService.instance;

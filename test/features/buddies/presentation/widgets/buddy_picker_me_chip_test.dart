@@ -30,8 +30,8 @@ final _testRoles = [
 
 Widget _buildPicker({
   List<BuddyWithRole> selectedBuddies = const [],
-  String? diverRoleId,
-  ValueChanged<String?>? onDiverRoleChanged,
+  List<String> diverRoleIds = const [],
+  ValueChanged<List<String>>? onDiverRoleChanged,
   Diver? diver,
 }) {
   return ProviderScope(
@@ -47,7 +47,7 @@ Widget _buildPicker({
         body: BuddyPicker(
           selectedBuddies: selectedBuddies,
           onChanged: (_) {},
-          diverRoleId: diverRoleId,
+          diverRoleIds: diverRoleIds,
           onDiverRoleChanged: onDiverRoleChanged,
         ),
       ),
@@ -87,9 +87,7 @@ void main() {
     expect(find.text('Set my role'), findsNothing);
   });
 
-  testWidgets('Me chip shows Set my role when diverRoleId is null', (
-    tester,
-  ) async {
+  testWidgets('Me chip shows Set my role when no role is set', (tester) async {
     await tester.pumpWidget(_buildPicker(onDiverRoleChanged: (_) {}));
     await tester.pumpAndSettle();
 
@@ -102,7 +100,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _buildPicker(
-        diverRoleId: DiveRole.rearGuardId,
+        diverRoleIds: const [DiveRole.rearGuardId],
         onDiverRoleChanged: (_) {},
         diver: Diver(
           id: 'diver-1',
@@ -121,7 +119,7 @@ void main() {
   testWidgets('tapping Me chip and choosing a role calls onDiverRoleChanged '
       'with its id', (tester) async {
     _useTallScreen(tester);
-    String? changed = 'sentinel';
+    List<String>? changed;
     await tester.pumpWidget(
       _buildPicker(onDiverRoleChanged: (v) => changed = v),
     );
@@ -132,18 +130,20 @@ void main() {
 
     await tester.tap(find.text('Rear Guard'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
 
-    expect(changed, DiveRole.rearGuardId);
+    expect(changed, [DiveRole.rearGuardId]);
   });
 
-  testWidgets('choosing No role calls onDiverRoleChanged(null)', (
+  testWidgets('choosing No role calls onDiverRoleChanged with no roles', (
     tester,
   ) async {
     _useTallScreen(tester);
-    String? changed = 'sentinel';
+    List<String>? changed;
     await tester.pumpWidget(
       _buildPicker(
-        diverRoleId: DiveRole.rearGuardId,
+        diverRoleIds: const [DiveRole.rearGuardId],
         onDiverRoleChanged: (v) => changed = v,
       ),
     );
@@ -154,8 +154,10 @@ void main() {
 
     await tester.tap(find.text('No role'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
 
-    expect(changed, isNull);
+    expect(changed, isEmpty);
   });
 
   testWidgets('Me chip shows the diver photo when they have one', (
@@ -163,7 +165,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       _buildPicker(
-        diverRoleId: DiveRole.rearGuardId,
+        diverRoleIds: const [DiveRole.rearGuardId],
         onDiverRoleChanged: (_) {},
         diver: Diver(
           id: 'diver-1',
@@ -187,7 +189,7 @@ void main() {
     // and only a real photo should change its appearance.
     await tester.pumpWidget(
       _buildPicker(
-        diverRoleId: DiveRole.rearGuardId,
+        diverRoleIds: const [DiveRole.rearGuardId],
         onDiverRoleChanged: (_) {},
         diver: Diver(
           id: 'diver-1',
@@ -201,5 +203,38 @@ void main() {
 
     expect(find.byIcon(Icons.person), findsOneWidget);
     expect(find.byType(ProfileAvatar), findsNothing);
+  });
+
+  testWidgets('the Me chip shows every role, joined (#1221)', (tester) async {
+    await tester.pumpWidget(
+      _buildPicker(
+        diverRoleIds: const [DiveRole.diveGuideId, DiveRole.diveMasterId],
+        onDiverRoleChanged: (_) {},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dive Guide, Divemaster'), findsOneWidget);
+  });
+
+  testWidgets('ticking a second role returns both (#1221)', (tester) async {
+    _useTallScreen(tester);
+    List<String>? changed;
+    await tester.pumpWidget(
+      _buildPicker(
+        diverRoleIds: const [DiveRole.diveMasterId],
+        onDiverRoleChanged: (v) => changed = v,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(_meChip);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Dive Guide'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    expect(changed, [DiveRole.diveGuideId, DiveRole.diveMasterId]);
   });
 }

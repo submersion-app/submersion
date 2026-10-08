@@ -59,8 +59,7 @@ void main() {
     );
   }
 
-  Finder agencyDropdowns() =>
-      find.byType(DropdownButtonFormField<CertificationAgency>);
+  Finder agencyDropdowns() => find.byType(DropdownButtonFormField<String>);
   Finder levelDropdowns() =>
       find.byType(DropdownButtonFormField<CertificationOption>);
 
@@ -146,13 +145,16 @@ void main() {
     );
     expect(saved, hasLength(1));
     final cert = saved!.single;
-    expect(cert.agency, CertificationAgency.padi);
-    expect(cert.level, CertificationLevel.openWater);
+    expect(cert.agency, CertificationAgency.padi.name);
+    expect(cert.level, CertificationLevel.openWater.name);
     expect(cert.additionalCredentials, hasLength(1));
-    expect(cert.additionalCredentials.single.agency, CertificationAgency.cmas);
+    expect(
+      cert.additionalCredentials.single.agency,
+      CertificationAgency.cmas.name,
+    );
     expect(
       cert.additionalCredentials.single.level,
-      CertificationLevel.cmas1StarDiver,
+      CertificationLevel.cmas1StarDiver.name,
     );
     expect(cert.hasMultipleCredentials, isTrue);
   });
@@ -165,13 +167,10 @@ void main() {
       Certification(
         id: '',
         name: '',
-        agency: CertificationAgency.ffessm,
-        level: CertificationLevel.ffessmN1,
+        agency: CertificationAgency.ffessm.name,
+        level: CertificationLevel.ffessmN1.name,
         additionalCredentials: const [
-          CertificationCredential(
-            agency: CertificationAgency.cmas,
-            level: CertificationLevel.cmas1StarDiver,
-          ),
+          CertificationCredential(agency: 'cmas', level: 'cmas1StarDiver'),
         ],
         createdAt: now,
         updatedAt: now,

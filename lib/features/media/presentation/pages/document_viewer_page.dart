@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/media/data/services/media_share_temp_file.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Full-screen in-app viewer for PDF document attachments.
@@ -18,7 +19,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class DocumentViewerPage extends ConsumerStatefulWidget {
   final MediaItem item;
 
-  const DocumentViewerPage({super.key, required this.item});
+  /// The site this document is attached to, when its category and display
+  /// size may be edited here (issue #1039). Null for dive and equipment
+  /// documents, which hides Edit details. The filename is never editable.
+  final String? editableSiteId;
+
+  const DocumentViewerPage({
+    super.key,
+    required this.item,
+    this.editableSiteId,
+  });
 
   @override
   ConsumerState<DocumentViewerPage> createState() => _DocumentViewerPageState();
@@ -29,6 +39,12 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
   /// builds; the call is idempotent and cheap afterwards.
   late final Future<void> _engineReady = pdfrxFlutterInitialize();
 
+  /// The item as last saved here, so the app bar shows a rename and a
+  /// second Edit details opens on the saved category and size, not the ones
+  /// the page was opened with. The bytes stay keyed on [widget.item], so an
+  /// edit does not reload the PDF.
+  late MediaItem _item = widget.item;
+
   @override
   Widget build(BuildContext context) {
     final resolvedAsync = ref.watch(mediaBytesProvider(widget.item));
@@ -36,11 +52,25 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          widget.item.originalFilename ??
-              context.l10n.media_documentViewer_title,
+          _item.originalFilename ?? context.l10n.media_documentViewer_title,
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
+          if (widget.editableSiteId != null)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: context.l10n.media_siteAttachment_editDetails,
+              onPressed: () async {
+                final saved = await showAttachmentDetailsSheet(
+                  context,
+                  item: _item,
+                  siteId: widget.editableSiteId!,
+                );
+                if (saved != null && mounted) {
+                  setState(() => _item = saved);
+                }
+              },
+            ),
           // Builder so the share popover anchors to this button on iPad:
           // findRenderObject from a Builder's context descends to the
           // IconButton, whereas the page's context would yield the whole page.
@@ -100,10 +130,10 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage> {
         }
         return;
       }
-      final file = await writeShareTempFile(widget.item, resolved.bytes!);
+      final file = await writeShareTempFile(_item, resolved.bytes!);
       await SharePlus.instance.share(
         ShareParams(
-          files: [XFile(file.path, mimeType: widget.item.shareMimeType)],
+          files: [XFile(file.path, mimeType: _item.shareMimeType)],
           sharePositionOrigin: anchor,
         ),
       );

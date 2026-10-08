@@ -15,6 +15,7 @@ import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/backup/presentation/providers/quarantined_database_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
 import 'package:submersion/features/backup/presentation/widgets/pre_migration_badge.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -213,6 +214,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           backupServiceProvider.overrideWithValue(service),
           cloudStorageProviderProvider.overrideWithValue(null),
+          quarantinedDatabasesProvider.overrideWith((ref) async => const []),
           backupHistoryProvider.overrideWith(
             (ref) async => backupPrefs.getHistory(),
           ),
@@ -356,6 +358,7 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(prefs),
           backupServiceProvider.overrideWithValue(service),
           cloudStorageProviderProvider.overrideWithValue(null),
+          quarantinedDatabasesProvider.overrideWith((ref) async => const []),
           backupHistoryProvider.overrideWith(
             (ref) async => backupPrefs.getHistory(),
           ),
@@ -547,6 +550,7 @@ void main() {
     Future<void> pumpApp(
       WidgetTester tester, {
       Map<String, Object> initialPrefs = const {},
+      List<BackupRecord> history = const [],
     }) async {
       tester.view.physicalSize = const Size(1200, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -571,7 +575,8 @@ void main() {
             cloudStorageProviderProvider.overrideWithValue(
               _FakeCloudProvider(),
             ),
-            backupHistoryProvider.overrideWith((ref) async => const []),
+            backupHistoryProvider.overrideWith((ref) async => history),
+            quarantinedDatabasesProvider.overrideWith((ref) async => const []),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -635,6 +640,45 @@ void main() {
       expect(locationY, lessThan(cloudY));
     });
 
+    testWidgets('retention shows what the retained backups cost', (
+      tester,
+    ) async {
+      // Every backup is a full copy of the database, so the count alone
+      // hides the cost of the choice (issue #1376).
+      BackupRecord record(String id, int sizeBytes) => BackupRecord(
+        id: id,
+        filename: '$id.db',
+        timestamp: _kNow,
+        sizeBytes: sizeBytes,
+        location: BackupLocation.local,
+      );
+      await pumpApp(
+        tester,
+        initialPrefs: {'backup_enabled': true},
+        history: [record('a', 1024 * 1024), record('b', 2 * 1024 * 1024)],
+      );
+
+      expect(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'Keep backups'),
+          matching: find.text('2 backups currently use 3.0 MB'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('retention shows no footprint while there are no backups', (
+      tester,
+    ) async {
+      await pumpApp(tester, initialPrefs: {'backup_enabled': true});
+
+      expect(find.text('Keep backups'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('backup_retention_footprint')),
+        findsNothing,
+      );
+    });
+
     testWidgets('enabling cloud backup clears a custom location', (
       tester,
     ) async {
@@ -692,6 +736,7 @@ class _RecordingRestoreService extends BackupService {
   Future<BackupValidationResult> validateBackupFile(
     String filePath, {
     bool allowLiveDatabaseEncryption = false,
+    bool requireBackupExtension = true,
   }) async => const BackupValidationResult.valid(sizeBytes: 1);
 
   @override

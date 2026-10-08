@@ -67,7 +67,7 @@ void main() {
     },
   );
 
-  testWidgets('bottom time row filters decimal input to digits only', (
+  testWidgets('bottom time row reports a fraction instead of rewriting it', (
     tester,
   ) async {
     final maxC = TextEditingController(text: '30.0');
@@ -100,11 +100,90 @@ void main() {
       ),
     );
 
-    // Bottom time is parsed with int.tryParse on save, so non-digits would
-    // silently become 0 -- the digits-only formatter must strip them.
+    // A digits-only filter used to turn "12.5" into 125 minutes without a
+    // word. The text is kept and the row says what is wrong (#1900 review).
     await tester.tap(find.text('42 min'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), '12.5');
-    expect(botC.text, '125');
+    await tester.pumpAndSettle();
+    expect(botC.text, '12.5');
+    expect(find.text('Enter a whole number'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField), '-45');
+    await tester.pumpAndSettle();
+    expect(find.text('Enter 0 or more'), findsOneWidget);
+  });
+
+  testWidgets('renders the dive types row after the site row (#2596)', (
+    tester,
+  ) async {
+    final controllers = List.generate(6, (_) => TextEditingController());
+    for (final c in controllers) {
+      addTearDown(c.dispose);
+    }
+    await tester.pumpWidget(
+      _wrap(
+        TheDiveSection(
+          depthSymbol: 'm',
+          nameController: controllers[0],
+          maxDepthController: controllers[1],
+          avgDepthController: controllers[2],
+          bottomTimeController: controllers[3],
+          runtimeController: controllers[4],
+          diveNumberController: controllers[5],
+          entryText: 'ENTRY_TS',
+          onEditEntry: () {},
+          exitText: 'EXIT_TS',
+          onEditExit: () {},
+          siteName: 'Blue Hole',
+          onPickSite: () {},
+          diveTypesRow: const Text('DIVE_TYPES_ROW'),
+        ),
+      ),
+    );
+
+    double top(Finder f) => tester.getTopLeft(f).dy;
+    expect(find.text('DIVE_TYPES_ROW'), findsOneWidget);
+    expect(
+      top(find.text('Blue Hole')),
+      lessThan(top(find.text('DIVE_TYPES_ROW'))),
+    );
+  });
+
+  testWidgets('renders the route row after the site and its extras', (
+    tester,
+  ) async {
+    final controllers = List.generate(6, (_) => TextEditingController());
+    for (final c in controllers) {
+      addTearDown(c.dispose);
+    }
+    await tester.pumpWidget(
+      _wrap(
+        TheDiveSection(
+          depthSymbol: 'm',
+          nameController: controllers[0],
+          maxDepthController: controllers[1],
+          avgDepthController: controllers[2],
+          bottomTimeController: controllers[3],
+          runtimeController: controllers[4],
+          diveNumberController: controllers[5],
+          entryText: 'ENTRY_TS',
+          onEditEntry: () {},
+          exitText: null,
+          onEditExit: () {},
+          siteName: 'Blue Hole',
+          onPickSite: () {},
+          siteExtras: const Text('SITE_EXTRAS'),
+          routeRow: const Text('ROUTE_ROW'),
+        ),
+      ),
+    );
+
+    double top(Finder f) => tester.getTopLeft(f).dy;
+    expect(top(find.text('Blue Hole')), lessThan(top(find.text('ROUTE_ROW'))));
+    expect(
+      top(find.text('SITE_EXTRAS')),
+      lessThan(top(find.text('ROUTE_ROW'))),
+    );
   });
 }

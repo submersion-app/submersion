@@ -16,6 +16,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -304,37 +306,38 @@ void main() {
       expect(pushedPath, '/sites/s1');
     });
 
-    // Table mode owns no app bar -- TableModeLayout does, and it cannot reach
-    // this content's SelectionController -- so before the Select bar existed
-    // here, long-press was the only touch route into multi-select. Removing
-    // long-press without this would have left table mode with no way in at
-    // all on a touch device.
-    testWidgets('offers Select while closed and swaps it for the '
-        'contextual bar on entry', (tester) async {
+    // Table mode owns no app bar -- TableModeLayout does -- so "Select items"
+    // sits in the page header's overflow and reaches the rows through the
+    // controller the page passes in (issue #2775). The list draws no Select
+    // strip of its own, and the contextual bar opens above the table.
+    testWidgets('draws no Select strip and opens the contextual bar when the '
+        "page's controller enters selection", (tester) async {
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
       final overrides = await _buildOverrides(
         sites: [_makeSite(id: 's1', name: 'Blue Hole')],
       );
       await tester.pumpWidget(
         testApp(
           overrides: overrides,
-          child: const SiteListContent(showAppBar: true),
+          child: SiteListContent(
+            showAppBar: true,
+            selectionController: controller,
+          ),
         ),
       );
       await tester.pumpAndSettle();
 
-      final selectButton = find.byKey(const ValueKey('enter_selection'));
       final exitButton = find.byKey(const ValueKey('selection_exit'));
 
-      expect(selectButton, findsOneWidget);
+      expect(find.byKey(selectItemsMenuKey), findsNothing);
+      expect(find.byIcon(Icons.checklist), findsNothing);
       expect(exitButton, findsNothing);
 
-      await tester.tap(selectButton);
+      controller.enterExplicit();
       await tester.pumpAndSettle();
 
-      // One bar at a time, in the same slot: the Select affordance yields to
-      // the contextual bar rather than stacking above it.
       expect(exitButton, findsOneWidget);
-      expect(selectButton, findsNothing);
       expect(find.text('0 selected'), findsOneWidget);
     });
 
@@ -430,15 +433,20 @@ void main() {
             _makeSite(id: 's3', name: 'Shark Point'),
           ],
         );
+        final controller = SelectionController();
+        addTearDown(controller.dispose);
         await tester.pumpWidget(
           testApp(
             overrides: overrides,
-            child: const SiteListContent(showAppBar: true),
+            child: SiteListContent(
+              showAppBar: true,
+              selectionController: controller,
+            ),
           ),
         );
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byKey(const ValueKey('enter_selection')));
+        controller.enterExplicit();
         await tester.pumpAndSettle();
 
         // Table rows carry an onDoubleTap, so the tap only resolves once the

@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/presentation/widgets/observation_s
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -36,6 +37,8 @@ DiveTank _makeTank({
   String? computerId,
   String? transmitterSerial,
   String? equipmentId,
+  TankRole role = TankRole.backGas,
+  TankRoleSource? roleSource,
 }) {
   return DiveTank(
     id: id,
@@ -47,6 +50,8 @@ DiveTank _makeTank({
     computerId: computerId,
     transmitterSerial: transmitterSerial,
     equipmentId: equipmentId,
+    role: role,
+    roleSource: roleSource,
   );
 }
 
@@ -176,8 +181,8 @@ void main() {
     testWidgets('MOD and its label follow the working ppO2 setting', (
       tester,
     ) async {
-      // EAN32 at ppO2 1.4 is 34 m; at 1.6 it is 40 m. The label used to say
-      // "ppO₂ 1.4" no matter the setting.
+      // EAN32 at ppO2 1.4 is 33.75 m; at 1.6 it is 40 m. The label used to
+      // say "ppO₂ 1.4" no matter the setting.
       const settings = AppSettings(ppO2MaxWorking: 1.6);
       await tester.pumpWidget(
         _buildCard(
@@ -192,6 +197,18 @@ void main() {
       expect(find.textContaining('MOD: 40m'), findsOneWidget);
       expect(find.textContaining('ppO₂ 1.6'), findsOneWidget);
       expect(find.textContaining('ppO₂ 1.4'), findsNothing);
+    });
+
+    testWidgets('MOD is rounded down, never up (issue #2342)', (tester) async {
+      // EAN32 at ppO2 1.4 is 33.75 m. Rounded to nearest it showed as 34 m,
+      // deeper than the gas may be taken.
+      await tester.pumpWidget(
+        _buildCard(dive: _makeDive([_makeTank()]), cylinderSacs: [_makeSac()]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('MOD: 33m'), findsOneWidget);
+      expect(find.textContaining('MOD: 34m'), findsNothing);
     });
 
     testWidgets('shows the SAC rate and the gas used on a single-tank dive', (
@@ -686,6 +703,43 @@ void main() {
       expect(find.textContaining('Transmitter '), findsNothing);
     });
 
+    testWidgets('a role read off the transmitter name says so (#2595)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(
+              gasMix: const GasMix(o2: 100),
+              transmitterSerial: '180777',
+              role: TankRole.oxygenSupply,
+              roleSource: TankRoleSource.transmitterName,
+            ),
+          ]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("O₂ Supply, read from the transmitter's name"),
+        findsOneWidget,
+      );
+      expect(find.text('Assign transmitter'), findsOneWidget);
+    });
+
+    testWidgets('a role with no source shows no such line', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(
+          dive: _makeDive([
+            _makeTank(transmitterSerial: '180777', role: TankRole.oxygenSupply),
+          ]),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining("transmitter's name"), findsNothing);
+    });
+
     testWidgets('the chip opens the editor with the serial', (tester) async {
       await tester.pumpWidget(_buildCard(dive: diveWithSerial('180777')));
       await tester.pumpAndSettle();
@@ -731,6 +785,38 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Reassign pressure series'), findsNothing);
+    });
+
+    testWidgets('a linked tank names its trip cylinder and bottle', (
+      tester,
+    ) async {
+      final dive = _makeDive([
+        _makeTank().copyWith(tripCylinderId: 'a'),
+      ]).copyWith(tripId: 't1');
+      await tester.pumpWidget(
+        _buildCard(
+          dive: dive,
+          extraOverrides: [
+            tripCylinderLabelsAtProvider((
+              tripId: 't1',
+              atMillis: dive.effectiveEntryTime.millisecondsSinceEpoch,
+            )).overrideWith(
+              (ref) async => {'a': (label: 'Truck 2', bottle: '14')},
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Truck 2 · Bottle 14'), findsOneWidget);
+    });
+
+    testWidgets('an unlinked tank shows no trip cylinder line', (tester) async {
+      await tester.pumpWidget(
+        _buildCard(dive: _makeDive([_makeTank()]).copyWith(tripId: 't1')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('tank-trip-cylinder-tank-1')), findsNothing);
+      expect(find.textContaining('Bottle'), findsNothing);
     });
   });
 }

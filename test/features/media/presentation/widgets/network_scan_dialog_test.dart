@@ -1,7 +1,7 @@
 // Widget tests for the Network scan progress dialog (Phase 3c, Task 9).
 //
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 9. The hand-rolled `_FakeScan` mirrors the pattern in
 // Tasks 6/7/8: implementing `NetworkScanService` directly is supported
 // because the only public surface used by the dialog is `scanAll()` and

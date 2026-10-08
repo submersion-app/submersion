@@ -37,6 +37,7 @@ class DeviceDescriptor {
     required this.product,
     required this.model,
     required this.transports,
+    this.deliversOldestFirst = false,
   });
 
   String vendor;
@@ -47,8 +48,14 @@ class DeviceDescriptor {
 
   List<TransportType> transports;
 
+  /// Whether this backend hands dives over oldest-first. libdivecomputer is
+  /// newest-first except where the fork reversed a driver (Shearwater
+  /// Petrel, issue #480). Only for such a backend is an interrupted
+  /// download's newest dive a safe resume point (issue #2902).
+  bool deliversOldestFirst;
+
   Object encode() {
-    return <Object?>[vendor, product, model, transports];
+    return <Object?>[vendor, product, model, transports, deliversOldestFirst];
   }
 
   static DeviceDescriptor decode(Object result) {
@@ -58,6 +65,7 @@ class DeviceDescriptor {
       product: result[1]! as String,
       model: result[2]! as int,
       transports: (result[3] as List<Object?>?)!.cast<TransportType>(),
+      deliversOldestFirst: result[4]! as bool,
     );
   }
 }
@@ -922,6 +930,8 @@ abstract class DiveComputerFlutterApi {
     String? serialNumber,
     String? firmwareVersion,
     String? clockSyncStatus,
+    String? reportedProduct,
+    int? reportedModel,
   );
 
   void onError(DiveComputerError error);
@@ -1088,12 +1098,16 @@ abstract class DiveComputerFlutterApi {
           final String? arg_serialNumber = (args[1] as String?);
           final String? arg_firmwareVersion = (args[2] as String?);
           final String? arg_clockSyncStatus = (args[3] as String?);
+          final String? arg_reportedProduct = (args[4] as String?);
+          final int? arg_reportedModel = (args[5] as int?);
           try {
             api.onDownloadComplete(
               arg_totalDives!,
               arg_serialNumber,
               arg_firmwareVersion,
               arg_clockSyncStatus,
+              arg_reportedProduct,
+              arg_reportedModel,
             );
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {

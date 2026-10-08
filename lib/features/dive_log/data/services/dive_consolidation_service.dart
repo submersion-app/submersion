@@ -8,9 +8,14 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 
 /// Result of a successful consolidation: the target dive id plus the
 /// pre-consolidation snapshot needed to undo it.
@@ -41,6 +46,7 @@ class DiveConsolidationService {
   final _uuid = const Uuid();
   final _builder = const DiveConsolidationBuilder();
   final _sync = SyncRepository();
+  final _roleLinks = DiveRoleLinkRepository();
   final _profileSeries = ProfileSeriesRepository();
   final _tankSeries = TankPressureSeriesRepository();
 
@@ -50,9 +56,14 @@ class DiveConsolidationService {
   /// sources. Throws [ArgumentError] (with the ConsolidationInvalidReason in
   /// the message) when the selection cannot be consolidated. All-or-nothing:
   /// nothing is written to the DB if validation fails.
+  ///
+  /// [alignment] null requires every secondary to overlap the target in
+  /// time. With a mode, a secondary that does not is placed by that mode
+  /// (#552); see [DiveConsolidationBuilder.build].
   Future<DiveConsolidationOutcome> apply({
     required String targetDiveId,
     required List<String> secondaryDiveIds,
+    ConsolidationAlignment? alignment,
   }) async {
     final allIds = [targetDiveId, ...secondaryDiveIds];
     // Every series this operation will carry across has to decode: it
@@ -75,7 +86,23 @@ class DiveConsolidationService {
       throw ArgumentError('targetDiveId not in selection');
     }
 
-    final plan = _builder.build(dives, primaryDiveId: targetDiveId);
+    // Rejected here with the reason first, like the FK guard below, so
+    // callers can map the message: build() would throw a generic one.
+    final classification = _builder.classify(
+      dives,
+      primaryDiveId: targetDiveId,
+      alignment: alignment,
+    );
+    if (classification is ConsolidationInvalid) {
+      throw ArgumentError(
+        '${classification.reason.name}: selection cannot be consolidated',
+      );
+    }
+    final plan = _builder.build(
+      dives,
+      primaryDiveId: targetDiveId,
+      alignment: alignment,
+    );
     final snapshot = await DiveMergeSnapshot.capture(_db, allIds, targetDiveId);
     final now = DateTime.now().millisecondsSinceEpoch;
     final nowDt = DateTime.now();
@@ -94,26 +121,63 @@ class DiveConsolidationService {
     await _db.transaction(() async {
       await _diveRepo.backfillPrimaryDataSource(targetDiveId);
 
+      // A target with a single source owns its unattributed pressure series
+      // through it. Attributed before the secondaries' series join them,
+      // since after that nothing tells the two apart (issue #2440). A target
+      // already holding several sources is left alone, like the v232
+      // backfill: its unattributed series could belong to any of them.
+      final targetSources = await (_db.select(
+        _db.diveDataSources,
+      )..where((s) => s.diveId.equals(targetDiveId))).get();
+      if (targetSources.length == 1) {
+        await _tankSeries.stampSourceWhereNull(
+          targetDiveId,
+          targetSources.single.id,
+          now: now,
+        );
+      }
+      // Its tanks too, for the same reason (issue #2716): once the
+      // secondaries' copies join them, two sources that name no computer
+      // leave nothing else to tell one cylinder's copies apart.
+      await attributeTankSources(_db, _sync, targetDiveId, now: now);
+
       // First consolidation: stamp the target's own children with the
       // primary computer so null stays reserved for manual entries.
       if (targetRow.computerId != null) {
+        // With a fresh clock, like the events below: a peer's newer copy of
+        // the tank, still without a computer, would otherwise clear it
+        // (#2644).
         await (_db.update(_db.diveTanks)..where(
               (t) => t.diveId.equals(targetDiveId) & t.computerId.isNull(),
             ))
-            .write(DiveTanksCompanion(computerId: Value(targetRow.computerId)));
+            .write(
+              DiveTanksCompanion(
+                computerId: Value(targetRow.computerId),
+                hlc: Value(await _sync.issueRowClock()),
+              ),
+            );
         await _tankSeries.stampComputerWhereNull(
           targetDiveId,
           targetRow.computerId!,
           now: now,
         );
+        // With a fresh clock: stamping moves these events into any scope
+        // tombstone the computer already has on this dive (#1926), and with
+        // their old clocks a relayed copy of that scope would delete them.
         await (_db.update(_db.diveProfileEvents)..where(
               (t) => t.diveId.equals(targetDiveId) & t.computerId.isNull(),
             ))
             .write(
               DiveProfileEventsCompanion(
                 computerId: Value(targetRow.computerId),
+                hlc: Value(await _sync.issueRowClock()),
               ),
             );
+        // Not the gas switches (#2582): a download stamps its own and v258
+        // attributed the stored ones it could place, so a switch still
+        // unattributed is one the diver entered or one that could be either
+        // computer's. Claiming it for the primary would let a later Replace
+        // Source of that computer delete it.
       }
 
       var nextTankOrder =
@@ -122,6 +186,16 @@ class DiveConsolidationService {
               .fold<int>(-1, (m, r) => r.tankOrder > m ? r.tankOrder : m) +
           1;
       final tankIdMap = <String, String>{}; // old secondary id -> id on target
+      // The computers sharing each target tank, seeded from what the tanks
+      // already record (a target consolidated before) and grown by every
+      // secondary tank merged into one below.
+      final sharedByTargetTank = <String, List<String>>{
+        for (final r in snapshot.tankRows.where(
+          (r) => r.diveId == targetDiveId,
+        ))
+          r.id:
+              decodeSharedComputerIds(r.sharedComputerIds) ?? const <String>[],
+      };
 
       // Junction/child tables the snapshot also captures but a fold
       // previously left behind for bulkDeleteDives' cascade to drop (#449
@@ -185,6 +259,16 @@ class DiveConsolidationService {
               .nonNulls
               .fold<int>(-1, (a, b) => a > b ? a : b);
 
+      // Role sets (issue #1221): resolved once from the capture, then the
+      // target's are widened as each secondary folds in.
+      final capturedBuddyRoles = snapshot.resolvedBuddyRoles();
+      final capturedDiverRoles = snapshot.resolvedDiverRoles();
+      final targetBuddyRoles = <String, List<String>>{
+        for (final entry in capturedBuddyRoles.entries)
+          if (entry.key.$1 == targetDiveId) entry.key.$2: entry.value,
+      };
+      var targetDiverRoles = capturedDiverRoles[targetDiveId] ?? const [];
+
       for (final secondary in plan.secondaries) {
         final secRow = snapshot.diveRows.firstWhere(
           (r) => r.id == secondary.id,
@@ -219,7 +303,8 @@ class DiveConsolidationService {
                   computerSerial: Value(secRow.diveComputerSerial),
                   maxDepth: Value(secRow.maxDepth),
                   avgDepth: Value(secRow.avgDepth),
-                  duration: Value(secRow.bottomTime),
+                  // The runtime, never the derived bottom time (#2421).
+                  duration: Value(secRow.runtime),
                   waterTemp: Value(secRow.waterTemp),
                   entryTime: Value(
                     secRow.entryTime != null
@@ -290,7 +375,11 @@ class DiveConsolidationService {
           sourceIdMap[null] = sourceIdMap[fallback.id]!;
         }
 
-        // Tanks: merged ones map, kept ones copy with attribution.
+        // Tanks: merged ones map, kept ones copy with attribution: their
+        // computer, and their source re-pointed at the target's copy of it
+        // (issue #2716); a tank whose source is not known is the
+        // secondary's primary source's, as `null` is above.
+        final secTankSources = await resolveTankSources(_db, secondary.id);
         final secTanks =
             snapshot.tankRows.where((r) => r.diveId == secondary.id).toList()
               ..sort((a, b) => a.tankOrder.compareTo(b.tankOrder));
@@ -298,6 +387,14 @@ class DiveConsolidationService {
           final mergeInto = plan.tankMerges[tank.id];
           if (mergeInto != null) {
             tankIdMap[tank.id] = mergeInto;
+            // One row now stands for a cylinder both computers logged:
+            // record the secondary on it, or its analysis loses the gas.
+            await _recordSharedTank(
+              mergeInto,
+              secRow.computerId,
+              sharedByTargetTank,
+              now: now,
+            );
           } else {
             final freshId = _uuid.v4();
             tankIdMap[tank.id] = freshId;
@@ -310,6 +407,10 @@ class DiveConsolidationService {
                         id: Value(freshId),
                         diveId: Value(targetDiveId),
                         computerId: Value(secRow.computerId),
+                        sourceId: Value(
+                          sourceIdMap[secTankSources[tank.id]] ??
+                              sourceIdMap[null],
+                        ),
                         tankOrder: Value(nextTankOrder++),
                       ),
                 );
@@ -343,10 +444,25 @@ class DiveConsolidationService {
         for (final s in await _tankSeries.getSeriesForDive(secondary.id)) {
           final mappedTank = tankIdMap[s.tankId];
           if (mappedTank == null || s.samples.isEmpty) continue;
+          // A source that is none of the secondary's own tells no more than
+          // no source at all, so such a series follows the unattributed rule.
+          final copiedSourceId = s.sourceId == null
+              ? null
+              : sourceIdMap[s.sourceId];
           await _tankSeries.insertSeries(
             diveId: targetDiveId,
             tankId: mappedTank,
             computerId: secRow.computerId,
+            // The owning source, re-pointed like the profile rows above
+            // (issue #2440): two file-imported sources both carry a null
+            // computer, and without it their series of one cylinder merge
+            // into one. An unattributed series of a secondary holding
+            // several sources stays unattributed, as in the merge and the
+            // v241 backfill: handing it to one of them would group it with
+            // another source's recording.
+            sourceId:
+                copiedSourceId ??
+                (secSources.length > 1 ? null : sourceIdMap[null]),
             samples: [for (final p in s.samples) p.shiftedBy(offset)],
             now: now,
           );
@@ -383,7 +499,11 @@ class DiveConsolidationService {
           );
         }
 
-        // Gas switches, re-based + tank FK remapped (drop unmappable).
+        // Gas switches, re-based + tank FK remapped (drop unmappable). Each
+        // keeps its own computerId (#2582): a download or the v258 backfill
+        // stamped the imported ones it could place, and a null one is the
+        // diver's or could be either computer's, which a Replace Source must
+        // not be able to delete.
         for (final row in snapshot.gasSwitchRows.where(
           (r) => r.diveId == secondary.id,
         )) {
@@ -473,6 +593,34 @@ class DiveConsolidationService {
             localUpdatedAt: now,
           );
         }
+
+        // Roles (issue #1221): each person on both dives, and the diver,
+        // ends up holding every role they held on either, including what an
+        // earlier secondary already folded into the target.
+        for (final row in snapshot.buddyRows.where(
+          (r) => r.diveId == secondary.id,
+        )) {
+          final union = DiveRoleSet.union([
+            ?targetBuddyRoles[row.buddyId],
+            ?capturedBuddyRoles[(secondary.id, row.buddyId)],
+          ]);
+          await _roleLinks.writeBuddyRoles(
+            targetDiveId,
+            row.buddyId,
+            union,
+            now: now,
+          );
+          targetBuddyRoles[row.buddyId] = union;
+        }
+        targetDiverRoles = DiveRoleSet.union([
+          targetDiverRoles,
+          ?capturedDiverRoles[secondary.id],
+        ]);
+        await _roleLinks.writeDiverRoles(
+          targetDiveId,
+          targetDiverRoles,
+          now: now,
+        );
 
         // Equipment: union by equipmentId. Composite-key junction (no
         // surrogate id) -- diveId+equipmentId is the identity, and
@@ -611,6 +759,50 @@ class DiveConsolidationService {
                 .firstWhere((l) => l != null, orElse: () => null)
           : null;
 
+      // The same rule for the site and the runtime. A dive logged without
+      // them, say by an earlier file import that dropped them, is repaired by
+      // re-importing the file and consolidating each dive into its
+      // duplicate (#1809).
+      final secondaryRows = [
+        for (final secondary in plan.secondaries)
+          snapshot.diveRows.firstWhere((r) => r.id == secondary.id),
+      ];
+      final siteFill = targetRow.siteId == null
+          ? secondaryRows
+                .map((r) => r.siteId)
+                .firstWhere((id) => id != null, orElse: () => null)
+          : null;
+      final runtimeFill = targetRow.runtime == null
+          ? secondaryRows
+                .map((r) => r.runtime)
+                .firstWhere((s) => s != null, orElse: () => null)
+          : null;
+
+      // Every target cylinder nobody shares is marked as recorded, so the
+      // open-time inference (backfillTankSharedComputers) never guesses for
+      // a dive a fold has handled.
+      final unrecordedTanks =
+          await (_db.select(_db.diveTanks)..where(
+                (t) =>
+                    t.diveId.equals(targetDiveId) &
+                    t.sharedComputerIds.isNull(),
+              ))
+              .get();
+      for (final row in unrecordedTanks) {
+        await (_db.update(
+          _db.diveTanks,
+        )..where((t) => t.id.equals(row.id))).write(
+          const DiveTanksCompanion(
+            sharedComputerIds: Value(noSharedComputersRecorded),
+          ),
+        );
+        await _sync.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+
       // Touch the target so sync carries the consolidation.
       await (_db.update(
         _db.dives,
@@ -628,6 +820,10 @@ class DiveConsolidationService {
               : const Value.absent(),
           exitLongitude: exitFill != null
               ? Value(exitFill.longitude)
+              : const Value.absent(),
+          siteId: siteFill != null ? Value(siteFill) : const Value.absent(),
+          runtime: runtimeFill != null
+              ? Value(runtimeFill)
               : const Value.absent(),
         ),
       );
@@ -647,6 +843,36 @@ class DiveConsolidationService {
     return DiveConsolidationOutcome(
       targetDiveId: targetDiveId,
       snapshot: snapshot,
+    );
+  }
+
+  /// Adds [computerId] to the computers sharing target tank [tankId], unless
+  /// it owns the tank or is already listed. [shared] tracks the lists across
+  /// the whole fold so a second secondary builds on the first's write.
+  Future<void> _recordSharedTank(
+    String tankId,
+    String? computerId,
+    Map<String, List<String>> shared, {
+    required int now,
+  }) async {
+    if (computerId == null) return;
+    final current = shared[tankId] ?? const <String>[];
+    if (current.contains(computerId)) return;
+    final owner = await (_db.select(
+      _db.diveTanks,
+    )..where((t) => t.id.equals(tankId))).getSingleOrNull();
+    if (owner == null || owner.computerId == computerId) return;
+    final next = [...current, computerId];
+    shared[tankId] = next;
+    await (_db.update(_db.diveTanks)..where((t) => t.id.equals(tankId))).write(
+      DiveTanksCompanion(
+        sharedComputerIds: Value(encodeSharedComputerIds(next)),
+      ),
+    );
+    await _sync.markRecordPending(
+      entityType: 'diveTanks',
+      recordId: tankId,
+      localUpdatedAt: now,
     );
   }
 
@@ -696,6 +922,11 @@ class DiveConsolidationService {
         'sightings': {for (final r in snapshot.sightingRows) r.id},
         'diveWeights': {for (final r in snapshot.weightRows) r.id},
         'diveCustomFields': {for (final r in snapshot.customFieldRows) r.id},
+        // The role junctions (#1221): restoreRows below re-inserts the
+        // captured rows, but runs after the dive REPLACE, whose cascade has
+        // already emptied the target, so it cannot see these to tombstone.
+        'diveDiverRoles': {for (final r in snapshot.diverRoleRows) r.id},
+        'diveBuddyRoles': {for (final r in snapshot.buddyRoleRows) r.id},
       };
       final currentChildIds = <String, List<String>>{
         'diveTanks': [
@@ -771,6 +1002,18 @@ class DiveConsolidationService {
           )..where((t) => t.diveId.equals(mergedId))).get())
             r.id,
         ],
+        'diveDiverRoles': [
+          for (final r in await (_db.select(
+            _db.diveDiverRoles,
+          )..where((t) => t.diveId.equals(mergedId))).get())
+            r.id,
+        ],
+        'diveBuddyRoles': [
+          for (final r in await (_db.select(
+            _db.diveBuddyRoles,
+          )..where((t) => t.diveId.equals(mergedId))).get())
+            r.id,
+        ],
       };
       for (final entry in currentChildIds.entries) {
         final keep = snapshotIds[entry.key] ?? const <String>{};
@@ -838,6 +1081,19 @@ class DiveConsolidationService {
         );
       }
 
+      // Data sources BEFORE the tanks: diveTanks.sourceId is an FK into
+      // diveDataSources (v251, issue #2716), enforced immediately like the
+      // tank FKs below. Sources reference no tank, so they can come first.
+      await _db.batch((batch) {
+        for (final r in snapshot.dataSourceRows) {
+          batch.insert(
+            _db.diveDataSources,
+            r.toCompanion(false),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
+      });
+
       // Tanks BEFORE the batch below: tankPressureProfiles.tankId (and
       // gasSwitches.tankId further down) are FKs into diveTanks, and FK
       // enforcement is immediate under `PRAGMA foreign_keys = ON`, so the
@@ -856,13 +1112,6 @@ class DiveConsolidationService {
       // Child rows verbatim (original ids never collide with consolidation
       // output: consolidated children all had fresh ids).
       await _db.batch((batch) {
-        for (final r in snapshot.dataSourceRows) {
-          batch.insert(
-            _db.diveDataSources,
-            r.toCompanion(false),
-            mode: InsertMode.insertOrReplace,
-          );
-        }
         for (final r in snapshot.tideRows) {
           batch.insert(
             _db.tideRecords,
@@ -878,9 +1127,19 @@ class DiveConsolidationService {
           );
         }
       });
+      // Marked pending like every other restored child, for a fresh clock:
+      // the verbatim rows carry their pre-operation clocks, which a peer
+      // holding a newer copy refuses as stale (#2670).
+      for (final (entityType, recordId) in snapshot.batchRestoredChildKeys) {
+        await _sync.markRecordPending(
+          entityType: entityType,
+          recordId: recordId,
+          localUpdatedAt: now,
+        );
+      }
       // Series restored after the batch above: dataSourceRows and diveTanks
-      // (inserted earlier) are the series' FK parents and must be back
-      // first.
+      // (both inserted before it) are the series' FK parents and must be
+      // back first.
       for (final r in snapshot.profileSeriesRows) {
         await _profileSeries.restoreSeriesRow(r, now: now);
       }
@@ -937,6 +1196,13 @@ class DiveConsolidationService {
           localUpdatedAt: now,
         );
       }
+      // The role junctions (#1221): back to the captured rows on every
+      // captured dive, the consolidation's own rows tombstoned.
+      await _roleLinks.restoreRows(
+        diveIds: [for (final d in snapshot.diveRows) d.id],
+        diverRows: snapshot.diverRoleRows,
+        buddyRows: snapshot.buddyRoleRows,
+      );
       for (final r in snapshot.sightingRows) {
         await _db
             .into(_db.sightings)

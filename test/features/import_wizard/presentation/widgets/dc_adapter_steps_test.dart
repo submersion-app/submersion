@@ -6,6 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:libdivecomputer_plugin/src/dive_computer_service.dart'
     show DownloadEvent;
+// flutter_riverpod 3 no longer re-exports Override.
+// ignore: implementation_imports
+import 'package:riverpod/src/framework.dart' as riverpod show Override;
 
 import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
@@ -66,6 +69,8 @@ class _FakeDiveComputerService implements pigeon.DiveComputerService {
     String? serialNumber,
     String? firmwareVersion,
     String? clockSyncStatus,
+    String? reportedProduct,
+    int? reportedModel,
   ) {}
   @override
   void onError(pigeon.DiveComputerError error) {}
@@ -121,6 +126,71 @@ class _RecordingDiveComputerRepository extends DiveComputerRepository {
     required String serialNumber,
     String? diverId,
   }) async => null;
+}
+
+/// Repository whose computer save fails, standing in for any database error
+/// while the download step records the computer it just talked to.
+class _FailingCreateDiveComputerRepository extends DiveComputerRepository {
+  @override
+  Future<DiveComputer> createComputer(DiveComputer computer) async {
+    throw StateError('database is locked');
+  }
+
+  @override
+  Future<void> updateComputer(dynamic computer) async {}
+
+  @override
+  Future<DiveComputer?> findByBluetoothAddress(
+    String address, {
+    String? diverId,
+  }) async => null;
+
+  @override
+  Future<DiveComputer?> findByHardwareIdentity({
+    required String manufacturer,
+    required String model,
+    required String serialNumber,
+    String? diverId,
+  }) async => null;
+}
+
+/// Repository whose computer save runs [onCreate], so a test can fail the
+/// first attempt and let a retry succeed.
+class _FlakyCreateDiveComputerRepository extends DiveComputerRepository {
+  _FlakyCreateDiveComputerRepository(this.onCreate);
+
+  final DiveComputer Function() onCreate;
+
+  @override
+  Future<DiveComputer> createComputer(DiveComputer computer) async =>
+      onCreate();
+
+  @override
+  Future<void> updateComputer(dynamic computer) async {}
+
+  @override
+  Future<DiveComputer?> findByBluetoothAddress(
+    String address, {
+    String? diverId,
+  }) async => null;
+
+  @override
+  Future<DiveComputer?> findByHardwareIdentity({
+    required String manufacturer,
+    required String model,
+    required String serialNumber,
+    String? diverId,
+  }) async => null;
+}
+
+/// Clock sync settings whose write fails, as a SharedPreferences error would.
+class _FailingClockSyncSettingsNotifier extends ClockSyncSettingsNotifier {
+  _FailingClockSyncSettingsNotifier() : super.unstored();
+
+  @override
+  Future<void> recordSupport(String computerId, ClockSyncStatus status) async {
+    throw StateError('preferences unavailable');
+  }
 }
 
 /// Repository that never resolves findByBluetoothAddress, simulating
@@ -207,6 +277,7 @@ DiveComputer _makeComputer({
 DiveComputerAdapter _makeAdapter({
   DiveComputer? knownComputer,
   DiveComputerRepository? computerRepository,
+  WidgetRef? ref,
 }) {
   final repo = computerRepository ?? _FakeDiveComputerRepository();
   final diveRepository = DiveRepository();
@@ -217,6 +288,7 @@ DiveComputerAdapter _makeAdapter({
     consolidationService: DiveConsolidationService(diveRepository),
     diverId: 'diver-1',
     knownComputer: knownComputer,
+    ref: ref,
   );
 }
 
@@ -229,9 +301,11 @@ ProviderScope _scopeWithOverrides({
   required Widget child,
   DiscoveryState? discoveryState,
   DownloadState? downloadState,
+  List<riverpod.Override> extraOverrides = const [],
 }) {
   return ProviderScope(
     overrides: [
+      ...extraOverrides,
       diveComputerServiceProvider.overrideWithValue(_FakeDiveComputerService()),
       diveComputerRepositoryProvider.overrideWithValue(
         _FakeDiveComputerRepository(),
@@ -283,10 +357,12 @@ Widget _buildDownloadStep({
   DiveComputer? knownComputer,
   DiscoveryState? discoveryState,
   DownloadState? downloadState,
+  List<riverpod.Override> extraOverrides = const [],
 }) {
   return _scopeWithOverrides(
     discoveryState: discoveryState,
     downloadState: downloadState,
+    extraOverrides: extraOverrides,
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -747,6 +823,195 @@ void main() {
       );
     });
 
+    // Issue #2439: saving the computer and noting its clock sync answer are
+    // bookkeeping, and the dives are already in hand. A failure in either used
+    // to escape the post-frame callback before it enabled Next, leaving the
+    // wizard on "Download complete" with no way forward.
+    testWidgets(
+      'a completed download still advances when saving the computer fails',
+      (tester) async {
+        final adapter = _makeAdapter(
+          computerRepository: _FailingCreateDiveComputerRepository(),
+        );
+
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            discoveryState: DiscoveryState(selectedDevice: _testDevice),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.complete,
+          downloadedDives: [_downloadedDive(), _downloadedDive()],
+          serialNumber: '12345',
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
+      },
+    );
+
+    testWidgets(
+      'a completed download still advances when recording clock sync fails',
+      (tester) async {
+        final repository = _RecordingDiveComputerRepository();
+        final adapter = _makeAdapter(computerRepository: repository);
+
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            discoveryState: DiscoveryState(selectedDevice: _testDevice),
+            extraOverrides: [
+              clockSyncSettingsNotifierProvider.overrideWith(
+                (ref) => _FailingClockSyncSettingsNotifier(),
+              ),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.complete,
+          downloadedDives: [_downloadedDive()],
+          clockSyncStatus: ClockSyncStatus.unsupported,
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(repository.created, hasLength(1));
+        expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
+      },
+    );
+
+    // The clock sync answer needs a computer id. When the first save fails
+    // the step has nothing to record it against, so the adapter carries it
+    // and records it once buildBundle's retry recovers the computer.
+    testWidgets('records the clock sync answer once a retried save recovers', (
+      tester,
+    ) async {
+      final created = _makeComputer(id: 'recovered-computer');
+      var attempts = 0;
+      final repository = _FlakyCreateDiveComputerRepository(() {
+        attempts++;
+        if (attempts == 1) throw StateError('database is locked');
+        return created;
+      });
+      DiveComputerAdapter? adapter;
+
+      await tester.pumpWidget(
+        _scopeWithOverrides(
+          discoveryState: DiscoveryState(selectedDevice: _testDevice),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) {
+                  adapter ??= _makeAdapter(
+                    computerRepository: repository,
+                    ref: ref,
+                  );
+                  return DcAdapterDownloadStep(adapter: adapter!);
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      container.read(downloadNotifierProvider.notifier).state = DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [_downloadedDive()],
+        clockSyncStatus: ClockSyncStatus.unsupported,
+      );
+      await tester.pumpAndSettle();
+      expect(adapter!.computer, isNull);
+
+      await adapter!.buildBundle();
+
+      expect(adapter!.computer, equals(created));
+      expect(
+        container
+            .read(clockSyncSettingsNotifierProvider)
+            .supportFor('recovered-computer'),
+        ClockSyncSupport.unsupported,
+      );
+    });
+
+    testWidgets('a failed clock sync write after a recovered save is logged', (
+      tester,
+    ) async {
+      final created = _makeComputer(id: 'recovered-computer');
+      var attempts = 0;
+      final repository = _FlakyCreateDiveComputerRepository(() {
+        attempts++;
+        if (attempts == 1) throw StateError('database is locked');
+        return created;
+      });
+      DiveComputerAdapter? adapter;
+
+      await tester.pumpWidget(
+        _scopeWithOverrides(
+          discoveryState: DiscoveryState(selectedDevice: _testDevice),
+          extraOverrides: [
+            clockSyncSettingsNotifierProvider.overrideWith(
+              (ref) => _FailingClockSyncSettingsNotifier(),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Consumer(
+                builder: (context, ref, _) {
+                  adapter ??= _makeAdapter(
+                    computerRepository: repository,
+                    ref: ref,
+                  );
+                  return DcAdapterDownloadStep(adapter: adapter!);
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      container.read(downloadNotifierProvider.notifier).state = DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [_downloadedDive()],
+        clockSyncStatus: ClockSyncStatus.unsupported,
+      );
+      await tester.pumpAndSettle();
+
+      // The retried save still produces the computer and the bundle; only
+      // the clock sync note is lost.
+      final bundle = await adapter!.buildBundle();
+
+      expect(adapter!.computer, equals(created));
+      expect(bundle.source.currentComputerId, 'recovered-computer');
+    });
+
     testWidgets(
       'importing a partial download captures dives and advances the wizard',
       (tester) async {
@@ -782,7 +1047,237 @@ void main() {
         expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
       },
     );
+
+    group('tells the adapter how the dives arrived (issue #2902)', () {
+      final halcyon = DiscoveredDevice(
+        id: 'halcyon-1',
+        name: '0000010000',
+        connectionType: DeviceConnectionType.ble,
+        address: 'FD7D1384',
+        recognizedModel: const DeviceModel(
+          id: 'Halcyon_Symbios HUD_1',
+          manufacturer: 'Halcyon',
+          model: 'Symbios HUD',
+          connectionTypes: [DeviceConnectionType.ble],
+          dcModel: 1,
+        ),
+        discoveredAt: DateTime(2026, 9, 20),
+      );
+      final descriptors = [
+        pigeon.DeviceDescriptor(
+          vendor: 'Shearwater',
+          product: 'Perdix',
+          model: 5,
+          transports: [pigeon.TransportType.ble],
+          deliversOldestFirst: true,
+        ),
+        pigeon.DeviceDescriptor(
+          vendor: 'Halcyon',
+          product: 'Symbios HUD',
+          model: 1,
+          transports: [pigeon.TransportType.ble],
+        ),
+      ];
+
+      Future<_RecordingAdapter> importPartial(
+        WidgetTester tester,
+        DiscoveredDevice device,
+      ) async {
+        final adapter = _RecordingAdapter();
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            discoveryState: DiscoveryState(selectedDevice: device),
+            extraOverrides: [
+              deviceDescriptorsProvider.overrideWith(
+                (ref) async => descriptors,
+              ),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.error,
+          errorMessage: 'Failed to download the dive.',
+          downloadedDives: [_downloadedDive()],
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Import 1 downloaded dive'));
+        await tester.pumpAndSettle();
+        return adapter;
+      }
+
+      testWidgets('a newest-first backend is marked interrupted', (
+        tester,
+      ) async {
+        final adapter = await importPartial(tester, halcyon);
+
+        expect(adapter.lastInterrupted, isTrue);
+        expect(adapter.lastDeliversOldestFirst, isFalse);
+      });
+
+      testWidgets('an oldest-first backend says so', (tester) async {
+        final adapter = await importPartial(tester, _testDevice);
+
+        expect(adapter.lastInterrupted, isTrue);
+        expect(adapter.lastDeliversOldestFirst, isTrue);
+      });
+
+      testWidgets(
+        'a retry during the catalog lookup drops the partial import',
+        (tester) async {
+          // The catalog answers only after the user has already tapped Retry.
+          final catalog = Completer<List<pigeon.DeviceDescriptor>>();
+          final adapter = _RecordingAdapter();
+          await tester.pumpWidget(
+            _buildDownloadStep(
+              adapter: adapter,
+              discoveryState: DiscoveryState(selectedDevice: halcyon),
+              extraOverrides: [
+                deviceDescriptorsProvider.overrideWith((ref) => catalog.future),
+              ],
+            ),
+          );
+          await tester.pump();
+          await tester.pump();
+
+          final container = ProviderScope.containerOf(
+            tester.element(find.byType(DcAdapterDownloadStep)),
+          );
+          final notifier = container.read(downloadNotifierProvider.notifier);
+          notifier.state = DownloadState(
+            phase: DownloadPhase.error,
+            errorMessage: 'Failed to download the dive.',
+            downloadedDives: [_downloadedDive()],
+          );
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.text('Import 1 downloaded dive'));
+          await tester.pump();
+
+          // Retry restarted the download before the lookup finished.
+          notifier.state = const DownloadState(
+            phase: DownloadPhase.downloading,
+          );
+          catalog.complete(descriptors);
+          await tester.pump();
+          await tester.pump();
+
+          expect(adapter.lastInterrupted, isNull);
+          expect(container.read(dcAdapterDownloadCanAdvanceProvider), isFalse);
+
+          // The retried download still completes into the wizard.
+          notifier.state = DownloadState(
+            phase: DownloadPhase.complete,
+            downloadedDives: [_downloadedDive()],
+          );
+          await tester.pumpAndSettle();
+          expect(adapter.lastInterrupted, isFalse);
+        },
+      );
+
+      testWidgets('an unreadable catalog counts as newest-first', (
+        tester,
+      ) async {
+        final adapter = _RecordingAdapter();
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            // An oldest-first backend, so only the fallback can say false.
+            discoveryState: DiscoveryState(selectedDevice: _testDevice),
+            extraOverrides: [
+              deviceDescriptorsProvider.overrideWith(
+                (ref) => Future.error(StateError('no native library')),
+              ),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.error,
+          errorMessage: 'Failed to download the dive.',
+          downloadedDives: [_downloadedDive()],
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Import 1 downloaded dive'));
+        await tester.pumpAndSettle();
+
+        expect(adapter.lastInterrupted, isTrue);
+        expect(adapter.lastDeliversOldestFirst, isFalse);
+      });
+
+      testWidgets('a complete download is not marked interrupted', (
+        tester,
+      ) async {
+        final adapter = _RecordingAdapter();
+        await tester.pumpWidget(
+          _buildDownloadStep(
+            adapter: adapter,
+            discoveryState: DiscoveryState(selectedDevice: halcyon),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(DcAdapterDownloadStep)),
+        );
+        container.read(downloadNotifierProvider.notifier).state = DownloadState(
+          phase: DownloadPhase.complete,
+          downloadedDives: [_downloadedDive()],
+        );
+        await tester.pumpAndSettle();
+
+        expect(adapter.lastInterrupted, isFalse);
+      });
+    });
   });
+}
+
+/// Records how the download step hands its dives over.
+class _RecordingAdapter extends DiveComputerAdapter {
+  _RecordingAdapter() : this._(_FakeDiveComputerRepository(), DiveRepository());
+
+  _RecordingAdapter._(
+    _FakeDiveComputerRepository repo,
+    DiveRepository diveRepository,
+  ) : super(
+        importService: DiveImportService(repository: repo),
+        computerRepository: repo,
+        diveRepository: diveRepository,
+        consolidationService: DiveConsolidationService(diveRepository),
+        diverId: 'diver-1',
+      );
+
+  bool? lastInterrupted;
+  bool? lastDeliversOldestFirst;
+
+  @override
+  void setDownloadedDives(
+    List<DownloadedDive> dives, {
+    bool interrupted = false,
+    bool deliversOldestFirst = false,
+  }) {
+    lastInterrupted = interrupted;
+    lastDeliversOldestFirst = deliversOldestFirst;
+    super.setDownloadedDives(
+      dives,
+      interrupted: interrupted,
+      deliversOldestFirst: deliversOldestFirst,
+    );
+  }
 }
 
 DownloadedDive _downloadedDive() => DownloadedDive(

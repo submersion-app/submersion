@@ -67,7 +67,7 @@ ios/fastlane/api_key.json
 ios/fastlane/AuthKey_*.p8
 android/fastlane/play-store-key.json
 
-# Play release notes, written per build by the upload_beta lane so they always
+# Play release notes, written per build by the upload_internal lane so they always
 # match the AAB being uploaded rather than whatever was last committed.
 android/fastlane/metadata/
 
@@ -82,3 +82,6 @@ venv/
 scripts/sample_data/
 # Swift Package Manager workspace state — project uses CocoaPods (SPM disabled)
 **/xcshareddata/swiftpm/
+
+# Test bundles, generated per run by scripts/bundle_tests.py (issue #2500)
+test/.bundles/

@@ -1,9 +1,11 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
@@ -89,10 +91,10 @@ void main() {
       final diveBuddies = await repository.getBuddiesForDive('dive1');
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
-      expect(diveBuddies.first.role.id, DiveRole.buddyId);
+      expect(diveBuddies.first.primaryRole.id, DiveRole.buddyId);
     });
 
-    test('collision: keeps higher-ranked role (instructor > buddy)', () async {
+    test('collision: keeps both buddies\' roles (#1221)', () async {
       final buddyA = await repository.createBuddy(
         domain.Buddy(
           id: '',
@@ -139,7 +141,10 @@ void main() {
       final diveBuddies = await repository.getBuddiesForDive('dive1');
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
-      expect(diveBuddies.first.role.id, DiveRole.instructorId);
+      expect(diveBuddies.first.roleIds, [
+        DiveRole.instructorId,
+        DiveRole.buddyId,
+      ]);
 
       expect(result!.snapshot!.modifiedDiveBuddyEntries.length, 1);
       expect(result.snapshot!.modifiedDiveBuddyEntries.first.role, 'buddy');
@@ -206,7 +211,11 @@ void main() {
       final diveBuddies = await repository.getBuddiesForDive('dive1');
       expect(diveBuddies.length, 1);
       expect(diveBuddies.first.buddy.id, buddyA.id);
-      expect(diveBuddies.first.role.id, DiveRole.instructorId);
+      expect(diveBuddies.first.roleIds, [
+        DiveRole.instructorId,
+        DiveRole.diveMasterId,
+        DiveRole.buddyId,
+      ]);
     });
 
     test('merges buddy with no dives', () async {
@@ -240,6 +249,103 @@ void main() {
     });
   });
 
+  group('mergeBuddies - role sets (#1221)', () {
+    Future<domain.Buddy> buddy(String name) => repository.createBuddy(
+      domain.Buddy(
+        id: '',
+        name: name,
+        notes: '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    Future<void> dive(String id) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await database
+          .into(database.dives)
+          .insert(
+            db.DivesCompanion.insert(
+              id: id,
+              diveDateTime: now,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    }
+
+    test('a shared dive keeps the union of both buddies\' roles', () async {
+      final a = await buddy('Alice');
+      final b = await buddy('Alice S');
+      await dive('d1');
+      await repository.addBuddyToDiveWithRoles('d1', a.id, const [
+        DiveRole.diveMasterId,
+      ]);
+      await repository.addBuddyToDiveWithRoles('d1', b.id, const [
+        DiveRole.diveGuideId,
+      ]);
+
+      await repository.mergeBuddies(mergedBuddy: a, buddyIds: [a.id, b.id]);
+
+      final rows = await repository.getBuddiesForDive('d1');
+      expect(rows.single.buddy.id, a.id);
+      expect(rows.single.roleIds, [
+        DiveRole.diveGuideId,
+        DiveRole.diveMasterId,
+      ]);
+      final orphans = await (database.select(
+        database.diveBuddyRoles,
+      )..where((t) => t.buddyId.equals(b.id))).get();
+      expect(orphans, isEmpty);
+    });
+
+    test('a dive only the duplicate was on moves its whole set', () async {
+      final a = await buddy('Alice');
+      final b = await buddy('Alice S');
+      await dive('d2');
+      await repository.addBuddyToDiveWithRoles('d2', b.id, const [
+        DiveRole.instructorId,
+        DiveRole.safetyDiverId,
+      ]);
+
+      await repository.mergeBuddies(mergedBuddy: a, buddyIds: [a.id, b.id]);
+
+      final rows = await repository.getBuddiesForDive('d2');
+      expect(rows.single.buddy.id, a.id);
+      expect(rows.single.roleIds, [
+        DiveRole.instructorId,
+        DiveRole.safetyDiverId,
+      ]);
+    });
+
+    test('undo restores every role row', () async {
+      final a = await buddy('Alice');
+      final b = await buddy('Alice S');
+      await dive('d1');
+      await dive('d2');
+      await repository.addBuddyToDiveWithRoles('d1', a.id, const [
+        DiveRole.diveMasterId,
+      ]);
+      await repository.addBuddyToDiveWithRoles('d1', b.id, const [
+        DiveRole.diveGuideId,
+      ]);
+      await repository.addBuddyToDiveWithRoles('d2', b.id, const [
+        DiveRole.instructorId,
+        DiveRole.safetyDiverId,
+      ]);
+      final roles = DiveRoleLinkRepository();
+      final before = await roles.buddyRoleIdsForDives(['d1', 'd2']);
+
+      final result = await repository.mergeBuddies(
+        mergedBuddy: a,
+        buddyIds: [a.id, b.id],
+      );
+      await repository.undoMerge(result!.snapshot!);
+
+      expect(await roles.buddyRoleIdsForDives(['d1', 'd2']), before);
+    });
+  });
+
   group('mergeBuddies - certifications (issue #395)', () {
     test(
       'merge re-points certifications.instructorId to the survivor',
@@ -268,17 +374,27 @@ void main() {
           cert_domain.Certification(
             id: '',
             name: 'Open Water Diver',
-            agency: CertificationAgency.padi,
+            agency: CertificationAgency.padi.name,
             instructorId: buddyB.id,
             notes: '',
             createdAt: now,
             updatedAt: now,
           ),
         );
+        // Backdate the stored row. Create and merge both stamp the wall clock
+        // in milliseconds, and in a warm isolate they land in the same one, so
+        // only an older seed makes "strictly later" hold on every run.
+        final seededUpdatedAt = DateTime.utc(2020).millisecondsSinceEpoch;
+        await (database.update(
+          database.certifications,
+        )..where((t) => t.id.equals(cert.id))).write(
+          db.CertificationsCompanion(updatedAt: Value(seededUpdatedAt)),
+        );
 
         final preMergeRow = await (database.select(
           database.certifications,
         )..where((t) => t.id.equals(cert.id))).getSingle();
+        expect(preMergeRow.updatedAt, seededUpdatedAt);
 
         await repository.mergeBuddies(
           mergedBuddy: buddyA.copyWith(name: 'Alice'),
@@ -399,7 +515,7 @@ void main() {
         cert_domain.Certification(
           id: '',
           name: 'Open Water Diver',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           instructorId: buddyB.id,
           notes: '',
           createdAt: now,

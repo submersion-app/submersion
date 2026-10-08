@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import '../../../helpers/fake_hosts.dart';
 
 /// The provider watches settingsProvider for the terrain appearance and
 /// depth unit; the real notifier needs SharedPreferences, so tests swap in
@@ -35,6 +36,12 @@ BathymetryGrid smallGrid() => BathymetryGrid(
 );
 
 void main() {
+  // The code under test calls the OSM tile server; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('tile.openstreetmap.org');
+  });
+
   const siteId = 'site-1';
   const withGps = DiveSite(
     id: siteId,

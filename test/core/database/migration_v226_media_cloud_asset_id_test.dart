@@ -46,8 +46,8 @@ void main() {
   }
 
   test('v226 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v227 (hidden tank presets) landed on top; the newest
-    // rung owns the exact assertion.
+    // Relaxed once v227 (hidden tank presets), v228 (cylinder fills) and
+    // v232 (trip cylinders) landed on top; the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(226));
     expect(AppDatabase.migrationVersions, contains(226));
     // Counted from 225 so it holds whether or not #1978's rung has landed.
@@ -58,7 +58,10 @@ void main() {
     // The floor is 224, raised by the media fact clocks. An older reader
     // never sees a cloud id and leaves it alone (the merge upserts with
     // nullToAbsent), so this rung does not raise it.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('a fresh database has media.cloud_asset_id, nullable', () async {

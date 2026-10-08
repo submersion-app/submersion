@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/garmin_connect/garmin_connect_client.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 
@@ -13,12 +16,27 @@ class GarminParsedDive {
     this.deviceModel,
     this.serialNumber,
     this.firmwareVersion,
+    this.notes,
+    this.weightKg,
+    this.profileMissing = false,
   });
 
   final DownloadedDive dive;
   final String? deviceModel;
   final String? serialNumber;
   final String? firmwareVersion;
+
+  /// The notes the diver wrote in Connect. Kept beside [dive] rather than on
+  /// it because [DownloadedDive] has no notes field: a dive computer never
+  /// reports any (issue #2410).
+  final String? notes;
+
+  /// The dive weight the diver entered in Connect, in kilograms.
+  final double? weightKg;
+
+  /// Whether the dive came from its Connect summary because Connect had no
+  /// FIT file for it, so it has no depth profile (issue #2410).
+  final bool profileMissing;
 }
 
 /// Converts an [ImportedDive] (as produced by the existing
@@ -31,11 +49,48 @@ class GarminParsedDive {
 class GarminDiveMapper {
   const GarminDiveMapper._();
 
+  /// Builds a dive from [summary] alone, for an activity Connect has no FIT
+  /// file for, such as one entered by hand (issue #2410). The summary gives
+  /// the date, duration, max depth and positions; there is no profile, and
+  /// the device is plain "Garmin", since only a FIT file names the watch.
+  static GarminParsedDive fromSummary(GarminActivitySummary summary) {
+    final hasEntry = summary.latitude != null && summary.longitude != null;
+    final hasExit =
+        summary.exitLatitude != null && summary.exitLongitude != null;
+
+    final dive = DownloadedDive(
+      // Dive times are wall-clock-as-UTC; startTime is a real instant and
+      // only stands in when Connect gave no local start.
+      startTime: summary.localStartTime ?? summary.startTime,
+      durationSeconds: summary.durationSeconds ?? 0,
+      maxDepth: summary.maxDepth ?? 0,
+      entryLatitude: hasEntry ? summary.latitude : null,
+      entryLongitude: hasEntry ? summary.longitude : null,
+      exitLatitude: hasExit ? summary.exitLatitude : null,
+      exitLongitude: hasExit ? summary.exitLongitude : null,
+      profile: const [],
+      // The same fingerprint the FIT route uses, so a re-import finds it.
+      rawFingerprint: _fingerprintFor(summary.activityId),
+    );
+
+    return GarminParsedDive(
+      dive: dive,
+      deviceModel: 'Garmin',
+      notes: summary.notes,
+      weightKg: summary.weightKg,
+      profileMissing: true,
+    );
+  }
+
   static GarminParsedDive map(
     ImportedDive imported, {
     required int activityId,
     double? fallbackLatitude,
     double? fallbackLongitude,
+    double? fallbackExitLatitude,
+    double? fallbackExitLongitude,
+    String? notes,
+    double? weightKg,
   }) {
     final tanks = _mapTanks(imported.tanks);
     final gasSwitches = _mapGasSwitches(imported.gasSwitches);
@@ -59,6 +114,19 @@ class GarminDiveMapper {
         ? imported.longitude
         : (hasFallbackEntryPosition ? fallbackLongitude : null);
 
+    // The exit position works the same way: the FIT file's own end position
+    // needs a fix after surfacing, and Connect's end estimate covers the gap.
+    final hasFitExitPosition =
+        imported.exitLatitude != null && imported.exitLongitude != null;
+    final hasFallbackExitPosition =
+        fallbackExitLatitude != null && fallbackExitLongitude != null;
+    final exitLatitude = hasFitExitPosition
+        ? imported.exitLatitude
+        : (hasFallbackExitPosition ? fallbackExitLatitude : null);
+    final exitLongitude = hasFitExitPosition
+        ? imported.exitLongitude
+        : (hasFallbackExitPosition ? fallbackExitLongitude : null);
+
     final dive = DownloadedDive(
       diveNumber: imported.diveNumber,
       startTime: imported.startTime,
@@ -69,8 +137,8 @@ class GarminDiveMapper {
       maxTemperature: imported.maxTemperature,
       entryLatitude: entryLatitude,
       entryLongitude: entryLongitude,
-      exitLatitude: imported.exitLatitude,
-      exitLongitude: imported.exitLongitude,
+      exitLatitude: exitLatitude,
+      exitLongitude: exitLongitude,
       profile: profile,
       tanks: tanks,
       gasSwitches: gasSwitches,
@@ -84,6 +152,14 @@ class GarminDiveMapper {
           : null,
       gfLow: imported.gfLow,
       gfHigh: imported.gfHigh,
+      // The FIT dive_summary and dive_settings values a FIT file import keeps
+      // (issue #1798). Without them the import derives a shorter bottom time
+      // from the profile and drops the rest.
+      bottomTimeSeconds: imported.bottomTimeSeconds,
+      surfaceIntervalSeconds: imported.surfaceIntervalSeconds,
+      waterType: _waterType(imported.waterType),
+      cnsEnd: imported.cnsEnd,
+      otu: imported.otu,
     );
 
     return GarminParsedDive(
@@ -91,7 +167,19 @@ class GarminDiveMapper {
       deviceModel: imported.computerModel,
       serialNumber: imported.computerSerial,
       firmwareVersion: imported.computerFirmware,
+      notes: notes,
+      weightKg: weightKg,
     );
+  }
+
+  /// Maps FIT's water type name onto the log's [WaterType]. FIT's
+  /// `en13319` (the EN 13319 standard density) and `custom` have no log
+  /// equivalent and stay unset, as they do on a FIT file import.
+  static WaterType? _waterType(String? fitName) {
+    for (final type in WaterType.values) {
+      if (type.name == fitName) return type;
+    }
+    return null;
   }
 
   static Uint8List _fingerprintFor(int activityId) =>
@@ -124,20 +212,15 @@ class GarminDiveMapper {
     ];
   }
 
-  /// Maps profile samples 1:1, except a sample with more than one
-  /// simultaneous tank-pressure reading (multiple air-integration
-  /// transmitters): the first reading rides on the main sample, and every
-  /// additional reading becomes an extra minimal sample at the same
-  /// timestamp/depth. [ProfileSample] carries only one pressure/tankIndex
-  /// pair per row, so this mirrors how multi-transmitter dive-computer
-  /// downloads are represented elsewhere in this app (see
-  /// SuuntoDiveParser._buildProfile, which documents the same convention).
+  /// Maps profile samples 1:1. A sample with more than one simultaneous
+  /// tank-pressure reading (multiple air-integration transmitters) carries
+  /// them all in [ProfileSample.tankPressures] (issue #1223), as libdivecomputer
+  /// downloads and Suunto Cloud imports do; a row per extra reading would
+  /// repeat the sample's timestamp in the stored profile. The single
+  /// pressure/tankIndex pair holds the last reading, as that field documents.
   static List<ProfileSample> _mapProfile(List<ImportedProfileSample> profile) {
-    final result = <ProfileSample>[];
-    for (final sample in profile) {
-      final pressures = sample.tankPressures ?? const [];
-
-      result.add(
+    return [
+      for (final sample in profile)
         ProfileSample(
           timeSeconds: sample.timeSeconds,
           depth: sample.depth,
@@ -147,22 +230,27 @@ class GarminDiveMapper {
           ndl: sample.ndlSeconds,
           tts: sample.ttsSeconds,
           ceiling: sample.ceiling,
-          pressure: pressures.isEmpty ? null : pressures.first.pressureBar,
-          tankIndex: pressures.isEmpty ? null : pressures.first.tankIndex,
+          pressure: sample.tankPressures?.lastOrNull?.pressureBar,
+          tankIndex: sample.tankPressures?.lastOrNull?.tankIndex,
+          tankPressures: _byTankIndex(sample.tankPressures),
         ),
-      );
+    ];
+  }
 
-      for (final extra in pressures.skip(1)) {
-        result.add(
-          ProfileSample(
-            timeSeconds: sample.timeSeconds,
-            depth: sample.depth,
-            pressure: extra.pressureBar,
-            tankIndex: extra.tankIndex,
-          ),
-        );
-      }
+  /// [readings] as a list indexed by tank index, null where a tank has none,
+  /// or null when there are fewer than two readings to hold. The FIT parser
+  /// buckets readings by whole second, so one transmitter can land twice in
+  /// a sample; its tank then holds the later reading, as the single pair
+  /// does.
+  static List<double?>? _byTankIndex(
+    List<ImportedTankPressureSample>? readings,
+  ) {
+    if (readings == null || readings.length < 2) return null;
+    final highest = readings.map((r) => r.tankIndex).reduce(math.max);
+    final byTank = List<double?>.filled(highest + 1, null);
+    for (final reading in readings) {
+      byTank[reading.tankIndex] = reading.pressureBar;
     }
-    return result;
+    return List.unmodifiable(byTank);
   }
 }

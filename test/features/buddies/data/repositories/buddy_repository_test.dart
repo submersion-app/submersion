@@ -27,8 +27,8 @@ void main() {
     String name = 'Test Buddy',
     String? email,
     String? phone,
-    CertificationLevel? certificationLevel,
-    CertificationAgency? certificationAgency,
+    String? certificationLevel,
+    String? certificationAgency,
     String notes = '',
   }) {
     final now = DateTime.now();
@@ -160,8 +160,8 @@ void main() {
         // Setting cert fields on the entity is now ignored by updateBuddy;
         // buddy certs are managed through CertificationRepository.
         final updatedBuddy = buddy.copyWith(
-          certificationLevel: CertificationLevel.rescue,
-          certificationAgency: CertificationAgency.ssi,
+          certificationLevel: CertificationLevel.rescue.name,
+          certificationAgency: CertificationAgency.ssi.name,
         );
         await repository.updateBuddy(updatedBuddy);
         final result = await repository.getBuddyById(buddy.id);
@@ -286,6 +286,27 @@ void main() {
 
         expect(byId['frequent'], equals(2));
         expect(byId['rare'], equals(1));
+      });
+
+      test('usual role counts every role a buddy held (#1221)', () async {
+        await insertDive('d1');
+        await insertDive('d2');
+        final ana = await repository.createBuddy(
+          createTestBuddy(id: 'ana', name: 'Ana'),
+        );
+        await repository.addBuddyToDiveWithRoles('d1', ana.id, const [
+          DiveRole.diveGuideId,
+          DiveRole.diveMasterId,
+        ]);
+        await repository.addBuddyToDiveWithRoles('d2', ana.id, const [
+          DiveRole.diveMasterId,
+        ]);
+
+        final results = await repository.getAllBuddiesWithDiveCount();
+        final row = results.firstWhere((r) => r.buddy.id == 'ana');
+
+        expect(row.usualRoleId, DiveRole.diveMasterId);
+        expect(row.diveCount, 2);
       });
 
       test('carries the isFavorite flag through', () async {
@@ -442,7 +463,7 @@ void main() {
         final guidoLink = result['d1']!.firstWhere(
           (b) => b.buddy.name == 'Guido',
         );
-        expect(guidoLink.role.id, DiveRole.diveMasterId);
+        expect(guidoLink.primaryRole.id, DiveRole.diveMasterId);
         expect(result['d2']!.single.buddy.name, 'Alice');
       });
 
@@ -546,9 +567,9 @@ void main() {
         await repository.addBuddyToDive('d1', buddy.id, DiveRole.diveGuideId);
 
         final result = await repository.getBuddiesForDive('d1');
-        expect(result.single.role.id, DiveRole.diveGuideId);
-        expect(result.single.role.isBuiltIn, isTrue);
-        expect(result.single.role.name, 'Dive Guide');
+        expect(result.single.primaryRole.id, DiveRole.diveGuideId);
+        expect(result.single.primaryRole.isBuiltIn, isTrue);
+        expect(result.single.primaryRole.name, 'Dive Guide');
       });
 
       test('getBuddiesForDive resolves custom roles and keeps unknown slugs '
@@ -564,8 +585,8 @@ void main() {
         await repository.addBuddyToDive('d1', buddy.id, custom.id);
 
         var result = await repository.getBuddiesForDive('d1');
-        expect(result.single.role.name, 'Hekkensluiter');
-        expect(result.single.role.isBuiltIn, isFalse);
+        expect(result.single.primaryRole.name, 'Hekkensluiter');
+        expect(result.single.primaryRole.isBuiltIn, isFalse);
 
         // Unknown slug: written directly, must surface as synthetic, not
         // silently coerce to Buddy.
@@ -574,8 +595,8 @@ void main() {
           "UPDATE dive_buddies SET role = 'mysterySlug' WHERE dive_id = 'd1'",
         );
         result = await repository.getBuddiesForDive('d1');
-        expect(result.single.role.id, 'mysterySlug');
-        expect(result.single.role.name, 'mysterySlug');
+        expect(result.single.primaryRole.id, 'mysterySlug');
+        expect(result.single.primaryRole.name, 'mysterySlug');
       });
 
       test(
@@ -602,19 +623,21 @@ void main() {
           await repository.addBuddyToDive('d-own', buddy.id, custom.id);
           await repository.addBuddyToDive('d-other', buddy.id, custom.id);
 
-          final own = (await repository.getBuddiesForDive('d-own')).single.role;
+          final own = (await repository.getBuddiesForDive(
+            'd-own',
+          )).single.primaryRole;
           expect(own.name, 'Hekkensluiter');
           final other = (await repository.getBuddiesForDive(
             'd-other',
-          )).single.role;
+          )).single.primaryRole;
           expect((other.id, other.name), (custom.id, custom.id));
 
           final batch = await repository.getBuddiesForDives([
             'd-own',
             'd-other',
           ]);
-          expect(batch['d-own']!.single.role.name, 'Hekkensluiter');
-          expect(batch['d-other']!.single.role.name, custom.id);
+          expect(batch['d-own']!.single.primaryRole.name, 'Hekkensluiter');
+          expect(batch['d-other']!.single.primaryRole.name, custom.id);
         },
       );
 
@@ -625,7 +648,7 @@ void main() {
           final buddy = await repository.createBuddy(createTestBuddy(id: 'b1'));
 
           await repository.setBuddiesForDive('d1', [
-            BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy()),
+            BuddyWithRole(buddy: buddy, roles: [DiveRole.builtInBuddy()]),
           ]);
 
           final db = DatabaseService.instance.database;

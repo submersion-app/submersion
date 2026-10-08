@@ -29,6 +29,7 @@ void main() {
     ({int serial, Set<String> ids})? ensureOn,
     List<BulkMembershipItem> rows = items,
     bool absentStartsChecked = true,
+    Widget? Function(BulkMembershipItem item)? detailBuilder,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -43,6 +44,7 @@ void main() {
             onChanged: onChanged ?? (_) {},
             ensureOn: ensureOn,
             absentStartsChecked: absentStartsChecked,
+            detailBuilder: detailBuilder,
           ),
         ),
       ),
@@ -55,6 +57,33 @@ void main() {
     expect(find.text('on all 3'), findsOneWidget); // a
     expect(find.text('on 2 of 3'), findsOneWidget); // b
     expect(find.text('adding to all 3'), findsOneWidget); // c (just added)
+  });
+
+  // A detail wider than the row (a long "Part of" chip) must flow under the
+  // label, never beside it, or it squeezes the label and status line into a
+  // sliver that wraps one character per line (#2276).
+  testWidgets('a detail renders under the status line at full width', (
+    tester,
+  ) async {
+    final long = 'Part of ${'Camera Assembly / Wide Lens / Tray ' * 4}';
+    await pumpEditor(
+      tester,
+      detailBuilder: (item) => item.id == 'c' ? Text(long) : null,
+    );
+
+    final detail = find.text(long);
+    expect(detail, findsOneWidget);
+    expect(
+      tester.getTopLeft(detail).dy,
+      greaterThanOrEqualTo(
+        tester.getBottomLeft(find.text('adding to all 3')).dy,
+      ),
+    );
+    // The rows with and without a detail lay their label out alike.
+    expect(
+      tester.getSize(find.text('Camera')).height,
+      tester.getSize(find.text('Regulator')).height,
+    );
   });
 
   testWidgets('shows the add label and empty wording the caller supplies', (

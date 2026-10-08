@@ -2,6 +2,8 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -136,6 +138,27 @@ void main() {
       expect(result.buddy, 0);
       expect(result.notRecorded, 1);
     });
+
+    test(
+      'a role set written through the junctions keeps Solo exact (#1221)',
+      () async {
+        await insertDive('solo-only');
+        await insertDive('solo-mixed');
+        final roles = DiveRoleLinkRepository();
+        await roles.writeDiverRoles('solo-only', [DiveRole.soloId]);
+        // Solo beside another role is dropped on write, so this dive is not
+        // solo: it is a dive with a role but no buddy, i.e. not recorded.
+        await roles.writeDiverRoles('solo-mixed', [
+          DiveRole.soloId,
+          DiveRole.instructorId,
+        ]);
+
+        final result = await repository.getSoloVsBuddyCount();
+
+        expect(result.solo, 1);
+        expect(result.notRecorded, 1);
+      },
+    );
 
     test('counts a dive whose own role is Solo as solo', () async {
       await insertDive('solo', diverRole: 'solo');

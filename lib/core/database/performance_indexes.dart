@@ -4,7 +4,7 @@
 /// blocks, so a database created fresh at a recent schema version -- or
 /// arriving via restore or sync-adopt -- never got them and every child-table
 /// lookup degraded to a full table scan (issue: large-DB performance,
-/// docs/superpowers/specs/2026-07-10-large-db-performance-design.md).
+/// docs/design/specs/2026-07-10-large-db-performance-design.md).
 ///
 /// This list is asserted idempotently on every open from
 /// AppDatabase.beforeOpen. Keep it in sync: any migration that adds a
@@ -45,7 +45,7 @@ const List<PerformanceIndex> kPerformanceIndexes = [
   // evaluated in the WS0 baseline and DROPPED: the planner never selected
   // it (sorting a ~1k-row candidate set beats maintaining expression-index
   // order), so it would cost write amplification for nothing. Evidence in
-  // docs/superpowers/specs/2026-07-10-large-db-performance-findings.md.
+  // docs/design/specs/2026-07-10-large-db-performance-findings.md.
   (
     name: 'idx_dives_site_id',
     ddl: 'CREATE INDEX IF NOT EXISTS idx_dives_site_id ON dives(site_id)',
@@ -187,11 +187,48 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_equipment_attributes_key_num '
         'ON equipment_attributes(attr_key, value_num)',
   ),
+  // Passport id lookup (issue #2334): a scanned tag resolves to the one
+  // cylinder holding that value under attr_key = 'passport_id'.
+  (
+    name: 'idx_equipment_attributes_key_text',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_attributes_key_text '
+        'ON equipment_attributes(attr_key, value_text)',
+  ),
   (
     name: 'idx_equipment_components_parent',
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_equipment_components_parent '
         'ON equipment_components(parent_equipment_id)',
+  ),
+  // Visibility subquery "items shared with this diver" (v234, issue #2046).
+  (
+    name: 'idx_equipment_shares_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_shares_diver '
+        'ON equipment_shares(diver_id)',
+  ),
+  // An item's history, oldest first (v234, issue #2046).
+  (
+    name: 'idx_equipment_ownership_events_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_ownership_events_equipment '
+        'ON equipment_ownership_events(equipment_id, occurred_at)',
+  ),
+  // An item's location history, newest first, and its current location
+  // (v268).
+  (
+    name: 'idx_equipment_location_moves_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_location_moves_equipment '
+        'ON equipment_location_moves(equipment_id, moved_at)',
+  ),
+  // "Is this place used anywhere", for archive versus delete (v268).
+  (
+    name: 'idx_equipment_location_moves_location',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_location_moves_location '
+        'ON equipment_location_moves(location_id)',
   ),
   (
     name: 'idx_equipment_components_component',
@@ -377,6 +414,18 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'ON dive_plan_segments(plan_id)',
   ),
   (
+    name: 'idx_dive_plan_mission_legs_plan_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_plan_mission_legs_plan_id '
+        'ON dive_plan_mission_legs(plan_id)',
+  ),
+  (
+    name: 'idx_dive_plan_mission_members_plan_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_plan_mission_members_plan_id '
+        'ON dive_plan_mission_members(plan_id)',
+  ),
+  (
     name: 'idx_gps_track_points_local_track_id',
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_gps_track_points_local_track_id '
@@ -395,6 +444,55 @@ const List<PerformanceIndex> kPerformanceIndexes = [
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_dive_plan_equipment_plan_id '
         'ON dive_plan_equipment(plan_id)',
+  ),
+  // Cylinder fill history (v228, issue #2334): newest fill per passport, and
+  // the fills of one gear row.
+  (
+    name: 'idx_cylinder_fills_passport',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_passport '
+        'ON cylinder_fills(passport_id, filled_at)',
+  ),
+  (
+    name: 'idx_cylinder_fills_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
+        'ON cylinder_fills(equipment_id)',
+  ),
+  // Saved Connections maps and the sightings dive join (v235, issue #2322).
+  (
+    name: 'idx_connection_maps_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_connection_maps_diver '
+        'ON connection_maps(diver_id, sort_order)',
+  ),
+  (
+    name: 'idx_sightings_dive_id',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_sightings_dive_id '
+        'ON sightings(dive_id)',
+  ),
+  // Saved queries (v238, issue #2365): one diver's queries for one subject,
+  // in display order.
+  (
+    name: 'idx_saved_queries_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_saved_queries_diver '
+        'ON saved_queries(diver_id, subject, sort_order)',
+  ),
+  // A passport's trips: packed links by item (v248, issue #2338).
+  (
+    name: 'idx_trip_equipment_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_trip_equipment_equipment '
+        'ON trip_equipment(equipment_id)',
+  ),
+  // A passport's trips: trip gas slots by item (issue #2338).
+  (
+    name: 'idx_trip_cylinders_equipment',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_trip_cylinders_equipment '
+        'ON trip_cylinders(equipment_id)',
   ),
 ];
 

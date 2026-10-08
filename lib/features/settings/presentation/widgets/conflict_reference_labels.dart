@@ -25,6 +25,22 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_instructor;
     case 'signerId':
       return l10n.settings_conflict_ref_signer;
+    case 'diverRole':
+      return l10n.settings_conflict_ref_yourRole;
+    case 'regulatorEquipmentId':
+      return l10n.settings_conflict_ref_regulator;
+    case 'viaEquipmentId':
+      return l10n.settings_conflict_ref_attachedThrough;
+    case 'viaSetId':
+      return l10n.settings_conflict_ref_appliedSet;
+    case 'parentEquipmentId':
+      return l10n.settings_conflict_ref_installedIn;
+    case 'componentEquipmentId':
+      return l10n.settings_conflict_ref_component;
+    case 'transmitterEquipmentId':
+      return l10n.settings_conflict_ref_transmitter;
+    case 'linkedDiverId':
+      return l10n.settings_conflict_ref_samePerson;
   }
   switch (reference.targetType) {
     case 'dives':
@@ -35,6 +51,10 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_tag;
     case 'diveTypes':
       return l10n.settings_conflict_ref_diveType;
+    case 'diveRoles':
+      return l10n.settings_conflict_ref_diveRole;
+    case 'weightPresets':
+      return l10n.settings_conflict_ref_weightPreset;
     case 'siteTypes':
       return l10n.settings_conflict_ref_siteType;
     case 'divers':
@@ -61,6 +81,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_divePlan;
     case 'trips':
       return l10n.settings_conflict_ref_trip;
+    case 'tripCylinders':
+      return l10n.settings_conflict_ref_tripCylinder;
     case 'diveCenters':
       return l10n.settings_conflict_ref_diveCenter;
     case 'courses':
@@ -71,6 +93,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_courseRequirement;
     case 'serviceKinds':
       return l10n.settings_conflict_ref_serviceKind;
+    case 'equipmentLocations':
+      return l10n.settings_conflict_ref_equipmentLocation;
     case 'species':
       return l10n.settings_conflict_ref_species;
     case 'sightings':

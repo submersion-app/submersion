@@ -123,6 +123,50 @@ void main() {
       },
     );
 
+    // Issue #2410: the notes the diver wrote in the Suunto app ride on the
+    // workout as `description`, never in the dive export itself.
+    test('reads the workout notes from description', () async {
+      final client = SuuntoCloudClient(
+        httpClient: MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'payload': [
+                {
+                  'key': 'noted',
+                  'activityId': 78,
+                  'startTime': 3000,
+                  'description': '  Turtle at the mooring\n',
+                },
+                {
+                  'key': 'blank',
+                  'activityId': 78,
+                  'startTime': 2000,
+                  'description': '',
+                },
+                {
+                  'key': 'null',
+                  'activityId': 78,
+                  'startTime': 1500,
+                  'description': null,
+                },
+                {'key': 'absent', 'activityId': 78, 'startTime': 1000},
+              ],
+            }),
+            200,
+          );
+        }),
+      )..sessionKey = 'sk-abc';
+
+      final dives = await client.listDives();
+
+      expect(dives.map((d) => d.notes).toList(), [
+        'Turtle at the mooring',
+        null,
+        null,
+        null,
+      ]);
+    });
+
     test('paginates until a short page is returned', () async {
       final offsetsSeen = <int>[];
       final client = SuuntoCloudClient(

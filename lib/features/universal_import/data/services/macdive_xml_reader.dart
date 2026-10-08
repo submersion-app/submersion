@@ -1,6 +1,8 @@
 import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/utils/two_digit_year.dart';
+import 'package:submersion/features/universal_import/data/services/macdive_start_seconds.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_unit_converter.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_xml_models.dart';
 
@@ -18,6 +20,7 @@ class MacDiveXmlReader {
   const MacDiveXmlReader._();
 
   static final _dateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
+  static final _twoDigitYear = RegExp(r'^\s*\d{2}-');
 
   /// Parse a MacDive XML string into a logbook.
   static MacDiveXmlLogbook parse(String content) {
@@ -54,9 +57,13 @@ class MacDiveXmlReader {
   // ---- dive ----
 
   static MacDiveXmlDive _parseDive(XmlElement el, MacDiveUnitConverter c) {
+    final identifier = _text(el, 'identifier');
+    final date = _parseDate(_text(el, 'date'));
     return MacDiveXmlDive(
-      identifier: _text(el, 'identifier'),
-      date: _parseDate(_text(el, 'date')),
+      identifier: identifier,
+      // <date> is written to the minute; <identifier> keeps the seconds
+      // (#2509).
+      date: date == null ? null : MacDiveStartSeconds.restore(date, identifier),
       diveNumber: _int(_text(el, 'diveNumber')),
       repetitiveDive: _int(_text(el, 'repetitiveDive')),
       rating: _double(_text(el, 'rating')),
@@ -257,7 +264,15 @@ class MacDiveXmlReader {
     // device's timezone changes (travel, DST). Matches the Subsurface XML
     // parser's convention (see SubsurfaceXmlParser._parseDive).
     try {
-      return _asUtcWallTime(_dateFormat.parseStrict(raw));
+      final wall = _asUtcWallTime(_dateFormat.parseStrict(raw));
+      // intl does not hold `yyyy` to four digits: `91-06-01` would be the
+      // year 91, which the Clock & timezone check reports as before 1950
+      // (#2617).
+      return _twoDigitYear.hasMatch(raw)
+          ? wall.copyWith(
+              year: expandTwoDigitYear(wall.year, now: DateTime.now()),
+            )
+          : wall;
     } catch (_) {
       final parsed = DateTime.tryParse(raw.replaceFirst(' ', 'T'));
       return parsed == null ? null : _asUtcWallTime(parsed);

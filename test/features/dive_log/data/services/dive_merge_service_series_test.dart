@@ -186,6 +186,40 @@ void main() {
     expect(first.sourceId, isNotNull);
   });
 
+  test('a series naming a source outside a multi-source segment stays '
+      'unattributed', () async {
+    // Issue #2440: segment a holds two sources, and one of its series points
+    // at a source that is neither of them. Nothing says which of a's sources
+    // recorded it, so it is as unknown as an unattributed series and is not
+    // handed to a's primary, as consolidation already does.
+    await createDive('a', runtimeMin: 10, depth: 20);
+    await createDive('b', runtimeMin: 10, depth: 20);
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: 'src-a2',
+            diveId: 'a',
+            importedAt: DateTime.utc(2026, 7, 1),
+            createdAt: DateTime.utc(2026, 7, 1),
+          ),
+        );
+    await tankSeries.insertSeries(
+      diveId: 'a',
+      tankId: 'tank-a',
+      sourceId: 'src-elsewhere',
+      samples: const [TankPressureSample(timestamp: 120, pressure: 170.0)],
+      now: 1000,
+    );
+
+    final outcome = await service.apply(['a', 'b']);
+
+    final moved = (await tankSeries.getSeriesForDive(
+      outcome.mergedDive.id,
+    )).singleWhere((s) => s.samples.single.pressure == 170.0);
+    expect(moved.sourceId, isNull);
+  });
+
   test('apply moves tank pressure series onto the merged tanks with the '
       'segment offset', () async {
     await createDive('a', runtimeMin: 10, depth: 20);

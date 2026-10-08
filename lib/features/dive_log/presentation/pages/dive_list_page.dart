@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_field.dart';
-import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -21,6 +21,7 @@ import 'package:submersion/features/data_quality/presentation/providers/data_qua
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
@@ -28,7 +29,6 @@ import 'package:submersion/features/weather/presentation/widgets/fetch_all_condi
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
@@ -44,8 +44,8 @@ import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.d
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
-import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -69,7 +69,8 @@ class DiveListPage extends ConsumerStatefulWidget {
   ConsumerState<DiveListPage> createState() => _DiveListPageState();
 }
 
-class _DiveListPageState extends ConsumerState<DiveListPage> {
+class _DiveListPageState extends ConsumerState<DiveListPage>
+    with TableSelectionOwner {
   /// Tracks the selected dive ID for mobile map view info card
   String? _mobileMapSelectedDiveId;
 
@@ -163,6 +164,8 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       label: Text(context.l10n.diveLog_listPage_fab_logDive),
     );
 
+    resetTableSelectionOffTable(diveListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane, map, and profile panel.
     final viewMode = ref.watch(diveListViewModeProvider);
@@ -172,7 +175,14 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
       return TableModeLayout(
         sectionKey: 'dives',
         appBarTitle: context.l10n.nav_dives,
-        tableContent: const DiveListContent(showAppBar: false),
+        appBarSubtitle: diveCountSubtitle(
+          context,
+          ref.watch(diveTableCountProvider),
+        ),
+        tableContent: DiveListContent(
+          showAppBar: false,
+          selectionController: tableSelection,
+        ),
         detailBuilder: (context, id) {
           final state = GoRouterState.of(context);
           final rawSiteId = state.uri.queryParameters['site'];
@@ -237,33 +247,11 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           onPressed: () => showTableColumnPicker(context),
         ),
         appBarActions: [
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
-            tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
-            onPressed: () {
-              showSearch(context: context, delegate: DiveSearchDelegate(ref));
-            },
-          ),
-          IconButton(
-            icon: Badge(
-              isLabelVisible: ref.watch(diveFilterProvider).hasActiveFilters,
-              child: const Icon(Icons.filter_list, size: 20),
-            ),
-            tooltip: context.l10n.diveLog_listPage_tooltip_filterDives,
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (_) => DiveFilterSheet(ref: ref),
-              );
-            },
-          ),
+          const DiveSearchAction(iconSize: 20),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) {
-              if (value == 'advanced_search') {
-                context.push('/dives/search');
-              } else if (value == 'match_sites') {
+              if (value == 'match_sites') {
                 context.push('/dives/match-sites');
               } else if (value == 'numbering') {
                 showDiveNumberingDialog(context);
@@ -285,6 +273,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
             itemBuilder: (context) {
               final currentMode = ref.read(diveListViewModeProvider);
               return [
+                ...tableSelectItemsEntries(context),
                 ...ListViewModeToggle.menuItems(
                   context,
                   currentMode: currentMode,
@@ -295,16 +284,6 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                   ],
                 ),
                 const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'advanced_search',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.manage_search, size: 20),
-                      const SizedBox(width: 12),
-                      Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
-                    ],
-                  ),
-                ),
                 PopupMenuItem(
                   value: 'numbering',
                   child: Row(
@@ -518,175 +497,6 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
 
     // Mobile: Use standalone list content with full scaffold and FAB
     return DiveListContent(showAppBar: true, floatingActionButton: fab);
-  }
-}
-
-/// Search delegate for diving through dive logs
-class DiveSearchDelegate extends SearchDelegate<String?> {
-  final WidgetRef ref;
-
-  DiveSearchDelegate(this.ref);
-
-  // TODO: l10n - needs context (SearchDelegate.searchFieldLabel has no BuildContext)
-  @override
-  String get searchFieldLabel => 'Search dives...';
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          tooltip: context.l10n.diveLog_listPage_tooltip_clearSearch,
-          onPressed: () => query = '',
-        ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      tooltip: context.l10n.diveLog_listPage_tooltip_back,
-      onPressed: () => close(context, null),
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return _buildSearchResults(context);
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    if (query.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ExcludeSemantics(
-              child: Icon(
-                Icons.search,
-                size: 64,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.diveLog_listPage_searchSuggestion,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    return _buildSearchResults(context);
-  }
-
-  Widget _buildSearchResults(BuildContext context) {
-    return DebouncedSearchResults<DiveSummary>(
-      query: query,
-      watchProvider: (ref, q) => ref.watch(diveSearchProvider(q)),
-      emptyBuilder: (context, q) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ExcludeSemantics(
-              child: Icon(
-                Icons.search_off,
-                size: 64,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n.diveLog_listPage_searchNoResults(q),
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-      dataBuilder: (context, dives) {
-        // The provider over-fetches by one, so more than the display limit
-        // means results were actually truncated (an exact-limit result is
-        // not). Render only the first [kDiveSearchResultLimit] and append the
-        // notice when cut.
-        final truncated = dives.length > kDiveSearchResultLimit;
-        final visible = truncated
-            ? dives.take(kDiveSearchResultLimit).toList(growable: false)
-            : dives;
-
-        final colorAttribute = ref.read(settingsProvider).cardColorAttribute;
-        final colorValues = visible
-            .map((d) => getCardColorValue(d, colorAttribute))
-            .whereType<double>();
-        final minValue = colorValues.isNotEmpty
-            ? colorValues.reduce((a, b) => a < b ? a : b)
-            : null;
-        final maxValue = colorValues.isNotEmpty
-            ? colorValues.reduce((a, b) => a > b ? a : b)
-            : null;
-
-        return ListView.builder(
-          itemCount: visible.length + (truncated ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index >= visible.length) {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  context.l10n.diveLog_listPage_searchLimitNotice(
-                    kDiveSearchResultLimit,
-                  ),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              );
-            }
-            final dive = visible[index];
-            return DiveListTile(
-              diveId: dive.id,
-              diveNumber: dive.diveNumber ?? index + 1,
-              isPlanned: dive.isPlanned,
-              dateTime: dive.dateTime,
-              siteName: dive.siteName,
-              siteLocation: dive.siteLocation,
-              maxDepth: dive.maxDepth,
-              duration: dive.bottomTime,
-              waterTemp: dive.waterTemp,
-              rating: dive.rating,
-              isFavorite: dive.isFavorite,
-              tags: dive.tags,
-              colorValue: getCardColorValue(dive, colorAttribute),
-              minValueInList: minValue,
-              maxValueInList: maxValue,
-              siteLatitude: dive.siteLatitude,
-              siteLongitude: dive.siteLongitude,
-              onTap: () {
-                close(context, dive.id);
-                // PUSH (not go): go() replaces the stack, leaving system back
-                // with nothing to pop -- it would close the app (#647).
-                context.push('/dives/${dive.id}');
-              },
-            );
-          },
-        );
-      },
-      errorBuilder: (context, error) => Center(
-        child: Text(
-          context.l10n.diveLog_listPage_errorLoading(error.toString()),
-        ),
-      ),
-    );
   }
 }
 

@@ -52,11 +52,12 @@ List<EquipmentGroup> arrangeEquipment(
   // grouping, compareTypes runs inside the ITEM comparator, so it is called
   // O(n log n) times across the whole inventory: resolving and lowercasing a
   // label in there allocated two Strings on every one of them, which is
-  // exactly the large-inventory case #1576 is about. At most 28 entries.
+  // exactly the large-inventory case #1576 is about. The shared comparator
+  // caches each label, one entry per type.
   final rankTable = equipmentTypeRankTable(arrangement.typeOrder);
-  final lowerLabels = <EquipmentType, String>{};
-  String lowerLabel(EquipmentType type) =>
-      lowerLabels[type] ??= typeLabel(type).toLowerCase();
+  // Alphabetical, on what the reader actually sees: the same comparator the
+  // type pickers use (#2937), so a header list and a dropdown never disagree.
+  final compareByLabel = equipmentTypeLabelComparator(typeLabel);
 
   int compareTypes(EquipmentType a, EquipmentType b) {
     if (a == b) return 0;
@@ -67,11 +68,7 @@ List<EquipmentGroup> arrangeEquipment(
         rankTable,
       ).compareTo(equipmentTypeRank(b, rankTable));
     } else {
-      // Alphabetical, on what the reader actually sees.
-      final byLabel = lowerLabel(a).compareTo(lowerLabel(b));
-      // Fall back to the stable enum name so two types sharing a translation
-      // still order consistently.
-      ordered = byLabel != 0 ? byLabel : a.name.compareTo(b.name);
+      ordered = compareByLabel(a, b);
     }
     // "Toe to head" (#1486) and "descending by Head to Toe" (#1576). Applied
     // to the type axis only, so reversing the headings leaves the gear inside

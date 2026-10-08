@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 
 /// Dive buddy entity
@@ -16,8 +17,11 @@ class Buddy extends Equatable {
   final String name;
   final String? email;
   final String? phone;
-  final CertificationLevel? certificationLevel;
-  final CertificationAgency? certificationAgency;
+
+  /// The primary certification's level and agency ids (built-in enum names
+  /// or custom ids, issue #690).
+  final String? certificationLevel;
+  final String? certificationAgency;
 
   /// The primary certification's on-screen title -- its "Name on the card"
   /// when that says more than the agency/level pair, otherwise the derived
@@ -51,9 +55,17 @@ class Buddy extends Equatable {
     required this.updatedAt,
   });
 
+  /// The primary level's English name, from the built-in catalog. A custom
+  /// level is named through certificationTitle, which hydration derives.
+  String? get _levelName {
+    final level = certificationLevel;
+    if (level == null) return null;
+    return CertificationCatalog.builtInOnly.level(level).interchangeName;
+  }
+
   /// Display name with certification info
   String get displayName {
-    final cert = certificationTitle ?? certificationLevel?.displayName;
+    final cert = certificationTitle ?? _levelName;
     return cert == null ? name : '$name ($cert)';
   }
 
@@ -62,14 +74,17 @@ class Buddy extends Equatable {
   /// nothing) or already part of the title. Null when the buddy has no
   /// certification. Issue #1303.
   String? get certificationLine {
-    final title = certificationTitle ?? certificationLevel?.displayName;
+    final title = certificationTitle ?? _levelName;
     final agency = certificationAgency;
+    final agencyName = agency == null
+        ? null
+        : CertificationCatalog.builtInOnly.agency(agency).interchangeName;
     if (title == null) {
-      return agency == null || agency == CertificationAgency.other
+      return agency == null || agency == CertificationAgency.other.name
           ? null
-          : agency.displayName;
+          : agencyName;
     }
-    if (agency == null || agency == CertificationAgency.other) {
+    if (agency == null || agency == CertificationAgency.other.name) {
       return title;
     }
     // A stored "Name on the card" often already spells out the agency in its
@@ -77,10 +92,10 @@ class Buddy extends Equatable {
     // compare loosely to avoid appending the agency a second time.
     String loose(String s) =>
         s.toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
-    if (loose(title).contains(loose(agency.displayName))) {
+    if (loose(title).contains(loose(agencyName!))) {
       return title;
     }
-    return '$title · ${agency.displayName}';
+    return '$title · $agencyName';
   }
 
   /// Get initials for avatar
@@ -106,8 +121,8 @@ class Buddy extends Equatable {
     String? name,
     String? email,
     String? phone,
-    CertificationLevel? certificationLevel,
-    CertificationAgency? certificationAgency,
+    String? certificationLevel,
+    String? certificationAgency,
     String? certificationTitle,
     String? photoPath,
     Uint8List? photo,
@@ -209,10 +224,19 @@ class Buddy extends Equatable {
 /// [DiveRole.id], never the display name.
 class BuddyWithRole extends Equatable {
   final Buddy buddy;
-  final DiveRole role;
 
-  const BuddyWithRole({required this.buddy, required this.role});
+  /// Every role this person holds on the dive, in DiveRoleSet order; never
+  /// empty (issue #1221). The first is the primary role `dive_buddies.role`
+  /// holds for older app versions.
+  final List<DiveRole> roles;
+
+  BuddyWithRole({required this.buddy, required this.roles})
+    : assert(roles.isNotEmpty, 'a buddy link always carries a role');
+
+  DiveRole get primaryRole => roles.first;
+
+  List<String> get roleIds => [for (final r in roles) r.id];
 
   @override
-  List<Object?> get props => [buddy, role];
+  List<Object?> get props => [buddy, roles];
 }

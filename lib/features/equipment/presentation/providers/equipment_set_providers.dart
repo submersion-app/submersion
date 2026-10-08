@@ -251,6 +251,13 @@ class EquipmentSetListNotifier
     _ref.invalidate(equipmentSetProvider);
   }
 
+  Future<void> setShowFigure(String id, bool showFigure) async {
+    await _repository.setShowFigure(id, showFigure);
+    await refresh();
+    _ref.invalidate(equipmentSetsProvider);
+    _ref.invalidate(equipmentSetProvider(id));
+  }
+
   Future<void> clearDefault(String id) async {
     await _repository.clearDefault(id);
     await refresh();

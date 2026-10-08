@@ -48,6 +48,29 @@ class _FakeGarminServer {
   /// serve a deliberately malformed or FIT-less archive body.
   final Map<int, List<int>> rawDownloadBytes = {};
 
+  /// HTTP statuses a download answers with, one per attempt, before it
+  /// finally serves the FIT file -- the shape of Garmin rate-limiting or a
+  /// flaky backend. Consumed front to back.
+  final Map<int, List<int>> downloadStatusQueue = {};
+
+  /// Extra headers sent with each [downloadStatusQueue] failure response.
+  Map<String, String> downloadFailureHeaders = const {};
+
+  /// How many times a download throws at the transport level before it
+  /// succeeds, per activity id.
+  final Map<int, int> downloadTransportFailures = {};
+
+  /// Download attempts seen, per activity id.
+  final Map<int, int> downloadAttempts = {};
+
+  /// HTTP statuses the OAuth 2 token exchange answers with, one per attempt,
+  /// before it hands out a token. Consumed front to back.
+  final List<int> exchangeStatusQueue = [];
+
+  /// The Authorization header of every token-exchange attempt, so a test can
+  /// check each retry carries a freshly signed request.
+  final List<String?> exchangeAuthHeaders = [];
+
   final List<http.Request> requestsSeen = [];
 
   MockClient get client => MockClient((request) async {
@@ -115,6 +138,10 @@ class _FakeGarminServer {
       }
       if (url.path == '/oauth-service/oauth/exchange/user/2.0') {
         expect(request.headers['Authorization'], contains('oauth_token="'));
+        exchangeAuthHeaders.add(request.headers['Authorization']);
+        if (exchangeStatusQueue.isNotEmpty) {
+          return http.Response('busy', exchangeStatusQueue.removeAt(0));
+        }
         return http.Response(
           jsonEncode({
             'access_token': accessToken,
@@ -134,6 +161,20 @@ class _FakeGarminServer {
       }
       if (url.path.startsWith('/download-service/files/activity/')) {
         final id = int.parse(url.path.split('/').last);
+        downloadAttempts[id] = (downloadAttempts[id] ?? 0) + 1;
+        final transportFailures = downloadTransportFailures[id] ?? 0;
+        if (transportFailures > 0) {
+          downloadTransportFailures[id] = transportFailures - 1;
+          throw Exception('connection reset by peer');
+        }
+        final queued = downloadStatusQueue[id];
+        if (queued != null && queued.isNotEmpty) {
+          return http.Response(
+            'busy',
+            queued.removeAt(0),
+            headers: downloadFailureHeaders,
+          );
+        }
         final raw = rawDownloadBytes[id];
         if (raw != null) return http.Response.bytes(raw, 200);
         final bytes = fitFiles[id];
@@ -170,6 +211,9 @@ Map<String, dynamic> _diveActivity({
   String typeKey = 'single_gas_diving',
   double? startLatitude,
   double? startLongitude,
+  double? endLatitude,
+  double? endLongitude,
+  Map<String, dynamic> extra = const {},
 }) => {
   'activityId': id,
   'startTimeGMT': startTimeGmt,
@@ -177,7 +221,20 @@ Map<String, dynamic> _diveActivity({
   'activityName': 'Dive $id',
   'startLatitude': ?startLatitude,
   'startLongitude': ?startLongitude,
+  'endLatitude': ?endLatitude,
+  'endLongitude': ?endLongitude,
+  ...extra,
 };
+
+/// Lists a single activity carrying [extra] and returns its summary.
+Future<GarminActivitySummary> _summaryWith(Map<String, dynamic> extra) async {
+  final server = _FakeGarminServer()
+    ..activities.add(_diveActivity(id: 1, extra: extra));
+  final client = GarminConnectClient(httpClient: server.client);
+  await client.login('diver@example.com', 'hunter2');
+  final page = await client.fetchDivePage();
+  return page.dives.single;
+}
 
 void main() {
   group('login', () {
@@ -399,6 +456,94 @@ void main() {
     });
   });
 
+  group('token exchange retries', () {
+    const stored = GarminOAuth1Token(
+      token: 'stored-token',
+      tokenSecret: 'stored-secret',
+    );
+
+    test('retries a transient failure with a freshly signed request', () async {
+      final server = _FakeGarminServer()..exchangeStatusQueue.addAll([503]);
+      final delays = <Duration>[];
+      final client = GarminConnectClient(
+        httpClient: server.client,
+        retryDelay: (d) async => delays.add(d),
+      );
+
+      await client.restoreSession(stored);
+
+      expect(client.hasSession, isTrue);
+      expect(server.exchangeAuthHeaders, hasLength(2));
+      // An OAuth 1 signature carries a nonce and timestamp, so replaying
+      // the first attempt's header could be refused as a replay.
+      expect(
+        server.exchangeAuthHeaders[1],
+        isNot(server.exchangeAuthHeaders[0]),
+      );
+      expect(delays, [const Duration(seconds: 1)]);
+    });
+
+    test('an expired access token survives a flaky re-exchange before a '
+        'download', () async {
+      final server = _FakeGarminServer()
+        ..expiresIn = -10
+        ..fitFiles[42] = [1, 2, 3, 4];
+      final client = GarminConnectClient(
+        httpClient: server.client,
+        retryDelay: (_) async {},
+      );
+      await client.login('diver@example.com', 'hunter2');
+      server.exchangeStatusQueue.addAll([429, 502]);
+
+      final bytes = await client.downloadActivityFit(42);
+
+      expect(bytes, [1, 2, 3, 4]);
+    });
+
+    test('does not retry Garmin rejecting the stored sign-in', () async {
+      final server = _FakeGarminServer()..exchangeStatusQueue.addAll([401]);
+      final delays = <Duration>[];
+      final client = GarminConnectClient(
+        httpClient: server.client,
+        retryDelay: (d) async => delays.add(d),
+      );
+
+      await expectLater(
+        client.restoreSession(stored),
+        throwsA(
+          isA<GarminApiException>().having(
+            (e) => e.isAuthExpired,
+            'isAuthExpired',
+            isTrue,
+          ),
+        ),
+      );
+      expect(server.exchangeAuthHeaders, hasLength(1));
+      expect(delays, isEmpty);
+    });
+
+    test('gives up after three attempts', () async {
+      final server = _FakeGarminServer()
+        ..exchangeStatusQueue.addAll([503, 503, 503, 503]);
+      final client = GarminConnectClient(
+        httpClient: server.client,
+        retryDelay: (_) async {},
+      );
+
+      await expectLater(
+        client.restoreSession(stored),
+        throwsA(
+          isA<GarminApiException>().having(
+            (e) => e.statusCode,
+            'statusCode',
+            503,
+          ),
+        ),
+      );
+      expect(server.exchangeAuthHeaders, hasLength(3));
+    });
+  });
+
   group('restoreSession', () {
     test('re-exchanges a stored token for a fresh access token', () async {
       final server = _FakeGarminServer();
@@ -467,6 +612,26 @@ void main() {
       expect(dives.single.longitude, -16.3228);
     });
 
+    test('carries Connect\'s own end position through the summary', () async {
+      final server = _FakeGarminServer()
+        ..activities.add(
+          _diveActivity(
+            id: 9,
+            startLatitude: 28.4594,
+            startLongitude: -16.3228,
+            endLatitude: 28.4612,
+            endLongitude: -16.3251,
+          ),
+        );
+      final client = GarminConnectClient(httpClient: server.client);
+      await client.login('diver@example.com', 'hunter2');
+
+      final dives = await client.listDives();
+
+      expect(dives.single.exitLatitude, 28.4612);
+      expect(dives.single.exitLongitude, -16.3251);
+    });
+
     test(
       'leaves position null when Connect has none for the activity',
       () async {
@@ -479,6 +644,8 @@ void main() {
 
         expect(dives.single.latitude, isNull);
         expect(dives.single.longitude, isNull);
+        expect(dives.single.exitLatitude, isNull);
+        expect(dives.single.exitLongitude, isNull);
       },
     );
 
@@ -647,6 +814,111 @@ void main() {
     });
   });
 
+  // Issue #2410: what the diver adds in Connect after the dive never reaches
+  // the FIT file, so it is read from the activity summary instead.
+  group('activity summary fields', () {
+    test('reads the Connect notes from description', () async {
+      final summary = await _summaryWith({
+        'description': '  Drift along the wall\n',
+      });
+
+      expect(summary.notes, 'Drift along the wall');
+    });
+
+    test('treats absent, null and empty description as no notes', () async {
+      expect((await _summaryWith({})).notes, isNull);
+      expect((await _summaryWith({'description': null})).notes, isNull);
+      expect((await _summaryWith({'description': ''})).notes, isNull);
+      expect((await _summaryWith({'description': '  '})).notes, isNull);
+    });
+
+    test('reads the local wall-clock start as wall-clock-as-UTC', () async {
+      final summary = await _summaryWith({
+        'startTimeLocal': '2026-03-15 05:00:00',
+      });
+
+      expect(summary.localStartTime, DateTime.utc(2026, 3, 15, 5));
+      expect(summary.startTime, DateTime.utc(2026, 3, 15, 10));
+    });
+
+    test('keeps an activity that carries only a local start', () async {
+      final server = _FakeGarminServer()
+        ..activities.add(
+          _diveActivity(id: 1)
+            ..remove('startTimeGMT')
+            ..['startTimeLocal'] = '2026-03-15 05:00:00',
+        );
+      final client = GarminConnectClient(httpClient: server.client);
+      await client.login('diver@example.com', 'hunter2');
+
+      final summary = (await client.fetchDivePage()).dives.single;
+
+      expect(summary.localStartTime, DateTime.utc(2026, 3, 15, 5));
+      expect(summary.startTime, DateTime.utc(2026, 3, 15, 5));
+    });
+
+    test('flags an activity entered by hand', () async {
+      expect((await _summaryWith({'manualActivity': true})).isManual, isTrue);
+      expect((await _summaryWith({'manualActivity': false})).isManual, isFalse);
+      expect((await _summaryWith({})).isManual, isFalse);
+    });
+
+    group('dive weight', () {
+      Future<double?> weightFor(Object? weight, Object? unit) async =>
+          (await _summaryWith({
+            'summarizedDiveInfo': {'weight': weight, 'weightUnit': unit},
+          })).weightKg;
+
+      test(
+        'reads a weight in kilograms, as a string or a unit object',
+        () async {
+          expect(await weightFor(4.5, 'kilogram'), 4.5);
+          expect(await weightFor(4.5, 'kg'), 4.5);
+          expect(await weightFor(4.5, {'unitKey': 'kilogram'}), 4.5);
+        },
+      );
+
+      test('converts a weight in pounds to kilograms', () async {
+        expect(await weightFor(10, 'pound'), closeTo(4.536, 0.001));
+        expect(await weightFor(10, {'unitKey': 'lb'}), closeTo(4.536, 0.001));
+      });
+
+      test('skips a weight whose unit it cannot read', () async {
+        // The unit format is unverified against a real dive, so anything
+        // unrecognised is dropped rather than guessed at.
+        expect(await weightFor(4000, 'gram'), isNull);
+        expect(await weightFor(4.5, null), isNull);
+        expect(await weightFor(4.5, {'unitId': 8}), isNull);
+      });
+
+      test('drops a unit or weight of an unexpected type without failing '
+          'the listing', () async {
+        expect(await weightFor(4.5, {'unitKey': 8}), isNull);
+        expect(await weightFor(4.5, 8), isNull);
+        expect(await weightFor('4.5', 'kilogram'), isNull);
+        expect(
+          (await _summaryWith({'summarizedDiveInfo': 'unexpected'})).weightKg,
+          isNull,
+        );
+      });
+
+      test('skips a zero or implausible weight', () async {
+        expect(await weightFor(0, 'kilogram'), isNull);
+        expect(await weightFor(4000, 'kilogram'), isNull);
+      });
+
+      test('is null when the summary has no dive info', () async {
+        expect((await _summaryWith({})).weightKg, isNull);
+        expect(
+          (await _summaryWith({
+            'summarizedDiveInfo': {'summarizedDiveGases': <Object>[]},
+          })).weightKg,
+          isNull,
+        );
+      });
+    });
+  });
+
   group('downloadActivityFit', () {
     test('unwraps the ZIP Garmin serves the FIT file inside', () async {
       final server = _FakeGarminServer()..fitFiles[42] = [1, 2, 3, 4];
@@ -681,6 +953,182 @@ void main() {
       );
     });
 
+    group('transient failures', () {
+      late _FakeGarminServer server;
+      late List<Duration> delays;
+      late GarminConnectClient client;
+
+      setUp(() async {
+        server = _FakeGarminServer()..fitFiles[42] = [1, 2, 3, 4];
+        delays = [];
+        client = GarminConnectClient(
+          httpClient: server.client,
+          retryDelay: (d) async => delays.add(d),
+        );
+        await client.login('diver@example.com', 'hunter2');
+      });
+
+      test('retries a rate-limited download until it succeeds', () async {
+        server.downloadStatusQueue[42] = [429];
+
+        final bytes = await client.downloadActivityFit(42);
+
+        expect(bytes, [1, 2, 3, 4]);
+        expect(server.downloadAttempts[42], 2);
+        expect(delays, hasLength(1));
+      });
+
+      test('retries a server error with a growing backoff', () async {
+        server.downloadStatusQueue[42] = [503, 502];
+
+        final bytes = await client.downloadActivityFit(42);
+
+        expect(bytes, [1, 2, 3, 4]);
+        expect(server.downloadAttempts[42], 3);
+        expect(delays, [
+          const Duration(seconds: 1),
+          const Duration(seconds: 2),
+        ]);
+      });
+
+      test('retries a transport-level failure', () async {
+        server.downloadTransportFailures[42] = 1;
+
+        final bytes = await client.downloadActivityFit(42);
+
+        expect(bytes, [1, 2, 3, 4]);
+        expect(server.downloadAttempts[42], 2);
+      });
+
+      test(
+        'waits as long as a Retry-After header asks, within a cap',
+        () async {
+          server
+            ..downloadStatusQueue[42] = [429, 429]
+            ..downloadFailureHeaders = {'retry-after': '5'};
+
+          await client.downloadActivityFit(42);
+
+          expect(delays, [
+            const Duration(seconds: 5),
+            const Duration(seconds: 5),
+          ]);
+
+          server
+            ..downloadStatusQueue[42] = [429]
+            ..downloadFailureHeaders = {'retry-after': '3600'};
+          delays.clear();
+
+          await client.downloadActivityFit(42);
+
+          expect(delays.single, lessThanOrEqualTo(const Duration(seconds: 30)));
+        },
+      );
+
+      test(
+        'caps an enormous numeric Retry-After without overflowing',
+        () async {
+          // Converting this many seconds to microseconds overflows a 64-bit
+          // int, which would wrap to a negative wait and skip the cap.
+          server
+            ..downloadStatusQueue[42] = [429]
+            ..downloadFailureHeaders = {'retry-after': '9223372036854775807'};
+
+          await client.downloadActivityFit(42);
+
+          expect(delays, [const Duration(seconds: 30)]);
+        },
+      );
+
+      group('Retry-After as an HTTP date', () {
+        final now = DateTime.utc(2026, 9, 26, 12);
+
+        setUp(() async {
+          client = GarminConnectClient(
+            httpClient: server.client,
+            retryDelay: (d) async => delays.add(d),
+            clock: () => now,
+          );
+          await client.login('diver@example.com', 'hunter2');
+        });
+
+        Future<Duration> delayFor(String retryAfter) async {
+          server
+            ..downloadStatusQueue[42] = [503]
+            ..downloadFailureHeaders = {'retry-after': retryAfter};
+          delays.clear();
+          await client.downloadActivityFit(42);
+          return delays.single;
+        }
+
+        test('waits until the date the server names', () async {
+          expect(
+            await delayFor('Sat, 26 Sep 2026 12:00:07 GMT'),
+            const Duration(seconds: 7),
+          );
+        });
+
+        test('reads the obsolete RFC 850 and asctime forms too', () async {
+          expect(
+            await delayFor('Saturday, 26-Sep-26 12:00:04 GMT'),
+            const Duration(seconds: 4),
+          );
+          expect(
+            await delayFor('Sat Sep 26 12:00:09 2026'),
+            const Duration(seconds: 9),
+          );
+        });
+
+        test('retries at once for a date already past', () async {
+          expect(
+            await delayFor('Sat, 26 Sep 2026 11:59:00 GMT'),
+            Duration.zero,
+          );
+        });
+
+        test('caps a far-off date', () async {
+          expect(
+            await delayFor('Sun, 27 Sep 2026 12:00:00 GMT'),
+            const Duration(seconds: 30),
+          );
+        });
+
+        test('falls back to the backoff for an unreadable value', () async {
+          expect(await delayFor('soon'), const Duration(seconds: 1));
+        });
+      });
+
+      test(
+        'gives up after three attempts and reports the last status',
+        () async {
+          server.downloadStatusQueue[42] = [503, 503, 503, 503];
+
+          await expectLater(
+            client.downloadActivityFit(42),
+            throwsA(
+              isA<GarminApiException>().having(
+                (e) => e.statusCode,
+                'statusCode',
+                503,
+              ),
+            ),
+          );
+          expect(server.downloadAttempts[42], 3);
+        },
+      );
+
+      test('does not retry a permanent failure', () async {
+        server.downloadStatusQueue[42] = [404];
+
+        await expectLater(
+          client.downloadActivityFit(42),
+          throwsA(isA<GarminApiException>()),
+        );
+        expect(server.downloadAttempts[42], 1);
+        expect(delays, isEmpty);
+      });
+    });
+
     test('throws when the archive has no .fit member', () async {
       final server = _FakeGarminServer();
       final client = GarminConnectClient(httpClient: server.client);
@@ -691,8 +1139,121 @@ void main() {
 
       expect(
         () => client.downloadActivityFit(8),
-        throwsA(isA<GarminApiException>()),
+        throwsA(isA<GarminNoFitException>()),
       );
     });
+
+    // Issue #2410: an activity entered by hand in Connect has no original
+    // upload, so there is no FIT to hand out. The fetch step imports such a
+    // dive from its summary instead, and needs to tell this apart from a
+    // download that merely failed.
+    test('reports a 404 as the activity having no FIT', () async {
+      final server = _FakeGarminServer();
+      final client = GarminConnectClient(httpClient: server.client);
+      await client.login('diver@example.com', 'hunter2');
+
+      await expectLater(
+        client.downloadActivityFit(404404),
+        throwsA(
+          isA<GarminNoFitException>().having(
+            (e) => e.statusCode,
+            'statusCode',
+            404,
+          ),
+        ),
+      );
+    });
+
+    test(
+      'reports an empty download body as the activity having no FIT',
+      () async {
+        final server = _FakeGarminServer();
+        final client = GarminConnectClient(httpClient: server.client);
+        await client.login('diver@example.com', 'hunter2');
+        server.rawDownloadBytes[9] = const [];
+
+        await expectLater(
+          client.downloadActivityFit(9),
+          throwsA(isA<GarminNoFitException>()),
+        );
+      },
+    );
+
+    test(
+      'does not report a corrupt archive as the activity having no FIT',
+      () async {
+        final server = _FakeGarminServer();
+        final client = GarminConnectClient(httpClient: server.client);
+        await client.login('diver@example.com', 'hunter2');
+        server.rawDownloadBytes[7] = [0, 1, 2, 3];
+
+        // A truncated or garbled body can be a transient fault, so it stays an
+        // ordinary failure the diver can retry.
+        await expectLater(
+          client.downloadActivityFit(7),
+          throwsA(
+            isA<GarminApiException>().having(
+              (e) => e is GarminNoFitException,
+              'is GarminNoFitException',
+              isFalse,
+            ),
+          ),
+        );
+      },
+    );
+
+    test('does not take a body that merely starts with PK for a ZIP', () async {
+      final server = _FakeGarminServer();
+      final client = GarminConnectClient(httpClient: server.client);
+      await client.login('diver@example.com', 'hunter2');
+      server.rawDownloadBytes[7] = 'PKG error: try again later'.codeUnits;
+
+      await expectLater(
+        client.downloadActivityFit(7),
+        throwsA(
+          isA<GarminApiException>().having(
+            (e) => e is GarminNoFitException,
+            'is GarminNoFitException',
+            isFalse,
+          ),
+        ),
+      );
+    });
+
+    test('reads an empty ZIP archive as the activity having no FIT', () async {
+      final server = _FakeGarminServer();
+      final client = GarminConnectClient(httpClient: server.client);
+      await client.login('diver@example.com', 'hunter2');
+      server.rawDownloadBytes[10] = ZipEncoder().encode(Archive());
+
+      await expectLater(
+        client.downloadActivityFit(10),
+        throwsA(isA<GarminNoFitException>()),
+      );
+    });
+
+    test(
+      'does not report a server error as the activity having no FIT',
+      () async {
+        final server = _FakeGarminServer();
+        final client = GarminConnectClient(
+          httpClient: server.client,
+          retryDelay: (_) async {},
+        );
+        await client.login('diver@example.com', 'hunter2');
+        server.downloadStatusQueue[42] = [503, 503, 503];
+
+        await expectLater(
+          client.downloadActivityFit(42),
+          throwsA(
+            isA<GarminApiException>().having(
+              (e) => e is GarminNoFitException,
+              'is GarminNoFitException',
+              isFalse,
+            ),
+          ),
+        );
+      },
+    );
   });
 }

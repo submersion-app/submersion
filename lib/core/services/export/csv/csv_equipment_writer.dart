@@ -6,12 +6,14 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 /// Writes the equipment CSV. [write]'s `componentNames` maps an assembly's
 /// id to its parts' names in template order (issue #1487), and `tagNames`
-/// maps an item's id to its tag names (issue #1942); items absent from
-/// either get an empty cell. Both lists use the list codec. Free-text cells
+/// maps an item's id to its tag names (issue #1942), and `locationNames`
+/// its current place's name (v268); items absent from any of them get an
+/// empty cell. Both lists use the list codec. Free-text cells
 /// go through [sanitizeCsvField] so a spreadsheet never evaluates them as
 /// formulas; the importer reverses it.
 class CsvEquipmentWriter {
@@ -37,6 +39,7 @@ class CsvEquipmentWriter {
     List<EquipmentItem> equipment, {
     Map<String, List<String>> componentNames = const {},
     Map<String, List<String>> tagNames = const {},
+    Map<String, String> locationNames = const {},
   }) {
     final rows = <List<dynamic>>[
       [
@@ -57,6 +60,9 @@ class CsvEquipmentWriter {
         'Tags',
         'Active',
         'Notes',
+        // Appended (v268), like the restored site columns of #2201, so a
+        // reader taking the older columns by offset is unaffected.
+        'Location',
       ],
     ];
 
@@ -76,11 +82,15 @@ class CsvEquipmentWriter {
         units.value(CsvColumns.dryWeight, item.weightKg),
         sanitizeCsvField(
           joinAttributePairs(
-            item.attributes
+            // A colour on a type without one is the diver's own field
+            // (issue #2520), so it exports as one.
+            keepStrayColorAsCustom(item.type, item.attributes)
                 .where(
                   (a) =>
                       a.hasValue &&
-                      (a.isCustom || !_dedicatedAttrKeys.contains(a.key)),
+                      (a.isCustom ||
+                          (!_dedicatedAttrKeys.contains(a.key) &&
+                              !EquipmentAttributeCatalog.isSystemKey(a.key))),
                 )
                 .map((a) => formatAttributePair(a, units)),
           ),
@@ -95,6 +105,7 @@ class CsvEquipmentWriter {
         ),
         item.isActive ? 'Yes' : 'No',
         sanitizeCsvField(item.notes.replaceAll('\n', ' ')),
+        sanitizeCsvField(locationNames[item.id]),
       ]);
     }
 

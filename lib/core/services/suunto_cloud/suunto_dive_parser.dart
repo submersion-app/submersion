@@ -1,7 +1,11 @@
 import 'dart:math' as math;
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_event_map.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_dive_route.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_tissue_parser.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 
 /// A dive parsed from a Suunto export, plus the device identity fields
 /// needed to resolve/create the owning [DiveComputer] record (kept separate
@@ -12,15 +16,46 @@ class SuuntoParsedDive {
     this.deviceName,
     this.serialNumber,
     this.firmwareVersion,
+    this.notes,
+    this.route,
   });
 
   final DownloadedDive dive;
+
+  /// Dive-level tissue state the computer reported in the SML header
+  /// (`Header.Diving.StartTissue` / `EndTissue` / `Algorithm`), if any.
+  /// Lives on [dive] so the shared import pipeline persists it.
+  ComputerTissueSnapshot? get computerTissue => dive.computerTissue;
 
   /// Suunto's internal device codename (e.g. "Vaasa"), already mapped to a
   /// commercial product line name (e.g. "Suunto Nautic") for display.
   final String? deviceName;
   final String? serialNumber;
   final String? firmwareVersion;
+
+  /// The notes the diver wrote in the Suunto app, from the workout listing
+  /// rather than the dive export (issue #2410).
+  final String? notes;
+
+  /// The recorded underwater route (`DiveRoute`), when the export carries
+  /// one (issue #1445). Linked to the dive as a nav track at import.
+  final SuuntoDiveRoute? route;
+
+  SuuntoParsedDive copyWith({
+    DownloadedDive? dive,
+    String? deviceName,
+    String? serialNumber,
+    String? firmwareVersion,
+    String? notes,
+    SuuntoDiveRoute? route,
+  }) => SuuntoParsedDive(
+    dive: dive ?? this.dive,
+    deviceName: deviceName ?? this.deviceName,
+    serialNumber: serialNumber ?? this.serialNumber,
+    firmwareVersion: firmwareVersion ?? this.firmwareVersion,
+    notes: notes ?? this.notes,
+    route: route ?? this.route,
+  );
 }
 
 /// Converts a normalized Suunto dive export (see [SuuntoSmlNormalizer]) into
@@ -43,21 +78,41 @@ class SuuntoDiveParser {
     final deviceInternalName = device?['Name'] as String?;
     final gasOffset = _gasOffsetFor(deviceInternalName, samples);
 
-    final headerStart = _parseIso8601(header['DateTime'] as String?);
+    final headerDateTime = header['DateTime'] as String?;
+    final headerStart = _parseIso8601(headerDateTime);
+    final headerOffset = headerDateTime == null
+        ? null
+        : _declaredOffset(headerDateTime);
 
     final firstPass = _FirstPass.scan(samples);
     final diveStartMs = firstPass.diveStartMs;
+    final clockCorrection = _sampleClockCorrection(
+      headerStart,
+      headerOffset,
+      firstPass.firstSampleMs,
+    );
     final startTime = diveStartMs != null
-        ? DateTime.fromMillisecondsSinceEpoch(diveStartMs, isUtc: true)
+        ? DateTime.fromMillisecondsSinceEpoch(
+            diveStartMs,
+            isUtc: true,
+          ).add(clockCorrection)
         : (headerStart ?? DateTime.now().toUtc());
 
+    final diving = header['Diving'] as Map<String, dynamic>?;
+
     final profileResult = diveStartMs == null
-        ? const _ProfileResult(samples: [], gasSwitchOrder: [], lastDepth: 0)
+        ? const _ProfileResult(
+            samples: [],
+            gasSwitchOrder: [],
+            transmitters: _TransmitterLayout.none,
+            lastDepth: 0,
+          )
         : _buildProfile(
             samples,
             diveStartMs: diveStartMs,
             temperatureReadings: firstPass.temperatureReadings,
             gasOffset: gasOffset,
+            gasCount: _gases(diving).length,
           );
 
     final depthObj = header['Depth'] as Map<String, dynamic>?;
@@ -93,11 +148,17 @@ class SuuntoDiveParser {
       );
     }
 
-    final diving = header['Diving'] as Map<String, dynamic>?;
     final gfLow = (diving?['GfLow'] as num?)?.round();
     final gfHigh = (diving?['GfHigh'] as num?)?.round();
+    final computerTissue = diving == null ? null : parseSuuntoTissue(diving);
 
-    final tanks = _buildTanks(diving, profileResult.gasSwitchOrder);
+    final tanks = _withSidemountPartners(
+      _buildTanks(diving, {
+        ...profileResult.gasSwitchOrder,
+        ...profileResult.transmitters.gasesRead,
+      }),
+      profileResult.transmitters,
+    );
 
     // Suunto takes a surface fix before the descent and another after the
     // ascent, and keeps the pair in the dive footer's DiveLocation block
@@ -124,7 +185,11 @@ class SuuntoDiveParser {
       gasSwitches: profileResult.gasSwitches,
       gfLow: gfLow,
       gfHigh: gfHigh,
-      decoAlgorithm: (gfLow != null && gfHigh != null) ? 'buhlmann' : null,
+      decoAlgorithm: _decoAlgorithm(
+        diving?['Algorithm'],
+        hasGradientFactors: gfLow != null && gfHigh != null,
+      ),
+      computerTissue: computerTissue,
       events: profileResult.events,
     );
 
@@ -134,6 +199,15 @@ class SuuntoDiveParser {
       serialNumber: device?['SerialNumber'] as String?,
       firmwareVersion:
           (device?['Info'] as Map<String, dynamic>?)?['SW'] as String?,
+      // The route shares the dive's clock correction, so it lines up with
+      // the profile; its origin is the DiveRouteOrigin the first pass read.
+      route: SuuntoDiveRouteParser.parse(
+        samples,
+        timestampMs: _parseTimestampMs,
+        clockCorrection: clockCorrection,
+        originLatitude: firstPass.latitude,
+        originLongitude: firstPass.longitude,
+      ),
     );
   }
 
@@ -209,26 +283,33 @@ class SuuntoDiveParser {
     return lowest;
   }
 
+  /// One cylinder per header gas the dive used, at the gas's own index.
+  ///
+  /// A sample's `GasNumber` names a header gas, so gas `g` is cylinder `g`
+  /// whatever order the diver breathed them in. [usedGases] holds every gas
+  /// the dive switched to or read a transmitter on; a configured gas the
+  /// dive never touched gets no cylinder, and nor does a used gas the header
+  /// does not list.
   static List<DownloadedTank> _buildTanks(
     Map<String, dynamic>? diving,
-    List<int> gasSwitchOrder,
+    Set<int> usedGases,
   ) {
-    final gases = (diving?['Gases'] as List<dynamic>? ?? const [])
-        .cast<Map<String, dynamic>>();
+    final gases = _gases(diving);
     if (gases.isEmpty) return const [];
 
     // A dive with only one recorded gas never emits a gas-switch event (there
-    // is nothing to switch to/from), so gasSwitchOrder is empty for the
-    // overwhelmingly common single-gas case. Assign it straight to cylinder 0
-    // rather than dropping the gas mix entirely.
-    final order = gases.length == 1 ? const [0] : gasSwitchOrder;
+    // is nothing to switch to/from), and a dive without air integration reads
+    // no transmitter either. Assign a lone gas straight to cylinder 0 rather
+    // than dropping the gas mix entirely.
+    final used = gases.length == 1 ? const {0} : usedGases;
 
     final tanks = <DownloadedTank>[];
-    for (var i = 0; i < gases.length && i < order.length; i++) {
-      final gas = gases[i];
+    for (final gasIndex in used.toList()..sort()) {
+      if (gasIndex >= gases.length) continue;
+      final gas = gases[gasIndex];
       tanks.add(
         DownloadedTank(
-          index: order[i],
+          index: gasIndex,
           // Suunto fractions (0.0-1.0), submersion percent (0-100).
           o2Percent: (_asDouble(gas['Oxygen']) ?? 0) * 100,
           hePercent: (_asDouble(gas['Helium']) ?? 0) * 100,
@@ -249,13 +330,88 @@ class SuuntoDiveParser {
     return tanks;
   }
 
+  /// The header's gas list, empty when it has none.
+  static List<Map<String, dynamic>> _gases(Map<String, dynamic>? diving) =>
+      (diving?['Gases'] as List<dynamic>? ?? const [])
+          .cast<Map<String, dynamic>>();
+
+  /// Adds a cylinder for every extra transmitter a gas carries.
+  ///
+  /// In sidemount mode a Nautic or Ocean logs both cylinders' transmitters
+  /// under one gas, as `Pressure` and `Pressure2`. The header has one gas
+  /// entry for the pair, so [_buildTanks] makes one cylinder, and without a
+  /// second the other transmitter's readings have no tank to land on. The
+  /// pair becomes Sidemount Left (`Pressure`) and Sidemount Right
+  /// (`Pressure2`); nothing in the export says which side each is on, so
+  /// this follows the transmitter slot and the diver can swap them.
+  ///
+  /// The added cylinder shares its gas's mix and size. The gas's start and
+  /// end pressures were read by the first transmitter, so it gets neither;
+  /// the importer derives them from its own pressure series. A gas with no
+  /// cylinder of its own gains none here.
+  ///
+  /// The lowest extra slot a gas reports is its Sidemount Right, whichever
+  /// slot that is, and marks the gas's own cylinder Sidemount Left. A
+  /// sidemount pair is two cylinders, so any further transmitter on the
+  /// same gas is a cylinder of that mix with no role.
+  static List<DownloadedTank> _withSidemountPartners(
+    List<DownloadedTank> tanks,
+    _TransmitterLayout transmitters,
+  ) {
+    if (transmitters.extraSlots.isEmpty) return tanks;
+
+    // extraSlots is ordered by gas, then slot, so a gas's first entry is
+    // its lowest extra slot.
+    final paired = <int>{};
+    final partners = <DownloadedTank>[];
+    for (final MapEntry(key: (gasIndex, _), value: index)
+        in transmitters.extraSlots.entries) {
+      final primary = tanks.where((t) => t.index == gasIndex).firstOrNull;
+      if (primary == null) continue;
+      final isRight = paired.add(gasIndex);
+      partners.add(
+        DownloadedTank(
+          index: index,
+          o2Percent: primary.o2Percent,
+          hePercent: primary.hePercent,
+          volumeLiters: primary.volumeLiters,
+          role: isRight ? TankRole.sidemountRight.name : null,
+        ),
+      );
+    }
+
+    return [
+      for (final tank in tanks)
+        paired.contains(tank.index)
+            ? tank.copyWith(role: TankRole.sidemountLeft.name)
+            : tank,
+      ...partners,
+    ];
+  }
+
+  /// [readings] as a list indexed by tank index, null where a tank has none.
+  static List<double?> _byTankIndex(List<_PressureReading> readings) {
+    final highest = readings.map((r) => r.tankIndex).reduce(math.max);
+    final byTank = List<double?>.filled(highest + 1, null);
+    for (final reading in readings) {
+      byTank[reading.tankIndex] = reading.pressureBar;
+    }
+    return List.unmodifiable(byTank);
+  }
+
   static _ProfileResult _buildProfile(
     List<Map<String, dynamic>> samples, {
     required int diveStartMs,
     required List<_TempReading> temperatureReadings,
     required int gasOffset,
+    required int gasCount,
   }) {
-    final profile = <ProfileSample>[];
+    // A row's transmitter readings can only be placed on tanks once the
+    // whole dive is known (see [_TransmitterLayout]), so rows are held with
+    // their raw readings and built after the loop. Only the rows kept here
+    // feed the layout: a reading on a sample the profile skips creates no
+    // tank.
+    final rows = <_PendingRow>[];
     final gasSwitches = <GasSwitchEvent>[];
     final events = <DownloadedEvent>[];
     final gasSwitchOrder = <int>[];
@@ -289,37 +445,17 @@ class SuuntoDiveParser {
         final ndl = (sample['NoDecTime'] as num?)?.round();
         final tts = (sample['TimeToSurface'] as num?)?.round();
 
-        final pressures = _readCylinderPressures(sample, gasOffset);
-
-        profile.add(
-          ProfileSample(
+        rows.add(
+          _PendingRow(
             timeSeconds: elapsedSecs,
             depth: depthValue,
             temperature: temperature,
-            pressure: pressures.isEmpty ? null : pressures.first.pressureBar,
-            tankIndex: pressures.isEmpty ? null : pressures.first.tankIndex,
             ndl: ndl,
             ceiling: (ceiling ?? 0) > 0 ? ceiling : null,
             tts: tts,
+            readings: _transmitterReadings(sample, gasOffset).toList(),
           ),
         );
-
-        // A dive computer with more than one live pressure transmitter
-        // reports every tank's pressure at the same instant; submersion's
-        // profile-sample model (mirroring how multi-transmitter downloads
-        // from real dive computers are represented) carries one
-        // pressure/tankIndex pair per row, so extra simultaneous readings
-        // ride along as additional minimal rows at the same timestamp.
-        for (final extra in pressures.skip(1)) {
-          profile.add(
-            ProfileSample(
-              timeSeconds: elapsedSecs,
-              depth: depthValue,
-              pressure: extra.pressureBar,
-              tankIndex: extra.tankIndex,
-            ),
-          );
-        }
       }
 
       final clampedElapsed = elapsedSecs < 0 ? 0 : elapsedSecs;
@@ -335,9 +471,19 @@ class SuuntoDiveParser {
       );
     }
 
-    return _ProfileResult(
-      samples: profile,
+    final transmitters = _TransmitterLayout.of(
+      [for (final row in rows) ...row.readings],
+      gasCount: gasCount,
       gasSwitchOrder: gasSwitchOrder,
+    );
+
+    return _ProfileResult(
+      samples: [
+        for (final row in rows)
+          row.toSample(_placeReadings(row.readings, transmitters)),
+      ],
+      gasSwitchOrder: gasSwitchOrder,
+      transmitters: transmitters,
       gasSwitches: gasSwitches,
       events: events,
       lastDepth: lastDepth,
@@ -457,37 +603,57 @@ class SuuntoDiveParser {
       ..addAll(nowActive);
   }
 
+  /// One sample's [readings], in bar, placed on their tanks by
+  /// [transmitters].
+  ///
+  /// A tank keeps the first reading it gets. Two `Cylinders` entries naming
+  /// the same gas would otherwise both land on its index, and one would be
+  /// lost silently further down, where [ProfileSample.tankPressures] holds
+  /// one value per tank.
+  static List<_PressureReading> _placeReadings(
+    List<_TransmitterReading> readings,
+    _TransmitterLayout transmitters,
+  ) {
+    final placed = <_PressureReading>[];
+    final seen = <int>{};
+    for (final (:gasIndex, :slot, :pressureBar) in readings) {
+      final tankIndex = transmitters.tankIndexFor(gasIndex, slot);
+      if (tankIndex == null || !seen.add(tankIndex)) continue;
+      placed.add(_PressureReading(tankIndex, pressureBar));
+    }
+    return placed;
+  }
+
   /// Reads every "Pressure"/"Pressure2"/"Pressure3"... transmitter reading
-  /// off a sample's `Cylinders` entries, in submersion units (bar).
-  static List<_PressureReading> _readCylinderPressures(
+  /// off a sample's `Cylinders` entries, in submersion units (bar), with the
+  /// zero-based gas it was logged under and its slot (0 for `Pressure`, 1
+  /// for `Pressure2`, ...). A gas that maps below zero is skipped: no
+  /// cylinder can hold it.
+  static Iterable<_TransmitterReading> _transmitterReadings(
     Map<String, dynamic> sample,
     int gasOffset,
-  ) {
+  ) sync* {
     final cylinders = sample['Cylinders'] as List<dynamic>?;
-    if (cylinders == null) return const [];
+    if (cylinders == null) return;
 
-    final readings = <_PressureReading>[];
     for (final entry in cylinders) {
       final cyl = entry as Map<String, dynamic>;
-      final gasNumber = (cyl['GasNumber'] as num?)?.toInt() ?? 0;
-      var sensor = gasNumber - gasOffset;
+      final gasIndex = ((cyl['GasNumber'] as num?)?.toInt() ?? 0) - gasOffset;
+      if (gasIndex < 0) continue;
 
-      for (var t = 0; ; t++) {
-        final key = t == 0 ? 'Pressure' : 'Pressure${t + 1}';
+      for (var slot = 0; ; slot++) {
+        final key = slot == 0 ? 'Pressure' : 'Pressure${slot + 1}';
         if (!cyl.containsKey(key)) break;
-        final value = cyl[key];
-        if (value == null) {
-          sensor++;
-          continue;
+        final pressurePa = _asDouble(cyl[key]);
+        if (pressurePa != null && pressurePa > 0) {
+          yield (
+            gasIndex: gasIndex,
+            slot: slot,
+            pressureBar: pressurePa / 100000,
+          );
         }
-        final pressurePa = (value as num).toDouble();
-        if (pressurePa > 0) {
-          readings.add(_PressureReading(sensor, pressurePa / 100000));
-        }
-        sensor++;
       }
     }
-    return readings;
   }
 
   static double? _findNearestTemperature(
@@ -505,6 +671,24 @@ class SuuntoDiveParser {
     }
     if (bestKelvin == null || bestDiff >= 15000) return null;
     return _kelvinToCelsius(bestKelvin);
+  }
+
+  /// The dive's deco model id from the header's `Algorithm` ("Suunto
+  /// Fused2 RGBM", "Bühlmann 16 GF"), so the dive agrees with its tissue
+  /// snapshot. RGBM and Bühlmann map to the app's ids; any other name is kept
+  /// lowercased, as other importers do. Only a header without one falls back
+  /// to the GF pair, which a Suunto writes whatever model it runs.
+  static String? _decoAlgorithm(
+    Object? algorithm, {
+    required bool hasGradientFactors,
+  }) {
+    final name = algorithm is String ? algorithm.trim().toLowerCase() : '';
+    if (name.isEmpty) return hasGradientFactors ? 'buhlmann' : null;
+    if (name.contains('rgbm')) return 'rgbm';
+    if (name.contains('buhlmann') || name.contains('bühlmann')) {
+      return 'buhlmann';
+    }
+    return name;
   }
 
   static double _kelvinToCelsius(double kelvin) => kelvin - 273.15;
@@ -533,6 +717,57 @@ class SuuntoDiveParser {
   static double _radiansToDegrees(double radians) => radians * 180.0 / math.pi;
 
   static double? _asDouble(dynamic value) => (value as num?)?.toDouble();
+
+  /// The smallest gap between the header and the first sample that can be a
+  /// zone error rather than the header marking the log opening a little
+  /// differently. No zone sits less than an hour from UTC.
+  static const Duration _minZoneError = Duration(minutes: 45);
+
+  /// The shift that puts the sample clock on the computer's own clock.
+  ///
+  /// The cloud's sml export stamps each sample envelope with a TimeISO8601
+  /// of its own, and that clock can disagree with the computer's
+  /// Header.DateTime by the dive's whole UTC offset: a Nautic dive logged at
+  /// 13:44 CEST arrived with samples reading 15:44 (#2604). The header is the
+  /// computer's clock, the one Suunto itself shows and the one Subsurface's
+  /// `import-suunto-json.cpp` files the dive at, so it settles the zone; the
+  /// samples still place the dive-active moment within the log.
+  ///
+  /// When the header declares its offset, the zone error can only be that
+  /// offset in one direction or the other, so the correction is whichever
+  /// of none, `+offset` and `-offset` leaves the smallest remainder. Any real
+  /// gap between the header and the first sample survives as that remainder.
+  /// A `Z` header declares a zero offset, so it never corrects. Only a header
+  /// with no designator at all, and so no offset to go on, falls back to
+  /// rounding the gap to whole quarter hours, the granularity of every real
+  /// offset, once it reaches [_minZoneError].
+  ///
+  /// Zero when either clock is missing or they already agree, which leaves
+  /// the app's JSON export, whose samples carry the header's clock, exactly
+  /// as before.
+  static Duration _sampleClockCorrection(
+    DateTime? headerStart,
+    Duration? headerOffset,
+    int? firstSampleMs,
+  ) {
+    if (headerStart == null || firstSampleMs == null) return Duration.zero;
+    final gap = Duration(
+      milliseconds: headerStart.millisecondsSinceEpoch - firstSampleMs,
+    );
+    if (headerOffset != null) {
+      var best = Duration.zero;
+      for (final candidate in [headerOffset, -headerOffset]) {
+        if ((gap - candidate).abs() < (gap - best).abs()) best = candidate;
+      }
+      return best;
+    }
+    if (gap.abs() < _minZoneError) return Duration.zero;
+    const quarterHourMs = 15 * 60 * 1000;
+    return Duration(
+      milliseconds:
+          (gap.inMilliseconds / quarterHourMs).round() * quarterHourMs,
+    );
+  }
 
   static int? _parseTimestampMs(Map<String, dynamic> sample) {
     final iso = sample['TimeISO8601'] as String?;
@@ -612,6 +847,106 @@ class _TempReading {
   final double kelvin;
 }
 
+/// Which tank index each transmitter reading belongs to.
+///
+/// A gas's first transmitter (`Pressure`) reads its own cylinder, whose
+/// index is the gas's. Any further transmitter on the same gas (`Pressure2`,
+/// a sidemount partner) is a cylinder no gas numbers, so it gets an index
+/// above every gas the dive uses. Numbering straight on from the gas would
+/// put gas 0's `Pressure2` on gas 1's cylinder, which collides the moment a
+/// sidemount diver's stage bottle has a transmitter of its own.
+///
+/// Worked out from the whole dive's profile rows so a transmitter keeps one
+/// index throughout, whatever order its readings first appear in.
+class _TransmitterLayout {
+  const _TransmitterLayout(this.extraSlots, this.gasesRead);
+
+  /// A dive with no profile, and so no readings.
+  static const none = _TransmitterLayout({}, {});
+
+  /// Tank index of every extra transmitter, keyed by (gas index, slot), in
+  /// gas then slot order.
+  final Map<(int, int), int> extraSlots;
+
+  /// Every gas some transmitter read, in any slot.
+  final Set<int> gasesRead;
+
+  /// The layout of [readings], the transmitter readings on the profile's
+  /// rows. [gasCount] and [gasSwitchOrder] add the gases that hold no
+  /// transmitter, which an extra index must also stay clear of.
+  factory _TransmitterLayout.of(
+    List<_TransmitterReading> readings, {
+    required int gasCount,
+    required List<int> gasSwitchOrder,
+  }) {
+    final gasesRead = {for (final r in readings) r.gasIndex};
+    final highestGas = [
+      gasCount - 1,
+      ...gasesRead,
+      ...gasSwitchOrder,
+    ].reduce(math.max);
+
+    final ordered =
+        {
+          for (final r in readings)
+            if (r.slot > 0) (r.gasIndex, r.slot),
+        }.toList()..sort((a, b) {
+          final byGas = a.$1.compareTo(b.$1);
+          return byGas != 0 ? byGas : a.$2.compareTo(b.$2);
+        });
+    return _TransmitterLayout({
+      for (var i = 0; i < ordered.length; i++) ordered[i]: highestGas + 1 + i,
+    }, gasesRead);
+  }
+
+  int? tankIndexFor(int gasIndex, int slot) =>
+      slot == 0 ? gasIndex : extraSlots[(gasIndex, slot)];
+}
+
+/// One transmitter reading off a sample's `Cylinders` entry: the zero-based
+/// gas it was logged under, its slot (0 for `Pressure`, 1 for `Pressure2`,
+/// ...) and the pressure in bar.
+typedef _TransmitterReading = ({int gasIndex, int slot, double pressureBar});
+
+/// A profile row whose pressures wait on the dive's [_TransmitterLayout].
+class _PendingRow {
+  const _PendingRow({
+    required this.timeSeconds,
+    required this.depth,
+    required this.temperature,
+    required this.ndl,
+    required this.ceiling,
+    required this.tts,
+    required this.readings,
+  });
+
+  final int timeSeconds;
+  final double depth;
+  final double? temperature;
+  final int? ndl;
+  final double? ceiling;
+  final int? tts;
+  final List<_TransmitterReading> readings;
+
+  /// The row carrying [pressures]: every transmitter's reading at this
+  /// instant on the one row (issue #1223), since a row per extra reading
+  /// would repeat the sample's timestamp in the stored profile. The single
+  /// pair holds the last reading, as [ProfileSample.tankPressures] documents.
+  ProfileSample toSample(List<_PressureReading> pressures) => ProfileSample(
+    timeSeconds: timeSeconds,
+    depth: depth,
+    temperature: temperature,
+    pressure: pressures.isEmpty ? null : pressures.last.pressureBar,
+    tankIndex: pressures.isEmpty ? null : pressures.last.tankIndex,
+    tankPressures: pressures.length > 1
+        ? SuuntoDiveParser._byTankIndex(pressures)
+        : null,
+    ndl: ndl,
+    ceiling: ceiling,
+    tts: tts,
+  );
+}
+
 class _PressureReading {
   const _PressureReading(this.tankIndex, this.pressureBar);
   final int tankIndex;
@@ -627,31 +962,43 @@ class _SurfaceFix {
 
 /// First pass over the raw samples: collects temperature readings (matched
 /// to depth samples by nearest timestamp later), the dive-active start time,
-/// and an entry GPS fix, without building any profile rows yet.
+/// the earliest sample time, and an entry GPS fix, without building any
+/// profile rows yet.
 class _FirstPass {
   const _FirstPass({
     required this.temperatureReadings,
     required this.diveStartMs,
+    required this.firstSampleMs,
     this.latitude,
     this.longitude,
   });
 
   final List<_TempReading> temperatureReadings;
   final int? diveStartMs;
+
+  /// The earliest sample timestamp: where the sample clock opens the log,
+  /// compared against the header's own clock.
+  final int? firstSampleMs;
   final double? latitude;
   final double? longitude;
 
   static _FirstPass scan(List<Map<String, dynamic>> samples) {
     final temperatureReadings = <_TempReading>[];
     int? diveStartMs;
+    int? firstSampleMs;
     double? latitude;
     double? longitude;
 
     for (final sample in samples) {
+      final sampleMs = SuuntoDiveParser._parseTimestampMs(sample);
+      if (sampleMs != null &&
+          (firstSampleMs == null || sampleMs < firstSampleMs)) {
+        firstSampleMs = sampleMs;
+      }
+
       final temp = SuuntoDiveParser._asDouble(sample['Temperature']);
-      if (temp != null && temp > 0) {
-        final ms = SuuntoDiveParser._parseTimestampMs(sample);
-        if (ms != null) temperatureReadings.add(_TempReading(ms, temp));
+      if (temp != null && temp > 0 && sampleMs != null) {
+        temperatureReadings.add(_TempReading(sampleMs, temp));
       }
 
       if (diveStartMs == null) {
@@ -692,6 +1039,7 @@ class _FirstPass {
     return _FirstPass(
       temperatureReadings: temperatureReadings,
       diveStartMs: diveStartMs,
+      firstSampleMs: firstSampleMs,
       latitude: latitude,
       longitude: longitude,
     );
@@ -702,6 +1050,7 @@ class _ProfileResult {
   const _ProfileResult({
     required this.samples,
     required this.gasSwitchOrder,
+    required this.transmitters,
     this.gasSwitches = const [],
     this.events = const [],
     required this.lastDepth,
@@ -709,6 +1058,7 @@ class _ProfileResult {
 
   final List<ProfileSample> samples;
   final List<int> gasSwitchOrder;
+  final _TransmitterLayout transmitters;
   final List<GasSwitchEvent> gasSwitches;
   final List<DownloadedEvent> events;
   final double lastDepth;

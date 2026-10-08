@@ -18,7 +18,10 @@ class TideDataSource {
   /// false when they reference mean sea level.
   final bool mllwDatum;
 
-  const TideDataSource.fesModel()
+  /// Grid spacing of the model tier in kilometres; null for stations.
+  final double? resolutionKm;
+
+  const TideDataSource.fesModel({this.resolutionKm})
     : kind = TideDataSourceKind.fesModel,
       stationId = null,
       stationName = null,
@@ -30,7 +33,8 @@ class TideDataSource {
     required this.stationName,
     required this.distanceKm,
     required this.mllwDatum,
-  }) : kind = TideDataSourceKind.noaaStation;
+  }) : kind = TideDataSourceKind.noaaStation,
+       resolutionKm = null;
 }
 
 /// A tide calculator plus where its constituents came from.
@@ -72,14 +76,11 @@ class TideConstituentResolver {
     final station = await _resolveStation(latitude, longitude);
     if (station != null) return station;
 
-    final fesCalculator = await _fesService.getCalculatorForLocation(
-      latitude,
-      longitude,
-    );
-    if (fesCalculator != null) {
+    final model = await _fesService.getModelForLocation(latitude, longitude);
+    if (model != null) {
       return ResolvedTideData(
-        calculator: fesCalculator,
-        source: const TideDataSource.fesModel(),
+        calculator: model.calculator,
+        source: TideDataSource.fesModel(resolutionKm: model.resolutionKm),
       );
     }
     return null;

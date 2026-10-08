@@ -1,6 +1,7 @@
 import 'dart:ui' show Locale;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -33,6 +34,37 @@ void main() {
 
     test('a stored enum name still resolves to its name', () {
       expect(entryMethodDistributionLabel('giantStride', en), 'Giant Stride');
+    });
+  });
+
+  group('dive type labels', () {
+    test('an empty key reads as the unknown placeholder', () {
+      expect(diveTypeDistributionLabel('', en), 'Unknown');
+    });
+
+    test('a built-in slug resolves through the translation table', () {
+      expect(diveTypeDistributionLabel('wreck', en), 'Wreck');
+    });
+
+    // Issue #3075: with no typesById, a custom slug fell through to plain
+    // slug capitalization instead of the diver's own name.
+    test('a custom slug with no typesById falls back to slug '
+        'capitalization', () {
+      expect(diveTypeDistributionLabel('dpv', en), 'Dpv');
+    });
+
+    test('a custom slug resolves to the diver\'s own name when typesById '
+        'is given', () {
+      final typesById = {
+        'dpv': DiveTypeEntity(
+          id: 'dpv',
+          diverId: 'diver-1',
+          name: 'DPV',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      };
+      expect(diveTypeDistributionLabel('dpv', en, typesById: typesById), 'DPV');
     });
   });
 

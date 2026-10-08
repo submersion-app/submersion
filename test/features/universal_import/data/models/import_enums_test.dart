@@ -4,7 +4,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 void main() {
   group('ImportFormat', () {
     test('has all expected values', () {
-      expect(ImportFormat.values, hasLength(19));
+      expect(ImportFormat.values, hasLength(22));
     });
 
     test('displayName for each format', () {
@@ -21,6 +21,10 @@ void main() {
         ImportFormat.submersionEquipmentCsv.displayName,
         'Submersion Equipment CSV',
       );
+      expect(
+        ImportFormat.submersionFillsCsv.displayName,
+        'Submersion Fills CSV',
+      );
       expect(ImportFormat.uddf.displayName, 'UDDF');
       expect(ImportFormat.macdiveXml.displayName, 'MacDive XML');
       expect(ImportFormat.macdiveSqlite.displayName, 'MacDive SQLite');
@@ -35,7 +39,29 @@ void main() {
       expect(ImportFormat.danDl7.displayName, 'DAN DL7');
       expect(ImportFormat.ratioXml.displayName, 'Ratio XML');
       expect(ImportFormat.sqlite.displayName, 'SQLite Database');
+      expect(ImportFormat.navTrack.displayName, 'Seacraft ENC log');
       expect(ImportFormat.unknown.displayName, 'Unknown');
+    });
+
+    test('suuntoJson is a hand-off, not a universal parse (#1445)', () {
+      expect(ImportFormat.suuntoJson.displayName, 'Suunto JSON');
+      expect(ImportFormat.suuntoJson.isSupported, isFalse);
+      expect(ImportFormat.suuntoJson.isHandoff, isTrue);
+    });
+
+    test('isHandoff covers exactly the formats with their own import flow', () {
+      expect(ImportFormat.navTrack.isHandoff, isTrue);
+      expect(
+        ImportFormat.values.where((f) => f.isHandoff),
+        unorderedEquals([ImportFormat.navTrack, ImportFormat.suuntoJson]),
+      );
+    });
+
+    test('navTrack is deliberately unsupported by the dive pipeline', () {
+      // A Seacraft ENC log is a measured underwater route, not a dive log
+      // (spec 2026-09-10-underwater-nav-track-design.md); the parser
+      // registry must never receive it.
+      expect(ImportFormat.navTrack.isSupported, isFalse);
     });
 
     test(
@@ -53,6 +79,7 @@ void main() {
         expect(ImportFormat.submersionDivesCsv.isSupported, isTrue);
         expect(ImportFormat.submersionSitesCsv.isSupported, isTrue);
         expect(ImportFormat.submersionEquipmentCsv.isSupported, isTrue);
+        expect(ImportFormat.submersionFillsCsv.isSupported, isTrue);
       },
     );
 
@@ -116,7 +143,7 @@ void main() {
 
   group('ImportEntityType', () {
     test('has all expected values', () {
-      expect(ImportEntityType.values, hasLength(13));
+      expect(ImportEntityType.values, hasLength(14));
     });
 
     test('displayName for each entity type', () {
@@ -133,6 +160,7 @@ void main() {
       expect(ImportEntityType.tags.displayName, 'Tags');
       expect(ImportEntityType.diveTypes.displayName, 'Dive Types');
       expect(ImportEntityType.serviceRecords.displayName, 'Service Records');
+      expect(ImportEntityType.fills.displayName, 'Fills');
     });
 
     test('shortName for each entity type', () {
@@ -148,13 +176,24 @@ void main() {
       expect(ImportEntityType.tags.shortName, 'Tags');
       expect(ImportEntityType.diveTypes.shortName, 'Types');
       expect(ImportEntityType.serviceRecords.shortName, 'Service');
+      expect(ImportEntityType.fills.shortName, 'Fills');
     });
   });
 
   group('SourceOverrideOption', () {
     group('supported list', () {
       test('contains expected number of entries', () {
-        expect(SourceOverrideOption.supported.length, 23);
+        expect(SourceOverrideOption.supported.length, 24);
+      });
+
+      test('contains Submersion Fills CSV entry', () {
+        final match = SourceOverrideOption.supported.where(
+          (o) =>
+              o.sourceApp == SourceApp.submersion &&
+              o.format == ImportFormat.submersionFillsCsv,
+        );
+        expect(match, hasLength(1));
+        expect(match.first.displayName, 'Submersion (Fills CSV)');
       });
 
       test('contains Submersion CSV entry', () {

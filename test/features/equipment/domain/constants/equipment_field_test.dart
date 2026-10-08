@@ -57,7 +57,10 @@ void main() {
 
     test('keeps its place before the later appended tags', () {
       const values = EquipmentField.values;
-      expect(values[values.length - 2], EquipmentField.components);
+      expect(
+        values[values.indexOf(EquipmentField.tags) - 1],
+        EquipmentField.components,
+      );
       expect(EquipmentField.components.categoryName, 'details');
     });
   });
@@ -95,7 +98,9 @@ void main() {
     });
 
     test('is appended last, so saved layouts keep their order', () {
-      expect(EquipmentField.values.last, EquipmentField.tags);
+      // Owner (issue #2046) was appended after it; see its own test.
+      const values = EquipmentField.values;
+      expect(values[values.length - 2], EquipmentField.tags);
       expect(EquipmentField.tags.categoryName, 'other');
       expect(EquipmentField.tags.sortable, isFalse);
       expect(EquipmentField.tags.isRightAligned, isFalse);

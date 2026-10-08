@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart' show QueryNode;
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/service_due_filter_display.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_choice_attribute_filter.dart';
+import 'package:submersion/features/equipment/query/equipment_filter_query.dart';
+import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_sheet_section.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_filter_section.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -51,20 +59,32 @@ String _severityKey(ServiceDueFilter severity) => switch (severity) {
 class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   // Local draft, mirroring EquipmentFilterState.
   EquipmentStatus? _status;
+  bool _allStatuses = false;
   ServiceDueFilter? _serviceDue;
   EquipmentType? _type;
   List<EquipmentAttrCondition> _attrConditions = const [];
   Set<String> _tagIds = const {};
+  Set<String> _locationNames = const {};
+  bool _noLocation = false;
+  EquipmentOwnerFilter _owner = EquipmentOwnerFilter.all;
+
+  /// The advanced part (#2365): typed, built or applied from a saved query.
+  QueryNode? _query;
 
   @override
   void initState() {
     super.initState();
     final filter = widget.ref.read(equipmentFilterProvider);
     _status = filter.status;
+    _allStatuses = filter.allStatuses;
     _serviceDue = filter.serviceDue;
     _type = filter.type;
     _attrConditions = filter.attrConditions;
     _tagIds = filter.tagIds;
+    _locationNames = filter.locationNames;
+    _noLocation = filter.noLocation;
+    _owner = filter.owner;
+    _query = filter.query;
   }
 
   /// Conditions belong to a category, so picking another one drops them.
@@ -121,15 +141,35 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 ),
                 const Divider(),
                 Expanded(
-                  child: ListView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _buildStatusSection(),
-                      const SizedBox(height: 24),
-                      _buildCategorySection(),
-                      _buildTagSection(),
-                    ],
+                  child: SheetMessengerScope(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        QuerySheetSection(
+                          subject: QuerySubject.equipment,
+                          root: equipmentQueryEntity,
+                          value: _query,
+                          onChanged: (node) => setState(() => _query = node),
+                          saveNode: _draft().toSavedQuery(),
+                          onLoad: _loadSaved,
+                        ),
+                        const SizedBox(height: 24),
+                        _buildStatusSection(),
+                        const SizedBox(height: 24),
+                        _buildOwnerSection(),
+                        _buildCategorySection(),
+                        _buildTagSection(),
+                        EquipmentLocationFilterSection(
+                          locationNames: _locationNames,
+                          noLocation: _noLocation,
+                          onChanged: (ids, none) => setState(() {
+                            _locationNames = ids;
+                            _noLocation = none;
+                          }),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 // Outside the ListView: as lazy children the actions were
@@ -188,12 +228,25 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
           spacing: 8,
           runSpacing: 8,
           children: [
+            // The default view: everything but retired and sold gear (#636).
+            ChoiceChip(
+              key: const ValueKey('equipment_filter_status_current'),
+              label: Text(context.l10n.equipment_list_filterCurrent),
+              selected: !_allStatuses && _status == null && _serviceDue == null,
+              onSelected: (_) => setState(() {
+                _status = null;
+                _allStatuses = false;
+                _serviceDue = null;
+              }),
+            ),
+            // Every status, retired and sold included (#2590).
             ChoiceChip(
               key: const ValueKey('equipment_filter_status_all'),
               label: Text(context.l10n.equipment_list_filterAll),
-              selected: _status == null && _serviceDue == null,
+              selected: _allStatuses,
               onSelected: (_) => setState(() {
                 _status = null;
+                _allStatuses = true;
                 _serviceDue = null;
               }),
             ),
@@ -208,7 +261,10 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 selected: _serviceDue == severity,
                 onSelected: (selected) => setState(() {
                   _serviceDue = selected ? severity : null;
-                  if (selected) _status = null;
+                  if (selected) {
+                    _status = null;
+                    _allStatuses = false;
+                  }
                 }),
               ),
             // needsService is excluded: the computed Service Due choice above
@@ -222,7 +278,10 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
                 selected: _status == status,
                 onSelected: (selected) => setState(() {
                   _status = selected ? status : null;
-                  if (selected) _serviceDue = null;
+                  if (selected) {
+                    _serviceDue = null;
+                    _allStatuses = false;
+                  }
                 }),
               ),
           ],
@@ -238,7 +297,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     final owned = ref.watch(ownedEquipmentTypesProvider);
     final types = EquipmentType.values
         .where((t) => owned.contains(t) || t == _type)
-        .toList();
+        .sortedByLocalizedName(context.l10n);
 
     if (types.isEmpty) return const SizedBox.shrink();
 
@@ -327,23 +386,88 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
   void _clearAll() {
     setState(() {
       _status = null;
+      _allStatuses = false;
       _serviceDue = null;
       _type = null;
       _attrConditions = const [];
       _tagIds = const {};
+      _locationNames = const {};
+      _noLocation = false;
+      _owner = EquipmentOwnerFilter.all;
+      _query = null;
     });
   }
 
+  /// A saved search is the whole search (#2989, spec 5.4): the controls
+  /// return to the default view rather than be ANDed with it. One naming
+  /// the status shows every status, so its conditions decide. Whose gear to
+  /// show is the diver's view, never saved, so it stays.
+  void _loadSaved(QueryNode? node) => setState(() {
+    _status = null;
+    _allStatuses = node != null && constrainsEquipmentStatus(node);
+    _serviceDue = null;
+    _type = null;
+    _attrConditions = const [];
+    _tagIds = const {};
+    _query = node;
+  });
+
+  /// The filter as the sheet shows it: what Apply writes and Save stores.
+  EquipmentFilterState _draft() => EquipmentFilterState(
+    status: _status,
+    allStatuses: _allStatuses,
+    serviceDue: _serviceDue,
+    type: _type,
+    attrConditions: _attrConditions,
+    tagIds: _tagIds,
+    locationNames: _locationNames,
+    noLocation: _noLocation,
+    owner: _owner,
+    query: _query,
+  );
+
   void _applyFilters() {
-    widget.ref
-        .read(equipmentFilterProvider.notifier)
-        .state = EquipmentFilterState(
-      status: _status,
-      serviceDue: _serviceDue,
-      type: _type,
-      attrConditions: _attrConditions,
-      tagIds: _tagIds,
-    );
+    widget.ref.read(equipmentFilterProvider.notifier).state = _draft();
     Navigator.of(context).pop();
+  }
+
+  /// Whose gear to show (issue #2046), offered only with two or more
+  /// profiles.
+  Widget _buildOwnerSection() {
+    if (!ref.watch(hasMultipleDiversProvider)) {
+      return const SizedBox.shrink();
+    }
+    final l10n = context.l10n;
+    final labels = {
+      EquipmentOwnerFilter.all: l10n.equipment_filter_owner_all,
+      EquipmentOwnerFilter.mine: l10n.equipment_filter_owner_mine,
+      EquipmentOwnerFilter.sharedWithMe: l10n.equipment_sharedWithMe,
+    };
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.equipment_filter_section_owner,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final entry in labels.entries)
+                ChoiceChip(
+                  key: ValueKey('equipment_filter_owner_${entry.key.name}'),
+                  label: Text(entry.value),
+                  selected: _owner == entry.key,
+                  onSelected: (_) => setState(() => _owner = entry.key),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

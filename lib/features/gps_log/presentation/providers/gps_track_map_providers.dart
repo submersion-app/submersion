@@ -116,61 +116,12 @@ final trackForDiveProvider = FutureProvider.family<GpsTrack?, String>((
   return ref.watch(gpsTrackDetailProvider(match.id).future);
 });
 
-/// Optional date bound on the overview map.
+/// Optional date bound on the Tracks list, map and summary.
 ///
-/// Null means unbounded. Track start times are wall-clock-as-UTC, so the
-/// range's DateTime values compare against them directly with no conversion.
+/// Null means unbounded. The picker returns local calendar dates; they are
+/// read as days (see `startsWithin` in the tracks feature), never compared
+/// as instants against the wall-clock-as-UTC track start times.
 final trackDateFilterProvider = StateProvider<DateTimeRange?>((ref) => null);
-
-/// Most tracks the overview map will draw at once.
-///
-/// The date filter defaults to unbounded, so without a cap a library of 200
-/// boat days would, on a cold cache, hydrate 200 full point blobs and spawn
-/// 200 concurrent compute() isolates in a single frame - each deep-copying
-/// its points across the port both ways. The local cache is never backed up,
-/// so a restored or reinstalled device starts cold. Newest first, because
-/// that is what a diver is looking for.
-const int kOverviewTrackLimit = 40;
-
-/// Completed tracks narrowed by [trackDateFilterProvider].
-///
-/// "Every track ever" is the one query in this feature that grows without
-/// bound, so the overview map reads through this rather than gpsTracksProvider.
-final filteredTracksProvider = FutureProvider<List<GpsTrack>>((ref) async {
-  final tracks = await ref.watch(gpsTracksProvider.future);
-  final range = ref.watch(trackDateFilterProvider);
-  if (range == null) return tracks;
-
-  final from = range.start.millisecondsSinceEpoch;
-  // Inclusive of the end date's full day.
-  final to = range.end
-      .add(const Duration(days: 1))
-      .subtract(const Duration(milliseconds: 1))
-      .millisecondsSinceEpoch;
-
-  return [
-    for (final track in tracks)
-      if (track.startTime >= from && track.startTime <= to) track,
-  ];
-});
-
-/// What the overview map actually draws: [filteredTracksProvider] capped at
-/// [kOverviewTrackLimit].
-///
-/// gpsTracksProvider already returns newest first, so the cap keeps the most
-/// recent boat days.
-final overviewTracksProvider = FutureProvider<List<GpsTrack>>((ref) async {
-  final tracks = await ref.watch(filteredTracksProvider.future);
-  return tracks.length <= kOverviewTrackLimit
-      ? tracks
-      : tracks.sublist(0, kOverviewTrackLimit);
-});
-
-/// True when [overviewTracksProvider] dropped tracks the filter allowed.
-final overviewTracksTruncatedProvider = Provider<bool>((ref) {
-  final all = ref.watch(filteredTracksProvider).value?.length ?? 0;
-  return all > kOverviewTrackLimit;
-});
 
 /// Drops every cached and in-memory derivative of [id].
 ///

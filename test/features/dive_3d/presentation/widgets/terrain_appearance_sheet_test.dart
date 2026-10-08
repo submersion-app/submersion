@@ -324,6 +324,20 @@ void main() {
       expect(levelsOf(container).first.depthMeters, 35.0);
     });
 
+    testWidgets('an unreadable level says why and keeps the stored level '
+        '(#1900)', (tester) async {
+      final container = await pumpSheet(tester, initial: twoLevels);
+      await tester.enterText(
+        find.byKey(const ValueKey('seascapeLevelField0')),
+        '3..5',
+      );
+      await tester.pump();
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pump();
+      expect(levelsOf(container).first.depthMeters, 20.0);
+    });
+
     testWidgets('a feet diver has the typed level stored as meters', (
       tester,
     ) async {

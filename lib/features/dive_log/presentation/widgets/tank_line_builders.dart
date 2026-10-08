@@ -22,7 +22,9 @@ List<LineChartBarData> buildGasSwitchMarkers(
   }
 
   // A cylinder unchecked in the options dialog hides its switch markers,
-  // the same way an unchecked tank hides its pressure trace.
+  // the same way an unchecked tank hides its pressure trace. An untouched
+  // cylinder keeps its markers even when the Pressure default hides its
+  // trace: markers have their own default (showGasSwitchMarkers).
   final visibleSwitches = gasSwitches.where(
     (gs) => showTankPressure[gs.gasSwitch.tankId] ?? true,
   );
@@ -59,6 +61,7 @@ List<LineChartBarData> buildMultiTankPressureLines(
   required bool hasMultiTankPressure,
   required Map<String, List<TankPressurePoint>>? tankPressures,
   required Map<String, bool> showTankPressure,
+  required bool tankPressureVisibleByDefault,
   required Set<String>? estimatedTankIds,
   required List<DiveProfilePoint> profile,
   required List<String> Function(Iterable<String> tankIds) sortedTankIds,
@@ -101,8 +104,9 @@ List<LineChartBarData> buildMultiTankPressureLines(
   for (var i = 0; i < sortedIds.length; i++) {
     final tankId = sortedIds[i];
 
-    // Skip if tank is hidden
-    if (showTankPressure[tankId] == false) continue;
+    // Skip if tank is hidden, by the user or by the Pressure default when
+    // they have not touched it (issue #1999).
+    if (!(showTankPressure[tankId] ?? tankPressureVisibleByDefault)) continue;
 
     // Skip tanks attributed to a computer that's been toggled off.
     if (!isComputerVisible(computerIds[tankId])) continue;

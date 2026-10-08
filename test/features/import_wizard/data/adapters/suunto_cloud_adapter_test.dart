@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -11,10 +12,12 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/suunto_cloud_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 
 @GenerateNiceMocks([
@@ -32,6 +35,7 @@ SuuntoParsedDive makeParsedDive({
   String? deviceName = 'Suunto Ocean',
   String? serialNumber = 'SN-1',
   String? firmwareVersion,
+  ComputerTissueSnapshot? computerTissue,
 }) {
   return SuuntoParsedDive(
     dive: DownloadedDive(
@@ -39,6 +43,7 @@ SuuntoParsedDive makeParsedDive({
       durationSeconds: durationSeconds,
       maxDepth: maxDepth,
       profile: const [],
+      computerTissue: computerTissue,
     ),
     deviceName: deviceName,
     serialNumber: serialNumber,
@@ -134,6 +139,58 @@ void main() {
   });
 
   group('buildBundle()', () {
+    test('names the account and the devices found (#161)', () async {
+      adapter
+        ..setAccount('diver@example.com')
+        ..setParsedDives([
+          makeParsedDive(deviceName: 'Suunto Ocean', serialNumber: 'SN-1'),
+          makeParsedDive(deviceName: 'Suunto EON Steel', serialNumber: 'SN-2'),
+          makeParsedDive(deviceName: 'Suunto Ocean', serialNumber: 'SN-1'),
+          makeParsedDive(deviceName: '  ', serialNumber: 'SN-3'),
+        ]);
+
+      final details = (await adapter.buildBundle()).source.details;
+
+      expect(details.account, 'diver@example.com');
+      expect(details.deviceModels, ['Suunto Ocean', 'Suunto EON Steel']);
+    });
+
+    testWidgets('the Sign In step hands its account to the adapter', (
+      tester,
+    ) async {
+      late BuildContext context;
+      await tester.pumpWidget(
+        Builder(
+          builder: (c) {
+            context = c;
+            return const SizedBox.shrink();
+          },
+        ),
+      );
+      final step =
+          adapter.acquisitionSteps.first.builder(context)
+              as SuuntoCloudSignInStep;
+
+      step.onAccountSignedIn!('diver@example.com');
+      adapter.setParsedDives([makeParsedDive()]);
+      final details = (await tester.runAsync(
+        adapter.buildBundle,
+      ))!.source.details;
+
+      expect(details.account, 'diver@example.com');
+    });
+
+    test('resetState forgets the account', () async {
+      adapter
+        ..setAccount('diver@example.com')
+        ..resetState()
+        ..setParsedDives([makeParsedDive()]);
+
+      final details = (await adapter.buildBundle()).source.details;
+
+      expect(details.account, isNull);
+    });
+
     test(
       'resolves a computer per dive and returns one entity per dive',
       () async {
@@ -142,6 +199,7 @@ void main() {
         final bundle = await adapter.buildBundle();
 
         expect(bundle.hasType(ImportEntityType.dives), isTrue);
+        expect(bundle.source.type, ImportSourceType.suuntoCloud);
         expect(bundle.groups[ImportEntityType.dives]!.items, hasLength(1));
         verify(mockComputerRepo.createComputer(any)).called(1);
       },
@@ -262,6 +320,39 @@ void main() {
 
       expect(updated.groups[ImportEntityType.dives]!.duplicateIndices, isEmpty);
     });
+  });
+
+  group('computer tissue', () {
+    test(
+      'the snapshot rides on the dive handed to the import service',
+      () async {
+        const snapshot = ComputerTissueSnapshot(
+          algorithm: 'Suunto Fused2 RGBM',
+          start: ComputerTissueState(n2Bar: [0.79, 0.79]),
+          end: ComputerTissueState(n2Bar: [0.9, 1.1], cnsPercent: 13.2),
+        );
+        adapter.setParsedDives([makeParsedDive(computerTissue: snapshot)]);
+        final bundle = await adapter.buildBundle();
+        stubImportAsNew();
+
+        await adapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        final imported =
+            verify(
+                  mockImportService.importSingleDiveAsNew(
+                    captureAny,
+                    computerId: anyNamed('computerId'),
+                    diverId: anyNamed('diverId'),
+                    descriptorVendor: anyNamed('descriptorVendor'),
+                    descriptorProduct: anyNamed('descriptorProduct'),
+                  ),
+                ).captured.single
+                as DownloadedDive;
+        expect(imported.computerTissue, snapshot);
+      },
+    );
   });
 
   group('retaining source dive numbers (issue #1832)', () {

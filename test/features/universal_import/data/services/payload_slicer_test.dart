@@ -79,7 +79,7 @@ void main() {
             {_key: 'diver:a'},
             {
               _key: 'new:b',
-              'diverRoleId': 'role-guide',
+              'diverRoleIds': ['role-guide'],
               'buddyRoleRefs': [
                 {'buddyRef': 'kim', 'roleId': 'role-photo'},
               ],

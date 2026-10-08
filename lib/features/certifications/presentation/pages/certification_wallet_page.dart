@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard_grid.dart';
@@ -80,6 +81,9 @@ class CertificationWalletPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final certificationsAsync = ref.watch(certificationListNotifierProvider);
     final diverAsync = ref.watch(currentDiverProvider);
+    // The grid's action rows title custom levels through the catalog, which
+    // can arrive after the first frame (issue #690).
+    ref.watch(certificationCatalogSyncProvider);
 
     return Scaffold(
       appBar: AppBar(

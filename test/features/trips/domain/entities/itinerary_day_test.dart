@@ -124,6 +124,51 @@ void main() {
       expect(days[1].dayType, DayType.disembark);
     });
 
+    test('a resort trip travels on its first and last day', () {
+      final days = ItineraryDay.generateForTrip(
+        tripId: 'trip-1',
+        startDate: DateTime(2026, 10, 14),
+        endDate: DateTime(2026, 10, 21),
+        tripType: TripType.resort,
+      );
+      expect(days, hasLength(8));
+      expect(days.first.dayType, DayType.travel);
+      expect(days.last.dayType, DayType.travel);
+      for (final d in days.sublist(1, 7)) {
+        expect(d.dayType, DayType.diveDay);
+      }
+    });
+
+    test('a one-day resort trip is a single dive day', () {
+      final days = ItineraryDay.generateForTrip(
+        tripId: 'trip-1',
+        startDate: DateTime(2026, 10, 14),
+        endDate: DateTime(2026, 10, 14),
+        tripType: TripType.dayTrip,
+      );
+      expect(days.single.dayType, DayType.diveDay);
+    });
+
+    test('a two-day shore trip is two dive days', () {
+      final days = ItineraryDay.generateForTrip(
+        tripId: 'trip-1',
+        startDate: DateTime(2026, 10, 14),
+        endDate: DateTime(2026, 10, 15),
+        tripType: TripType.shore,
+      );
+      expect(days.map((d) => d.dayType), [DayType.diveDay, DayType.diveDay]);
+    });
+
+    test('a liveaboard keeps embark and disembark at every length', () {
+      final days = ItineraryDay.generateForTrip(
+        tripId: 'trip-1',
+        startDate: DateTime(2026, 10, 14),
+        endDate: DateTime(2026, 10, 15),
+        tripType: TripType.liveaboard,
+      );
+      expect(days.map((d) => d.dayType), [DayType.embark, DayType.disembark]);
+    });
+
     // A local calendar day is 23 hours at a spring-forward and 25 at a
     // fall-back, so elapsed-time arithmetic (`Duration.inDays`, which floors)
     // drops or invents a day for any trip spanning a transition. The windows

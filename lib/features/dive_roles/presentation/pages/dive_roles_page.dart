@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/built_in_show_column.dart';
 import 'package:submersion/shared/widgets/fab_clearance.dart';
 
 /// Settings page managing the per-dive role vocabulary (#551): built-in
@@ -17,6 +21,9 @@ class DiveRolesPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final diveRolesAsync = ref.watch(diveRoleListNotifierProvider);
+    final hidden = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -55,13 +62,20 @@ class DiveRolesPage extends ConsumerWidget {
                 ),
                 const Divider(),
               ],
-              _buildSectionHeader(
-                context,
-                context.l10n.diveRoles_builtInHeader,
+              BuiltInShowColumnHeader(
+                title: context.l10n.diveRoles_builtInHeader,
+                titleStyle: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
               ...builtInRoles.map(
-                (role) =>
-                    _buildDiveRoleTile(context, ref, role, canEdit: false),
+                (role) => _buildDiveRoleTile(
+                  context,
+                  ref,
+                  role,
+                  canEdit: false,
+                  isHidden: hidden.contains(role.id),
+                ),
               ),
             ],
           );
@@ -87,11 +101,16 @@ class DiveRolesPage extends ConsumerWidget {
     WidgetRef ref,
     DiveRole role, {
     required bool canEdit,
+    bool isHidden = false,
   }) {
     return ListTile(
+      // A hidden built-in stays listed so it can be shown again (issue #401).
+      textColor: isHidden ? Theme.of(context).disabledColor : null,
       leading: Icon(
         canEdit ? Icons.group_outlined : Icons.groups,
-        color: canEdit
+        color: isHidden
+            ? Theme.of(context).disabledColor
+            : canEdit
             ? Theme.of(context).colorScheme.secondary
             : Theme.of(context).colorScheme.primary,
       ),
@@ -112,7 +131,16 @@ class DiveRolesPage extends ConsumerWidget {
                 ),
               ],
             )
-          : null,
+          : BuiltInShowSwitch(
+              switchKey: builtInShowSwitchKey(
+                BuiltInCatalog.diveRoles,
+                role.id,
+              ),
+              shown: !isHidden,
+              onChanged: (shown) => ref
+                  .read(settingsProvider.notifier)
+                  .setBuiltInHidden(BuiltInCatalog.diveRoles, role.id, !shown),
+            ),
     );
   }
 

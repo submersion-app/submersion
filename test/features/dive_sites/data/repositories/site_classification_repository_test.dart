@@ -67,6 +67,12 @@ void main() {
 
   test('addTypes unions and never removes', () async {
     await repository.replaceTypes('s1', ['wreck']);
+    // Each call stamps its first row at the current millisecond, and the read
+    // breaks ties by a random uuid, so move the first call's row earlier.
+    final moved = await DatabaseService.instance.database.customUpdate(
+      "UPDATE site_site_types SET created_at = 0 WHERE site_id = 's1'",
+    );
+    expect(moved, 1);
     await repository.addTypes('s1', ['wreck', 'lake']);
     final types = await repository.getTypesForSite('s1');
     expect(types.map((t) => t.id), ['wreck', 'lake']);

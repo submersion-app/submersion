@@ -8,8 +8,10 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_fill_hours_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/location_picker_map.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -53,6 +55,11 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
 
   double? _rating;
   List<String> _selectedAffiliations = [];
+  int? _fillOpensAt;
+  int? _fillClosesAt;
+
+  /// Set by a save the fill hours blocked, so their error shows from then.
+  bool _fillHoursChecked = false;
   bool _isLoading = false;
   bool _isInitialized = false;
   bool _hasChanges = false;
@@ -203,10 +210,15 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
     _longitudeController.text = center.longitude?.toStringAsFixed(6) ?? '';
     _rating = center.rating;
     _selectedAffiliations = List.from(center.affiliations);
+    _fillOpensAt = center.fillOpensAt;
+    _fillClosesAt = center.fillClosesAt;
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    final formValid = _formKey.currentState!.validate();
+    final hoursValid = fillHoursProblem(_fillOpensAt, _fillClosesAt) == null;
+    if (!hoursValid) setState(() => _fillHoursChecked = true);
+    if (!formValid || !hoursValid) return;
 
     setState(() => _isLoading = true);
 
@@ -257,6 +269,8 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
         affiliations: _selectedAffiliations,
         rating: _rating,
         notes: _notesController.text.trim(),
+        fillOpensAt: _fillOpensAt,
+        fillClosesAt: _fillClosesAt,
         createdAt: now,
         updatedAt: now,
       );
@@ -293,6 +307,16 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
       }
     }
   }
+
+  String? _fillHoursErrorText(BuildContext context) => switch (fillHoursProblem(
+    _fillOpensAt,
+    _fillClosesAt,
+  )) {
+    null => null,
+    FillHoursProblem.missingOne => context.l10n.diveCenters_fillHours_errorBoth,
+    FillHoursProblem.closesBeforeOpens =>
+      context.l10n.diveCenters_fillHours_errorOrder,
+  };
 
   void _handleCancel() {
     if (widget.embedded) {
@@ -561,6 +585,21 @@ class _DiveCenterEditPageState extends ConsumerState<DiveCenterEditPage> {
               border: const OutlineInputBorder(),
             ),
             keyboardType: TextInputType.url,
+          ),
+
+          const SizedBox(height: 24),
+
+          // Fill hours (#2325): the trip fill forecast's deadline.
+          DiveCenterFillHoursSection(
+            opensAt: _fillOpensAt,
+            closesAt: _fillClosesAt,
+            units: UnitFormatter(ref.watch(settingsProvider)),
+            errorText: _fillHoursChecked ? _fillHoursErrorText(context) : null,
+            onChanged: (opens, closes) => setState(() {
+              _fillOpensAt = opens;
+              _fillClosesAt = closes;
+              _hasChanges = true;
+            }),
           ),
 
           const SizedBox(height: 24),

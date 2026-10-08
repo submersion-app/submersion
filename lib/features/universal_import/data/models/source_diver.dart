@@ -24,6 +24,15 @@ class SourceDiver extends Equatable {
       ? '$fileLocalPrefix$fileId:${key.substring(fileLocalPrefix.length)}'
       : key;
 
+  /// Inverse of [qualifyForFile]: [key] as the file itself emits it, which is
+  /// the form a later re-parse of that one file can match (issue #1921).
+  static String unqualifyForFile(String key, String fileId) {
+    final prefix = '$fileLocalPrefix$fileId:';
+    return key.startsWith(prefix)
+        ? '$fileLocalPrefix${key.substring(prefix.length)}'
+        : key;
+  }
+
   /// Stable id within one import: `macdive:<ZUUID>` for MacDive.sqlite,
   /// `name:<name>` for MacDive XML, or [unownedKey].
   final String key;

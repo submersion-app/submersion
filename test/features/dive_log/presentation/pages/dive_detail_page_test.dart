@@ -31,6 +31,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_loading_withheld_card.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -1143,6 +1144,57 @@ void main() {
       expect(find.byType(CompactTissueLoadingCard), findsOneWidget);
       expect(find.byType(CompactO2ToxicityPanel), findsOneWidget);
     });
+
+    testWidgets(
+      'says why tissue loading is missing on a loop it could not model',
+      (tester) async {
+        // Issue #2593: a CCR dive with no setpoint or loop ppO2 gets no tissue
+        // loading. The diver is told why instead of the panel vanishing, and
+        // the O2 exposure card, which does not depend on it, stays.
+        final dive = diveWithProfile().copyWith(diveMode: DiveMode.ccr);
+        final analysis = ProfileAnalysis.empty().copyWith(
+          tissueLoadingWithheld: true,
+          ppO2Curve: List.filled(dive.profile.length, 0.0),
+        );
+        final base = await getBaseOverrides();
+        final originalOnError = FlutterError.onError;
+        addTearDown(() => FlutterError.onError = originalOnError);
+        FlutterError.onError = (d) {
+          if (d.toString().contains('overflowed')) return;
+          originalOnError?.call(d);
+        };
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...base,
+              ...panelOverrides(
+                dive,
+                profileAnalysisProvider(
+                  dive.id,
+                ).overrideWith((ref) async => analysis),
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: DiveDetailPage(diveId: dive.id, embedded: true),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        final l10n = AppLocalizations.of(
+          tester.element(find.byType(DiveDetailPage)),
+        );
+        expect(find.byType(CompactDecoStatusCard), findsNothing);
+        expect(find.byType(CompactTissueLoadingCard), findsNothing);
+        expect(find.byType(TissueLoadingWithheldCard), findsNWidgets(2));
+        expect(find.text(l10n.diveLog_deco_withheld_ccr), findsNWidgets(2));
+        expect(find.byType(CompactO2ToxicityPanel), findsOneWidget);
+      },
+    );
 
     testWidgets('tissue card 3D button opens the 3D view in tissue mode', (
       tester,

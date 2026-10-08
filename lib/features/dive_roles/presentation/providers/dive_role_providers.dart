@@ -4,6 +4,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/core/services/logger_service.dart';
 
 /// Repository provider
 final diveRoleRepositoryProvider = Provider<DiveRoleRepository>((ref) {
@@ -29,6 +30,24 @@ final diveRoleMapProvider = FutureProvider<Map<String, DiveRole>>((ref) async {
   final roles = await ref.watch(allDiveRolesProvider.future);
   return {for (final role in roles) role.id: role};
 });
+
+/// Awaits [lookup] (a read of [diveRoleMapProvider]), or yields an empty map
+/// when it fails, so a PDF export prints the diver's own roles under their
+/// raw ids rather than failing (issue #1221).
+Future<Map<String, DiveRole>> diveRoleMapOrEmpty(
+  Future<Map<String, DiveRole>> lookup,
+) async {
+  try {
+    return await lookup;
+  } catch (e, stackTrace) {
+    LoggerService.forClass(DiveRole).warning(
+      'Exporting dive roles under their raw ids',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    return const {};
+  }
+}
 
 /// Dive role list notifier for mutations
 class DiveRoleListNotifier extends StateNotifier<AsyncValue<List<DiveRole>>> {

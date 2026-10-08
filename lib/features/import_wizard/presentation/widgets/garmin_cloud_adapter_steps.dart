@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,9 +20,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// MFA challenge, in which case a verification-code sub-form replaces the
 /// password form until the code is accepted.
 class GarminCloudSignInStep extends ConsumerStatefulWidget {
-  const GarminCloudSignInStep({super.key, required this.onSignedIn});
+  const GarminCloudSignInStep({
+    super.key,
+    required this.onSignedIn,
+    this.onAccountSignedIn,
+  });
 
   final ValueChanged<GarminConnectClient> onSignedIn;
+
+  /// The email the session belongs to, reported with every sign-in so the
+  /// Review step can name the account (issue #161).
+  final ValueChanged<String>? onAccountSignedIn;
 
   @override
   ConsumerState<GarminCloudSignInStep> createState() =>
@@ -94,6 +104,7 @@ class _GarminCloudSignInStepState extends ConsumerState<GarminCloudSignInStep> {
 
   void _markSignedIn(GarminConnectClient client, String email) {
     widget.onSignedIn(client);
+    widget.onAccountSignedIn?.call(email);
     setState(() {
       _checkingCachedSession = false;
       _signingIn = false;
@@ -381,10 +392,12 @@ class _GarminCloudSignInStepState extends ConsumerState<GarminCloudSignInStep> {
 /// Fetch step for the Garmin Connect import wizard.
 ///
 /// Lists every diving/apnea activity, then downloads and parses each page's
-/// FIT files in parallel. A single dive's fetch/parse failure is skipped
-/// rather than aborting the whole fetch, matching how a single corrupt file
-/// is handled elsewhere in the import pipeline. Paging, Fetch All, and the
-/// selection list live in [CloudImportFetchStep].
+/// FIT files, a few at a time. A dive Connect has no FIT file for is built
+/// from its activity summary instead, with no profile. Any other single
+/// dive's fetch/parse failure is skipped rather than aborting the whole
+/// fetch, matching how a single corrupt file is handled elsewhere in the
+/// import pipeline. Paging, Fetch All, retrying
+/// the skipped dives and the selection list live in [CloudImportFetchStep].
 class GarminCloudFetchStep extends StatelessWidget {
   const GarminCloudFetchStep({
     super.key,
@@ -394,6 +407,11 @@ class GarminCloudFetchStep extends StatelessWidget {
 
   final GarminConnectClient? client;
   final void Function(List<GarminParsedDive> dives) onDivesFetched;
+
+  /// How many FIT downloads run at once. Firing a whole page together drew
+  /// Garmin's rate limiting, which lost dives from the import (#1635); a
+  /// small pool keeps most of the speed without the burst.
+  static const int maxConcurrentDownloads = 3;
 
   static const _fitParser = FitParserService();
 
@@ -418,16 +436,36 @@ class GarminCloudFetchStep extends StatelessWidget {
         var completed = 0;
 
         Future<void> downloadOne(int i) async {
+          final summary = page[i];
           try {
-            final activityId = page[i].activityId;
-            final bytes = await client!.downloadActivityFit(activityId);
+            // An activity entered by hand in Connect has no FIT file, so it
+            // is imported from its summary without asking (issue #2410).
+            if (summary.isManual) {
+              results[i] = GarminDiveMapper.fromSummary(summary);
+              return;
+            }
+            final Uint8List bytes;
+            try {
+              bytes = await client!.downloadActivityFit(summary.activityId);
+            } on GarminNoFitException {
+              // Garmin's final answer, not a fault worth retrying. A failed
+              // download of any other kind stays a failure the diver can
+              // try again, so a bad connection never costs a dive its
+              // profile.
+              results[i] = GarminDiveMapper.fromSummary(summary);
+              return;
+            }
             final imported = await _fitParser.parseFitFile(bytes);
             if (imported != null) {
               results[i] = GarminDiveMapper.map(
                 imported,
-                activityId: activityId,
-                fallbackLatitude: page[i].latitude,
-                fallbackLongitude: page[i].longitude,
+                activityId: summary.activityId,
+                fallbackLatitude: summary.latitude,
+                fallbackLongitude: summary.longitude,
+                fallbackExitLatitude: summary.exitLatitude,
+                fallbackExitLongitude: summary.exitLongitude,
+                notes: summary.notes,
+                weightKg: summary.weightKg,
               );
             }
           } catch (_) {
@@ -438,7 +476,20 @@ class GarminCloudFetchStep extends StatelessWidget {
           }
         }
 
-        await Future.wait(List.generate(page.length, downloadOne));
+        // A fixed pool of workers pulls the next undownloaded index, so a
+        // slot is reused as soon as its dive finishes. Dart runs this on one
+        // isolate, so claiming `next++` between awaits cannot race.
+        var next = 0;
+        Future<void> worker() async {
+          while (next < page.length) {
+            await downloadOne(next++);
+          }
+        }
+
+        final workers = page.length < maxConcurrentDownloads
+            ? page.length
+            : maxConcurrentDownloads;
+        await Future.wait(List.generate(workers, (_) => worker()));
         return results;
       },
       diveOf: (parsed) => parsed.dive,

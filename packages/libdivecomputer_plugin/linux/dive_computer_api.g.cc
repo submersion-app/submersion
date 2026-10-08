@@ -10,6 +10,7 @@ struct _LibdivecomputerPluginDeviceDescriptor {
   gchar* product;
   int64_t model;
   FlValue* transports;
+  gboolean delivers_oldest_first;
 };
 
 G_DEFINE_TYPE(LibdivecomputerPluginDeviceDescriptor, libdivecomputer_plugin_device_descriptor, G_TYPE_OBJECT)
@@ -29,12 +30,13 @@ static void libdivecomputer_plugin_device_descriptor_class_init(LibdivecomputerP
   G_OBJECT_CLASS(klass)->dispose = libdivecomputer_plugin_device_descriptor_dispose;
 }
 
-LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_descriptor_new(const gchar* vendor, const gchar* product, int64_t model, FlValue* transports) {
+LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_descriptor_new(const gchar* vendor, const gchar* product, int64_t model, FlValue* transports, gboolean delivers_oldest_first) {
   LibdivecomputerPluginDeviceDescriptor* self = LIBDIVECOMPUTER_PLUGIN_DEVICE_DESCRIPTOR(g_object_new(libdivecomputer_plugin_device_descriptor_get_type(), nullptr));
   self->vendor = g_strdup(vendor);
   self->product = g_strdup(product);
   self->model = model;
   self->transports = fl_value_ref(transports);
+  self->delivers_oldest_first = delivers_oldest_first;
   return self;
 }
 
@@ -58,12 +60,18 @@ FlValue* libdivecomputer_plugin_device_descriptor_get_transports(Libdivecomputer
   return self->transports;
 }
 
+gboolean libdivecomputer_plugin_device_descriptor_get_delivers_oldest_first(LibdivecomputerPluginDeviceDescriptor* self) {
+  g_return_val_if_fail(LIBDIVECOMPUTER_PLUGIN_IS_DEVICE_DESCRIPTOR(self), FALSE);
+  return self->delivers_oldest_first;
+}
+
 static FlValue* libdivecomputer_plugin_device_descriptor_to_list(LibdivecomputerPluginDeviceDescriptor* self) {
   FlValue* values = fl_value_new_list();
   fl_value_append_take(values, fl_value_new_string(self->vendor));
   fl_value_append_take(values, fl_value_new_string(self->product));
   fl_value_append_take(values, fl_value_new_int(self->model));
   fl_value_append_take(values, fl_value_ref(self->transports));
+  fl_value_append_take(values, fl_value_new_bool(self->delivers_oldest_first));
   return values;
 }
 
@@ -76,7 +84,9 @@ static LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_desc
   int64_t model = fl_value_get_int(value2);
   FlValue* value3 = fl_value_get_list_value(values, 3);
   FlValue* transports = value3;
-  return libdivecomputer_plugin_device_descriptor_new(vendor, product, model, transports);
+  FlValue* value4 = fl_value_get_list_value(values, 4);
+  gboolean delivers_oldest_first = fl_value_get_bool(value4);
+  return libdivecomputer_plugin_device_descriptor_new(vendor, product, model, transports, delivers_oldest_first);
 }
 
 struct _LibdivecomputerPluginDiscoveredDevice {
@@ -3070,12 +3080,14 @@ static void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complet
   g_task_return_pointer(task, result, g_object_unref);
 }
 
-void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* self, int64_t total_dives, const gchar* serial_number, const gchar* firmware_version, const gchar* clock_sync_status, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data) {
+void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* self, int64_t total_dives, const gchar* serial_number, const gchar* firmware_version, const gchar* clock_sync_status, const gchar* reported_product, int64_t* reported_model, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data) {
   g_autoptr(FlValue) args = fl_value_new_list();
   fl_value_append_take(args, fl_value_new_int(total_dives));
   fl_value_append_take(args, serial_number != nullptr ? fl_value_new_string(serial_number) : fl_value_new_null());
   fl_value_append_take(args, firmware_version != nullptr ? fl_value_new_string(firmware_version) : fl_value_new_null());
   fl_value_append_take(args, clock_sync_status != nullptr ? fl_value_new_string(clock_sync_status) : fl_value_new_null());
+  fl_value_append_take(args, reported_product != nullptr ? fl_value_new_string(reported_product) : fl_value_new_null());
+  fl_value_append_take(args, reported_model != nullptr ? fl_value_new_int(*reported_model) : fl_value_new_null());
   g_autofree gchar* channel_name = g_strdup_printf("dev.flutter.pigeon.libdivecomputer_plugin.DiveComputerFlutterApi.onDownloadComplete%s", self->suffix);
   g_autoptr(LibdivecomputerPluginMessageCodec) codec = libdivecomputer_plugin_message_codec_new();
   FlBasicMessageChannel* channel = fl_basic_message_channel_new(self->messenger, channel_name, FL_MESSAGE_CODEC(codec));

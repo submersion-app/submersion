@@ -38,6 +38,9 @@ class MacDiveValueMapper {
     if (s.contains('back') && s.contains('roll')) {
       return EntryMethod.backRoll;
     }
+    if ((s.contains('front') || s.contains('forward')) && s.contains('roll')) {
+      return EntryMethod.frontRoll;
+    }
     if (s.contains('giant') && s.contains('stride')) {
       return EntryMethod.giantStride;
     }
@@ -70,6 +73,54 @@ class MacDiveValueMapper {
   /// result as a tag name.
   static String normalizeDiveType(String raw) => raw.trim();
 
+  /// "Shear" or "shears" as a whole word, for [equipmentType].
+  static final _shearWord = RegExp(r'\bshears?\b');
+
+  /// "SCR" as a whole word, allowing the one-letter prefix divers write
+  /// (pSCR). As a bare substring "scr" sits inside "prescription", so every
+  /// prescription mask read as a rebreather. "CCR" needs no such guard and
+  /// stays a substring, so a one-word "JJCCR" still matches.
+  static final _scrWord = RegExp(r'\b[a-z]?scrs?\b');
+
+  /// Camera part words (#1997) that are only safe as whole words: "port"
+  /// sits inside "transport" and "support", "arm" inside "alarm" and "warm",
+  /// and "tray" inside "stray". A float is a camera part only beside an arm
+  /// or a collar: on its own, "float" in a dive log is a surface or flag
+  /// float.
+  static final _cameraFloat = RegExp(
+    r'\bfloat\s*(?:arms?|collars?)\b|\b(?:arm|buoyancy)\s*(?:floats?|arms?)\b',
+  );
+  static final _videoLight = RegExp(r'\bvideo\s*(?:lights?|lamps?)\b');
+
+  /// An arm, but not the forearm kit a diver straps on: an "arm slate" is a
+  /// writing slate and "arm warmers" are thermal wear.
+  static final _armWord = RegExp(r'\barms?\b(?!\s*(?:slates?|warmers?)\b)');
+  static final _trayWord = RegExp(r'\btrays?\b');
+  static final _portWord = RegExp(r'\bports?\b');
+  static final _lensWord = RegExp(r'\blens(es)?\b');
+
+  /// A name that ends on "bag", the noun the words before it qualify, for
+  /// [equipmentType] (#2952): a "regulator bag" is a bag, not a regulator.
+  static final _bagHeadNoun = RegExp(r'\bbags?$');
+
+  /// A trailing note in parentheses ("Fin bag (large)"), set aside before
+  /// the bag checks so neither its position nor its words move the head
+  /// noun.
+  static final _trailingNote = RegExp(r'\s*\([^)]*\)$');
+
+  /// A joining word that hangs a bag off another item ("BCD w/ bag",
+  /// "camera with bag"), so the item, not the bag, is what the name lists.
+  static final _accessoryJoin = RegExp(r'\b(?:with|and)\b|w/|&|\+');
+
+  /// A bag that lifts rather than carries, for [equipmentType] (#2952).
+  /// Spelled as one word ("Liftbag") or hyphenated as often as not. Shared
+  /// with the divelogs.de geartype table so the two readers agree.
+  static final liftBag = RegExp(r'\b(?:lift|lifting|salvage)[\s-]*bags?\b');
+
+  /// A rebreather counterlung, for [equipmentType] (#2952). Shared with the
+  /// divelogs.de geartype table so the two readers agree.
+  static final breathingBag = RegExp(r'\bbreathing[\s-]*bags?\b');
+
   /// Maps MacDive's free-text equipment type onto [EquipmentType].
   ///
   /// MacDive lets the diver type anything into the field, so real libraries
@@ -81,6 +132,19 @@ class MacDiveValueMapper {
   static EquipmentType? equipmentType(String? raw) {
     final s = raw?.trim().toLowerCase();
     if (s == null || s.isEmpty) return null;
+
+    // Bags (#2952) come first, because the item words that name what a bag
+    // holds ("Reg bag", "Drysuit bag", "Fin bag") would otherwise claim it.
+    // A lift bag is a lift device and files with the SMB. A breathing bag
+    // is a rebreather's counterlung, a part with no type of its own, so it
+    // stays Other rather than reading as luggage or as the whole unit. A
+    // bare "bag" anywhere else in a name is weaker and waits at the bottom.
+    if (liftBag.hasMatch(s)) return EquipmentType.smb;
+    if (breathingBag.hasMatch(s)) return EquipmentType.other;
+    final head = s.replaceFirst(_trailingNote, '');
+    if (_bagHeadNoun.hasMatch(head) && !_accessoryJoin.hasMatch(head)) {
+      return EquipmentType.bag;
+    }
 
     // Ordered longest-idea-first: "drysuit" must beat "suit", and the
     // regulator family must not swallow "octopus", which is its own type in
@@ -145,7 +209,10 @@ class MacDiveValueMapper {
     if (s.contains('wetsuit') || s.contains('wet suit')) {
       return EquipmentType.wetsuit;
     }
-    if (s.contains('rebreather') || s.contains('ccr') || s.contains('scr')) {
+    if (s.contains('rebreather') ||
+        s.contains('ccr') ||
+        _scrWord.hasMatch(s) ||
+        s.contains('scrubber')) {
       return EquipmentType.rebreather;
     }
     // Before the light/camera family: a scooter is often logged by brand and
@@ -222,6 +289,11 @@ class MacDiveValueMapper {
             s.contains('vest'))) {
       return EquipmentType.baselayer;
     }
+    // The camera's parts (#1997), above the light and camera words they
+    // contain: a "video light" is not a dive light and a "camera tray" is
+    // not a camera.
+    final cameraPart = cameraPartType(s);
+    if (cameraPart != null) return cameraPart;
     if (s.contains('light') || s.contains('torch')) return EquipmentType.light;
     // Photo rig parts (issue #1487) before the camera family.
     if (s.contains('housing')) return EquipmentType.housing;
@@ -236,7 +308,9 @@ class MacDiveValueMapper {
       return EquipmentType.smb;
     }
     if (s.contains('reel') || s.contains('spool')) return EquipmentType.reel;
-    if (s.contains('knife') || s.contains('shear') || s.contains('cutter')) {
+    // "Shear" only as a word: as a substring it sits inside "Shearwater",
+    // and every Shearwater computer read as a knife (#2299).
+    if (s.contains('knife') || _shearWord.hasMatch(s) || s.contains('cutter')) {
       return EquipmentType.knife;
     }
     if (s.contains('tool') ||
@@ -252,6 +326,36 @@ class MacDiveValueMapper {
     // specific item word wins over it. "Pocket knife" stays a knife, "soft
     // pocket weights" stay lead and "BCD w/ pockets" stays a BCD.
     if (s.contains('pocket')) return EquipmentType.gearPocket;
+    if (s.contains('bag') ||
+        s.contains('duffel') ||
+        s.contains('duffle') ||
+        s.contains('luggage') ||
+        s.contains('suitcase')) {
+      return EquipmentType.bag;
+    }
     return EquipmentType.other;
+  }
+
+  /// The camera part (#1997) a lower-cased, trimmed name [s] names, or null.
+  ///
+  /// Shared with the divelogs.de geartype table, as [liftBag] is, so the two
+  /// readers agree on every camera word. Callers run it after their mask,
+  /// suit and weight checks and before the light and camera words. A float
+  /// arm is checked before the arms it is one of, and an arm before the
+  /// strobe it carries.
+  static EquipmentType? cameraPartType(String s) {
+    if (_cameraFloat.hasMatch(s)) return EquipmentType.floatArm;
+    if (_armWord.hasMatch(s) || s.contains('clamp')) {
+      return EquipmentType.armClamp;
+    }
+    if (_trayWord.hasMatch(s) || s.contains('pistol grip')) {
+      return EquipmentType.trayHandle;
+    }
+    if (_videoLight.hasMatch(s)) return EquipmentType.videoLight;
+    if (_portWord.hasMatch(s)) return EquipmentType.port;
+    if (_lensWord.hasMatch(s) || s.contains('diopter')) {
+      return EquipmentType.lens;
+    }
+    return null;
   }
 }

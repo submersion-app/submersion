@@ -20,6 +20,8 @@ import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_attribution.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_detector_toggles.dart';
 import 'package:submersion/features/media/data/network_cache_config.dart';
+import 'package:submersion/shared/services/incoming_share.dart';
+import 'package:submersion/shared/services/navigation_ready_gate.dart';
 
 // main() and the _bootstrap signature are untestable startup wiring (they
 // never run under test); the zone-error logging is unit-tested via
@@ -128,11 +130,19 @@ Future<void> _bootstrap() async {
   debugPrint('  mode: ${storageConfig.mode}');
   debugPrint('  customFolderPath: ${storageConfig.customFolderPath}');
 
-  // Restore/verify a custom database location. The check auto-resets ONLY
-  // on sandbox (bookmark) platforms; elsewhere the user's choice is kept
-  // even if the file is momentarily inaccessible (#218).
-  final locationCheck = await locationService.validateCustomLocationAtStartup();
-  debugPrint('  custom location check: $locationCheck');
+  // Restore access to a custom database location before anything opens it.
+  // The diver's choice is kept on every platform even when the folder cannot
+  // be reached (#218, #2178): the failed open lands on the startup failure
+  // screen, which names the folder and offers the way back to the default
+  // location. The check itself only feeds this log line, so it is not
+  // awaited: on a dead network mount it could hold the first frame.
+  await locationService.restoreCustomLocationAccess();
+  unawaited(
+    locationService.checkCustomLocation().then(
+      (check) => debugPrint('  custom location check: $check'),
+      onError: (Object e) => debugPrint('  custom location check failed: $e'),
+    ),
+  );
 
   // Launch the app immediately -- database init happens inside StartupWrapper
   // so the user sees a splash screen while initialization runs
@@ -148,6 +158,11 @@ Future<void> _bootstrap() async {
 /// Global key notifier. Changing the value forces ProviderScope to rebuild,
 /// disposing all providers and re-fetching from the current database.
 final _restartKey = ValueNotifier<Key>(UniqueKey());
+
+/// The share gate for the life of the process. A share still waiting for the
+/// app to be able to open it (during setup, say) outlives the ProviderScope
+/// that [restartApp] replaces, and the new app root opens it (#2690).
+final _incomingShares = NavigationReadyGate<IncomingShare>();
 
 /// Trigger a soft restart by rebuilding the entire ProviderScope.
 /// Call this after a database restore to refresh all cached data.
@@ -175,6 +190,7 @@ class SubmersionRestart extends StatelessWidget {
           overrides: rootProviderOverrides(
             prefs: prefs,
             logFileService: logFileService,
+            incomingShares: _incomingShares,
           ).cast(),
           child: const SubmersionApp(),
         );

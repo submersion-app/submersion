@@ -42,9 +42,9 @@ enum BulkField {
   scrubberType,
   scrubberDuration,
 
-  /// The active diver's own role on the dive. Lives in the Buddies group of
-  /// the form even though it is a scalar column, because that is where the
-  /// single-dive editor puts it (#1220).
+  /// The active diver's own roles on the dive. Lives in the Buddies group of
+  /// the form, because that is where the single-dive editor puts it (#1220).
+  /// Applied by DiverRolesOp rather than as a scalar column (#1221).
   diverRole,
   notes,
 }
@@ -100,7 +100,6 @@ class BulkScalarInputs {
     this.diluentHe,
     this.scrubberType,
     this.scrubberDuration,
-    this.diverRoleId,
     this.notes,
   });
 
@@ -148,8 +147,6 @@ class BulkScalarInputs {
   final String? scrubberType;
   final int? scrubberDuration;
 
-  /// dive_roles id for the active diver's own role, or null to clear it.
-  final String? diverRoleId;
   final String? notes;
 }
 
@@ -237,7 +234,8 @@ DivesCompanion buildScalarCompanion(
       BulkField.scrubberDuration => c.copyWith(
         scrubberDurationMinutes: Value(i.scrubberDuration),
       ),
-      BulkField.diverRole => c.copyWith(diverRole: Value(i.diverRoleId)),
+      // Rides DiverRolesOp: a role set lives in dive_diver_roles (#1221).
+      BulkField.diverRole => c,
       BulkField.notes => c.copyWith(notes: Value(i.notes ?? '')),
     };
   }

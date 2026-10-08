@@ -10,6 +10,8 @@ import 'package:submersion/features/backup/data/services/backup_saf_port.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 
+import '../../../../helpers/mock_channels.dart';
+
 class _NoopAdapter implements BackupDatabaseAdapter {
   @override
   Future<void> backup(String destinationPath) async {}
@@ -72,7 +74,17 @@ BackupRecord _saf(String id, String uri) => BackupRecord(
   localPath: uri,
 );
 
+/// Per-file root for the mocked path_provider. Test processes run in parallel
+/// against one real $TMPDIR, so returning it directly would put every backup
+/// suite's fixed `Submersion/Backups` subtree in the same place.
+final _isolatedTempDir = Directory.systemTemp.createTempSync('saf_refs_pp_');
+
 void main() {
+  tearDownAll(() {
+    if (_isolatedTempDir.existsSync()) {
+      _isolatedTempDir.deleteSync(recursive: true);
+    }
+  });
   TestWidgetsFlutterBinding.ensureInitialized();
   late BackupPreferences prefs;
   late _RecordingSafPort port;
@@ -81,9 +93,10 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (call) async => Directory.systemTemp.path,
+          (call) async => _isolatedTempDir.path,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = BackupPreferences(await SharedPreferences.getInstance());

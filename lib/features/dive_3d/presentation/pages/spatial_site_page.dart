@@ -3,14 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
+import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_surface.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
@@ -22,22 +24,105 @@ import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/time_scrub_bar.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/site_scape/presentation/path_provenance_chip.dart';
+import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Fullscreen spatial seascape: the dive's reconstructed swim path threaded
-/// through a synthesized seafloor, viewable above and below the waterline.
-/// Two captions keep the reconstruction honest (estimated path / synthesized
-/// seafloor). The scrub timeline moves the diver along the route.
-class SpatialSitePage extends ConsumerStatefulWidget {
+/// Fullscreen spatial seascape for one dive: the dive's reconstructed swim
+/// path, threaded through real terrain when the dive has a site to place
+/// `SiteTerrainPane`'s site-level markers, features and LOD against, or
+/// through a synthesized seafloor otherwise (a dive need not have a site).
+///
+/// Routes to whichever the dive actually has:
+/// - a site with renderable terrain -> `SiteTerrainPane` with a
+///   [DivePlaybackContext], the same
+///   shared base `SiteTerrainPane` gives the site-only view and the
+///   underwater-route view, extended with this dive's path and timeline.
+/// - a measured route (a linked underwater route, shown) ->
+///   [_DiveSeascapeStandalone] at the route's own scale (#1445), since the
+///   route is a dot in the site's kilometres-wide terrain tile.
+/// - no site, or one with no coordinates or bathymetry ->
+///   [_DiveSeascapeStandalone], this page's original
+///   self-contained implementation (own terrain fetch centered on the
+///   dive's own entry fix, no markers/features/LOD -- there is no site
+///   record to hang those on).
+class SpatialSitePage extends ConsumerWidget {
   final String diveId;
 
   const SpatialSitePage({super.key, required this.diveId});
 
   @override
-  ConsumerState<SpatialSitePage> createState() => _SpatialSitePageState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final diveAsync = ref.watch(diveProvider(diveId));
+    // Waits for the dive to resolve rather than reading .valueOrNull before
+    // routing: that would read as "no site" while still loading and start
+    // the standalone implementation's own expensive terrain/path fetch,
+    // only to discard it a frame later once the dive (with a site) actually
+    // resolves and this switches to SiteTerrainPane instead (code review).
+    if (!diveAsync.hasSettled) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    final siteId = diveAsync.valueOrNull?.site?.id;
+    if (siteId == null) {
+      return _DiveSeascapeStandalone(diveId: diveId);
+    }
+    // A site that cannot render terrain (no coordinates, or no bathymetry
+    // reachable) would leave SiteTerrainPane showing only a message, with
+    // no path or timeline at all; the standalone view still shows the
+    // dive's path there, over terrain centered on its own fix or a
+    // synthesized seafloor.
+    final siteSceneAsync = ref.watch(siteSeascapeProvider(siteId));
+    if (!siteSceneAsync.hasSettled) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (siteSceneAsync.valueOrNull is! SiteSeascapeReady) {
+      return _DiveSeascapeStandalone(diveId: diveId);
+    }
+    // A measured route spans metres inside the site's kilometres-wide tile,
+    // too small to read there; the standalone scene builds at the route's
+    // own scale instead (#1445). Turning the route off (the toggle) makes
+    // the path an estimate again and brings back the site seascape.
+    final pathAsync = ref.watch(spatialReckonedPathProvider(diveId));
+    if (!pathAsync.hasSettled) {
+      return Scaffold(
+        appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (pathAsync.valueOrNull?.provenance == PathProvenance.measured) {
+      return _DiveSeascapeStandalone(diveId: diveId);
+    }
+    return Scaffold(
+      appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
+      body: SiteTerrainPane(
+        siteId: siteId,
+        playbackContext: DivePlaybackContext(diveId),
+      ),
+    );
+  }
 }
 
-class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
+class _DiveSeascapeStandalone extends ConsumerStatefulWidget {
+  final String diveId;
+
+  const _DiveSeascapeStandalone({required this.diveId});
+
+  @override
+  ConsumerState<_DiveSeascapeStandalone> createState() =>
+      _DiveSeascapeStandaloneState();
+}
+
+class _DiveSeascapeStandaloneState
+    extends ConsumerState<_DiveSeascapeStandalone>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<double> _position = ValueNotifier(0);
   final ValueNotifier<ScenePick?> _hoverPick = ValueNotifier(null);
@@ -82,6 +167,13 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
       settingsProvider.select((s) => s.seascapeAppearance),
     );
     final depthUnit = ref.watch(settingsProvider.select((s) => s.depthUnit));
+    // Only a dive with a linked route can toggle between it and the
+    // dead-reckoned estimate; a dive with none never shows this chip.
+    final hasLinkedRoute =
+        ref.watch(primaryNavTrackForDiveProvider(widget.diveId)).value != null;
+    final showMeasuredRoute = ref.watch(
+      showMeasuredRouteProvider(widget.diveId),
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.dive3d_spatial_title),
@@ -189,38 +281,63 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (result.grid != null)
+                    if (result.grid != null || hasLinkedRoute)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Wrap(
                           spacing: 8,
                           children: [
-                            FilterChip(
-                              label: Text(
-                                context.l10n.dive3d_seascape_overlay_contours,
+                            if (result.grid != null) ...[
+                              FilterChip(
+                                label: Text(
+                                  context.l10n.dive3d_seascape_overlay_contours,
+                                ),
+                                selected: _visible.contains(
+                                  SceneOverlay.contours,
+                                ),
+                                onSelected: (on) => setState(() {
+                                  on
+                                      ? _visible.add(SceneOverlay.contours)
+                                      : _visible.remove(SceneOverlay.contours);
+                                }),
                               ),
-                              selected: _visible.contains(
-                                SceneOverlay.contours,
+                              FilterChip(
+                                label: Text(
+                                  context.l10n.dive3d_seascape_overlay_walls,
+                                ),
+                                selected: _visible.contains(
+                                  SceneOverlay.steepWalls,
+                                ),
+                                onSelected: (on) => setState(() {
+                                  on
+                                      ? _visible.add(SceneOverlay.steepWalls)
+                                      : _visible.remove(
+                                          SceneOverlay.steepWalls,
+                                        );
+                                }),
                               ),
-                              onSelected: (on) => setState(() {
-                                on
-                                    ? _visible.add(SceneOverlay.contours)
-                                    : _visible.remove(SceneOverlay.contours);
-                              }),
-                            ),
-                            FilterChip(
-                              label: Text(
-                                context.l10n.dive3d_seascape_overlay_walls,
+                            ],
+                            if (hasLinkedRoute)
+                              FilterChip(
+                                key: const ValueKey(
+                                  'spatial-site-show-route-toggle',
+                                ),
+                                label: Text(
+                                  context
+                                      .l10n
+                                      .dive3d_seascape_showUnderwaterTrack,
+                                ),
+                                selected: showMeasuredRoute,
+                                onSelected: (on) =>
+                                    ref
+                                            .read(
+                                              showMeasuredRouteProvider(
+                                                widget.diveId,
+                                              ).notifier,
+                                            )
+                                            .state =
+                                        on,
                               ),
-                              selected: _visible.contains(
-                                SceneOverlay.steepWalls,
-                              ),
-                              onSelected: (on) => setState(() {
-                                on
-                                    ? _visible.add(SceneOverlay.steepWalls)
-                                    : _visible.remove(SceneOverlay.steepWalls);
-                              }),
-                            ),
                           ],
                         ),
                       ),
@@ -268,14 +385,7 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
     if (inputs == null) return null;
     final units = UnitFormatter(ref.watch(settingsProvider));
     return buildSeascapeAxes(
-      projection: SpatialProjection(
-        minEast: inputs.minEast,
-        maxEast: inputs.maxEast,
-        minNorth: inputs.minNorth,
-        maxNorth: inputs.maxNorth,
-        maxDepth: inputs.maxDepth,
-        verticalExaggeration: inputs.verticalExaggeration,
-      ),
+      projection: seascapeProjection(inputs),
       minEast: inputs.minEast,
       maxEast: inputs.maxEast,
       minNorth: inputs.minNorth,
@@ -306,15 +416,21 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
         ],
       ),
     );
-    // The path caption is an always-true honesty label: the swim path is
-    // always an estimate (dead reckoning or straight-line fallback). The
-    // seafloor chip states provenance: real bathymetry when a grid won,
+    // The path caption states provenance: a linked measured route reads as
+    // a recorded route, while dead reckoning and the straight-line
+    // fallback keep the existing honest "estimated" label. The seafloor
+    // chip states its own provenance: real bathymetry when a grid won,
     // otherwise the honest synthesized label.
     final sourceId = result.bathymetrySourceId;
     final resolution = result.bathymetryResolutionMeters;
+    final pathLabel = pathProvenanceLabel(
+      context,
+      result.pathProvenance,
+      result.pathSourceLabel,
+    );
     return Wrap(
       children: [
-        chip(context.l10n.dive3d_spatial_estimatedPath),
+        chip(pathLabel),
         if (sourceId != null && resolution != null)
           chip(
             context.l10n.dive3d_seascape_seafloorSource(

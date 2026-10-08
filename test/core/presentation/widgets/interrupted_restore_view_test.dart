@@ -53,13 +53,15 @@ void main() {
     expect(find.byKey(keepKey), findsOneWidget);
     expect(
       find.text(
-        'The file that is in its place now is kept beside it, not deleted.',
+        'The file in its place now is kept, not deleted. You can restore or '
+        'delete it later in Backup & Restore in Settings.',
       ),
       findsOneWidget,
     );
     expect(
       find.text(
-        'Your previous dive log is kept as a file in the database folder.',
+        'Your previous dive log is kept, not deleted. You can restore or '
+        'delete it later in Backup & Restore in Settings.',
       ),
       findsOneWidget,
     );
@@ -81,7 +83,7 @@ void main() {
 
     expect(find.byKey(recoverKey), findsOneWidget);
     expect(find.byKey(keepKey), findsNothing);
-    expect(find.textContaining('kept beside it'), findsNothing);
+    expect(find.textContaining('The file in its place now'), findsNothing);
   });
 
   testWidgets('names the day the restore started when it is known', (

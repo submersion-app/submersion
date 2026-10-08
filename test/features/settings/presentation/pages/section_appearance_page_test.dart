@@ -5,8 +5,6 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -18,10 +16,13 @@ Widget _buildTestWidget(
   bool embedded = false,
   VoidCallback? onColumnConfigTap,
   List<dynamic>? overrides,
+  MockSettingsNotifier? notifier,
 }) {
   return ProviderScope(
     overrides: [
-      settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      settingsProvider.overrideWith(
+        (ref) => notifier ?? MockSettingsNotifier(),
+      ),
       ...?overrides?.cast(),
     ],
     child: MaterialApp(
@@ -59,6 +60,47 @@ void main() {
       expect(find.text('Show Profile Panel in Table View'), findsOneWidget);
       expect(find.text('Show data source badges'), findsOneWidget);
     });
+
+    testWidgets(
+      'the dive figure switch is under Dive Details, off, and saves',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(400, 4000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        final notifier = MockSettingsNotifier();
+
+        await tester.pumpWidget(_buildTestWidget('dives', notifier: notifier));
+        await tester.pumpAndSettle();
+
+        final tile = find.widgetWithText(
+          SwitchListTile,
+          'Show diver figure on dives',
+        );
+        expect(tile, findsOneWidget);
+        expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+        await tester.tap(tile);
+        await tester.pumpAndSettle();
+        expect(notifier.state.showDiveFigure, isTrue);
+      },
+    );
+
+    testWidgets(
+      'the late gas switches switch is under Dive Profile, on, and saves',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(400, 4000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        final notifier = MockSettingsNotifier();
+
+        await tester.pumpWidget(_buildTestWidget('dives', notifier: notifier));
+        await tester.pumpAndSettle();
+
+        final tile = find.widgetWithText(SwitchListTile, 'Late gas switches');
+        expect(tile, findsOneWidget);
+        expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+        await tester.tap(tile);
+        await tester.pumpAndSettle();
+        expect(notifier.state.defaultShowLateGasSwitches, isFalse);
+      },
+    );
   });
 
   group('SectionAppearancePage - Sites section', () {
@@ -515,23 +557,20 @@ void main() {
   });
 
   group('SectionAppearancePage - View mode for certifications/courses', () {
-    testWidgets('certifications uses runtime provider', (tester) async {
+    testWidgets('certifications shows the saved view mode', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
         _buildTestWidget(
           'certifications',
-          overrides: [
-            certificationListViewModeProvider.overrideWith(
-              (_) => ListViewMode.table,
-            ),
-          ],
+          notifier: MockSettingsNotifier(
+            const AppSettings(certificationListViewMode: ListViewMode.table),
+          ),
         ),
       );
       await tester.pumpAndSettle();
 
-      // Should show Table as current value
       expect(
         find.descendant(
           of: find.byType(DropdownButton<ListViewMode>),
@@ -541,16 +580,16 @@ void main() {
       );
     });
 
-    testWidgets('courses uses runtime provider', (tester) async {
+    testWidgets('courses shows the saved view mode', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       await tester.pumpWidget(
         _buildTestWidget(
           'courses',
-          overrides: [
-            courseListViewModeProvider.overrideWith((_) => ListViewMode.table),
-          ],
+          notifier: MockSettingsNotifier(
+            const AppSettings(courseListViewMode: ListViewMode.table),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -600,22 +639,26 @@ void main() {
       });
     }
 
-    testWidgets(
-      'changing dropdown for certifications updates runtime provider',
-      (tester) async {
+    for (final key in ['certifications', 'courses']) {
+      testWidgets('changing dropdown for $key saves the view mode', (
+        tester,
+      ) async {
         await tester.binding.setSurfaceSize(const Size(400, 4000));
         addTearDown(() => tester.binding.setSurfaceSize(null));
+        final notifier = MockSettingsNotifier();
 
-        await tester.pumpWidget(_buildTestWidget('certifications'));
+        await tester.pumpWidget(_buildTestWidget(key, notifier: notifier));
         await tester.pumpAndSettle();
 
-        // Open dropdown and select Table
         await tester.tap(find.byType(DropdownButton<ListViewMode>));
         await tester.pumpAndSettle();
-
         await tester.tap(find.text('Table').last);
         await tester.pumpAndSettle();
 
+        final saved = key == 'certifications'
+            ? notifier.state.certificationListViewMode
+            : notifier.state.courseListViewMode;
+        expect(saved, ListViewMode.table);
         expect(
           find.descendant(
             of: find.byType(DropdownButton<ListViewMode>),
@@ -623,33 +666,8 @@ void main() {
           ),
           findsOneWidget,
         );
-      },
-    );
-
-    testWidgets('changing dropdown for courses updates runtime provider', (
-      tester,
-    ) async {
-      await tester.binding.setSurfaceSize(const Size(400, 4000));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-
-      await tester.pumpWidget(_buildTestWidget('courses'));
-      await tester.pumpAndSettle();
-
-      // Open dropdown and select Table
-      await tester.tap(find.byType(DropdownButton<ListViewMode>));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Table').last);
-      await tester.pumpAndSettle();
-
-      expect(
-        find.descendant(
-          of: find.byType(DropdownButton<ListViewMode>),
-          matching: find.text('Table'),
-        ),
-        findsOneWidget,
-      );
-    });
+      });
+    }
   });
 
   group('SectionAppearancePage - Card color attribute dropdown changes', () {

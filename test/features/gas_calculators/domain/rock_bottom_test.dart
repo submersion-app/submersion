@@ -6,7 +6,7 @@ import 'package:submersion/features/gas_calculators/domain/rock_bottom.dart';
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 
 /// Vectors below were computed with python3 and are reproduced in the spec at
-/// docs/superpowers/specs/2026-07-26-gas-calculators-weather-cns-units-design.md.
+/// docs/design/specs/2026-07-26-gas-calculators-weather-cns-units-design.md.
 /// If one does not match, report BLOCKED. Do not edit the constant.
 
 final _al80 = TankSpec.fromPreset(TankPresets.al80);

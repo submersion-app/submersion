@@ -317,6 +317,17 @@ static gpointer download_thread_func(gpointer data) {
   auto* td = static_cast<DownloadThreadData*>(data);
   HostApiContext* ctx = td->ctx;
 
+  // Only the BLE and serial/USB paths below have a byte pipe, and the routing
+  // further down treats everything that is not BLE as serial, so an infrared
+  // device would probe serial ports. Reject it as Android and Darwin do
+  // (issue #2841).
+  if (td->transport == LIBDIVECOMPUTER_PLUGIN_TRANSPORT_TYPE_INFRARED) {
+    send_error_from_thread(ctx, "unsupported_transport",
+                           "Infrared transport is not supported on Linux");
+    download_thread_data_free(td);
+    return nullptr;
+  }
+
   // Create download session. The session holds a dc_context_t (logging) and a
   // cancelled flag. It is intentionally reused across multiple libdc_download_run
   // calls during multi-port probing — each call creates its own internal state.
@@ -615,23 +626,41 @@ static gpointer download_thread_func(gpointer data) {
     gchar* clock_sync_str = (clock_sync != LIBDC_CLOCK_SYNC_NOT_REQUESTED)
         ? g_strdup(libdc_clock_sync_status_name(clock_sync)) : nullptr;
 
+    // The model the device named about itself (issue #422), read before the
+    // session is freed.
+    char reported_product[64] = {0};
+    unsigned int reported_model = 0;
+    gboolean has_reported = libdc_download_session_reported_device(
+        ctx->session, reported_product, sizeof(reported_product),
+        &reported_model) != 0;
+
     struct CompleteData {
         LibdivecomputerPluginDiveComputerFlutterApi* api;
         gchar* serial;
         gchar* firmware;
         gchar* clock_sync;
+        gchar* reported_product;
+        gboolean has_reported;
+        int64_t reported_model;
     };
     auto* cd = new CompleteData{ctx->flutter_api,
                                 g_strdup(serial_str), g_strdup(firmware_str),
-                                g_strdup(clock_sync_str)};
+                                g_strdup(clock_sync_str),
+                                has_reported ? g_strdup(reported_product)
+                                             : nullptr,
+                                has_reported,
+                                static_cast<int64_t>(reported_model)};
     g_idle_add([](gpointer data) -> gboolean {
         auto* d = static_cast<CompleteData*>(data);
         libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(
             d->api, 0, d->serial, d->firmware, d->clock_sync,
+            d->reported_product,
+            d->has_reported ? &d->reported_model : nullptr,
             nullptr, nullptr, nullptr);
         g_free(d->serial);
         g_free(d->firmware);
         g_free(d->clock_sync);
+        g_free(d->reported_product);
         delete d;
         return G_SOURCE_REMOVE;
     }, cd);
@@ -678,7 +707,8 @@ static void handle_get_device_descriptors(
     LibdivecomputerPluginDeviceDescriptor* desc =
         libdivecomputer_plugin_device_descriptor_new(
             info.vendor, info.product,
-            static_cast<int64_t>(info.model), transports);
+            static_cast<int64_t>(info.model), transports,
+            info.delivers_oldest_first ? TRUE : FALSE);
     fl_value_unref(transports);
     fl_value_append_take(descriptors,
                          fl_value_new_custom_object(130, G_OBJECT(desc)));

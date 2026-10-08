@@ -103,6 +103,9 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 ])
 import '../../../../helpers/test_database.dart';
 import 'universal_adapter_test.mocks.dart';
+import '../../../../helpers/fake_hosts.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 typedef Override = riverpod.Override;
 
@@ -354,6 +357,10 @@ List<Override> _fullOverrides({
     tankPresetRepositoryProvider.overrideWithValue(tankPresetRepo),
     // Override the async list providers used by checkDuplicates.
     allTripsProvider.overrideWith((ref) async => existingTrips),
+    // Custom certification agencies the duplicate check names (#690).
+    allCustomCertificationsCatalogProvider.overrideWith(
+      (ref) async => CertificationCatalog.builtInOnly,
+    ),
     sitesProvider.overrideWith((ref) async => existingSites),
     allEquipmentProvider.overrideWith((ref) async => existingEquipment),
     allBuddiesProvider.overrideWith((ref) async => existingBuddies),
@@ -371,6 +378,12 @@ List<Override> _fullOverrides({
 // ---------------------------------------------------------------------------
 
 void main() {
+  // The code under test calls Open-Meteo; it answers as offline, as it
+  // would on a device without a network.
+  setUp(() {
+    serveFakeHost('api.open-meteo.com');
+  });
+
   // -------------------------------------------------------------------------
   // Adapter metadata
   // -------------------------------------------------------------------------
@@ -460,6 +473,8 @@ void main() {
         overrides: _buildBundleOverrides(),
         callback: (adapter) async {
           for (final type in wizard.ImportEntityType.values) {
+            // Fills offer skip alone; see the next test.
+            if (type == wizard.ImportEntityType.fills) continue;
             expect(
               adapter.duplicateActionsFor(type),
               containsAll([
@@ -470,6 +485,21 @@ void main() {
               reason: '$type lost a base action',
             );
           }
+        },
+      );
+    });
+
+    testWidgets('a fill already here can only be skipped (cylinder passports '
+        'phase 5)', (tester) async {
+      await _runWithAdapter(
+        tester,
+        overrides: _buildBundleOverrides(),
+        callback: (adapter) async {
+          // The fill id is the identity and the importer never stores a fill
+          // twice, so import-as-new or consolidate would be dropped silently.
+          expect(adapter.duplicateActionsFor(wizard.ImportEntityType.fills), {
+            DuplicateAction.skip,
+          });
         },
       );
     });
@@ -3242,7 +3272,7 @@ void main() {
       final existingCert = Certification(
         id: 'cert-1',
         name: 'Open Water',
-        agency: CertificationAgency.padi,
+        agency: CertificationAgency.padi.name,
         createdAt: _now,
         updatedAt: _now,
       );
@@ -4050,7 +4080,7 @@ void main() {
 
         final mockBuddyRepo = MockBuddyRepository();
         when(
-          mockBuddyRepo.addBuddyToDive(any, any, any),
+          mockBuddyRepo.addBuddyToDiveWithRoles(any, any, any),
         ).thenAnswer((_) async {});
 
         final mockTankPresetRepo = MockTankPresetRepository();
@@ -4089,7 +4119,9 @@ void main() {
             );
 
             verifyNever(mockBuddyRepo.createBuddy(any));
-            verify(mockBuddyRepo.addBuddyToDive(any, 'buddy-1', any)).called(1);
+            verify(
+              mockBuddyRepo.addBuddyToDiveWithRoles(any, 'buddy-1', any),
+            ).called(1);
           },
         );
       },

@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
+import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 
 /// Cheap SQL passes that narrow the full library to per-detector candidate
 /// sets before any context is built. A dive absent from a detector's set is
@@ -41,6 +42,15 @@ class QualityPrefilters {
       'SELECT d.id AS id FROM dives d WHERE EXISTS '
       '(SELECT 1 FROM dive_tanks t WHERE t.dive_id = d.id)',
     );
+    // A tank carrying a real transmitter serial: trimmed, and not blank or
+    // all zeros, the values normalizeTransmitterSerial reads as "no
+    // transmitter". Without this set the unknown-transmitter check never ran
+    // in a library scan, which then retired all of its findings (#2870).
+    final withTransmitterSerials = await ids(
+      'SELECT d.id AS id FROM dives d WHERE EXISTS '
+      '(SELECT 1 FROM dive_tanks t WHERE t.dive_id = d.id '
+      "AND LTRIM(TRIM(t.transmitter_serial), '0') <> '')",
+    );
     final multiSource = await ids(
       'SELECT d.id AS id FROM dives d WHERE '
       '(SELECT COUNT(*) FROM dive_data_sources s WHERE s.dive_id = d.id) >= 2',
@@ -57,6 +67,30 @@ class QualityPrefilters {
       'COALESCE(b.entry_time, b.dive_date_time)) <= ?1',
       [Variable.withInt(QualityThresholds.neighborWindow.inMilliseconds)],
     );
+    // Dives sharing an item with another profile's dive in the window
+    // (issue #2853). Dive pairs first, then shared gear per pair, so each
+    // gear branch filters through its dive_id index instead of joining
+    // every gear row in the library with every other.
+    // With fewer than two profiles no dive can share gear with another
+    // profile's, so skip the pair join (most libraries have one profile).
+    final profileCount =
+        (await _db.customSelect('SELECT COUNT(*) AS n FROM divers').getSingle())
+            .read<int>('n');
+    final sharedGear = profileCount < 2
+        ? const <String>{}
+        : await ids(
+            'SELECT DISTINCT da.id AS id FROM dives da '
+            'JOIN dives db ON db.id != da.id '
+            'AND da.diver_id IS NOT NULL AND db.diver_id IS NOT NULL '
+            'AND da.diver_id != db.diver_id '
+            'AND ABS(COALESCE(da.entry_time, da.dive_date_time) - '
+            'COALESCE(db.entry_time, db.dive_date_time)) <= ?1 '
+            'WHERE EXISTS (SELECT 1 FROM '
+            '(${diveGearUsageSql(diveIdPredicate: '= da.id')}) ga '
+            'JOIN (${diveGearUsageSql(diveIdPredicate: '= db.id')}) gb '
+            'ON gb.equipment_id = ga.equipment_id)',
+            [Variable.withInt(QualityThresholds.neighborWindow.inMilliseconds)],
+          );
     final timeOutliers = await ids(
       'SELECT d.id AS id FROM dives d WHERE '
       'COALESCE(d.entry_time, d.dive_date_time) > ?1 OR '
@@ -95,7 +129,9 @@ class QualityPrefilters {
       'pressure_anomaly': {...withPressures, ...withTanks},
       'gas_mod': withTanks.intersection(withProfiles),
       'tank_assignment': withPressures,
+      'unknown_transmitter': withTransmitterSerials,
       'source_conflict': multiSource,
+      'shared_gear_overlap': sharedGear,
     };
   }
 }

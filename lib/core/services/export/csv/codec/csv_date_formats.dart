@@ -65,8 +65,11 @@ DateTime? parseCsvDate(String text, DateFormatPreference? format) {
   final declared = format?.pattern ?? _isoDatePattern;
   final patterns = <String>{
     // The header's own format first, so a file that was never edited reads
-    // exactly as it always did.
-    if (declared != _isoDatePattern) declared,
+    // exactly as it always did. Its year is read as `yy`, which keeps a
+    // four-digit year as written but places a two-digit one a spreadsheet
+    // saved (12/05/91) in the century around today. Read as `yyyy`, intl
+    // takes that 91 literally and the dive lands before 1950 (#2617).
+    if (declared != _isoDatePattern) declared.replaceAll('yyyy', 'yy'),
     if (_isoDate.hasMatch(trimmed)) _isoDatePattern,
     ..._monthNamePatterns,
   };

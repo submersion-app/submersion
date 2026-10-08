@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/settings/presentation/widgets/peer_device_list.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Names the devices the library-epoch fence held back on the last pull.
@@ -22,21 +23,8 @@ class SkippedPeerBanner extends StatelessWidget {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
 
-    final labels = peers
-        .map(
-          (p) =>
-              p.name ??
-              l10n.settings_cloudSync_peerNeedsAdopt_unnamedDevice(p.shortId),
-        )
-        .toList();
-    final list = labels.length == 1
-        ? labels.single
-        : labels
-                  .sublist(0, labels.length - 1)
-                  .join(l10n.settings_cloudSync_peerNeedsAdopt_listSeparator) +
-              l10n.settings_cloudSync_peerNeedsAdopt_listLastSeparator +
-              labels.last;
-    final text = labels.length == 1
+    final list = peerDeviceList(l10n, peers);
+    final text = peers.length == 1
         ? l10n.settings_cloudSync_peerNeedsAdopt_banner(list)
         : l10n.settings_cloudSync_peerNeedsAdopt_bannerPlural(list);
 

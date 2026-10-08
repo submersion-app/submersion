@@ -1,5 +1,5 @@
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 7. Deviations from the plan code:
 //
 // - The plan's [ManifestSubscription] is presumed to expose a `copyWith`

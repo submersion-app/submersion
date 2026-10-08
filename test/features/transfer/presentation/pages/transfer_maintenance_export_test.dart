@@ -61,6 +61,7 @@ void main() {
         overrides: [
           allEquipmentProvider.overrideWith((ref) async => [jjccr]),
           serviceKindsProvider.overrideWith((ref) async => []),
+          allServiceKindsByIdProvider.overrideWith((ref) async => {}),
           serviceRecordRepositoryProvider.overrideWithValue(
             _FakeServiceRecordRepository({
               'e1': [record()],

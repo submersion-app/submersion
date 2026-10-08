@@ -58,9 +58,10 @@ void main() {
       'dive_center_gear_notes',
     );
     expect(SyncService.entityHasUpdatedAt['diveCenterGearNotes'], isFalse);
-    expect(SyncService.parentRefs['diveCenterGearNotes'], [
-      (field: 'diveCenterId', parent: 'diveCenters', nullable: false),
-      (field: 'diveId', parent: 'dives', nullable: true),
+    final refs = SyncService.parentRefs['diveCenterGearNotes']!;
+    expect(refs.map((r) => '${r.field}->${r.parent}:${r.nullable}'), [
+      'diveCenterId->diveCenters:false',
+      'diveId->dives:true',
     ]);
   });
 

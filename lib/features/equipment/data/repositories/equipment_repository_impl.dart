@@ -4,13 +4,18 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
@@ -19,12 +24,15 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 
 /// One item's exposure as [EquipmentRepository.getItemExposure] wires it:
 /// its parent, its parts still fitted, whether it breathes a loop, and the
@@ -63,6 +71,7 @@ class EquipmentRepository {
   final MediaDeletionCoordinator _mediaDeletionCoordinator;
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
+  EquipmentVisibilityQueries get _visibility => EquipmentVisibilityQueries(_db);
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(EquipmentRepository);
 
@@ -73,21 +82,21 @@ class EquipmentRepository {
         // status is the user-visible retirement flag; legacy rows can carry
         // status=retired with isActive still true, so filter on both (#636).
         // "Sold" is the same kind of terminal status -- gear that has left
-        // the kit -- so it drops out of the active list the same way.
+        // the kit -- so it drops out of the active list the same way, and
+        // "Wanted" gear has not joined the kit yet (#2025).
         ..where(
           (t) =>
               t.isActive.equals(true) &
               t.status.isNotValue(EquipmentStatus.retired.name) &
-              t.status.isNotValue(EquipmentStatus.sold.name),
+              t.status.isNotValue(EquipmentStatus.sold.name) &
+              t.status.isNotValue(EquipmentStatus.wanted.name),
         )
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
           (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
 
       final rows = await query.get();
       return await _mapRowsWithAttributes(
@@ -109,19 +118,19 @@ class EquipmentRepository {
       // Either retirement marker counts, so items retired before the two
       // fields were kept in sync are still listed (#636). Sold gear is also
       // isActive=false but is not retired -- keep it out of this list so the
-      // Sold status stays distinct.
+      // Sold status stays distinct. Wanted gear (#2025) is inactive too and
+      // is not retired either.
       final query = _db.select(_db.equipment)
         ..where(
           (t) =>
               (t.isActive.equals(false) |
                   t.status.equals(EquipmentStatus.retired.name)) &
-              t.status.isNotValue(EquipmentStatus.sold.name),
+              t.status.isNotValue(EquipmentStatus.sold.name) &
+              t.status.isNotValue(EquipmentStatus.wanted.name),
         )
         ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
 
       final rows = await query.get();
       return await _mapRowsWithAttributes(sortedByText(rows, (r) => r.name));
@@ -160,9 +169,7 @@ class EquipmentRepository {
           (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
 
       final rows = await query.get();
       return await _mapRowsWithAttributes(
@@ -186,12 +193,14 @@ class EquipmentRepository {
     try {
       // The Retired filter also matches legacy rows that only ever had
       // isActive flipped, so nothing becomes unreachable in the UI (#636) --
-      // but not sold gear, which is isActive=false yet has its own status.
+      // but not sold or wanted gear (#2025), which are isActive=false yet
+      // have their own status.
       final query = _db.select(_db.equipment)
         ..where(
           (t) => status == EquipmentStatus.retired
               ? (t.status.equals(status.name) | t.isActive.equals(false)) &
-                    t.status.isNotValue(EquipmentStatus.sold.name)
+                    t.status.isNotValue(EquipmentStatus.sold.name) &
+                    t.status.isNotValue(EquipmentStatus.wanted.name)
               : t.status.equals(status.name),
         )
         ..orderBy([
@@ -199,9 +208,7 @@ class EquipmentRepository {
           (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
 
       final rows = await query.get();
       return await _mapRowsWithAttributes(
@@ -277,6 +284,23 @@ class EquipmentRepository {
       rethrow;
     }
   }
+
+  /// The members of a set, in [ids] order, that applying it gives
+  /// [diverId]'s dive: every member except one another profile owns and
+  /// does not share with [diverId] (issue #2046, "applying the set skips
+  /// them"). Ownerless or missing rows apply as they always have. Every
+  /// set-application path (dive edit, download and import defaulting, the
+  /// computer-set linker, the planner) goes through this.
+  Future<List<String>> usableSetMemberIds(List<String> ids, String diverId) =>
+      _visibility.usableSetMemberIds(ids, diverId);
+
+  /// Whether [diverId] owns [equipmentId] or holds a share of it.
+  Future<bool> isVisibleTo(String equipmentId, String diverId) async =>
+      (await visibleIdsAmong([equipmentId], diverId)).isNotEmpty;
+
+  /// The subset of [ids] visible to [diverId] (owned or shared).
+  Future<Set<String>> visibleIdsAmong(Iterable<String> ids, String diverId) =>
+      _visibility.visibleIdsAmong(ids, diverId);
 
   /// Create new equipment. With [notify] false the caller notifies sync once
   /// its own transaction commits, as [createEquipmentWithTags] does.
@@ -541,7 +565,8 @@ class EquipmentRepository {
   }
 
   /// Delete equipment. Service schedules, service records, assembly
-  /// component rows and tag links are first-class synced children
+  /// component rows, tag links, shares and share events are first-class
+  /// synced children
   /// cascade-deleted by SQLite, but cascades emit no deletion-log entries, so
   /// each is tombstoned explicitly (mirrors EquipmentSetRepository.deleteSet).
   /// Cylinders linked to the item are cleared and staged for sync.
@@ -585,6 +610,9 @@ class EquipmentRepository {
         // Registry rows naming the item (as a cylinder or a transmitter)
         // stay; the link is staged, not just nulled.
         await TransmitterRepository().unlinkFromDeletedEquipment(id);
+        // Fill history keeps its passport id and drops the gear link, staged
+        // for sync; "Link an existing tag" restores it on a new row.
+        await CylinderFillRepository().unlinkFromDeletedEquipment(id);
         // Cylinders linked to this item, as their own gear or the regulator
         // they were breathed from: cleared, and each tank staged for sync.
         await clearCylinderGearLinks(_db, _syncRepository, [
@@ -593,6 +621,13 @@ class EquipmentRepository {
         // Tag links (issue #1942): deleted and tombstoned before the row, so
         // the cascade finds nothing and every peer drops them too.
         await EquipmentTagRepository().deleteLinksForEquipment(id);
+        // Shares and their event log (issue #2046): deleted and tombstoned
+        // before the row, like the tag links, so every peer drops them too.
+        await EquipmentShareRepository().deleteForEquipment(id);
+        // Trip packing links (issue #2338), tombstoned like the shares.
+        await TripEquipmentRepository().deleteForEquipment(id);
+        // Location history (v268), tombstoned like the shares.
+        await EquipmentLocationMoveRepository().deleteForEquipment(id);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
@@ -639,6 +674,20 @@ class EquipmentRepository {
       );
       rethrow;
     }
+  }
+
+  /// Deletes [id] only when [actingDiverId] owns it; delete is owner-only
+  /// (issue #2046), so a profile the item is shared with gets false and
+  /// nothing changes. A null [actingDiverId] (no diver profile exists) or an
+  /// ownerless item deletes as [deleteEquipment] does.
+  Future<bool> deleteOwnedEquipment(
+    String id, {
+    required String? actingDiverId,
+  }) async {
+    final item = await getEquipmentById(id);
+    if (item != null && !canDeleteEquipment(item, actingDiverId)) return false;
+    await deleteEquipment(id);
+    return true;
   }
 
   /// Mark equipment as serviced
@@ -688,6 +737,48 @@ class EquipmentRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to retire equipment: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Sets [status] on every item in [ids], for the status offer after a
+  /// location move. Only ever In Service, Loaned Out or Active, so the items
+  /// stay active: is_active pairs with retired and sold only (#636).
+  Future<void> setStatusForMany(
+    Iterable<String> ids,
+    EquipmentStatus status,
+  ) async {
+    final list = ids.toSet().toList();
+    if (list.isEmpty) return;
+    assert(
+      status != EquipmentStatus.retired && status != EquipmentStatus.sold,
+      'Retire through retireEquipment, which also clears is_active',
+    );
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db.transaction(() async {
+        await (_db.update(_db.equipment)..where((t) => t.id.isIn(list))).write(
+          EquipmentCompanion(
+            status: Value(status.name),
+            isActive: const Value(true),
+            updatedAt: Value(now),
+          ),
+        );
+        for (final id in list) {
+          await _syncRepository.markRecordPending(
+            entityType: 'equipment',
+            recordId: id,
+            localUpdatedAt: now,
+          );
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set status ${status.name} on ${list.length} items',
         error: e,
         stackTrace: stackTrace,
       );
@@ -779,9 +870,15 @@ class EquipmentRepository {
       final current = await (_db.select(
         _db.equipment,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
+      // Wanted gear is not owned yet (#2025): reactivating would leave a
+      // wishlist row flagged active. Buying it goes through
+      // markEquipmentPurchased instead.
+      if (current == null || current.status == EquipmentStatus.wanted.name) {
+        return;
+      }
       final clearsTerminalStatus =
-          current?.status == EquipmentStatus.retired.name ||
-          current?.status == EquipmentStatus.sold.name;
+          current.status == EquipmentStatus.retired.name ||
+          current.status == EquipmentStatus.sold.name;
       await (_db.update(_db.equipment)..where((t) => t.id.equals(id))).write(
         EquipmentCompanion(
           isActive: const Value(true),
@@ -807,6 +904,49 @@ class EquipmentRepository {
     }
   }
 
+  /// Turns a Wanted item into owned, active gear (#2025): status active,
+  /// isActive true, and the purchase date set to [today] (date only) unless
+  /// one was already entered on the wishlist. Everything else is kept. A
+  /// row that is not Wanted is left alone.
+  Future<void> markEquipmentPurchased(String id, {DateTime? today}) async {
+    try {
+      final current = await (_db.select(
+        _db.equipment,
+      )..where((t) => t.id.equals(id))).getSingleOrNull();
+      if (current == null || current.status != EquipmentStatus.wanted.name) {
+        return;
+      }
+      final now = DateTime.now();
+      final day = today ?? now;
+      final ts = now.millisecondsSinceEpoch;
+      await (_db.update(_db.equipment)..where((t) => t.id.equals(id))).write(
+        EquipmentCompanion(
+          isActive: const Value(true),
+          status: Value(EquipmentStatus.active.name),
+          purchaseDate: current.purchaseDate == null
+              ? Value(
+                  DateTime(day.year, day.month, day.day).millisecondsSinceEpoch,
+                )
+              : const Value.absent(),
+          updatedAt: Value(ts),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'equipment',
+        recordId: id,
+        localUpdatedAt: ts,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to mark equipment as purchased: $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get all active equipment with service due dates for notification scheduling
   Future<List<EquipmentItem>> getEquipmentWithServiceDates({
     String? diverId,
@@ -817,9 +957,7 @@ class EquipmentRepository {
         ..where((t) => t.lastServiceDate.isNotNull())
         ..where((t) => t.serviceIntervalDays.isNotNull());
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
 
       final rows = await query.get();
       return await _mapRowsWithAttributes(rows);
@@ -842,15 +980,20 @@ class EquipmentRepository {
   }) async {
     try {
       final searchTerm = '%${query.toLowerCase()}%';
-      // Qualified: tags has a diver_id and a name column too.
-      final diverFilter = diverId != null ? 'AND e.diver_id = ?' : '';
+      // Qualified: tags has a diver_id and a name column too. Owned or
+      // shared with [diverId] (issue #2046).
+      final visibility = VisibilityFilter.equipmentSqlFragment(
+        tableAlias: 'e',
+        diverId: diverId,
+        conjunction: 'AND',
+      );
       final variables = [
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
-        if (diverId != null) Variable.withString(diverId),
+        ...visibility.variables,
       ];
 
       final results = await _db.customSelect('''
@@ -862,7 +1005,7 @@ class EquipmentRepository {
            OR LOWER(e.model) LIKE ?
            OR LOWER(e.serial_number) LIKE ?
            OR LOWER(t.name) LIKE ?)
-        $diverFilter
+        ${visibility.whereClause}
         ORDER BY e.is_active DESC, e.type ASC, e.name COLLATE NOCASE ASC
       ''', variables: variables).get();
 
@@ -874,6 +1017,7 @@ class EquipmentRepository {
       final items = ordered.map((row) {
         return EquipmentItem(
           id: row.data['id'] as String,
+          diverId: row.data['diver_id'] as String?,
           name: row.data['name'] as String,
           type: EquipmentType.values.firstWhere(
             (t) => t.name == row.data['type'],
@@ -912,6 +1056,9 @@ class EquipmentRepository {
                     .cast<int>()
               : null,
           parentEquipmentId: row.data['parent_equipment_id'] as String?,
+          createdAt: DateTime.fromMillisecondsSinceEpoch(
+            row.data['created_at'] as int,
+          ),
         );
       }).toList();
       final attrsById = await getAttributesForEquipmentIds(
@@ -930,23 +1077,36 @@ class EquipmentRepository {
     }
   }
 
-  /// Get dive count for equipment item
+  /// Dives [equipmentId] is on, for the item page's Dives row: linked
+  /// directly or through a tank the registry matched to a cylinder, the link
+  /// set the dive list's equipment filter uses, so the row's count and the
+  /// list it opens agree. With [diverId], only that diver's dives, since the
+  /// dive list shows only the active profile (issue #2046); null counts every
+  /// diver's.
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
-  /// from statistics still physically happened: it cycled this gear and put
-  /// hours on it. Suppressing it here would push a real service interval
-  /// later than it should be, a safety-relevant error rather than a cosmetic
-  /// one. Do not "fix" this.
+  /// from statistics still physically happened, and the dive list it opens
+  /// shows it too. Do not "fix" this.
   // stats-scope-exempt: gear wear is physical, not descriptive
-  Future<int> getDiveCountForEquipment(String equipmentId) async {
+  Future<int> getDiveCountForEquipment(
+    String equipmentId, {
+    String? diverId,
+  }) async {
     try {
       final result = await _db
           .customSelect(
             '''
-        SELECT COUNT(*) as count
-        FROM dive_equipment
-        WHERE equipment_id = ?
+        SELECT COUNT(*) AS count
+        FROM dives d
+        WHERE (EXISTS (SELECT 1 FROM dive_equipment de
+                       WHERE de.dive_id = d.id AND de.equipment_id = ?1)
+            OR EXISTS (SELECT 1 FROM dive_tanks dt
+                       WHERE dt.dive_id = d.id AND dt.equipment_id = ?1))
+          AND (?2 IS NULL OR d.diver_id = ?2)
       ''',
-            variables: [Variable.withString(equipmentId)],
+            variables: [
+              Variable.withString(equipmentId),
+              Variable<String>(diverId),
+            ],
           )
           .getSingle();
 
@@ -991,7 +1151,9 @@ class EquipmentRepository {
           .customSelect(
             '''
         SELECT d.id AS dive_id,
-               d.updated_at AS updated_at,
+               -- The dive and its synced series (#1769): the stamp a
+               -- current summary was built from, and the fingerprint's.
+               ${diveSourceStampSql()} AS updated_at,
                d.dive_date_time AS date_ms,
                -- The first positive length: a manual zero runtime beside
                -- a real bottom time is no figure, and must not count the
@@ -1046,7 +1208,7 @@ class EquipmentRepository {
         ) je
         JOIN dives d ON d.id = je.dive_id
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
-          AND s.source_updated_at = d.updated_at
+          AND s.source_updated_at = ${diveSourceStampSql()}
           AND s.engine_version >= ?6
         WHERE (je.via_parent = 0 OR ?3 IS NULL OR d.dive_date_time >= ?3)
           AND (?4 IS NULL OR d.dive_date_time >= ?4)
@@ -1137,6 +1299,22 @@ class EquipmentRepository {
                 if (s.date.isBefore(until)) s,
             ],
     );
+  }
+
+  /// The dives [item] was used on, each with its diver, for the item's
+  /// History card (issue #2046). The same dive set the service clocks count
+  /// ([getItemExposure]), so the card and the clocks never disagree.
+  // stats-scope-exempt: gear wear is physical, not descriptive
+  Future<List<({String diveId, String? diverId, DateTime date})>>
+  getUsageByDiver(EquipmentItem item) async {
+    final exposure = await getItemExposure(item);
+    final diverByDive = await _visibility.diversOfDives([
+      for (final s in exposure.samples) s.diveId,
+    ]);
+    return [
+      for (final s in exposure.samples)
+        (diveId: s.diveId, diverId: diverByDive[s.diveId], date: s.date),
+    ];
   }
 
   /// [getItemExposure] for many items at once, keyed by item id, in a
@@ -1353,7 +1531,9 @@ class EquipmentRepository {
         )
         SELECT je.owner_id AS owner_id,
                d.id AS dive_id,
-               d.updated_at AS updated_at,
+               -- The dive and its synced series (#1769): the stamp a
+               -- current summary was built from, and the fingerprint's.
+               ${diveSourceStampSql()} AS updated_at,
                d.dive_date_time AS date_ms,
                CASE
                  WHEN d.runtime > 0 THEN d.runtime
@@ -1412,7 +1592,7 @@ class EquipmentRepository {
         JOIN owners o ON o.owner_id = je.owner_id
         JOIN dives d ON d.id = je.dive_id
         LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
-          AND s.source_updated_at = d.updated_at
+          AND s.source_updated_at = ${diveSourceStampSql()}
           AND s.engine_version >= ?
         WHERE (je.via_parent = 0 OR o.installed_since IS NULL
           OR d.dive_date_time >= o.installed_since)
@@ -1661,10 +1841,18 @@ class EquipmentRepository {
   /// updates changed rows, deletes (with a tombstone) rows no longer present.
   /// Curated ids are normalized to the deterministic form here so callers
   /// building attributes before the equipment id exists still converge.
+  /// Writes [desired] as the item's attribute set.
+  ///
+  /// With [preserveSystem] (the default), a system attribute the caller did
+  /// not pass (a cylinder's passport id) is kept rather than deleted: the
+  /// edit form shows only its type's fields and may have been opened before
+  /// a synced id arrived, and neither is a reason to drop the tag's
+  /// identity. The passport repository passes false to release a tag.
   Future<void> saveAttributes(
     String equipmentId,
-    List<EquipmentAttribute> desired,
-  ) async {
+    List<EquipmentAttribute> desired, {
+    bool preserveSystem = true,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final normalized = desired.where((a) => a.hasValue).map((a) {
@@ -1690,6 +1878,11 @@ class EquipmentRepository {
     await _db.transaction(() async {
       for (final row in existingRows) {
         if (desiredIds.contains(row.id)) continue;
+        if (preserveSystem &&
+            !row.isCustom &&
+            EquipmentAttributeCatalog.isSystemKey(row.attrKey)) {
+          continue;
+        }
         await (_db.delete(
           _db.equipmentAttributes,
         )..where((t) => t.id.equals(row.id))).go();

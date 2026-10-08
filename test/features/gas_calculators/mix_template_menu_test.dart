@@ -159,6 +159,27 @@ void main() {
     },
   );
 
+  testWidgets('an unreadable box says why under the box (#1900 review)', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      templates: const [MixTemplate(o2: 18, he: 45)],
+      target: const GasMix(o2: 18, he: 45),
+    );
+    await _openMenu(tester);
+    await tester.tap(find.text('Adjust values'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '1..8');
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Enter a valid number (decimal separator: ".")'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('editing a template into a duplicate is refused with a reason', (
     tester,
   ) async {

@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_detail_pa
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/section_fold.dart';
 
@@ -74,6 +75,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          // No active profile, as before sharing: every action is the owner's.
+          validatedCurrentDiverIdProvider.overrideWith((_) async => null),
           ...overrides,
           siteProvider(site.id).overrideWith((_) async => site),
           siteDiveCountProvider(site.id).overrideWith((_) async => 4),

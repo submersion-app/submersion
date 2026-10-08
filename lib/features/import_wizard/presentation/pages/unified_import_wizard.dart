@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/services/import_provider_invalidator.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
@@ -148,6 +149,11 @@ class _UnifiedImportWizardBodyState
     final adapter = widget.adapter;
     if (adapter is DiveComputerAdapter) {
       adapter.goBackFromConfirm = () {
+        _navigatingForward = false;
+        _animateToPage(_currentPage - 1);
+      };
+    } else if (adapter is DivelogsImportAdapter) {
+      adapter.goBack = () {
         _navigatingForward = false;
         _animateToPage(_currentPage - 1);
       };
@@ -342,17 +348,18 @@ class _UnifiedImportWizardBodyState
     }
   }
 
-  /// Waits for [SettingsNotifier]'s first load before the review step reads
-  /// the diver's saved auto-tag preference (issue #998).
+  /// Waits for [SettingsNotifier]'s current load before the review step reads
+  /// the diver's saved auto-tag preference (issues #998, #2564).
   ///
   /// Until that load lands, [settingsProvider] holds the defaults, where
   /// auto-tagging is on, so a wizard opened right after launch would ignore
-  /// a saved "off". A failed load is already logged where it started, in
-  /// the notifier's constructor, and leaves those defaults in place: they
-  /// are the documented fallback, so the failure is not re-raised here.
+  /// a saved "off"; right after a diver switch it holds the previous diver's
+  /// preference instead. A failed load is already logged where it started,
+  /// in the notifier, and leaves those settings in place: they are the
+  /// documented fallback, so the failure is not re-raised here.
   Future<void> _awaitSettingsLoad() async {
     try {
-      await ref.read(settingsProvider.notifier).initialLoad;
+      await ref.read(settingsProvider.notifier).settingsLoaded;
     } catch (_) {
       // See the doc comment: already logged, defaults are the fallback.
     }
@@ -382,6 +389,7 @@ class _UnifiedImportWizardBodyState
     // skipped.
     if (widget.adapter.sourceType == ImportSourceType.diveComputer ||
         widget.adapter.sourceType == ImportSourceType.suuntoCloud ||
+        widget.adapter.sourceType == ImportSourceType.suuntoFile ||
         widget.adapter.sourceType == ImportSourceType.garminCloud) {
       ref.invalidate(allDiveComputersProvider);
     }

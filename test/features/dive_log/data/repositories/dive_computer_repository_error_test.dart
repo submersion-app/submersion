@@ -91,10 +91,6 @@ void main() {
         throwsA(anything),
       );
       await expectLater(
-        repository.setPrimaryProfile('test-id', 'computer-id'),
-        throwsA(anything),
-      );
-      await expectLater(
         repository.importProfile(
           computerId: 'computer-id',
           points: [],
@@ -137,7 +133,6 @@ void main() {
         DatabaseService.instance.resetForTesting();
 
         // Methods that return null
-        expect(await repository.getPrimaryComputerId('test-id'), isNull);
         expect(
           await repository.findMatchingDive(
             profileStartTime: DateTime.now(),

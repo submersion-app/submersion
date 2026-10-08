@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_figure_inputs.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/services/assembly_snapshot.dart';
-import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/providers/assembly_snapshot_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/shared_gear_note_line.dart';
 
 /// The gear on a dive, rendered the same way on the detail and edit pages
 /// (issue #1487): the sets applied to the dive as a row of chips, then
@@ -51,6 +56,23 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
   /// does not gain a mark about today's service state.
   final bool showServiceStatus;
 
+  /// The diver whose dive this is. A row whose item another profile owns
+  /// shows that owner's chip (issue #2046). Null shows no chips.
+  final String? ownerReferenceDiverId;
+
+  /// A note per item that is also on another profile's overlapping dive
+  /// (issue #2853); null, or a null answer, shows none. Only the dive
+  /// editor passes it.
+  final String? Function(String equipmentId)? overlapNote;
+
+  /// The item flashing on the figure, highlighted here too. Only a
+  /// top-level row highlights: the figure draws no parts. The rows carry
+  /// no figure numbers, since the figure names every item (issue #2774).
+  final String? selectedItemId;
+
+  /// A key for a top-level row, so a tap on the figure can scroll to it.
+  final Key? Function(String itemId)? rowKey;
+
   const DiveGearTreeView({
     super.key,
     required this.links,
@@ -61,6 +83,10 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
     this.rowTrailing,
     this.onUpdateAssembly,
     this.showServiceStatus = false,
+    this.ownerReferenceDiverId,
+    this.overlapNote,
+    this.selectedItemId,
+    this.rowKey,
   });
 
   @override
@@ -114,9 +140,10 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             onRemove: widget.onRemoveSet,
           ),
         // The arrangement sees every top-level item on the dive at once;
-        // parts keep template order underneath their assembly.
-        for (final group in arrangeEquipment(
-          [for (final n in roots) n.link.item],
+        // parts keep template order underneath their assembly. The dive
+        // figure numbers the same rows in the same order.
+        for (final group in arrangedDiveGear(
+          widget.links,
           arrangement,
           typeLabel: (type) => type.localizedName(l10n),
         )) ...[
@@ -178,13 +205,19 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
     final remove = hasParts || depth == 0
         ? widget.onRemoveSubtree
         : widget.onRemovePart;
+    final flashing = depth == 0 && item.id == widget.selectedItemId;
+    final highlight = flashing ? figureHighlightFor(theme.colorScheme) : null;
 
     return [
       Padding(
+        key: depth == 0 ? widget.rowKey?.call(item.id) : null,
         padding: EdgeInsets.only(left: 24.0 * depth),
         child: ListTile(
           key: ValueKey('gear-row-${item.id}'),
           contentPadding: EdgeInsets.zero,
+          tileColor: highlight?.fill,
+          textColor: highlight?.onFill,
+          iconColor: highlight?.onFill,
           leading: CircleAvatar(
             backgroundColor: theme.colorScheme.tertiaryContainer,
             child: Icon(
@@ -194,13 +227,19 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             ),
           ),
           title: Text(item.name),
-          subtitle: subtitleParts.isEmpty
-              ? null
-              : Text(subtitleParts.join(' · '), style: muted),
+          subtitle: _rowSubtitle(subtitleParts, item.id, muted),
           onTap: widget.onTap == null ? null : () => widget.onTap!(item),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (showsOwnerChip(
+                item,
+                widget.ownerReferenceDiverId,
+                multipleDivers: ref.watch(hasMultipleDiversProvider),
+              )) ...[
+                EquipmentOwnerChip(ownerId: item.diverId),
+                const SizedBox(width: 4),
+              ],
               ServiceStatusIndicatorFor(
                 equipmentId: item.id,
                 density: ServiceIndicatorDensity.dot,
@@ -250,6 +289,24 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
             labels: labels,
           ),
     ];
+  }
+
+  /// The row's details, and under them the shared gear note when there is
+  /// one (issue #2853). Plain text when there is no note, as before.
+  Widget? _rowSubtitle(List<String> parts, String itemId, TextStyle? muted) {
+    final note = widget.overlapNote?.call(itemId);
+    final details = parts.isEmpty
+        ? null
+        : Text(parts.join(' · '), style: muted);
+    if (note == null) return details;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ?details,
+        SharedGearNoteLine(note, style: muted),
+      ],
+    );
   }
 }
 

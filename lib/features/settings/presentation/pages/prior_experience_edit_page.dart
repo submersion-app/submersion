@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Edits a diver's pre-app diving experience (prior dive count, prior bottom
 /// time, and the year they started diving). These totals fold into the
@@ -78,12 +79,12 @@ class _PriorExperienceEditPageState
     setState(() => _isSaving = true);
 
     try {
-      final priorCount = parseUserInt(_diveCountCtrl.text);
+      final priorCount = _validatedInt(_diveCountCtrl.text);
       final hStr = _hoursCtrl.text.trim();
       final mStr = _minutesCtrl.text.trim();
       final priorSeconds = (hStr.isEmpty && mStr.isEmpty)
           ? null
-          : (parseUserInt(hStr) ?? 0) * 3600 + (parseUserInt(mStr) ?? 0) * 60;
+          : (_validatedInt(hStr) ?? 0) * 3600 + (_validatedInt(mStr) ?? 0) * 60;
 
       final updated = existingDiver.copyWith(
         priorDiveCount: priorCount,
@@ -223,17 +224,22 @@ class _PriorExperienceEditPageState
     );
   }
 
-  String? _nonNegativeInt(String? v, {int? max}) {
-    if (v == null || v.trim().isEmpty) return null;
-    final n = parseUserInt(v);
-    if (n == null || n < 0) {
-      return context.l10n.divers_edit_priorInvalidNumber;
-    }
-    if (max != null && n > max) {
-      return context.l10n.divers_edit_priorInvalidNumber;
-    }
-    return null;
-  }
+  /// A whole number once the form has validated: blank is "not set", and
+  /// unreadable text cannot reach here.
+  static int? _validatedInt(String text) =>
+      switch (readNumber(text, integer: true)) {
+        NumberValue(:final value) => value.toInt(),
+        NumberBlank() => null,
+        NumberInvalid() => null, // unreachable: validate() ran first
+      };
+
+  String? _nonNegativeInt(String? v, {int? max}) => numberValidator(
+    context,
+    integer: true,
+    check: (n) => n < 0 || (max != null && n > max)
+        ? context.l10n.divers_edit_priorInvalidNumber
+        : null,
+  )(v);
 
   Widget _buildFields() {
     return Column(

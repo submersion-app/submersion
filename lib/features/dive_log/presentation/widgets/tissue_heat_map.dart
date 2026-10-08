@@ -211,7 +211,7 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
     final status = widget.decoStatuses[timeIdx];
     final comp = status.compartments[compIdx];
     final ambientPressure = status.ambientPressureBar;
-    final isOffgassing = comp.totalInertGas > ambientPressure;
+    final isOffgassing = status.isOffgassing(comp);
 
     final gfAtDepth = comp.gradientFactor(ambientPressure);
     final lines = <String>[
@@ -222,7 +222,7 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
       if (comp.currentPHe > 0.001)
         'He: ${comp.currentPHe.toStringAsFixed(2)} bar',
       'Half-time: ${comp.halfTimeN2.toStringAsFixed(0)} min',
-      isOffgassing ? 'Offgassing' : 'Ongassing',
+      if (isOffgassing != null) isOffgassing ? 'Offgassing' : 'Ongassing',
     ];
     final message = lines.join('\n');
 

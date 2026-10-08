@@ -1,7 +1,7 @@
 // Widget tests for the Cache management card (Phase 3c, Task 8).
 //
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 8. The hand-rolled `_StubDiag` mirrors the pattern in
 // `network_sources_providers_test.dart` (Phase 3c Task 5): implementing
 // `CachedNetworkImageDiagnostics` directly is supported because the only

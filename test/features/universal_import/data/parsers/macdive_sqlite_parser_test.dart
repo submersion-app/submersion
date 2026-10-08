@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -15,13 +16,12 @@ void main() {
     late Uint8List validBytes;
 
     setUpAll(() async {
-      final path =
-          '${Directory.systemTemp.path}/msp_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-      final file = buildSyntheticMacDiveDb(path);
-      validBytes = Uint8List.fromList(await file.readAsBytes());
+      final dir = Directory.systemTemp.createTempSync('msp_');
       addTearDown(() {
-        if (file.existsSync()) file.deleteSync();
+        if (dir.existsSync()) dir.deleteSync(recursive: true);
       });
+      final file = buildSyntheticMacDiveDb(p.join(dir.path, 'msp.sqlite'));
+      validBytes = Uint8List.fromList(await file.readAsBytes());
     });
 
     test('supportedFormats is macdiveSqlite', () {
@@ -43,13 +43,11 @@ void main() {
     });
 
     test('returns error payload on non-MacDive SQLite', () async {
-      final tmp = File(
-        '${Directory.systemTemp.path}/not_md_${DateTime.now().microsecondsSinceEpoch}.sqlite',
-      );
-      if (tmp.existsSync()) tmp.deleteSync();
+      final dir = Directory.systemTemp.createTempSync('not_md_');
       addTearDown(() {
-        if (tmp.existsSync()) tmp.deleteSync();
+        if (dir.existsSync()) dir.deleteSync(recursive: true);
       });
+      final tmp = File(p.join(dir.path, 'not_md.sqlite'));
 
       final db = sqlite3.sqlite3.open(tmp.path);
       db.execute('CREATE TABLE foo (id INTEGER PRIMARY KEY);');
@@ -65,12 +63,12 @@ void main() {
     test('fails a library with no dives with an error', () async {
       // Nothing is imported, so the file fails and this message becomes the
       // reason shown for it.
-      final path =
-          '${Directory.systemTemp.path}/msp_empty_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-      final file = buildSyntheticMacDiveDb(path);
+      final dir = Directory.systemTemp.createTempSync('msp_empty_');
       addTearDown(() {
-        if (file.existsSync()) file.deleteSync();
+        if (dir.existsSync()) dir.deleteSync(recursive: true);
       });
+      final path = p.join(dir.path, 'msp_empty.sqlite');
+      final file = buildSyntheticMacDiveDb(path);
       final db = sqlite3.sqlite3.open(path);
       db.execute('DELETE FROM ZDIVE;');
       db.close();

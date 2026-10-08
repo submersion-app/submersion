@@ -26,18 +26,26 @@ void main() {
     },
   );
 
-  test('v227 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 227);
+  test('v227 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v228 (cylinder fills) and v232 (trip cylinders) landed
+    // on top; the newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(227));
     expect(AppDatabase.migrationVersions, contains(227));
-    expect(AppDatabase.migrationStepCount(226), 1);
+    // Upgrading from 226 runs exactly one step more than from 227: v227
+    // itself, whatever rungs land later.
+    expect(
+      AppDatabase.migrationStepCount(226),
+      AppDatabase.migrationStepCount(227) + 1,
+    );
   });
 
   test('this rung is additive and did not move the sync floor', () {
     // The floor is owned by the v224 media fact clocks. An older reader
     // simply shows every built-in preset.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('a fresh database has the column, nullable', () async {

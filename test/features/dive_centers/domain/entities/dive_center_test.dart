@@ -45,4 +45,19 @@ void main() {
       expect(center.fullLocationString, 'Quintana Roo, Mexico');
     });
   });
+
+  test('fill hours copy, clear and compare', () {
+    final now = DateTime(2026);
+    final center = DiveCenter(
+      id: 'c1',
+      name: 'Dive Friends',
+      fillOpensAt: 480,
+      fillClosesAt: 1020,
+      createdAt: now,
+      updatedAt: now,
+    );
+    expect(center.copyWith(name: 'x').fillClosesAt, 1020);
+    expect(center.copyWith(fillOpensAt: null).fillOpensAt, isNull);
+    expect(center.copyWith(fillClosesAt: 1080), isNot(center));
+  });
 }

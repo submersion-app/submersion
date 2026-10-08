@@ -29,11 +29,14 @@ QualityFinding _finding({
 
 const _formatters = QualityUnitFormatters(
   depth: _fmt,
+  depthRate: _fmt,
+  limitDepth: _fmt,
   pressure: _fmt,
   temperature: _fmt,
   sac: _fmt,
   date: _fmtDate,
   dateTime: _fmtDate,
+  time: _fmtDate,
 );
 
 String _fmt(double v) => '$v';
@@ -71,7 +74,8 @@ void main() {
   }
 
   // Tap the leading severity icon to toggle expansion. Tapping the ListTile
-  // centre is unreliable because a wide trailing repair button can cover it.
+  // centre is unreliable because the repair button below the detail can cover
+  // it.
   Future<void> toggleExpand(WidgetTester tester) async {
     await tester.tap(find.byType(Icon).first);
     await tester.pumpAndSettle();
@@ -183,7 +187,7 @@ void main() {
   });
 
   group('primary repair button', () {
-    testWidgets('renders in trailing when a non-goto repair exists', (
+    testWidgets('renders under the detail when a non-goto repair exists', (
       tester,
     ) async {
       final repaired = <QualityRepairAction>[];
@@ -342,7 +346,7 @@ void main() {
         ),
         onRepair: repaired.add,
       );
-      // Primary rendered as FilledButton.tonal in trailing.
+      // Primary rendered as FilledButton.tonal under the detail.
       expect(find.byType(FilledButton), findsOneWidget);
       await toggleExpand(tester);
       // Secondary repairs (Split, Compare) + go-to-dive + dismiss = 4 TextButtons
@@ -359,7 +363,7 @@ void main() {
 
   group('repair label coverage', () {
     // Each entry exercises a distinct repair-label switch arm by making that
-    // repair the primary (trailing) action.
+    // repair the primary action.
     final cases =
         <
           String,
@@ -461,13 +465,39 @@ void main() {
             relatedDiveId: c.related,
           ),
         );
-        // Primary label built for trailing button.
+        // Primary label built for the primary button.
         expect(find.byType(FilledButton), findsOneWidget);
         // Expand to build every secondary label too.
         await toggleExpand(tester);
         expect(find.byType(OverflowBar), findsOneWidget);
       });
     });
+  });
+
+  // Each removable side of a shared gear finding names its profile, and a
+  // side whose name was not recorded still reads as a sentence (#2853).
+  testWidgets('shared gear repairs name whose dive loses the item', (
+    tester,
+  ) async {
+    await pumpCard(
+      tester,
+      finding: _finding(
+        detectorId: 'shared_gear_overlap',
+        relatedDiveId: 'd2',
+        params: const {
+          'equipmentId': 'light',
+          'itemName': 'Light',
+          'partIds': <String>[],
+          'dives': {
+            'd1': {'diverName': 'Anna', 'entryMs': 0, 'removable': true},
+            'd2': {'diverName': '', 'entryMs': 0, 'removable': true},
+          },
+        },
+      ),
+    );
+    await toggleExpand(tester);
+    expect(find.text("Remove from Anna's dive"), findsOneWidget);
+    expect(find.text("Remove from another profile's dive"), findsOneWidget);
   });
 
   group('finding context rows', () {

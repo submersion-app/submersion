@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -12,7 +14,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
-import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
+import 'package:submersion/features/dive_roles/presentation/dive_role_list_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart'
     show BuddyWithDiveCount;
@@ -23,6 +25,8 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_selector_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Widget for selecting buddies for a dive
 class BuddyPicker extends ConsumerWidget {
@@ -30,23 +34,33 @@ class BuddyPicker extends ConsumerWidget {
   final List<BuddyWithRole> selectedBuddies;
   final ValueChanged<List<BuddyWithRole>> onChanged;
 
-  /// The active diver's own role id (#547). The pinned Me chip renders only
-  /// when [onDiverRoleChanged] is provided (bulk-edit surfaces pass null).
-  final String? diverRoleId;
-  final ValueChanged<String?>? onDiverRoleChanged;
+  /// The active diver's own role ids (#547, several since #1221). The pinned
+  /// Me chip renders only when [onDiverRoleChanged] is provided (bulk-edit
+  /// surfaces pass null).
+  final List<String> diverRoleIds;
+  final ValueChanged<List<String>>? onDiverRoleChanged;
+
+  /// Roles offered even when hidden from the pickers (issue #401): the ones
+  /// the dive had when the editor opened.
+  final Set<String> keepRoleIds;
 
   const BuddyPicker({
     super.key,
     this.diveId,
     required this.selectedBuddies,
     required this.onChanged,
-    this.diverRoleId,
+    this.diverRoleIds = const [],
     this.onDiverRoleChanged,
+    this.keepRoleIds = const {},
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final roles = ref.watch(allDiveRolesProvider).value ?? const <DiveRole>[];
+    final hiddenRoleIds = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -77,13 +91,16 @@ class BuddyPicker extends ConsumerWidget {
             children: [
               if (onDiverRoleChanged != null)
                 _MeChip(
-                  diverRoleId: diverRoleId,
+                  diverRoleIds: diverRoleIds,
                   onChanged: onDiverRoleChanged!,
+                  keepRoleIds: keepRoleIds,
                 ),
               ...selectedBuddies.map((bwr) {
                 return _BuddyChip(
                   buddyWithRole: bwr,
                   roles: roles,
+                  hiddenRoleIds: hiddenRoleIds,
+                  keepRoleIds: keepRoleIds,
                   onCreateCustomRole: (name) =>
                       _createCustomRole(context, ref, name),
                   onRemove: () {
@@ -92,10 +109,10 @@ class BuddyPicker extends ConsumerWidget {
                         .toList();
                     onChanged(updated);
                   },
-                  onRoleChanged: (role) {
+                  onRoleChanged: (picked) {
                     final updated = selectedBuddies.map((b) {
                       if (b.buddy.id == bwr.buddy.id) {
-                        return BuddyWithRole(buddy: b.buddy, role: role);
+                        return BuddyWithRole(buddy: b.buddy, roles: picked);
                       }
                       return b;
                     }).toList();
@@ -186,8 +203,14 @@ class BuddyPicker extends ConsumerWidget {
 class _BuddyChip extends StatelessWidget {
   final BuddyWithRole buddyWithRole;
   final List<DiveRole> roles;
+
+  /// Built-in roles hidden from the pickers (issue #401).
+  final Set<String> hiddenRoleIds;
+
+  /// Roles offered even when hidden.
+  final Set<String> keepRoleIds;
   final VoidCallback onRemove;
-  final ValueChanged<DiveRole> onRoleChanged;
+  final ValueChanged<List<DiveRole>> onRoleChanged;
   final Future<DiveRole?> Function(String name) onCreateCustomRole;
 
   const _BuddyChip({
@@ -196,11 +219,15 @@ class _BuddyChip extends StatelessWidget {
     required this.onRemove,
     required this.onRoleChanged,
     required this.onCreateCustomRole,
+    this.hiddenRoleIds = const {},
+    this.keepRoleIds = const {},
   });
 
   @override
   Widget build(BuildContext context) {
+    final roleLabel = buddyWithRole.roles.joinedLocalizedNames(context.l10n);
     return InputChip(
+      tooltip: roleLabel,
       avatar: ProfileAvatar(
         photo: buddyWithRole.buddy.photo,
         initials: buddyWithRole.buddy.initials,
@@ -214,15 +241,7 @@ class _BuddyChip extends StatelessWidget {
       label: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(buddyWithRole.buddy.name),
-          Text(
-            buddyWithRole.role.localizedName(context.l10n),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
+        children: [Text(buddyWithRole.buddy.name), _RoleLine(roleLabel)],
       ),
       labelPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       onDeleted: onRemove,
@@ -235,34 +254,68 @@ class _BuddyChip extends StatelessWidget {
       context,
       title: context.l10n.buddies_picker_selectRole(buddyWithRole.buddy.name),
       roles: roles,
-      selectedRoleId: buddyWithRole.role.id,
+      selectedRoleIds: buddyWithRole.roleIds,
+      hiddenRoleIds: hiddenRoleIds,
+      keepRoleIds: keepRoleIds,
       onCreateCustomRole: onCreateCustomRole,
     );
-    if (selection?.role != null) {
-      onRoleChanged(selection!.role!);
+    if (selection != null) {
+      onRoleChanged(selection.isEmpty ? [DiveRole.builtInBuddy()] : selection);
     }
+  }
+}
+
+/// A chip's role line: the joined role names on one line, ellipsized past a
+/// chip-friendly width; the chip's tooltip carries the full text (#1221).
+class _RoleLine extends StatelessWidget {
+  final String label;
+
+  const _RoleLine(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 200),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
   }
 }
 
 /// Pinned chip for the active diver's own role on the dive (#547).
 class _MeChip extends ConsumerWidget {
-  final String? diverRoleId;
-  final ValueChanged<String?> onChanged;
+  final List<String> diverRoleIds;
+  final ValueChanged<List<String>> onChanged;
 
-  const _MeChip({required this.diverRoleId, required this.onChanged});
+  const _MeChip({
+    required this.diverRoleIds,
+    required this.onChanged,
+    this.keepRoleIds = const {},
+  });
+
+  /// Roles offered even when hidden.
+  final Set<String> keepRoleIds;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final diver = ref.watch(currentDiverProvider).value;
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
-    final role = diverRoleId == null ? null : rolesById[diverRoleId!];
-    final roleLabel = diverRoleId == null
+    final roleLabel = diverRoleIds.isEmpty
         ? context.l10n.buddies_picker_setMyRole
-        : (role ?? DiveRole.synthetic(diverRoleId!)).localizedName(
-            context.l10n,
-          );
+        : rolesForIds(
+            diverRoleIds,
+            rolesById,
+          ).joinedLocalizedNames(context.l10n);
     return InputChip(
+      tooltip: roleLabel,
       // The active diver's own chip. Falls back to the generic person icon
       // rather than initials when there is no photo, preserving how this chip
       // has always looked.
@@ -285,12 +338,7 @@ class _MeChip extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(diver?.name ?? context.l10n.buddies_picker_me),
-          Text(
-            roleLabel,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
+          _RoleLine(roleLabel),
         ],
       ),
       labelPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -301,11 +349,15 @@ class _MeChip extends ConsumerWidget {
           context,
           title: context.l10n.buddies_picker_selectMyRole,
           roles: roles,
-          allowNone: true,
-          selectedRoleId: diverRoleId,
+          hiddenRoleIds: ref.read(
+            hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+          ),
+          keepRoleIds: keepRoleIds,
+          allowEmpty: true,
+          selectedRoleIds: diverRoleIds,
         );
         if (selection != null) {
-          onChanged(selection.role?.id);
+          onChanged([for (final r in selection) r.id]);
         }
       },
     );
@@ -360,6 +412,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final buddiesAsync = _debouncedQuery.isEmpty
         ? ref.watch(allBuddiesWithDiveCountProvider)
         : ref.watch(buddySearchWithDiveCountProvider(_debouncedQuery));
@@ -610,10 +663,15 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
         final isSelected = _localSelectedBuddies.any(
           (b) => b.buddy.id == buddy.id,
         );
-        final selectedRole = _localSelectedBuddies
+        final selectedRoles = _localSelectedBuddies
             .where((b) => b.buddy.id == buddy.id)
-            .map((b) => b.role)
+            .map((b) => b.roles)
             .firstOrNull;
+        final certLine = buddyCertificationLineL10n(
+          buddy,
+          context.l10n,
+          catalog: context.certificationCatalog,
+        );
 
         return ListTile(
           // Selection wins over the photo: a checked row must read as checked
@@ -639,9 +697,29 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                   ).colorScheme.onSurfaceVariant,
                 ),
           title: Text(buddy.name),
-          subtitle: buddyCertificationLineL10n(buddy, context.l10n) == null
+          isThreeLine: certLine != null && isSelected,
+          // The role chip sits under the name rather than in trailing: a
+          // ListTile measures trailing before the title, so a text-bearing
+          // chip there squeezes the name to one fragment per line on a
+          // phone or in a longer translation (issue #2717).
+          subtitle: certLine == null && !isSelected
               ? null
-              : Text(buddyCertificationLineL10n(buddy, context.l10n)!),
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (certLine != null) Text(certLine),
+                    if (isSelected)
+                      Chip(
+                        label: Text(
+                          selectedRoles?.joinedLocalizedNames(context.l10n) ??
+                              context.l10n.diveRole_builtin_buddy,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                  ],
+                ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -661,14 +739,6 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
                 iconSize: 20,
                 unselectedColor: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              if (isSelected)
-                Chip(
-                  label: Text(
-                    selectedRole?.localizedName(context.l10n) ??
-                        context.l10n.diveRole_builtin_buddy,
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
             ],
           ),
           onTap: () {
@@ -695,22 +765,22 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
     });
   }
 
-  void _addBuddy(Buddy buddy, DiveRole role) {
+  void _addBuddy(Buddy buddy, List<DiveRole> roles) {
     final existing = _localSelectedBuddies.indexWhere(
       (b) => b.buddy.id == buddy.id,
     );
     setState(() {
       if (existing >= 0) {
-        // Update role
+        // Update roles
         _localSelectedBuddies = [
           ..._localSelectedBuddies.sublist(0, existing),
-          BuddyWithRole(buddy: buddy, role: role),
+          BuddyWithRole(buddy: buddy, roles: roles),
           ..._localSelectedBuddies.sublist(existing + 1),
         ];
       } else {
         _localSelectedBuddies = [
           ..._localSelectedBuddies,
-          BuddyWithRole(buddy: buddy, role: role),
+          BuddyWithRole(buddy: buddy, roles: roles),
         ];
       }
     });
@@ -726,11 +796,17 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
       context,
       title: context.l10n.buddies_picker_selectRole(buddy.name),
       roles: roles,
+      hiddenRoleIds: ref.read(
+        hiddenBuiltInIdsProvider(BuiltInCatalog.diveRoles),
+      ),
       credentialRoleIds: _professionalRoleIds(certs),
       onCreateCustomRole: _createCustomRole,
     );
-    if (selection?.role != null) {
-      _addBuddy(buddy, selection!.role!);
+    if (selection != null) {
+      _addBuddy(
+        buddy,
+        selection.isEmpty ? [DiveRole.builtInBuddy()] : selection,
+      );
     }
   }
 
@@ -740,7 +816,7 @@ class _BuddySelectionSheetState extends ConsumerState<_BuddySelectionSheet> {
   Set<String> _professionalRoleIds(List<Certification> certs) {
     final ids = <String>{};
     for (final cert in certs) {
-      final level = cert.level;
+      final level = CertificationLevel.fromId(cert.level);
       if (level == null) continue;
       if (level.isInstructorLevel) ids.add(DiveRole.instructorId);
       if (level == CertificationLevel.diveMaster) {

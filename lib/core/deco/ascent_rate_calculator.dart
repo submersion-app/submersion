@@ -31,13 +31,6 @@ class AscentRatePoint {
 
   /// Whether the diver is at a constant depth (within tolerance)
   bool get isConstant => rateMetersPerMin.abs() < 0.5;
-
-  /// Formatted rate string
-  String get rateFormatted {
-    if (isConstant) return '0 m/min';
-    final sign = rateMetersPerMin > 0 ? '+' : '';
-    return '$sign${rateMetersPerMin.toStringAsFixed(1)} m/min';
-  }
 }
 
 /// Represents an ascent rate violation event.

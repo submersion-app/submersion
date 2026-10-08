@@ -36,6 +36,15 @@ class ImportPayload extends Equatable {
   /// site maps reference them by id in `siteTypeRefs`.
   static const customSiteTypesKey = 'customSiteTypes';
 
+  /// Metadata keys for certification currency rows (issue #2267): custom
+  /// rules, and the prefs and ledger events of the file's certifications,
+  /// each pointing at its `<cert>` through `certificationRef`. No review
+  /// step: rules restore like dive roles, and prefs and events ride along
+  /// with the certifications the import creates.
+  static const currencyRulesKey = 'currencyRules';
+  static const currencyPrefsKey = 'currencyPrefs';
+  static const currencyEventsKey = 'currencyEvents';
+
   /// The people the source attributes records to (issue #1893). Empty for
   /// every format that has no notion of several divers.
   final List<SourceDiver> sourceDivers;

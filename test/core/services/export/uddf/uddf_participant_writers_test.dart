@@ -14,20 +14,17 @@ Buddy _buddy(String id, String name) => Buddy(
   email: '$id@example.test',
   phone: '555-0100',
   notes: 'private note',
-  certificationLevel: CertificationLevel.rescue,
-  certificationAgency: CertificationAgency.padi,
+  certificationLevel: CertificationLevel.rescue.name,
+  certificationAgency: CertificationAgency.padi.name,
   createdAt: _epoch,
   updatedAt: _epoch,
 );
 
 BuddyWithRole _row(Buddy buddy, String roleId) => BuddyWithRole(
   buddy: buddy,
-  role: DiveRole(
-    id: roleId,
-    name: roleId,
-    createdAt: _epoch,
-    updatedAt: _epoch,
-  ),
+  roles: [
+    DiveRole(id: roleId, name: roleId, createdAt: _epoch, updatedAt: _epoch),
+  ],
 );
 
 XmlElement _write(void Function(XmlBuilder builder) body) {
@@ -159,5 +156,21 @@ void main() {
       );
       expect(root.findElements('buddy'), isEmpty);
     });
+  });
+
+  test('a person with any leader role is a leader, never a plain buddy '
+      '(#1221)', () {
+    DiveRole role(String id) =>
+        DiveRole(id: id, name: id, createdAt: _epoch, updatedAt: _epoch);
+    final both = BuddyWithRole(
+      buddy: _buddy('b', 'Ben Ortiz'),
+      roles: [role(DiveRole.buddyId), role(DiveRole.diveMasterId)],
+    );
+    final rows = [both, _row(_plain, DiveRole.buddyId)];
+
+    expect(UddfParticipantWriters.leaders(rows), [both]);
+    expect(UddfParticipantWriters.plainBuddies(rows).map((r) => r.buddy), [
+      _plain,
+    ]);
   });
 }

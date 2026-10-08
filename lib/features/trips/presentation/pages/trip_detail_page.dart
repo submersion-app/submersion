@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_section.dart';
-import 'package:submersion/features/pre_dive/presentation/widgets/start_session_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_itinerary_tab.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_overview_tab.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_photo_section.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_card.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_banner.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
+import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 
 class TripDetailPage extends ConsumerStatefulWidget {
   final String tripId;
@@ -75,14 +76,15 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
               ),
               body: const Center(child: CircularProgressIndicator()),
             ),
-      error: (error, stack) => widget.embedded
-          ? Center(child: Text('${context.l10n.common_label_error}: $error'))
+      // The repository logs the failure; the diver gets a plain line.
+      error: (_, _) => widget.embedded
+          ? Center(child: Text(context.l10n.trips_detail_error_loading))
           : Scaffold(
               appBar: AppBar(
                 title: Text(context.l10n.trips_detail_appBar_title),
               ),
               body: Center(
-                child: Text('${context.l10n.common_label_error}: $error'),
+                child: Text(context.l10n.trips_detail_error_loading),
               ),
             ),
     );
@@ -103,24 +105,35 @@ class _TripDetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trip = tripWithStats.trip;
-
-    if (trip.isLiveaboard) {
-      return _buildLiveaboardLayout(context, ref, trip);
-    }
-
-    return _buildStandardLayout(context, ref, trip);
-  }
-
-  /// Standard single-scroll layout for non-liveaboard trips.
-  Widget _buildStandardLayout(BuildContext context, WidgetRef ref, Trip trip) {
-    final body = TripOverviewTab(tripWithStats: tripWithStats);
+    // One layout for every trip type (#2845): the tab row under the "Shared
+    // by" banner, embedded under the master-detail header or in a Scaffold.
+    final body = Column(
+      children: [
+        SharedByBanner(
+          kind: SharedItemKind.trip,
+          itemId: trip.id,
+          ownerId: trip.diverId,
+          isShared: trip.isShared,
+        ),
+        Expanded(
+          child: TripDetailTabs(
+            tripWithStats: tripWithStats,
+            // In the master-detail pane the edit stays in the pane (#2880).
+            onEditPlan: () => openTripEdit(
+              context,
+              trip.id,
+              embedded: embedded,
+              section: TripEditSection.planning,
+            ),
+          ),
+        ),
+      ],
+    );
 
     if (embedded) {
       return Column(
         children: [
           _buildEmbeddedHeader(context, ref, trip),
-          TripServiceAlertBanner(trip: trip),
-          TripScrubberMarginCard(trip: trip),
           Expanded(child: body),
         ],
       );
@@ -131,99 +144,11 @@ class _TripDetailContent extends ConsumerWidget {
         title: Text(trip.name),
         actions: _buildAppBarActions(context, ref, trip),
       ),
-      body: Column(
-        children: [
-          TripServiceAlertBanner(trip: trip),
-          TripScrubberMarginCard(trip: trip),
-          Expanded(child: body),
-        ],
-      ),
+      body: body,
     );
   }
 
-  /// Tabbed layout for liveaboard trips with 5 tabs:
-  /// Overview, Itinerary, Photos, Dives, Checklist.
-  Widget _buildLiveaboardLayout(
-    BuildContext context,
-    WidgetRef ref,
-    Trip trip,
-  ) {
-    final tabbedBody = DefaultTabController(
-      length: 5,
-      child: Column(
-        children: [
-          Material(
-            color: Theme.of(context).colorScheme.surface,
-            child: TabBar(
-              tabs: [
-                Tab(text: context.l10n.trips_detail_tab_overview),
-                Tab(text: context.l10n.trips_detail_tab_itinerary),
-                Tab(text: context.l10n.trips_detail_tab_photos),
-                Tab(text: context.l10n.trips_detail_tab_dives),
-                Tab(text: context.l10n.trips_detail_tab_checklist),
-              ],
-            ),
-          ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                TripOverviewTab(tripWithStats: tripWithStats),
-                TripItineraryTab(tripId: trip.id),
-                _buildPhotosTab(context, ref, trip),
-                _buildDivesTab(context, ref, trip),
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: OutlinedButton.icon(
-                          icon: const Icon(Icons.fact_check),
-                          label: Text(context.l10n.trips_detail_preDive_action),
-                          onPressed: () =>
-                              showStartSessionSheet(context, tripId: trip.id),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TripChecklistSection(trip: tripWithStats.trip),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (embedded) {
-      return Column(
-        children: [
-          _buildEmbeddedHeader(context, ref, trip),
-          TripServiceAlertBanner(trip: trip),
-          TripScrubberMarginCard(trip: trip),
-          Expanded(child: tabbedBody),
-        ],
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(trip.name),
-        actions: _buildAppBarActions(context, ref, trip),
-      ),
-      body: Column(
-        children: [
-          TripServiceAlertBanner(trip: trip),
-          TripScrubberMarginCard(trip: trip),
-          Expanded(child: tabbedBody),
-        ],
-      ),
-    );
-  }
-
-  /// Shared AppBar actions for both standard and liveaboard layouts.
+  /// The page's AppBar actions.
   List<Widget> _buildAppBarActions(
     BuildContext context,
     WidgetRef ref,
@@ -243,126 +168,10 @@ class _TripDetailContent extends ConsumerWidget {
       IconButton(
         icon: const Icon(Icons.edit),
         tooltip: context.l10n.trips_detail_tooltip_edit,
-        onPressed: () => context.push('/trips/${trip.id}/edit'),
+        onPressed: () => openTripEdit(context, trip.id, embedded: false),
       ),
       _buildMoreMenu(context, ref, trip),
     ];
-  }
-
-  /// Standalone photos tab for the liveaboard tabbed layout.
-  Widget _buildPhotosTab(BuildContext context, WidgetRef ref, Trip trip) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: TripPhotoSection(tripId: trip.id),
-    );
-  }
-
-  /// Standalone dives tab for the liveaboard tabbed layout.
-  /// Shows all dives (not limited to 5 like the overview).
-  Widget _buildDivesTab(BuildContext context, WidgetRef ref, Trip trip) {
-    final divesAsync = ref.watch(divesForTripProvider(trip.id));
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final theme = Theme.of(context);
-
-    return divesAsync.when(
-      data: (dives) {
-        if (dives.isEmpty) {
-          return Center(child: Text(context.l10n.trips_detail_dives_empty));
-        }
-        final sortedDives = List.of(dives)
-          ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: sortedDives.length,
-          itemBuilder: (context, index) {
-            final dive = sortedDives[index];
-            return InkWell(
-              onTap: () => context.push('/dives/${dive.id}'),
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '#${dive.diveNumber ?? '-'}',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            dive.site?.name ??
-                                context.l10n.trips_detail_dives_unknownSite,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            units.formatMonthDay(dive.dateTime),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (dive.maxDepth != null)
-                          Text(
-                            units.formatDepth(dive.maxDepth),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        // Runtime with a bottom-time fallback, matching the
-                        // trip totals so these rows add up to the figure the
-                        // Overview tab reports (issue #889).
-                        if ((dive.runtime ?? dive.bottomTime) != null)
-                          Text(
-                            '${(dive.runtime ?? dive.bottomTime)!.inMinutes}min',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.chevron_right,
-                      color: theme.colorScheme.onSurfaceVariant,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator.adaptive()),
-      error: (e, _) =>
-          Center(child: Text(context.l10n.trips_detail_dives_errorLoading)),
-    );
   }
 
   Widget _buildEmbeddedHeader(BuildContext context, WidgetRef ref, Trip trip) {
@@ -424,11 +233,7 @@ class _TripDetailContent extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.edit_outlined, size: 20),
             visualDensity: VisualDensity.compact,
-            onPressed: () {
-              final state = GoRouterState.of(context);
-              final currentPath = state.uri.path;
-              context.go('$currentPath?selected=${trip.id}&mode=edit');
-            },
+            onPressed: () => openTripEdit(context, trip.id, embedded: true),
             tooltip: context.l10n.trips_detail_tooltip_editShort,
           ),
           _buildMoreMenu(context, ref, trip),
@@ -444,15 +249,38 @@ class _TripDetailContent extends ConsumerWidget {
     // Lightroom scan hidden pending Adobe review (lightroomUiEnabled).
     final hasLightroomAccount =
         lightroomUiEnabled && ref.watch(lightroomAccountProvider).value != null;
+    final canDestroy = canDestroySharedItemOnceKnown(
+      ref.watch(validatedCurrentDiverIdProvider),
+      ownerId: trip.diverId,
+    );
+    // A trip this profile already removed offers Unhide (issue #2679).
+    final hidden = watchHiddenHere(
+      ref,
+      SharedItemKind.trip,
+      trip.id,
+      canDestroy: canDestroy != false,
+    );
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
-        if (value == 'delete') {
+        if (value == kOpenInConnectionsAction) {
+          openInConnections(context, NodeRef(ConnectionKind.trip, trip.id));
+        } else if (value == 'delete') {
           final confirmed = await _showDeleteConfirmation(context, ref, trip);
           if (confirmed && context.mounted) {
-            await ref
+            final deleted = await ref
                 .read(tripListNotifierProvider.notifier)
                 .deleteTrip(trip.id);
+            if (!deleted) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(context.l10n.sharedItems_notOwner_trip),
+                  ),
+                );
+              }
+              return;
+            }
             if (context.mounted) {
               if (embedded) {
                 onDeleted?.call();
@@ -466,6 +294,16 @@ class _TripDetailContent extends ConsumerWidget {
               );
             }
           }
+        } else if (value == 'remove') {
+          await _removeFromProfile(context, ref, trip);
+        } else if (value == 'unhide') {
+          // A failed unhide says so (issue #2677).
+          await runHideChange(
+            ScaffoldMessenger.of(context),
+            context.l10n,
+            () =>
+                ref.read(tripListNotifierProvider.notifier).unhideTrip(trip.id),
+          );
         } else if (value == 'export') {
           _showExportOptions(context, ref);
         } else if (value == 'scan-dives') {
@@ -477,6 +315,7 @@ class _TripDetailContent extends ConsumerWidget {
         }
       },
       itemBuilder: (context) => [
+        openInConnectionsMenuItem(context),
         PopupMenuItem(
           value: 'scan-dives',
           child: Row(
@@ -518,19 +357,45 @@ class _TripDetailContent extends ConsumerWidget {
             ],
           ),
         ),
-        PopupMenuItem(
-          value: 'delete',
-          child: Row(
-            children: [
-              Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-              const SizedBox(width: 8),
-              Text(
-                context.l10n.trips_detail_action_delete,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
-            ],
+        // Delete for the owner; another profile only removes the shared
+        // trip from itself (issue #2594); neither while the profile is
+        // unknown (issue #2682).
+        if (canDestroy == true)
+          PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                const SizedBox(width: 8),
+                Text(
+                  context.l10n.trips_detail_action_delete,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ),
+          )
+        else if (hidden)
+          PopupMenuItem(
+            value: 'unhide',
+            child: Row(
+              children: [
+                const Icon(Icons.visibility_outlined),
+                const SizedBox(width: 8),
+                Flexible(child: Text(context.l10n.sharedItems_unhideAction)),
+              ],
+            ),
+          )
+        else if (canDestroy == false)
+          PopupMenuItem(
+            value: 'remove',
+            child: Row(
+              children: [
+                const Icon(Icons.visibility_off_outlined),
+                const SizedBox(width: 8),
+                Flexible(child: Text(context.l10n.sharedItems_removeAction)),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
@@ -541,9 +406,13 @@ class _TripDetailContent extends ConsumerWidget {
     Trip trip,
   ) async {
     final divers = await ref.read(allDiversProvider.future);
-    if (!context.mounted) return false;
     final diverCount = divers.length;
     final isSharedDelete = trip.isShared && diverCount >= 2;
+    // The other profiles' dives that lose the trip (issue #2594).
+    final others = isSharedDelete
+        ? (await readDiveLinkCounts(ref, SharedItemKind.trip, trip.id)).others
+        : 0;
+    if (!context.mounted) return false;
 
     return await showDialog<bool>(
           context: context,
@@ -555,7 +424,14 @@ class _TripDetailContent extends ConsumerWidget {
             ),
             content: Text(
               isSharedDelete
-                  ? ctx.l10n.trips_deleteShared_body(trip.name)
+                  ? [
+                      ctx.l10n.trips_deleteShared_body(trip.name),
+                      ?otherProfilesDivesLine(
+                        ctx.l10n,
+                        SharedItemKind.trip,
+                        others,
+                      ),
+                    ].join('\n\n')
                   : ctx.l10n.trips_detail_dialog_deleteContent(trip.name),
             ),
             actions: [
@@ -574,6 +450,27 @@ class _TripDetailContent extends ConsumerWidget {
           ),
         ) ??
         false;
+  }
+
+  /// Hides another profile's shared trip from the active profile only
+  /// (issue #2594), with Undo.
+  Future<void> _removeFromProfile(
+    BuildContext context,
+    WidgetRef ref,
+    Trip trip,
+  ) {
+    final notifier = ref.read(tripListNotifierProvider.notifier);
+    return removeSharedItemFromProfile(
+      context,
+      ref,
+      kind: SharedItemKind.trip,
+      id: trip.id,
+      name: trip.name,
+      ownerId: trip.diverId,
+      hide: () => notifier.hideTrip(trip.id),
+      unhide: () => notifier.unhideTrip(trip.id),
+      onRemoved: () => embedded ? onDeleted?.call() : context.pop(),
+    );
   }
 
   void _showExportOptions(BuildContext context, WidgetRef ref) {

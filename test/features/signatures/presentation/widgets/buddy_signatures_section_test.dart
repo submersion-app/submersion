@@ -57,7 +57,7 @@ void main() {
         overrides: [
           buddiesForDiveProvider.overrideWith(
             (ref, id) async => [
-              BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy()),
+              BuddyWithRole(buddy: buddy, roles: [DiveRole.builtInBuddy()]),
             ],
           ),
           buddySignaturesForDiveProvider.overrideWith(
@@ -92,7 +92,7 @@ void main() {
         overrides: [
           buddiesForDiveProvider.overrideWith(
             (ref, id) async => [
-              BuddyWithRole(buddy: buddy, role: DiveRole.builtInBuddy()),
+              BuddyWithRole(buddy: buddy, roles: [DiveRole.builtInBuddy()]),
             ],
           ),
           buddySignaturesForDiveProvider.overrideWith((ref, id) async => []),

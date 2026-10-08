@@ -2,8 +2,11 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_handoff_card.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/features/universal_import/presentation/widgets/suunto_json_handoff_card.dart';
 
 /// Step 0: File selection with drag-and-drop area and file picker button.
 class FileSelectionStep extends ConsumerWidget {
@@ -27,6 +30,23 @@ class FileSelectionStep extends ConsumerWidget {
     // import dialog stays clean for everyone who doesn't own one.
     final hasGarminDevice =
         ref.watch(garminDevicesProvider).valueOrNull?.isNotEmpty ?? false;
+
+    // A hand-off format never advances to Confirm Source: a Seacraft ENC
+    // file is a route, not a dive log, and a Suunto JSON export belongs to
+    // the Suunto importer (#1445). This step shows that flow's card instead.
+    final format = state.detectionResult?.format;
+    final handoffBytes = format != null && format.isHandoff
+        ? state.fileBytes
+        : null;
+    if (handoffBytes != null) {
+      final fileName = state.fileName ?? '';
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: format == ImportFormat.suuntoJson
+            ? SuuntoJsonHandoffCard(bytes: handoffBytes, fileName: fileName)
+            : NavTrackHandoffCard(bytes: handoffBytes, fileName: fileName),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(24),

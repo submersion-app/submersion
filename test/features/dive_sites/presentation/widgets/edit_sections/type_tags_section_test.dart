@@ -171,6 +171,50 @@ void main() {
     expect(reported?.map((t) => t.id), ['avoid', 'try']);
     expect(find.byType(CheckboxListTile), findsNothing, reason: 'sheet closed');
   });
+
+  testWidgets('hidden built-in types leave the chips', (tester) async {
+    await tester.pumpWidget(
+      harness(
+        TypeTagsSection(
+          allTypes: types,
+          selectedTypeIds: const {},
+          onTypesChanged: (_) {},
+          selectedTags: const [],
+          onTagsChanged: (_) {},
+          hiddenTypeIds: const {'lake'},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(FilterChip, 'Lake'), findsNothing);
+    expect(find.widgetWithText(FilterChip, 'Mine'), findsOneWidget);
+  });
+
+  testWidgets('a hidden type the site had stays after it is unticked', (
+    tester,
+  ) async {
+    var selected = <String>{'lake'};
+    await tester.pumpWidget(
+      harness(
+        StatefulBuilder(
+          builder: (context, setState) => TypeTagsSection(
+            allTypes: types,
+            selectedTypeIds: selected,
+            onTypesChanged: (ids) => setState(() => selected = ids),
+            selectedTags: const [],
+            onTagsChanged: (_) {},
+            hiddenTypeIds: const {'lake'},
+            keepTypeIds: const {'lake'},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Lake'));
+    await tester.pumpAndSettle();
+    expect(selected, isEmpty);
+    expect(find.widgetWithText(FilterChip, 'Lake'), findsOneWidget);
+  });
 }
 
 class _EmptyTagList extends StateNotifier<AsyncValue<List<Tag>>>

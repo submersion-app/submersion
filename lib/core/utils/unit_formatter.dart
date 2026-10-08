@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart'
     as coords;
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/core/utils/per_minute.dart' as rate;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -26,8 +27,57 @@ class UnitFormatter {
     return '${formatFixedForDisplay(converted, decimals)}${settings.depthUnit.symbol}';
   }
 
+  /// Format a LIMIT depth (MOD, MND) rounded down in the display unit.
+  ///
+  /// [formatDepth] rounds to nearest, which shows EAN32's 33.75 m MOD as
+  /// 33.8 m, or 34 m at 0 decimals: deeper than the gas may be taken. A limit
+  /// has to err on the safe side, so it is floored after the unit conversion.
+  String formatDepthFloor(double? value, {int decimals = 1}) {
+    if (value == null) return '--';
+    final converted = DepthUnit.meters.convert(value, settings.depthUnit);
+    final floored = floorToFractionDigits(converted, decimals);
+    return '${formatFixedForDisplay(floored, decimals)}${settings.depthUnit.symbol}';
+  }
+
+  /// Format a MINIMUM depth (a hypoxic mix's shallowest depth) rounded UP in
+  /// the display unit, the safe side for a floor rather than a ceiling.
+  String formatDepthCeil(double? value, {int decimals = 1}) {
+    if (value == null) return '--';
+    final converted = DepthUnit.meters.convert(value, settings.depthUnit);
+    final ceiled = -floorToFractionDigits(-converted, decimals);
+    // -0.0 would render as "-0.0".
+    final shown = ceiled == 0 ? 0.0 : ceiled;
+    return '${formatFixedForDisplay(shown, decimals)}${settings.depthUnit.symbol}';
+  }
+
   /// Get depth unit symbol
   String get depthSymbol => settings.depthUnit.symbol;
+
+  // ============================================================================
+  // Rates
+  // ============================================================================
+
+  /// The one place a per-minute rate unit is built: "m/min", "psi/min".
+  ///
+  /// The minute part is an untranslated SI-style symbol, like the base
+  /// symbols from the unit enums, so it reads "/min" in every locale. Call
+  /// sites use [depthRateSymbol], [sacSymbol] or [rmvSymbol] rather than
+  /// interpolating "/min" themselves (issue #1932).
+  static String perMinute(String unitSymbol) => rate.perMinute(unitSymbol);
+
+  /// Ascent/descent rate unit: "m/min" or "ft/min".
+  String get depthRateSymbol => perMinute(depthSymbol);
+
+  /// Format a vertical rate given in m/min, in the same style as
+  /// [formatDepth]: "9.0m/min" or "29.5ft/min".
+  String formatDepthRate(double? metersPerMin, {int decimals = 1}) {
+    if (metersPerMin == null) return '--';
+    final converted = DepthUnit.meters.convert(
+      metersPerMin,
+      settings.depthUnit,
+    );
+    return '${formatFixedForDisplay(converted, decimals)}$depthRateSymbol';
+  }
 
   // ============================================================================
   // Coordinates
@@ -75,13 +125,12 @@ class UnitFormatter {
   /// Format a geographic distance (meters) for site lists and pickers.
   ///
   /// Unlike [formatDistance] (depth-unit m/ft, for short surface drift), this
-  /// auto-scales across the full range of site distances and respects the
-  /// diver's metric/imperial preference (derived from depth unit): metric -> m
-  /// under 1 km else km; imperial -> ft under 1 mile else mi. Unit symbols are
-  /// latin (m/km/ft/mi), consistent with [formatDepth].
+  /// auto-scales across the full range of site distances in the diver's
+  /// distance unit (issue #2030): kilometres -> m under 1 km else km; miles ->
+  /// ft under 1 mile else mi. Unit symbols are latin (m/km/ft/mi),
+  /// consistent with [formatDepth].
   String formatGeoDistance(double meters) {
-    final isMetric = settings.depthUnit == DepthUnit.meters;
-    if (isMetric) {
+    if (settings.distanceUnit == DistanceUnit.kilometers) {
       if (meters < 1000) return '${meters.round()} m';
       final km = meters / 1000;
       final text = km < 10
@@ -89,10 +138,14 @@ class UnitFormatter {
           : km.round().toString();
       return '$text km';
     }
-    final feet = meters * 3.28084;
-    const feetPerMile = 5280.0;
-    if (feet < feetPerMile) return '${feet.round()} ft';
-    final miles = feet / feetPerMile;
+    final miles = DistanceUnit.kilometers.convert(
+      meters / 1000,
+      DistanceUnit.miles,
+    );
+    if (miles < 1) {
+      final feet = DepthUnit.meters.convert(meters, DepthUnit.feet);
+      return '${feet.round()} ft';
+    }
     final text = miles < 10
         ? formatFixedForDisplay(miles, 1)
         : miles.round().toString();
@@ -117,6 +170,21 @@ class UnitFormatter {
     );
     final text = localiseDecimalText(
       _trimTrailingZeros(converted.toStringAsFixed(decimals)),
+    );
+    return '$text°${settings.temperatureUnit.symbol}';
+  }
+
+  /// A temperature DIFFERENCE in the diver's unit, from a Celsius delta.
+  ///
+  /// Not [formatTemperature]: a difference scales by 9/5 without the 32-degree
+  /// offset a reading's conversion adds, so 2 C warmer is 3.6 F warmer, never
+  /// 35.6 F. Unsigned; the caller adds the sign it needs.
+  String formatTemperatureDelta(double celsiusDelta, {int decimals = 1}) {
+    final scaled = settings.temperatureUnit == TemperatureUnit.fahrenheit
+        ? celsiusDelta * 9 / 5
+        : celsiusDelta;
+    final text = localiseDecimalText(
+      _trimTrailingZeros(scaled.toStringAsFixed(decimals)),
     );
     return '$text°${settings.temperatureUnit.symbol}';
   }
@@ -287,10 +355,10 @@ class UnitFormatter {
   // ============================================================================
 
   /// SAC display suffix: "bar/min" or "psi/min".
-  String get sacSymbol => '$pressureSymbol/min';
+  String get sacSymbol => perMinute(pressureSymbol);
 
   /// RMV display suffix: "L/min" or "cuft/min".
-  String get rmvSymbol => '$volumeSymbol/min';
+  String get rmvSymbol => perMinute(volumeSymbol);
 
   /// Convert a SAC in bar/min (from [Dive.sac]) to the pressure unit.
   double convertSac(double barPerMin) => convertPressure(barPerMin);
@@ -350,7 +418,7 @@ class UnitFormatter {
 
   /// Whether body height should be shown in metric (cm) rather than imperial
   /// (feet/inches). There is no dedicated height unit, so this is derived from
-  /// the depth unit, consistent with [formatGeoDistance].
+  /// the depth unit, like [formatDistance].
   bool get heightIsMetric => settings.depthUnit == DepthUnit.meters;
 
   /// Format a stored height (centimeters) in the diver's preferred units:
@@ -514,6 +582,11 @@ class UnitFormatter {
     if (dateTime == null) return '--';
     return DateFormat(settings.timeFormat.pattern).format(dateTime);
   }
+
+  /// A time of day given as minutes after midnight (a dive center's fill
+  /// hours), in the diver's 12 or 24 hour format.
+  String formatMinutesOfDay(int minutes) =>
+      formatTime(DateTime(2000, 1, 1, minutes ~/ 60, minutes % 60));
 
   /// Format time to the second, still honouring the 12h/24h preference.
   /// Example: "2:30:07 PM" or "14:30:07"

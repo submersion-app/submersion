@@ -322,22 +322,26 @@ end
 # them together at the end, so a renamed lane or a lane that never reaches the
 # upload has to be reported as a failure, not raised as a NoMethodError that
 # aborts the run and takes every earlier failure's message with it.
-def run_upload_beta_lane
+def run_upload_internal_lane
   $upload_params = nil
-  lane_body = LANES[:upload_beta]
+  lane_body = LANES[:upload_internal]
   unless lane_body
-    check(false, 'the android Fastfile no longer defines an upload_beta lane to check')
+    check(false, 'the android Fastfile no longer defines an upload_internal lane to check')
     return nil
   end
 
   lane_body.call
-  check(!$upload_params.nil?, 'the upload_beta lane never called upload_to_play_store')
+  check(!$upload_params.nil?, 'the upload_internal lane never called upload_to_play_store')
   $upload_params
 end
 
 $stub_changelog_root = '/somewhere/else/metadata/android'
-params = run_upload_beta_lane
+params = run_upload_internal_lane
 if params
+  # Every beta goes to internal testing, which Play publishes without a review
+  # wait; open testing gets a copy only when the cooldown allows (#2887).
+  check(params[:track] == 'internal', "the beta was uploaded to #{params[:track].inspect}, not internal testing")
+  check(params[:release_status] == 'completed', 'the internal beta was not released to internal testers')
   check(params[:metadata_path] == $stub_changelog_root,
         "the lane pointed supply at #{params[:metadata_path].inspect} " \
         "instead of #{$stub_changelog_root.inspect}, where the notes were written")
@@ -348,7 +352,7 @@ end
 # With nothing written, the upload must still name a metadata path (nil is not a
 # value supply accepts) while leaving the notes already on Play untouched.
 $stub_changelog_root = nil
-params = run_upload_beta_lane
+params = run_upload_internal_lane
 if params
   check(params[:skip_upload_changelogs] == true,
         'the lane uploaded changelogs when there were no notes to upload')
@@ -390,13 +394,13 @@ with_env('PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => 'production') do
         'mirroring was allowed to target production, which would ship every beta')
 end
 
-# The upload lane must never promote. beta.yml retries upload_beta on failure,
+# The upload lane must never promote. beta.yml retries upload_internal on failure,
 # and Play accepts a version code only once, so a lane that uploaded and then
 # failed while mirroring would be retried into a duplicate-upload failure.
-params = run_upload_beta_lane
+params = run_upload_internal_lane
 if params
   check(params[:track_promote_to].nil?,
-        'upload_beta promotes as well as uploading, so a retry would re-upload the AAB')
+        'upload_internal promotes as well as uploading, so a retry would re-upload the AAB')
 end
 
 $mirror_params = nil
@@ -448,6 +452,103 @@ with_env('PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => nil, 'PLAY_VERSIO
   params = run_mirror_lane
   check(params.is_a?(ArgumentError) || params == :missing,
         'the mirror lane accepted a non-numeric version code')
+end
+
+# --- Promoting the internal beta to open testing ----------------------------
+# Open testing gets a copy of the internal release, not a second upload: Play
+# takes each version code once. beta.yml runs this only when
+# play_beta_cooldown.py says a review has had time to finish (#2887).
+
+def run_promote_beta_lane(options = {})
+  $mirror_params = nil
+  lane_body = LANES[:promote_beta]
+  unless lane_body
+    check(false, 'the android Fastfile no longer defines a promote_beta lane to check')
+    return :missing
+  end
+  lane_body.call(options)
+  $mirror_params
+rescue ArgumentError => e
+  e
+end
+
+with_env('PLAY_BETA_TRACK' => nil, 'PLAY_VERSION_CODE' => '8375') do
+  params = run_promote_beta_lane
+  if params.is_a?(Hash)
+    check(params[:track] == 'internal', "open testing was copied from #{params[:track].inspect}, not internal")
+    check(params[:track_promote_to] == 'beta', "the promotion went to #{params[:track_promote_to].inspect}")
+    check(params[:version_code] == '8375', "the promotion selected build #{params[:version_code].inspect}")
+    check(params[:track_promote_release_status] == 'completed',
+          'the promoted release was not made available to open testers')
+    check(params[:skip_upload_aab] == true, 'the promotion tried to upload the AAB a second time')
+    check(params[:rollout].nil?, 'the promotion passed a rollout, which would stage the open release')
+  elsif params != :missing
+    check(false, "the promote_beta lane did not call the Play action (got #{params.inspect})")
+  end
+end
+
+with_env('PLAY_BETA_TRACK' => 'alpha', 'PLAY_VERSION_CODE' => '8375') do
+  params = run_promote_beta_lane
+  if params.is_a?(Hash)
+    check(params[:track_promote_to] == 'alpha',
+          "with PLAY_BETA_TRACK=alpha the promotion went to #{params[:track_promote_to].inspect}")
+  end
+end
+
+with_env('PLAY_BETA_TRACK' => nil, 'PLAY_VERSION_CODE' => nil) do
+  params = run_promote_beta_lane
+  check(params.is_a?(ArgumentError) || params == :missing,
+        'the promote_beta lane ran without knowing which build to copy')
+end
+
+with_env('PLAY_BETA_TRACK' => nil, 'PLAY_VERSION_CODE' => '8375; rm -rf') do
+  params = run_promote_beta_lane
+  check(params.is_a?(ArgumentError) || params == :missing,
+        'the promote_beta lane accepted a non-numeric version code')
+end
+
+# --- Promoting a beta to production ------------------------------------------
+# With open testing on a cooldown, the build chosen for production may be on
+# open testing (it soaked there) or only on internal testing (the newest
+# build). promote_to_production takes it from whichever holds it, preferring
+# open testing.
+
+$track_codes = {}
+def google_play_track_version_codes(track:)
+  $track_codes.fetch(track, [])
+end
+
+def run_production_lane(version_code)
+  $mirror_params = nil
+  lane_body = LANES[:promote_to_production]
+  unless lane_body
+    check(false, 'the android Fastfile no longer defines a promote_to_production lane to check')
+    return :missing
+  end
+  lane_body.call(version_code: version_code)
+  $mirror_params
+rescue ArgumentError => e
+  e
+end
+
+with_env('PLAY_BETA_TRACK' => nil) do
+  $track_codes = { 'beta' => [8375], 'internal' => [8375] }
+  params = run_production_lane('8375')
+  if params.is_a?(Hash)
+    check(params[:track] == 'beta', "a build on open testing was promoted from #{params[:track].inspect}")
+    check(params[:track_promote_to] == 'production', 'the production lane did not target production')
+  end
+
+  $track_codes = { 'beta' => [8300], 'internal' => [8375] }
+  params = run_production_lane('8375')
+  if params.is_a?(Hash)
+    check(params[:track] == 'internal', "a build only on internal was promoted from #{params[:track].inspect}")
+  end
+
+  $track_codes = { 'beta' => [8300], 'internal' => [8310] }
+  params = run_production_lane('8375')
+  check(params.is_a?(ArgumentError) || params == :missing,
+        'the production lane promoted a build that is on no testing track')
 end
 
 # --- Report -----------------------------------------------------------------

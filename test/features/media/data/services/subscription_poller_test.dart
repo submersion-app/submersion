@@ -1,4 +1,4 @@
-// Adapted from plan `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md`
+// Adapted from plan `docs/design/plans/2026-04-28-media-source-extension-phase3b.md`
 // Task 11. The plan's outlined test sketch points at six scenarios; each is
 // implemented end-to-end here against a real in-memory `AppDatabase`, real
 // `MediaRepository` / `ManifestSubscriptionRepository`, a real

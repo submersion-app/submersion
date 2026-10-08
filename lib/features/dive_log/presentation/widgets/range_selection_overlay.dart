@@ -58,19 +58,31 @@ class RangeSelectionOverlay extends StatefulWidget {
 }
 
 class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
-  /// Which handle is currently being dragged
-  _DragTarget? _activeDrag;
+  /// Whether the dragged handle is currently the start of the range; null
+  /// while no handle is dragged. It flips when the dragged handle passes the
+  /// other one, so the highlight stays on the handle under the finger.
+  bool? _draggingStart;
+
+  /// Whether the drag belongs to the start handle's slot (the one the finger
+  /// went down on); null while no handle is dragged. Unlike [_draggingStart]
+  /// it never flips, because the gesture stays with the slot it started on.
+  bool? _ownerIsStart;
 
   /// The dragged handle's position in seconds, accumulated across the drag.
   /// Held here (not recomputed from the widget) so a drag stays smooth when
   /// the caller clamps or rounds the value it is handed back.
   double _dragSeconds = 0;
 
+  /// The handle that is not being dragged, in seconds. It stays put for the
+  /// whole drag, so the dragged handle can pass it and the two swap roles
+  /// (issue #1584).
+  int _anchorSeconds = 0;
+
   @override
   void dispose() {
     // Leaving range mode mid-drag takes the handle away without a drag-end,
     // so release the caller's hold here or the chart would stay unpannable.
-    if (_activeDrag != null) widget.onDragActiveChanged?.call(false);
+    if (_draggingStart != null) widget.onDragActiveChanged?.call(false);
     super.dispose();
   }
 
@@ -106,6 +118,7 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
             // axis labels stay legible.
             if (startX > axis.plotLeft)
               Positioned(
+                key: const ValueKey('rangeSelection.leadingShadeSlot'),
                 left: axis.plotLeft,
                 width: startX - axis.plotLeft,
                 top: plotTop,
@@ -117,6 +130,7 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
               ),
             if (endX < axis.plotRight)
               Positioned(
+                key: const ValueKey('rangeSelection.trailingShadeSlot'),
                 left: endX,
                 width: axis.plotRight - endX,
                 top: plotTop,
@@ -129,6 +143,7 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
             // Selected area highlight border
             if (endX > startX)
               Positioned(
+                key: const ValueKey('rangeSelection.highlightSlot'),
                 left: startX,
                 width: endX - startX,
                 top: plotTop,
@@ -148,7 +163,18 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
             // Handles are drawn only where they have an honest position: one
             // scrolled out of the visible window is left undrawn rather than
             // pinned to an edge that would misreport its time.
-            if (axis.isVisible(widget.startSeconds))
+            //
+            // Every child of this Stack is keyed. The shades and highlight
+            // come and go as the handles move, and unkeyed siblings are
+            // matched by position, so a shade vanishing mid-drag would hand
+            // the dragged handle's element to another child and drop the
+            // drag.
+            //
+            // The slot that owns a drag stays mounted, though hidden, while
+            // the drag takes its handle out of the window: unmounting it
+            // would drop the drag without a drag-end and leave the chart
+            // unpannable.
+            if (axis.isVisible(widget.startSeconds) || _ownerIsStart == true)
               _buildHandle(
                 context,
                 axis: axis,
@@ -156,9 +182,10 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
                 plotTop: plotTop,
                 plotHeight: plotHeight,
                 isStart: true,
+                hidden: !axis.isVisible(widget.startSeconds),
                 colorScheme: colorScheme,
               ),
-            if (axis.isVisible(widget.endSeconds))
+            if (axis.isVisible(widget.endSeconds) || _ownerIsStart == false)
               _buildHandle(
                 context,
                 axis: axis,
@@ -166,6 +193,7 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
                 plotTop: plotTop,
                 plotHeight: plotHeight,
                 isStart: false,
+                hidden: !axis.isVisible(widget.endSeconds),
                 colorScheme: colorScheme,
               ),
           ],
@@ -181,94 +209,108 @@ class _RangeSelectionOverlayState extends State<RangeSelectionOverlay> {
     required double plotTop,
     required double plotHeight,
     required bool isStart,
+    required bool hidden,
     required ColorScheme colorScheme,
   }) {
-    final target = isStart ? _DragTarget.start : _DragTarget.end;
-    final isActive = _activeDrag == target;
+    final isActive = _draggingStart == isStart;
 
     return Positioned(
+      key: ValueKey(
+        isStart ? 'rangeSelection.startSlot' : 'rangeSelection.endSlot',
+      ),
       left: position - 16, // Center the handle on the position
       top: plotTop,
       height: plotHeight,
       width: 32,
-      child: Semantics(
-        key: isStart
-            ? RangeSelectionOverlay.startHandleKey
-            : RangeSelectionOverlay.endHandleKey,
-        label: context.l10n.diveLog_rangeSelection_semantics_adjust,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onHorizontalDragStart: (_) => _startDrag(target, isStart),
-          onHorizontalDragUpdate: (details) =>
-              _updateDrag(details.delta.dx, isStart, axis),
-          onHorizontalDragEnd: (_) => _endDrag(),
-          onHorizontalDragCancel: _endDrag,
-          child: Column(
-            children: [
-              // Top grip circle
-              _HandleGrip(isActive: isActive, color: colorScheme.primary),
-              // Vertical line
-              Expanded(
-                child: Container(
-                  width: 2,
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? colorScheme.primary
-                        : colorScheme.primary.withValues(alpha: 0.7),
-                    boxShadow: isActive
-                        ? [
-                            BoxShadow(
-                              color: colorScheme.primary.withValues(alpha: 0.4),
-                              blurRadius: 4,
-                              spreadRadius: 1,
-                            ),
-                          ]
-                        : null,
+      child: Offstage(
+        offstage: hidden,
+        child: Semantics(
+          key: isStart
+              ? RangeSelectionOverlay.startHandleKey
+              : RangeSelectionOverlay.endHandleKey,
+          label: context.l10n.diveLog_rangeSelection_semantics_adjust,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onHorizontalDragStart: (_) => _startDrag(isStart),
+            onHorizontalDragUpdate: (details) =>
+                _updateDrag(details.delta.dx, axis),
+            onHorizontalDragEnd: (_) => _endDrag(),
+            onHorizontalDragCancel: _endDrag,
+            child: Column(
+              children: [
+                // Top grip circle
+                _HandleGrip(isActive: isActive, color: colorScheme.primary),
+                // Vertical line
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? colorScheme.primary
+                          : colorScheme.primary.withValues(alpha: 0.7),
+                      boxShadow: isActive
+                          ? [
+                              BoxShadow(
+                                color: colorScheme.primary.withValues(
+                                  alpha: 0.4,
+                                ),
+                                blurRadius: 4,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : null,
+                    ),
                   ),
                 ),
-              ),
-              // Bottom grip circle
-              _HandleGrip(isActive: isActive, color: colorScheme.primary),
-            ],
+                // Bottom grip circle
+                _HandleGrip(isActive: isActive, color: colorScheme.primary),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  void _startDrag(_DragTarget target, bool isStart) {
+  void _startDrag(bool isStart) {
     setState(() {
-      _activeDrag = target;
+      _draggingStart = isStart;
+      _ownerIsStart = isStart;
       _dragSeconds = (isStart ? widget.startSeconds : widget.endSeconds)
           .toDouble();
+      _anchorSeconds = isStart ? widget.endSeconds : widget.startSeconds;
     });
     widget.onDragActiveChanged?.call(true);
   }
 
-  void _updateDrag(double deltaX, bool isStart, RangePlotAxis axis) {
+  void _updateDrag(double deltaX, RangePlotAxis axis) {
     // Pixels convert through the visible window, so a drag covers less time
-    // the further the chart is zoomed in.
-    final lower = isStart
-        ? 0.0
-        : math.min(widget.startSeconds + 1, widget.maxSeconds).toDouble();
-    final upper = isStart
-        ? math.max(widget.endSeconds - 1, 0).toDouble()
-        : widget.maxSeconds.toDouble();
-    if (upper < lower) return;
-
+    // the further the chart is zoomed in. Only the dive bounds stop the
+    // handle; the other handle does not, so a drag can carry on past it.
     _dragSeconds = (_dragSeconds + deltaX * axis.secondsPerPixel).clamp(
-      lower,
-      upper,
+      0.0,
+      math.max(widget.maxSeconds, 0).toDouble(),
     );
     final seconds = _dragSeconds.round();
+    // Sitting exactly on the other handle would be an empty range; hold the
+    // last one until the drag moves off it.
+    if (seconds == _anchorSeconds) return;
+
+    final draggingStart = seconds < _anchorSeconds;
+    if (draggingStart != _draggingStart) {
+      setState(() => _draggingStart = draggingStart);
+    }
     widget.onRangeChanged(
-      isStart ? seconds : widget.startSeconds,
-      isStart ? widget.endSeconds : seconds,
+      math.min(seconds, _anchorSeconds),
+      math.max(seconds, _anchorSeconds),
     );
   }
 
   void _endDrag() {
-    setState(() => _activeDrag = null);
+    setState(() {
+      _draggingStart = null;
+      _ownerIsStart = null;
+    });
     widget.onDragActiveChanged?.call(false);
   }
 }
@@ -300,9 +342,6 @@ class _HandleGrip extends StatelessWidget {
     );
   }
 }
-
-/// Which handle is being dragged
-enum _DragTarget { start, end }
 
 /// Button to toggle range selection mode.
 ///

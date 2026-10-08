@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:submersion/features/ocr_import/domain/models/ocr_result.dart';
 
 /// Fixture geometry mimics the five real sample pages from the spec
-/// (docs/superpowers/specs/2026-07-06-ocr-logbook-import-design.md,
+/// (docs/design/specs/2026-07-06-ocr-logbook-import-design.md,
 /// "Reference: sample pages").
 OcrTextBlock block(
   String text,

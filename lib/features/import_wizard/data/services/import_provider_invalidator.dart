@@ -1,6 +1,7 @@
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -95,6 +96,11 @@ void invalidateImportRelatedProviders(
         invalidate(mediaForDiveProvider);
         invalidate(mediaCountForDiveProvider);
         invalidate(mediaListNotifierProvider);
+
+      case ImportEntityType.fills:
+        // A passport page may be showing the cylinder the fills landed on.
+        invalidate(fillsForEquipmentProvider);
+        invalidate(newestFillProvider);
     }
   }
 }

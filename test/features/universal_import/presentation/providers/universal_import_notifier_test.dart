@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -1096,6 +1097,22 @@ void main() {
 
     group('loadFileFromBytes', () {
       test(
+        'keeps a Suunto JSON export on file selection for its hand-off card',
+        () async {
+          final bytes = Uint8List.fromList(
+            utf8.encode('{"DeviceLog":{"Header":{"ActivityType":51}}}'),
+          );
+
+          final result = await notifier.loadFileFromBytes(bytes, 'dive.json');
+
+          expect(result.format, ImportFormat.suuntoJson);
+          expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
+          expect(notifier.state.fileBytes, bytes);
+          expect(notifier.state.fileName, 'dive.json');
+        },
+      );
+
+      test(
         'sets state to sourceConfirmation for a recognized UDDF file',
         () async {
           final uddfBytes = Uint8List.fromList(
@@ -1434,12 +1451,11 @@ void main() {
 
     group('UniversalImportNotifier - MacDive SQLite', () {
       test('detects MacDive SQLite format from synthetic DB', () async {
-        final path =
-            '${Directory.systemTemp.path}/mdw_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-        final file = buildSyntheticMacDiveDb(path);
+        final dir = Directory.systemTemp.createTempSync('mdw_');
         addTearDown(() {
-          if (file.existsSync()) file.deleteSync();
+          if (dir.existsSync()) dir.deleteSync(recursive: true);
         });
+        final file = buildSyntheticMacDiveDb(p.join(dir.path, 'mdw.sqlite'));
         final bytes = Uint8List.fromList(await file.readAsBytes());
 
         final detection = await notifier.loadFileFromBytes(
@@ -1455,12 +1471,11 @@ void main() {
       test(
         'MacDiveSqliteParser produces populated payload from synthetic DB',
         () async {
-          final path =
-              '${Directory.systemTemp.path}/mdw2_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-          final file = buildSyntheticMacDiveDb(path);
+          final dir = Directory.systemTemp.createTempSync('mdw2_');
           addTearDown(() {
-            if (file.existsSync()) file.deleteSync();
+            if (dir.existsSync()) dir.deleteSync(recursive: true);
           });
+          final file = buildSyntheticMacDiveDb(p.join(dir.path, 'mdw2.sqlite'));
           final bytes = Uint8List.fromList(await file.readAsBytes());
 
           const parser = MacDiveSqliteParser();

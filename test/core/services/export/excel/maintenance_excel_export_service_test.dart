@@ -137,15 +137,18 @@ void main() {
 
   group('delivery paths', () {
     late MockFilePickerPlatform picker;
+    late FilePickerPlatform originalPicker;
     late Directory tmp;
 
     setUp(() {
       picker = MockFilePickerPlatform();
+      originalPicker = FilePickerPlatform.instance;
       FilePickerPlatform.instance = picker;
       tmp = Directory.systemTemp.createTempSync('maintenance_export');
     });
 
     tearDown(() {
+      FilePickerPlatform.instance = originalPicker;
       if (tmp.existsSync()) tmp.deleteSync(recursive: true);
     });
 

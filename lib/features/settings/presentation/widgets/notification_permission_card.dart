@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 
 /// Whether the notification authorization prompt has already been put to the
 /// platform and come back refused.
@@ -71,23 +72,29 @@ class _NotificationPermissionCardState
   @override
   Widget build(BuildContext context) {
     final refused = ref.watch(notificationPromptRefusedProvider);
+    final l10n = context.l10n;
 
     return ListTile(
       leading: const Icon(Icons.warning, color: Colors.orange),
-      title: Text(context.l10n.settings_notifications_disabled_title),
-      subtitle: Text(
-        refused
-            ? context.l10n.settings_notifications_disabled_subtitle
-            : context.l10n.settings_notifications_disabled_subtitleUnrequested,
+      title: Text(l10n.settings_notifications_disabled_title),
+      subtitle: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            refused
+                ? l10n.settings_notifications_disabled_subtitle
+                : l10n.settings_notifications_disabled_subtitleUnrequested,
+          ),
+          TileSubtitleAction(
+            onPressed: refused ? _openSettings : _request,
+            label: refused
+                ? l10n.settings_notifications_disabled_openSettingsButton
+                : l10n.settings_notifications_disabled_continueButton,
+          ),
+        ],
       ),
-      trailing: TextButton(
-        onPressed: refused ? _openSettings : _request,
-        child: Text(
-          refused
-              ? context.l10n.settings_notifications_disabled_openSettingsButton
-              : context.l10n.settings_notifications_disabled_continueButton,
-        ),
-      ),
+      isThreeLine: true,
     );
   }
 

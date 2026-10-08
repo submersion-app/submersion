@@ -88,6 +88,16 @@
 				<string>com.googleusercontent.apps.433819313354-8sn10bh15pij7hsqbld4tunccrsgi4bf</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>app.submersion.passport</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>submersion</string>
+			</array>
+		</dict>
 	</array>
 	<key>GIDClientID</key>
 	<string>433819313354-8sn10bh15pij7hsqbld4tunccrsgi4bf.apps.googleusercontent.com</string>
@@ -109,6 +119,8 @@
 	<string>NSApplication</string>
 	<key>FLTEnableMergedPlatformUIThread</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Submersion uses the camera to scan cylinder labels.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Submersion uses Bluetooth to connect to dive computers and import dive data.</string>
 	<key>NSLocationUsageDescription</key>

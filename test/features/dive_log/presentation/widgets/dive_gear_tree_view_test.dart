@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -11,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/presentation/providers/assembly_snapshot_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -79,8 +82,13 @@ void main() {
     ComponentsIndex template = ComponentsIndex.empty,
     Set<String> activeParts = const {},
     List<EquipmentSet>? sets,
+    String? selectedItemId,
+    List<Diver> divers = const [],
+    String? ownerReferenceDiverId,
+    String? Function(String equipmentId)? overlapNote,
   }) => ProviderScope(
     overrides: [
+      allDiversProvider.overrideWith((ref) async => divers),
       equipmentArrangementProvider.overrideWithValue(arrangement),
       equipmentSetsProvider.overrideWith((ref) async => sets ?? [winter]),
       settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
@@ -100,11 +108,83 @@ void main() {
             onRemoveSet: onRemoveSet,
             rowTrailing: rowTrailing,
             onUpdateAssembly: onUpdateAssembly,
+            selectedItemId: selectedItemId,
+            ownerReferenceDiverId: ownerReferenceDiverId,
+            overlapNote: overlapNote,
           ),
         ),
       ),
     ),
   );
+
+  // The dive figure names every item itself, so the rows carry no number
+  // (issue #2774).
+  testWidgets('rows never lead with a figure number badge', (tester) async {
+    await tester.pumpWidget(build(arrangement: flat));
+    await tester.pumpAndSettle();
+    expect(find.byType(FigureNumberBadge), findsNothing);
+  });
+
+  testWidgets('the item selected on the figure highlights its row', (
+    tester,
+  ) async {
+    await tester.pumpWidget(build(arrangement: flat, selectedItemId: 'fins'));
+    await tester.pumpAndSettle();
+    ListTile row(String id) =>
+        tester.widget<ListTile>(find.byKey(ValueKey('gear-row-$id')));
+    expect(row('fins').tileColor, isNotNull);
+    expect(row('mask').tileColor, isNull);
+    expect(row('reg').tileColor, isNull);
+  });
+
+  group('owner chip (issue #2046)', () {
+    final t = DateTime(2026);
+    final divers = [
+      Diver(id: 'owner', name: 'Bill', createdAt: t, updatedAt: t),
+      Diver(id: 'wife', name: 'Anna', createdAt: t, updatedAt: t),
+    ];
+    final ownersReg = gearLinksFor(const [
+      EquipmentItem(
+        id: 'reg',
+        diverId: 'owner',
+        name: 'Reg',
+        type: EquipmentType.regulator,
+      ),
+    ], const []);
+
+    testWidgets('gear another profile owns shows its owner', (tester) async {
+      await tester.pumpWidget(
+        build(
+          arrangement: flat,
+          gear: ownersReg,
+          divers: divers,
+          ownerReferenceDiverId: 'wife',
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-owner')),
+        findsOneWidget,
+      );
+      expect(find.text('Bill'), findsOneWidget);
+    });
+
+    testWidgets('the dive diver own gear shows no chip', (tester) async {
+      await tester.pumpWidget(
+        build(
+          arrangement: flat,
+          gear: ownersReg,
+          divers: divers,
+          ownerReferenceDiverId: 'owner',
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-owner')),
+        findsNothing,
+      );
+    });
+  });
 
   testWidgets('set chip above the list, assembly collapsed', (tester) async {
     await tester.pumpWidget(build(arrangement: flat));
@@ -380,5 +460,26 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Palantic Drop-Bottom · ID P1'), findsOneWidget);
     expect(find.text('Palantic Drop-Bottom · ID P2'), findsOneWidget);
+  });
+
+  group('shared gear note (issue #2853)', () {
+    testWidgets('an item also on another profile dive says so', (tester) async {
+      await tester.pumpWidget(
+        build(
+          arrangement: flat,
+          overlapNote: (id) =>
+              id == 'mask' ? "Also on Anna's dive, 10:02" : null,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text("Also on Anna's dive, 10:02"), findsOneWidget);
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
+    });
+
+    testWidgets('no note without the callback', (tester) async {
+      await tester.pumpWidget(build(arrangement: flat));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.info_outline), findsNothing);
+    });
   });
 }

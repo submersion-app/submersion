@@ -16,15 +16,8 @@ void main() {
       expect(roundUpTo(1566, 250), 1750);
     });
 
-    test('roundDownTo rounds toward a shallower limit', () {
-      expect(roundDownTo(35.16, 1), 35);
-      expect(roundDownTo(31.94, 1), 31);
-      expect(roundDownTo(35.0, 1), 35);
-    });
-
     test('rounding a zero or negative value does not blow up', () {
       expect(roundUpTo(0, 10), 0);
-      expect(roundDownTo(0, 1), 0);
     });
   });
 

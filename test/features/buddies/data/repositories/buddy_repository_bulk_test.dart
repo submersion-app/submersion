@@ -28,13 +28,13 @@ void main() {
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
     ),
-    role: DiveRole.builtInBuddy(),
+    roles: [DiveRole.builtInBuddy()],
   );
 
   domain.BuddyWithRole bwrRole(String id, String roleId) =>
       domain.BuddyWithRole(
         buddy: bwr(id).buddy,
-        role: DiveRole.synthetic(roleId),
+        roles: [DiveRole.synthetic(roleId)],
       );
 
   test('bulkAddBuddies links each buddy to each dive', () async {
@@ -122,14 +122,16 @@ void main() {
         [
           domain.BuddyWithRole(
             buddy: bwr('x').buddy,
-            role: DiveRole(
-              id: DiveRole.instructorId,
-              name: 'Instructor',
-              isBuiltIn: true,
-              sortOrder: 2,
-              createdAt: DateTime.fromMillisecondsSinceEpoch(0),
-              updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
-            ),
+            roles: [
+              DiveRole(
+                id: DiveRole.instructorId,
+                name: 'Instructor',
+                isBuiltIn: true,
+                sortOrder: 2,
+                createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+                updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+              ),
+            ],
           ),
         ],
       );
@@ -166,7 +168,7 @@ void main() {
     await repository.bulkAddBuddies(['d2'], [bwrRole('mixed', 'student')]);
 
     final roles = await repository.unanimousBuddyRolesForDives(['d1', 'd2']);
-    expect(roles['same'], 'student');
+    expect(roles['same'], ['student']);
     expect(roles.containsKey('mixed'), isFalse);
     expect(await repository.unanimousBuddyRolesForDives(const []), isEmpty);
   });

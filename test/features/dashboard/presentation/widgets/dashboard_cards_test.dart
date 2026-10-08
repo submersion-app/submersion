@@ -62,7 +62,7 @@ Future<NavSpy> pumpCard(
         '/dives/new',
         '/planning/dive-planner',
         '/insights',
-        '/gps-log',
+        '/tracks',
         '/settings/diver-profile/emergency-card',
       ])
         GoRoute(path: path, builder: (_, _) => stub(path)),
@@ -399,7 +399,7 @@ void main() {
     for (final (label, destination) in const [
       ('Plan Dive', '/planning/dive-planner'),
       ('Insights', '/insights'),
-      ('GPS Logger', '/gps-log'),
+      ('GPS Logger', '/tracks'),
       ('Emergency card', '/settings/diver-profile/emergency-card'),
     ]) {
       testWidgets('$label opens $destination', (tester) async {

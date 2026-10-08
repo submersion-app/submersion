@@ -4,8 +4,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    as domain;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Setpoint controls for a CCR plan: low/high setpoints (bar) and the
 /// depth below which the high setpoint is in force (display units).
@@ -29,10 +33,16 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
     // A setpoint is decimal by nature (1,2 bar for a comma-decimal diver), so
     // the seed and the parse both go through the locale helpers (#1091).
     _lowController = TextEditingController(
-      text: formatRoundedForInput(state.setpointLow ?? 0.7, 1),
+      text: formatRoundedForInput(
+        state.setpointLow ?? domain.DivePlan.specSetpointLow,
+        1,
+      ),
     );
     _highController = TextEditingController(
-      text: formatRoundedForInput(state.setpointHigh ?? 1.3, 1),
+      text: formatRoundedForInput(
+        state.setpointHigh ?? domain.DivePlan.specSetpointHigh,
+        1,
+      ),
     );
     _switchController = TextEditingController(
       text: formatRoundedForInput(
@@ -63,21 +73,21 @@ class _CcrSettingsSectionState extends ConsumerState<CcrSettingsSection> {
       bool allowZero = false,
     }) {
       return Expanded(
-        child: TextFormField(
+        child: NumberField(
           controller: controller,
           decoration: InputDecoration(
             labelText: label,
             isDense: true,
             border: const OutlineInputBorder(),
           ),
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          onChanged: (text) {
-            final parsed = parseUserDecimal(text);
+          onChanged: (read) {
+            // Blank and unreadable text leave the plan alone; the field shows
+            // why for unreadable text.
+            if (read is! NumberValue) return;
+            final parsed = read.value;
             // Setpoints must be positive; a switch depth of 0 (surface) is a
             // valid, useful configuration, so it opts into allowZero.
-            if (parsed == null || (allowZero ? parsed < 0 : parsed <= 0)) {
-              return;
-            }
+            if (allowZero ? parsed < 0 : parsed <= 0) return;
             onChanged(toMetric != null ? toMetric(parsed) : parsed);
           },
         ),

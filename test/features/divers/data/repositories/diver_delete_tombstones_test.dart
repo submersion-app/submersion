@@ -221,17 +221,141 @@ void main() {
               updatedAt: stale,
             ),
           );
+      await db
+          .into(db.tripCylinders)
+          .insert(
+            TripCylindersCompanion.insert(
+              id: 'slot-a',
+              tripId: 'trip-a',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.tripCylinderEvents)
+          .insert(
+            TripCylinderEventsCompanion.insert(
+              id: 'fill-a',
+              tripCylinderId: 'slot-a',
+              kind: 'fill',
+              occurredAt: stale,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      // Gear packed for the trip (issue #2338).
+      await insertEquipment('gear-t');
+      await db
+          .into(db.tripEquipment)
+          .insert(
+            TripEquipmentCompanion.insert(
+              id: 'pack-a',
+              tripId: 'trip-a',
+              equipmentId: 'gear-t',
+              createdAt: stale,
+            ),
+          );
       return [
         ('trips', 'trips', 'trip-a'),
         ('liveaboard_detail_records', 'liveaboardDetails', 'lb-a'),
         ('trip_itinerary_days', 'itineraryDays', 'day-a'),
         ('trip_checklist_items', 'tripChecklistItems', 'check-a'),
         ('trip_day_weather', 'tripDayWeather', 'wx-a'),
+        ('trip_cylinders', 'tripCylinders', 'slot-a'),
+        ('trip_cylinder_events', 'tripCylinderEvents', 'fill-a'),
+        ('trip_equipment', 'tripEquipment', 'pack-a'),
       ];
     },
     'a private dive site': () async {
       await insertSite('site-a');
       return [('dive_sites', 'diveSites', 'site-a')];
+    },
+    'hides by the diver, and of its trips (issue #2594)': () async {
+      // Another profile's shared trip and site, hidden by the diver.
+      await db
+          .into(db.trips)
+          .insert(
+            TripsCompanion.insert(
+              id: 'trip-b',
+              name: 'Their trip',
+              startDate: stale,
+              endDate: stale,
+              createdAt: stale,
+              updatedAt: stale,
+              diverId: const Value('diver-b'),
+              isShared: const Value(true),
+            ),
+          );
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion.insert(
+              id: 'site-b',
+              name: 'Their site',
+              createdAt: stale,
+              updatedAt: stale,
+              diverId: const Value('diver-b'),
+              isShared: const Value(true),
+            ),
+          );
+      await db
+          .into(db.tripHides)
+          .insert(
+            TripHidesCompanion.insert(
+              id: 'hide-t',
+              tripId: 'trip-b',
+              diverId: 'diver-a',
+              createdAt: stale,
+            ),
+          );
+      await db
+          .into(db.siteHides)
+          .insert(
+            SiteHidesCompanion.insert(
+              id: 'hide-s',
+              siteId: 'site-b',
+              diverId: 'diver-a',
+              createdAt: stale,
+            ),
+          );
+      // The other profile's hide of the diver's own trip, which goes with it.
+      await insertTrip('trip-a');
+      await db
+          .into(db.tripHides)
+          .insert(
+            TripHidesCompanion.insert(
+              id: 'hide-of-a',
+              tripId: 'trip-a',
+              diverId: 'diver-b',
+              createdAt: stale,
+            ),
+          );
+      return [
+        ('trip_hides', 'tripHides', 'hide-t'),
+        ('site_hides', 'siteHides', 'hide-s'),
+        ('trip_hides', 'tripHides', 'hide-of-a'),
+      ];
+    },
+    'Insights observation dismissals': () async {
+      await db
+          .into(db.insightObservationDismissals)
+          .insert(
+            InsightObservationDismissalsCompanion.insert(
+              id: 'dis-a',
+              diverId: 'diver-a',
+              ruleId: 'rmvTrend',
+              fingerprint: 'down:1',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        (
+          'insight_observation_dismissals',
+          'insightObservationDismissals',
+          'dis-a',
+        ),
+      ];
     },
     'gear with its service, component, check-in and finding rows': () async {
       await insertEquipment('reg-a');

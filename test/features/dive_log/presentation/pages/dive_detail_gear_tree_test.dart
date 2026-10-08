@@ -12,6 +12,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -69,7 +71,7 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<Widget> buildDetail() async {
+  Future<Widget> buildDetail({bool showDiveFigure = false}) async {
     for (final gear in [mask, reg, hose, fins]) {
       await EquipmentRepository().createEquipment(gear);
     }
@@ -83,7 +85,11 @@ void main() {
       ),
     );
 
-    final base = await getBaseOverrides();
+    final base = await getBaseOverrides(
+      settingsNotifier: MockSettingsNotifier(
+        AppSettings(showDiveFigure: showDiveFigure),
+      ),
+    );
     return ProviderScope(
       overrides: [
         ...base,
@@ -130,5 +136,21 @@ void main() {
     await tester.pumpAndSettle();
     // Four rows on the dive, three of them top-level.
     expect(find.text('3 items'), findsOneWidget);
+  });
+
+  testWidgets('the diver-wide switch puts the figure in the card', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 4000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(await buildDetail(showDiveFigure: true));
+    await tester.pumpAndSettle();
+    expect(find.byType(DiverFigure), findsOneWidget);
+  });
+
+  testWidgets('with the switch off the card has no figure', (tester) async {
+    await open(tester);
+    expect(find.byType(DiverFigure), findsNothing);
   });
 }

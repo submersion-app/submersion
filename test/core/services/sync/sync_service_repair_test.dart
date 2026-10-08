@@ -72,7 +72,7 @@ void main() {
       // ended. The sweep spares recent files: the temp dir is shared, so a
       // young ssv1_ file is far more likely to be a base export another
       // process is writing right now than an orphan (see
-      // deleteLeftoverBaseTempFiles).
+      // sweepLeftoverSyncTempFiles).
       final leftover = File('${fakeAppTemp.path}/ssv1_base_dev_0.abc.json');
       await leftover.writeAsString('stale');
       leftover.setLastModifiedSync(

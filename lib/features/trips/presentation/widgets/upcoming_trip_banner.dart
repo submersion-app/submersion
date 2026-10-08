@@ -7,7 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
-import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Countdown + checklist progress line shown on upcoming trip tiles, plus a

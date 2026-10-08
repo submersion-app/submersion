@@ -5,6 +5,7 @@ import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 import 'package:submersion/features/equipment/data/services/equipment_set_for_computer_linker.dart';
@@ -67,11 +68,16 @@ class HealthKitAdapter implements ImportSourceAdapter {
 
   List<ImportedDive> _parsedDives = [];
 
-  /// Load the list of fetched [ImportedDive]s into this adapter.
+  /// The date range the fetch read, shown on the Review step (issue #161).
+  DateTimeRange? _fetchedRange;
+
+  /// Load the list of fetched [ImportedDive]s into this adapter, with the
+  /// date [range] they were fetched for.
   ///
   /// Called internally by the Fetch step widget after fetching from HealthKit.
-  void setParsedDives(List<ImportedDive> dives) {
+  void setParsedDives(List<ImportedDive> dives, {DateTimeRange? range}) {
     _parsedDives = List.unmodifiable(dives);
+    _fetchedRange = range;
   }
 
   // ---------------------------------------------------------------------------
@@ -140,7 +146,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
       builder: (context) => HealthKitFetchStep(
         healthService: _healthService,
         onDivesFetched: (dives) {
-          setParsedDives(dives);
+          setParsedDives(dives, range: _ref?.read(healthKitDateRangeProvider));
         },
       ),
       canAdvance: healthKitDivesFetchedProvider,
@@ -156,6 +162,11 @@ class HealthKitAdapter implements ImportSourceAdapter {
       source: ImportSourceInfo(
         type: ImportSourceType.healthKit,
         displayName: _displayName,
+        details: ImportSourceDetails(
+          title: 'Apple Health',
+          rangeStart: _fetchedRange?.start,
+          rangeEnd: _fetchedRange?.end,
+        ),
       ),
       groups: {ImportEntityType.dives: EntityGroup(items: items)},
     );
@@ -319,6 +330,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(importedDiveIds);
     scheduleSensorSummaryRefresh(importedDiveIds);
+    scheduleDerivedMetricsRefresh(importedDiveIds);
 
     final numberConflict = await diveNumberConflictNotice(
       retainSourceDiveNumbers: retainSourceDiveNumbers,

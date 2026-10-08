@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
@@ -15,7 +19,9 @@ import 'package:submersion/features/courses/presentation/providers/course_provid
 import 'package:submersion/features/courses/presentation/widgets/course_requirements_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class CourseDetailPage extends ConsumerWidget {
   final String courseId;
@@ -31,6 +37,7 @@ class CourseDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final courseAsync = ref.watch(courseByIdProvider(courseId));
     final divesAsync = ref.watch(courseDivesProvider(courseId));
 
@@ -81,7 +88,9 @@ class CourseDetailPage extends ConsumerWidget {
                   _buildDetailRow(
                     context,
                     context.l10n.courses_label_agency,
-                    course.agency.localizedName(context.l10n),
+                    context.certificationCatalog
+                        .agency(course.agency)
+                        .localizedName(context.l10n),
                     Icons.business,
                   ),
                   _buildDetailRow(
@@ -274,41 +283,7 @@ class CourseDetailPage extends ConsumerWidget {
             tooltip: context.l10n.courses_action_edit,
             onPressed: () => context.push('/courses/${course.id}/edit'),
           ),
-          PopupMenuButton<String>(
-            tooltip: context.l10n.courses_action_moreOptions,
-            onSelected: (value) {
-              if (value == 'delete') {
-                _confirmDelete(context, ref, course);
-              } else if (value == 'export') {
-                _exportTrainingLog(context, ref, course);
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'export',
-                child: Row(
-                  children: [
-                    const Icon(Icons.picture_as_pdf_outlined),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.courses_action_exportTrainingLog),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    const Icon(Icons.delete_outline, color: Colors.red),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.l10n.common_action_delete,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          _buildMoreMenu(context, ref, course),
         ],
       ),
       body: body,
@@ -489,7 +464,9 @@ class CourseDetailPage extends ConsumerWidget {
                         child: Center(
                           child: Text(
                             _abbreviateAgency(
-                              cert.agency.localizedName(context.l10n),
+                              context.certificationCatalog
+                                  .agency(cert.agency)
+                                  .localizedName(context.l10n),
                             ),
                             style: TextStyle(
                               color: colorScheme.onPrimaryContainer,
@@ -500,7 +477,11 @@ class CourseDetailPage extends ConsumerWidget {
                         ),
                       ),
                       title: Text(cert.name),
-                      subtitle: Text(cert.agency.localizedName(context.l10n)),
+                      subtitle: Text(
+                        context.certificationCatalog
+                            .agency(cert.agency)
+                            .localizedName(context.l10n),
+                      ),
                       trailing: Icon(
                         Icons.chevron_right,
                         color: colorScheme.onSurfaceVariant,
@@ -568,43 +549,55 @@ class CourseDetailPage extends ConsumerWidget {
               }
             },
           ),
-          PopupMenuButton<String>(
-            tooltip: context.l10n.courses_action_moreOptions,
-            onSelected: (value) {
-              if (value == 'delete') {
-                _confirmDelete(context, ref, course);
-              } else if (value == 'export') {
-                _exportTrainingLog(context, ref, course);
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'export',
-                child: Row(
-                  children: [
-                    const Icon(Icons.picture_as_pdf_outlined),
-                    const SizedBox(width: 8),
-                    Text(context.l10n.courses_action_exportTrainingLog),
-                  ],
-                ),
+          _buildMoreMenu(context, ref, course),
+        ],
+      ),
+    );
+  }
+
+  /// The overflow menu shared by the standalone and embedded headers.
+  Widget _buildMoreMenu(BuildContext context, WidgetRef ref, Course course) {
+    return PopupMenuButton<String>(
+      tooltip: context.l10n.courses_action_moreOptions,
+      onSelected: (value) {
+        if (value == kOpenInConnectionsAction) {
+          openInConnections(context, NodeRef(ConnectionKind.course, course.id));
+        } else if (value == 'delete') {
+          _confirmDelete(context, ref, course);
+        } else if (value == 'export') {
+          _exportTrainingLog(context, ref, course);
+        }
+      },
+      itemBuilder: (context) => [
+        openInConnectionsMenuItem(context),
+        PopupMenuItem(
+          value: 'export',
+          child: Row(
+            children: [
+              const Icon(Icons.picture_as_pdf_outlined),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(context.l10n.courses_action_exportTrainingLog),
               ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    const Icon(Icons.delete_outline, color: Colors.red),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.l10n.common_action_delete,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ],
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: [
+              const Icon(Icons.delete_outline, color: Colors.red),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  context.l10n.common_action_delete,
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -722,6 +715,11 @@ class CourseDetailPage extends ConsumerWidget {
     WidgetRef ref,
     Course course,
   ) async {
+    // Printed in the app language (#2252); read before any await.
+    final localization = PdfLocalization.forLanguageCode(
+      Localizations.localeOf(context).languageCode,
+    );
+
     // Show loading indicator
     showDialog(
       context: context,
@@ -744,6 +742,8 @@ class CourseDetailPage extends ConsumerWidget {
           timeFormat: settings.timeFormat,
         ),
         units: UnitFormatter(settings),
+        localization: localization,
+        catalog: await ref.read(allCustomCertificationsCatalogProvider.future),
       );
 
       // Dismiss loading

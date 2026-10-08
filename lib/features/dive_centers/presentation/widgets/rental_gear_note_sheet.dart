@@ -6,10 +6,10 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center_gear_note.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_gear_note_providers.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Opens the rental gear note editor (issue #2075) for a center. With
 /// [editing], the sheet edits that note; otherwise it creates one for
@@ -126,20 +126,31 @@ class _RentalGearNoteSheetState extends ConsumerState<_RentalGearNoteSheet> {
     super.dispose();
   }
 
+  /// An optional number: blank and unreadable are both null here, and
+  /// [_save] tells them apart by the text before using it.
+  static double? _optional(String text) => switch (readNumber(text)) {
+    NumberValue(:final value) => value,
+    NumberBlank() || NumberInvalid() => null,
+  };
+
   Future<void> _save() async {
     if (_saving) return;
     final l10n = context.l10n;
     final units = UnitFormatter(ref.read(settingsProvider));
     final leadText = _lead.text.trim();
     final volumeText = _volume.text.trim();
-    final lead = leadText.isEmpty ? null : parseUserDecimal(leadText);
-    final volume = volumeText.isEmpty ? null : parseUserDecimal(volumeText);
+    final lead = _optional(leadText);
+    final volume = _optional(volumeText);
     // Unreadable text is refused rather than silently dropped.
     if ((leadText.isNotEmpty && lead == null) ||
         (_gearType == EquipmentType.tank &&
             volumeText.isNotEmpty &&
             volume == null)) {
-      setState(() => _error = l10n.numberInput_invalidValue);
+      setState(
+        () => _error =
+            invalidNumberText(context, leadText) ??
+            invalidNumberText(context, volumeText),
+      );
       return;
     }
     setState(() {
@@ -237,7 +248,9 @@ class _RentalGearNoteSheetState extends ConsumerState<_RentalGearNoteSheet> {
               ),
               isExpanded: true,
               items: [
-                for (final type in kCanonicalTypeOrder)
+                for (final type in EquipmentType.values.sortedByLocalizedName(
+                  l10n,
+                ))
                   DropdownMenuItem(
                     value: type,
                     child: Text(type.localizedName(l10n)),

@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 
 /// One tank inside Gas & Gear: identity-first two-line row at ordinary row
 /// scale ("Tank 1 - Back Gas" over "EAN32 - 11 L - 200 -> 50 bar").
@@ -20,6 +23,11 @@ class TankRow extends StatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.initiallyExpanded = false,
+    this.onOwnCylinderUsed,
+    this.onScanPending,
+    this.tripCylinderStates,
+    this.takenTripCylinderIds = const {},
+    this.suggested = false,
   });
 
   final DiveTank tank;
@@ -29,6 +37,22 @@ class TankRow extends StatefulWidget {
   final VoidCallback? onRemove;
   final bool canRemove;
   final bool initiallyExpanded;
+
+  /// Forwarded to [TankEditor.onOwnCylinderUsed].
+  final Future<void> Function(EquipmentItem item)? onOwnCylinderUsed;
+
+  /// Forwarded to [TankEditor.onScanPending].
+  final void Function(Future<void> scan)? onScanPending;
+
+  /// Forwarded to [TankEditor.tripCylinderStates]; also names the linked
+  /// slot on the collapsed row.
+  final List<TripCylinderState>? tripCylinderStates;
+
+  /// Forwarded to [TankEditor.takenTripCylinderIds].
+  final Set<String> takenTripCylinderIds;
+
+  /// Forwarded to [TankEditor.suggested].
+  final bool suggested;
 
   @override
   State<TankRow> createState() => _TankRowState();
@@ -44,6 +68,44 @@ class _TankRowState extends State<TankRow> {
     return '${fmt(widget.tank.startPressure)}'
         ' → ${fmt(widget.tank.endPressure)}'
         ' ${units.pressureSymbol}';
+  }
+
+  /// The linked trip cylinder on the collapsed row, so a link the page set
+  /// (a suggestion, the log-dive shortcut) is visible without opening the
+  /// tank; a suggestion carries the sparkle the trip suggestion uses.
+  Widget? _tripCylinderLine(BuildContext context, ThemeData theme) {
+    final linked = widget.tank.tripCylinderId;
+    final slot = widget.tripCylinderStates
+        ?.where((s) => s.cylinder.id == linked)
+        .firstOrNull;
+    if (slot == null) return null;
+    final l10n = context.l10n;
+    return Row(
+      children: [
+        if (widget.suggested) ...[
+          Icon(
+            Icons.auto_awesome,
+            size: 14,
+            color: theme.colorScheme.primary,
+            semanticLabel: l10n.diveLog_tank_tripCylinderSuggested,
+          ),
+          const SizedBox(width: 4),
+        ],
+        Flexible(
+          child: Text(
+            tripCylinderTankLine(l10n, (
+              label: slot.cylinder.label,
+              bottle: slot.bottleLabel,
+            )),
+            style: theme.textTheme.bodySmall!.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -65,6 +127,11 @@ class _TankRowState extends State<TankRow> {
               onChanged: widget.onChanged,
               onRemove: widget.onRemove,
               canRemove: widget.canRemove,
+              onOwnCylinderUsed: widget.onOwnCylinderUsed,
+              onScanPending: widget.onScanPending,
+              tripCylinderStates: widget.tripCylinderStates,
+              takenTripCylinderIds: widget.takenTripCylinderIds,
+              suggested: widget.suggested,
             ),
             Align(
               alignment: Alignment.centerRight,
@@ -111,6 +178,7 @@ class _TankRowState extends State<TankRow> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  ?_tripCylinderLine(context, theme),
                 ],
               ),
             ),

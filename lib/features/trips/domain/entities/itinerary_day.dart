@@ -3,10 +3,18 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 
+/// The most dives a diver can plan on one day: the cylinder planning board's
+/// stepper stops here, and the day sheet refuses more (#2876).
+const int kMaxPlannedDivesPerDay = 12;
+
 /// A single day in a trip itinerary
 class ItineraryDay extends Equatable {
   final String id;
   final String tripId;
+
+  /// As stored, the day's number from the trip's start when the row was
+  /// written; a later move of the start leaves it stale (#2664). Display
+  /// numbers come from numberItineraryDays, which derives them from [date].
   final int dayNumber;
   final DateTime date;
   final DayType dayType;
@@ -14,6 +22,10 @@ class ItineraryDay extends Equatable {
   final double? latitude;
   final double? longitude;
   final String notes;
+
+  /// Planned dives on this day for the fill forecast (v249). Null derives
+  /// it; an explicit 0 is a rest day.
+  final int? plannedDives;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -27,18 +39,22 @@ class ItineraryDay extends Equatable {
     this.latitude,
     this.longitude,
     this.notes = '',
+    this.plannedDives,
     required this.createdAt,
     required this.updatedAt,
   });
 
   bool get hasCoordinates => latitude != null && longitude != null;
 
-  /// Generate itinerary days for a trip date range.
-  /// Day 1 = embark, last day = disembark, middle days = diveDay.
+  /// Generate itinerary days for a trip date range. A liveaboard opens with
+  /// Embark and closes with Disembark; every other type travels on its first
+  /// and last day, with Dive days between. A land trip of one or two days has
+  /// no middle to travel around, so it gets Dive days only.
   static List<ItineraryDay> generateForTrip({
     required String tripId,
     required DateTime startDate,
     required DateTime endDate,
+    TripType tripType = TripType.liveaboard,
   }) {
     const uuid = Uuid();
     final now = DateTime.now();
@@ -46,16 +62,23 @@ class ItineraryDay extends Equatable {
     final start = DateTime(startDate.year, startDate.month, startDate.day);
     final end = DateTime(endDate.year, endDate.month, endDate.day);
     final totalDays = (end.difference(start).inHours / 24).round() + 1;
+    final liveaboard = tripType == TripType.liveaboard;
     final days = <ItineraryDay>[];
 
     for (int i = 0; i < totalDays; i++) {
+      final first = i == 0;
+      final last = i == totalDays - 1;
       final DayType type;
-      if (i == 0) {
-        type = DayType.embark;
-      } else if (i == totalDays - 1) {
-        type = DayType.disembark;
-      } else {
+      if (liveaboard) {
+        type = first
+            ? DayType.embark
+            : last
+            ? DayType.disembark
+            : DayType.diveDay;
+      } else if (totalDays <= 2) {
         type = DayType.diveDay;
+      } else {
+        type = first || last ? DayType.travel : DayType.diveDay;
       }
 
       days.add(
@@ -84,6 +107,7 @@ class ItineraryDay extends Equatable {
     Object? latitude = _undefined,
     Object? longitude = _undefined,
     String? notes,
+    Object? plannedDives = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -99,6 +123,9 @@ class ItineraryDay extends Equatable {
           ? this.longitude
           : longitude as double?,
       notes: notes ?? this.notes,
+      plannedDives: plannedDives == _undefined
+          ? this.plannedDives
+          : plannedDives as int?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -115,6 +142,7 @@ class ItineraryDay extends Equatable {
     latitude,
     longitude,
     notes,
+    plannedDives,
     createdAt,
     updatedAt,
   ];

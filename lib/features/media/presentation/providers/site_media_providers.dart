@@ -2,9 +2,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/repositories/site_attachment_repository.dart';
 import 'package:submersion/features/media/data/services/document_import_service.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
+import 'package:submersion/features/media/domain/value_objects/attachment_details_edit.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
@@ -82,6 +85,12 @@ final flatMediaFromDivesAtSiteProvider =
       return all;
     });
 
+/// Narrow writers for a site attachment's name, category and size
+/// (issue #1039).
+final siteAttachmentRepositoryProvider = Provider<SiteAttachmentRepository>(
+  (ref) => SiteAttachmentRepository(),
+);
+
 /// Mutations on a site's direct attachments. Site counterpart of
 /// MediaListNotifier.
 class SiteMediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
@@ -123,6 +132,31 @@ class SiteMediaListNotifier extends StateNotifier<AsyncValue<List<MediaItem>>> {
     await _repository.updateMedia(item);
     await refresh();
     _ref.invalidate(mediaByIdProvider(item.id));
+  }
+
+  /// Saves an Edit details sheet: only the fields [edit] carries.
+  Future<void> setAttachmentDetails(
+    String id,
+    AttachmentDetailsEdit edit,
+  ) async {
+    await _ref
+        .read(siteAttachmentRepositoryProvider)
+        .setAttachmentDetails(id, edit);
+    await refresh();
+    _ref.invalidate(mediaByIdProvider(id));
+  }
+
+  /// Puts every attachment in [ids] into [category]; null uncategorizes.
+  /// Returns how many were updated (ids unlinked meanwhile are skipped).
+  Future<int> setSiteCategory(
+    List<String> ids,
+    SiteAttachmentCategory? category,
+  ) async {
+    final updated = await _ref
+        .read(siteAttachmentRepositoryProvider)
+        .setSiteCategory(ids, category);
+    await refresh();
+    return updated;
   }
 
   /// Delete media items. Routed through the deletion coordinator so

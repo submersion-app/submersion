@@ -1,9 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_backdrop_painter.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
@@ -13,27 +15,62 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   // Null means "leave at the AppSettings default", so these fixtures cannot
   // drift away from the real defaults.
-  _TestSettingsNotifier({int? gfLow, int? gfHigh})
-    : super(const AppSettings().copyWith(gfLow: gfLow, gfHigh: gfHigh));
+  _TestSettingsNotifier({int? gfLow, int? gfHigh, double? endLimit})
+    : super(
+        const AppSettings().copyWith(
+          gfLow: gfLow,
+          gfHigh: gfHigh,
+          endLimit: endLimit,
+        ),
+      );
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
       state = state.copyWith(mapStyle: style);
 
   @override
+  Future<void> setThemeMode(ThemeMode mode) async =>
+      state = state.copyWith(themeMode: mode);
+
+  @override
+  Future<void> setEndLimit(double value) async =>
+      state = state.copyWith(endLimit: value);
+
+  @override
+  Future<void> setO2Narcotic(bool value) async =>
+      state = state.copyWith(o2Narcotic: value);
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-ProviderContainer _container({int? gfLow, int? gfHigh}) {
+ProviderContainer _container({int? gfLow, int? gfHigh, double? endLimit}) {
   final container = ProviderContainer(
     overrides: [
       settingsProvider.overrideWith(
-        (ref) => _TestSettingsNotifier(gfLow: gfLow, gfHigh: gfHigh),
+        (ref) => _TestSettingsNotifier(
+          gfLow: gfLow,
+          gfHigh: gfHigh,
+          endLimit: endLimit,
+        ),
       ),
     ],
   );
   addTearDown(container.dispose);
   return container;
+}
+
+/// A stand-in for the planner's real dependents (the plan outcome, the
+/// bailout and contingency checks, the range table), counting how often
+/// [planEngineConfigProvider] makes it rebuild.
+({Provider<PlanEngineConfig> provider, int Function() builds})
+_countingDependent() {
+  var builds = 0;
+  final provider = Provider<PlanEngineConfig>((ref) {
+    builds++;
+    return ref.watch(planEngineConfigProvider);
+  });
+  return (provider: provider, builds: () => builds);
 }
 
 int _totalStopSeconds(ProviderContainer container) => container
@@ -213,5 +250,79 @@ void main() {
     final config = container.read(planEngineConfigProvider);
     expect(config.ppO2Working, 1.4);
     expect(config.ppO2Deco, 1.6);
+  });
+
+  test('planEngineConfig carries the Settings END limit (issue #1499)', () {
+    final container = _container(endLimit: 40.0);
+    expect(container.read(planEngineConfigProvider).endLimitMeters, 40.0);
+  });
+
+  test('an air leg at 32 m raises no END warning under a 40 m END limit '
+      '(issue #1499)', () {
+    final container = _container(endLimit: 40.0);
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 32, bottomTimeMinutes: 10);
+    final issues = container.read(planOutcomeProvider).issues;
+    expect(
+      issues.map((i) => i.type),
+      isNot(contains(PlanIssueType.endExceeded)),
+    );
+  });
+
+  group('planEngineConfig rebuilds only for its own inputs (issue #2632)', () {
+    test(
+      'a theme or map style change does not rebuild its dependents',
+      () async {
+        final container = _container();
+        final dependent = _countingDependent();
+        container.listen(dependent.provider, (_, _) {});
+        final before = container.read(planEngineConfigProvider);
+        expect(dependent.builds(), 1);
+
+        await container
+            .read(settingsProvider.notifier)
+            .setThemeMode(ThemeMode.dark);
+        await container
+            .read(settingsProvider.notifier)
+            .setMapStyle(MapStyle.esriSatellite);
+        container.read(dependent.provider);
+
+        expect(container.read(settingsProvider).themeMode, ThemeMode.dark);
+        expect(dependent.builds(), 1);
+        expect(
+          identical(container.read(planEngineConfigProvider), before),
+          isTrue,
+          reason: 'an unrelated setting must not rebuild the config itself',
+        );
+      },
+    );
+
+    test('an END limit change still rebuilds its dependents', () async {
+      final container = _container();
+      final dependent = _countingDependent();
+      container.listen(dependent.provider, (_, _) {});
+      expect(dependent.builds(), 1);
+
+      await container.read(settingsProvider.notifier).setEndLimit(40);
+      container.read(dependent.provider);
+
+      expect(container.read(planEngineConfigProvider).endLimitMeters, 40);
+      expect(dependent.builds(), 2);
+    });
+
+    test('an O2-narcotic change still rebuilds its dependents', () async {
+      final container = _container();
+      final dependent = _countingDependent();
+      container.listen(dependent.provider, (_, _) {});
+      expect(container.read(planEngineConfigProvider).o2Narcotic, isTrue);
+      expect(dependent.builds(), 1);
+
+      await container.read(settingsProvider.notifier).setO2Narcotic(false);
+      container.read(dependent.provider);
+
+      expect(container.read(planEngineConfigProvider).o2Narcotic, isFalse);
+      expect(dependent.builds(), 2);
+    });
   });
 }

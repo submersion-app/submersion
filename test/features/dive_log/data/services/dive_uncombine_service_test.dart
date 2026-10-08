@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -54,6 +55,7 @@ void main() {
     bool sourceCarriesSummary = true,
     double? startPressure,
     double? endPressure,
+    Duration? usageDuration,
     List<TankPressureSample> pressures = const [
       TankPressureSample(timestamp: 60, pressure: 180.0),
     ],
@@ -72,6 +74,7 @@ void main() {
             volume: 11.1,
             startPressure: startPressure,
             endPressure: endPressure,
+            usageDuration: usageDuration,
           ),
         ],
         profile: [
@@ -398,6 +401,21 @@ void main() {
       expect(kept.notes, 'Two halves of one dive.');
     });
 
+    test(
+      'leaves the diver\'s role set on the surviving dive (#1221)',
+      () async {
+        final mergedId = await mergeTwoImports();
+        final roles = DiveRoleLinkRepository();
+        await roles.writeDiverRoles(mergedId, ['diveMaster', 'diveGuide']);
+
+        final restoredId = (await service.separate(diveId: mergedId)).single;
+
+        final sets = await roles.diverRoleIdsForDives([mergedId, restoredId]);
+        expect(sets[restoredId], isEmpty);
+        expect(sets[mergedId], ['diveGuide', 'diveMaster']);
+      },
+    );
+
     test('gives each dive its own runtime, not the combined total', () async {
       final mergedId = await mergeTwoImports();
       final merged = await (db.select(
@@ -592,6 +610,22 @@ void main() {
       expect(await tankSeries.getSeriesForDive(mergedId), hasLength(1));
     });
 
+    test('an unattributed series takes the only source of its segment '
+        '(#2440)', () async {
+      final mergedId = await mergeTwoImports();
+      // A legacy combined dive whose series never got a source.
+      await (db.update(db.tankPressureSeries)
+            ..where((t) => t.diveId.equals(mergedId)))
+          .write(const TankPressureSeriesCompanion(sourceId: Value(null)));
+
+      final restoredId = (await service.separate(diveId: mergedId)).single;
+
+      final restoredSources = await diveRepo.getDataSources(restoredId);
+      expect(restoredSources, hasLength(1));
+      final restoredPressures = await tankSeries.getSeriesForDive(restoredId);
+      expect(restoredPressures.single.sourceId, restoredSources.single.id);
+    });
+
     test('gives each dive its own pressures on a cylinder both breathed '
         '(#2036)', () async {
       // One cylinder across a surface interval: combine carries it as one
@@ -650,6 +684,107 @@ void main() {
                 ..where((t) => t.recordId.equals(keptTank.id)))
               .get();
       expect(keptTankSync, isNotEmpty);
+    });
+
+    test('a cylinder both breathed drops the combined usage duration '
+        '(#1496)', () async {
+      // Combine sums the two halves' recorded times (30 + 20 min) for the
+      // one cylinder. Separate gives each half its own pressures back, and
+      // the summed time against one half's drop would halve its SAC; what
+      // each half recorded is not kept, so neither gets one.
+      await seedDive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        startPressure: 205,
+        endPressure: 150,
+        usageDuration: const Duration(minutes: 30),
+        pressures: const [
+          TankPressureSample(timestamp: 60, pressure: 205),
+          TankPressureSample(timestamp: 1700, pressure: 150),
+        ],
+      );
+      await seedDive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        runtimeMin: 20,
+        startPressure: 150,
+        endPressure: 90,
+        usageDuration: const Duration(minutes: 20),
+        pressures: const [
+          TankPressureSample(timestamp: 60, pressure: 150),
+          TankPressureSample(timestamp: 1100, pressure: 90),
+        ],
+      );
+      final mergedId = (await merge.apply(['a', 'b'])).mergedDive.id;
+      final merged = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals(mergedId))).getSingle();
+      expect(merged.usageDuration, 50 * 60);
+
+      final restoredId = (await service.separate(diveId: mergedId)).single;
+
+      for (final id in [mergedId, restoredId]) {
+        final tank = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals(id))).getSingle();
+        expect(tank.usageDuration, isNull);
+      }
+    });
+
+    test('a cylinder only later segments breathed still drops the summed '
+        'usage on the kept dive (#1496)', () async {
+      // The first dive's cylinder ends at 100 bar and the second's starts
+      // at 200: a fresh one, so only b and c fold. The kept dive (a) holds
+      // that folded row with none of its pressure log left, and must still
+      // lose the summed time.
+      await seedDive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        startPressure: 200,
+        endPressure: 100,
+        pressures: const [],
+      );
+      await seedDive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        runtimeMin: 20,
+        startPressure: 200,
+        endPressure: 150,
+        usageDuration: const Duration(minutes: 20),
+        pressures: const [
+          TankPressureSample(timestamp: 60, pressure: 200),
+          TankPressureSample(timestamp: 1100, pressure: 150),
+        ],
+      );
+      await seedDive(
+        'c',
+        entry: DateTime.utc(2026, 7, 1, 11),
+        runtimeMin: 20,
+        startPressure: 150,
+        endPressure: 90,
+        usageDuration: const Duration(minutes: 15),
+        pressures: const [
+          TankPressureSample(timestamp: 60, pressure: 150),
+          TankPressureSample(timestamp: 1100, pressure: 90),
+        ],
+      );
+      final mergedId = (await merge.apply(['a', 'b', 'c'])).mergedDive.id;
+      final folded =
+          await (db.select(db.diveTanks)
+                ..where((t) => t.diveId.equals(mergedId))
+                ..where((t) => t.usageDuration.isNotNull()))
+              .getSingle();
+      expect(folded.usageDuration, 35 * 60);
+
+      await service.separate(diveId: mergedId);
+
+      final kept = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals(folded.id))).getSingle();
+      expect(kept.usageDuration, isNull);
+      // Nothing of its log is left here to rebuild pressures from.
+      expect(kept.startPressure, folded.startPressure);
+      expect(kept.endPressure, folded.endPressure);
     });
 
     test('a shared cylinder with no pressure log keeps the combined '

@@ -1,7 +1,7 @@
 // Widget tests for the Manifest mode panel (Phase 3b, Task 13).
 //
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3b.md`
 // Task 13. The plan's example test is a single smoke test for the idle
 // state; we extend it to cover each branch of the [ManifestTabState]
 // switch (idle / fetching / error / preview) plus the format chip and

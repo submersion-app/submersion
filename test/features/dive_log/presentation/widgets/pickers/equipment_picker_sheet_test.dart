@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -29,6 +31,11 @@ Future<void> _pump(
   EquipmentPickerFilter filter = EquipmentPickerFilter.none,
   EquipmentArrangement? arrangement,
   void Function(EquipmentItem)? onSelected,
+  List<Diver> divers = const [],
+  String? activeDiverId,
+  String? title,
+  String? hint,
+  String? Function(String equipmentId)? overlapNote,
 }) async {
   // Tall enough to render every row without scrolling. The picker groups
   // by type (#1486, #1576) and this fixture gives every type exactly one
@@ -45,6 +52,10 @@ Future<void> _pump(
         if (arrangement != null)
           equipmentArrangementProvider.overrideWithValue(arrangement),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        allDiversProvider.overrideWith((ref) async => divers),
+        validatedCurrentDiverIdProvider.overrideWith(
+          (ref) async => activeDiverId,
+        ),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -56,6 +67,9 @@ Future<void> _pump(
             selectedEquipmentIds: selectedIds,
             hideSpare: hideSpare,
             onEquipmentSelected: onSelected ?? (_) {},
+            title: title,
+            hint: hint,
+            overlapNote: overlapNote,
           ),
         ),
       ),
@@ -65,6 +79,71 @@ Future<void> _pump(
 }
 
 void main() {
+  group('shared gear (issue #2046)', () {
+    const own = EquipmentItem(
+      id: 'mine',
+      diverId: 'owner',
+      name: 'My BCD',
+      type: EquipmentType.bcd,
+    );
+    const hers = EquipmentItem(
+      id: 'hers',
+      diverId: 'wife',
+      name: 'Her Reg',
+      type: EquipmentType.regulator,
+    );
+    final t = DateTime(2026);
+    final bill = Diver(id: 'owner', name: 'Bill', createdAt: t, updatedAt: t);
+    final anna = Diver(id: 'wife', name: 'Anna', createdAt: t, updatedAt: t);
+
+    testWidgets('lists shared gear under Shared with me and its owner', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        equipment: [hers, own],
+        divers: [bill, anna],
+        activeDiverId: 'owner',
+      );
+      expect(find.text('Shared with me'), findsOneWidget);
+      expect(find.text('From Anna'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-wife')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-owner')),
+        findsNothing,
+      );
+      expect(
+        tester.getTopLeft(find.text('My BCD')).dy,
+        lessThan(tester.getTopLeft(find.text('Her Reg')).dy),
+      );
+    });
+
+    testWidgets('only shared gear still gets the section header', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        equipment: [hers],
+        divers: [bill, anna],
+        activeDiverId: 'owner',
+      );
+      expect(find.text('Shared with me'), findsOneWidget);
+    });
+
+    testWidgets('no section with a single profile', (tester) async {
+      await _pump(
+        tester,
+        equipment: [own],
+        divers: [bill],
+        activeDiverId: 'owner',
+      );
+      expect(find.text('Shared with me'), findsNothing);
+    });
+  });
+
   testWidgets('lists equipment of every type with icons', (tester) async {
     // One item per type exercises the full icon mapping.
     final equipment = [
@@ -92,6 +171,26 @@ void main() {
     expect(find.text('Item a'), findsNothing);
     await tester.tap(find.text('Item b'));
     expect(selected?.id, 'b');
+  });
+
+  // A caller whose pick means more than "add it to the dive" says so, as
+  // the tank editor's cylinder picker does (issue #2599).
+  testWidgets('a caller can retitle the picker and add a hint', (tester) async {
+    await _pump(
+      tester,
+      equipment: [_item('a', EquipmentType.tank)],
+      title: 'My cylinders',
+      hint: 'Copies the cylinder into this tank.',
+    );
+    expect(find.text('My cylinders'), findsOneWidget);
+    expect(find.text('Add Equipment'), findsNothing);
+    expect(find.text('Copies the cylinder into this tank.'), findsOneWidget);
+  });
+
+  testWidgets('no hint by default', (tester) async {
+    await _pump(tester, equipment: [_item('a', EquipmentType.tank)]);
+    expect(find.text('Add Equipment'), findsOneWidget);
+    expect(find.text('Copies the cylinder into this tank.'), findsNothing);
   });
 
   testWidgets('shows empty state when there is no equipment', (tester) async {
@@ -255,5 +354,20 @@ void main() {
       arrangement: EquipmentArrangement.defaults.copyWith(groupByType: false),
     );
     expect(find.text('Other · Palantic Drop-Bottom'), findsOneWidget);
+  });
+
+  testWidgets('an item also on another profile dive says so (issue #2853)', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      equipment: [
+        _item('a', EquipmentType.light),
+        _item('b', EquipmentType.mask),
+      ],
+      overlapNote: (id) => id == 'a' ? "Also on Anna's dive, 10:02" : null,
+    );
+    expect(find.text("Also on Anna's dive, 10:02"), findsOneWidget);
+    expect(find.byIcon(Icons.info_outline), findsOneWidget);
   });
 }

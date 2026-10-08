@@ -44,12 +44,14 @@ void main() {
     WeightType type,
     double kg, {
     String notes = '',
+    String label = '',
   }) => domain_weight.DiveWeight(
     id: id,
     diveId: 'dv',
     weightType: type,
     amountKg: kg,
     notes: notes,
+    label: label,
   );
 
   Future<List<DiveWeight>> weightRows() async =>
@@ -197,6 +199,56 @@ void main() {
       expect(rows.map((r) => r.id), contains('w1'));
       expect(rows.every((r) => r.id.isNotEmpty), isTrue);
       expect(await tombstonesFor('diveWeights'), isEmpty);
+    });
+  });
+
+  group('weight names (#956)', () {
+    test('createDive stores the name and getDiveById reads it', () async {
+      final dive = await seed(
+        weights: [weight('w1', WeightType.trimWeights, 2, label: 'Top pocket')],
+      );
+      expect(dive.weights.single.label, 'Top pocket');
+      expect((await weightRows()).single.label, 'Top pocket');
+    });
+
+    test('a name-only edit is written and re-marked', () async {
+      final dive = await seed(weights: [weight('w1', WeightType.belt, 4)]);
+      await markEverythingSynced('diveWeights');
+
+      await repo.updateDive(
+        dive.copyWith(
+          weights: [weight('w1', WeightType.belt, 4, label: '2nd pocket')],
+        ),
+      );
+
+      expect(await pendingFor('diveWeights'), {'w1'});
+      expect((await weightRows()).single.label, '2nd pocket');
+    });
+
+    test('clearing a name writes the empty name', () async {
+      final dive = await seed(
+        weights: [weight('w1', WeightType.belt, 4, label: 'Top pocket')],
+      );
+      await repo.updateDive(
+        dive.copyWith(weights: [weight('w1', WeightType.belt, 4)]),
+      );
+      expect((await weightRows()).single.label, '');
+    });
+
+    test('the stored name is trimmed', () async {
+      await seed(
+        weights: [weight('w1', WeightType.belt, 4, label: '  Top pocket  ')],
+      );
+      expect((await weightRows()).single.label, 'Top pocket');
+    });
+
+    test('bulkAddWeights stores the name', () async {
+      await seed();
+      await repo.bulkAddWeights(
+        ['dv'],
+        [weight('', WeightType.belt, 1, label: 'Light canister')],
+      );
+      expect((await weightRows()).single.label, 'Light canister');
     });
   });
 

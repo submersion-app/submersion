@@ -8,7 +8,7 @@ import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 
 /// Parses a Submersion JSON manifest v1 document. See
-/// `docs/superpowers/specs/manifest_json_v1.md` for the schema.
+/// `docs/design/specs/manifest_json_v1.md` for the schema.
 ///
 /// Per-item parse failures are reported in
 /// [ManifestParseResult.warnings] rather than thrown. Top-level shape

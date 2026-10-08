@@ -493,4 +493,82 @@ void main() {
       expect(exported!['autoTagImports'], isFalse);
     },
   );
+
+  test(
+    'applies a pre-v231 diver_settings payload missing the CCR ppO2 limits',
+    () async {
+      // No hand-written seed covers these (issue #2342): the Drift column
+      // defaults fill them through _withSchemaDefaults.
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds-228',
+              diverId: 'diver-1',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds-228');
+      final legacy = Map<String, dynamic>.from(exported!)
+        ..remove('ccrSetpointLow')
+        ..remove('ccrSetpointHigh')
+        ..remove('ccrDiluentModPpO2');
+      await (db.delete(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds-228'))).go();
+
+      await serializer.upsertRecord('diverSettings', legacy);
+
+      final row = await (db.select(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds-228'))).getSingle();
+      expect(row.ccrSetpointLow, 0.7);
+      expect(row.ccrSetpointHigh, 1.3);
+      expect(row.ccrDiluentModPpO2, 1.6);
+    },
+  );
+
+  test(
+    'applies a pre-v237 diver_settings payload missing the dive figure switch',
+    () async {
+      // No hand-written seed covers it (issue #2326): the Drift column
+      // default fills it through _withSchemaDefaults, so it lands off, on
+      // both the single and the batch path.
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.diverSettings)
+          .insert(
+            DiverSettingsCompanion.insert(
+              id: 'ds-236',
+              diverId: 'diver-1',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds-236');
+      final legacy = Map<String, dynamic>.from(exported!)
+        ..remove('showDiveFigure');
+      await (db.delete(
+        db.diverSettings,
+      )..where((t) => t.id.equals('ds-236'))).go();
+
+      await serializer.upsertRecord('diverSettings', legacy);
+      await serializer.upsertRecords('diverSettings', [
+        {...legacy, 'id': 'ds-236b'},
+      ]);
+
+      for (final id in ['ds-236', 'ds-236b']) {
+        final row = await (db.select(
+          db.diverSettings,
+        )..where((t) => t.id.equals(id))).getSingle();
+        expect(row.showDiveFigure, isFalse, reason: id);
+      }
+    },
+  );
 }

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/data/services/dive_time_migration_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
 
 class FixDiveTimesPage extends ConsumerStatefulWidget {
   const FixDiveTimesPage({super.key});
@@ -77,8 +77,16 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
   }
 
   void _onOffsetChanged(String value) {
-    final parsed = parseUserInt(value);
-    setState(() => _offsetHours = parsed ?? 0);
+    setState(
+      () => _offsetHours = switch (readNumber(value, integer: true)) {
+        NumberValue(:final value) => value.toInt(),
+        NumberBlank() => 0,
+        // No shift while the text cannot be read, so Apply stays disabled:
+        // keeping the last readable offset would let Apply shift the dives
+        // by a number the field no longer shows (#1900 review).
+        NumberInvalid() => 0,
+      },
+    );
   }
 
   void _toggleSelectAll() {
@@ -408,11 +416,16 @@ class _FilterBar extends StatelessWidget {
                   keyboardType: const TextInputType.numberWithOptions(
                     signed: true,
                   ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^-?\d*')),
-                  ],
+                  // Separators are kept so "2.5" is reported, not read as 2.
+                  inputFormatters: numberInputFormatters(),
                   decoration: InputDecoration(
                     labelText: context.l10n.settings_fixDiveTimes_hoursField,
+                    errorText: invalidNumberText(
+                      context,
+                      offsetController.text,
+                      integer: true,
+                    ),
+                    errorMaxLines: 2,
                     border: const OutlineInputBorder(),
                     isDense: true,
                   ),

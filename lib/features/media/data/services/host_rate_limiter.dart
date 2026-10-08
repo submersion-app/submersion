@@ -1,4 +1,4 @@
-// Adapted from plan `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// Adapted from plan `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 2. Deviations from the plan code:
 //
 // - The plan's `_HostQueue.canStart` schedules a `Timer` whose callback is a

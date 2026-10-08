@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -9,11 +8,22 @@ import 'package:submersion/features/divers/presentation/providers/diver_weight_e
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Dated body-weight history for the active diver (weight prediction v104):
 /// a list of measurements with add/delete.
 class BodyWeightEditPage extends ConsumerWidget {
   const BodyWeightEditPage({super.key});
+
+  /// A dialog field's number once its form has validated: blank is "not
+  /// entered", and unreadable text cannot reach here.
+  static double? _validatedNumber(TextEditingController controller) =>
+      switch (readNumber(controller.text)) {
+        NumberValue(:final value) => value,
+        NumberBlank() => null,
+        NumberInvalid() => null, // unreachable: validate() ran first
+      };
 
   Future<void> _showAddDialog(BuildContext context, WidgetRef ref) async {
     final units = UnitFormatter(ref.read(settingsProvider));
@@ -22,93 +32,108 @@ class BodyWeightEditPage extends ConsumerWidget {
     final heightFeetController = TextEditingController();
     final heightInchesController = TextEditingController();
     var measuredAt = DateTime.now();
+    final formKey = GlobalKey<FormState>();
 
     final saved = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => AlertDialog(
           title: Text(dialogContext.l10n.bodyWeight_addEntry),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: weightController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: dialogContext.l10n.bodyWeight_weightLabel(
-                    units.weightSymbol,
-                  ),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-              ),
-              if (units.heightIsMetric)
-                TextField(
-                  controller: heightCmController,
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: weightController,
+                  inputFormatters: numberInputFormatters(),
+                  validator: numberValidator(dialogContext),
+                  autofocus: true,
                   decoration: InputDecoration(
-                    labelText: dialogContext.l10n.bodyWeight_heightLabel,
+                    labelText: dialogContext.l10n.bodyWeight_weightLabel(
+                      units.weightSymbol,
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                )
-              else
+                ),
+                if (units.heightIsMetric)
+                  TextFormField(
+                    controller: heightCmController,
+                    inputFormatters: numberInputFormatters(),
+                    validator: numberValidator(dialogContext),
+                    decoration: InputDecoration(
+                      labelText: dialogContext.l10n.bodyWeight_heightLabel,
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                  )
+                else
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: heightFeetController,
+                          inputFormatters: numberInputFormatters(),
+                          validator: numberValidator(
+                            dialogContext,
+                            integer: true,
+                          ),
+                          decoration: InputDecoration(
+                            labelText:
+                                dialogContext.l10n.bodyWeight_heightFeetLabel,
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: false,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextFormField(
+                          controller: heightInchesController,
+                          inputFormatters: numberInputFormatters(),
+                          validator: numberValidator(dialogContext),
+                          decoration: InputDecoration(
+                            labelText:
+                                dialogContext.l10n.bodyWeight_heightInchesLabel,
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: heightFeetController,
-                        decoration: InputDecoration(
-                          labelText:
-                              dialogContext.l10n.bodyWeight_heightFeetLabel,
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: false,
-                        ),
+                      child: Text(
+                        '${dialogContext.l10n.bodyWeight_dateLabel}: '
+                        '${units.formatDate(measuredAt)}',
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextField(
-                        controller: heightInchesController,
-                        decoration: InputDecoration(
-                          labelText:
-                              dialogContext.l10n.bodyWeight_heightInchesLabel,
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: () async {
+                        final picked = await showAppDatePicker(
+                          context: dialogContext,
+                          initialDate: measuredAt,
+                          firstDate: DateTime(1950),
+                          lastDate: DateTime.now(),
+                        );
+                        if (picked != null) {
+                          setDialogState(() => measuredAt = picked);
+                        }
+                      },
                     ),
                   ],
                 ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${dialogContext.l10n.bodyWeight_dateLabel}: '
-                      '${units.formatDate(measuredAt)}',
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.calendar_today),
-                    onPressed: () async {
-                      final picked = await showAppDatePicker(
-                        context: dialogContext,
-                        initialDate: measuredAt,
-                        firstDate: DateTime(1950),
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null) {
-                        setDialogState(() => measuredAt = picked);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -116,7 +141,12 @@ class BodyWeightEditPage extends ConsumerWidget {
               child: Text(dialogContext.l10n.common_action_cancel),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
+              onPressed: () {
+                // An unreadable number used to close the dialog having saved
+                // nothing, or saved no height (#1900).
+                if (!formKey.currentState!.validate()) return;
+                Navigator.of(dialogContext).pop(true);
+              },
               child: Text(dialogContext.l10n.common_action_save),
             ),
           ],
@@ -125,17 +155,19 @@ class BodyWeightEditPage extends ConsumerWidget {
     );
 
     if (saved != true) return;
-    final parsedWeight = parseUserDecimal(weightController.text);
+    // Blank closes having saved nothing, as before; the dialog's validators
+    // already stopped unreadable text.
+    final parsedWeight = _validatedNumber(weightController);
     if (parsedWeight == null) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return;
 
     final double? heightCm;
     if (units.heightIsMetric) {
-      heightCm = parseUserDecimal(heightCmController.text);
+      heightCm = _validatedNumber(heightCmController);
     } else {
-      final feet = parseUserDecimal(heightFeetController.text);
-      final inches = parseUserDecimal(heightInchesController.text);
+      final feet = _validatedNumber(heightFeetController);
+      final inches = _validatedNumber(heightInchesController);
       heightCm = (feet == null && inches == null)
           ? null
           : units.feetInchesToCm(feet ?? 0, inches ?? 0);

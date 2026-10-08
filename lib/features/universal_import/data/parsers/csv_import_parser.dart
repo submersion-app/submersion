@@ -119,9 +119,12 @@ class CsvImportParser implements ImportParser {
   /// mapped tags column is dropped, and a dive type the mapper did not
   /// recognise becomes a junction row pointing at no dive type (#2203).
   /// 'site' is the legacy alias the correlator normalizes to 'siteName'.
+  /// 'gps' names a site on its own when the file has no site name column, so
+  /// it needs sites too; the dive keeps the pair either way (#2212).
   static const _entityTypeForTargetField = {
     'siteName': ImportEntityType.sites,
     'site': ImportEntityType.sites,
+    'gps': ImportEntityType.sites,
     'buddy': ImportEntityType.buddies,
     'tags': ImportEntityType.tags,
     'diveType': ImportEntityType.diveTypes,

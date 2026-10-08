@@ -22,8 +22,8 @@ final _buddy = Buddy(
 
 Certification _makeCert({
   required String name,
-  CertificationLevel? level,
-  CertificationAgency agency = CertificationAgency.padi,
+  String? level,
+  String agency = 'padi',
 }) {
   return Certification(
     id: 'c1',
@@ -99,7 +99,10 @@ void main() {
       // place left for the level.
       await _pump(
         tester,
-        _makeCert(name: 'Bill Ansell', level: CertificationLevel.diveMaster),
+        _makeCert(
+          name: 'Bill Ansell',
+          level: CertificationLevel.diveMaster.name,
+        ),
       );
 
       expect(find.text('Bill Ansell'), findsOneWidget);
@@ -111,7 +114,7 @@ void main() {
     ) async {
       await _pump(
         tester,
-        _makeCert(name: '', level: CertificationLevel.diveMaster),
+        _makeCert(name: '', level: CertificationLevel.diveMaster.name),
       );
 
       expect(find.text('Divemaster'), findsOneWidget);
@@ -124,14 +127,14 @@ void main() {
       // The embedded header reads the hydrated buddy entity's own
       // `certificationLine` (issue #1303), distinct from the cert list tile.
       final certified = _buddy.copyWith(
-        certificationLevel: CertificationLevel.rescue,
-        certificationAgency: CertificationAgency.padi,
+        certificationLevel: CertificationLevel.rescue.name,
+        certificationAgency: CertificationAgency.padi.name,
         certificationTitle: 'Rescue Diver',
       );
 
       await _pump(
         tester,
-        _makeCert(name: 'Rescue Diver', level: CertificationLevel.rescue),
+        _makeCert(name: 'Rescue Diver', level: CertificationLevel.rescue.name),
         buddy: certified,
         embedded: true,
       );

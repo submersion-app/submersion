@@ -17,6 +17,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 
 DiveSummary summary(String id, [DateTime? dt]) =>
@@ -168,10 +169,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The contextual bar is the tell: it only exists in selection mode, and
-    // the Select control is still offered because we never left normal mode.
+    // The contextual bar is the tell: it only exists in selection mode.
     expect(find.byKey(const ValueKey('selection_exit')), findsNothing);
-    expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
     expect(opened, ['d1']);
   });
 
@@ -211,8 +210,7 @@ void main() {
     // a baseline-adjacent extra rendered as an inline icon; below its minCount
     // of 2 it is disabled rather than hidden, so the user can see the action
     // exists and learn what it needs.
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(tileFinder('d1'));
     await tester.pumpAndSettle();
     expect(combineButton, findsOneWidget);
@@ -272,8 +270,7 @@ void main() {
     Finder tileFinder(String id) =>
         find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
 
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(tileFinder('d1'));
     await tester.pumpAndSettle();
     await tester.tap(tileFinder('d2'));
@@ -339,8 +336,7 @@ void main() {
     await tester.pumpAndSettle();
     Finder tileFinder(String id) =>
         find.byWidgetPredicate((w) => w is DiveListTile && w.diveId == id);
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(tileFinder('d1'));
     await tester.pumpAndSettle();
     await tester.tap(tileFinder('d2'));
@@ -401,8 +397,7 @@ void main() {
     // Merged dive not present / off-screen before the combine.
     expect(tileFinder('merged-1'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('enter_selection')));
-    await tester.pumpAndSettle();
+    await enterSelectionViaMenu(tester);
     await tester.tap(tileFinder('d0'));
     await tester.pumpAndSettle();
     await tester.tap(tileFinder('d1'));

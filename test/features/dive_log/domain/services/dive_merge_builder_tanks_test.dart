@@ -74,6 +74,52 @@ void main() {
       expect(result.tankIdMap['b2'], tanks[1].id);
     });
 
+    test('a folded cylinder was breathed for both halves (#1496)', () {
+      final a = _dive('a', 9, const [
+        DiveTank(
+          id: 'a1',
+          gasMix: _ean32,
+          startPressure: 210,
+          endPressure: 150,
+          usageDuration: Duration(minutes: 30),
+        ),
+      ]);
+      final b = _dive('b', 10, const [
+        DiveTank(
+          id: 'b1',
+          gasMix: _ean32,
+          startPressure: 150,
+          endPressure: 90,
+          usageDuration: Duration(minutes: 25),
+        ),
+      ]);
+
+      final tank = builder.build([a, b]).mergedDive.tanks.single;
+
+      expect(tank.usageDuration, const Duration(minutes: 55));
+    });
+
+    test('a half with no recorded usage leaves the fold with none', () {
+      // The folded pressure drop spans both halves, so one half's time
+      // alone would overstate the SAC.
+      final a = _dive('a', 9, const [
+        DiveTank(
+          id: 'a1',
+          gasMix: _ean32,
+          startPressure: 210,
+          endPressure: 150,
+          usageDuration: Duration(minutes: 30),
+        ),
+      ]);
+      final b = _dive('b', 10, const [
+        DiveTank(id: 'b1', gasMix: _ean32, startPressure: 150, endPressure: 90),
+      ]);
+
+      final tank = builder.build([a, b]).mergedDive.tanks.single;
+
+      expect(tank.usageDuration, isNull);
+    });
+
     test('a serial match wins even when the programmed mix differs', () {
       final a = _dive('a', 9, const [
         DiveTank(id: 'a1', transmitterSerial: '123', gasMix: _ean32),

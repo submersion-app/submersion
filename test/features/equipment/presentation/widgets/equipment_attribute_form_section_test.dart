@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
@@ -17,6 +18,7 @@ void main() {
     required Map<String, EquipmentAttribute> values,
     required void Function(EquipmentAttribute) onChanged,
     void Function(String)? onCleared,
+    AttributeGroup group = AttributeGroup.spec,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -26,6 +28,7 @@ void main() {
           body: SingleChildScrollView(
             child: EquipmentAttributeFormSection(
               type: type,
+              group: group,
               values: values,
               units: const UnitFormatter(AppSettings()),
               onChanged: onChanged,
@@ -37,6 +40,37 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets(
+    'the appearance group renders the colour field and reports a pick',
+    (tester) async {
+      EquipmentAttribute? changed;
+      await pumpSection(
+        tester,
+        type: EquipmentType.fins,
+        group: AttributeGroup.appearance,
+        values: const {},
+        onChanged: (a) => changed = a,
+      );
+      expect(find.byKey(const ValueKey('attr-field-color')), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('attr-field-color')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('color-swatch-#F97316')));
+      await tester.pumpAndSettle();
+      expect(changed?.key, 'color');
+      expect(changed?.valueText, '#F97316');
+    },
+  );
+
+  testWidgets('the spec group does not render the colour', (tester) async {
+    await pumpSection(
+      tester,
+      type: EquipmentType.fins,
+      values: const {},
+      onChanged: (_) {},
+    );
+    expect(find.byKey(const ValueKey('attr-field-color')), findsNothing);
+  });
 
   testWidgets('wetsuit renders thickness field and emits parsed value', (
     tester,
@@ -135,6 +169,30 @@ void main() {
     // Emptying the field is the only thing that clears it.
     await tester.enterText(buoyancy, '');
     expect(cleared, contains('buoyancy_kg'));
+  });
+
+  testWidgets('number field says why unreadable text is not taken (#1900)', (
+    tester,
+  ) async {
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'en_US';
+    EquipmentAttribute? emitted;
+    await pumpSection(
+      tester,
+      type: EquipmentType.wetsuit,
+      values: const {},
+      onChanged: (a) => emitted = a,
+    );
+    final buoyancy = find.byKey(const ValueKey('attr-field-buoyancy_kg'));
+    await tester.ensureVisible(buoyancy);
+
+    await tester.enterText(buoyancy, '2.5');
+    await tester.enterText(buoyancy, '2..5');
+    await tester.pump();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(emitted?.valueNum, closeTo(2.5, 0.001));
   });
 
   testWidgets('text field emits trimmed value and clears when emptied', (

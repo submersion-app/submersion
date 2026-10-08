@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -49,10 +50,39 @@ ItineraryDay _itin({String? port, String notes = ''}) => ItineraryDay(
   updatedAt: DateTime(2026, 1, 1),
 );
 
+TripStoryDay _pastDay(List<String> diveIds) => TripStoryDay(
+  date: DateTime(2026, 3, 8),
+  dayNumber: 2,
+  kind: TripStoryDayKind.past,
+  dives: [
+    for (final (i, id) in diveIds.indexed)
+      createTestDiveWithBottomTime(
+        id: id,
+        diveNumber: i + 1,
+        bottomTime: const Duration(minutes: 45),
+        maxDepth: 20.0,
+      ),
+  ],
+);
+
+/// A dive pin at its own site, kilometres from the others, so each dive
+/// keeps its own pin rather than sharing a badge.
+TripStoryMapPoint _pin(String diveId, int number) => TripStoryMapPoint(
+  latitude: 12.1,
+  longitude: -68.2 + number * 0.05,
+  dayIndex: 1,
+  label: 'Site $number',
+  siteId: 'site-$number',
+  diveId: diveId,
+  diveNumber: number,
+);
+
 Future<void> pumpCard(
   WidgetTester tester,
   TripStoryDay day, {
   List<Override> extra = const [],
+  List<TripStoryMapPoint> mapPoints = const [],
+  void Function(TripStoryDay, List<TripStoryMapPoint>)? onExpandMap,
 }) async {
   final overrides = await getBaseOverrides();
   final router = GoRouter(
@@ -61,7 +91,12 @@ Future<void> pumpCard(
         path: '/',
         builder: (context, state) => Scaffold(
           body: SingleChildScrollView(
-            child: TripStoryDayCard(day: day, tripId: 'trip-1'),
+            child: TripStoryDayCard(
+              day: day,
+              tripId: 'trip-1',
+              mapPoints: mapPoints,
+              onExpandMap: onExpandMap,
+            ),
           ),
         ),
       ),
@@ -327,5 +362,127 @@ void main() {
 
     expect(find.text('Bring a reef hook'), findsOneWidget);
     expect(find.textContaining('6 past dives here'), findsOneWidget);
+  });
+
+  testWidgets('a day with map points opens with its map', (tester) async {
+    await pumpCard(
+      tester,
+      _pastDay(['d1', 'd2']),
+      mapPoints: [_pin('d1', 1), _pin('d2', 2)],
+    );
+    expect(find.byType(FlutterMap), findsOneWidget);
+    final map = tester.getRect(find.byType(FlutterMap));
+    final band = tester.getRect(find.byKey(const Key('day-summary-band')));
+    expect(map.height, 180);
+    expect(map.bottom, lessThanOrEqualTo(band.top));
+  });
+
+  testWidgets('a day with no map points shows no map', (tester) async {
+    await pumpCard(tester, _pastDay(['d1']));
+    expect(find.byType(FlutterMap), findsNothing);
+  });
+
+  testWidgets('tapping a pin highlights its row, tapping again clears it', (
+    tester,
+  ) async {
+    await pumpCard(
+      tester,
+      _pastDay(['d1', 'd2']),
+      mapPoints: [_pin('d1', 1), _pin('d2', 2)],
+    );
+    bool highlighted(String id) => tester
+        .widgetList<DiveListItem>(find.byType(DiveListItem))
+        .firstWhere((w) => w.summary.id == id)
+        .isHighlighted;
+    expect(highlighted('d1'), isFalse);
+    await tester.tap(find.byKey(const Key('day-map-pin-d2')));
+    await tester.pumpAndSettle();
+    expect(highlighted('d2'), isTrue);
+    expect(highlighted('d1'), isFalse);
+    await tester.tap(find.byKey(const Key('day-map-pin-d1')));
+    await tester.pumpAndSettle();
+    expect(highlighted('d1'), isTrue);
+    expect(highlighted('d2'), isFalse);
+    await tester.tap(find.byKey(const Key('day-map-pin-d1')));
+    await tester.pumpAndSettle();
+    expect(highlighted('d1'), isFalse);
+  });
+
+  testWidgets('the expand button hands the day and its points up', (
+    tester,
+  ) async {
+    TripStoryDay? expandedDay;
+    List<TripStoryMapPoint>? expandedPoints;
+    await pumpCard(
+      tester,
+      _pastDay(['d1']),
+      mapPoints: [_pin('d1', 1)],
+      onExpandMap: (day, points) {
+        expandedDay = day;
+        expandedPoints = points;
+      },
+    );
+    await tester.tap(find.byKey(const Key('day-map-expand')));
+    expect(expandedDay?.dayNumber, 2);
+    expect(expandedPoints?.single.diveId, 'd1');
+  });
+
+  testWidgets('a pin scrolls only when its row is off screen', (tester) async {
+    tester.view.physicalSize = const Size(420, 560);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpCard(
+      tester,
+      _pastDay(['d1', 'd2', 'd3', 'd4']),
+      mapPoints: [_pin('d1', 1), _pin('d4', 4)],
+    );
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    expect(position.pixels, 0);
+    final row1 = tester.getRect(
+      find.byWidgetPredicate((w) => w is DiveListItem && w.summary.id == 'd1'),
+    );
+    expect(row1.bottom, lessThanOrEqualTo(560), reason: 'row 1 starts visible');
+    // Row 1 is in view: the map stays where it is.
+    await tester.tap(find.byKey(const Key('day-map-pin-d1')));
+    await tester.pumpAndSettle();
+    expect(position.pixels, 0);
+    // Row 4 is below the fold: the page brings it up.
+    await tester.tap(find.byKey(const Key('day-map-pin-d4')));
+    await tester.pumpAndSettle();
+    expect(position.pixels, greaterThan(0));
+  });
+
+  testWidgets('a drag on the day map scrolls the story, not the map', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 560);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pumpCard(
+      tester,
+      _pastDay(['d1', 'd2', 'd3', 'd4']),
+      mapPoints: [_pin('d1', 1)],
+    );
+    final position = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    final camera = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!
+        .camera
+        .center;
+    await tester.drag(find.byType(FlutterMap), const Offset(0, -200));
+    await tester.pumpAndSettle();
+    expect(position.pixels, greaterThan(0));
+    expect(
+      tester
+          .widget<FlutterMap>(find.byType(FlutterMap))
+          .mapController!
+          .camera
+          .center,
+      camera,
+    );
   });
 }

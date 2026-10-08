@@ -764,15 +764,23 @@ void main() {
       expect(dives, isNotEmpty);
     });
 
-    test('maps gps header via auto-mapping', () async {
+    test('maps gps header via auto-mapping and keeps the coordinates when '
+        'there is no site column (#2212)', () async {
       const csv =
           'Date,GPS\n'
           '2024-01-15,27.5 -80.3\n';
 
       final result = await parser.parse(csvBytes(csv));
 
-      final dives = result.entitiesOf(ImportEntityType.dives);
-      expect(dives, isNotEmpty);
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['latitude'], 27.5);
+      expect(dive['longitude'], -80.3);
+
+      final site = result.entitiesOf(ImportEntityType.sites).single;
+      expect(site['name'], '27.500000, -80.300000');
+      expect(site['latitude'], 27.5);
+      expect(site['longitude'], -80.3);
+      expect(dive['siteId'], site['id']);
     });
 
     test('maps weather headers (cloud, precipitation, humidity)', () async {
@@ -1363,6 +1371,37 @@ void main() {
         expect(dive['buddyRefs'], [buddies.single['id']]);
       },
     );
+
+    test('a custom mapping that adds a gps column to a dives-only preset '
+        'imports the site it names (#2212)', () async {
+      // Garmin Connect imports dives only, and the file has no site name
+      // column, so the coordinates are the only place the dive has.
+      const csv =
+          'Date,Activity Type,Max Depth,Avg Depth,Bottom Time,'
+          'Water Temperature,GPS\n'
+          '2024-01-15,Single-Gas Dive,25.5,18.0,00:45:00,27,20.2114 -87.4654\n';
+
+      const customMapping = FieldMapping(
+        name: 'Garmin plus position',
+        columns: [
+          ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
+          ColumnMapping(sourceColumn: 'GPS', targetField: 'gps'),
+        ],
+      );
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        customMappingOverride: customMapping,
+      );
+
+      final site = result.entitiesOf(ImportEntityType.sites).single;
+      expect(site['name'], '20.211400, -87.465400');
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['siteId'], site['id']);
+      expect(dive['latitude'], 20.2114);
+      expect(dive['longitude'], -87.4654);
+    });
 
     test('a saved preset that maps sites and buddies imports them even when '
         'its entity set omits them', () async {

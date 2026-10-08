@@ -304,6 +304,15 @@ class DivingLogRawPlace {
   final String? difficulty;
   final String? comments;
 
+  /// The star count, 0 when unrated.
+  final int? rating;
+
+  /// The water code: 1 salt, 2 fresh, 3 brackish.
+  final int? water;
+
+  /// Free text, not a number: the real file writes `Sea Level`.
+  final String? altitude;
+
   const DivingLogRawPlace({
     required this.id,
     this.countryId,
@@ -314,6 +323,9 @@ class DivingLogRawPlace {
     this.waterName,
     this.difficulty,
     this.comments,
+    this.rating,
+    this.water,
+    this.altitude,
   });
 }
 

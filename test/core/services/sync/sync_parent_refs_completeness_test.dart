@@ -32,6 +32,8 @@ void main() {
     'liveaboard_detail_records': 'liveaboardDetails',
     'trip_itinerary_days': 'itineraryDays',
     'trip_day_weather': 'tripDayWeather',
+    'trip_cylinders': 'tripCylinders',
+    'trip_cylinder_events': 'tripCylinderEvents',
     'checklist_templates': 'checklistTemplates',
     'checklist_template_items': 'checklistTemplateItems',
     'trip_checklist_items': 'tripChecklistItems',
@@ -43,10 +45,16 @@ void main() {
     'cylinder_config_items': 'cylinderConfigItems',
     'quality_findings': 'qualityFindings',
     'dive_types': 'diveTypes',
+    'custom_certification_agencies': 'customCertificationAgencies',
+    'custom_certification_levels': 'customCertificationLevels',
     'tank_presets': 'tankPresets',
     'weight_presets': 'weightPresets',
     'weight_preset_entries': 'weightPresetEntries',
     'transmitters': 'transmitters',
+    'cylinder_fills': 'cylinderFills',
+    'connection_maps': 'connectionMaps',
+    'saved_queries': 'savedQueries',
+    'insight_observation_dismissals': 'insightObservationDismissals',
     'dive_computers': 'diveComputers',
     'species': 'species',
     'tags': 'tags',
@@ -85,7 +93,11 @@ void main() {
     'media_subscriptions': 'mediaSubscriptions',
     'service_kinds': 'serviceKinds',
     'service_schedules': 'serviceSchedules',
+    'certification_currency_rules': 'certificationCurrencyRules',
+    'certification_currency_prefs': 'certificationCurrencyPrefs',
+    'certification_currency_events': 'certificationCurrencyEvents',
     'gps_tracks': 'gpsTracks',
+    'nav_tracks': 'navTracks',
     'diver_weight_entries': 'diverWeightEntries',
     'dive_roles': 'diveRoles',
     'equipment_attributes': 'equipmentAttributes',
@@ -95,13 +107,25 @@ void main() {
     'dive_dive_types': 'diveDiveTypes',
     'site_types': 'siteTypes',
     'site_site_types': 'siteSiteTypes',
+    'dive_diver_roles': 'diveDiverRoles',
+    'dive_buddy_roles': 'diveBuddyRoles',
     'site_tags': 'siteTags',
     'equipment_tags': 'equipmentTags',
+    'equipment_shares': 'equipmentShares',
+    'trip_equipment': 'tripEquipment',
+    'trip_hides': 'tripHides',
+    'site_hides': 'siteHides',
+    'equipment_ownership_events': 'equipmentOwnershipEvents',
+    'equipment_locations': 'equipmentLocations',
+    'equipment_location_moves': 'equipmentLocationMoves',
     'dive_safety_reviews': 'diveSafetyReviews',
     'dive_safety_findings': 'diveSafetyFindings',
     'dive_plans': 'divePlans',
     'dive_plan_tanks': 'divePlanTanks',
     'dive_plan_segments': 'divePlanSegments',
+    'dive_plan_missions': 'divePlanMissions',
+    'dive_plan_mission_legs': 'divePlanMissionLegs',
+    'dive_plan_mission_members': 'divePlanMissionMembers',
     'dive_plan_equipment': 'divePlanEquipment',
     'pre_dive_checklist_templates': 'preDiveChecklistTemplates',
     'pre_dive_checklist_template_items': 'preDiveChecklistTemplateItems',
@@ -122,9 +146,11 @@ void main() {
     'dives': 'dives',
     'dive_sites': 'diveSites',
     'trips': 'trips',
+    'trip_cylinders': 'tripCylinders',
     'courses': 'courses',
     'equipment': 'equipment',
     'equipment_sets': 'equipmentSets',
+    'equipment_locations': 'equipmentLocations',
     'buddies': 'buddies',
     'tags': 'tags',
     'dive_types': 'diveTypes',
@@ -132,6 +158,7 @@ void main() {
     'tank_presets': 'tankPresets',
     'weight_presets': 'weightPresets',
     'transmitters': 'transmitters',
+    'cylinder_fills': 'cylinderFills',
     'dive_centers': 'diveCenters',
     'species': 'species',
     'dive_computers': 'diveComputers',
@@ -240,5 +267,20 @@ void main() {
           'These merge-applied entities are missing from syncedTables, so '
           'their FK guards are unverified:\n${missing.join('\n')}',
     );
+  });
+
+  test('alsoClearedWithParent only names declared set-null references', () {
+    // A key that matches no nullable parentRefs entry would never be read,
+    // silently leaving its fields set after the parent is tombstoned.
+    for (final entity in SyncService.alsoClearedWithParent.entries) {
+      final refs = SyncService.parentRefs[entity.key] ?? const [];
+      for (final field in entity.value.keys) {
+        expect(
+          refs.any((r) => r.field == field && r.nullable),
+          isTrue,
+          reason: '${entity.key}.$field is not a nullable parentRefs entry',
+        );
+      }
+    }
   });
 }

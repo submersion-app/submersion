@@ -18,7 +18,13 @@ String _sqlType(ProfileFieldKind kind) => switch (kind) {
   ProfileFieldKind.runLengthString => 'TEXT',
 };
 
-/// The legacy `dive_profiles` columns: identity plus every codec field.
+/// The legacy `dive_profiles` columns: identity plus every codec v1 field.
+///
+/// Deliberately v1, not the newest table. These staging tables mirror the
+/// row-per-sample `dive_profiles` table an older peer still publishes, and
+/// that table only ever had the v1 columns: no peer below the v183 floor can
+/// send `gf99` or `n2_load`, and the packer encodes staged rows with the
+/// current codec anyway (the missing v2 columns simply pack as null).
 final List<String> _legacyProfileColumns = [
   'id',
   'dive_id',

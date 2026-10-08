@@ -12,6 +12,8 @@ import 'package:submersion/features/equipment/presentation/pages/service_kind_li
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/core/text/fuzzy_match.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/fab_clearance.dart';
@@ -304,7 +306,14 @@ void main() {
       await tester.ensureVisible(find.text('Other'));
       await tester.tap(find.text('Other'));
       await tester.ensureVisible(find.text('Attach automatically to new gear'));
-      await tester.tap(find.byType(Switch));
+      // The dialog's own switch: the page behind it has a show switch on
+      // every built-in row (issue #401).
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(Switch),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
@@ -446,6 +455,37 @@ void main() {
       expect(custom.defaultIntervalDays, 540);
     });
 
+    testWidgets('dive, hour and exposure intervals save as typed (#1900)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildDbPage());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Name'),
+        'Reg service',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Interval (dives)'),
+        '100',
+      );
+      await tester.enterText(
+        find.byKey(const Key('service-kind-exposure-coldDives')),
+        '25',
+      );
+      final save = find.text('Save');
+      await tester.ensureVisible(save);
+      await tester.tap(save);
+      await tester.pumpAndSettle();
+
+      final kinds = await tester.runAsync(() => kindRepo.getAllKinds());
+      final custom = kinds!.firstWhere((k) => k.name == 'Reg service');
+      expect(custom.defaultIntervalDives, 100);
+      expect(custom.exposureIntervals.values, contains(25.0));
+    });
+
     testWidgets('delete flow removes the custom kind after confirmation', (
       tester,
     ) async {
@@ -479,6 +519,28 @@ void main() {
       expect(kinds!.where((k) => !k.isBuiltIn), isEmpty);
     });
 
+    testWidgets('a fractional day interval fails validation instead of '
+        'saving no interval (#1900)', (tester) async {
+      await tester.pumpWidget(buildDbPage());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Name'),
+        'Cell check',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Interval (days)'),
+        '1.5',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter a whole number'), findsOneWidget);
+      expect(find.text('Add service type'), findsOneWidget); // still open
+    });
+
     testWidgets('empty name fails validation and keeps the dialog open', (
       tester,
     ) async {
@@ -493,5 +555,34 @@ void main() {
       expect(find.text('A name is required'), findsOneWidget);
       expect(find.text('Add service type'), findsOneWidget); // still open
     });
+  });
+
+  testWidgets('Applies to lists the types by their label (#2937)', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1200, 4000);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpWidget(buildPage([builtIn('hydro', 'Hydrostatic test')]));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    final typeLabels = {
+      for (final t in EquipmentType.values) t.localizedName(l10n),
+    };
+    final shown = [
+      for (final chip in tester.widgetList<FilterChip>(find.byType(FilterChip)))
+        if (chip.label case Text(:final data?) when typeLabels.contains(data))
+          data,
+    ];
+    final alphabetical = [...shown]
+      ..sort((a, b) => normalize(a).compareTo(normalize(b)));
+    expect(shown, hasLength(EquipmentType.values.length));
+    expect(shown, alphabetical);
   });
 }

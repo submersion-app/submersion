@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 import 'package:submersion/features/media/presentation/providers/media_import_suggestion_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/ambiguous_dive_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/import_preview_thumbnail.dart';
-import 'package:submersion/features/media/presentation/widgets/site_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 typedef ImportReviewConfirm =
@@ -64,9 +65,9 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
   }
 
   Future<void> _chooseSite(ImportCandidate c) async {
-    final siteId = await showSitePickerSheet(context);
-    if (siteId == null || !mounted) return;
-    setState(() => _overrides[c.key] = SiteAttachTarget(siteId));
+    final result = await showSitePicker(context, useDeviceLocation: false);
+    if (result is! SitePicked || !mounted) return;
+    setState(() => _overrides[c.key] = SiteAttachTarget(result.site.id));
   }
 
   void _toggle(ImportCandidate c, ImportSuggestion? s) {
@@ -127,8 +128,13 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
     }
     if (c.error != null) return c.error!;
     if (_overrides.containsKey(c.key)) return l10n.media_import_review_skipped;
+    // Say why nothing matched when the cause is the file's date rather than
+    // the diver's log: no date at all, or only the file's modified time.
+    if (c.takenAt == null) return l10n.media_import_review_noCaptureTime;
     return switch (s?.match.kind) {
       TimestampMatchKind.ambiguous => l10n.media_import_review_ambiguous,
+      _ when c.takenAtSource == TakenAtSource.fileModifiedTime =>
+        l10n.media_import_review_noMatchFileDate,
       _ => l10n.media_import_review_noMatch,
     };
   }

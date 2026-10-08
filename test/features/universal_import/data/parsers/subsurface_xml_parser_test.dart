@@ -81,6 +81,24 @@ void main() {
       expect(dives[0]['dateTime'], DateTime.utc(2025, 11, 13, 7, 23, 58));
       expect(dives[0]['diveNumber'], 5);
     });
+
+    test('a two-digit year is not the year 91 (#2617)', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='5' date='91-11-13' time='07:23:58' duration='10:00 min'>
+  <divecomputer model='Test'>
+  <depth max='8.0 m' mean='4.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives[0]['dateTime'], DateTime.utc(1991, 11, 13, 7, 23, 58));
+    });
   });
 
   group('dive metadata', () {
@@ -179,7 +197,8 @@ void main() {
         expect(dives[0]['notes'], contains('Suit: 3mm Bare wetsuit'));
       });
 
-      test('an unclear suit stays in the notes only', () async {
+      test('an unclear suit becomes Other gear linked to its dives '
+          '(#633)', () async {
         final result = await parser.parse(
           xmlBytes('''
 <divelog program='subsurface' version='3'>
@@ -188,15 +207,67 @@ void main() {
   <suit>Full suit</suit>
   <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
 </dive>
+<dive number='2' date='2025-01-16' time='10:00:00' duration='30:00 min'>
+  <suit>Full suit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
 </dives>
 </divelog>
 '''),
         );
 
-        expect(result.entitiesOf(ImportEntityType.equipment), isEmpty);
+        final suit = result.entitiesOf(ImportEntityType.equipment).single;
+        expect(suit['name'], 'Full suit');
+        expect(suit['type'], 'other');
+        // No thickness: an unclear suit must not reach the Suit Thickness
+        // statistic as a wetsuit of some size.
+        expect(suit.containsKey('thickness'), isFalse);
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        expect(dives[0]['equipmentRefs'], [suit['uddfId']]);
+        expect(dives[1]['equipmentRefs'], [suit['uddfId']]);
+        expect(dives[0]['notes'], contains('Suit: Full suit'));
+      });
+
+      test('a layer that names itself takes the layer type (#633)', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <suit>Dry undersuit</suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        final suit = result.entitiesOf(ImportEntityType.equipment).single;
+        expect(suit['type'], 'undersuit');
+        final dive = result.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['equipmentRefs'], [suit['uddfId']]);
+      });
+
+      test('a blank suit emits no equipment', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <suit>   </suit>
+  <divecomputer model='Test'><depth max='20.0 m' /></divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+
+        expect(
+          result.entities.containsKey(ImportEntityType.equipment),
+          isFalse,
+        );
         final dive = result.entitiesOf(ImportEntityType.dives).single;
         expect(dive.containsKey('equipmentRefs'), isFalse);
-        expect(dive['notes'], contains('Suit: Full suit'));
       });
 
       test('a log without suits emits no equipment', () async {
@@ -256,8 +327,55 @@ void main() {
       );
       final dive = result.entitiesOf(ImportEntityType.dives).first;
       expect(dive['visibility'], Visibility.excellent);
-      expect(dive['currentStrength'], CurrentStrength.strong);
+      expect(dive['currentStrength'], CurrentStrength.light);
       expect(dive['rating'], 3);
+    });
+
+    // Subsurface rates every dive condition on a comfort scale: five stars is
+    // the most comfortable (no current), one star the least (strongest
+    // current). The mapping must run the other way round from visibility's.
+    for (final (stars, expected) in [
+      (1, CurrentStrength.strong),
+      (2, CurrentStrength.strong),
+      (3, CurrentStrength.moderate),
+      (4, CurrentStrength.light),
+      (5, CurrentStrength.none),
+    ]) {
+      test('maps current=$stars stars to $expected', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' current='$stars' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dive = result.entitiesOf(ImportEntityType.dives).first;
+        expect(dive['currentStrength'], expected);
+      });
+    }
+
+    test('leaves currentStrength unset when current is absent', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive.containsKey('currentStrength'), isFalse);
     });
 
     test('maps watersalinity to WaterType', () async {
@@ -301,6 +419,62 @@ void main() {
       final dives = result.entitiesOf(ImportEntityType.dives);
       expect(dives[0]['diveMode'], DiveMode.ccr);
       expect(dives[1]['diveMode'], DiveMode.scr);
+    });
+
+    test('maps Subsurface PSCR to semi-closed (issue #2593)', () async {
+      // Subsurface writes OC, CCR, PSCR or Freedive; PSCR used to fall
+      // through to open circuit.
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test PSCR' dctype='PSCR'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive['diveMode'], DiveMode.scr);
+    });
+
+    test('a loop logged by a second computer makes the dive a loop dive '
+        '(issue #2593)', () async {
+      // A CCR diver's backup computer often runs in open-circuit mode beside
+      // the controller and may be listed first. The diver was still on the
+      // loop, so the dive must not import as open circuit.
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Backup'>
+  <depth max='82.0 m' mean='40.0 m' />
+  </divecomputer>
+  <divecomputer model='Controller' dctype='CCR'>
+  <depth max='82.0 m' mean='40.0 m' />
+  </divecomputer>
+</dive>
+<dive number='2' date='2025-01-16' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Backup' dctype='OC'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+  <divecomputer model='Second OC'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives[0]['diveMode'], DiveMode.ccr);
+      expect(dives[1]['diveMode'], DiveMode.oc);
     });
 
     test('parses dive-level cns and preserves fractional otu', () async {
@@ -1021,7 +1195,36 @@ $cylinders
       expect(weights.length, 1);
       expect(weights[0]['amount'], closeTo(6.35, 0.01));
       expect(weights[0]['type'], WeightType.belt);
-      expect(weights[0]['notes'], 'belt');
+      // 'belt' is a stock Subsurface name: it sets the type, not a name.
+      expect(weights[0]['label'], '');
+      expect(weights[0].containsKey('notes'), isFalse);
+    });
+
+    test('a custom description becomes the weight\'s name', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <weightsystem weight='2.0 kg' description='Top pocket' />
+  <weightsystem weight='1.0 kg' description=' Clip-On ' />
+  <weightsystem weight='3.0 kg' description='trim pocket left' />
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final weights = dive['weights'] as List<Map<String, dynamic>>;
+      expect(weights.map((w) => w['label']).toList(), [
+        'Top pocket',
+        '',
+        'trim pocket left',
+      ]);
+      expect(weights[2]['type'], WeightType.trimWeights);
     });
   });
 
@@ -1879,7 +2082,7 @@ $diveXml
       final buddies = result.entitiesOf(ImportEntityType.buddies);
       expect(buddies.length, greaterThanOrEqualTo(2));
       expect(dive1['visibility'], Visibility.poor);
-      expect(dive1['currentStrength'], CurrentStrength.strong);
+      expect(dive1['currentStrength'], CurrentStrength.light);
       expect(dive1['waterType'], WaterType.salt);
 
       final profile = dive1['profile'] as List<Map<String, dynamic>>?;

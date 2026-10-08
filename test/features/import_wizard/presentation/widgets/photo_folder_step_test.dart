@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/photo_folder_step.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -233,6 +234,53 @@ void main() {
       expect(find.textContaining('never keeps its own copy'), findsOneWidget);
       // No referenced photos, so no folder-to-resolve question.
       expect(find.text('Choose photo folder...'), findsNothing);
+    });
+  });
+
+  group('photos a remote source will download', () {
+    void seedRemote(int count) {
+      final notifier = container.read(universalImportNotifierProvider.notifier);
+      notifier.state = notifier.state.copyWith(
+        payload: ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {'sourceUuid': 'divelogs-1', 'dateTime': DateTime(2025, 1, 15)},
+            ],
+          },
+        ),
+        remotePhotoCount: count,
+      );
+    }
+
+    test('put the Photos step in front of the user', () {
+      seedRemote(5);
+      expect(container.read(universalAdapterNoPhotosProvider), isFalse);
+      expect(container.read(universalAdapterPhotosReadyProvider), isFalse);
+    });
+
+    test('are ready once a destination is chosen', () async {
+      answerProbe(true);
+      seedRemote(5);
+      expect(container.read(universalAdapterPhotosReadyProvider), isFalse);
+      await container
+          .read(universalImportNotifierProvider.notifier)
+          .chooseBundledPhotoFolder('/Users/eric/Pictures/Dives');
+      expect(container.read(universalAdapterPhotosReadyProvider), isTrue);
+    });
+
+    testWidgets('are counted as downloads and ask where to save them', (
+      tester,
+    ) async {
+      await withPlatform(TargetPlatform.macOS, () async {
+        seedRemote(5);
+
+        await tester.pumpWidget(host(const PhotoFolderStep()));
+        await tester.pump();
+
+        expect(find.text('5 photos to download'), findsOneWidget);
+        expect(find.textContaining('bundled in the archive'), findsNothing);
+        expect(find.text('Choose where to save photos...'), findsOneWidget);
+      });
     });
   });
 

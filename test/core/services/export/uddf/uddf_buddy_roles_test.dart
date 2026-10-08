@@ -99,15 +99,15 @@ void main() {
         'd1': [
           BuddyWithRole(
             buddy: _buddy('b1', 'Nicol Sorin'),
-            role: _role(DiveRole.diveMasterId),
+            roles: [_role(DiveRole.diveMasterId)],
           ),
           BuddyWithRole(
             buddy: _buddy('b2', 'Joe Bloggs'),
-            role: _role(DiveRole.buddyId),
+            roles: [_role(DiveRole.buddyId)],
           ),
           BuddyWithRole(
             buddy: _buddy('b3', 'Pat Kim'),
-            role: _role('custom-uuid'),
+            roles: [_role('custom-uuid')],
           ),
         ],
       });
@@ -131,7 +131,7 @@ void main() {
         'd1': [
           BuddyWithRole(
             buddy: _buddy('b2', 'Joe Bloggs'),
-            role: _role(DiveRole.buddyId),
+            roles: [_role(DiveRole.buddyId)],
           ),
         ],
       });
@@ -428,5 +428,26 @@ void main() {
 
       expect(r.unmatched, ['Zed']);
     });
+  });
+
+  test('a person with two leader roles covers their name once (#1221)', () {
+    // Two namesakes, both named in <divemaster>. Only the first carries
+    // exact roles (two leader roles); the second must still be linked as a
+    // guide from the text.
+    final buddies = <String, Map<String, dynamic>>{
+      'a': {'name': 'Ana Reyes'},
+      'b': {'name': 'Ana Reyes'},
+    };
+    final dive = <String, dynamic>{
+      UddfBuddyRoles.roleRefsKey: [
+        {'buddyRef': 'a', 'roleId': DiveRole.diveMasterId},
+        {'buddyRef': 'a', 'roleId': DiveRole.diveGuideId},
+      ],
+    };
+    UddfBuddyRoles.recordLeaderText(dive, 'Ana Reyes, Ana Reyes');
+
+    UddfBuddyRoles.settle(dive, buddies);
+
+    expect(dive['diveGuideRefs'], ['b']);
   });
 }

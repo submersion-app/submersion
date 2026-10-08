@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide Dive, DiveTank, Diver;
 import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -52,7 +54,10 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  DownloadedDive download({List<DownloadedTank>? tanks}) => DownloadedDive(
+  DownloadedDive download({
+    List<DownloadedTank>? tanks,
+    ComputerTissueSnapshot? computerTissue,
+  }) => DownloadedDive(
     startTime: DateTime(2026, 6, 1, 9, 3),
     durationSeconds: 2700,
     maxDepth: 18.4,
@@ -78,6 +83,7 @@ void main() {
     gfLow: 40,
     gfHigh: 85,
     decoAlgorithm: 'Buhlmann ZHL-16C',
+    computerTissue: computerTissue,
   );
 
   Future<Dive> plannedDive() => dives.createPlannedDive(
@@ -138,6 +144,23 @@ void main() {
     },
   );
 
+  test('fill takes the tissue state the computer reported', () async {
+    const tissue = ComputerTissueSnapshot(
+      algorithm: 'zhl_16c',
+      end: ComputerTissueState(gf99Percent: 62, surfaceGfPercent: 48),
+    );
+    final planned = await plannedDive();
+
+    await service.fill(
+      plannedDiveId: planned.id,
+      dive: download(computerTissue: tissue),
+      computerId: computerId,
+    );
+
+    final filled = await dives.getDiveById(planned.id);
+    expect(filled?.computerTissue, tissue);
+  });
+
   test('the sketched profile is replaced, not merged', () async {
     final planned = await plannedDive();
     await service.fill(
@@ -181,6 +204,36 @@ void main() {
     final filled = await dives.getDiveById(planned.id);
     expect(filled?.tanks, hasLength(2));
     expect(filled?.tanks.map((t) => t.gasMix.o2), containsAll([32.0, 50.0]));
+  });
+
+  test('an unmatched downloaded tank keeps its role and where it came '
+      'from (#2595)', () async {
+    final planned = await plannedDive();
+    final outcome = await service.fill(
+      plannedDiveId: planned.id,
+      dive: download(
+        tanks: const [
+          DownloadedTank(index: 0, o2Percent: 32, startPressure: 200),
+          DownloadedTank(
+            index: 1,
+            o2Percent: 100,
+            startPressure: 180,
+            role: 'oxygenSupply',
+            roleSource: TankRoleSource.transmitterName,
+            transmitterSerial: '180777',
+          ),
+        ],
+      ),
+      computerId: computerId,
+    );
+    // The import summary reads this to explain the role (Copilot on #2749).
+    expect(outcome.nameDerivedRoleTanks, 1);
+    final filled = await dives.getDiveById(planned.id);
+    final oxygen = filled!.tanks.singleWhere((t) => t.gasMix.o2 == 100);
+    expect(oxygen.role, TankRole.oxygenSupply);
+    expect(oxygen.roleSource, TankRoleSource.transmitterName);
+    final planned32 = filled.tanks.singleWhere((t) => t.gasMix.o2 == 32);
+    expect(planned32.role, TankRole.backGas, reason: 'the plan keeps its own');
   });
 
   test('a data source with the fingerprint exists after the fill', () async {

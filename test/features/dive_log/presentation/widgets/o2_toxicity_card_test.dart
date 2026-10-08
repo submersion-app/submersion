@@ -94,4 +94,83 @@ void main() {
       expect(find.textContaining('Time above'), findsNothing);
     });
   });
+
+  group('O2ToxicityCard live readout (liveCns)', () {
+    Widget buildLive(
+      O2Exposure exposure, {
+      required double liveCns,
+      double? dailyOtu,
+      double? weeklyOtu,
+    }) => localizedMaterialApp(
+      locale: const Locale('en'),
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: O2ToxicityCard(
+            exposure: exposure,
+            units: units,
+            showDetails: false,
+            liveCns: liveCns,
+            dailyOtu: dailyOtu,
+            weeklyOtu: weeklyOtu,
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('reads the live CNS but keeps the dive\'s own delta', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildLive(const O2Exposure(cnsStart: 10, cnsEnd: 50), liveCns: 12),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('12%'), findsOneWidget);
+      expect(find.text('50%'), findsNothing);
+      expect(find.text('Before last dive: 10%'), findsOneWidget);
+      expect(find.text('Last dive: +40.0%'), findsOneWidget);
+      expect(find.text('Last Dive'), findsOneWidget);
+    });
+
+    testWidgets('warns on the live CNS, not the dive\'s end value', (
+      tester,
+    ) async {
+      // 90% at the surface (a warning) has decayed to 30% (no warning).
+      await tester.pumpWidget(
+        buildLive(const O2Exposure(cnsEnd: 90), liveCns: 30),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('WARNING'), findsNothing);
+      expect(find.text('CRITICAL'), findsNothing);
+    });
+
+    testWidgets('ignores the dive\'s past ppO2 peak for the badge', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildLive(const O2Exposure(cnsEnd: 5, maxPpO2: 1.7), liveCns: 5),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('CRITICAL'), findsNothing);
+      expect(find.text('WARNING'), findsNothing);
+    });
+
+    testWidgets('the daily row shows the dailyOtu total it is given', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildLive(
+          const O2Exposure(otuStart: 250, otu: 20),
+          liveCns: 0,
+          dailyOtu: 30,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('30 / 300 OTU (10%)'), findsOneWidget);
+      expect(find.textContaining('270 / 300'), findsNothing);
+    });
+  });
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -11,6 +10,7 @@ import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.d
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Site group 2: latitude/longitude rows, locate/pick actions, altitude
 /// row with the altitude-group indicator.
@@ -142,7 +142,11 @@ class LocationSection extends StatelessWidget {
         ValueListenableBuilder<TextEditingValue>(
           valueListenable: altitudeController,
           builder: (context, altitude, _) {
-            final altitudeInput = parseUserDecimal(altitude.text);
+            // No group for blank or unreadable text; the field says why.
+            final altitudeInput = switch (readNumber(altitude.text)) {
+              NumberValue(:final value) => value,
+              NumberBlank() || NumberInvalid() => null,
+            };
             final altitudeMeters = altitudeInput != null
                 ? units.altitudeToMeters(altitudeInput)
                 : null;

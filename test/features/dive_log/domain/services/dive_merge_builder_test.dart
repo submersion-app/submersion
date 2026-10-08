@@ -204,9 +204,35 @@ void main() {
       final b = dive(
         'b',
         entry: DateTime.utc(2026, 7, 1, 10),
-      ).copyWith(diverRoleId: 'rearGuard');
+      ).copyWith(diverRoleIds: ['rearGuard']);
       final merged = builder.build([a, b]).mergedDive;
-      expect(merged.diverRoleId, 'rearGuard');
+      expect(merged.diverRoleIds.firstOrNull, 'rearGuard');
+    });
+
+    test('the merged dive holds the union of the diver roles (#1221)', () {
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+      ).copyWith(diverRoleIds: ['diveMaster']);
+      final b = dive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+      ).copyWith(diverRoleIds: ['diveGuide', 'diveMaster']);
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.diverRoleIds, ['diveGuide', 'diveMaster']);
+    });
+
+    test('Solo yields to another role in the union (#1221)', () {
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+      ).copyWith(diverRoleIds: ['solo']);
+      final b = dive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+      ).copyWith(diverRoleIds: ['instructor']);
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.diverRoleIds, ['instructor']);
     });
 
     test('avgDepth is weighted by sampled time and excludes the gap', () {
@@ -377,6 +403,23 @@ void main() {
       final mergedHose = merged.gear.firstWhere((g) => g.item.id == 'hose');
       expect(mergedHose.viaEquipmentId, 'reg');
       expect(mergedHose.viaSetId, 'winter');
+    });
+
+    test('merged weights keep their names', () {
+      final a = dive('a', entry: DateTime.utc(2026, 7, 1, 9)).copyWith(
+        weights: [
+          const DiveWeight(
+            id: 'w1',
+            diveId: 'a',
+            weightType: WeightType.trimWeights,
+            amountKg: 2,
+            label: 'Top pocket',
+          ),
+        ],
+      );
+      final b = dive('b', entry: DateTime.utc(2026, 7, 1, 10));
+      final result = builder.build([a, b]);
+      expect(result.mergedDive.weights.single.label, 'Top pocket');
     });
 
     test('weights come from the first dive that has any', () {

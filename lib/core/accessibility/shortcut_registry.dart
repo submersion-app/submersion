@@ -108,6 +108,11 @@ class ShortcutCatalog {
     _entries.removeWhere((e) => e.category == category);
   }
 
+  /// Remove every entry with [label].
+  void unregisterLabel(String label) {
+    _entries.removeWhere((e) => e.label == label);
+  }
+
   /// Remove all registered entries.
   void clear() {
     _entries.clear();

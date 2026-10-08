@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
+import 'package:submersion/features/import_wizard/presentation/suunto_file_import_navigation.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/source_confirmation_step.dart';
@@ -44,8 +49,20 @@ class FileTriageStep extends ConsumerWidget {
     // use it when a CSV was actually excluded; otherwise (only unsupported or
     // failed files) show a format-neutral message.
     final hasExcludedCsv = state.files.any(
-      (f) => f.status == ImportFileStatus.excludedCsv,
+      (f) =>
+          f.status == ImportFileStatus.excludedCsv &&
+          !f.detection.format.isHandoff,
     );
+    // Suunto exports picked together are excluded from the batch like a
+    // CSV, but they have an importer of their own that takes several files
+    // at once (#1445); without this the triage would be a dead end.
+    final suuntoFiles = [
+      for (final f in state.files)
+        if (f.status == ImportFileStatus.excludedCsv &&
+            f.detection.format == ImportFormat.suuntoJson &&
+            f.path != null)
+          f,
+    ];
     final emptyMessage = hasExcludedCsv
         ? l10n.universalImport_triage_allExcluded
         : l10n.universalImport_triage_noneImportable;
@@ -68,6 +85,19 @@ class FileTriageStep extends ConsumerWidget {
             ),
           ),
         ),
+        if (suuntoFiles.isNotEmpty && !state.isLoading)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: FilledButton.tonalIcon(
+                key: const ValueKey('triage-import-with-suunto'),
+                icon: const Icon(Icons.scuba_diving),
+                label: Text(l10n.universalImport_summary_importWithSuunto),
+                onPressed: () => _openSuuntoImporter(context, suuntoFiles),
+              ),
+            ),
+          ),
         if (state.isLoading)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -114,6 +144,28 @@ class FileTriageStep extends ConsumerWidget {
   }
 }
 
+/// Reads the excluded Suunto exports back from disk (the batch keeps no
+/// bytes) and opens the Suunto importer with all of them.
+Future<void> _openSuuntoImporter(
+  BuildContext context,
+  List<PickedImportFile> files,
+) async {
+  final l10n = context.l10n;
+  try {
+    final picked = [
+      for (final f in files)
+        SuuntoJsonFile(name: f.name, bytes: await File(f.path!).readAsBytes()),
+    ];
+    if (!context.mounted) return;
+    await openSuuntoFileImport(context, picked);
+  } catch (_) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.dropTarget_error_readFailed)));
+  }
+}
+
 class _FileTriageTile extends StatelessWidget {
   const _FileTriageTile({required this.file});
 
@@ -135,9 +187,15 @@ class _FileTriageTile extends StatelessWidget {
         Icons.error_outline,
         l10n.universalImport_triage_parseFailed,
       ),
+      // A hand-off file (#1445) is excluded like a CSV, but names its own
+      // format rather than claiming to be one.
       ImportFileStatus.excludedCsv => (
         Icons.block,
-        l10n.universalImport_triage_excludedCsv,
+        file.detection.format.isHandoff
+            ? l10n.universalImport_triage_excludedHandoff(
+                file.detection.format.displayName,
+              )
+            : l10n.universalImport_triage_excludedCsv,
       ),
       ImportFileStatus.unsupported => (
         Icons.help_outline,

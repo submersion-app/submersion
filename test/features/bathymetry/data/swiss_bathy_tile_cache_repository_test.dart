@@ -281,6 +281,40 @@ void main() {
     });
   });
 
+  group('legacy negatives (issue #1770)', () {
+    test('a gap written now is a definitive answer: read() is null, but '
+        'hasCachedAnswer() stays true so the tile is not re-queried', () async {
+      await repo.writeEmpty('2726_1221', referenceLevelMeters: 419.07);
+
+      expect(
+        await repo.read('2726_1221', expectedReferenceLevelMeters: 419.07),
+        isNull,
+      );
+      expect(await repo.hasCachedAnswer('2726_1221'), isTrue);
+    });
+
+    test('an "empty" row from before downloads were validated is dropped on '
+        'read, even at the matching level, so the tile re-resolves once: it '
+        'may be an HTML error page misread as an empty zip', () async {
+      await db
+          .into(db.swissBathyTileCache)
+          .insert(
+            SwissBathyTileCacheCompanion.insert(
+              tileKey: '2726_1221',
+              status: 'empty',
+              fetchedAt: DateTime.now().millisecondsSinceEpoch,
+              referenceLevelMeters: const Value(419.07),
+            ),
+          );
+
+      expect(
+        await repo.read('2726_1221', expectedReferenceLevelMeters: 419.07),
+        isNull,
+      );
+      expect(await repo.hasCachedAnswer('2726_1221'), isFalse);
+    });
+  });
+
   group('SwissBathyTileCacheRepository.clearAll', () {
     test('removes every row, ok and empty alike', () async {
       final grid = BathymetryGrid(

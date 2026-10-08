@@ -13,6 +13,10 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/billed_fill.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
@@ -21,10 +25,12 @@ import 'package:submersion/features/gas_calculators/presentation/providers/gas_b
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_billing_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_export_sheet.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_line_edit_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
-import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../helpers/fake_path_provider.dart';
+import '../../helpers/fake_hosts.dart';
 
 /// The share helpers write into getApplicationDocumentsDirectory(), a
 /// platform channel with no implementation under flutter_test.
@@ -76,9 +82,38 @@ Future<void> _pickGas(WidgetTester tester, String gas) async {
   await tester.pumpAndSettle();
 }
 
+/// A tank from the diver's own gear (issue #2926: the gas-fill line reads a
+/// cylinder's own equipment entry now, not the global tank presets).
+EquipmentItem _tank(
+  String id,
+  String name, {
+  double? volumeL,
+  double? workingPressureBar,
+}) => EquipmentItem(
+  id: id,
+  name: name,
+  type: EquipmentType.tank,
+  attributes: [
+    if (volumeL != null)
+      EquipmentAttribute(
+        id: '',
+        equipmentId: id,
+        key: EquipmentAttrKeys.volumeL,
+        valueNum: volumeL,
+      ),
+    if (workingPressureBar != null)
+      EquipmentAttribute(
+        id: '',
+        equipmentId: id,
+        key: EquipmentAttrKeys.workingPressureBar,
+        valueNum: workingPressureBar,
+      ),
+  ],
+);
+
 Future<WidgetRef> _pump(
   WidgetTester tester, {
-  List<TankPresetEntity> presets = const [],
+  List<EquipmentItem> gear = const [],
   AppSettings settings = const AppSettings(defaultCurrency: 'CHF'),
 }) async {
   await tester.binding.setSurfaceSize(const Size(900, 2400));
@@ -88,7 +123,7 @@ Future<WidgetRef> _pump(
     ProviderScope(
       overrides: [
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
-        tankPresetsProvider.overrideWith((ref) async => presets),
+        activeEquipmentProvider.overrideWith((ref) async => gear),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -114,6 +149,13 @@ Future<WidgetRef> _pump(
 }
 
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   group('BilledFill', () {
     test('round-trips through JSON, itemisation included', () {
       const fill = BilledFill(
@@ -470,6 +512,27 @@ void main() {
       expect(fills.single.total, closeTo(12.50, 0.001));
     });
 
+    testWidgets('an unreadable free amount says so instead of saving no '
+        'amount (#1900)', (tester) async {
+      final ref = await _pump(tester);
+      await _openAddLine(tester, freeAmount: true);
+
+      await tester.enterText(
+        find.byKey(const Key('blender-line-description')),
+        'Analyser cell',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-amount')),
+        '12..50',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Enter a valid number'), findsWidgets);
+      expect(ref.read(blenderBilledFillsProvider), isEmpty);
+    });
+
     testWidgets('a free amount with nothing to name it says so', (
       tester,
     ) async {
@@ -619,29 +682,18 @@ void main() {
       expect(ref.read(blenderBilledFillsProvider), isEmpty);
     });
 
-    testWidgets('a cylinder preset sets the volume and the end pressure, '
+    testWidgets('choosing a cylinder sets the volume and the end pressure, '
         'which stays editable (#2302)', (tester) async {
       final ref = await _pump(
         tester,
-        presets: [
-          TankPresetEntity(
-            id: 'd12',
-            name: 'd12',
-            displayName: 'D12 232',
-            volumeLiters: 12,
-            workingPressureBar: 232,
-            material: TankMaterial.steel,
-            createdAt: DateTime(2024),
-            updatedAt: DateTime(2024),
-          ),
-        ],
+        gear: [_tank('d12', 'D12 232', volumeL: 12, workingPressureBar: 232)],
       );
       ref.read(blenderGasPricesProvider.notifier).state = const [1.0, 1.5, 0.1];
       await _openAddLine(tester);
 
-      await tester.tap(find.byKey(const Key('blender-line-cylinder-presets')));
+      await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
       await tester.pumpAndSettle();
-      await tester.tap(find.textContaining('D12 232').last);
+      await tester.tap(find.text('D12 232'));
       await tester.pumpAndSettle();
 
       String text(String key) =>
@@ -663,6 +715,178 @@ void main() {
       expect(line.addedBar, 30);
       expect(line.cylinderLiters, 12);
     });
+
+    testWidgets(
+      "choosing a cylinder fills the description field with the tank's name, "
+      'still editable by hand (#2926 follow-up)',
+      (tester) async {
+        await _pump(
+          tester,
+          gear: [_tank('d12', 'D12 232', volumeL: 12, workingPressureBar: 232)],
+        );
+        await _openAddLine(tester);
+
+        String text(String key) =>
+            tester.widget<TextField>(find.byKey(Key(key))).controller!.text;
+
+        await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('D12 232'));
+        await tester.pumpAndSettle();
+        expect(text('blender-line-description'), 'D12 232');
+
+        await tester.enterText(
+          find.byKey(const Key('blender-line-description')),
+          'Twinset',
+        );
+        await tester.pumpAndSettle();
+        expect(text('blender-line-description'), 'Twinset');
+      },
+    );
+
+    testWidgets(
+      'choosing a cylinder keeps a description the diver already typed',
+      (tester) async {
+        await _pump(
+          tester,
+          gear: [_tank('d12', 'D12 232', volumeL: 12, workingPressureBar: 232)],
+        );
+        await _openAddLine(tester);
+
+        await tester.enterText(
+          find.byKey(const Key('blender-line-description')),
+          "Bob's twinset",
+        );
+        await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('D12 232'));
+        await tester.pumpAndSettle();
+
+        String text(String key) =>
+            tester.widget<TextField>(find.byKey(Key(key))).controller!.text;
+        expect(text('blender-line-description'), "Bob's twinset");
+        expect(text('blender-line-cylinder'), '12');
+      },
+    );
+
+    testWidgets(
+      'a later pick replaces the description an earlier pick filled in',
+      (tester) async {
+        await _pump(
+          tester,
+          gear: [
+            _tank('d12', 'D12 232', volumeL: 12, workingPressureBar: 232),
+            _tank('al80', 'AL80', volumeL: 11.1, workingPressureBar: 207),
+          ],
+        );
+        await _openAddLine(tester);
+
+        for (final name in ['D12 232', 'AL80']) {
+          await tester.tap(
+            find.byKey(const Key('blender-line-choose-cylinder')),
+          );
+          await tester.pumpAndSettle();
+          await tester.tap(find.text(name));
+          await tester.pumpAndSettle();
+        }
+
+        expect(
+          tester
+              .widget<TextField>(
+                find.byKey(const Key('blender-line-description')),
+              )
+              .controller!
+              .text,
+          'AL80',
+        );
+      },
+    );
+
+    testWidgets(
+      'a tank with no recorded volume says so inside the sheet, where a '
+      'snackbar would be hidden behind it',
+      (tester) async {
+        await _pump(tester, gear: [_tank('spare', 'Spare 12')]);
+        await _openAddLine(tester);
+
+        await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Spare 12'));
+        await tester.pumpAndSettle();
+
+        final l10n = AppLocalizations.of(
+          tester.element(find.byType(BlenderLineEditSheet)),
+        );
+        final message = l10n.gasCalculators_blender_cylinderNoVolume(
+          'Spare 12',
+        );
+        expect(
+          find.descendant(
+            of: find.byType(BlenderLineEditSheet),
+            matching: find.text(message),
+          ),
+          findsOneWidget,
+        );
+        expect(find.byType(SnackBar), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'with no tanks in the gear, says inside the sheet to type the volume '
+      'instead of opening an empty picker',
+      (tester) async {
+        await _pump(tester);
+        await _openAddLine(tester);
+
+        await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
+        await tester.pumpAndSettle();
+
+        final l10n = AppLocalizations.of(
+          tester.element(find.byType(BlenderLineEditSheet)),
+        );
+        // Only the edit sheet itself is open: no picker on top of it.
+        expect(find.byType(BottomSheet), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(BlenderLineEditSheet),
+            matching: find.text(l10n.gasCalculators_blender_noCylinders),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'choosing a cylinder with no recorded working pressure clears the end '
+      'pressure, rather than keeping a previous pick\'s stale value (#2926)',
+      (tester) async {
+        await _pump(
+          tester,
+          gear: [
+            _tank('d12', 'D12 232', volumeL: 12, workingPressureBar: 232),
+            _tank('spare', 'Spare 12', volumeL: 12),
+          ],
+        );
+        await _openAddLine(tester);
+
+        await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('D12 232'));
+        await tester.pumpAndSettle();
+
+        String text(String key) =>
+            tester.widget<TextField>(find.byKey(Key(key))).controller!.text;
+        expect(text('blender-line-end-pressure'), '232');
+
+        await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Spare 12'));
+        await tester.pumpAndSettle();
+
+        expect(text('blender-line-cylinder'), '12');
+        expect(text('blender-line-end-pressure'), '');
+      },
+    );
 
     testWidgets('re-editing a gas fill reopens it with its values and '
         'reprices it (#2302)', (tester) async {
@@ -877,32 +1101,21 @@ void main() {
       expect(ref.read(blenderBilledFillsProvider), isEmpty);
     });
 
-    testWidgets('a preset picked in cubic feet bills its exact water volume '
-        '(#2302 review)', (tester) async {
+    testWidgets('a cylinder chosen in cubic feet bills its exact water '
+        'volume (#2302 review)', (tester) async {
       final ref = await _pump(
         tester,
         settings: const AppSettings(
           defaultCurrency: 'CHF',
           volumeUnit: VolumeUnit.cubicFeet,
         ),
-        presets: [
-          TankPresetEntity(
-            id: 'al80',
-            name: 'al80',
-            displayName: 'AL80',
-            volumeLiters: 11.1,
-            workingPressureBar: 207,
-            material: TankMaterial.aluminum,
-            createdAt: DateTime(2024),
-            updatedAt: DateTime(2024),
-          ),
-        ],
+        gear: [_tank('al80', 'AL80', volumeL: 11.1, workingPressureBar: 207)],
       );
       await _openAddLine(tester);
 
-      await tester.tap(find.byKey(const Key('blender-line-cylinder-presets')));
+      await tester.tap(find.byKey(const Key('blender-line-choose-cylinder')));
       await tester.pumpAndSettle();
-      await tester.tap(find.textContaining('AL80').last);
+      await tester.tap(find.text('AL80'));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpAndSettle();
@@ -1500,11 +1713,20 @@ void main() {
     late Directory documents;
     final platform = _FakeSharePlatform();
 
-    setUpAll(() => SharePlatform.instance = platform);
+    // The harness pins a forwarder that looks the platform up on every share
+    // (test/helpers/late_bound_share_platform.dart), so the fake comes out
+    // again when this group is done.
+    late SharePlatform originalSharePlatform;
+
+    setUpAll(() {
+      originalSharePlatform = SharePlatform.instance;
+      SharePlatform.instance = platform;
+    });
+    tearDownAll(() => SharePlatform.instance = originalSharePlatform);
 
     setUp(() {
       documents = Directory.systemTemp.createTempSync('blender_invoice_test');
-      PathProviderPlatform.instance = _FakePathProvider(documents.path);
+      useFakePathProvider(_FakePathProvider(documents.path));
       platform.calls.clear();
     });
 

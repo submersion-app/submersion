@@ -73,7 +73,8 @@ void DiveComputerHostApiImpl::GetDeviceDescriptors(
 
         descriptors.push_back(flutter::CustomEncodableValue(DeviceDescriptor(
             std::string(info.vendor), std::string(info.product),
-            static_cast<int64_t>(info.model), transports)));
+            static_cast<int64_t>(info.model), transports,
+            info.delivers_oldest_first != 0)));
     }
     libdc_descriptor_iterator_free(iter);
 
@@ -95,7 +96,24 @@ void DiveComputerHostApiImpl::StartDiscovery(
                 flutter_api_->OnDiscoveryComplete(
                     [] {}, [](const auto&) {});
             });
-            ble_scanner_->Start();
+            std::optional<BleScanner::StartFailure> failure =
+                ble_scanner_->Start();
+            if (failure.has_value()) {
+                ble_scanner_.reset();
+                // The Dart side matches bluetooth_unavailable to tell the user
+                // Bluetooth is off, rather than showing the HRESULT (issue
+                // #2507). Any other refusal keeps Android's generic code.
+                if (failure->radio_unavailable) {
+                    result(FlutterError(
+                        "bluetooth_unavailable",
+                        "Bluetooth is unavailable: " + failure->reason));
+                } else {
+                    result(FlutterError(
+                        "discovery_error",
+                        "Failed to start discovery: " + failure->reason));
+                }
+                break;
+            }
             result(std::nullopt);
             break;
         }
@@ -226,6 +244,18 @@ void DiveComputerHostApiImpl::PerformDownload(
     const DiscoveredDevice& device,
     const std::optional<std::string>& fingerprint,
     bool sync_clock) {
+    // Only the serial/USB and BLE paths below have a byte pipe, and the
+    // routing further down treats everything that is not serial or USB as
+    // BLE, so an infrared device would try to connect over Bluetooth.
+    // Reject it as Android and Darwin do (issue #2841).
+    if (device.transport() == TransportType::kInfrared) {
+        flutter_api_->OnError(
+            DiveComputerError("unsupported_transport",
+                              "Infrared transport is not supported on Windows"),
+            [] {}, [](const auto&) {});
+        return;
+    }
+
     // Create download session. The session holds a dc_context_t (logging) and a
     // cancelled flag. It is intentionally reused across multiple libdc_download_run
     // calls during multi-port probing — each call creates its own internal state.
@@ -539,6 +569,19 @@ void DiveComputerHostApiImpl::PerformDownload(
             ? std::optional<std::string>(libdc_clock_sync_status_name(clock_sync))
             : std::nullopt;
 
+    // The model the device named about itself (issue #422), read before the
+    // session is freed.
+    char reported_buf[64] = {};
+    unsigned int reported_model_code = 0;
+    std::optional<std::string> reported_product;
+    std::optional<int64_t> reported_model;
+    if (libdc_download_session_reported_device(session, reported_buf,
+                                               sizeof(reported_buf),
+                                               &reported_model_code) != 0) {
+        reported_product = std::string(reported_buf);
+        reported_model = static_cast<int64_t>(reported_model_code);
+    }
+
     // Report completion or error.
     if (rc == 0 || rc == LIBDC_STATUS_CANCELLED) {
         flutter_api_->OnDownloadComplete(
@@ -546,6 +589,8 @@ void DiveComputerHostApiImpl::PerformDownload(
             serial_str ? &*serial_str : nullptr,
             firmware_str ? &*firmware_str : nullptr,
             clock_sync_str ? &*clock_sync_str : nullptr,
+            reported_product ? &*reported_product : nullptr,
+            reported_model ? &*reported_model : nullptr,
             [] {}, [](const auto&) {});
     } else {
         flutter_api_->OnError(

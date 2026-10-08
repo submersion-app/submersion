@@ -9,7 +9,11 @@ import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_playback_context.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_seascape_geometry_service.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/site_active_path_overlay_builder.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
@@ -101,11 +105,44 @@ SiteSeascapeReady readyState({TerrainImagery? imagery}) {
   );
 }
 
+/// An active-path overlay for a two-point dive path, measured unless told
+/// otherwise; shared by the playback and caption-layout tests.
+SiteActivePathOverlay testActivePathOverlay({
+  PathProvenance provenance = PathProvenance.measured,
+  String? sourceLabel,
+}) => buildSiteActivePathOverlay(
+  path: ReckonedPath(
+    points: const [
+      ReckonedPoint(east: 0, north: 0, depth: 0, timeSeconds: 0),
+      ReckonedPoint(east: 5, north: 0, depth: 8, timeSeconds: 60),
+    ],
+    provenance: provenance,
+    sourceLabel: sourceLabel,
+    minEast: 0,
+    maxEast: 5,
+    minNorth: 0,
+    maxNorth: 0,
+    maxDepth: 8,
+    durationSeconds: 60,
+  ),
+  anchor: (east: 0.0, north: 0.0),
+  projection: SpatialProjection(
+    minEast: -50,
+    maxEast: 50,
+    minNorth: -50,
+    maxNorth: 50,
+    maxDepth: 20,
+  ),
+)!;
+
 Widget page(
   SiteSeascapeState state, {
   AppSettings settings = const AppSettings(),
   List<SiteFeature> features = const [],
   List<Override> extraOverrides = const [],
+  SeascapePlaybackContext? playbackContext,
+  List<Widget> leadingActions = const [],
+  Locale locale = const Locale('en'),
 }) => ProviderScope(
   overrides: [
     settingsProvider.overrideWith((ref) => TestSettingsNotifier(settings)),
@@ -113,11 +150,17 @@ Widget page(
     siteFeaturesProvider('site-1').overrideWith((ref) async => features),
     ...extraOverrides,
   ],
-  child: const MaterialApp(
-    locale: Locale('en'),
+  child: MaterialApp(
+    locale: locale,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(body: SiteTerrainPane(siteId: 'site-1')),
+    home: Scaffold(
+      body: SiteTerrainPane(
+        siteId: 'site-1',
+        playbackContext: playbackContext,
+        leadingActions: leadingActions,
+      ),
+    ),
   ),
 );
 

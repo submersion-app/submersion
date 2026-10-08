@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
 
@@ -279,6 +281,114 @@ void main() {
     });
   });
 
+  group('Seacraft ENC navigation log detection', () {
+    const encHeader =
+        'Date,Time,Pos3Dx,Pos3Dy,Pos3Dz,Course,Pitch,Roll,Distance,Speed,'
+        'Temp,BattV';
+    const encRow = '15.1.2025,16:16:07,0,0,5,355.4,-12.1,-1.5,0,0,32.1,4.13';
+
+    test('recognises the exact header', () {
+      final result = detector.detect(_toBytes('$encHeader\n$encRow\n'));
+      expect(result.format, ImportFormat.navTrack);
+    });
+
+    test('recognises the header regardless of casing', () {
+      final upper = encHeader.toUpperCase();
+      final result = detector.detect(_toBytes('$upper\n$encRow\n'));
+      expect(result.format, ImportFormat.navTrack);
+    });
+
+    test('recognises the header with a UTF-8 BOM', () {
+      final result = detector.detect(_toBytes('\u{FEFF}$encHeader\n$encRow\n'));
+      expect(result.format, ImportFormat.navTrack);
+    });
+
+    test('recognises the header with CRLF line endings', () {
+      final result = detector.detect(_toBytes('$encHeader\r\n$encRow\r\n'));
+      expect(result.format, ImportFormat.navTrack);
+    });
+
+    test('recognises the header with an appended column '
+        '(a later firmware channel)', () {
+      final result = detector.detect(
+        _toBytes('$encHeader,ExtraChannel\n$encRow,1\n'),
+      );
+      expect(result.format, ImportFormat.navTrack);
+    });
+
+    test('is never scored as a dive CSV, even a generic one', () {
+      final result = detector.detect(_toBytes('$encHeader\n$encRow\n'));
+      expect(result.format, isNot(ImportFormat.csv));
+      expect(result.sourceApp, isNull);
+    });
+
+    test('does not false-positive on any recognised dive-log CSV shape', () {
+      const diveCsvs = [
+        'Dive No,Date,Time,Location,Max. Depth,Bottom Time,Dive Type\n'
+            '1,2024-01-15,10:00,Blue Hole,25,45,Recreational\n',
+        'dive number,date,time,duration [min],sac [l/min],maxdepth [m],'
+            'avgdepth [m],cylinder size (1) [l],divemaster\n'
+            '1,2024-01-15,10:00,0:45,15,25,18,11.1,John\n',
+        'Dive Number,Date,Max Depth,Avg Depth,Duration,GF Low,GF High,ppO2\n'
+            '1,2024-01-15,25,18,0:45:00,30,70,1.2\n',
+        'Dive Number,Date,Time,Site,Max Depth,Bottom Time,Water Temp,'
+            'Start Pressure\n'
+            '1,2024-01-15,10:00,Blue Hole,25,45,28,200\n',
+        'date,depth,duration,location,temperature\n2024-01-15,25,45,Reef,28\n',
+      ];
+      for (final csv in diveCsvs) {
+        final result = detector.detect(_toBytes(csv));
+        expect(
+          result.format,
+          isNot(ImportFormat.navTrack),
+          reason: 'false positive on: $csv',
+        );
+      }
+    });
+
+    test('does not false-positive on any pinned universal_import fixture', () {
+      final dir = Directory('test/fixtures/universal_import');
+      if (!dir.existsSync()) return;
+      for (final entity in dir.listSync(recursive: true)) {
+        if (entity is! File || !entity.path.toLowerCase().endsWith('.csv')) {
+          continue;
+        }
+        final bytes = entity.readAsBytesSync();
+        final result = detector.detect(bytes);
+        expect(
+          result.format,
+          isNot(ImportFormat.navTrack),
+          reason: 'false positive on fixture: ${entity.path}',
+        );
+      }
+    });
+
+    test('does not false-positive on any pinned gps_tracks fixture', () {
+      final dir = Directory('test/fixtures/gps_tracks');
+      if (!dir.existsSync()) return;
+      for (final entity in dir.listSync(recursive: true)) {
+        if (entity is! File || !entity.path.toLowerCase().endsWith('.csv')) {
+          continue;
+        }
+        final bytes = entity.readAsBytesSync();
+        final result = detector.detect(bytes);
+        expect(
+          result.format,
+          isNot(ImportFormat.navTrack),
+          reason: 'false positive on fixture: ${entity.path}',
+        );
+      }
+    });
+
+    test('does not detect a Seacraft file missing one required column', () {
+      const partial =
+          'Date,Time,Pos3Dx,Pos3Dy,Course,Pitch,Roll,Distance,Speed,Temp,'
+          'BattV\n15.1.2025,16:16:07,0,0,355.4,-12.1,-1.5,0,0,32.1,4.13\n';
+      final result = detector.detect(_toBytes(partial));
+      expect(result.format, isNot(ImportFormat.navTrack));
+    });
+  });
+
   group('Detection priority', () {
     test('FIT binary takes priority over text detection', () {
       // Build a FIT header followed by CSV-like text
@@ -362,6 +472,68 @@ void main() {
       const xml = '<?xml version="1.0"?><uddf><profiledata/></uddf>';
       final result = detector.detect(_toBytes(xml));
       expect(result.format, isNot(ImportFormat.ratioXml));
+    });
+  });
+
+  // #1445: a Suunto app JSON export is handed to the Suunto importer, so it
+  // must be recognised, and nothing else may be mistaken for it.
+  group('Suunto JSON export detection', () {
+    test('detects the app DeviceLog export', () {
+      final result = detector.detect(
+        _toBytes('{"DeviceLog":{"Header":{"ActivityType":51}}}'),
+      );
+      expect(result.format, ImportFormat.suuntoJson);
+      expect(result.sourceApp, SourceApp.suunto);
+    });
+
+    test('detects it behind a byte order mark and whitespace', () {
+      final bytes = Uint8List.fromList([
+        0xEF,
+        0xBB,
+        0xBF,
+        ...utf8.encode('\n  {"DeviceLog":{}}'),
+      ]);
+      expect(detector.detect(bytes).format, ImportFormat.suuntoJson);
+    });
+
+    test('detects a saved cloud sml export', () {
+      final result = detector.detect(
+        _toBytes(
+          '{"Summary":{"Samples":[{"Attributes":{"suunto/sml":{}}}]},'
+          '"Data":{}}',
+        ),
+      );
+      expect(result.format, ImportFormat.suuntoJson);
+    });
+
+    test('leaves JSON from another app unknown', () {
+      final result = detector.detect(_toBytes('{"type":"FeatureCollection"}'));
+      expect(result.format, ImportFormat.unknown);
+    });
+
+    // Every fixture, JSON ones included (iNaturalist, bathymetry, crypto
+    // vectors): those are exactly the files a loose JSON check would grab.
+    // The real Suunto exports under fixtures/suunto are the one place the
+    // detector must say yes.
+    test('detects only the Suunto fixtures among every pinned fixture', () {
+      var scanned = 0, suunto = 0;
+      final suuntoDir = p.join('test', 'fixtures', 'suunto');
+      final root = Directory(p.join('test', 'fixtures'));
+      for (final entity in root.listSync(recursive: true)) {
+        if (entity is! File) continue;
+        scanned++;
+        final isSuunto = p.isWithin(suuntoDir, entity.path);
+        if (isSuunto) suunto++;
+        expect(
+          detector.detect(entity.readAsBytesSync()).format,
+          isSuunto ? ImportFormat.suuntoJson : isNot(ImportFormat.suuntoJson),
+          reason: isSuunto
+              ? 'missed Suunto fixture: ${entity.path}'
+              : 'false positive on fixture: ${entity.path}',
+        );
+      }
+      expect(scanned, greaterThan(suunto));
+      expect(suunto, greaterThan(0));
     });
   });
 }

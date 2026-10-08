@@ -132,6 +132,52 @@ void main() {
       expect(dive.site?.longitude, isNull);
     });
 
+    test('a two-digit year is not the year 91 (#2617)', () {
+      const xml = '''<?xml version="1.0"?>
+<dives>
+  <units>Metric</units>
+  <schema>2.2.0</schema>
+  <dive>
+    <date>91-06-01 09:00:00</date>
+    <samples/>
+  </dive>
+</dives>''';
+      final dive = MacDiveXmlReader.parse(xml).dives.first;
+      expect(dive.date, DateTime.utc(1991, 6, 1, 9, 0, 0));
+    });
+
+    // <date> is written to the minute; <identifier> keeps the seconds the
+    // computer reported (#2509).
+    group('seconds from the identifier', () {
+      MacDiveXmlDive diveOf({required String date, required String id}) =>
+          MacDiveXmlReader.parse('''<?xml version="1.0"?>
+<dives>
+  <units>Metric</units>
+  <schema>2.2.0</schema>
+  <dive>
+    <identifier>$id</identifier>
+    <date>$date</date>
+    <samples/>
+  </dive>
+</dives>''').dives.first;
+
+      test('restores them onto <date>', () {
+        final dive = diveOf(
+          date: '2025-01-02 10:30:00',
+          id: '20250102103017-ABC123',
+        );
+        expect(dive.date, DateTime.utc(2025, 1, 2, 10, 30, 17));
+      });
+
+      test('keeps the minute when the identifier is not a stamp', () {
+        final dive = diveOf(
+          date: '2025-01-02 10:30:00',
+          id: '2015122911130-822199',
+        );
+        expect(dive.date, DateTime.utc(2025, 1, 2, 10, 30));
+      });
+    });
+
     test('missing optional fields produce null, not crash', () {
       const xml = '''<?xml version="1.0"?>
 <dives>

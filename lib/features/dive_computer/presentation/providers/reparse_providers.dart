@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
@@ -24,13 +25,20 @@ final reparseServiceProvider = Provider<ReparseService>((ref) {
 
 /// Provides raw data counts for all dive computer sources matching [computerId].
 ///
-/// Returns a record with [withRawData] and [withoutRawData] counts.
+/// Returns a record with [withRawData] and [withoutRawData] counts. Refreshed
+/// whenever a data source row changes, so a discard made here or synced from
+/// another device (issue #1376) does not leave a stale count behind.
 final rawDataCountProvider =
     FutureProvider.family<({int withRawData, int withoutRawData}), String>((
       ref,
       computerId,
     ) {
       final service = ref.watch(reparseServiceProvider);
+      ref.invalidateSelfWhen(
+        service.db.tableUpdates(
+          TableUpdateQuery.onTable(service.db.diveDataSources),
+        ),
+      );
       return service.getRawDataCounts(computerId);
     });
 

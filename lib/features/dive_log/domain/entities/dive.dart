@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
@@ -84,8 +86,10 @@ class Dive extends Equatable {
   /// path, in which case the [buddy] / [diveMaster] text fields are the source.
   final List<BuddyWithRole> buddies;
 
-  /// The active diver's own role on this dive (dive_roles id, #547).
-  final String? diverRoleId;
+  /// The active diver's own roles on this dive, in DiveRoleSet order (issue
+  /// #1221); empty when none. The first is the primary role
+  /// `dives.diver_role` holds for older app versions (#547).
+  final List<String> diverRoleIds;
   final int? rating; // 1-5 stars
   // Conditions fields
   final CurrentDirection? currentDirection;
@@ -106,6 +110,9 @@ class Dive extends Equatable {
   // Decompression algorithm and conservatism
   final String? decoAlgorithm; // "buhlmann", "vpm", "rgbm", "dciem"
   final int? decoConservatism; // Personal adjustment (0=neutral)
+  // Tissue state the dive computer itself reported, as imported. Never
+  // computed by the app; null when the source carried none.
+  final ComputerTissueSnapshot? computerTissue;
   // Dive computer that logged this dive
   final String? diveComputerModel;
   final String? diveComputerSerial;
@@ -236,7 +243,7 @@ class Dive extends Equatable {
     this.buddy,
     this.diveMaster,
     this.buddies = const [],
-    this.diverRoleId,
+    this.diverRoleIds = const [],
     this.rating,
     this.currentDirection,
     this.currentStrength,
@@ -251,6 +258,7 @@ class Dive extends Equatable {
     this.gradientFactorHigh,
     this.decoAlgorithm,
     this.decoConservatism,
+    this.computerTissue,
     this.diveComputerModel,
     this.diveComputerSerial,
     this.diveComputerFirmware,
@@ -642,7 +650,7 @@ class Dive extends Equatable {
     String? buddy,
     String? diveMaster,
     List<BuddyWithRole>? buddies,
-    String? diverRoleId,
+    List<String>? diverRoleIds,
     int? rating,
     CurrentDirection? currentDirection,
     CurrentStrength? currentStrength,
@@ -657,6 +665,7 @@ class Dive extends Equatable {
     int? gradientFactorHigh,
     String? decoAlgorithm,
     int? decoConservatism,
+    ComputerTissueSnapshot? computerTissue,
     String? diveComputerModel,
     String? diveComputerSerial,
     String? diveComputerFirmware,
@@ -741,7 +750,7 @@ class Dive extends Equatable {
       buddy: buddy ?? this.buddy,
       diveMaster: diveMaster ?? this.diveMaster,
       buddies: buddies ?? this.buddies,
-      diverRoleId: diverRoleId ?? this.diverRoleId,
+      diverRoleIds: diverRoleIds ?? this.diverRoleIds,
       rating: rating ?? this.rating,
       currentDirection: currentDirection ?? this.currentDirection,
       currentStrength: currentStrength ?? this.currentStrength,
@@ -756,6 +765,7 @@ class Dive extends Equatable {
       gradientFactorHigh: gradientFactorHigh ?? this.gradientFactorHigh,
       decoAlgorithm: decoAlgorithm ?? this.decoAlgorithm,
       decoConservatism: decoConservatism ?? this.decoConservatism,
+      computerTissue: computerTissue ?? this.computerTissue,
       diveComputerModel: diveComputerModel ?? this.diveComputerModel,
       diveComputerSerial: diveComputerSerial ?? this.diveComputerSerial,
       diveComputerFirmware: diveComputerFirmware ?? this.diveComputerFirmware,
@@ -842,7 +852,7 @@ class Dive extends Equatable {
     buddy,
     diveMaster,
     buddies,
-    diverRoleId,
+    diverRoleIds,
     rating,
     currentDirection,
     currentStrength,
@@ -857,6 +867,7 @@ class Dive extends Equatable {
     gradientFactorHigh,
     decoAlgorithm,
     decoConservatism,
+    computerTissue,
     diveComputerModel,
     diveComputerSerial,
     diveComputerFirmware,
@@ -944,6 +955,10 @@ class DiveProfilePoint extends Equatable {
   final int? rbt; // Remaining Bottom Time in seconds
   final int? decoType; // 0=NDL, 1=safety stop, 2=deco stop, 3=deep stop
   final int? tts; // Time To Surface in seconds
+  // Computer-reported tissue loading, both whole percents; null when the
+  // source carried none. Never computed by the app.
+  final int? gf99; // Computer-reported GF99, percent
+  final int? n2Load; // Computer-reported aggregate N2 tissue loading, percent
 
   const DiveProfilePoint({
     required this.timestamp,
@@ -973,6 +988,8 @@ class DiveProfilePoint extends Equatable {
     this.rbt,
     this.decoType,
     this.tts,
+    this.gf99,
+    this.n2Load,
   });
 
   DiveProfilePoint copyWith({
@@ -1003,6 +1020,8 @@ class DiveProfilePoint extends Equatable {
     int? rbt,
     int? decoType,
     int? tts,
+    int? gf99,
+    int? n2Load,
   }) {
     return DiveProfilePoint(
       timestamp: timestamp ?? this.timestamp,
@@ -1032,6 +1051,8 @@ class DiveProfilePoint extends Equatable {
       rbt: rbt ?? this.rbt,
       decoType: decoType ?? this.decoType,
       tts: tts ?? this.tts,
+      gf99: gf99 ?? this.gf99,
+      n2Load: n2Load ?? this.n2Load,
     );
   }
 
@@ -1064,6 +1085,8 @@ class DiveProfilePoint extends Equatable {
     rbt,
     decoType,
     tts,
+    gf99,
+    n2Load,
   ];
 }
 
@@ -1095,6 +1118,13 @@ class DiveTank extends Equatable {
   final double? endPressure; // bar
   final GasMix gasMix;
   final TankRole role; // back gas, stage, deco, bailout, etc.
+
+  /// Where [role] came from when no person chose it (issue #2595): a role
+  /// the computer read off the transmitter's name is unconfirmed, and the
+  /// transmitter registry may replace it. Null once the diver or the
+  /// registry set the role. Downloads, re-parses and the registry write it;
+  /// [DiveRepository.updateDive] clears it when the role changes.
+  final TankRoleSource? roleSource;
   final TankMaterial? material; // aluminum, steel, carbon fiber
   final int order; // for multi-tank ordering
   final String? presetName; // name of preset used (e.g., 'al80', 'hp100')
@@ -1113,6 +1143,13 @@ class DiveTank extends Equatable {
   /// transmitter, whatever gas mix each computer had programmed.
   final String? transmitterSerial;
 
+  /// The data source this tank row came from (v251, issue #2716), so two
+  /// consolidated sources that name no computer keep their copies of one
+  /// cylinder apart. Null means the dive's primary source. Read-only
+  /// projection, like [computerId]: the import, download and source-moving
+  /// paths write it, and edit flows never do.
+  final String? sourceId;
+
   /// Parsed tank index this row's computer-owned data comes from (v200). Null
   /// on rows from before v200 means "same as order"; -1 (kNoSourceTankIndex
   /// in tank_source_index.dart) means the row takes no parsed tank.
@@ -1120,10 +1157,24 @@ class DiveTank extends Equatable {
   /// user edits never rewrite it.
   final int? sourceTankIndex;
 
+  /// The other computers on a consolidated dive that logged this same
+  /// cylinder (v260): consolidation keeps one row per physical cylinder,
+  /// attributed to [computerId], and lists here the computers merged into
+  /// it. Empty when that was recorded and found nobody; null when it was
+  /// never recorded (tank_shared_computers.dart). Computer-owned identity,
+  /// like [computerId]: user edits never rewrite it.
+  final List<String>? sharedComputerIds;
+
   /// The regulator this cylinder was breathed through (v202), so high-O2
   /// contact reaches the regulator's service clocks. User-authored: the
   /// tank editor sets it and downloads never touch it.
   final String? regulatorEquipmentId;
+
+  /// The trip cylinder slot this tank was breathed from (v232, issue
+  /// #2325). User-authored: the tank editor sets it and downloads never
+  /// touch it. Meaningless outside the dive's trip, so the repository drops
+  /// it when the dive moves.
+  final String? tripCylinderId;
 
   /// The gear item this cylinder is (the `dive_tanks.equipment_id` link the
   /// transmitter registry writes when a serial is assigned to an item).
@@ -1131,6 +1182,13 @@ class DiveTank extends Equatable {
   /// field and never write it, like [computerId], so a rebuild that forgot
   /// it cannot wipe what the registry recorded.
   final String? equipmentId;
+
+  /// How long this cylinder was breathed, as the source log recorded it
+  /// (v259, issue #1496). MacDive logs one per tank with no gas-switch
+  /// times, so it says how long but not when. Per-cylinder SAC uses it as
+  /// the breathing time when the dive has no gas switches. Import-owned,
+  /// like [transmitterSerial]: edit flows never write it.
+  final Duration? usageDuration;
 
   /// Deco gas-switch depth override in meters (planning only); null = auto
   /// (MOD at the deco pO2). Subsurface per-cylinder "Deco switch at", v120.
@@ -1154,17 +1212,29 @@ class DiveTank extends Equatable {
     this.endPressure,
     this.gasMix = const GasMix(),
     this.role = TankRole.backGas,
+    this.roleSource,
     this.material,
     this.order = 0,
     this.presetName,
     this.computerId,
     this.transmitterSerial,
+    this.sourceId,
     this.sourceTankIndex,
+    this.sharedComputerIds,
     this.regulatorEquipmentId,
+    this.tripCylinderId,
     this.equipmentId,
+    this.usageDuration,
     this.decoSwitchDepth,
     this.isTravelGas = false,
   });
+
+  /// Whether [computer] breathed this cylinder: it owns it, shares it, or
+  /// the tank belongs to the whole dive (unattributed).
+  bool isUsedBy(String computer) =>
+      computerId == null ||
+      computerId == computer ||
+      (sharedComputerIds?.contains(computer) ?? false);
 
   /// Pressure consumed during dive
   double? get pressureUsed {
@@ -1183,6 +1253,8 @@ class DiveTank extends Equatable {
     double? endPressure,
     GasMix? gasMix,
     TankRole? role,
+    TankRoleSource? roleSource,
+    bool clearRoleSource = false,
     TankMaterial? material,
     int? order,
     String? presetName,
@@ -1190,11 +1262,18 @@ class DiveTank extends Equatable {
     String? computerId,
     String? transmitterSerial,
     bool clearTransmitterSerial = false,
+    String? sourceId,
     int? sourceTankIndex,
     bool clearSourceTankIndex = false,
+    List<String>? sharedComputerIds,
     String? regulatorEquipmentId,
     String? equipmentId,
+    Duration? usageDuration,
+    bool clearUsageDuration = false,
     bool clearRegulatorEquipmentId = false,
+    bool clearMaterial = false,
+    String? tripCylinderId,
+    bool clearTripCylinderId = false,
     double? decoSwitchDepth,
     bool clearDecoSwitchDepth = false,
     bool? isTravelGas,
@@ -1208,20 +1287,29 @@ class DiveTank extends Equatable {
       endPressure: endPressure ?? this.endPressure,
       gasMix: gasMix ?? this.gasMix,
       role: role ?? this.role,
-      material: material ?? this.material,
+      roleSource: clearRoleSource ? null : (roleSource ?? this.roleSource),
+      material: clearMaterial ? null : (material ?? this.material),
       order: order ?? this.order,
       presetName: clearPresetName ? null : (presetName ?? this.presetName),
       computerId: computerId ?? this.computerId,
       transmitterSerial: clearTransmitterSerial
           ? null
           : (transmitterSerial ?? this.transmitterSerial),
+      sourceId: sourceId ?? this.sourceId,
       sourceTankIndex: clearSourceTankIndex
           ? null
           : (sourceTankIndex ?? this.sourceTankIndex),
+      sharedComputerIds: sharedComputerIds ?? this.sharedComputerIds,
       regulatorEquipmentId: clearRegulatorEquipmentId
           ? null
           : (regulatorEquipmentId ?? this.regulatorEquipmentId),
+      tripCylinderId: clearTripCylinderId
+          ? null
+          : (tripCylinderId ?? this.tripCylinderId),
       equipmentId: equipmentId ?? this.equipmentId,
+      usageDuration: clearUsageDuration
+          ? null
+          : (usageDuration ?? this.usageDuration),
       decoSwitchDepth: clearDecoSwitchDepth
           ? null
           : (decoSwitchDepth ?? this.decoSwitchDepth),
@@ -1239,14 +1327,19 @@ class DiveTank extends Equatable {
     endPressure,
     gasMix,
     role,
+    roleSource,
     material,
     order,
     presetName,
     computerId,
     transmitterSerial,
+    sourceId,
     sourceTankIndex,
+    sharedComputerIds,
     regulatorEquipmentId,
     equipmentId,
+    tripCylinderId,
+    usageDuration,
     decoSwitchDepth,
     isTravelGas,
   ];
@@ -1276,10 +1369,11 @@ class GasMix extends Equatable {
     return '$roundedO2% O2';
   }
 
-  /// Maximum Operating Depth (MOD) at given ppO2
-  double mod({double ppO2 = 1.4}) {
-    return ((ppO2 / (o2 / 100)) - 1) * 10;
-  }
+  /// Maximum Operating Depth (MOD) at given ppO2, exact and unrounded.
+  ///
+  /// Round it down for display with `UnitFormatter.formatDepthFloor`.
+  double mod({double ppO2 = 1.4}) =>
+      maxOperatingDepthMeters(o2 / 100, maxPpO2: ppO2);
 
   /// Equivalent Narcotic Depth at given depth.
   ///

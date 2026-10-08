@@ -21,10 +21,10 @@ void main() {
     // The one place the app decides how a service clock reads.
     'lib/features/equipment/presentation/widgets/service_status_indicator.dart':
         'the shared indicator',
-    // The trip banner pairs the shared overdue sentence with its own
-    // trip-relative due-soon wording ("due before {trip date}"), which is
-    // more useful there than a plain relative day count.
-    'lib/features/trips/presentation/widgets/trip_service_alert_banner.dart':
+    // The trip's service alert list pairs the shared overdue sentence with
+    // its own trip-relative due-soon wording ("due before {trip date}"),
+    // which is more useful there than a plain relative day count.
+    'lib/features/trips/presentation/widgets/trip_service_alert_list.dart':
         'trip-relative due-soon wording',
   };
 

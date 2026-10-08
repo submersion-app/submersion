@@ -9,6 +9,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_column_picker.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
@@ -19,12 +20,26 @@ import 'package:submersion/features/courses/presentation/widgets/course_list_con
 import 'package:submersion/features/courses/presentation/widgets/course_summary_widget.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
+import 'package:submersion/features/courses/query/course_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/courses/presentation/providers/course_list_count_provider.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
-class CourseListPage extends ConsumerWidget {
+class CourseListPage extends ConsumerStatefulWidget {
   const CourseListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CourseListPage> createState() => _CourseListPageState();
+}
+
+class _CourseListPageState extends ConsumerState<CourseListPage>
+    with TableSelectionOwner {
+  @override
+  Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final fab = FloatingActionButton.extended(
       onPressed: () {
         final isDesktop = ResponsiveBreakpoints.isMasterDetail(context);
@@ -42,6 +57,8 @@ class CourseListPage extends ConsumerWidget {
       label: Text(context.l10n.courses_action_add),
     );
 
+    resetTableSelectionOffTable(courseListViewModeProvider);
+
     // Table mode: use shared TableModeLayout for full-width table with
     // optional detail pane.
     final viewMode = ref.watch(courseListViewModeProvider);
@@ -50,7 +67,11 @@ class CourseListPage extends ConsumerWidget {
         child: TableModeLayout(
           sectionKey: 'courses',
           appBarTitle: context.l10n.nav_courses,
-          tableContent: const CourseListContent(showAppBar: false),
+          appBarSubtitle: courseListCountLabel(context, ref),
+          tableContent: CourseListContent(
+            showAppBar: false,
+            selectionController: tableSelection,
+          ),
           detailBuilder: (context, courseId) => CourseDetailPage(
             courseId: courseId,
             embedded: true,
@@ -81,10 +102,25 @@ class CourseListPage extends ConsumerWidget {
             onPressed: () => showEntityTableColumnPicker<CourseField>(
               context,
               configProvider: courseTableConfigProvider,
-              adapter: CourseFieldAdapter.instance,
+              adapter: CourseFieldAdapter.withCatalog(
+                context.certificationCatalog,
+              ),
             ),
           ),
           appBarActions: [
+            Consumer(
+              builder: (context, ref, _) => QueryFilterButton(
+                active: ref.watch(courseFilterProvider).query != null,
+                compact: true,
+                onPressed: () => showQueryFilterSheet(
+                  context,
+                  subject: QuerySubject.courses,
+                  root: courseQueryEntity,
+                  initial: ref.read(courseFilterProvider).query,
+                  onApply: setCourseQuery,
+                ),
+              ),
+            ),
             IconButton(
               icon: const Icon(Icons.sort, size: 20),
               tooltip: context.l10n.courses_action_sort,
@@ -121,6 +157,7 @@ class CourseListPage extends ConsumerWidget {
               itemBuilder: (context) {
                 final currentMode = ref.read(courseListViewModeProvider);
                 return [
+                  ...tableSelectItemsEntries(context),
                   ...ListViewModeToggle.menuItems(
                     context,
                     currentMode: currentMode,

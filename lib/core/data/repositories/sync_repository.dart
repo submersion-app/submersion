@@ -5,8 +5,10 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
@@ -52,6 +54,8 @@ class SyncRepository {
     'liveaboardDetails': (table: 'liveaboard_detail_records', pk: 'id'),
     'itineraryDays': (table: 'trip_itinerary_days', pk: 'id'),
     'tripDayWeather': (table: 'trip_day_weather', pk: 'id'),
+    'tripCylinders': (table: 'trip_cylinders', pk: 'id'),
+    'tripCylinderEvents': (table: 'trip_cylinder_events', pk: 'id'),
     'importedFiles': (table: 'imported_files', pk: 'id'),
     'diveProfileSeries': (table: 'dive_profile_series', pk: 'id'),
     'tankPressureSeries': (table: 'tank_pressure_series', pk: 'id'),
@@ -69,10 +73,14 @@ class SyncRepository {
     'preDiveSessions': (table: 'pre_dive_sessions', pk: 'id'),
     'preDiveSessionItems': (table: 'pre_dive_session_items', pk: 'id'),
     'gpsTracks': (table: 'gps_tracks', pk: 'id'),
+    'navTracks': (table: 'nav_tracks', pk: 'id'),
     'siteFeatures': (table: 'site_features', pk: 'id'),
     'divePlans': (table: 'dive_plans', pk: 'id'),
     'divePlanTanks': (table: 'dive_plan_tanks', pk: 'id'),
     'divePlanSegments': (table: 'dive_plan_segments', pk: 'id'),
+    'divePlanMissions': (table: 'dive_plan_missions', pk: 'id'),
+    'divePlanMissionLegs': (table: 'dive_plan_mission_legs', pk: 'id'),
+    'divePlanMissionMembers': (table: 'dive_plan_mission_members', pk: 'id'),
     'equipment': (table: 'equipment', pk: 'id'),
     'equipmentSets': (table: 'equipment_sets', pk: 'id'),
     // The equipmentSetItems junction is deliberately absent: it has no hlc
@@ -87,6 +95,14 @@ class SyncRepository {
     'diveTypes': (table: 'dive_types', pk: 'id'),
     'siteTypes': (table: 'site_types', pk: 'id'),
     'diveRoles': (table: 'dive_roles', pk: 'id'),
+    'customCertificationAgencies': (
+      table: 'custom_certification_agencies',
+      pk: 'id',
+    ),
+    'customCertificationLevels': (
+      table: 'custom_certification_levels',
+      pk: 'id',
+    ),
     'diverWeightEntries': (table: 'diver_weight_entries', pk: 'id'),
     'tankPresets': (table: 'tank_presets', pk: 'id'),
     'weightPresets': (table: 'weight_presets', pk: 'id'),
@@ -95,6 +111,13 @@ class SyncRepository {
     // junction above.
     'diveComputers': (table: 'dive_computers', pk: 'id'),
     'transmitters': (table: 'transmitters', pk: 'id'),
+    'cylinderFills': (table: 'cylinder_fills', pk: 'id'),
+    'connectionMaps': (table: 'connection_maps', pk: 'id'),
+    'savedQueries': (table: 'saved_queries', pk: 'id'),
+    'insightObservationDismissals': (
+      table: 'insight_observation_dismissals',
+      pk: 'id',
+    ),
     'tags': (table: 'tags', pk: 'id'),
     'courses': (table: 'courses', pk: 'id'),
     // HLC merge-root only: the courseRequirementDives junction is clockless
@@ -109,6 +132,21 @@ class SyncRepository {
     // clockless child riding the parent's hlc would never replicate; the
     // schedule needs its own clock.
     'serviceSchedules': (table: 'service_schedules', pk: 'id'),
+    // Certification currency (issue #2267). Each carries its own clock for
+    // the serviceSchedules reason: editing a pref or logging an event never
+    // touches the certification row.
+    'certificationCurrencyRules': (
+      table: 'certification_currency_rules',
+      pk: 'id',
+    ),
+    'certificationCurrencyPrefs': (
+      table: 'certification_currency_prefs',
+      pk: 'id',
+    ),
+    'certificationCurrencyEvents': (
+      table: 'certification_currency_events',
+      pk: 'id',
+    ),
     'settings': (table: 'settings', pk: 'key'),
     'csvPresets': (table: 'csv_presets', pk: 'id'),
     'viewConfigs': (table: 'view_configs', pk: 'id'),
@@ -148,8 +186,17 @@ class SyncRepository {
     'diveDataSources': (table: 'dive_data_sources', pk: 'id'),
     'siteSpecies': (table: 'site_species', pk: 'id'),
     'siteSiteTypes': (table: 'site_site_types', pk: 'id'),
+    'diveDiverRoles': (table: 'dive_diver_roles', pk: 'id'),
+    'diveBuddyRoles': (table: 'dive_buddy_roles', pk: 'id'),
     'siteTags': (table: 'site_tags', pk: 'id'),
     'equipmentTags': (table: 'equipment_tags', pk: 'id'),
+    'equipmentShares': (table: 'equipment_shares', pk: 'id'),
+    'tripEquipment': (table: 'trip_equipment', pk: 'id'),
+    'tripHides': (table: 'trip_hides', pk: 'id'),
+    'siteHides': (table: 'site_hides', pk: 'id'),
+    'equipmentOwnershipEvents': (table: 'equipment_ownership_events', pk: 'id'),
+    'equipmentLocations': (table: 'equipment_locations', pk: 'id'),
+    'equipmentLocationMoves': (table: 'equipment_location_moves', pk: 'id'),
     'diveProfileEvents': (table: 'dive_profile_events', pk: 'id'),
     'diveSafetyReviews': (table: 'dive_safety_reviews', pk: 'dive_id'),
     'diveSafetyFindings': (table: 'dive_safety_findings', pk: 'id'),
@@ -1059,11 +1106,22 @@ class SyncRepository {
     }
   }
 
-  /// Get all conflict records
+  /// Get all conflict records.
+  ///
+  /// A conflict an older build stored for a settings key that is now
+  /// device-local ([deviceLocalSettingsKeys], issue #2947) is left out: the
+  /// key no longer syncs, so the card could not be resolved and the count
+  /// would show a conflict nobody can see.
   Future<List<SyncRecord>> getConflictRecords() async {
     try {
       final query = _db.select(_db.syncRecords)
-        ..where((t) => t.syncStatus.equals('conflict'));
+        ..where(
+          (t) =>
+              t.syncStatus.equals('conflict') &
+              (t.entityType.equals('settings') &
+                      t.recordId.isIn(deviceLocalSettingsKeys))
+                  .not(),
+        );
       return await query.get();
     } catch (e, stackTrace) {
       _log.error(
@@ -1363,6 +1421,56 @@ class SyncRepository {
       );
       rethrow;
     }
+  }
+
+  /// A fresh clock for a row written outside [markRecordPending]: a batch
+  /// insert, or an UPDATE that moves many rows at once. Newer than every
+  /// clock this device has issued, a scope tombstone's included, so a row
+  /// stamped with it is never covered by a scope logged before it.
+  Future<String> issueRowClock() async {
+    await ensureSyncClockConfigured();
+    // Configured just above, and issue() is null only on an unconfigured
+    // clock.
+    return SyncClock.instance.issue()!;
+  }
+
+  /// One tombstone for a whole set of events (see [EventScopeTombstone]),
+  /// in place of one per row.
+  Future<void> logScopedDeletion(EventScopeTombstone scope) => logDeletion(
+    entityType: EventScopeTombstone.entityType,
+    recordId: scope.encode(),
+  );
+
+  /// Stores a peer's scope tombstone for relay. Unlike
+  /// [logDeletionIfMissing], a stored copy is replaced when the incoming
+  /// delete is newer: a later delete of the same scope covers every row the
+  /// earlier one did and more, so keeping the first copy would relay the
+  /// narrower one.
+  Future<void> relayScopedDeletion({
+    required String recordId,
+    required int deletedAt,
+    String? originHlc,
+  }) async {
+    final existing =
+        await (_db.select(_db.deletionLog)..where(
+              (t) =>
+                  t.entityType.equals(EventScopeTombstone.entityType) &
+                  t.recordId.equals(recordId),
+            ))
+            .get();
+    if (existing.isNotEmpty) {
+      final incoming = tryParseHlc(originHlc);
+      final stored = tryParseHlc(existing.first.originHlc);
+      if (incoming == null) return;
+      if (stored != null && incoming.compareTo(stored) <= 0) return;
+    }
+    await logDeletion(
+      entityType: EventScopeTombstone.entityType,
+      recordId: recordId,
+      deletedAt: deletedAt,
+      relayed: true,
+      originHlc: originHlc,
+    );
   }
 
   DeletionLogCompanion _localTombstone(

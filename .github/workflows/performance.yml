@@ -1,13 +1,17 @@
-# Weekly Performance Benchmarks
+# Performance Benchmarks
 #
-# Runs performance-tagged tests on a schedule to detect regressions.
-# Also available via manual dispatch for on-demand testing.
+# Runs performance-tagged tests on demand to detect regressions.
+#
+# The weekly schedule is paused. Every scheduled run from 2026-08-17 to
+# 2026-09-21 was cancelled at the 30-minute timeout before the tests
+# finished. The tests alone did not fit even when code generation took
+# 4 minutes, and code generation has since grown to about 17 minutes on the
+# macos-26 runner (issue #2453). Restore the schedule once a run fits in its
+# timeout.
 
 name: Performance Benchmarks
 
 on:
-  schedule:
-    - cron: '0 6 * * 1'  # Monday 6am UTC
   workflow_dispatch:
 
 permissions:

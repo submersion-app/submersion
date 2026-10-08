@@ -9,10 +9,11 @@ import 'package:submersion/features/universal_import/data/parsers/dan_dl7_import
 
 /// DAN DL7's half of the shared location contract (#2211, #2232).
 ///
-/// A DL7 file carries one `ZAR` block, and the `<LOCATION>` inside it is the
-/// only place the file records GPS. The parser applies the ZAR to a dive only
-/// when the file holds exactly one, which is right for per-dive values but
-/// used to throw the position away entirely for a multi-dive file.
+/// The `<LOCATION>` inside a `ZAR` block is the only place a DL7 file records
+/// GPS. The blocks built here carry no `DIVE_DT`, so in a multi-dive file they
+/// name no dive; the position used to be thrown away with them. How a block
+/// that does name its dive is attributed lives in
+/// `dan_dl7_zar_attribution_test.dart`.
 void main() {
   const parser = DanDl7Parser();
 

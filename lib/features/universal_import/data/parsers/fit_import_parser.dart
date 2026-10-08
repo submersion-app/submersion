@@ -82,6 +82,9 @@ class FitImportParser implements ImportParser {
     if (dive.gfHigh != null) diveData['gradientFactorHigh'] = dive.gfHigh;
     if (dive.cnsEnd != null) diveData['cnsEnd'] = dive.cnsEnd;
     if (dive.otu != null) diveData['otu'] = dive.otu;
+    if (dive.computerTissue != null) {
+      diveData['computerTissue'] = dive.computerTissue;
+    }
     if (dive.computerModel != null) {
       diveData['diveComputerModel'] = dive.computerModel;
     }
@@ -147,6 +150,7 @@ class FitImportParser implements ImportParser {
         if (s.temperature != null) point['temperature'] = s.temperature;
         if (s.heartRate != null) point['heartRate'] = s.heartRate;
         if (s.cns != null) point['cns'] = s.cns;
+        if (s.n2Load != null) point['n2Load'] = s.n2Load;
         if (s.ndlSeconds != null) point['ndl'] = s.ndlSeconds;
         if (s.ttsSeconds != null) point['tts'] = s.ttsSeconds;
         if (s.ceiling != null) point['ceiling'] = s.ceiling;
@@ -170,6 +174,17 @@ class FitImportParser implements ImportParser {
         ImportEntityType.dives: [diveData],
       },
       warnings: [
+        // A dive logged without a recorded profile still imports (#1605),
+        // but the diver should know why its chart is empty.
+        if (dive.profile.isEmpty)
+          const ImportWarning(
+            severity: ImportWarningSeverity.warning,
+            code: ImportWarningCode.profileUnreadable,
+            entityType: ImportEntityType.dives,
+            message:
+                'This file contains no depth samples, so the dive was '
+                'imported without a profile.',
+          ),
         if (_hasNoTankPressure(dive))
           const ImportWarning(
             severity: ImportWarningSeverity.info,

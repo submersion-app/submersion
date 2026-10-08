@@ -1,5 +1,5 @@
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3a.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3a.md`
 // Task 15. The plan is intentionally light — it lists what the widget
 // needs ("segmented control, multi-line field, per-line validation,
 // 'Add URL' single-line, auto-match checkbox, 'Add' button" + a

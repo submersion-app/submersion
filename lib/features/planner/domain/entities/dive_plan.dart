@@ -5,6 +5,7 @@ import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 
 /// Breathing mode of a saved dive plan.
 ///
@@ -137,6 +138,11 @@ class DivePlan extends Equatable {
   final double? plannedWeightKg;
   final Map<String, double>? plannedWeightPlacement;
 
+  /// The DPV mission layered on this plan, or null for a plan without one.
+  /// When present, [segments] are generated from the mission's route and
+  /// must be treated as a cache of it, never edited by hand.
+  final DpvMission? mission;
+
   const DivePlan({
     required this.id,
     required this.name,
@@ -186,11 +192,21 @@ class DivePlan extends Equatable {
     this.gearProvenance = const [],
     this.plannedWeightKg,
     this.plannedWeightPlacement,
+    this.mission,
   });
 
-  /// CCR setpoints with the spec defaults (0.7 shallow, 1.3 below 10 m).
-  double get effectiveSetpointLow => setpointLow ?? 0.7;
-  double get effectiveSetpointHigh => setpointHigh ?? 1.3;
+  /// Pure spec defaults (0.7 shallow, 1.3 below 10 m): the entity's own
+  /// last resort, with no access to the diver's CCR ppO2 Settings. Entering
+  /// CCR mode in the planner seeds [setpointLow] / [setpointHigh] from those
+  /// Settings, so only a plan that reached CCR another way (one saved with
+  /// null setpoints, or an imported file) still falls back here (see
+  /// `DivePlanNotifier.updateMode`), which also sources its own fallback
+  /// from these same constants rather than inlining them a second time.
+  static const double specSetpointLow = 0.7;
+  static const double specSetpointHigh = 1.3;
+
+  double get effectiveSetpointLow => setpointLow ?? specSetpointLow;
+  double get effectiveSetpointHigh => setpointHigh ?? specSetpointHigh;
   double get effectiveSetpointSwitchDepth => setpointSwitchDepth ?? 10.0;
 
   /// Deco SAC: explicit value, otherwise 15 L/min (same default as bottom SAC).
@@ -280,6 +296,8 @@ class DivePlan extends Equatable {
     double? plannedWeightKg,
     bool clearPlannedWeight = false,
     Map<String, double>? plannedWeightPlacement,
+    DpvMission? mission,
+    bool clearMission = false,
   }) {
     return DivePlan(
       id: id ?? this.id,
@@ -352,6 +370,7 @@ class DivePlan extends Equatable {
       plannedWeightPlacement: clearPlannedWeight
           ? null
           : (plannedWeightPlacement ?? this.plannedWeightPlacement),
+      mission: clearMission ? null : (mission ?? this.mission),
     );
   }
 
@@ -406,6 +425,7 @@ class DivePlan extends Equatable {
     gearProvenance,
     plannedWeightKg,
     plannedWeightPlacement,
+    mission,
   ];
 }
 

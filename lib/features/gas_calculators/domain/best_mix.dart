@@ -1,7 +1,7 @@
 import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/utils/number_display.dart'
+    show floorToFractionDigits;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart'
-    show roundDownTo;
 import 'package:submersion/features/gas_calculators/domain/rock_bottom.dart'
     show ambientPressureAtDepth;
 
@@ -120,7 +120,7 @@ BestMixResult computeBestMix(BestMixInputs inputs) {
   final ideal = inputs.ppO2Limit / ambient * 100;
 
   // Round DOWN so the resulting MOD is at or beyond the target depth.
-  final o2 = roundDownTo(ideal, 1).clamp(1.0, 100.0);
+  final o2 = floorToFractionDigits(ideal, 0).clamp(1.0, 100.0);
 
   final nitrox = _assess(GasMix(o2: o2), inputs);
 

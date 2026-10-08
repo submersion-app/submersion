@@ -781,6 +781,8 @@ void main() {
       await tester.pump();
 
       expect(submitted, isNull);
+      // A typo, not an ordering problem (#1900).
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
     });
 
     testWidgets('cancel reports without submitting', (tester) async {

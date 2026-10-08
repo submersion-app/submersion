@@ -1,0 +1,10 @@
+{
+  "ios": ["ble"],
+  "android": ["ble", "serial"],
+  "macos": ["ble", "serial", "usbhid"],
+  "windows": ["ble", "serial", "usbhid"],
+  "linux": ["ble", "serial", "usbhid"],
+  "idOverrides": {
+    "Subgear|XP Air": "subgear-xp-air-irda"
+  }
+}

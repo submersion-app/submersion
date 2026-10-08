@@ -18,6 +18,7 @@ class SuuntoWorkoutSummary {
     this.maxDepth,
     this.diveTimeSeconds,
     this.totalTimeSeconds,
+    this.notes,
   });
 
   /// Opaque workout identifier used to fetch the full SML export.
@@ -39,6 +40,11 @@ class SuuntoWorkoutSummary {
 
   /// Overall workout elapsed time in seconds.
   final int? totalTimeSeconds;
+
+  /// The notes the diver wrote in the Suunto app (`description`), trimmed;
+  /// null when there are none. The dive export never carries them
+  /// (issue #2410).
+  final String? notes;
 
   /// [diveTimeSeconds] when available, else [totalTimeSeconds].
   int? get durationSeconds => diveTimeSeconds ?? totalTimeSeconds;
@@ -265,7 +271,15 @@ class SuuntoCloudClient {
       maxDepth: (ext?['maxDepth'] as num?)?.toDouble(),
       diveTimeSeconds: (ext?['diveTime'] as num?)?.round(),
       totalTimeSeconds: (item['totalTime'] as num?)?.round(),
+      notes: _notesOf(item['description']),
     );
+  }
+
+  /// "No notes" can arrive as an absent key, a null or an empty string.
+  static String? _notesOf(Object? description) {
+    if (description is! String) return null;
+    final text = description.trim();
+    return text.isEmpty ? null : text;
   }
 
   /// The workout listing nests dive-specific summary fields (maxDepth,

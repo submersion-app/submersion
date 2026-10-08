@@ -4,5 +4,5 @@
 ///
 /// The settings tile is gated on this being non-empty
 /// (dropboxConfiguredProvider); registration runbook:
-/// docs/superpowers/specs/2026-07-02-dropbox-sync-design.md.
+/// docs/design/specs/2026-07-02-dropbox-sync-design.md.
 const String dropboxAppKey = 'ut1wjdolx47063k';

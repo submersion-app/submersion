@@ -14,12 +14,15 @@ void main() {
   // than formatted inline.
   final fmt = QualityUnitFormatters(
     depth: (m) => 'D${m.toStringAsFixed(1)}',
+    depthRate: (mpm) => 'R${mpm.toStringAsFixed(1)}',
+    limitDepth: (m) => 'L${m.toStringAsFixed(1)}',
     pressure: (bar) => 'P${bar.toStringAsFixed(1)}',
     temperature: (c) => 'T${c.toStringAsFixed(1)}',
     sac: (lpm) => 'S${lpm.toStringAsFixed(1)}',
     date: (d) => 'DATE(${d.year}-${d.month}-${d.day})',
     dateTime: (d) =>
         'WHEN(${d.year}-${d.month}-${d.day} ${d.hour}:${d.minute})',
+    time: (d) => 'TIME(${d.hour}:${d.minute})',
   );
 
   setUp(() {

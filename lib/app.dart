@@ -3,7 +3,10 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/utils/system_sheet_lifecycle.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
@@ -21,7 +24,16 @@ import 'package:submersion/features/auto_update/presentation/providers/update_me
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
+import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
+import 'package:submersion/features/import_wizard/presentation/suunto_file_import_navigation.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -29,6 +41,8 @@ import 'package:submersion/features/settings/presentation/widgets/adopt_replaced
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 import 'package:submersion/shared/services/incoming_file_handler.dart';
+import 'package:submersion/shared/services/incoming_share.dart';
+import 'package:submersion/shared/services/navigation_ready_gate.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -84,7 +98,16 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     with WidgetsBindingObserver {
   final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _adoptDialogShownThisSession = false;
+  final _lifecycle = SystemSheetLifecycle();
   late final FileShareHandler _fileShareHandler;
+  late final PassportLinkDispatcher _passportLinks;
+  late final GoRouter _linkRouter;
+  bool _hasDivers = false;
+  bool _navigationReadyRetryScheduled = false;
+
+  /// This root's hold on the share gate, which outlives it (see
+  /// [incomingShareGateProvider]).
+  late final NavigationReadyGateOwner<IncomingShare> _shares;
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -94,34 +117,58 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     _lifecycleListener = AppLifecycleListener(onExitRequested: _closeDatabases);
     registerUpdateMenuChannel(ref);
     registerDisplayZoomMenuChannel(ref);
+    // Each share waits until the app can open the page it leads to (see
+    // _updateNavigationReady): one that cold-started the app arrives ahead
+    // of the navigator (#2690), and one on a fresh install ahead of the end
+    // of setup. Attached first: the readiness updates below report to it.
+    final shareGate = ref.read(incomingShareGateProvider);
+    _shares = shareGate.attach(_openShare);
     _fileShareHandler = FileShareHandler(
-      onFileReceived: _handleIncomingFile,
-      onError: (_) {
-        final l10n = _scaffoldMessengerKey.currentContext != null
-            ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
-            : null;
-        _scaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n?.dropTarget_error_readFailed ?? 'Could not read file',
-            ),
-          ),
-        );
-      },
+      onFileReceived: (bytes, fileName) =>
+          shareGate.run(SharedFile(bytes, fileName)),
+      onFilesReceived: (paths) => shareGate.run(SharedFileBatch(paths)),
+      onError: _reportShareError,
     );
+    _passportLinks = PassportLinkDispatcher(
+      source: ref.read(incomingLinkSourceProvider),
+      open: _openPassportLink,
+      alreadyHandled: (text) =>
+          ref.read(recentPassportTagsProvider).takeJustHandled(text),
+    );
+    // A tag tapped or a file shared on a fresh install waits until setup is
+    // over, and one arriving with the app closed waits for the navigator.
+    _linkRouter = ref.read(appRouterProvider);
+    _linkRouter.routeInformationProvider.addListener(_updateNavigationReady);
+    // The SQL count, not the profile list: this listener lives all session,
+    // and keeping the list alive would re-hydrate every profile on each
+    // divers-table write.
+    ref.listenManual<AsyncValue<int>>(diverCountProvider, (_, next) {
+      _hasDivers = (next.value ?? 0) > 0;
+      _updateNavigationReady();
+    }, fireImmediately: true);
+    // The serviceDue query field reads a cache of the service engine's
+    // verdicts, and any list can reach it through a relation (a dive's
+    // gear.serviceDue). The keeper runs the cache writer while a filter
+    // names it, and leaves the clocks idle otherwise (#2365).
+    ref.listenManual(serviceStatusKeeperProvider, (_, _) {});
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeSyncOnLaunch();
       _resumeMediaTransfers();
       _republishOwnedMedia();
       _fileShareHandler.initialize();
+      _passportLinks.start();
       // Fill the per-dive sensor summary cache for dives that predate it or
       // changed since. Single-flight, oldest first, no-op when current.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
+      DerivedMetricsScheduler.instance.scheduleStaleSweep();
     });
   }
 
   @override
   void dispose() {
+    _linkRouter.routeInformationProvider.removeListener(_updateNavigationReady);
+    _shares.release();
+    unawaited(_passportLinks.dispose());
     _fileShareHandler.dispose();
     _lifecycleListener.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -151,15 +198,23 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.hidden) {
-      ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
-    }
-    if (state == AppLifecycleState.resumed) {
-      ref.read(appLockNotifierProvider.notifier).noteResumed();
-      _maybeSyncOnResume();
-      _resumeMediaTransfers();
+    // The iOS NFC sheet over the app is not the diver leaving it.
+    final meaning = _lifecycle.interpret(
+      state,
+      systemSheetUp: ref.read(nfcTagServiceProvider).sessionActive,
+    );
+    switch (meaning) {
+      case LifecycleMeaning.backgrounded:
+        ref.read(appLockNotifierProvider.notifier).noteBackgrounded();
+      case LifecycleMeaning.resumed:
+        ref.read(appLockNotifierProvider.notifier).noteResumed();
+        _maybeSyncOnResume();
+        _resumeMediaTransfers();
+        // NFC may have been turned on in the system settings meanwhile, as
+        // the passport screens tell the diver to do.
+        ref.invalidate(nfcSupportProvider);
+      case LifecycleMeaning.none:
+        break;
     }
   }
 
@@ -312,7 +367,45 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     });
   }
 
-  Future<void> _handleIncomingFile(Uint8List bytes, String fileName) async {
+  /// Opens a share the gate has let through, returning whether it finished
+  /// with it. A root that a soft restart disposed while it was opening the
+  /// share hands it back for the root that replaced it. Failures are
+  /// reported here, by the root that opened it: the share handler that
+  /// received it may belong to a root since replaced.
+  Future<bool> _openShare(IncomingShare share) async {
+    try {
+      return switch (share) {
+        SharedFile(:final bytes, :final fileName) => await _handleIncomingFile(
+          bytes,
+          fileName,
+        ),
+        SharedFileBatch(:final paths) => await _handleIncomingFiles(paths),
+      };
+    } catch (error) {
+      // Torn down mid-way, the old scope's providers throw; that is the
+      // restart, not the file, so the new root gets to try it.
+      if (!mounted) return false;
+      _reportShareError(error);
+      return true;
+    }
+  }
+
+  /// Logs a share failure and tells the diver, through this root's
+  /// messenger: what could not be read, or how many files were skipped.
+  void _reportShareError(Object error) {
+    final l10n = _scaffoldMessengerKey.currentContext != null
+        ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
+        : null;
+    reportIncomingFileError(
+      error,
+      messenger: _scaffoldMessengerKey.currentState,
+      readFailedMessage: l10n?.dropTarget_error_readFailed,
+      someUnreadableMessage: l10n?.dropTarget_error_someUnreadable,
+    );
+  }
+
+  /// Opens one shared file. False when this root can no longer open it.
+  Future<bool> _handleIncomingFile(Uint8List bytes, String fileName) async {
     final router = ref.read(appRouterProvider);
     final location = router.routeInformationProvider.value.uri.path;
 
@@ -320,7 +413,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
         : null;
 
-    final shouldNavigate = await handleIncomingFile(
+    final outcome = await handleIncomingFile(
       bytes: bytes,
       fileName: fileName,
       currentPath: location,
@@ -330,11 +423,93 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       unsupportedFileMessage: l10n?.dropTarget_error_unsupportedFile,
     );
 
+    if (!mounted) return false;
+
+    switch (outcome) {
+      case IncomingFileOutcome.navigateToWizard:
+        // PUSH (not go): the wizard is a sub-page, so system back returns
+        // to wherever the drop happened instead of closing the app (#647).
+        router.push('/transfer/import-wizard');
+      case IncomingFileOutcome.navigateToNavTrackReview:
+        // The share gate held this until the navigator was built, so a
+        // missing one means the app root is being replaced: hand the route
+        // back for the next one.
+        final navContext = rootNavigatorKey.currentContext;
+        if (navContext == null || !navContext.mounted) return false;
+        // Not awaited: the review stays open until the diver leaves it, and
+        // the share gate must not hold the next shared file until then.
+        unawaited(
+          navigateToNavTrackReview(navContext, bytes, fileName: fileName),
+        );
+      case IncomingFileOutcome.navigateToSuuntoFileImport:
+        // PUSH, like the wizard: back returns to wherever the share landed.
+        router.push(
+          suuntoFileImportPath,
+          extra: [SuuntoJsonFile(name: fileName, bytes: bytes)],
+        );
+      case IncomingFileOutcome.none:
+        break;
+    }
+    return true;
+  }
+
+  /// Whether a passport link or a shared file can open its page now: a
+  /// diver exists, setup is no longer on screen (the wizard writes the diver
+  /// before it finishes, and finishing replaces the whole stack), and the
+  /// root navigator is built (go_router builds none until its async redirect
+  /// resolves).
+  void _updateNavigationReady() {
+    if (!mounted) return;
+    final settled =
+        _hasDivers &&
+        _linkRouter.routeInformationProvider.value.uri.path != '/welcome';
+    final navigatorBuilt = rootNavigatorKey.currentContext != null;
+    final ready = settled && navigatorBuilt;
+    _passportLinks.setReady(ready);
+    _shares.setReady(ready);
+    // One pending retry at most, however many updates arrive meanwhile.
+    if (settled && !navigatorBuilt && !_navigationReadyRetryScheduled) {
+      _navigationReadyRetryScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _navigationReadyRetryScheduled = false;
+        _updateNavigationReady();
+      });
+    }
+  }
+
+  /// Opens a passport tag that arrived as a link. The root navigator's
+  /// context sits under the router and the scaffold messenger, which is all
+  /// [openScannedTag] needs.
+  Future<void> _openPassportLink(String text) async {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    await openScannedTag(context, ref, text);
+  }
+
+  /// Opens a batch of shared files. False when this root can no longer
+  /// open them.
+  Future<bool> _handleIncomingFiles(List<String> paths) async {
+    final router = ref.read(appRouterProvider);
+    final location = router.routeInformationProvider.value.uri.path;
+
+    final l10n = _scaffoldMessengerKey.currentContext != null
+        ? AppLocalizations.of(_scaffoldMessengerKey.currentContext!)
+        : null;
+
+    final shouldNavigate = await handleIncomingFiles(
+      paths: paths,
+      currentPath: location,
+      notifier: ref.read(universalImportNotifierProvider.notifier),
+      messenger: _scaffoldMessengerKey.currentState,
+      wizardActiveMessage: l10n?.dropTarget_error_wizardActive,
+    );
+
+    if (!mounted) return false;
     if (shouldNavigate) {
-      // PUSH (not go): the wizard is a sub-page, so system back returns to
-      // wherever the drop happened instead of closing the app (#647).
+      // PUSH (not go), for the same reason as _handleIncomingFile (#647).
       router.push('/transfer/import-wizard');
     }
+    return true;
   }
 
   Locale? _resolveLocale(String localeSetting) {

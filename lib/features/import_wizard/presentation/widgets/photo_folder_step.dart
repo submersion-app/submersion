@@ -41,7 +41,7 @@ class PhotoFolderStep extends ConsumerWidget {
 
   /// A recursive folder scan needs real filesystem paths, which Android's SAF
   /// does not reliably provide and iOS does not expose at all.
-  static bool get _canPickFolder => switch (defaultTargetPlatform) {
+  static bool get canPickFolder => switch (defaultTargetPlatform) {
     TargetPlatform.macOS ||
     TargetPlatform.windows ||
     TargetPlatform.linux => true,
@@ -87,6 +87,7 @@ class PhotoFolderStep extends ConsumerWidget {
       0,
       (sum, paths) => sum + paths.length,
     );
+    final downloadCount = state.remotePhotoCount;
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
@@ -100,7 +101,7 @@ class PhotoFolderStep extends ConsumerWidget {
               text: l10n.importWizard_photos_foundCount(referencedCount),
             ),
             const SizedBox(height: 24),
-            if (state.isLoading && _canPickFolder)
+            if (state.isLoading && canPickFolder)
               Row(
                 children: [
                   const SizedBox(
@@ -112,7 +113,7 @@ class PhotoFolderStep extends ConsumerWidget {
                   Text(l10n.importWizard_photos_scanning),
                 ],
               )
-            else if (_canPickFolder) ...[
+            else if (canPickFolder) ...[
               FilledButton.icon(
                 onPressed: () => _pick(ref),
                 icon: const Icon(Icons.folder_open),
@@ -135,13 +136,19 @@ class PhotoFolderStep extends ConsumerWidget {
             ],
             const SizedBox(height: 24),
           ],
-          if (bundledCount > 0) ...[
-            _Heading(
-              icon: Icons.archive_outlined,
-              text: l10n.importWizard_photos_bundledCount(bundledCount),
-            ),
+          if (bundledCount > 0 || downloadCount > 0) ...[
+            if (bundledCount > 0)
+              _Heading(
+                icon: Icons.archive_outlined,
+                text: l10n.importWizard_photos_bundledCount(bundledCount),
+              ),
+            if (downloadCount > 0)
+              _Heading(
+                icon: Icons.cloud_download_outlined,
+                text: l10n.importWizard_photos_downloadCount(downloadCount),
+              ),
             const SizedBox(height: 24),
-            if (_canPickFolder) ...[
+            if (canPickFolder) ...[
               FilledButton.icon(
                 onPressed: () => _pickDestination(context, ref),
                 icon: const Icon(Icons.drive_folder_upload_outlined),
@@ -165,7 +172,7 @@ class PhotoFolderStep extends ConsumerWidget {
           // One explanation, covering whichever sections are listed above:
           // neither kind of photo can be located without a folder, and
           // repeating that under each heading only adds noise.
-          if (!_canPickFolder) ...[
+          if (!canPickFolder) ...[
             Text(l10n.importWizard_photos_mobileUnsupported),
             const SizedBox(height: 24),
           ],

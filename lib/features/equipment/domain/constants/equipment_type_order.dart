@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/fuzzy_match.dart';
 
 /// How a gear list orders equipment types.
 ///
@@ -58,8 +59,15 @@ const List<EquipmentType> kHeadToToeTypeOrder = [
   EquipmentType.compass,
   EquipmentType.light,
   EquipmentType.camera,
+  // The camera's parts (#1487, #1997) sit beside it, as the regulator's do.
+  EquipmentType.lens,
+  EquipmentType.port,
   EquipmentType.housing,
+  EquipmentType.trayHandle,
+  EquipmentType.armClamp,
   EquipmentType.strobe,
+  EquipmentType.videoLight,
+  EquipmentType.floatArm,
   EquipmentType.smb,
   EquipmentType.reel,
   EquipmentType.knife,
@@ -68,6 +76,9 @@ const List<EquipmentType> kHeadToToeTypeOrder = [
   EquipmentType.gloves,
   EquipmentType.boots,
   EquipmentType.fins,
+  // A bag (#2952) carries the gear above rather than being worn, so it
+  // follows every worn item instead of being guessed into the sequence.
+  EquipmentType.bag,
   // Consumable child parts (#1708): they live inside another item and are
   // never worn or donned on their own, so they have no position in an
   // anatomical or a dressing sequence. They tail the list beside `other`
@@ -111,8 +122,15 @@ const List<EquipmentType> kDressingTypeOrder = [
   EquipmentType.compass,
   EquipmentType.light,
   EquipmentType.camera,
+  // The camera's parts (#1487, #1997) sit beside it, as the regulator's do.
+  EquipmentType.lens,
+  EquipmentType.port,
   EquipmentType.housing,
+  EquipmentType.trayHandle,
+  EquipmentType.armClamp,
   EquipmentType.strobe,
+  EquipmentType.videoLight,
+  EquipmentType.floatArm,
   EquipmentType.smb,
   EquipmentType.reel,
   EquipmentType.knife,
@@ -122,6 +140,9 @@ const List<EquipmentType> kDressingTypeOrder = [
   EquipmentType.mask,
   EquipmentType.snorkel,
   EquipmentType.gloves,
+  // A bag (#2952) carries the gear above rather than being worn, so it
+  // follows every worn item instead of being guessed into the sequence.
+  EquipmentType.bag,
   // Consumable child parts (#1708): they live inside another item and are
   // never worn or donned on their own, so they have no position in an
   // anatomical or a dressing sequence. They tail the list beside `other`
@@ -177,12 +198,21 @@ const List<EquipmentType> kCanonicalTypeOrder = [
   // Accessories.
   EquipmentType.light,
   EquipmentType.camera,
+  // The camera's parts (#1487, #1997) sit beside it, as the regulator's do.
+  EquipmentType.lens,
+  EquipmentType.port,
   EquipmentType.housing,
+  EquipmentType.trayHandle,
+  EquipmentType.armClamp,
   EquipmentType.strobe,
+  EquipmentType.videoLight,
+  EquipmentType.floatArm,
   EquipmentType.smb,
   EquipmentType.reel,
   EquipmentType.knife,
   EquipmentType.tool,
+  // Transport (#2952): what the gear travels in.
+  EquipmentType.bag,
   // Consumable child parts (#1708), a family of their own: they live inside
   // another item rather than being gear a diver wears.
   EquipmentType.o2Cell,
@@ -212,3 +242,33 @@ int equipmentTypeRank(EquipmentType type, List<EquipmentType> table) {
   final index = table.indexOf(type);
   return index == -1 ? table.length : index;
 }
+
+/// Orders types alphabetically by the label the reader sees (#2937).
+///
+/// [label] resolves a type to its on-screen string; pass the localized name
+/// so the order follows the active locale. Comparison ignores case and common
+/// accents, so French "Émetteur" files under E rather than after Z, and two
+/// types sharing a key fall back to the enum name so the order is total and
+/// stable. Each key is computed once per comparator, not once per comparison.
+Comparator<EquipmentType> equipmentTypeLabelComparator(
+  String Function(EquipmentType) label,
+) {
+  final sortKeys = <EquipmentType, String>{};
+  String sortKey(EquipmentType type) =>
+      sortKeys[type] ??= normalize(label(type));
+  return (a, b) {
+    if (a == b) return 0;
+    final byLabel = sortKey(a).compareTo(sortKey(b));
+    return byLabel != 0 ? byLabel : a.name.compareTo(b.name);
+  };
+}
+
+/// [types] as a new list in [equipmentTypeLabelComparator] order.
+///
+/// Every list a diver picks a type from goes through this, rather than
+/// iterating [EquipmentType.values], whose declaration order is an artifact
+/// of when each type was added.
+List<EquipmentType> sortEquipmentTypesByLabel(
+  Iterable<EquipmentType> types,
+  String Function(EquipmentType) label,
+) => List.of(types)..sort(equipmentTypeLabelComparator(label));

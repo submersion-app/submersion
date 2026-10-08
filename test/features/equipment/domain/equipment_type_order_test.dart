@@ -70,4 +70,74 @@ void main() {
       }
     }
   });
+
+  group('sortEquipmentTypesByLabel (#2937)', () {
+    test('orders by label, not by enum declaration order', () {
+      final sorted = sortEquipmentTypesByLabel(
+        EquipmentType.values,
+        (t) => t.displayName,
+      );
+      final labels = [for (final t in sorted) t.displayName.toLowerCase()];
+      expect(labels, [...labels]..sort());
+      expect(sorted.toSet(), EquipmentType.values.toSet());
+      // The enum opens with regulator; alphabetically it cannot lead.
+      expect(sorted.first, isNot(EquipmentType.regulator));
+    });
+
+    test('compares case-insensitively', () {
+      final sorted = sortEquipmentTypesByLabel([
+        EquipmentType.mask,
+        EquipmentType.fins,
+      ], (t) => t == EquipmentType.mask ? 'apple' : 'Banana');
+      expect(sorted, [EquipmentType.mask, EquipmentType.fins]);
+    });
+
+    test('places an accented label by its base letter', () {
+      // French labels the transmitter "Émetteur". By code unit "é"
+      // sorts after "z", which put it last instead of before "Gilet".
+      final sorted = sortEquipmentTypesByLabel([
+        EquipmentType.bcd,
+        EquipmentType.transmitter,
+      ], (t) => t == EquipmentType.transmitter ? '\u00c9metteur' : 'Gilet');
+      expect(sorted, [EquipmentType.transmitter, EquipmentType.bcd]);
+    });
+
+    test('breaks a shared label by enum name, whatever the input order', () {
+      String label(EquipmentType _) => 'same';
+      expect(
+        sortEquipmentTypesByLabel([
+          EquipmentType.wing,
+          EquipmentType.bcd,
+        ], label),
+        [EquipmentType.bcd, EquipmentType.wing],
+      );
+      expect(
+        sortEquipmentTypesByLabel([
+          EquipmentType.bcd,
+          EquipmentType.wing,
+        ], label),
+        [EquipmentType.bcd, EquipmentType.wing],
+      );
+    });
+
+    test('follows the label, so a locale can reorder the list', () {
+      // Light precedes mask by name and in English; a translation that sorts
+      // it last must win, because the reader sees the label, not the name.
+      final sorted = sortEquipmentTypesByLabel([
+        EquipmentType.light,
+        EquipmentType.mask,
+      ], (t) => t == EquipmentType.light ? 'Zubehoer' : 'Maske');
+      expect(sorted, [EquipmentType.mask, EquipmentType.light]);
+    });
+
+    test('returns a new list and leaves the input untouched', () {
+      final input = List<EquipmentType>.unmodifiable([
+        EquipmentType.wing,
+        EquipmentType.bcd,
+      ]);
+      final sorted = sortEquipmentTypesByLabel(input, (t) => t.name);
+      expect(sorted, [EquipmentType.bcd, EquipmentType.wing]);
+      expect(input, [EquipmentType.wing, EquipmentType.bcd]);
+    });
+  });
 }

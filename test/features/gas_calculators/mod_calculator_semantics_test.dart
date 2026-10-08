@@ -3,9 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../helpers/mock_providers.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -19,6 +22,9 @@ Widget _host(Locale locale, {AppSettings settings = const AppSettings()}) {
   return ProviderScope(
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
+      currentDiverIdProvider.overrideWith(
+        (ref) => MockCurrentDiverIdNotifier(),
+      ),
     ],
     child: MaterialApp(
       locale: locale,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/startup_theme.dart';
@@ -10,6 +12,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -50,8 +53,9 @@ class _InMemorySettingsRepository extends DiverSettingsRepository {
   @override
   Future<void> updateSettingsForDiver(
     String diverId,
-    AppSettings settings,
-  ) async {
+    AppSettings settings, {
+    AppSettings? previous,
+  }) async {
     _stored = settings;
   }
 }
@@ -154,6 +158,25 @@ void main() {
       expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
     });
 
+    test('setBuiltInHidden toggles one catalog at a time', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.setBuiltInHidden(BuiltInCatalog.diveRoles, 'solo', true);
+      await notifier.setBuiltInHidden(BuiltInCatalog.siteTypes, 'lake', true);
+      var settings = container.read(settingsProvider);
+      expect(settings.hiddenBuiltIns(BuiltInCatalog.diveRoles), {'solo'});
+      expect(settings.hiddenBuiltIns(BuiltInCatalog.siteTypes), {'lake'});
+
+      await notifier.setBuiltInHidden(BuiltInCatalog.diveRoles, 'solo', false);
+      settings = container.read(settingsProvider);
+      expect(settings.hiddenBuiltIns(BuiltInCatalog.diveRoles), isEmpty);
+      expect(settings.hiddenBuiltInIds, {
+        'siteTypes': {'lake'},
+      });
+    });
+
     test('setTankPresetHidden never hides the default preset', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();
@@ -245,6 +268,37 @@ void main() {
 
       // The derived provider the equipment pages read tracks the change.
       expect(container.read(defaultCurrencyProvider), 'EUR');
+    });
+
+    test('setDistanceUnit sets the distance unit (issue #2030)', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).distanceUnit,
+        DistanceUnit.kilometers,
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .setDistanceUnit(DistanceUnit.miles);
+      expect(container.read(settingsProvider).distanceUnit, DistanceUnit.miles);
+    });
+
+    test('setImperial and setMetric carry the distance unit', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+      final notifier = container.read(settingsProvider.notifier);
+
+      await notifier.setImperial();
+      expect(container.read(settingsProvider).distanceUnit, DistanceUnit.miles);
+      expect(container.read(settingsProvider).unitPreset, UnitPreset.imperial);
+
+      await notifier.setMetric();
+      expect(
+        container.read(settingsProvider).distanceUnit,
+        DistanceUnit.kilometers,
+      );
+      expect(container.read(settingsProvider).unitPreset, UnitPreset.metric);
     });
 
     test('setDefaultCurrency accepts a code outside the presets', () async {
@@ -406,6 +460,15 @@ void main() {
       );
     });
 
+    test('setShowDiveFigure toggles value', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).showDiveFigure, isFalse);
+      await container.read(settingsProvider.notifier).setShowDiveFigure(true);
+      expect(container.read(settingsProvider).showDiveFigure, isTrue);
+    });
+
     test('setShowDataSourceBadges toggles value', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();
@@ -440,6 +503,52 @@ void main() {
         await notifier.setPpO2Limits(1.3, 1.5);
         expect(container.read(settingsProvider).ppO2MaxWorking, 1.3);
         expect(container.read(settingsProvider).ppO2MaxDeco, 1.5);
+      },
+    );
+
+    test(
+      'setCcrPpO2Limits keeps 0.5-1.6 on a 0.1 grid, high >= low (#2342)',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        final notifier = container.read(settingsProvider.notifier);
+        final initial = container.read(settingsProvider);
+        expect(initial.ccrSetpointLow, 0.7);
+        expect(initial.ccrSetpointHigh, 1.3);
+        expect(initial.ccrDiluentModPpO2, 1.6);
+
+        await notifier.setCcrPpO2Limits(
+          setpointLow: 0.1,
+          setpointHigh: 1.9,
+          diluentModPpO2: 0.05,
+        );
+        var s = container.read(settingsProvider);
+        expect(s.ccrSetpointLow, 0.5);
+        expect(s.ccrSetpointHigh, 1.6);
+        expect(s.ccrDiluentModPpO2, 0.5);
+
+        // Off-grid values snap to the nearest tenth.
+        await notifier.setCcrPpO2Limits(
+          setpointLow: 0.74,
+          setpointHigh: 1.26,
+          diluentModPpO2: 1.55,
+        );
+        s = container.read(settingsProvider);
+        expect(s.ccrSetpointLow, 0.7);
+        expect(s.ccrSetpointHigh, 1.3);
+        expect(s.ccrDiluentModPpO2, 1.6);
+
+        // A high setpoint below the low one is raised to it.
+        await notifier.setCcrPpO2Limits(
+          setpointLow: 1.2,
+          setpointHigh: 0.9,
+          diluentModPpO2: 1.5,
+        );
+        s = container.read(settingsProvider);
+        expect(s.ccrSetpointLow, 1.2);
+        expect(s.ccrSetpointHigh, 1.2);
+        expect(s.ccrDiluentModPpO2, 1.5);
       },
     );
 
@@ -627,6 +736,19 @@ void main() {
       );
     });
 
+    test('the late gas switch overlay default saves and is exposed', () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(defaultShowLateGasSwitchesProvider), isTrue);
+      await notifier.setDefaultShowLateGasSwitches(false);
+      expect(
+        container.read(settingsProvider).defaultShowLateGasSwitches,
+        isFalse,
+      );
+      expect(container.read(defaultShowLateGasSwitchesProvider), isFalse);
+    });
+
     test('condition engine toggles persist through the notifier', () async {
       final notifier = container.read(settingsProvider.notifier);
       await waitForInit();
@@ -650,6 +772,31 @@ void main() {
       );
       expect(container.read(settingsProvider).conditionDisabledRules, isEmpty);
     });
+
+    test(
+      'setObservationRuleMuted toggles one rule and keeps unknown ids',
+      () async {
+        final notifier = container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        expect(
+          container.read(settingsProvider).insightsMutedObservationRules,
+          isEmpty,
+        );
+        await notifier.setObservationRuleMuted(ObservationRuleId.diveGap, true);
+        expect(container.read(settingsProvider).insightsMutedObservationRules, {
+          'diveGap',
+        });
+        await notifier.setObservationRuleMuted(
+          ObservationRuleId.diveGap,
+          false,
+        );
+        expect(
+          container.read(settingsProvider).insightsMutedObservationRules,
+          isEmpty,
+        );
+      },
+    );
   });
 
   group('Real SettingsNotifier perdix overlay settings', () {

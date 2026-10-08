@@ -102,7 +102,8 @@ class DiveComputerHostApiImpl(
                         vendor = info.vendor,
                         product = info.product,
                         model = info.model.toLong(),
-                        transports = mapTransports(info.transports)
+                        transports = mapTransports(info.transports),
+                        deliversOldestFirst = info.deliversOldestFirst
                     )
                 )
             }
@@ -115,11 +116,11 @@ class DiveComputerHostApiImpl(
     private fun mapTransports(bitmask: Int): List<TransportType> {
         val transports = mutableListOf<TransportType>()
         if (bitmask and LIBDC_TRANSPORT_BLE != 0) transports.add(TransportType.BLE)
-        // USBHID is deliberately NOT surfaced as USB: no platform build
-        // implements a USB HID transport (HAVE_HIDAPI is off), so
+        // USBHID is deliberately NOT surfaced as USB: Android has no USB HID
+        // I/O stream (macOS, Windows and Linux gained one in #1271), so
         // advertising it sent HID-only devices (Suunto EON Steel family)
         // into the serial path's "No USB serial ports found" dead end
-        // (#143). BLE is the working path for those devices.
+        // (#143). BLE is the working path for those devices here.
         if (bitmask and LIBDC_TRANSPORT_USB != 0) {
             transports.add(TransportType.USB)
         }
@@ -486,9 +487,17 @@ class DiveComputerHostApiImpl(
             val firmware = libdcUnsignedOrNull(infoOut[1])
             val clockSync = libdcClockSyncStatusName(infoOut[2])
                 .takeIf { it != "not_requested" }
-            NativeLogger.i(TAG, "LDC", "Device info: serial=$serial firmware=$firmware clockSync=${clockSync ?: "not_requested"}")
+            // The model the device named about itself (issue #422), read
+            // before the session is freed.
+            val reported = reportedDeviceOrNull(
+                LibdcWrapper.nativeDownloadSessionReportedDevice(sessionPtr)
+            )
+            NativeLogger.i(TAG, "LDC", "Device info: serial=$serial firmware=$firmware clockSync=${clockSync ?: "not_requested"} reported=${reported?.product ?: "none"}")
             mainHandler.post {
-                flutterApi.onDownloadComplete(0, serial, firmware, clockSync) { }
+                flutterApi.onDownloadComplete(
+                    0, serial, firmware, clockSync,
+                    reported?.product, reported?.model
+                ) { }
             }
         } else if (result != LIBDC_STATUS_CANCELLED) {
             // If the download failed because the remote device rejected our
@@ -652,7 +661,7 @@ class DiveComputerHostApiImpl(
             !anyOpened ->
                 reportError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
             lastResult == 0 || lastResult == LIBDC_STATUS_CANCELLED ->
-                mainHandler.post { flutterApi.onDownloadComplete(0, null, null, null) { } }
+                mainHandler.post { flutterApi.onDownloadComplete(0, null, null, null, null, null) { } }
             drivers.size > 1 ->
                 reportError("connect_failed", "No dive computer found. Ports tried:\n$probeLog")
             else ->

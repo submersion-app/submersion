@@ -1,6 +1,7 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -9,12 +10,15 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/shared_items_fixture.dart';
 
 /// Pumps a fresh-trip page behind a router, so the `context.pop(savedId)` that
 /// follows a successful save has somewhere to go. Creating a trip always
@@ -353,6 +357,42 @@ void main() {
       expect(find.text('Please enter a trip name'), findsOneWidget);
     });
 
+    testWidgets('a fractional expected dive count blocks save (#1900 review)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Trip Name *'),
+        'Red Sea',
+      );
+      final expected = find.widgetWithText(TextFormField, 'Expected dives');
+      await tester.ensureVisible(expected);
+      await tester.enterText(expected, '1.5');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter a whole number'), findsOneWidget);
+    });
+
     testWidgets('should accept input in name field', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
@@ -380,6 +420,72 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('My Test Trip'), findsOneWidget);
+    });
+  });
+
+  group('TripEditPage - opening at a section (#2880)', () {
+    Future<void> pump(WidgetTester tester, {TripEditSection? section}) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-id', initialSection: section),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    /// The form's scroll offset.
+    double offset(WidgetTester tester) => tester
+        .state<ScrollableState>(
+          find
+              .descendant(
+                of: find.byType(SingleChildScrollView),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        )
+        .position
+        .pixels;
+
+    testWidgets('opens at the top by default', (tester) async {
+      await pump(tester);
+      expect(offset(tester), 0);
+    });
+
+    testWidgets('opens with the Planning section below the fold', (
+      tester,
+    ) async {
+      await pump(tester);
+      final screenBottom = tester.getBottomLeft(find.byType(Scaffold)).dy;
+      expect(
+        tester.getTopLeft(find.text('Planning')).dy,
+        greaterThan(screenBottom),
+      );
+    });
+
+    testWidgets('scrolls the Planning section into view once loaded', (
+      tester,
+    ) async {
+      await pump(tester, section: TripEditSection.planning);
+      expect(offset(tester), greaterThan(0));
+      // The heading sits on screen, below the app bar.
+      final heading = tester.getRect(find.text('Planning'));
+      final appBarBottom = tester.getBottomLeft(find.byType(AppBar)).dy;
+      final screenBottom = tester.getBottomLeft(find.byType(Scaffold)).dy;
+      expect(heading.top, greaterThanOrEqualTo(appBarBottom));
+      expect(heading.bottom, lessThanOrEqualTo(screenBottom));
     });
   });
 
@@ -511,6 +617,150 @@ void main() {
     });
   });
 
+  group('TripEditPage - day trip (#2625)', () {
+    Future<void> pumpNewTrip(WidgetTester tester) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            // Pin the locale: one test types a US-format date.
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    const dayTripHint = 'A single day out, such as one local dive';
+    const shoreHint = 'Shore dives over one or more days';
+
+    testWidgets('the type selector describes the selected type', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      expect(find.text(shoreHint), findsOneWidget);
+      expect(find.text(dayTripHint), findsNothing);
+
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(dayTripHint), findsOneWidget);
+      expect(find.text(shoreHint), findsNothing);
+    });
+
+    testWidgets('choosing Day Trip collapses the dates to one day', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      expect(find.text('8 days'), findsOneWidget);
+
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 day'), findsOneWidget);
+    });
+
+    testWidgets('a Day Trip keeps its end date on a moved start date', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      // A start date in the past: moving the start later than the end is
+      // already synced for every type, so only an earlier start shows whether
+      // the end follows it.
+      await tester.tap(find.text('Start Date'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(DatePickerDialog),
+          matching: find.byType(TextField),
+        ),
+        '01/15/2023',
+      );
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 day'), findsOneWidget);
+    });
+
+    testWidgets('a Day Trip locks its end date to the start date', (
+      tester,
+    ) async {
+      await pumpNewTrip(tester);
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+
+      final endRow = find.widgetWithText(ListTile, 'End Date');
+      expect(tester.widget<ListTile>(endRow).enabled, isFalse);
+      await tester.tap(find.text('End Date'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DatePickerDialog), findsNothing);
+      expect(find.text('1 day'), findsOneWidget);
+
+      // Another type hands the end date back to the diver.
+      await tester.tap(find.text('Resort'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<ListTile>(endRow).enabled, isTrue);
+    });
+
+    testWidgets('a stored multi-day Day Trip keeps its end date editable', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithMultiDayDayTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-id'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Locking a row that shows a three-day range would leave the diver no
+      // way to correct it; the lock applies once the trip is one day.
+      expect(find.text('3 days'), findsOneWidget);
+      final endRow = find.widgetWithText(ListTile, 'End Date');
+      expect(tester.widget<ListTile>(endRow).enabled, isTrue);
+    });
+
+    testWidgets('leaving Day Trip keeps the collapsed dates', (tester) async {
+      await pumpNewTrip(tester);
+      await tester.tap(find.text('Day Trip'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Shore'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 day'), findsOneWidget);
+      expect(find.text(shoreHint), findsOneWidget);
+    });
+  });
+
   group('share toggle', () {
     testWidgets('hides the toggle when only one diver exists', (tester) async {
       final oneDiver = [
@@ -625,6 +875,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripRepositoryProvider.overrideWithValue(
               _MockTripRepositoryWithSharedTrip(),
             ),
@@ -667,6 +919,124 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Unshare this trip?'), findsOneWidget);
+    });
+  });
+
+  group('share toggle ownership (issue #2594)', () {
+    final twoDivers = [
+      for (final (id, name) in [('d1', 'Alice'), ('d2', 'Bob')])
+        Diver(
+          id: id,
+          name: name,
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+    ];
+
+    Future<SwitchListTile> shareSwitch(
+      WidgetTester tester, {
+      required String active,
+      GatedActiveProfile? activeProfile,
+      bool profileUnreadable = false,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithOwnedSharedTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+            allDiversProvider.overrideWith((_) async => twoDivers),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (_) =>
+                  activeProfile?.read() ??
+                  (profileUnreadable
+                      ? Future<String?>.error(StateError('no profile'))
+                      : Future.value(active)),
+            ),
+            shareByDefaultProvider.overrideWith((_) async => true),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-shared'),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Share with all dive profiles'),
+        50.0,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      return tester.widget<SwitchListTile>(
+        find.byWidgetPredicate(
+          (w) =>
+              w is SwitchListTile &&
+              w.title is Text &&
+              (w.title as Text).data == 'Share with all dive profiles',
+        ),
+      );
+    }
+
+    testWidgets('is locked for another profile, naming the owner', (
+      tester,
+    ) async {
+      final tile = await shareSwitch(tester, active: 'd2');
+      expect(tile.onChanged, isNull);
+      expect(find.text('Only Alice can change sharing'), findsOneWidget);
+    });
+
+    testWidgets('is locked while a profile switch re-reads the profile '
+        '(issue #2677 review)', (tester) async {
+      final activeProfile = GatedActiveProfile.settled('d1');
+      final tile = await shareSwitch(
+        tester,
+        active: 'd1',
+        activeProfile: activeProfile,
+      );
+      expect(tile.onChanged, isNotNull);
+
+      ProviderScope.containerOf(
+        tester.element(find.byType(TripEditPage)),
+      ).invalidate(validatedCurrentDiverIdProvider);
+      await tester.pump();
+      final locked = tester.widget<SwitchListTile>(
+        find.byWidgetPredicate(
+          (w) =>
+              w is SwitchListTile &&
+              w.title is Text &&
+              (w.title as Text).data == 'Share with all dive profiles',
+        ),
+      );
+      expect(locked.onChanged, isNull);
+      expect(find.text('Only Alice can change sharing'), findsNothing);
+
+      activeProfile.settle('d2');
+      await tester.pumpAndSettle();
+      expect(find.text('Only Alice can change sharing'), findsOneWidget);
+    });
+
+    // Read as "no profile", the switch unlocked for another profile's trip
+    // (issue #2682). Ownership is unknown, not refused, so no owner line.
+    testWidgets('is locked while the profile cannot be read', (tester) async {
+      final tile = await shareSwitch(
+        tester,
+        active: 'd2',
+        profileUnreadable: true,
+      );
+      expect(tile.onChanged, isNull);
+      expect(find.text('Only Alice can change sharing'), findsNothing);
+    });
+
+    testWidgets('stays open for the owner', (tester) async {
+      final tile = await shareSwitch(tester, active: 'd1');
+      expect(tile.onChanged, isNotNull);
+      expect(find.text('Only Alice can change sharing'), findsNothing);
     });
   });
 
@@ -1023,6 +1393,52 @@ void main() {
       expect(find.text('Trip updated successfully'), findsOneWidget);
     });
 
+    testWidgets('editing keeps the fill forecast fields', (tester) async {
+      final notifier = _MockTripListNotifier([]);
+      final router = GoRouter(
+        initialLocation: '/trips/edit',
+        routes: [
+          GoRoute(
+            path: '/trips',
+            builder: (context, state) =>
+                const Scaffold(body: Text('LIST_PAGE')),
+          ),
+          GoRoute(
+            path: '/trips/edit',
+            builder: (context, state) => const TripEditPage(tripId: 'test-id'),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithForecastTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) => notifier),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (ref) async => 'diver-id',
+            ),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Trip Name *'),
+        'Updated Name',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(notifier.lastUpdated?.diversSharingCylinders, 4);
+      expect(notifier.lastUpdated?.divesPerDayTarget, 3);
+    });
+
     testWidgets('save with unchanged dates runs no scan and no diver lookup', (
       tester,
     ) async {
@@ -1259,6 +1675,49 @@ void main() {
       expect(notifier.lastAdded?.expectedRuntimeMinutes, isNull);
     });
 
+    testWidgets('the fill forecast fields save as integers', (tester) async {
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: _CandidateScanRepo(),
+        notifier: notifier,
+        activeDiverId: null,
+      );
+      final sharing = find.widgetWithText(
+        TextFormField,
+        'Divers sharing cylinders',
+      );
+      await tester.ensureVisible(sharing);
+      await tester.enterText(sharing, '3');
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Dives per day'),
+        '2',
+      );
+      await _saveNewTrip(tester, 'Bonaire 2026');
+      expect(notifier.lastAdded?.diversSharingCylinders, 3);
+      expect(notifier.lastAdded?.divesPerDayTarget, 2);
+    });
+
+    testWidgets('blank or non-positive fill forecast fields save as the '
+        'defaults', (tester) async {
+      final notifier = _MockTripListNotifier([]);
+      await _pumpNewTripPage(
+        tester,
+        repository: _CandidateScanRepo(),
+        notifier: notifier,
+        activeDiverId: null,
+      );
+      final sharing = find.widgetWithText(
+        TextFormField,
+        'Divers sharing cylinders',
+      );
+      await tester.ensureVisible(sharing);
+      await tester.enterText(sharing, '0');
+      await _saveNewTrip(tester, 'Bonaire 2026');
+      expect(notifier.lastAdded?.diversSharingCylinders, 1);
+      expect(notifier.lastAdded?.divesPerDayTarget, isNull);
+    });
+
     testWidgets('save errors show error snackbar', (tester) async {
       final notifier = _ThrowingTripListNotifier();
       await tester.pumpWidget(
@@ -1285,7 +1744,8 @@ void main() {
       );
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Error saving trip'), findsOneWidget);
+      expect(find.text("Couldn't save the trip. Try again."), findsOneWidget);
+      expect(find.textContaining('boom'), findsNothing);
     });
   });
 
@@ -1375,12 +1835,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('OPEN_EDIT'));
       await tester.pumpAndSettle();
-      // Scroll down to reveal the Cancel button.
-      await tester.fling(
-        find.byType(TripEditPage),
-        const Offset(0, -500),
-        1000,
-      );
+      // Scroll the Cancel button into view: a fixed fling breaks whenever
+      // the form grows.
+      await tester.ensureVisible(find.byType(OutlinedButton));
       await tester.pumpAndSettle();
       await tester.tap(find.byType(OutlinedButton));
       await tester.pumpAndSettle();
@@ -1584,7 +2041,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('Error loading trip'), findsOneWidget);
+      expect(find.text("Couldn't load the trip. Try again."), findsOneWidget);
+      expect(find.textContaining('not found'), findsNothing);
     });
   });
 
@@ -1637,6 +2095,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripRepositoryProvider.overrideWithValue(
               _MockTripRepositoryWithSharedTrip(),
             ),
@@ -1695,6 +2155,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            // No active profile, as before sharing: every action is the owner's.
+            validatedCurrentDiverIdProvider.overrideWith((_) async => null),
             tripRepositoryProvider.overrideWithValue(
               _MockTripRepositoryWithSharedTrip(),
             ),
@@ -1881,10 +2343,10 @@ class _MockTripRepository implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
+  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
 
   @override
   Future<Trip?> getTripById(String id) async => null;
@@ -1937,7 +2399,11 @@ class _MockTripRepository implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<void> setShared(String id, bool isShared) async {}
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async => true;
 
   @override
   Future<int> shareAllForDiver(String diverId) async => 0;
@@ -1996,15 +2462,41 @@ class _MockTripRepositoryWithDstTrip extends _MockTripRepositoryWithTrip {
   }
 }
 
+/// A Day Trip saved before the form kept day trips to one day (#2625).
+class _MockTripRepositoryWithMultiDayDayTrip
+    extends _MockTripRepositoryWithTrip {
+  @override
+  Future<Trip?> getTripById(String id) async {
+    return Trip(
+      id: 'test-id',
+      name: 'Long Day Trip',
+      startDate: DateTime(2026, 5, 1),
+      endDate: DateTime(2026, 5, 3),
+      tripType: TripType.dayTrip,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+  }
+}
+
+/// The existing trip with fill forecast fields set, for the keep-on-edit
+/// test.
+class _MockTripRepositoryWithForecastTrip extends _MockTripRepositoryWithTrip {
+  @override
+  Future<Trip?> getTripById(String id) async => (await super.getTripById(
+    id,
+  ))!.copyWith(diversSharingCylinders: 4, divesPerDayTarget: 3);
+}
+
 class _MockTripRepositoryWithTrip implements TripRepository {
   @override
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
+  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
 
   @override
   Future<Trip?> getTripById(String id) async {
@@ -2067,7 +2559,11 @@ class _MockTripRepositoryWithTrip implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<void> setShared(String id, bool isShared) async {}
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async => true;
 
   @override
   Future<int> shareAllForDiver(String diverId) async => 0;
@@ -2077,15 +2573,31 @@ class _MockTripRepositoryWithTrip implements TripRepository {
 }
 
 /// Mock repository that returns a SHARED test trip (for unshare confirmation tests).
+/// A shared trip owned by profile `d1` (issue #2594).
+class _MockTripRepositoryWithOwnedSharedTrip
+    extends _MockTripRepositoryWithSharedTrip {
+  @override
+  Future<Trip?> getTripById(String id) async => Trip(
+    id: 'test-shared',
+    name: 'Shared Trip',
+    startDate: DateTime(2024, 1, 15),
+    endDate: DateTime(2024, 1, 22),
+    diverId: 'd1',
+    isShared: true,
+    createdAt: DateTime(2024),
+    updatedAt: DateTime(2024),
+  );
+}
+
 class _MockTripRepositoryWithSharedTrip implements TripRepository {
   @override
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
+  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
 
   @override
   Future<Trip?> getTripById(String id) async {
@@ -2148,7 +2660,11 @@ class _MockTripRepositoryWithSharedTrip implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<void> setShared(String id, bool isShared) async {}
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async => true;
 
   @override
   Future<int> shareAllForDiver(String diverId) async => 0;
@@ -2168,6 +2684,7 @@ class _MockTripListNotifier
   int updateCalls = 0;
   int assignCalls = 0;
   Trip? lastAdded;
+  Trip? lastUpdated;
   List<String>? assignedDiveIds;
   String? assignedTripId;
   Set<String>? assignedOldTripIds;
@@ -2185,10 +2702,20 @@ class _MockTripListNotifier
   @override
   Future<void> updateTrip(Trip trip) async {
     updateCalls++;
+    lastUpdated = trip;
   }
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id) async => true;
+
+  @override
+  Future<bool> hideTrip(String id) async => true;
+
+  @override
+  Future<int> hideTrips(List<String> ids) async => ids.length;
+
+  @override
+  Future<void> unhideTrip(String id) async {}
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}
@@ -2227,7 +2754,16 @@ class _ThrowingTripListNotifier
   Future<void> updateTrip(Trip trip) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id) async => true;
+
+  @override
+  Future<bool> hideTrip(String id) async => true;
+
+  @override
+  Future<int> hideTrips(List<String> ids) async => ids.length;
+
+  @override
+  Future<void> unhideTrip(String id) async {}
 
   @override
   Future<void> assignDiveToTrip(String diveId, String tripId) async {}
@@ -2249,10 +2785,10 @@ class _SlowTripRepository implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
+  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
 
   @override
   Future<Trip?> getTripById(String id) async {
@@ -2315,7 +2851,11 @@ class _SlowTripRepository implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<void> setShared(String id, bool isShared) async {}
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async => true;
 
   @override
   Future<int> shareAllForDiver(String diverId) async => 0;
@@ -2330,10 +2870,10 @@ class _ErrorTripRepository implements TripRepository {
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
-  Future<void> updateTrip(Trip trip) async {}
+  Future<void> updateTrip(Trip trip, {String? actingDiverId}) async {}
 
   @override
-  Future<void> deleteTrip(String id) async {}
+  Future<bool> deleteTrip(String id, {String? actingDiverId}) async => true;
 
   @override
   Future<Trip?> getTripById(String id) async {
@@ -2388,7 +2928,11 @@ class _ErrorTripRepository implements TripRepository {
   Future<void> assignDivesToTrip(List<String> diveIds, String tripId) async {}
 
   @override
-  Future<void> setShared(String id, bool isShared) async {}
+  Future<bool> setShared(
+    String id,
+    bool isShared, {
+    String? actingDiverId,
+  }) async => true;
 
   @override
   Future<int> shareAllForDiver(String diverId) async => 0;

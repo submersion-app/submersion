@@ -32,12 +32,12 @@ void main() {
       DatabaseService.instance.resetForTesting();
     });
 
-    test('new settings default to visible and calculated', () async {
+    test('new settings default to visible and the computer', () async {
       await repository.createSettingsForDiver('d1');
       final loaded = await repository.getSettingsForDiver('d1');
       expect(loaded, isNotNull);
       expect(loaded!.showDecoStopsOnProfile, isTrue);
-      expect(loaded.defaultDecoStopSource, MetricDataSource.calculated);
+      expect(loaded.defaultDecoStopSource, MetricDataSource.computer);
     });
 
     test('round-trips deco stop settings through update without disturbing '
@@ -49,18 +49,16 @@ void main() {
           showDecoStopsOnProfile: false,
           defaultDecoStopSource: MetricDataSource.computer,
           showCeilingOnProfile: true,
-          defaultCeilingSource: MetricDataSource.calculated,
         ),
       );
       final loaded = await repository.getSettingsForDiver('d1');
       expect(loaded, isNotNull);
       expect(loaded!.showDecoStopsOnProfile, isFalse);
       expect(loaded.defaultDecoStopSource, MetricDataSource.computer);
-      // The ceiling settings must survive unchanged: this catches a
+      // The ceiling setting must survive unchanged: this catches a
       // copy-paste error where the deco stop fields were accidentally
       // wired to the ceiling column (or vice versa).
       expect(loaded.showCeilingOnProfile, isTrue);
-      expect(loaded.defaultCeilingSource, MetricDataSource.calculated);
     });
 
     test(
@@ -71,7 +69,6 @@ void main() {
           'd1',
           const AppSettings(
             showCeilingOnProfile: false,
-            defaultCeilingSource: MetricDataSource.computer,
             showDecoStopsOnProfile: true,
             defaultDecoStopSource: MetricDataSource.calculated,
           ),
@@ -79,7 +76,6 @@ void main() {
         final loaded = await repository.getSettingsForDiver('d1');
         expect(loaded, isNotNull);
         expect(loaded!.showCeilingOnProfile, isFalse);
-        expect(loaded.defaultCeilingSource, MetricDataSource.computer);
         expect(loaded.showDecoStopsOnProfile, isTrue);
         expect(loaded.defaultDecoStopSource, MetricDataSource.calculated);
       },

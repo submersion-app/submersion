@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
@@ -49,11 +50,13 @@ void main() {
     double? maxDepth,
     double? avgDepth,
     int? duration,
+    int? runtime,
     double? waterTemp,
     int? entryTime,
     int? exitTime,
     int? surfaceIntervalSeconds,
     double? cnsEnd,
+    double? otu,
     String? decoAlgorithm,
     int? gradientFactorLow,
     int? gradientFactorHigh,
@@ -77,11 +80,13 @@ void main() {
             maxDepth: Value(maxDepth),
             avgDepth: Value(avgDepth),
             bottomTime: Value(duration),
+            runtime: Value(runtime),
             waterTemp: Value(waterTemp),
             entryTime: Value(entryTime),
             exitTime: Value(exitTime),
             surfaceIntervalSeconds: Value(surfaceIntervalSeconds),
             cnsEnd: Value(cnsEnd),
+            otu: Value(otu),
             decoAlgorithm: Value(decoAlgorithm),
             gradientFactorLow: Value(gradientFactorLow),
             gradientFactorHigh: Value(gradientFactorHigh),
@@ -136,6 +141,7 @@ void main() {
     DateTime? exitTime,
     int? surfaceInterval,
     double? cns,
+    double? otu,
     String? decoAlgorithm,
     int? gradientFactorLow,
     int? gradientFactorHigh,
@@ -155,6 +161,7 @@ void main() {
       exitTime: Value(exitTime),
       surfaceInterval: Value(surfaceInterval),
       cns: Value(cns),
+      otu: Value(otu),
       decoAlgorithm: Value(decoAlgorithm),
       gradientFactorLow: Value(gradientFactorLow),
       gradientFactorHigh: Value(gradientFactorHigh),
@@ -943,9 +950,11 @@ void main() {
         maxDepth: 42.0,
         avgDepth: 22.0,
         duration: 3600,
+        runtime: 4200,
         waterTemp: 15.5,
         surfaceIntervalSeconds: 7200,
         cnsEnd: 55.0,
+        otu: 38.0,
         decoAlgorithm: 'VPM-B',
         gradientFactorLow: 35,
         gradientFactorHigh: 75,
@@ -962,10 +971,12 @@ void main() {
       expect(s.computerSerial, equals('SN-TERIC-001'));
       expect(s.maxDepth, equals(42.0));
       expect(s.avgDepth, equals(22.0));
-      expect(s.duration, equals(3600));
+      // The runtime, not the 3600 s bottom time (issue #2421).
+      expect(s.duration, equals(4200));
       expect(s.waterTemp, equals(15.5));
       expect(s.surfaceInterval, equals(7200));
       expect(s.cns, equals(55.0));
+      expect(s.otu, equals(38.0));
       expect(s.decoAlgorithm, equals('VPM-B'));
       expect(s.gradientFactorLow, equals(35));
       expect(s.gradientFactorHigh, equals(75));
@@ -1033,6 +1044,74 @@ void main() {
   // ---------------------------------------------------------------------------
   // getImportIds
   // ---------------------------------------------------------------------------
+
+  group('setPrimaryDataSource oxygen exposure (issue #1798)', () {
+    test('takes the new primary\'s OTU along with its CNS', () async {
+      final diveId = await insertTestDive(
+        id: 'dive-otu-swap',
+        cnsEnd: 14.0,
+        otu: 38.0,
+      );
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-garmin',
+          diveId: diveId,
+          isPrimary: true,
+          cns: 14.0,
+          otu: 38.0,
+        ),
+      );
+      await repository.saveComputerReading(
+        buildReading(id: 'reading-other', diveId: diveId, cns: 9.0),
+      );
+
+      await repository.setPrimaryDataSource(
+        diveId: diveId,
+        computerReadingId: 'reading-other',
+      );
+
+      final row = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(row.cnsEnd, 9.0);
+      // The other computer reported no OTU, so the Garmin value must not
+      // linger beside its CNS.
+      expect(row.otu, isNull);
+    });
+  });
+
+  group('setPrimaryDataSource sync (#2644)', () {
+    test('publishes the dive and both sources it re-points', () async {
+      addTearDown(SyncClock.instance.reset);
+      final diveId = await insertTestDive(id: 'dive-primary-sync');
+      await repository.saveComputerReading(
+        buildReading(id: 'reading-a', diveId: diveId, isPrimary: true),
+      );
+      await repository.saveComputerReading(
+        buildReading(id: 'reading-b', diveId: diveId),
+      );
+      await db.customStatement('DELETE FROM sync_records');
+
+      await repository.setPrimaryDataSource(
+        diveId: diveId,
+        computerReadingId: 'reading-b',
+      );
+
+      final pending = {
+        for (final r in await db.select(db.syncRecords).get())
+          '${r.entityType}:${r.recordId}',
+      };
+      expect(
+        pending,
+        containsAll(<String>[
+          'dives:$diveId',
+          'diveDataSources:reading-a',
+          'diveDataSources:reading-b',
+        ]),
+        reason: 'a primary chosen here never reached another device',
+      );
+    });
+  });
 
   group('getImportIds', () {
     test('returns empty set when no dives have import IDs', () async {
@@ -1663,6 +1742,7 @@ void main() {
         id: 'dive-meta-update',
         diveComputerModel: 'Computer A',
         maxDepth: 30.0,
+        duration: 1800,
       );
 
       await repository.saveComputerReading(
@@ -1702,7 +1782,10 @@ void main() {
       expect(diveRow.diveComputerSerial, equals('SN-NEW'));
       expect(diveRow.maxDepth, equals(45.0));
       expect(diveRow.avgDepth, equals(25.0));
-      expect(diveRow.bottomTime, equals(3600));
+      // The reading's duration is the runtime it measured, never a bottom
+      // time; with no profile to derive one from, the dive keeps its own
+      // (issue #2421).
+      expect(diveRow.bottomTime, equals(1800));
       expect(diveRow.waterTemp, equals(18.0));
     });
 

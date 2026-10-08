@@ -100,8 +100,10 @@ lib/
 │   ├── constants/               # Enums, app constants
 │   │   └── enums.dart           # All enum definitions
 │   ├── database/                # Drift ORM
-│   │   ├── database.dart        # Table definitions
-│   │   └── database.g.dart      # Generated code
+│   │   ├── database.dart        # AppDatabase: the schema and its version
+│   │   ├── database.g.dart      # Generated code
+│   │   ├── migrations/          # Upgrade ladder, helpers, beforeOpen backstops
+│   │   └── tables/              # Table definitions, one library per domain
 │   ├── deco/                    # Decompression algorithms
 │   │   ├── buhlmann_algorithm.dart
 │   │   ├── o2_toxicity_calculator.dart
@@ -331,9 +333,79 @@ Large profile data:
 - Disposed after navigation
 - Streamed for charts
 
+## Decompression and Gas Calculations
+
+The decompression and gas code lives in `lib/core/deco/`.
+
+- **Decompression models.** `BuhlmannAlgorithm` (`buhlmann_algorithm.dart`)
+  implements Buhlmann ZH-L16C with gradient factors, using the 16
+  compartment coefficients in `constants/buhlmann_coefficients.dart`
+  (`GradientFactorPresets` holds the presets). `VpmBAlgorithm`
+  (`vpm_b_algorithm.dart`) implements VPM-B. Callers that should not care
+  which model runs use the `DecoModel` interface in `deco_model.dart`
+  (which also defines `DecoSchedule` and `DecoSegment`), implemented by
+  `BuhlmannGf` in the same file and `VpmB` in `vpm_b.dart`.
+- **Oxygen exposure.** `O2ToxicityCalculator` (`o2_toxicity_calculator.dart`)
+  tracks CNS% from the NOAA exposure limits and pulmonary exposure as OTU.
+  How a ppO2 between or beyond the table entries is charged is a diver
+  setting, `CnsCalculationMethod` (`entities/cns_calculation_method.dart`).
+- **Ascent rate.** `AscentRateCalculator` (`ascent_rate_calculator.dart`)
+  flags ascents faster than 9 m/min as a warning and faster than 12 m/min
+  as critical by default, over a 15-second smoothing window.
+- **Related calculators.** Altitude (`altitude_calculator.dart`), gas
+  density (`gas_density.dart`), maximum operating depth
+  (`max_operating_depth.dart`), semi-closed rebreather loop gas
+  (`scr_calculator.dart`), and ascent gas planning (`ascent/`).
+- **Gas-switch analysis.** `gas_switch/` finds late and missed deco gas
+  switches in a logged open-circuit dive and costs each one by replaying
+  its tissue loading (`GasSwitchEfficiencyAnalyzer`).
+
+## Sync Conflict Resolution
+
+Most concurrent edits never become conflicts. Synced rows carry a Hybrid
+Logical Clock (`hlc`; nullable, since rows written before the HLC rollout
+have none). When both the local and the remote version have one, the clock
+decides: a strictly newer remote HLC wins, and a tie or
+a newer local HLC keeps the local row
+(`lib/core/services/sync/sync_service.dart`).
+
+A record is stored as a conflict for the diver to resolve in two cases:
+
+- **Pre-HLC rows.** When either side lacks an HLC and both sides changed
+  since the last sync, the remote version is kept in `conflictData`.
+- **An edit racing a delete.** When a peer deleted a record that was
+  edited here, `conflictData` holds a deletion marker (`_deleted`,
+  `deletedAt`) instead of a row.
+
+Either way the record's row in the sync records table
+(`lib/core/database/tables/sync_tables.dart`) gets the status `conflict`,
+and the sync reports `hasConflicts`. `SyncService.getConflicts()` turns
+those records into `SyncConflict` objects carrying both versions and their
+modification times. Junction rows hold nothing but ids, so
+`ConflictReferenceResolver` (`conflict_reference.dart`) resolves each
+foreign key to a name or date the Resolve Conflicts dialog can show. The
+diver then chooses a `ConflictResolution`: keep local, keep remote, or keep
+both.
+
+## Platform Support
+
+| Platform | Minimum |
+|----------|---------|
+| iOS | 15.0 |
+| Android | 8.0 (API 26) |
+| macOS | 12.0 |
+| Windows | 10 |
+| Linux | x86-64 with glibc 2.38+ and GTK 3 (Ubuntu 24.04+, Debian 13+, Fedora 39+) |
+
+The minimums come from `IPHONEOS_DEPLOYMENT_TARGET` in
+`ios/Runner.xcodeproj/project.pbxproj`, `minSdk` in
+`android/app/build.gradle.kts` and `MACOSX_DEPLOYMENT_TARGET` in
+`macos/Runner.xcodeproj/project.pbxproj`; the Linux requirement is the
+"Linux: installing" section of the repository `README.md`.
+
 ## Testing Strategy
 
-See [Testing Guide](developer/testing.md) for details.
+See [Testing Guide](testing.md) for details.
 
 | Layer | Test Type |
 |-------|-----------|

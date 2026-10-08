@@ -21,17 +21,21 @@ void main() {
   BuddyWithRole person(String name, String roleId, String roleName) =>
       BuddyWithRole(
         buddy: Buddy(id: name, name: name, createdAt: epoch, updatedAt: epoch),
-        role: DiveRole(
-          id: roleId,
-          name: roleName,
-          isBuiltIn: true,
-          createdAt: epoch,
-          updatedAt: epoch,
-        ),
+        roles: [
+          DiveRole(
+            id: roleId,
+            name: roleName,
+            isBuiltIn: true,
+            createdAt: epoch,
+            updatedAt: epoch,
+          ),
+        ],
       );
 
   final alice = person('Alice', DiveRole.buddyId, 'Buddy');
-  final guido = person('Guido', DiveRole.diveMasterId, 'Dive Master');
+  // The name the database seeds for this built-in role; the PDF prints the
+  // role's localized name (#2252), which is the same word in English.
+  final guido = person('Guido', DiveRole.diveMasterId, 'Divemaster');
 
   Dive teamDive({List<BuddyWithRole> buddies = const [], String? diveMaster}) =>
       Dive(
@@ -78,7 +82,7 @@ void main() {
           teamDive(buddies: [alice, guido], diveMaster: 'Guido'),
         );
 
-        expect(pdfVisibleText(bytes), contains('Dive Master'));
+        expect(pdfVisibleText(bytes), contains('Divemaster'));
         expect(
           occurrences(bytes, 'Guido'),
           1,
@@ -98,6 +102,45 @@ void main() {
         contains('Hendricks'),
         reason: 'a dive logged before the junction existed keeps its text',
       );
+    });
+  });
+
+  group('several roles per person (#1221)', () {
+    DiveRole builtIn(String id) => DiveRole(
+      id: id,
+      name: id,
+      isBuiltIn: true,
+      createdAt: epoch,
+      updatedAt: epoch,
+    );
+
+    test("a buddy's line names every role", () async {
+      final both = BuddyWithRole(
+        buddy: Buddy(id: 'b', name: 'Bea', createdAt: epoch, updatedAt: epoch),
+        roles: [
+          builtIn(DiveRole.instructorId),
+          builtIn(DiveRole.safetyDiverId),
+        ],
+      );
+      final text = pdfVisibleText(await render(teamDive(buddies: [both])));
+      expect(text, contains('Instructor, Safety Diver'));
+    });
+
+    test("the diver's own roles print", () async {
+      final dive = teamDive().copyWith(
+        diverRoleIds: const [DiveRole.diveGuideId, DiveRole.diveMasterId],
+      );
+      final bytes = await PdfTemplateDetailed().buildPdf(
+        dives: [dive],
+        pageSize: PdfPageSize.a4,
+        dates: PdfDateFormatter(
+          dateFormat: DateFormatPreference.ddmmyyyy,
+          timeFormat: TimeFormat.twentyFourHour,
+        ),
+        units: const UnitFormatter(AppSettings()),
+        diveRolesById: {for (final id in DiveRole.builtInIds) id: builtIn(id)},
+      );
+      expect(pdfVisibleText(bytes), contains('Dive Guide, Divemaster'));
     });
   });
 }

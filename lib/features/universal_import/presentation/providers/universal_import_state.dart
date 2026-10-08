@@ -45,6 +45,7 @@ class UniversalImportState {
     this.bundledPhotoFolderPath,
     this.photoResolution,
     this.photosSkipped = false,
+    this.remotePhotoCount = 0,
     this.zipTempDirPaths = const [],
     this.additionalFileBytes,
     this.additionalFileName,
@@ -105,6 +106,12 @@ class UniversalImportState {
   /// True once the user has explicitly chosen to import without photos.
   /// Distinct from a null [photoResolution], which only means undecided.
   final bool photosSkipped;
+
+  /// Photos a remote source (divelogs.de) listed for the payload's dives.
+  /// They are downloaded at import time into [bundledPhotoFolderPath], so a
+  /// non-zero count puts the Photos step in front of the user exactly as
+  /// ZIP-bundled photos do.
+  final int remotePhotoCount;
 
   /// Temp directories holding files extracted from imported ZIP archives.
   /// The notifier deletes these on reset or when superseded by a new import,
@@ -215,6 +222,7 @@ class UniversalImportState {
     ImportMediaResolution? photoResolution,
     bool clearPhotoResolution = false,
     bool? photosSkipped,
+    int? remotePhotoCount,
     List<String>? zipTempDirPaths,
     int? parseCurrent,
     int? parseTotal,
@@ -267,6 +275,7 @@ class UniversalImportState {
           ? null
           : (bundledPhotoFolderPath ?? this.bundledPhotoFolderPath),
       photosSkipped: photosSkipped ?? this.photosSkipped,
+      remotePhotoCount: remotePhotoCount ?? this.remotePhotoCount,
       zipTempDirPaths: zipTempDirPaths ?? this.zipTempDirPaths,
       parseCurrent: parseCurrent ?? this.parseCurrent,
       parseTotal: parseTotal ?? this.parseTotal,

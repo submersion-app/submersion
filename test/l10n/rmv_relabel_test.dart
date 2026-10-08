@@ -13,7 +13,6 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// them is a volume rate, so the label a diver reads must say RMV.
 void main() {
   List<String> volumeOnlyLabels(AppLocalizations l10n) => [
-    l10n.divePlanner_label_sacRate,
     l10n.divePlanner_semantics_sacRate('15', 'L'),
     l10n.divePlanner_gasOptions_sacBottom,
     l10n.divePlanner_gasOptions_sacDeco,
@@ -30,7 +29,6 @@ void main() {
 
   test('the English volume-only labels say RMV', () {
     final en = lookupAppLocalizations(const Locale('en'));
-    expect(en.divePlanner_label_sacRate, 'RMV:');
     expect(en.divePlanner_semantics_sacRate('15', 'L'), 'RMV: 15 L per minute');
     expect(en.divePlanner_gasOptions_sacBottom, 'Bottom RMV');
     expect(en.divePlanner_gasOptions_sacDeco, 'Deco RMV');
@@ -63,7 +61,6 @@ void main() {
   test('German keeps AMV for the volume rate', () {
     final de = lookupAppLocalizations(const Locale('de'));
     expect(de.gasCalculators_rockBottom_yourSac, 'Dein AMV');
-    expect(de.divePlanner_label_sacRate, 'AMV:');
     expect(de.divePlanner_gasOptions_sacBottom, 'Grund-AMV');
     expect(de.divePlanner_gasOptions_sacDeco, 'Deko-AMV');
   });

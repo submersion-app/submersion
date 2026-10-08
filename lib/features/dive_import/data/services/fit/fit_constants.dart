@@ -1,5 +1,5 @@
 /// Verified Garmin FIT message/field numbers and scales (see design spec
-/// `docs/superpowers/specs/2026-06-22-garmin-fit-import-design.md`, Appendix A).
+/// `docs/design/specs/2026-06-22-garmin-fit-import-design.md`, Appendix A).
 ///
 /// fit_tool 1.0.5 has no named classes for the tank messages, so they are read
 /// by global id + field number off a [GenericMessage] (which carries no profile
@@ -21,6 +21,12 @@ class FitConstants {
   static const int tsStartPressure = 1;
   static const int tsEndPressure = 2;
   static const int tsVolumeUsed = 3;
+
+  // session (msg 18) end_position_lat/long, in semicircles. Newer than
+  // fit_tool's profile, so read off the raw bytes by FitRawFieldReader.
+  static const int sessionMsg = 18;
+  static const int sessionEndPositionLat = 38;
+  static const int sessionEndPositionLong = 39;
 
   // event (msg 21) field numbers. Read raw because fit_tool's typed
   // EventMessage getters throw on event values missing from its outdated

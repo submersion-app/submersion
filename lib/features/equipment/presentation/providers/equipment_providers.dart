@@ -25,11 +25,14 @@ import 'package:submersion/features/equipment/domain/services/battery_cycles.dar
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/trips/domain/services/trip_gear_scope.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_gear_ids_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -50,6 +53,10 @@ final activeEquipmentProvider = FutureProvider<List<EquipmentItem>>((
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // Shared gear (issue #2046) comes and goes with a share row.
+  ref.invalidateSelfWhen(
+    ref.read(equipmentShareRepositoryProvider).watchChanges(),
+  );
   // The list filters on hydrated attributes (#1805), and saveAttributes
   // or a sync pull writes only equipment_attributes.
   ref.invalidateSelfWhen(repository.watchAttributeChanges());
@@ -65,6 +72,10 @@ final retiredEquipmentProvider = FutureProvider<List<EquipmentItem>>((
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // Shared gear (issue #2046) comes and goes with a share row.
+  ref.invalidateSelfWhen(
+    ref.read(equipmentShareRepositoryProvider).watchChanges(),
+  );
   return repository.getRetiredEquipment(diverId: validatedDiverId);
 });
 
@@ -79,6 +90,10 @@ final equipmentByStatusProvider =
         validatedCurrentDiverIdProvider.future,
       );
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // Shared gear (issue #2046) comes and goes with a share row.
+      ref.invalidateSelfWhen(
+        ref.read(equipmentShareRepositoryProvider).watchChanges(),
+      );
       // The list filters on hydrated attributes (#1805), and saveAttributes
       // or a sync pull writes only equipment_attributes.
       ref.invalidateSelfWhen(repository.watchAttributeChanges());
@@ -101,6 +116,10 @@ final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   );
 
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // Shared gear (issue #2046) comes and goes with a share row.
+  ref.invalidateSelfWhen(
+    ref.read(equipmentShareRepositoryProvider).watchChanges(),
+  );
   // The list filters on hydrated attributes (#1805), and saveAttributes
   // or a sync pull writes only equipment_attributes.
   ref.invalidateSelfWhen(repository.watchAttributeChanges());
@@ -118,16 +137,48 @@ final equipmentFilterProvider = StateProvider<EquipmentFilterState>(
   (ref) => const EquipmentFilterState(),
 );
 
+/// The filter the list applies: [equipmentFilterProvider] without its owner
+/// axis while only one profile exists (issue #2046). The Owner chips are
+/// hidden then, so a leftover Mine or Shared with me must neither narrow the
+/// list nor light the filter badge where it cannot be cleared.
+final effectiveEquipmentFilterProvider = Provider<EquipmentFilterState>((ref) {
+  final filter = ref.watch(equipmentFilterProvider);
+  if (filter.owner == EquipmentOwnerFilter.all ||
+      ref.watch(hasMultipleDiversProvider)) {
+    return filter;
+  }
+  return filter.copyWith(owner: EquipmentOwnerFilter.all);
+});
+
 /// The gear categories the diver actually owns, in [EquipmentType] order.
+///
+/// That order is not the display order: the surfaces that show these sort
+/// them by localized label (#2937).
 ///
 /// Drives the filter panel's category chips so it never offers a type with no
 /// gear behind it. Derived from every item -- including retired -- because the
 /// status axis can put retired gear back on screen.
-final ownedEquipmentTypesProvider = Provider<List<EquipmentType>>((ref) {
-  final all = ref.watch(allEquipmentProvider).value ?? const <EquipmentItem>[];
-  final present = all.map((e) => e.type).toSet();
+final ownedEquipmentTypesProvider = Provider<List<EquipmentType>>(
+  (ref) => _typesPresentIn(
+    ref.watch(allEquipmentProvider).value ?? const <EquipmentItem>[],
+  ),
+);
+
+/// The types [items] hold, in [EquipmentType] order.
+List<EquipmentType> _typesPresentIn(Iterable<EquipmentItem> items) {
+  final present = items.map((e) => e.type).toSet();
   return EquipmentType.values.where(present.contains).toList();
-});
+}
+
+/// The gear categories a diver can filter dives by: [ownedEquipmentTypesProvider]
+/// less any type held only by wishlist gear (#2025), which is never on a dive.
+final diveGearTypesProvider = Provider<List<EquipmentType>>(
+  (ref) => _typesPresentIn(
+    (ref.watch(allEquipmentProvider).value ?? const <EquipmentItem>[]).where(
+      (e) => !e.isWanted,
+    ),
+  ),
+);
 
 /// The Add Equipment picker's own filter (#1576).
 ///
@@ -294,8 +345,18 @@ final equipmentDiveCountProvider = FutureProvider.family<int, String>((
 ) async {
   final repository = ref.watch(equipmentRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
-  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
-  return repository.getDiveCountForEquipment(equipmentId);
+  // The count reads the dives and their gear and tank links, so putting the
+  // item on (or off) a dive refreshes it.
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchTables(const {
+      'dives',
+      'dive_equipment',
+      'dive_tanks',
+    }),
+  );
+  // The active diver's dives, as the dive list the row opens (issue #2046).
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getDiveCountForEquipment(equipmentId, diverId: diverId);
 });
 
 /// Trip count for equipment provider.
@@ -373,6 +434,10 @@ final equipmentSearchProvider =
       }
       final repository = ref.watch(equipmentRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // Shared gear (issue #2046) comes and goes with a share row.
+      ref.invalidateSelfWhen(
+        ref.read(equipmentShareRepositoryProvider).watchChanges(),
+      );
       // Tag names match too (issue #1942): a rename or a new link must
       // refresh the results.
       ref.invalidateSelfWhen(
@@ -482,9 +547,17 @@ class EquipmentListNotifier
     await refresh();
   }
 
-  Future<void> deleteEquipment(String id) async {
-    await _repository.deleteEquipment(id);
+  /// False, changing nothing, when the active diver does not own [id].
+  Future<bool> deleteEquipment(String id) async {
+    final diverId =
+        _validatedDiverId ??
+        await _ref.read(validatedCurrentDiverIdProvider.future);
+    final deleted = await _repository.deleteOwnedEquipment(
+      id,
+      actingDiverId: diverId,
+    );
     await refresh();
+    return deleted;
   }
 
   Future<void> markAsServiced(String id) async {
@@ -499,6 +572,22 @@ class EquipmentListNotifier
 
   Future<void> reactivateEquipment(String id) async {
     await _repository.reactivateEquipment(id);
+    await refresh();
+  }
+
+  /// The status offer after a location move (v268).
+  Future<void> setStatusForMany(
+    List<String> ids,
+    EquipmentStatus status,
+  ) async {
+    await _repository.setStatusForMany(ids, status);
+    await refresh();
+  }
+
+  /// Wishlist gear bought (#2025). The detail page's item provider watches
+  /// the equipment table, so it reloads on its own.
+  Future<void> markPurchased(String id) async {
+    await _repository.markEquipmentPurchased(id);
     await refresh();
   }
 }
@@ -759,6 +848,18 @@ final serviceKindsProvider = FutureProvider<List<ServiceKind>>((ref) async {
   return repository.getAllKinds(diverId: validatedDiverId);
 });
 
+/// Every service kind by id, whoever created it. For resolving the name of
+/// a kind a schedule or record already references: a shared item's clock can
+/// use its owner's custom kind, which [serviceKindsProvider] (the active
+/// diver's choices) leaves out (issue #2046).
+final allServiceKindsByIdProvider = FutureProvider<Map<String, ServiceKind>>((
+  ref,
+) async {
+  final repository = ref.watch(serviceKindRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchServiceKindsChanges());
+  return {for (final k in await repository.getAllKinds()) k.id: k};
+});
+
 /// The dueSoon window: the widest configured reminder-days value for the
 /// current diver, so a clock turns amber as soon as its earliest reminder
 /// would fire.
@@ -966,6 +1067,10 @@ final activeEquipmentClocksProvider = FutureProvider<List<EquipmentClocks>>((
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // Shared gear (issue #2046) comes and goes with a share row.
+  ref.invalidateSelfWhen(
+    ref.read(equipmentShareRepositoryProvider).watchChanges(),
+  );
   // Install dates and slots decide which dives a part owns. Rare writes,
   // unlike the dive detail stream (media ticks it), which would re-evaluate
   // every item's clocks far too often for a list-wide provider.
@@ -1040,16 +1145,24 @@ final equipmentServiceUrgencyProvider =
 
 /// Clocks that block an upcoming trip: date trigger before the trip ends, or
 /// already due/overdue now. Usage triggers are never forecast into the trip.
+/// Only gear on the trip counts (packed, on its cylinder board, or installed
+/// in gear that is): gear left at home never warns on it (issue #2727).
 final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
   (ref, tripId) async {
     final trip = await ref.watch(tripByIdProvider(tripId).future);
     if (trip == null) return const [];
+    final onTrip = await ref.watch(tripGearIdsProvider(tripId).future);
+    if (onTrip.isEmpty) return const [];
 
     final repository = ref.watch(equipmentRepositoryProvider);
     final validatedDiverId = await ref.watch(
       validatedCurrentDiverIdProvider.future,
     );
     ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+    // Shared gear (issue #2046) comes and goes with a share row.
+    ref.invalidateSelfWhen(
+      ref.read(equipmentShareRepositoryProvider).watchChanges(),
+    );
     _invalidateOnServiceLedgerChanges(ref);
 
     final items = await repository.getActiveEquipment(
@@ -1057,7 +1170,8 @@ final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
     );
     final kinds = await ref.watch(serviceKindRepositoryProvider).getAllKinds();
     final alerts = <DueClock>[];
-    for (final item in items) {
+    // Siblings stay the whole list: exposure reads them, trip or not.
+    for (final item in gearOnTrip(items, onTrip)) {
       final statuses = await _evaluateClocksFor(
         ref,
         item,

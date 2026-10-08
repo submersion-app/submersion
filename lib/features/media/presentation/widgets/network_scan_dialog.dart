@@ -1,5 +1,5 @@
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 9. The dialog subscribes to `NetworkScanService.scanAll()` once in
 // `initState`, holds the latest progress event in widget state, and flips
 // to a "Done" summary when the stream emits `NetworkScanPhase.finished`.

@@ -113,6 +113,17 @@ class DatabaseService {
   /// The current database file path (set after initialization)
   String? get currentPath => _currentDatabasePath;
 
+  /// Whether the last [initialize] reached the database file: an open was
+  /// attempted, even one that failed part way, or a connection is open.
+  ///
+  /// The connection is only recorded once the open fully succeeds, but the
+  /// open touches the file well before that (the background connection, the
+  /// forcing query, the schema ladder). False therefore means the file was
+  /// never reached, as when its folder could not even be created. Scoped to
+  /// one attempt: [initialize] and [close] both clear it.
+  bool get hasReachedFile => _database != null || _openAttempted;
+  bool _openAttempted = false;
+
   /// For testing only: allows injecting a test database
   @visibleForTesting
   void setTestDatabase(AppDatabase db) {
@@ -132,6 +143,7 @@ class DatabaseService {
   @visibleForTesting
   void resetForTesting() {
     _database = null;
+    _openAttempted = false;
     _background = null;
     _locationService = null;
     _currentDatabasePath = null;
@@ -143,6 +155,7 @@ class DatabaseService {
     // otherwise leak into the next and fire unexpectedly.
     debugOnRestoreWindowOpen = null;
     debugFailDeleteFor = null;
+    debugClock = null;
   }
 
   /// Registers [locationService] without opening anything.
@@ -172,6 +185,7 @@ class DatabaseService {
     bool allowSchemaUpgrade = true,
   }) async {
     if (_database != null) return;
+    _openAttempted = false;
 
     // Keep an already-registered service when called without one. [restore]
     // reopens via a bare `initialize()`, and clearing the location service
@@ -187,6 +201,7 @@ class DatabaseService {
       await dbDir.create(recursive: true);
     }
 
+    _openAttempted = true;
     _database = await _openDatabase(
       dbPath,
       onMigrationProgress: onMigrationProgress,
@@ -563,7 +578,12 @@ class DatabaseService {
   /// non-null so the still-open connection is not orphaned and the caller
   /// can retry — [_database] is cleared ONLY on a clean close.
   Future<void> close({bool strict = false}) async {
-    if (_database == null) return;
+    // A close ends the attempt [hasReachedFile] describes, including one
+    // whose open failed before a connection was ever recorded.
+    if (_database == null) {
+      _openAttempted = false;
+      return;
+    }
 
     if (strict) {
       // Graceful close first, but only briefly: GeneratedDatabase.close()
@@ -607,6 +627,7 @@ class DatabaseService {
       );
       _background = null;
       _database = null;
+      _openAttempted = false;
       return;
     }
 
@@ -624,6 +645,7 @@ class DatabaseService {
     } finally {
       _background = null;
       _database = null;
+      _openAttempted = false;
     }
   }
 
@@ -727,6 +749,37 @@ class DatabaseService {
       return true;
     } on sqlite3.SqliteException {
       return false;
+    }
+  }
+
+  /// Folds the `-wal` beside the database file at [dbPath] into the file
+  /// itself, so that the file alone holds every committed transaction.
+  ///
+  /// [restore] stages only the main file of its source. That is right for a
+  /// backup artifact, which never has a journal, but a database copy the
+  /// restore journal set aside can: a copy taken while the app was killed
+  /// with the database open keeps its latest dives in its `-wal` (issue
+  /// #1923). Restoring such a copy without this step would silently drop
+  /// them.
+  ///
+  /// Throws when the log could not be folded completely, which callers must
+  /// treat as "do not restore from this file".
+  static void checkpointWriteAheadLog(String dbPath, {String? keyHex}) {
+    final db = openRaw(dbPath, keyHex: keyHex);
+    try {
+      db.select('PRAGMA wal_checkpoint(TRUNCATE)');
+    } finally {
+      db.close();
+    }
+    // Judged by the file rather than the pragma's busy flag: a checkpoint
+    // another connection blocked leaves frames in the log, and so does one
+    // SQLite skipped for any other reason.
+    final wal = File('$dbPath-wal');
+    if (wal.existsSync() && wal.lengthSync() > 0) {
+      throw FileSystemException(
+        'The database journal could not be folded in completely',
+        wal.path,
+      );
     }
   }
 
@@ -860,15 +913,23 @@ class DatabaseService {
   @visibleForTesting
   void Function(String stagingPath)? debugOnRestoreWindowOpen;
 
+  /// Test seam: the clock behind the restore journal's timestamps, so a test
+  /// can predict the name a leftover is quarantined under. Null means
+  /// [DateTime.now]. [resetForTesting] clears it.
+  @visibleForTesting
+  DateTime Function()? debugClock;
+
   /// The restore journal for the database at [dbPath], probing with the live
-  /// key and deleting through [_deleteIfExists] (so [debugFailDeleteFor]
-  /// reaches it). Public for the startup screen, which must ask the same
-  /// question before anything is opened.
+  /// key, deleting through [_deleteIfExists] (so [debugFailDeleteFor]
+  /// reaches it) and stamping with [debugClock] when set. Public for the
+  /// startup screen, which must ask the same question before anything is
+  /// opened.
   RestoreJournal restoreJournalFor(String dbPath) => RestoreJournal(
     dbPath,
     readSchemaVersion: (path) =>
         getStoredSchemaVersion(path, keyHex: databaseKeyHex),
     deleteFile: _deleteIfExists,
+    now: debugClock,
   );
 
   /// Swap the live database for [backupPath].
@@ -899,9 +960,8 @@ class DatabaseService {
     // restore that did nothing from a restore of an empty library (issue
     // #1344). The absence is reported as a typed failure instead.
     if (!await backupFile.exists()) {
-      // Still sweep any temp files a prior restore may have stranded (e.g. a
-      // large .pre-restore copy left by a best-effort cleanup that failed), so
-      // they don't accumulate on disk. Best-effort; the live DB is untouched.
+      // Still sweep the staging copy a prior restore may have stranded, so it
+      // doesn't accumulate on disk. Best-effort; the live DB is untouched.
       await _sweepRestoreTempFiles(destinationPath);
       _log.warning(
         'Restore source not found at $backupPath; the live database was left '
@@ -918,6 +978,10 @@ class DatabaseService {
     // filesystem, so the swap is an atomic metadata operation rather than a
     // cross-device copy.
     final stagingPath = '$destinationPath.restore-staging';
+    // The folder can be gone: the startup "dive log not found" screen offers a
+    // restore into a configured folder that no longer exists (#2177). It is
+    // created here exactly as initialize() creates it for a new dive log.
+    await Directory(p.dirname(destinationPath)).create(recursive: true);
     await _deleteIfExists(stagingPath);
     try {
       await backupFile.copy(stagingPath);
@@ -998,7 +1062,11 @@ class DatabaseService {
       // (the same lock that likely broke the swap above) must not skip the
       // reopen below and leave the app with no database until restart.
       await _bestEffortDelete(stagingPath);
-      await initialize();
+      // Reopen only what was there to put back. With no database at the path
+      // before the restore (one reached from the startup "dive log not
+      // found" screen), a reopen would create an empty one that the next
+      // launch opens as the diver's dive log (#2177).
+      if (hadDest) await initialize();
       rethrow;
     }
 
@@ -1049,7 +1117,8 @@ class DatabaseService {
         await _deleteIfExists(destinationPath);
       }
       await _commitIfNothingAside(journal);
-      await initialize();
+      // As in the swap rollback above: nothing was there, so nothing reopens.
+      if (hadDest) await initialize();
       rethrow;
     }
 
@@ -1057,8 +1126,9 @@ class DatabaseService {
     // no longer needed. Its deletion is best-effort — a transient failure (e.g.
     // a Windows file lock) must NOT fail a restore that already succeeded and
     // leave the app with a closed database despite a valid file on disk. A
-    // leftover copy is harmless and is swept by the next restore (including a
-    // no-op one).
+    // leftover copy costs only disk space: the next restore moves it aside
+    // under a timestamped name, because once the marker is gone nothing on
+    // disk can tell it from a stranded original (issue #1924).
     //
     // The journal is settled FIRST: this is the commit point, after which the
     // aside copy is provably a leftover. Best-effort; a marker that survives
@@ -1107,24 +1177,25 @@ class DatabaseService {
     }
   }
 
-  /// Deletes a provably stale `.pre-restore` left by an earlier restore, or
-  /// moves a possibly precious one to a timestamped name. Throws on failure,
-  /// which aborts the restore before the database is closed.
+  /// Moves a `.pre-restore` left by an earlier restore to a timestamped name,
+  /// never deleting it: no leftover of an EARLIER restore is provably garbage
+  /// (issue #1924). Throws on failure, which aborts the restore before the
+  /// database is closed.
   Future<void> _settleLeftoverPreRestore(RestoreJournal journal) async {
-    switch (journal.classifyPreRestore()) {
-      case PreRestoreState.none:
-        return;
-      case PreRestoreState.stale:
-        for (final path in journal.asideFiles) {
-          await _deleteIfExists(path);
-        }
-      case PreRestoreState.precious:
-        final kept = await journal.quarantine(journal.asidePath);
-        _log.warning(
-          'An earlier restore never settled, and its aside copy may be the '
-          'only copy of the previous database; kept it at $kept instead of '
-          'deleting it',
-        );
+    final state = journal.classifyPreRestore();
+    if (state == PreRestoreState.none) return;
+    final kept = await journal.quarantine(journal.asidePath);
+    if (state == PreRestoreState.precious) {
+      _log.warning(
+        'An earlier restore never settled, and its aside copy may be the '
+        'only copy of the previous database; kept it at $kept instead of '
+        'deleting it',
+      );
+    } else {
+      _log.info(
+        'Moved an unmarked leftover of an earlier restore to $kept; nothing '
+        'proves it is not the only copy of an earlier database',
+      );
     }
   }
 
@@ -1151,24 +1222,14 @@ class DatabaseService {
     }
   }
 
-  /// Best-effort removal of the temp files a [restore] may leave behind.
-  /// Touches only restore temp files, never the live database, and deletes a
-  /// `.pre-restore` (with its sidecars) only when the journal proves it stale.
-  /// That matters at startup, where nothing is open and a stranded original
-  /// may be the only copy of the diver's data (issue #1901).
+  /// Best-effort removal of the staging copy a [restore] may leave behind.
+  ///
+  /// Never touches a `.pre-restore`: a stranded original may be the only copy
+  /// of the diver's data (issue #1901), and without a journal entry nothing
+  /// on disk tells it from a leftover (issue #1924). The next real restore
+  /// moves it aside instead.
   Future<void> _sweepRestoreTempFiles(String destinationPath) async {
     await _bestEffortDelete('$destinationPath.restore-staging');
-    final journal = restoreJournalFor(destinationPath);
-    final PreRestoreState state;
-    try {
-      state = journal.classifyPreRestore();
-    } catch (_) {
-      return;
-    }
-    if (state != PreRestoreState.stale) return;
-    for (final path in journal.asideFiles) {
-      await _bestEffortDelete(path);
-    }
   }
 
   /// Delete all data and recreate a fresh empty database.

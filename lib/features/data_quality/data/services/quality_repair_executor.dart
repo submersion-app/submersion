@@ -10,9 +10,11 @@ import 'package:submersion/features/data_quality/domain/entities/quality_finding
 import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 
 typedef RepairUndo = Future<void> Function();
 
@@ -61,6 +63,7 @@ class QualityRepairExecutor {
   static void _rescan(Iterable<String> diveIds) {
     scheduleQualityScan(diveIds);
     scheduleSensorSummaryRefresh(diveIds, force: true);
+    scheduleDerivedMetricsRefresh(diveIds, force: true);
   }
 
   Future<void> _finish(String findingId, Iterable<String> affected) async {
@@ -359,6 +362,44 @@ class QualityRepairExecutor {
     return RepairResult.applied(() async {
       await _diveRepo.createDive(snapshot);
       _rescan([keepDiveId, deleteDiveId]);
+    });
+  }
+
+  /// Removes each of [equipmentIds] on the dive, and everything attached
+  /// through it, from one dive of a shared gear pair (issue #2853). The removal writes a gear
+  /// diff and a dive bump, so it runs in one transaction; undo writes the
+  /// dive's previous gear rows back. Rescans both dives of the pair.
+  Future<RepairResult> removeGearFromDive({
+    required String diveId,
+    required String otherDiveId,
+    required List<String> equipmentIds,
+    required String findingId,
+  }) async {
+    final snapshot = [
+      for (final r in await (_db.select(
+        _db.diveEquipment,
+      )..where((t) => t.diveId.equals(diveId))).get())
+        GearProvenance(
+          equipmentId: r.equipmentId,
+          viaEquipmentId: r.viaEquipmentId,
+          viaSetId: r.viaSetId,
+        ),
+    ];
+    final onDive = {for (final g in snapshot) g.equipmentId};
+    final present = [
+      for (final id in equipmentIds)
+        if (onDive.contains(id)) id,
+    ];
+    if (present.isEmpty) return const RepairResult.noChange();
+    await _db.transaction(
+      () => _diveRepo.bulkRemoveEquipment([diveId], present),
+    );
+    SyncEventBus.notifyLocalChange();
+    await _finish(findingId, [diveId, otherDiveId]);
+    return RepairResult.applied(() async {
+      await _db.transaction(() => _diveRepo.replaceGearRows(diveId, snapshot));
+      SyncEventBus.notifyLocalChange();
+      _rescan([diveId, otherDiveId]);
     });
   }
 

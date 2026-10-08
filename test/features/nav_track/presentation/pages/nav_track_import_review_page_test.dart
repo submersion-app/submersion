@@ -1,0 +1,1333 @@
+import 'dart:async';
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/location_service_provider.dart';
+import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
+import 'package:submersion/features/nav_track/presentation/widgets/nav_track_dive_choice_sheet.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
+
+List<NavTrackPoint> _points() => const [
+  NavTrackPoint(
+    timestamp: 1700000000,
+    north: 0,
+    east: 0,
+    depth: 5,
+    distance: 0,
+    speed: 0.3,
+  ),
+  NavTrackPoint(
+    timestamp: 1700000600,
+    north: 40,
+    east: 0,
+    depth: 5,
+    distance: 40,
+    speed: 0.3,
+  ),
+];
+
+Dive _dive(String id, DateTime entry, {DiveSite? site, int? diveNumber}) =>
+    Dive(
+      id: id,
+      diveNumber: diveNumber,
+      dateTime: entry,
+      entryTime: entry,
+      site: site,
+      tanks: const [],
+      profile: const [],
+      gear: looseGear(const []),
+      notes: '',
+      photoIds: const [],
+      sightings: const [],
+      weights: const [],
+      tags: const [],
+    );
+
+NavTrackImportPreview _preview({
+  List<Dive> candidateDives = const [],
+  List<Dive> nearbyDives = const [],
+  String? duplicateOfRouteId,
+  List<NavTrackPoint>? points,
+  String? diverId,
+}) {
+  final p = points ?? _points();
+  return NavTrackImportPreview(
+    parsed: ParsedNavTrack(points: p),
+    stats: NavTrackStats.of(p),
+    segmentation: NavTrackSegmenter.classify(p),
+    candidateDives: candidateDives,
+    nearbyDives: nearbyDives,
+    duplicateOfRouteId: duplicateOfRouteId,
+    sourceRef: '005.DAT.csv',
+    diverId: diverId,
+  );
+}
+
+/// Device GPS that never has a fix, so opening the site picker (which asks
+/// for one when the page supplies no location) stays off the Geolocator
+/// platform channel.
+class _NoFixLocationService implements LocationService {
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async => null;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+Future<void> _pump(
+  WidgetTester tester, {
+  required NavTrackImportPreview preview,
+  NavTrackImportService? service,
+  List<EquipmentItem>? equipment,
+  MockSettingsNotifier? settingsNotifier,
+  List<DiveSite>? sites,
+}) async {
+  // A host locale the app actually translates into, so the English finders
+  // below pass only because the MaterialApp pins `en`. Drop the pin and
+  // every test in this file that asserts on English strings ("No site
+  // chosen", "No equipment", the import errors) would fail on a non-English
+  // host locale, which is the point.
+  tester.platformDispatcher.localesTestValue = const [
+    Locale('de'),
+    Locale('en'),
+  ];
+  addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+  final base = await getBaseOverrides(settingsNotifier: settingsNotifier);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...base,
+        if (service != null)
+          navTrackImportServiceProvider.overrideWithValue(service),
+        if (equipment != null)
+          activeEquipmentProvider.overrideWith((ref) async => equipment),
+        if (sites != null) ...[
+          sitesProvider.overrideWith((ref) async => sites),
+          locationServiceProvider.overrideWithValue(_NoFixLocationService()),
+        ],
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: NavTrackImportReviewPage(
+          bytes: Uint8List(0),
+          fileName: '005.DAT.csv',
+          preview: preview,
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+/// Opens the review page in return mode from a host page, the way the Dive
+/// Edit page's route sheet does, and collects what it pops with.
+Future<List<NavTrackImportResult?>> _pumpReturnMode(
+  WidgetTester tester, {
+  required NavTrackImportPreview preview,
+  required NavTrackImportService service,
+}) async {
+  tester.platformDispatcher.localesTestValue = const [
+    Locale('de'),
+    Locale('en'),
+  ];
+  addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+  final results = <NavTrackImportResult?>[];
+  final base = await getBaseOverrides();
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...base,
+        navTrackImportServiceProvider.overrideWithValue(service),
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () async => results.add(
+                await navigateToNavTrackReviewForResult(
+                  context,
+                  Uint8List(0),
+                  fileName: '005.DAT.csv',
+                  preview: preview,
+                ),
+              ),
+              child: const Text('HOST'),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.tap(find.text('HOST'));
+  await tester.pumpAndSettle();
+  return results;
+}
+
+Future<void> _tapSave(WidgetTester tester) async {
+  await tester.drag(find.byType(ListView), const Offset(0, -400));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+  await tester.pumpAndSettle();
+}
+
+/// Where the review page is opened from, which decides the navigator it is
+/// pushed on and what sits beneath it.
+enum _ReviewHost {
+  /// A page on the shell's navigator: the routes list, a dive's route
+  /// section, the import wizard, the GPS logger.
+  shellPage('the shell navigator (routes list, dive section, wizard)'),
+
+  /// The shell's own chrome, which resolves to the root navigator: the
+  /// global drop target.
+  shellChrome('the root navigator (drop target)'),
+
+  /// The root navigator's own context (the OS share intent) while a page
+  /// that, like Add Buddy, lives on the root navigator covers the shell.
+  rootLevelPage('the share intent over a root-level page (Add Buddy)'),
+
+  /// The root navigator's own context while a dialog is open on it.
+  rootDialog('the share intent over a dialog');
+
+  const _ReviewHost(this.description);
+
+  final String description;
+}
+
+/// Like [_pump], but with a real `GoRouter` laid out like the app's: a
+/// `ShellRoute` whose nested navigator hosts both the page the import starts
+/// from and `/tracks/underwater/:id` as siblings, plus a root-level page above the
+/// shell. The review page is opened through [navigateToNavTrackReview] from
+/// [host], exactly as every real entry point does, so a successful save has
+/// to leave that pushed page itself.
+Future<GoRouter> _pumpWithRouter(
+  WidgetTester tester, {
+  required NavTrackImportPreview preview,
+  NavTrackImportService? service,
+  List<EquipmentItem>? equipment,
+  _ReviewHost host = _ReviewHost.shellPage,
+}) async {
+  final base = await getBaseOverrides();
+  final rootNavigatorKey = GlobalKey<NavigatorState>();
+  void openReview(BuildContext context) {
+    unawaited(
+      navigateToNavTrackReview(
+        context,
+        Uint8List(0),
+        fileName: '005.DAT.csv',
+        preview: preview,
+      ),
+    );
+  }
+
+  final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
+    initialLocation: '/origin',
+    routes: [
+      ShellRoute(
+        builder: (context, state, child) => Scaffold(
+          body: Column(
+            children: [
+              TextButton(
+                onPressed: () => openReview(context),
+                child: const Text('OPEN_REVIEW_ABOVE_SHELL'),
+              ),
+              Expanded(child: child),
+            ],
+          ),
+        ),
+        routes: [
+          GoRoute(
+            path: '/origin',
+            builder: (context, state) => Scaffold(
+              body: Column(
+                children: [
+                  const Text('ORIGIN_PAGE'),
+                  TextButton(
+                    onPressed: () => openReview(context),
+                    child: const Text('OPEN_REVIEW_IN_SHELL'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/tracks/underwater/:id',
+            builder: (context, state) => Scaffold(
+              appBar: AppBar(),
+              body: const Text('ROUTE_DETAIL_PAGE'),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/root-level',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) =>
+            const Scaffold(body: Text('ROOT_LEVEL_PAGE')),
+      ),
+    ],
+  );
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...base,
+        if (service != null)
+          navTrackImportServiceProvider.overrideWithValue(service),
+        if (equipment != null)
+          activeEquipmentProvider.overrideWith((ref) async => equipment),
+      ],
+      child: MaterialApp.router(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  switch (host) {
+    case _ReviewHost.shellPage:
+      await tester.tap(find.text('OPEN_REVIEW_IN_SHELL'));
+    case _ReviewHost.shellChrome:
+      await tester.tap(find.text('OPEN_REVIEW_ABOVE_SHELL'));
+    case _ReviewHost.rootLevelPage:
+      unawaited(router.push('/root-level'));
+      await tester.pumpAndSettle();
+      openReview(rootNavigatorKey.currentContext!);
+    case _ReviewHost.rootDialog:
+      unawaited(
+        showDialog<void>(
+          context: rootNavigatorKey.currentContext!,
+          builder: (_) => const AlertDialog(content: Text('ROOT_DIALOG')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      openReview(rootNavigatorKey.currentContext!);
+  }
+  await tester.pumpAndSettle();
+  return router;
+}
+
+/// Records the parameters `commit` was called with, so a test can assert on
+/// them without touching a real database.
+class _RecordingImportService implements NavTrackImportService {
+  String? lastEquipmentId;
+  String? lastReplacingRouteId;
+  String? lastDiverId;
+  Dive? lastDive;
+  String? lastSiteId;
+  int commitCount = 0;
+
+  @override
+  Future<NavTrackImportPreview> prepare(
+    Uint8List bytes, {
+    String? fileName,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<String> commit({
+    required ParsedNavTrack parsed,
+    required String sourceRef,
+    required String? diverId,
+    Dive? dive,
+    String? siteId,
+    String? name,
+    String? deviceName,
+    String? equipmentId,
+    String? replacingRouteId,
+  }) async {
+    lastEquipmentId = equipmentId;
+    lastReplacingRouteId = replacingRouteId;
+    lastDiverId = diverId;
+    lastDive = dive;
+    lastSiteId = siteId;
+    commitCount++;
+    return 'new-route-id';
+  }
+}
+
+/// A `commit` that rejects the parsed recording, to exercise the save path's
+/// own parse-error branch (as opposed to the preview's).
+class _ParseRejectingImportService implements NavTrackImportService {
+  @override
+  Future<NavTrackImportPreview> prepare(
+    Uint8List bytes, {
+    String? fileName,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<String> commit({
+    required ParsedNavTrack parsed,
+    required String sourceRef,
+    required String? diverId,
+    Dive? dive,
+    String? siteId,
+    String? name,
+    String? deviceName,
+    String? equipmentId,
+    String? replacingRouteId,
+  }) async {
+    throw const NavTrackParseException(
+      'bad file',
+      reason: NavTrackParseReason.unreadable,
+    );
+  }
+}
+
+/// A `commit` that always fails, to prove a duplicate is not deleted ahead
+/// of a commit that never lands.
+class _ThrowingImportService implements NavTrackImportService {
+  @override
+  Future<NavTrackImportPreview> prepare(
+    Uint8List bytes, {
+    String? fileName,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<String> commit({
+    required ParsedNavTrack parsed,
+    required String sourceRef,
+    required String? diverId,
+    Dive? dive,
+    String? siteId,
+    String? name,
+    String? deviceName,
+    String? equipmentId,
+    String? replacingRouteId,
+  }) async {
+    throw StateError('commit failed');
+  }
+}
+
+void main() {
+  testWidgets('the GPS-fix distance follows the diver\'s depth unit', (
+    tester,
+  ) async {
+    // A dive, a surface sample, then a GPS fix that settles 100 m away.
+    const points = [
+      NavTrackPoint(timestamp: 1700000000, north: 0, east: 0, depth: 5),
+      NavTrackPoint(timestamp: 1700000600, north: 10, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000602, north: 110, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000604, north: 110, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000606, north: 110, east: 0, depth: 0),
+    ];
+    await _pump(
+      tester,
+      preview: _preview(points: points),
+      settingsNotifier: MockSettingsNotifier(
+        const AppSettings(depthUnit: DepthUnit.feet),
+      ),
+    );
+
+    final summary = tester.widget<Text>(
+      find.byKey(const ValueKey('nav-track-segment-summary')),
+    );
+    expect(summary.data, contains('GPS fix 328ft from'));
+    expect(summary.data, isNot(contains('m from')));
+  });
+
+  testWidgets('measures the GPS fix where it settles, not at the first '
+      'jump (the position the gpsFix correction targets)', (tester) async {
+    // The console jumps 100 m on re-acquiring GPS, then wanders on to
+    // settle about 140 m from where the dive's reckoned track ended.
+    const points = [
+      NavTrackPoint(timestamp: 1700000000, north: 0, east: 0, depth: 5),
+      NavTrackPoint(timestamp: 1700000600, north: 10, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000602, north: 110, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000604, north: 150, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000606, north: 150, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000608, north: 150, east: 0, depth: 0),
+    ];
+    await _pump(tester, preview: _preview(points: points));
+
+    final summary = tester.widget<Text>(
+      find.byKey(const ValueKey('nav-track-segment-summary')),
+    );
+    expect(summary.data, contains('GPS fix 140m from'));
+  });
+
+  testWidgets('does not report a pre-dive calibration as the fix at the end', (
+    tester,
+  ) async {
+    // GPS re-acquired on the surface before descending, and never again.
+    const points = [
+      NavTrackPoint(timestamp: 1700000000, north: 0, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000002, north: 300, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000004, north: 300, east: 0, depth: 0),
+      NavTrackPoint(timestamp: 1700000600, north: 320, east: 0, depth: 6),
+      NavTrackPoint(timestamp: 1700001200, north: 340, east: 0, depth: 6),
+    ];
+    await _pump(tester, preview: _preview(points: points));
+
+    final summary = tester.widget<Text>(
+      find.byKey(const ValueKey('nav-track-segment-summary')),
+    );
+    expect(summary.data, isNot(contains('from the reckoned end')));
+    expect(summary.data, contains('no GPS fix after the dive'));
+  });
+
+  testWidgets('shows the source file name and segment summary', (tester) async {
+    await _pump(tester, preview: _preview());
+    expect(find.text('005.DAT.csv'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('nav-track-segment-summary')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('pre-selects the unique overlapping dive', (tester) async {
+    final dive = _dive('d1', DateTime.utc(2025, 1, 15, 16, 16, 7));
+    await _pump(tester, preview: _preview(candidateDives: [dive]));
+
+    final radio = tester.widget<RadioListTile<String?>>(
+      find.byKey(const ValueKey('nav-track-link-d1')),
+    );
+    expect(radio.value, 'd1');
+
+    final group = tester.widget<RadioGroup<String?>>(
+      find.byType(RadioGroup<String?>),
+    );
+    expect(group.groupValue, 'd1');
+  });
+
+  testWidgets(
+    'pre-fills the site from the pre-selected dive\'s own hydrated site, '
+    'with no further action from the diver',
+    (tester) async {
+      const site = DiveSite(id: 'site-1', name: 'Lake Zurich');
+      final dive = _dive(
+        'd1',
+        DateTime.utc(2025, 1, 15, 16, 16, 7),
+        site: site,
+      );
+      await _pump(tester, preview: _preview(candidateDives: [dive]));
+
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lake Zurich'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'clears a pre-filled site when switching to a dive with no site',
+    (tester) async {
+      const site = DiveSite(id: 'site-1', name: 'Lake Zurich');
+      final withSite = _dive(
+        'd1',
+        DateTime.utc(2025, 1, 15, 16, 16, 7),
+        site: site,
+      );
+      final withoutSite = _dive('d2', DateTime.utc(2025, 1, 15, 16, 20, 0));
+      await _pump(
+        tester,
+        preview: _preview(candidateDives: [withSite, withoutSite]),
+      );
+
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('nav-track-link-d1')),
+      );
+      await tester.tap(find.byKey(const ValueKey('nav-track-link-d1')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Lake Zurich'));
+      expect(find.text('Lake Zurich'), findsOneWidget);
+
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('nav-track-link-d2')),
+      );
+      await tester.tap(find.byKey(const ValueKey('nav-track-link-d2')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('nav-track-site-picker')),
+      );
+
+      expect(find.text('Lake Zurich'), findsNothing);
+      expect(find.text('No site chosen'), findsOneWidget);
+    },
+  );
+
+  testWidgets('the site picker offers no "New Dive Site" button (issue #2792) '
+      'and a picked site is shown', (tester) async {
+    await _pump(
+      tester,
+      preview: _preview(),
+      sites: const [DiveSite(id: 's1', name: 'Coral Garden')],
+    );
+
+    final picker = find.byKey(const ValueKey('nav-track-site-picker'));
+    await tester.scrollUntilVisible(
+      picker,
+      200,
+      scrollable: find
+          .descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(picker);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Select Dive Site'), findsOneWidget);
+    expect(find.text('New Dive Site'), findsNothing);
+
+    await tester.tap(find.text('Coral Garden'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Select Dive Site'), findsNothing);
+    expect(
+      find.descendant(of: picker, matching: find.text('Coral Garden')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('leaves the route unlinked when several dives overlap', (
+    tester,
+  ) async {
+    final d1 = _dive('d1', DateTime.utc(2025, 1, 15, 16, 16, 7));
+    final d2 = _dive('d2', DateTime.utc(2025, 1, 15, 16, 20, 0));
+    await _pump(tester, preview: _preview(candidateDives: [d1, d2]));
+
+    final group = tester.widget<RadioGroup<String?>>(
+      find.byType(RadioGroup<String?>),
+    );
+    expect(group.groupValue, isNull);
+    expect(
+      find.byKey(const ValueKey('nav-track-link-unlinked')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('nav-track-link-d1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('nav-track-link-d2')), findsOneWidget);
+  });
+
+  group('when no dive overlaps the recording (issue #2691)', () {
+    // `_points()` starts at 1700000000, 2023-11-14 22:13:20 wall-clock UTC.
+    final routeStart = DateTime.utc(2023, 11, 14, 22, 13, 20);
+
+    /// Seven dives, nearest first as `NavTrackMatcher.nearestByStart` would
+    /// order them: the right one 2 hours before the recording (a console
+    /// clock set 2 hours ahead), then ever further away.
+    List<Dive> nearby() => [
+      _dive(
+        'n1',
+        routeStart.subtract(const Duration(hours: 2)),
+        diveNumber: 41,
+        site: const DiveSite(id: 'site-1', name: 'Lake Zurich'),
+      ),
+      _dive(
+        'n2',
+        routeStart.add(const Duration(hours: 3, minutes: 5)),
+        diveNumber: 42,
+      ),
+      _dive(
+        'n3',
+        routeStart.subtract(const Duration(days: 1, hours: 2)),
+        diveNumber: 40,
+      ),
+      _dive('n4', routeStart.add(const Duration(days: 2)), diveNumber: 43),
+      _dive('n5', routeStart.add(const Duration(days: 3)), diveNumber: 44),
+      _dive('n6', routeStart.add(const Duration(days: 4)), diveNumber: 45),
+      _dive(
+        'n7',
+        routeStart.subtract(const Duration(days: 5)),
+        diveNumber: 39,
+        site: const DiveSite(id: 'site-7', name: 'Blue Hole'),
+      ),
+    ];
+
+    /// Scrolls the review list until [finder] is built and on screen, then
+    /// lets the scroll settle so a following tap lands on it.
+    Future<void> reveal(WidgetTester tester, Finder finder) async {
+      await tester.scrollUntilVisible(
+        finder,
+        200,
+        scrollable: find
+            .descendant(
+              of: find.byType(ListView),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+    }
+
+    RadioGroup<String?> group(WidgetTester tester) =>
+        tester.widget<RadioGroup<String?>>(find.byType(RadioGroup<String?>));
+
+    testWidgets('offers the five nearest dives, explains why, and pre-selects '
+        'none of them', (tester) async {
+      await _pump(tester, preview: _preview(nearbyDives: nearby()));
+
+      expect(
+        find.text(
+          'No dive overlaps this recording\'s time. Nearest dives by '
+          'start time:',
+        ),
+        findsOneWidget,
+      );
+      for (final id in ['n1', 'n2', 'n3', 'n4', 'n5']) {
+        expect(find.byKey(ValueKey('nav-track-link-$id')), findsOneWidget);
+      }
+      expect(find.byKey(const ValueKey('nav-track-link-n6')), findsNothing);
+      expect(find.byKey(const ValueKey('nav-track-link-n7')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('nav-track-link-choose-another')),
+        findsOneWidget,
+      );
+      // A time-proximity guess is never linked without the diver's say-so.
+      expect(group(tester).groupValue, isNull);
+    });
+
+    testWidgets('labels each row with its distance from the recording start', (
+      tester,
+    ) async {
+      await _pump(tester, preview: _preview(nearbyDives: nearby()));
+
+      expect(find.text('2h 0min before the recording'), findsOneWidget);
+      expect(find.text('3h 5min after the recording'), findsOneWidget);
+      expect(find.text('1d 2h before the recording'), findsOneWidget);
+    });
+
+    testWidgets('labels an offset under an hour in minutes alone', (
+      tester,
+    ) async {
+      // A dive logged with no exit time or runtime is a single instant, so
+      // 45 minutes before the recording is already outside the 30-minute
+      // window and lands in the fallback.
+      await _pump(
+        tester,
+        preview: _preview(
+          nearbyDives: [
+            _dive('m1', routeStart.subtract(const Duration(minutes: 45))),
+          ],
+        ),
+      );
+
+      expect(find.text('45min before the recording'), findsOneWidget);
+    });
+
+    testWidgets('picking a nearby dive selects it and takes its site', (
+      tester,
+    ) async {
+      await _pump(tester, preview: _preview(nearbyDives: nearby()));
+
+      await reveal(tester, find.byKey(const ValueKey('nav-track-link-n1')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-link-n1')));
+      await tester.pumpAndSettle();
+
+      expect(group(tester).groupValue, 'n1');
+      await reveal(tester, find.byKey(const ValueKey('nav-track-site-picker')));
+      expect(find.text('Lake Zurich'), findsOneWidget);
+    });
+
+    testWidgets('"Choose another dive..." lists every nearby dive and adds the '
+        'pick to the inline choices, selected', (tester) async {
+      await _pump(tester, preview: _preview(nearbyDives: nearby()));
+
+      await reveal(
+        tester,
+        find.byKey(const ValueKey('nav-track-link-choose-another')),
+      );
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-link-choose-another')),
+      );
+      await tester.pumpAndSettle();
+
+      // The sheet opens on the nearest dive and scrolls to the furthest.
+      expect(find.text('Dive #41'), findsOneWidget);
+      final sheetList = find.descendant(
+        of: find.byType(NavTrackDiveChoiceSheet),
+        matching: find.byType(Scrollable),
+      );
+      await tester.scrollUntilVisible(
+        find.text('Dive #39'),
+        100,
+        scrollable: sheetList,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dive #39'));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('nav-track-link-n7')), findsOneWidget);
+      expect(group(tester).groupValue, 'n7');
+      await reveal(tester, find.byKey(const ValueKey('nav-track-site-picker')));
+      expect(find.text('Blue Hole'), findsOneWidget);
+    });
+
+    testWidgets('dismissing the sheet keeps the current choice', (
+      tester,
+    ) async {
+      await _pump(tester, preview: _preview(nearbyDives: nearby()));
+      await reveal(tester, find.byKey(const ValueKey('nav-track-link-n2')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-link-n2')));
+      await tester.pumpAndSettle();
+
+      await reveal(
+        tester,
+        find.byKey(const ValueKey('nav-track-link-choose-another')),
+      );
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-link-choose-another')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      expect(group(tester).groupValue, 'n2');
+    });
+
+    testWidgets('no "Choose another dive..." row when every nearby dive is '
+        'already shown', (tester) async {
+      await _pump(
+        tester,
+        preview: _preview(nearbyDives: nearby().take(5).toList()),
+      );
+
+      expect(find.byKey(const ValueKey('nav-track-link-n5')), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('nav-track-link-choose-another')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('an empty log shows only "Leave unlinked", with no hint', (
+      tester,
+    ) async {
+      await _pump(tester, preview: _preview());
+
+      expect(
+        find.byKey(const ValueKey('nav-track-link-unlinked')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('No dive overlaps'), findsNothing);
+      expect(
+        find.byKey(const ValueKey('nav-track-link-choose-another')),
+        findsNothing,
+      );
+    });
+  });
+
+  testWidgets('shows no warnings for a normal, fresh import', (tester) async {
+    await _pump(tester, preview: _preview());
+    expect(
+      find.byKey(const ValueKey('nav-track-warning-no-movement')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('nav-track-warning-duplicate')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('warns when no movement was recorded', (tester) async {
+    const still = [
+      NavTrackPoint(timestamp: 1700000000, north: 0, east: 0, depth: 30),
+      NavTrackPoint(timestamp: 1700000600, north: 0, east: 0, depth: 30),
+    ];
+    await _pump(tester, preview: _preview(points: still));
+    expect(
+      find.byKey(const ValueKey('nav-track-warning-no-movement')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('warns about a duplicate and offers replace', (tester) async {
+    await _pump(
+      tester,
+      preview: _preview(duplicateOfRouteId: 'existing-route'),
+    );
+    expect(
+      find.byKey(const ValueKey('nav-track-warning-duplicate')),
+      findsOneWidget,
+    );
+    expect(find.byType(Checkbox), findsOneWidget);
+  });
+
+  testWidgets('shows a site picker entry point defaulting to no site chosen', (
+    tester,
+  ) async {
+    await _pump(tester, preview: _preview());
+    // The equipment section added above the site section pushes it (and
+    // everything below) out of the default test viewport's cache extent,
+    // so it is not built until scrolled into view -- same as a real user
+    // would need to scroll a phone screen this long.
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('nav-track-site-picker')), findsOneWidget);
+    expect(find.text('No site chosen'), findsOneWidget);
+  });
+
+  testWidgets(
+    'shows an equipment picker entry point defaulting to no equipment '
+    'chosen',
+    (tester) async {
+      await _pump(tester, preview: _preview(), equipment: const []);
+      expect(
+        find.byKey(const ValueKey('nav-track-equipment-picker')),
+        findsOneWidget,
+      );
+      expect(find.text('No equipment'), findsOneWidget);
+    },
+  );
+
+  testWidgets('picking equipment and saving persists the chosen equipmentId', (
+    tester,
+  ) async {
+    const scooter = EquipmentItem(
+      id: 'eq1',
+      name: 'Test Scooter',
+      type: EquipmentType.dpv,
+    );
+    final service = _RecordingImportService();
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(),
+      service: service,
+      equipment: const [scooter],
+    );
+
+    await tester.tap(find.byKey(const ValueKey('nav-track-equipment-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Test Scooter'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Test Scooter'), findsOneWidget);
+
+    // Scroll the save button into the test viewport (see the "site picker"
+    // test above for why).
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
+    expect(service.lastEquipmentId, 'eq1');
+  });
+
+  testWidgets('saves for the diver the preview was prepared for, even if the '
+      'active profile changed meanwhile', (tester) async {
+    final service = _RecordingImportService();
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(diverId: 'me'),
+      service: service,
+      equipment: const [],
+    );
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
+    expect(service.lastDiverId, 'me');
+  });
+
+  testWidgets('saving without picking equipment commits a null equipmentId', (
+    tester,
+  ) async {
+    final service = _RecordingImportService();
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(),
+      service: service,
+      equipment: const [],
+    );
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
+    expect(service.lastEquipmentId, isNull);
+  });
+
+  testWidgets(
+    'stays on the page when replacing a duplicate and commit fails (the '
+    'service only removes the original after the new route is stored)',
+    (tester) async {
+      await _pumpWithRouter(
+        tester,
+        preview: _preview(duplicateOfRouteId: 'existing-route'),
+        service: _ThrowingImportService(),
+      );
+
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+      await tester.pumpAndSettle();
+
+      // No navigation to a route that was never created; the failure is
+      // surfaced instead, and Save is offered again rather than left
+      // disabled (#2693).
+      expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
+      expect(find.textContaining('commit failed'), findsOneWidget);
+      final save = tester.widget<FilledButton>(
+        find.byKey(const ValueKey('nav-track-import-save')),
+      );
+      expect(save.onPressed, isNotNull);
+    },
+  );
+
+  // Issue #2693: every entry point pushes this page imperatively, so a
+  // `context.go` to the new route could not remove it. Pushed on the root
+  // navigator it stayed on top of the new route with Save disabled; pushed
+  // on the shell's navigator it vanished, but `go` had replaced the stack
+  // and left the new route with no way back.
+  //
+  // Anything else on the root navigator above the shell (a root-level page
+  // such as Add Buddy, a dialog) would cover the new shell route, so it is
+  // closed too, and back leads to the shell page underneath.
+  for (final host in _ReviewHost.values) {
+    testWidgets(
+      'a successful save opened from ${host.description} closes the review '
+      'and opens the new route above the page the import started from',
+      (tester) async {
+        final router = await _pumpWithRouter(
+          tester,
+          preview: _preview(),
+          service: _RecordingImportService(),
+          host: host,
+        );
+
+        await tester.drag(find.byType(ListView), const Offset(0, -400));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(NavTrackImportReviewPage), findsNothing);
+        expect(find.text('ROOT_LEVEL_PAGE'), findsNothing);
+        expect(find.text('ROOT_DIALOG'), findsNothing);
+        expect(find.text('ROUTE_DETAIL_PAGE').hitTestable(), findsOneWidget);
+        expect(router.state.uri.path, '/tracks/underwater/new-route-id');
+
+        // Back leads to where the import began, not out of the app.
+        await tester.tap(find.byType(BackButton));
+        await tester.pumpAndSettle();
+        expect(find.text('ORIGIN_PAGE').hitTestable(), findsOneWidget);
+        expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
+      },
+    );
+  }
+
+  testWidgets(
+    'a successful save confirms with a snackbar even without a site set '
+    '(#2393)',
+    (tester) async {
+      final service = _RecordingImportService();
+      await _pumpWithRouter(tester, preview: _preview(), service: service);
+
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+      await tester.pumpAndSettle();
+
+      expect(service.lastSiteId, isNull);
+      expect(find.text('Underwater track saved.'), findsOneWidget);
+    },
+  );
+
+  testWidgets('a parse error raised by commit is shown on the page and Save is '
+      'offered again', (tester) async {
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(),
+      service: _ParseRejectingImportService(),
+    );
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavTrackImportReviewPage), findsOneWidget);
+    expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
+    expect(
+      find.textContaining('could not be read as a Seacraft ENC'),
+      findsOneWidget,
+    );
+    final save = tester.widget<FilledButton>(
+      find.byKey(const ValueKey('nav-track-import-save')),
+    );
+    expect(save.onPressed, isNotNull);
+  });
+
+  testWidgets('hands the ticked duplicate to commit as the route to replace', (
+    tester,
+  ) async {
+    final service = _RecordingImportService();
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(duplicateOfRouteId: 'existing-route'),
+      service: service,
+    );
+
+    await tester.tap(find.byType(Checkbox));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
+    expect(service.commitCount, 1);
+    expect(service.lastReplacingRouteId, 'existing-route');
+  });
+
+  testWidgets('keeps the duplicate when replace is left unticked', (
+    tester,
+  ) async {
+    final service = _RecordingImportService();
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(duplicateOfRouteId: 'existing-route'),
+      service: service,
+    );
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
+    expect(service.commitCount, 1);
+    expect(service.lastReplacingRouteId, isNull);
+  });
+
+  testWidgets('shows a parse-error message when the preview future rejects', (
+    tester,
+  ) async {
+    final base = await getBaseOverrides();
+    final failingService = _FailingImportService();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          navTrackImportServiceProvider.overrideWithValue(failingService),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: NavTrackImportReviewPage(
+            bytes: Uint8List(0),
+            fileName: 'bad.csv',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('could not be read as a Seacraft ENC'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('shows a generic import-error message for a non-parse failure', (
+    tester,
+  ) async {
+    final base = await getBaseOverrides();
+    final throwingService = _GenericFailingImportService();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          navTrackImportServiceProvider.overrideWithValue(throwingService),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: NavTrackImportReviewPage(
+            bytes: Uint8List(0),
+            fileName: 'bad.csv',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('This file could not be imported:'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'choosing "no equipment" after picking one clears the selection',
+    (tester) async {
+      const scooter = EquipmentItem(
+        id: 'eq1',
+        name: 'Test Scooter',
+        type: EquipmentType.dpv,
+      );
+      final service = _RecordingImportService();
+      await _pumpWithRouter(
+        tester,
+        preview: _preview(),
+        service: service,
+        equipment: const [scooter],
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-equipment-picker')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Test Scooter'));
+      await tester.pumpAndSettle();
+      expect(find.text('Test Scooter'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const ValueKey('nav-track-equipment-picker')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('No equipment'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Test Scooter'), findsNothing);
+
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+      await tester.pumpAndSettle();
+
+      expect(service.lastEquipmentId, isNull);
+    },
+  );
+  group('return mode (Dive Edit import)', () {
+    final overlapping = _dive('d-overlap', DateTime.utc(2023, 11, 14, 22));
+
+    testWidgets('hides the dive picker and saves the route unlinked, even '
+        'when exactly one dive overlaps', (tester) async {
+      final service = _RecordingImportService();
+      final results = await _pumpReturnMode(
+        tester,
+        preview: _preview(candidateDives: [overlapping]),
+        service: service,
+      );
+
+      expect(find.text('Link to dive'), findsNothing);
+      await _tapSave(tester);
+
+      expect(service.commitCount, 1);
+      expect(service.lastDive, isNull);
+      expect(results, [(routeId: 'new-route-id', replacedRouteId: null)]);
+      // Back on the host page: nothing navigated past it.
+      expect(find.text('HOST'), findsOneWidget);
+    });
+
+    testWidgets('reports the duplicate it replaced', (tester) async {
+      final service = _RecordingImportService();
+      final results = await _pumpReturnMode(
+        tester,
+        preview: _preview(duplicateOfRouteId: 'existing-route'),
+        service: service,
+      );
+
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      await _tapSave(tester);
+
+      expect(results, [
+        (routeId: 'new-route-id', replacedRouteId: 'existing-route'),
+      ]);
+      // The caller replaces it on its own Save, so the duplicate survives a
+      // cancelled edit.
+      expect(service.lastReplacingRouteId, isNull);
+    });
+
+    testWidgets('pops null when the diver backs out', (tester) async {
+      final results = await _pumpReturnMode(
+        tester,
+        preview: _preview(),
+        service: _RecordingImportService(),
+      );
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(results, [null]);
+    });
+  });
+}
+
+class _FailingImportService implements NavTrackImportService {
+  @override
+  Future<NavTrackImportPreview> prepare(
+    Uint8List bytes, {
+    String? fileName,
+  }) async {
+    throw const NavTrackParseException(
+      'bad file',
+      reason: NavTrackParseReason.unreadable,
+    );
+  }
+
+  @override
+  Future<String> commit({
+    required ParsedNavTrack parsed,
+    required String sourceRef,
+    required String? diverId,
+    Dive? dive,
+    String? siteId,
+    String? name,
+    String? deviceName,
+    String? equipmentId,
+    String? replacingRouteId,
+  }) async => throw UnimplementedError();
+}
+
+/// A `prepare` that fails with a plain exception rather than
+/// [NavTrackParseException], to exercise the page's generic import-error
+/// branch (as opposed to the localized parse-reason text).
+class _GenericFailingImportService implements NavTrackImportService {
+  @override
+  Future<NavTrackImportPreview> prepare(
+    Uint8List bytes, {
+    String? fileName,
+  }) async {
+    throw StateError('disk full');
+  }
+
+  @override
+  Future<String> commit({
+    required ParsedNavTrack parsed,
+    required String sourceRef,
+    required String? diverId,
+    Dive? dive,
+    String? siteId,
+    String? name,
+    String? deviceName,
+    String? equipmentId,
+    String? replacingRouteId,
+  }) async => throw UnimplementedError();
+}

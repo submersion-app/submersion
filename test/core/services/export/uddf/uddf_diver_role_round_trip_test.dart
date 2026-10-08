@@ -71,7 +71,7 @@ void main() {
   Future<List<String?>> diverRoles() async {
     final dives = [...await DiveRepository().getAllDives()]
       ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-    return [for (final d in dives) d.diverRoleId];
+    return [for (final d in dives) d.diverRoleIds.firstOrNull];
   }
 
   test('the diver role survives a full export and restore', () async {
@@ -85,14 +85,14 @@ void main() {
       domain.Dive(
         id: 'd1',
         dateTime: DateTime(2026, 3, 1, 9),
-        diverRoleId: DiveRole.instructorId,
+        diverRoleIds: [DiveRole.instructorId],
       ),
     );
     await dives.createDive(
       domain.Dive(
         id: 'd2',
         dateTime: DateTime(2026, 3, 1, 14),
-        diverRoleId: custom.id,
+        diverRoleIds: [custom.id],
       ),
     );
     await dives.createDive(
@@ -130,11 +130,11 @@ void main() {
         dives: [
           {
             'dateTime': DateTime(2026, 3, 1, 9),
-            'diverRoleId': 'role-never-restored',
+            'diverRoleIds': ['role-never-restored'],
           },
           {
             'dateTime': DateTime(2026, 3, 1, 14),
-            'diverRoleId': DiveRole.studentId,
+            'diverRoleIds': [DiveRole.studentId],
           },
         ],
       ),
@@ -158,7 +158,10 @@ void main() {
       await importResult(
         UddfImportResult(
           dives: [
-            {'dateTime': DateTime(2026, 3, 1, 9), 'diverRoleId': custom.id},
+            {
+              'dateTime': DateTime(2026, 3, 1, 9),
+              'diverRoleIds': [custom.id],
+            },
           ],
         ),
         diverId: diverId,
@@ -185,7 +188,10 @@ void main() {
     await importResult(
       UddfImportResult(
         dives: [
-          {'dateTime': DateTime(2026, 3, 1, 9), 'diverRoleId': foreign.id},
+          {
+            'dateTime': DateTime(2026, 3, 1, 9),
+            'diverRoleIds': [foreign.id],
+          },
         ],
         customDiveRoles: [
           {
@@ -217,7 +223,7 @@ void main() {
         dives: [
           {
             'dateTime': DateTime(2026, 3, 1, 9),
-            'diverRoleId': DiveRole.buddyId,
+            'diverRoleIds': [DiveRole.buddyId],
           },
         ],
         customDiveRoles: const [
@@ -254,7 +260,10 @@ void main() {
       await importResult(
         UddfImportResult(
           dives: [
-            {'dateTime': DateTime(2026, 3, 1, 9), 'diverRoleId': foreign.id},
+            {
+              'dateTime': DateTime(2026, 3, 1, 9),
+              'diverRoleIds': [foreign.id],
+            },
           ],
         ),
       );
@@ -268,31 +277,13 @@ void main() {
       domain.Dive(
         id: 'd1',
         dateTime: DateTime(2026, 3, 1, 9),
-        diverRoleId: DiveRole.diveGuideId,
+        diverRoleIds: [DiveRole.diveGuideId],
       ),
     ]);
 
     final parsed = await ExportService().importAllDataFromUddf(xml);
 
-    expect(parsed.dives.single['diverRoleId'], DiveRole.diveGuideId);
-  });
-
-  test('the dives-only importer reads the diver role back', () async {
-    // The dives-only export's paired importer, kept in step with it the
-    // way its entry GPS is.
-    final xml = await UddfExportService().generateDivesUddfContent([
-      domain.Dive(
-        id: 'd1',
-        dateTime: DateTime(2026, 3, 1, 9),
-        diverRoleId: DiveRole.diveGuideId,
-      ),
-    ]);
-
-    final dive = (await ExportService().importDivesFromUddf(
-      xml,
-    ))['dives']!.single;
-
-    expect(dive['diverRoleId'], DiveRole.diveGuideId);
+    expect(parsed.dives.single['diverRoleIds'], [DiveRole.diveGuideId]);
   });
 
   test(
@@ -311,7 +302,7 @@ void main() {
           id: 'd1',
           diverId: diverId,
           dateTime: DateTime(2026, 3, 1, 9),
-          diverRoleId: custom.id,
+          diverRoleIds: [custom.id],
         ),
       );
 
@@ -362,12 +353,12 @@ void main() {
           domain.Dive(
             id: 'd1',
             dateTime: DateTime(2026, 3, 1, 9),
-            diverRoleId: photographer.id,
+            diverRoleIds: [photographer.id],
           ),
           domain.Dive(
             id: 'd2',
             dateTime: DateTime(2026, 3, 1, 14),
-            diverRoleId: photographer.id,
+            diverRoleIds: [photographer.id],
           ),
         ],
         extras: UddfDivesExtras(
@@ -397,13 +388,13 @@ void main() {
       domain.Dive(
         id: 'd1',
         dateTime: DateTime(2026, 3, 1, 9),
-        diverRoleId: 'role-foreign',
+        diverRoleIds: ['role-foreign'],
       ),
     ], extras: UddfDivesExtras(diveRoles: [DiveRole.builtInBuddy()]));
 
     final parsed = await ExportService().importAllDataFromUddf(xml);
 
-    expect(parsed.dives.single['diverRoleId'], 'role-foreign');
+    expect(parsed.dives.single['diverRoleIds'], ['role-foreign']);
     expect(parsed.customDiveRoles, isEmpty);
   });
 }

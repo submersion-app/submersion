@@ -27,6 +27,44 @@ void main() {
     );
   }
 
+  test('ids are deterministic when no generator is given', () {
+    final profile = rapidAscentProfile();
+    List<String> ids() => const SafetyReviewService()
+        .review(
+          diveId: 'dive-1',
+          analysis: analyzeFixture(
+            depths: profile.depths,
+            timestamps: profile.timestamps,
+          ),
+          now: now,
+        )
+        .map((f) => f.id)
+        .toList();
+    final first = ids();
+    expect(first, isNotEmpty);
+    expect(ids(), first, reason: 'two devices reach the same ids');
+  });
+
+  test('no two findings of one review share a rule and span', () {
+    // Finding identity (safetyFindingKeys) rests on this: repeats of a rule
+    // and span only ever come from stored duplicates of one finding, never
+    // from the engine, so an ordinal above zero never has to tell two live
+    // findings apart.
+    for (final profile in [
+      cleanDiveProfile(),
+      rapidAscentProfile(),
+      missedDecoStopProfile(),
+      omittedSafetyStopProfile(),
+      sawtoothProfile(),
+    ]) {
+      final findings = reviewProfile(profile);
+      final spans = {
+        for (final f in findings) (f.ruleId, f.startTimestamp, f.endTimestamp),
+      };
+      expect(spans, hasLength(findings.length));
+    }
+  });
+
   group('rapid ascent rule', () {
     test('clean dive produces no rapid ascent findings', () {
       final findings = reviewProfile(cleanDiveProfile());

@@ -1,7 +1,7 @@
 // Tests for the Manifest tab StateNotifier (Phase 3b, Task 13).
 //
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3b.md`
 // Task 13. The plan's example test code uses a hand-rolled `_FakeFetcher`
 // that ad-hoc accepts/rejects fetches; we keep that pattern (the
 // `ManifestFetchService` API surface is small enough that the mockito

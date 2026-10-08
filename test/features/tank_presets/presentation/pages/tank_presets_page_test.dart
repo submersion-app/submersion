@@ -185,6 +185,52 @@ void main() {
       expect(find.text('My Steel 12L'), findsOneWidget);
       expect(find.text('Steel 12L'), findsOneWidget);
     });
+
+    testWidgets('labels the show switch column', (tester) async {
+      final builtInPresets = TankPresets.all
+          .map((p) => TankPresetEntity.fromBuiltIn(p))
+          .toList();
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const TankPresetsPage(),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier(builtInPresets),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final label = find.text('Show');
+      expect(label, findsOneWidget);
+      final firstSwitch = find.byKey(
+        const ValueKey('tank-preset-visible-al100'),
+      );
+      expect(
+        tester.getCenter(label).dx,
+        moreOrLessEquals(tester.getCenter(firstSwitch).dx, epsilon: 0.5),
+      );
+    });
   });
 
   group('TankPresetsPage hiding built-in presets (issue #2305)', () {

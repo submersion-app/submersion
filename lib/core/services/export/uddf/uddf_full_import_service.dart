@@ -4,11 +4,16 @@ import 'package:xml/xml.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
+import 'package:submersion/core/services/export/uddf/uddf_certification_currency.dart';
 import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
+import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
+import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
-import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_fold.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
+import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/dive_type_mapper.dart';
@@ -17,8 +22,9 @@ import 'package:submersion/features/universal_import/data/csv/transforms/dive_ty
 ///
 /// Orchestrates parsing of all entity types (dives, sites, buddies,
 /// equipment, certifications, etc.) from a full Submersion UDDF export.
-/// Delegates base parsing to [UddfImportService] and entity parsing
-/// to [UddfImportParsers].
+/// Walks the document and parses each dive itself; the per-element parsers
+/// for every other entity (sites, gas mixes, buddies, equipment and so on)
+/// live in [UddfImportParsers].
 class UddfFullImportService {
   /// Private marker `_parseFullDive` leaves on a dive whose `<link ref>`
   /// matched nothing the parser knows about, so the caller can count it and
@@ -108,24 +114,33 @@ class UddfFullImportService {
     }
 
     // Parse dive sites with extended fields
-    final sites = <Map<String, dynamic>>[];
-    final siteMap = <String, Map<String, dynamic>>{};
-    final divesiteElement = uddfElement.findElements('divesite').firstOrNull;
-    if (divesiteElement != null) {
+    final rawSites = <Map<String, dynamic>>[];
+    // Every <divesite> block is read. Only the first used to be, so a file
+    // carrying a second block lost its sites and every dive linking one
+    // (#2209). A <site> with no id is kept: no dive can link to it, but a
+    // logbook's site list holds places never dived, and a named place is
+    // worth more than the id the file forgot to give it.
+    for (final divesiteElement in uddfElement.findElements('divesite')) {
       for (final siteElement in divesiteElement.findElements('site')) {
-        // A `<site>` the file never named is filed under its own
-        // coordinates, so the review step shows where it is rather than
-        // "Unnamed" and the position survives the import (#2232). A site
-        // with neither is dropped, which is all it was ever worth.
-        final siteData = ImportSiteLocation.named(_parseFullSite(siteElement));
-        if (siteData == null) continue;
+        final siteData = _parseFullSite(siteElement);
         final siteId = siteElement.getAttribute('id');
-        if (siteId != null) {
-          siteData['uddfId'] = siteId;
-          siteMap[siteId] = siteData;
-        }
-        sites.add(siteData);
+        if (siteId != null) siteData['uddfId'] = siteId;
+        rawSites.add(siteData);
       }
+    }
+    // A `<site>` the file never named is filed under its own coordinates, so
+    // the review step shows where it is rather than "Unnamed" and the
+    // position survives the import (#2232). A site with neither is dropped,
+    // which is all it was ever worth. Unnamed sites at one spot fold into a
+    // single site first: Oceanic+ mints one per dive (#2938).
+    final folded = foldImportSites(rawSites, foldSameName: false);
+    final sites = folded.sites;
+    final siteMap = <String, Map<String, dynamic>>{
+      for (final site in sites)
+        if (site['uddfId'] case final String id) id: site,
+    };
+    for (final alias in folded.aliases.entries) {
+      siteMap[alias.key] = siteMap[alias.value]!;
     }
 
     // Parse trips. Submersion writes one <divetrip> per trip, carrying the
@@ -285,6 +300,7 @@ class UddfFullImportService {
     // Parse applicationdata section
     final equipment = <Map<String, dynamic>>[];
     final certifications = <Map<String, dynamic>>[];
+    UddfCurrencyRows currency = (rules: [], prefs: [], events: []);
     final diveCenters = <Map<String, dynamic>>[];
     final species = <Map<String, dynamic>>[];
     final serviceRecords = <Map<String, dynamic>>[];
@@ -345,6 +361,9 @@ class UddfFullImportService {
             }
           }
         }
+
+        // Certification currency (issue #2267)
+        currency = UddfCertificationCurrency.parse(submersionElement);
 
         // Parse dive centers
         final centersSection = submersionElement
@@ -550,6 +569,19 @@ class UddfFullImportService {
           }
         }
 
+        // The tissue state each dive's computer reported (issue #2557),
+        // matched the same way.
+        final computerTissueSection = submersionElement
+            .findElements(UddfComputerTissue.sectionName)
+            .firstOrNull;
+        if (computerTissueSection != null) {
+          final byDive = UddfComputerTissue.parse(computerTissueSection);
+          for (final dive in dives) {
+            final data = byDive[dive['sourceUuid']];
+            if (data != null) UddfComputerTissue.apply(dive, data);
+          }
+        }
+
         // Parse courses
         final coursesSection = submersionElement
             .findElements('courses')
@@ -612,6 +644,28 @@ class UddfFullImportService {
       if (entries.isNotEmpty) dive['dataSources'] = entries;
     }
 
+    // Which source recorded each tank and each tank pressure series (issue
+    // #2492), on the dive's own map for the same reason.
+    for (final (key, byDiveRef) in [
+      (
+        UddfSourceAttribution.tanksKey,
+        UddfSourceAttribution.parseTanks(uddfElement),
+      ),
+      (
+        UddfSourceAttribution.seriesKey,
+        UddfSourceAttribution.parseSeries(uddfElement),
+      ),
+    ]) {
+      if (byDiveRef.isEmpty) continue;
+      for (final dive in dives) {
+        final rows = UddfImportResult.sourcesForDive(
+          byDiveRef,
+          dive['sourceUuid'] as String?,
+        );
+        if (rows.isNotEmpty) dive[key] = rows;
+      }
+    }
+
     _harvestCustomDiveTypes(dives, customDiveTypes);
 
     return UddfImportResult(
@@ -637,6 +691,9 @@ class UddfFullImportService {
       diveComputers: diveComputers,
       equipmentSets: equipmentSets,
       courses: courses,
+      currencyRules: currency.rules,
+      currencyPrefs: currency.prefs,
+      currencyEvents: currency.events,
     );
   }
 
@@ -1032,7 +1089,7 @@ class UddfFullImportService {
   }
 
   Map<String, dynamic> _parseFullSite(XmlElement siteElement) {
-    // Parse base site fields using simple import service
+    // Standard UDDF site fields first, then the Submersion extensions.
     final baseSite = _parseUddfSite(siteElement);
     return UddfImportParsers.parseFullSite(siteElement, baseSite);
   }
@@ -1040,7 +1097,10 @@ class UddfFullImportService {
   Map<String, dynamic> _parseUddfSite(XmlElement siteElement) {
     final site = <String, dynamic>{};
 
-    site['name'] = UddfImportParsers.getElementText(siteElement, 'name');
+    // Oceanic+ writes every site's own id as its <name> (#2938). That is a
+    // placeholder, not a name, so the site is treated as unnamed.
+    final name = UddfImportParsers.getElementText(siteElement, 'name');
+    site['name'] = name == siteElement.getAttribute('id')?.trim() ? null : name;
 
     final geoElement = siteElement.findElements('geography').firstOrNull;
     if (geoElement != null) {
@@ -1133,7 +1193,7 @@ class UddfFullImportService {
     Map<String, Map<String, int>> decoModels,
     Map<String, Map<String, String>> diveComputers,
   ) {
-    // Start with base dive parse (same logic as simple import)
+    // Standard UDDF dive fields first, then the Submersion extensions.
     final diveData = _parseUddfDive(
       diveElement,
       sites,
@@ -1223,13 +1283,12 @@ class UddfFullImportService {
       // The logbook owner's own role on the dive (custom element). The
       // importer checks the id against the database, since a dives-only
       // file declares no custom roles yet may name one already present.
-      final diverRole = UddfImportParsers.getElementText(
-        beforeElement,
-        'diverrole',
-      );
-      if (diverRole != null && diverRole.isNotEmpty) {
-        diveData['diverRoleId'] = diverRole;
-      }
+      // One element per role since issue #1221, in DiveRoleSet order.
+      final diverRoles = [
+        for (final element in beforeElement.findElements('diverrole'))
+          if (element.innerText.trim() case final id when id.isNotEmpty) id,
+      ];
+      if (diverRoles.isNotEmpty) diveData['diverRoleIds'] = diverRoles;
 
       // Parse entry time
       final entryTime = UddfImportParsers.getElementText(
@@ -1353,6 +1412,12 @@ class UddfFullImportService {
           waterType,
           enums.WaterType.values,
         );
+      }
+
+      // User-defined key:value fields, as both Submersion writers put them.
+      final customFields = UddfDiveCustomFields.parse(afterElement);
+      if (customFields.isNotEmpty) {
+        diveData[UddfDiveCustomFields.mapKey] = customFields;
       }
 
       final currentDir = UddfImportParsers.getElementText(
@@ -1556,6 +1621,8 @@ class UddfFullImportService {
           }
           weight['notes'] =
               UddfImportParsers.getElementText(weightElement, 'notes') ?? '';
+          weight['label'] =
+              UddfImportParsers.getElementText(weightElement, 'label') ?? '';
           weightsList.add(weight);
         }
         if (weightsList.isNotEmpty) {
@@ -1799,6 +1866,76 @@ class UddfFullImportService {
     return diveData;
   }
 
+  /// Resolves a dive's `<link ref>` elements against the sites, buddies,
+  /// deco models and dive computers the file declares.
+  ///
+  /// A ref matching none of them used to fall off the end of this chain
+  /// without a word, which is how a logbook whose `<divesite>` block was lost
+  /// imported every dive with no site and no notice (#2209). One that could
+  /// have been a site now marks the dive with [_unresolvedSiteRefKey].
+  void _applyDiveLinks(
+    Iterable<XmlElement> links,
+    Map<String, dynamic> diveData,
+    List<String> buddyNames,
+    Map<String, Map<String, dynamic>> sites,
+    Map<String, Map<String, dynamic>> buddies,
+    Map<String, Map<String, int>> decoModels,
+    Map<String, Map<String, String>> diveComputers,
+  ) {
+    var sawDanglingRef = false;
+    for (final linkElement in links) {
+      final ref = linkElement.getAttribute('ref');
+      if (ref != null) {
+        // Check if it's a site reference
+        if (sites.containsKey(ref)) {
+          diveData['site'] = sites[ref];
+        }
+        // Check if it's a buddy reference
+        else if (buddies.containsKey(ref)) {
+          final buddyName = buddies[ref]?['name'] as String?;
+          if (buddyName != null && buddyName.isNotEmpty) {
+            buddyNames.add(buddyName);
+          }
+        }
+        // Check if it's a deco model reference (gradient factors)
+        else if (decoModels.containsKey(ref)) {
+          final model = decoModels[ref]!;
+          if (model['gfLow'] != null && model['gfLow']! > 0) {
+            diveData['gradientFactorLow'] = model['gfLow'];
+          }
+          if (model['gfHigh'] != null && model['gfHigh']! > 0) {
+            diveData['gradientFactorHigh'] = model['gfHigh'];
+          }
+        }
+        // Check if it's a dive computer reference
+        else if (diveComputers.containsKey(ref)) {
+          final computer = diveComputers[ref]!;
+          if (computer['model']?.isNotEmpty == true) {
+            diveData['diveComputerModel'] = computer['model'];
+          }
+          if (computer['serial']?.isNotEmpty == true) {
+            diveData['diveComputerSerial'] = computer['serial'];
+          }
+          if (computer['firmware']?.isNotEmpty == true) {
+            diveData['diveComputerFirmware'] = computer['firmware'];
+          }
+          if (computer['manufacturer']?.isNotEmpty == true) {
+            diveData['diveComputerManufacturer'] = computer['manufacturer'];
+          }
+        } else if (!_isNonSiteRef(ref)) {
+          sawDanglingRef = true;
+        }
+      }
+    }
+
+    // A dangling ref only counts against the dive when nothing else gave
+    // it a site: a file may legitimately link something this parser does
+    // not read, and that is not a lost location.
+    if (sawDanglingRef && diveData['site'] == null) {
+      diveData[_unresolvedSiteRefKey] = true;
+    }
+  }
+
   Map<String, dynamic> _parseUddfDive(
     XmlElement diveElement,
     Map<String, Map<String, dynamic>> sites,
@@ -1924,72 +2061,23 @@ class UddfFullImportService {
         }
       }
 
-      // Get all linked references (can be sites, buddies, decomodels, or dive computers)
-      // A ref matching none of them used to fall off the end of this chain
-      // without a word, which is how a logbook whose <divesite> block was
-      // lost imported every dive with no site and no notice (#2209).
-      //
       // UDDF allows a <link> either inside <informationbeforedive> or
-      // directly under <dive>. Only the inner ones were read, so a file
-      // using the outer shape lost its site link in silence even when the
-      // <divesite> block described the site perfectly well. Inner links are
-      // walked first, so a resolving one still wins over a dangling outer
-      // one rather than the last read winning.
-      var sawDanglingRef = false;
-      for (final linkElement in [
-        ...beforeElement.findElements('link'),
-        ...diveElement.findElements('link'),
-      ]) {
-        final ref = linkElement.getAttribute('ref');
-        if (ref != null) {
-          // Check if it's a site reference
-          if (sites.containsKey(ref)) {
-            diveData['site'] = sites[ref];
-          }
-          // Check if it's a buddy reference
-          else if (buddies.containsKey(ref)) {
-            final buddyName = buddies[ref]?['name'] as String?;
-            if (buddyName != null && buddyName.isNotEmpty) {
-              buddyNames.add(buddyName);
-            }
-          }
-          // Check if it's a deco model reference (gradient factors)
-          else if (decoModels.containsKey(ref)) {
-            final model = decoModels[ref]!;
-            if (model['gfLow'] != null && model['gfLow']! > 0) {
-              diveData['gradientFactorLow'] = model['gfLow'];
-            }
-            if (model['gfHigh'] != null && model['gfHigh']! > 0) {
-              diveData['gradientFactorHigh'] = model['gfHigh'];
-            }
-          }
-          // Check if it's a dive computer reference
-          else if (diveComputers.containsKey(ref)) {
-            final computer = diveComputers[ref]!;
-            if (computer['model']?.isNotEmpty == true) {
-              diveData['diveComputerModel'] = computer['model'];
-            }
-            if (computer['serial']?.isNotEmpty == true) {
-              diveData['diveComputerSerial'] = computer['serial'];
-            }
-            if (computer['firmware']?.isNotEmpty == true) {
-              diveData['diveComputerFirmware'] = computer['firmware'];
-            }
-            if (computer['manufacturer']?.isNotEmpty == true) {
-              diveData['diveComputerManufacturer'] = computer['manufacturer'];
-            }
-          } else if (!_isNonSiteRef(ref)) {
-            sawDanglingRef = true;
-          }
-        }
-      }
-
-      // A dangling ref only counts against the dive when nothing else gave
-      // it a site: a file may legitimately link something this parser does
-      // not read, and that is not a lost location.
-      if (sawDanglingRef && diveData['site'] == null) {
-        diveData[_unresolvedSiteRefKey] = true;
-      }
+      // directly under <dive>. Inner links are walked first, so a resolving
+      // one still wins over a dangling outer one rather than the last read
+      // winning. A dive with no <informationbeforedive> walks its outer
+      // links in the else branch below.
+      _applyDiveLinks(
+        [
+          ...beforeElement.findElements('link'),
+          ...diveElement.findElements('link'),
+        ],
+        diveData,
+        buddyNames,
+        sites,
+        buddies,
+        decoModels,
+        diveComputers,
+      );
 
       // Also check equipmentused for dive computer links (Shearwater style)
       if (equipmentElement != null) {
@@ -2012,6 +2100,19 @@ class UddfFullImportService {
           }
         }
       }
+    } else {
+      // The link walk above sat inside this block alone, so a dive with no
+      // <informationbeforedive> never had even its direct <link>s read, and
+      // a dangling one raised no notice (#2209).
+      _applyDiveLinks(
+        diveElement.findElements('link'),
+        diveData,
+        buddyNames,
+        sites,
+        buddies,
+        decoModels,
+        diveComputers,
+      );
     }
 
     // Also parse equipment refs from informationafterdive (if they exist there)
@@ -2512,6 +2613,16 @@ class UddfFullImportService {
           point['ndl'] = UddfImportParsers.parseUddfInt(ndlText);
         }
 
+        // Shearwater Cloud and Subsurface write the computer's GF99 on each
+        // waypoint. Only set when present, so a sample without one carries
+        // no key rather than a null.
+        final gf99 = parseUddfGradientFactorPercent(
+          UddfImportParsers.getElementText(waypoint, 'gradientfactor'),
+        );
+        if (gf99 != null) {
+          point['gf99'] = gf99;
+        }
+
         final decoStop = waypoint.findElements('decostop').firstOrNull;
         if (decoStop != null) {
           final kind = decoStop.getAttribute('kind')?.trim().toLowerCase();
@@ -2530,18 +2641,20 @@ class UddfFullImportService {
               'mapping to decoType=2 because the sample still indicates a deco stop.',
             );
           }
-          point['decoType'] = safetyKinds.contains(kind) ? 1 : 2;
+          final isSafetyStop = safetyKinds.contains(kind);
+          point['decoType'] = isSafetyStop ? 1 : 2;
 
           // Map the computer's stop depth to the sample ceiling. UDDF is SI, so
           // `decodepth` is metres and needs no conversion. Unlike Subsurface's
           // delta-encoded stopdepth, `<decostop>` is present on every in-stop
           // waypoint, so there is nothing to carry forward: a waypoint with no
           // decostop is simply no obligation (null ceiling). A non-positive
-          // depth is treated as no stop.
+          // depth is treated as no stop. A safety stop is not an obligation
+          // either, so its depth is no ceiling (#2550).
           final decoDepth = double.tryParse(
             decoStop.getAttribute('decodepth') ?? '',
           );
-          if (decoDepth != null && decoDepth > 0) {
+          if (!isSafetyStop && decoDepth != null && decoDepth > 0) {
             point['ceiling'] = decoDepth;
           }
         }

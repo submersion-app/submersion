@@ -9,11 +9,13 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/domain/entities/import_candidate.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/domain/value_objects/taken_at_source.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/domain/value_objects/import_preview.dart';
 import 'package:submersion/features/media/presentation/providers/media_import_suggestion_providers.dart';
@@ -193,6 +195,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Choose site'));
     await tester.pumpAndSettle();
+    // The shared, searchable site picker (#1080).
+    expect(find.byKey(sitePickerListKey), findsOneWidget);
     await tester.tap(find.text('Blue Hole'));
     await tester.pumpAndSettle();
 
@@ -401,6 +405,61 @@ void main() {
 
     expect(find.byType(Image), findsNothing);
     expect(find.byType(NetworkThumbnail), findsNothing);
+  });
+
+  testWidgets('a candidate with no capture time says so', (tester) async {
+    await tester.pumpWidget(host([candidate('a', null)], const {}));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No capture date found'), findsOneWidget);
+    expect(find.text('No matching dive'), findsNothing);
+  });
+
+  testWidgets('an unmatched candidate dated by its file says so', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        [
+          ImportCandidate(
+            key: 'a',
+            title: 'clip.avi',
+            takenAt: t3,
+            takenAtSource: TakenAtSource.fileModifiedTime,
+          ),
+        ],
+        {t3: none},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'No matching dive by the file date; the file has no capture date',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a file-dated candidate that matches links as usual', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        [
+          ImportCandidate(
+            key: 'a',
+            title: 'clip.avi',
+            takenAt: t1,
+            takenAtSource: TakenAtSource.fileModifiedTime,
+          ),
+        ],
+        {t1: confident('d7', 7)},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Link to #7'), findsOneWidget);
   });
 }
 

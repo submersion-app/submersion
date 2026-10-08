@@ -62,7 +62,7 @@ void main() {
         id: 'd1',
         diverId: diverId,
         dateTime: DateTime(2026, 3, 1, 9),
-        diverRoleId: role.id,
+        diverRoleIds: [role.id],
       ),
     );
     await buddies.addBuddyToDive('d1', pat.id, role.id);
@@ -102,10 +102,12 @@ void main() {
     return [
       for (final dive in await DiveRepository().getAllDives(diverId: diverId))
         (
-          dive.diverRoleId,
-          (await buddies.getBuddiesForDive(
-            dive.id,
-          )).where((b) => b.buddy.name == 'Pat Kim').singleOrNull?.role.id,
+          dive.diverRoleIds.firstOrNull,
+          (await buddies.getBuddiesForDive(dive.id))
+              .where((b) => b.buddy.name == 'Pat Kim')
+              .singleOrNull
+              ?.primaryRole
+              .id,
         ),
     ];
   }

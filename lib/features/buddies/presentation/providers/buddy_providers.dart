@@ -527,11 +527,14 @@ class DiveBuddiesNotifier extends StateNotifier<List<BuddyWithRole>> {
       // Update role
       state = [
         ...state.sublist(0, existing),
-        BuddyWithRole(buddy: buddy, role: role),
+        BuddyWithRole(buddy: buddy, roles: [role]),
         ...state.sublist(existing + 1),
       ];
     } else {
-      state = [...state, BuddyWithRole(buddy: buddy, role: role)];
+      state = [
+        ...state,
+        BuddyWithRole(buddy: buddy, roles: [role]),
+      ];
     }
   }
 
@@ -542,7 +545,7 @@ class DiveBuddiesNotifier extends StateNotifier<List<BuddyWithRole>> {
   void updateRole(String buddyId, DiveRole role) {
     state = state.map((b) {
       if (b.buddy.id == buddyId) {
-        return BuddyWithRole(buddy: b.buddy, role: role);
+        return BuddyWithRole(buddy: b.buddy, roles: [role]);
       }
       return b;
     }).toList();

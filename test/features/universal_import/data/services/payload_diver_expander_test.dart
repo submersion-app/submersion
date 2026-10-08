@@ -282,6 +282,33 @@ void main() {
     expect(media.map((m) => m[_key]), [_active, _active]);
   });
 
+  test('fills go to the primary profile, whatever the divers '
+      '(cylinder passports phase 5)', () {
+    final source = _source();
+    final withFills = ImportPayload(
+      entities: {
+        ...source.entities,
+        ImportEntityType.fills: [
+          {'uddfId': 'fill-1', 'passportId': 'pp-1'},
+        ],
+      },
+      sourceDivers: source.sourceDivers,
+    );
+    expect(_targets(_expand(withFills), ImportEntityType.fills, 'fill-1'), [
+      _active,
+    ]);
+    // With the active profile unmapped, the busiest target takes them.
+    final elsewhere = _expand(withFills, const {
+      _ann: NewDiverTarget(_ann),
+      _bo: NewDiverTarget(_bo),
+      _cy: SkipDiverTarget(),
+      SourceDiver.unownedKey: SkipDiverTarget(),
+    });
+    expect(_targets(elsewhere, ImportEntityType.fills, 'fill-1'), [
+      'new:$_ann',
+    ]);
+  });
+
   test('a target fed by two divers tags each dive with its diver', () {
     final out = _expand(_source());
     final dives = out.entitiesOf(ImportEntityType.dives);

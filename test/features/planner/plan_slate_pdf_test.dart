@@ -12,6 +12,7 @@ import 'package:submersion/features/planner/domain/services/contingency_service.
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import '../../helpers/fake_hosts.dart';
 
 const _air = GasMix(o2: 21);
 const _ean50 = GasMix(o2: 50);
@@ -50,6 +51,8 @@ final _labels = PlanSlateLabels(
   turnAt: 'Turn',
   minGas: 'Min gas',
   base: 'Base',
+  minutes: (value) => '$value min',
+  maxPrefix: 'max',
 );
 
 domain.DivePlan _plan({domain.PlanMode mode = domain.PlanMode.oc}) {
@@ -103,6 +106,13 @@ Future<List<int>> _build(domain.DivePlan plan) {
 }
 
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   test('OC slate renders a parseable PDF with all sections', () async {
     final bytes = await _build(_plan());
     expect(bytes, isNotEmpty);
@@ -128,9 +138,41 @@ void main() {
       const UnitFormatter(
         AppSettings(dateFormat: DateFormatPreference.ddmmyyyy),
       ),
+      _labels,
     );
 
     expect(line, startsWith('05/07/2026'));
     expect(line, isNot(contains('2026-07-05')));
+  });
+
+  test('the header prints minutes and max in the app language (#2252)', () {
+    const engine = PlanEngine();
+    final plan = _plan();
+    final line = planSlateHeaderLine(
+      plan,
+      engine.compute(plan),
+      const UnitFormatter(AppSettings()),
+      PlanSlateLabels(
+        runtimeTable: '',
+        gasPlan: '',
+        contingencies: '',
+        lostGasLabel: (gas) => gas,
+        rangeTable: '',
+        bailout: '',
+        duration: '',
+        depth: '',
+        runtime: '',
+        gas: '',
+        turnAt: '',
+        minGas: '',
+        base: '',
+        minutes: (value) => '$value Min.',
+        maxPrefix: 'max.',
+      ),
+    );
+
+    expect(line, contains(' Min.'));
+    expect(line, contains('max. '));
+    expect(line, isNot(contains(' min ')));
   });
 }

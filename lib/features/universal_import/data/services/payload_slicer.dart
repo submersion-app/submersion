@@ -161,7 +161,7 @@ class PayloadSlicer {
   ) {
     final roleIds = <Object?>{
       for (final dive in entities[ImportEntityType.dives] ?? const []) ...[
-        dive['diverRoleId'],
+        if (dive['diverRoleIds'] case final List ids) ...ids,
         if (dive['buddyRoleRefs'] case final List refs)
           for (final r in refs)
             if (r is Map) r['roleId'],

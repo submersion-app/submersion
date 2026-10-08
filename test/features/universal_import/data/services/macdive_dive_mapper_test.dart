@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:path/path.dart' as p;
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -21,13 +22,12 @@ void main() {
   late Uint8List bytes;
 
   setUpAll(() async {
-    final path =
-        '${Directory.systemTemp.path}/mdm_${DateTime.now().microsecondsSinceEpoch}.sqlite';
-    final file = buildSyntheticMacDiveDb(path);
-    bytes = Uint8List.fromList(await file.readAsBytes());
+    final dir = Directory.systemTemp.createTempSync('mdm_');
     addTearDown(() {
-      if (file.existsSync()) file.deleteSync();
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
     });
+    final file = buildSyntheticMacDiveDb(p.join(dir.path, 'mdm.sqlite'));
+    bytes = Uint8List.fromList(await file.readAsBytes());
   });
 
   group('MacDiveDiveMapper', () {
@@ -357,6 +357,20 @@ void main() {
       final gasMix = tank['gasMix'] as GasMix;
       expect(gasMix.o2, closeTo(32.0, 0.01));
       expect(gasMix.he, closeTo(0.0, 0.01));
+      // #1496: ZTANKANDGAS.ZDURATION is how long the tank was breathed, under
+      // the key _buildTanks reads. `runtime` is the dive's key, not a tank's.
+      expect(tank['usageDuration'], const Duration(seconds: 2400));
+      expect(tank.containsKey('runtime'), isFalse);
+    });
+
+    test('a tank with no ZDURATION carries no usage duration', () async {
+      final logbook = await MacDiveDbReader.readAll(bytes);
+      final payload = await MacDiveDiveMapper.toPayload(logbook);
+      final dive2 = payload
+          .entitiesOf(ImportEntityType.dives)
+          .firstWhere((d) => d['sourceUuid'] == 'dive-uuid-2');
+      final tank = (dive2['tanks'] as List).single as Map<String, dynamic>;
+      expect(tank.containsKey('usageDuration'), isFalse);
     });
 
     test('sites: saltwater/freshwater mapped to enum names', () async {
@@ -445,6 +459,42 @@ void main() {
       ]);
       expect(payload.warnings, isEmpty);
     });
+
+    test('a deco dive keeps its gas switch from the raw download', () async {
+      final payload = await MacDiveDiveMapper.toPayload(
+        _decoDiveLogbook(),
+        fetchDescriptors: _fakeDescriptors,
+        parseRaw: (v, p, m, d) async => _decoParsedDive(),
+      );
+
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['gasSwitches'], [
+        {'timestamp': 1800, 'depth': 21.0, 'tankIndex': 1},
+      ]);
+      // MacDive's own tank list is kept as it is.
+      final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+      expect(tanks, hasLength(2));
+      expect(tanks[1]['name'], 'AL40');
+    });
+
+    test(
+      'a switch to a gas MacDive did not list gets its own cylinder',
+      () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _decoDiveLogbook(listDecoGas: false),
+          fetchDescriptors: _fakeDescriptors,
+          parseRaw: (v, p, m, d) async => _decoParsedDive(),
+        );
+
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+        expect(tanks, hasLength(2));
+        expect(tanks[1]['gasMix'], const GasMix(o2: 50.0));
+        expect(dive['gasSwitches'], [
+          {'timestamp': 1800, 'depth': 21.0, 'tankIndex': 1},
+        ]);
+      },
+    );
 
     test(
       'Suunto EON Steel Black ZRAWDATA is passed through unmodified',
@@ -735,6 +785,179 @@ void main() {
         fetchDescriptors: () async =>
             fail('descriptors must not be fetched with nothing to decode'),
       );
+    });
+
+    // MacDive stores the dive's absolute moment in `ZRAWDATE` and the zone
+    // it was logged in, as an archived NSTimeZone, in `ZTIMEZONE`.
+    // Submersion keeps dive times as wall-clock-UTC, so the mapper has to
+    // shift the instant into that zone before emitting it.
+    group('ZRAWDATE and ZTIMEZONE', () {
+      late Uint8List losAngelesBplist;
+
+      setUpAll(() async {
+        losAngelesBplist = Uint8List.fromList(
+          await File(
+            'test/fixtures/macdive_sqlite/bplist_samples/macdive_ztimezone.bplist',
+          ).readAsBytes(),
+        );
+      });
+
+      test('emits the wall clock of the zone the dive was logged in', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2024, 7, 1, 17, 5),
+              timezoneBplist: losAngelesBplist,
+            ),
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        // 17:05Z is 10:05 PDT, the time MacDive shows for this dive.
+        expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5));
+      });
+
+      test('keeps the seconds through the zone conversion (#2509)', () async {
+        // The reader has already put back the seconds ZIDENTIFIER keeps.
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2024, 7, 1, 17, 5, 17),
+              timezoneBplist: losAngelesBplist,
+            ),
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5, 17));
+      });
+
+      test('a dive with no ZTIMEZONE uses the zone of its site', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2013, 5, 2, 20, 30),
+              diveSiteFk: 7,
+            ),
+            sitesByPk: {7: _tahitiSite},
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        // Tahiti is UTC-10 with no daylight saving.
+        expect(dive['dateTime'], DateTime.utc(2013, 5, 2, 10, 30));
+      });
+
+      test('ZTIMEZONE wins over the zone of the site', () async {
+        // MacDive derived ZRAWDATE from the dive computer's clock using the
+        // stored zone, so only that zone gives back the time MacDive shows.
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2024, 7, 1, 17, 5),
+              timezoneBplist: losAngelesBplist,
+              diveSiteFk: 7,
+            ),
+            sitesByPk: {7: _tahitiSite},
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['dateTime'], DateTime.utc(2024, 7, 1, 10, 5));
+      });
+
+      test('a stored zone name the tz database does not know falls back '
+          'to the site zone', () async {
+        // The same archive with its zone name overwritten in place, so the
+        // BLOB still decodes but names no zone Submersion can resolve.
+        final unknownZone = _replaceAscii(
+          losAngelesBplist,
+          'America/Los_Angeles',
+          'Nowhere/Not_A_Zone1',
+        );
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              rawDate: DateTime.utc(2013, 5, 2, 20, 30),
+              timezoneBplist: unknownZone,
+              diveSiteFk: 7,
+            ),
+            sitesByPk: {7: _tahitiSite},
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['dateTime'], DateTime.utc(2013, 5, 2, 10, 30));
+        expect(
+          payload.warnings.where(
+            (w) => w.code == ImportWarningCode.macdiveDeviceTimeZone,
+          ),
+          isEmpty,
+        );
+      });
+
+      test('counts the dives read in the device zone in one warning', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _divesLogbook(
+            [
+              // No zone and no site.
+              MacDiveRawDive(
+                pk: 1,
+                uuid: 'dive-1',
+                rawDate: DateTime.utc(2024, 7, 1, 17, 5),
+              ),
+              // No zone, and a site without a GPS fix.
+              MacDiveRawDive(
+                pk: 2,
+                uuid: 'dive-2',
+                rawDate: DateTime.utc(2024, 7, 2, 17, 5),
+                diveSiteFk: 8,
+              ),
+              // A stored zone that cannot be read, and no site.
+              MacDiveRawDive(
+                pk: 4,
+                uuid: 'dive-4',
+                rawDate: DateTime.utc(2024, 7, 4, 17, 5),
+                timezoneBplist: Uint8List.fromList([1, 2, 3, 4]),
+              ),
+              // A stored zone: not a device-zone dive.
+              MacDiveRawDive(
+                pk: 3,
+                uuid: 'dive-3',
+                rawDate: DateTime.utc(2024, 7, 3, 17, 5),
+                timezoneBplist: losAngelesBplist,
+              ),
+            ],
+            sitesByPk: const {
+              8: MacDiveRawSite(pk: 8, uuid: 'site-8', name: 'No GPS'),
+            },
+          ),
+        );
+        final warning = payload.warnings.singleWhere(
+          (w) => w.code == ImportWarningCode.macdiveDeviceTimeZone,
+        );
+        expect(warning.count, 3);
+        expect(warning.entityType, ImportEntityType.dives);
+      });
+
+      test('a dive without ZRAWDATE has no dateTime', () async {
+        final payload = await MacDiveDiveMapper.toPayload(
+          _singleDiveLogbook(
+            MacDiveRawDive(
+              pk: 1,
+              uuid: 'dive-1',
+              timezoneBplist: losAngelesBplist,
+            ),
+          ),
+        );
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive.containsKey('dateTime'), isFalse);
+      });
     });
 
     // #1606: `ZSURFACEINTERVAL` holds minutes. Confirmed by joining a real
@@ -1600,7 +1823,10 @@ MacDiveRawLogbook _multiDiverLogbook({bool singleDiver = false}) {
   );
 }
 
-pigeon.ParsedDive _parsedDive({required List<pigeon.ProfileSample> samples}) {
+pigeon.ParsedDive _parsedDive({
+  required List<pigeon.ProfileSample> samples,
+  List<pigeon.GasMix> gasMixes = const [],
+}) {
   return pigeon.ParsedDive(
     fingerprint: 'fp',
     dateTimeYear: 2026,
@@ -1614,18 +1840,87 @@ pigeon.ParsedDive _parsedDive({required List<pigeon.ProfileSample> samples}) {
     durationSeconds: 3100,
     samples: samples,
     tanks: [],
-    gasMixes: [],
+    gasMixes: gasMixes,
     events: [],
   );
 }
 
-/// One dive whose only interesting column is `ZSURFACEINTERVAL`.
-MacDiveRawLogbook _surfaceIntervalLogbook(double surfaceInterval) {
+/// One Shearwater dive with a raw download whose MacDive tank list holds the
+/// trimix back gas and, unless [listDecoGas] is false, the EAN50 deco gas.
+MacDiveRawLogbook _decoDiveLogbook({bool listDecoGas = true}) {
   return MacDiveRawLogbook(
     dives: [
-      MacDiveRawDive(pk: 1, uuid: 'dive-1', surfaceInterval: surfaceInterval),
+      MacDiveRawDive(
+        pk: 1,
+        uuid: 'deco-dive',
+        computer: 'Shearwater Teric',
+        rawDataBlob: _compressedFixture,
+      ),
     ],
     sitesByPk: const {},
+    buddiesByPk: const {},
+    tagsByPk: const {},
+    gearByPk: const {},
+    tanksByPk: const {
+      1: MacDiveRawTank(pk: 1, uuid: 'tank-1', name: 'D12'),
+      2: MacDiveRawTank(pk: 2, uuid: 'tank-2', name: 'AL40'),
+    },
+    gasesByPk: const {
+      1: MacDiveRawGas(pk: 1, uuid: 'gas-1', oxygen: 21.0, helium: 35.0),
+      2: MacDiveRawGas(pk: 2, uuid: 'gas-2', oxygen: 50.0, helium: 0.0),
+    },
+    tankAndGases: [
+      const MacDiveRawTankAndGas(diveFk: 1, tankFk: 1, gasFk: 1),
+      if (listDecoGas)
+        const MacDiveRawTankAndGas(diveFk: 1, tankFk: 2, gasFk: 2, order: 1),
+    ],
+    crittersByPk: const {},
+    certifications: const [],
+    serviceRecords: const [],
+    events: const [],
+    diveToBuddyPks: const {},
+    diveToTagPks: const {},
+    diveToGearPks: const {},
+    diveToCritterPks: const {},
+    unitsPreference: 'Metric',
+  );
+}
+
+/// A deco dive's raw parse: trimix 21/35 to depth, EAN50 from 21 m.
+pigeon.ParsedDive _decoParsedDive() => _parsedDive(
+  gasMixes: [
+    pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 35.0),
+    pigeon.GasMix(index: 1, o2Percent: 50.0, hePercent: 0.0),
+  ],
+  samples: [
+    pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0, gasMixIndex: 0),
+    pigeon.ProfileSample(timeSeconds: 900, depthMeters: 25.4, gasMixIndex: 0),
+    pigeon.ProfileSample(timeSeconds: 1800, depthMeters: 21.0, gasMixIndex: 1),
+    pigeon.ProfileSample(timeSeconds: 3100, depthMeters: 0.0, gasMixIndex: 1),
+  ],
+);
+
+/// One dive whose only interesting column is `ZSURFACEINTERVAL`.
+MacDiveRawLogbook _surfaceIntervalLogbook(double surfaceInterval) {
+  return _singleDiveLogbook(
+    MacDiveRawDive(pk: 1, uuid: 'dive-1', surfaceInterval: surfaceInterval),
+  );
+}
+
+/// A logbook holding just [dive] and, optionally, the sites it links to.
+MacDiveRawLogbook _singleDiveLogbook(
+  MacDiveRawDive dive, {
+  Map<int, MacDiveRawSite> sitesByPk = const {},
+}) => _divesLogbook([dive], sitesByPk: sitesByPk);
+
+/// A logbook holding just [dives] and, optionally, the sites they link to.
+MacDiveRawLogbook _divesLogbook(
+  List<MacDiveRawDive> dives, {
+  Map<int, MacDiveRawSite> sitesByPk = const {},
+}) {
+  return MacDiveRawLogbook(
+    dives: dives,
+    sitesByPk: sitesByPk,
     buddiesByPk: const {},
     tagsByPk: const {},
     gearByPk: const {},
@@ -1642,4 +1937,23 @@ MacDiveRawLogbook _surfaceIntervalLogbook(double surfaceInterval) {
     diveToCritterPks: const {},
     unitsPreference: 'Metric',
   );
+}
+
+/// A site off Moorea, French Polynesia (Pacific/Tahiti, UTC-10).
+const _tahitiSite = MacDiveRawSite(
+  pk: 7,
+  uuid: 'site-7',
+  name: 'Moorea',
+  latitude: -17.536,
+  longitude: -149.829,
+);
+
+/// [bytes] with the ASCII text [from] overwritten by [to], which must be the
+/// same length so every offset in the stream stays valid.
+Uint8List _replaceAscii(Uint8List bytes, String from, String to) {
+  assert(from.length == to.length);
+  final text = String.fromCharCodes(bytes);
+  final at = text.indexOf(from);
+  if (at < 0) throw StateError('"$from" not found');
+  return Uint8List.fromList(bytes)..setRange(at, at + to.length, to.codeUnits);
 }

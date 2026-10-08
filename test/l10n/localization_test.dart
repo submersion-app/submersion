@@ -108,9 +108,29 @@ void main() {
       expect(l10n.formatter_connector_at, isNot('at'));
     });
 
-    test('German connector "at" is translated', () async {
+    test('German connector "at" is "um"', () async {
       final l10n = await AppLocalizations.delegate.load(const Locale('de'));
-      expect(l10n.formatter_connector_at, isNot('at'));
+      expect(l10n.formatter_connector_at, 'um');
+    });
+
+    test('Italian connector "at" is "alle"', () async {
+      final l10n = await AppLocalizations.delegate.load(const Locale('it'));
+      expect(l10n.formatter_connector_at, 'alle');
+    });
+
+    test('Dutch connector "at" is "om"', () async {
+      final l10n = await AppLocalizations.delegate.load(const Locale('nl'));
+      expect(l10n.formatter_connector_at, 'om');
+    });
+
+    test('Portuguese connector "at" is "às"', () async {
+      final l10n = await AppLocalizations.delegate.load(const Locale('pt'));
+      expect(l10n.formatter_connector_at, 'às');
+    });
+
+    test('Hungarian connector "at" is not a place word', () async {
+      final l10n = await AppLocalizations.delegate.load(const Locale('hu'));
+      expect(l10n.formatter_connector_at, '–');
     });
 
     test('Arabic connector "at" is translated', () async {

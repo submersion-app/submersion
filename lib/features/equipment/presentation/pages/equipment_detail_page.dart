@@ -1,4 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_history_card.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_transfer.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_transfer_gate.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +17,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_entry_card.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
@@ -21,6 +33,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:collection/collection.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -29,6 +42,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/unit_configurations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
@@ -37,7 +52,9 @@ import 'package:submersion/features/equipment/presentation/widgets/children_card
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_header_status.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tag_chips.dart';
 import 'package:submersion/features/equipment/presentation/widgets/installed_in_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
@@ -169,15 +186,19 @@ class _EquipmentDetailContent extends ConsumerWidget {
       }
     }
 
-    consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
-    for (final status
-        in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
-            const <ServiceClockStatus>[]) {
-      consider((
-        ownerId: equipmentId,
-        ownerName: equipment.name,
-        status: status,
-      ));
+    // Wishlist gear (#2025) is out of service clocks: a schedule kept from
+    // when it was owned shows nothing until the item is bought again.
+    if (!equipment.isWanted) {
+      consider(ref.watch(equipmentRollupClockProvider).value?[equipmentId]);
+      for (final status
+          in ref.watch(serviceClockStatusesProvider(equipmentId)).value ??
+              const <ServiceClockStatus>[]) {
+        consider((
+          ownerId: equipmentId,
+          ownerName: equipment.name,
+          status: status,
+        ));
+      }
     }
     // The avatar still reddens for overdue only, as the list tiles do; a
     // due-soon item keeps the plain avatar and says so in the banner.
@@ -199,16 +220,24 @@ class _EquipmentDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
           _buildDetailsSection(context, ref, equipment, units),
           const SizedBox(height: 24),
-          ServiceClocksCard(
-            equipmentId: equipmentId,
-            equipmentType: equipment.type,
-            onLogService: (status) => _showAddServiceDialogForKind(
-              context,
-              ref,
-              serviceKindId: status.kind.id,
-            ),
-          ),
+          EquipmentLocationCard(equipment: equipment),
           const SizedBox(height: 24),
+          if (equipment.type == EquipmentType.tank) ...[
+            PassportEntryCard(equipment: equipment),
+            const SizedBox(height: 24),
+          ],
+          if (!equipment.isWanted) ...[
+            ServiceClocksCard(
+              equipmentId: equipmentId,
+              equipmentType: equipment.type,
+              onLogService: (status) => _showAddServiceDialogForKind(
+                context,
+                ref,
+                serviceKindId: status.kind.id,
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
           ExposureCard(equipmentId: equipmentId),
           // The findings and trend cards carry their own top gap and render
           // nothing when they have nothing to say, so the page never shows
@@ -246,6 +275,12 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 DocumentOpenHelper.open(context, ref, item),
           ),
           const SizedBox(height: 24),
+          // Who used it and every share (issue #2046); only with two or more
+          // profiles, so a single-profile page keeps its spacing.
+          if (ref.watch(hasMultipleDiversProvider)) ...[
+            EquipmentHistoryCard(equipmentId: equipmentId),
+            const SizedBox(height: 24),
+          ],
           ServiceHistorySection(equipmentId: equipmentId),
           if (equipment.notes.isNotEmpty) ...[
             const SizedBox(height: 24),
@@ -267,6 +302,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
       );
     }
 
+    final canDelete = _isOwner(ref, equipment);
+    final canTransfer = _canTransfer(ref, equipment);
     return Scaffold(
       appBar: AppBar(
         title: Text(equipment.name),
@@ -277,13 +314,37 @@ class _EquipmentDetailContent extends ConsumerWidget {
             onPressed: () => context.push('/equipment/$equipmentId/edit'),
           ),
           PopupMenuButton<String>(
+            key: const ValueKey('equipment-detail-overflow'),
             onSelected: (value) => _handleMenuAction(context, ref, value),
-            itemBuilder: (context) => _buildMenuItems(context),
+            itemBuilder: (context) => _buildMenuItems(
+              context,
+              canDelete: canDelete,
+              canTransfer: canTransfer,
+            ),
           ),
         ],
       ),
       body: body,
     );
+  }
+
+  /// Delete is owner-only (issue #2046), so the page menu offers it only to
+  /// the item's owner. With no diver or no owner every profile counts as the
+  /// owner, as before sharing existed.
+  /// Transfer is owner-only too (issue #2852), needs a real owner, and
+  /// shows only with two or more profiles, like the sharing row.
+  bool _canTransfer(WidgetRef ref, EquipmentItem equipment) =>
+      canTransferEquipmentOnceKnown(
+        ref.watch(validatedCurrentDiverIdProvider),
+        equipment,
+        multipleDivers: ref.watch(hasMultipleDiversProvider),
+      );
+
+  bool _isOwner(WidgetRef ref, EquipmentItem equipment) {
+    final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
+    // Hidden until the active diver is known, so a sharee never sees it flash.
+    if (!activeDiver.hasValue) return false;
+    return canDeleteEquipment(equipment, activeDiver.value);
   }
 
   Widget _buildEmbeddedHeader(
@@ -292,6 +353,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
     EquipmentItem equipment,
     bool isServiceOverdue,
   ) {
+    final canDelete = _isOwner(ref, equipment);
+    final canTransfer = _canTransfer(ref, equipment);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -348,28 +411,50 @@ class _EquipmentDetailContent extends ConsumerWidget {
             },
           ),
           PopupMenuButton<String>(
+            key: const ValueKey('equipment-detail-overflow'),
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) => _handleMenuAction(context, ref, value),
-            itemBuilder: (context) => _buildMenuItems(context),
+            itemBuilder: (context) => _buildMenuItems(
+              context,
+              canDelete: canDelete,
+              canTransfer: canTransfer,
+            ),
           ),
         ],
       ),
     );
   }
 
-  List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context) {
+  /// Open in Connections is for everyone who can see the item, a sharee
+  /// included: shared gear sits on their own dives. Delete needs the owner.
+  List<PopupMenuEntry<String>> _buildMenuItems(
+    BuildContext context, {
+    required bool canDelete,
+    required bool canTransfer,
+  }) {
     return [
-      PopupMenuItem(
-        value: 'delete',
-        child: ListTile(
-          leading: const Icon(Icons.delete, color: Colors.red),
-          title: Text(
-            context.l10n.equipment_menu_delete,
-            style: const TextStyle(color: Colors.red),
+      openInConnectionsMenuItem(context),
+      if (canTransfer)
+        PopupMenuItem(
+          value: 'transfer',
+          child: ListTile(
+            leading: const Icon(Icons.swap_horiz),
+            title: Text(context.l10n.equipment_transfer_action),
+            contentPadding: EdgeInsets.zero,
           ),
-          contentPadding: EdgeInsets.zero,
         ),
-      ),
+      if (canDelete)
+        PopupMenuItem(
+          value: 'delete',
+          child: ListTile(
+            leading: const Icon(Icons.delete, color: Colors.red),
+            title: Text(
+              context.l10n.equipment_menu_delete,
+              style: const TextStyle(color: Colors.red),
+            ),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
     ];
   }
 
@@ -414,20 +499,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      if (!equipment.isActive)
-                        Chip(
-                          label: Text(
-                            context.l10n.equipment_detail_retiredChip,
-                          ),
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
-                          labelStyle: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+                      // Why the item is out of the kit, and the purchase
+                      // action for wishlist gear (#2025).
+                      EquipmentHeaderStatus(item: equipment),
                       // Tags (issue #1942), under the name and type.
                       EquipmentTagChips(equipmentId: equipment.id),
                     ],
@@ -617,6 +691,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
               ),
               error: (e, s) => const SizedBox.shrink(),
             ),
+            EquipmentSharingRow(equipment: equipment),
             if (equipment.brand != null)
               _buildDetailRow(
                 context,
@@ -656,8 +731,21 @@ class _EquipmentDetailContent extends ConsumerWidget {
                   attributeLabel(context.l10n, def.key),
                   formatAttributeValue(attr, def, units, context.l10n),
                 ),
+            // The item's colour (issue #2326): its own row with a swatch,
+            // only when the stored value is a colour code and the type has
+            // a colour. On a type without one it shows as a custom field
+            // (issue #2520), the way the edit form keeps it.
+            if (EquipmentAttributeCatalog.hasColor(equipment.type))
+              if (normalizeEquipmentColor(
+                    equipment.attrText(EquipmentAttrKeys.color),
+                  )
+                  case final code?)
+                _buildColorRow(context, code),
             for (final attr
-                in equipment.attributes.where((a) => a.isCustom).toList()
+                in keepStrayColorAsCustom(
+                    equipment.type,
+                    equipment.attributes,
+                  ).where((a) => a.isCustom).toList()
                   ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)))
               if (attr.hasValue)
                 _buildDetailRow(context, attr.key, attr.valueText ?? ''),
@@ -670,7 +758,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
             if (equipment.purchasePrice != null)
               _buildDetailRow(
                 context,
-                context.l10n.equipment_detail_purchasePriceLabel,
+                // Wishlist gear (#2025) has a price to pay, not one paid.
+                equipment.isWanted
+                    ? context.l10n.equipment_edit_expectedPriceLabel
+                    : context.l10n.equipment_detail_purchasePriceLabel,
                 formatMoney(
                   equipment.purchasePrice!,
                   equipment.purchaseCurrency,
@@ -819,6 +910,46 @@ class _EquipmentDetailContent extends ConsumerWidget {
     );
   }
 
+  /// The item's colour: its label, then a swatch and the colour's name.
+  Widget _buildColorRow(BuildContext context, String code) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            attributeLabel(context.l10n, EquipmentAttrKeys.color),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                key: const ValueKey('detail-color-swatch'),
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: TagColors.fromHex(code),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                equipmentColorName(context.l10n, code),
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDetailRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -892,6 +1023,33 @@ class _EquipmentDetailContent extends ConsumerWidget {
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
 
     switch (action) {
+      case kOpenInConnectionsAction:
+        openInConnections(
+          context,
+          NodeRef(ConnectionKind.equipment, equipmentId),
+        );
+      case 'transfer':
+        final activeDiverId = await ref.read(
+          validatedCurrentDiverIdProvider.future,
+        );
+        if (!context.mounted) break;
+        final done = await transferEquipmentToProfile(
+          context,
+          ref,
+          equipmentIds: [equipmentId],
+          activeDiverId: activeDiverId,
+        );
+        // Without kept access the item is no longer this profile's to see,
+        // so leave it as after a delete.
+        if (done.outcome == BulkActionOutcome.completed &&
+            !done.keptAccess &&
+            context.mounted) {
+          if (embedded) {
+            onDeleted?.call();
+          } else {
+            context.go('/equipment');
+          }
+        }
       case 'delete':
         final confirmed = await showDialog<bool>(
           context: context,
@@ -915,7 +1073,17 @@ class _EquipmentDetailContent extends ConsumerWidget {
         );
 
         if (confirmed == true) {
-          await notifier.deleteEquipment(equipmentId);
+          final deleted = await notifier.deleteEquipment(equipmentId);
+          if (!deleted) {
+            // Delete is owner-only (issue #2046): the item was kept, so stay
+            // on it and say why.
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(context.l10n.equipment_delete_notOwner)),
+              );
+            }
+            break;
+          }
           if (context.mounted) {
             if (embedded) {
               onDeleted?.call();

@@ -1,33 +1,48 @@
 # Database Schema
 
-Submersion uses Drift ORM with SQLite, containing 43 tables organized into logical groups.
+Submersion uses Drift ORM with SQLite. Its 108 tables are declared in 21
+libraries under `lib/core/database/tables/`, one per domain.
 
 ## Overview
 
-| Category | Tables | Description |
-|----------|--------|-------------|
-| **Core** | 5 | Divers, Dives, Profiles, Tanks, Custom Fields |
-| **Location** | 4 | Sites, Centers, Trips, Liveaboard Details |
-| **Trip Planning** | 1 | Itinerary Days |
-| **Equipment** | 7 | Gear, Sets, Weights, Tank Presets, Service Records |
-| **People** | 4 | Buddies, Dive Buddies, Certifications, Courses |
-| **Organization** | 3 | Tags, Dive Tags, Dive Types |
-| **Profile** | 4 | Computers, Events, Gas Switches, Tank Pressure Profiles |
-| **Marine Life** | 3 | Species, Sightings, Site Species |
-| **Media** | 4 | Media, Enrichment, Media Species, Pending Photo Suggestions |
-| **Tides** | 1 | Tide Records |
-| **Settings** | 2 | Settings, Diver Settings |
-| **Sync** | 3 | Sync Metadata, Sync Records, Deletion Log |
-| **Maps** | 1 | Cached Regions |
-| **Notifications** | 1 | Scheduled Notifications |
+| Library | Tables | Holds |
+| ------- | ------ | ----- |
+| `app_tables.dart` | 6 | App-level state: legacy settings, cached map regions, notifications, import presets and view configuration |
+| `buddy_tables.dart` | 7 | Buddies, dive roles, certifications and training courses |
+| `cylinder_tables.dart` | 5 | Cylinder configurations, tank presets, transmitters and fills |
+| `dive_plan_tables.dart` | 4 | Saved dive plans |
+| `dive_profile_tables.dart` | 7 | Dive computers, data sources, imported files and profile series |
+| `dive_tables.dart` | 6 | Dives and the rows that hang directly off a dive |
+| `diver_tables.dart` | 2 | Diver profiles and their settings |
+| `equipment_condition_tables.dart` | 3 | Equipment condition engine: observations, findings and reviews |
+| `equipment_tables.dart` | 10 | Equipment, equipment sets, sharing and the dive gear junction |
+| `marine_life_tables.dart` | 2 | Species and sightings |
+| `media_tables.dart` | 12 | Media, enrichment, albums, subscriptions and media stores |
+| `pre_dive_tables.dart` | 4 | Pre-dive checklist templates and sessions, with their built-in seeds |
+| `quality_tables.dart` | 1 | Findings of the Data Quality Assistant |
+| `safety_tables.dart` | 4 | Safety reviews, emergency chambers and incidents |
+| `service_tables.dart` | 3 | Service records, kinds and schedules, with their built-in seeds |
+| `site_tables.dart` | 8 | Dive sites, their classification, and dive centers |
+| `sync_tables.dart` | 5 | Sync bookkeeping |
+| `tag_tables.dart` | 4 | Tags and dive types, with the dive type seeds |
+| `track_tables.dart` | 3 | GPS surface tracks and measured underwater routes |
+| `trip_tables.dart` | 9 | Trips, liveaboards, itineraries, trip cylinders and trip checklists |
+| `weight_tables.dart` | 3 | Diver weight entries and weight presets |
+
+The sections below describe the core tables in more detail.
 
 ## Drift ORM
 
 ### Table Definitions
 
-Tables are defined in `lib/core/database/database.dart`:
+Tables are defined in per-domain libraries under
+`lib/core/database/tables/` (`dive_tables.dart`, `equipment_tables.dart`,
+and so on). `lib/core/database/database.dart` imports and exports each of
+them and lists every table in `@DriftDatabase(tables: [...])`, so importing
+`database.dart` is still all a consumer needs.
 
 ```dart
+// lib/core/database/tables/dive_tables.dart
 class Dives extends Table {
   TextColumn get id => text()();
   TextColumn get diverId => text().nullable().references(Divers, #id)();
@@ -39,6 +54,23 @@ class Dives extends Table {
   Set<Column> get primaryKey => {id};
 }
 ```
+
+To add a table, declare it in the table library for its domain (or a new
+library under `tables/`, imported and exported from `database.dart`), then add
+it to the `@DriftDatabase` list. Do not declare tables in `database.dart`
+itself, and keep each table library under 800 lines:
+`test/core/database/database_table_libraries_test.dart` enforces both.
+
+No test imports a table library or a migration file directly, so the
+pre-push hook treats a change under `tables/` or `migrations/` as a change
+to `database.dart` when it picks the tests to run.
+
+The reason is build memory. During code generation drift_dev resolves the
+whole library that declares a column, once per column, and nothing caches the
+result. With every table inside `database.dart`, next to the migration ladder,
+a cold build peaked at 15 GB on the 16 GB CI runner and was killed whenever
+it needed slightly more. Split into small libraries the same build peaks at
+3.5 GB and produces identical output (issue #2502).
 
 ### Generated Code
 
@@ -56,32 +88,95 @@ Generates `database.g.dart` with:
 
 ## Schema Version
 
-Current version: **47**
+The current version is `AppDatabase.currentSchemaVersion` in
+`lib/core/database/database.dart`.
 
-Migrations handle schema evolution:
+Migrations handle schema evolution. `AppDatabase` declares only the schema
+and its version; the migration code lives under
+`lib/core/database/migrations/`. Most of it is one library,
+`app_database_migrations.dart`, made of extensions on `AppDatabase` spread
+over part files. `database.dart` exports it, so its public members are
+available wherever `database.dart` is imported:
+
+| Part file | Holds |
+| --------- | ----- |
+| `migration_strategy.dart` | `onCreate`, and `onUpgrade` calling each ladder file in order |
+| `ladder/rungs_v<first>_to_v<last>.dart` | The `if (from < N)` rungs, oldest first |
+| `ladder/rungs_v<first>_onward.dart` | The newest rungs; new ones are appended here |
+| `helpers/<domain>_migrations.dart` | The `_assert...` and `_backfill...` helpers the rungs call, grouped like the table libraries |
+| `before_open.dart` | The backstops that run on every open |
 
 ```dart
-@override
-int get schemaVersion => 47;
-
-@override
-MigrationStrategy get migration {
-  return MigrationStrategy(
-    onCreate: (m) async {
-      await m.createAll();
-      // Seed data
-    },
-    onUpgrade: (m, from, to) async {
-      if (from < 2) {
-        // Add column
-      }
-      if (from < 3) {
-        // Add table
-      }
-    },
-  );
+// lib/core/database/migrations/ladder/rungs_v231_onward.dart
+if (from < 240) {
+  await _assertProfileEventsDiveIdIndex();
 }
+if (from < 240) await reportProgress();
 ```
+
+To add a migration:
+
+1. Raise `AppDatabase.currentSchemaVersion`.
+2. Append the version to `AppDatabase.migrationVersions`, the list behind
+   the progress bar, with a note on what it does.
+3. Append the rung to `ladder/rungs_v<first>_onward.dart`. When that file
+   nears 800 lines, close it: rename the file, its extension and its method
+   to the range they now cover, as the older files are named, and update its
+   `part` directive and its call in `_onUpgrade`. Then start a new onward
+   file, with a `part` directive in `app_database_migrations.dart` and a call
+   at the end of `_onUpgrade`.
+4. Put any helper in the file under `helpers/` for its domain. A helper a
+   test must reach gets a public name there, such as
+   `DataSourceMigrations.recompressRawDiveDataForTest`; a test that imports
+   `database.dart` can then call it as `db.recompressRawDiveDataForTest()`.
+   Do not add it to `AppDatabase` itself.
+5. If the change must also hold for a database that arrives by restore or
+   sync, assert it in `before_open.dart`.
+
+Keep migration code out of `database.dart`: drift_dev resolves that whole
+library while it generates code. The same test that guards the table
+libraries enforces this, and keeps every file under `tables/` and
+`migrations/` under 800 lines.
+
+### Migration Principles
+
+- **Never lose data.** A rung transforms or backfills; it never drops a
+  column or table that still holds user data without first copying it.
+- **Forward only.** There are no down migrations. Opening a database whose
+  stored schema is newer than the running app supports throws
+  `DatabaseVersionMismatchException`
+  (`lib/core/database/database_version_exception.dart`, raised in
+  `lib/core/services/database_service.dart`) instead of opening it, so an
+  older app cannot run stale rungs or lower the version stamp. A headless
+  isolate (the background task) that finds an older database throws
+  `SchemaUpgradePendingException` from the same file and leaves the
+  upgrade to the next foreground launch.
+- **Back up first.** Before a pending ladder runs, the startup page takes a
+  full copy of the database with `PreMigrationBackupService`
+  (`lib/features/backup/data/services/pre_migration_backup_service.dart`),
+  keeping the last few copies, so a failed upgrade can be recovered.
+
+### Testing Migrations
+
+A rung that changes the schema or rewrites data should have a test under
+`test/core/database/` (older rungs are not all covered), named `migration_v<N>_test.dart` or
+`migration_v<N>_<topic>_test.dart`. The test opens an in-memory
+`NativeDatabase` whose `setup` sets `PRAGMA user_version` to the version
+before the rung and creates the affected tables in their old shape with
+sample rows, then wraps it in `AppDatabase`, forces the ladder to run with
+a trivial query, and asserts the new columns and the migrated values.
+`migration_v86_test.dart` is a compact example.
+`pre_migration_backup_integration_test.dart` covers the backup.
+
+### New Migration Checklist
+
+1. Follow the numbered steps in [Schema Version](#schema-version).
+2. Write the `migration_v<N>` test first and watch it fail.
+3. If the rung rewrites user data, assert values before and after, not
+   only that the column exists.
+4. If a restored or synced database must satisfy the change too, add the
+   backstop to `before_open.dart`.
+5. Run `flutter test test/core/database` before pushing.
 
 ## Core Tables
 
@@ -916,6 +1011,13 @@ CREATE TABLE settings (
 );
 ```
 
+**Sync:** every key syncs, and each key merges on its own clock, except the
+keys in `deviceLocalSettingsKeys` in
+`lib/core/services/sync/device_local_fields.dart` (today `active_diver_id`,
+`nav_primary_ids`, `nav_rail_ids` and `nav_always_hide_labels`). Those are
+filtered on export, skipped on import, kept through a replace-adopt, and never
+queued for sync when written. A new key syncs unless you add it there.
+
 ### DiverSettings
 
 Per-diver settings with unit preferences, decompression parameters, and UI configuration:
@@ -958,7 +1060,6 @@ CREATE TABLE diver_settings (
   end_limit REAL DEFAULT 30.0,
   use_dive_computer_cns_data INTEGER DEFAULT 0,
   default_ndl_source INTEGER DEFAULT 1,
-  default_ceiling_source INTEGER DEFAULT 1,
   default_tts_source INTEGER DEFAULT 1,
   default_cns_source INTEGER DEFAULT 1,
   -- Profile display settings
@@ -1003,6 +1104,22 @@ CREATE TABLE diver_settings (
   updated_at INTEGER NOT NULL
 );
 ```
+
+**Sync:** the table syncs as a whole row, and the row with the later clock
+wins, so a new column syncs unless it is listed in `deviceLocalSyncColumns` in
+`lib/core/services/sync/device_local_fields.dart`. Today that lists
+`notifications_enabled`, `service_reminder_days`, `reminder_time`,
+`trip_service_lead_days` and `theme_mode` (issue #2947). A listed column is
+left out of every export, refilled from this device on import (or from the
+snapshot a replace-adopt takes before clearing the table), and a save that
+changes only listed columns stamps no clock and queues nothing. A per-device
+setting with no reason to be per diver can live in SharedPreferences instead
+(see `settings_providers.dart`).
+
+When a change moves a setting between synced and device-local, in this table,
+the `settings` table, or SharedPreferences, update the
+[What Syncs Between Devices](../user/multi-device-sync.md#what-syncs-between-devices) section of the Multi-Device Sync page of the user
+guide in the same PR.
 
 ## Sync Tables
 

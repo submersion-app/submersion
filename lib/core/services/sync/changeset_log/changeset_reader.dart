@@ -38,6 +38,8 @@ class ChangesetReadResult {
     this.skippedPeerNames = const {},
     this.newerSchemaPeerDeviceIds = const {},
     this.newerSchemaPeerNames = const {},
+    this.olderSchemaPeerDeviceIds = const {},
+    this.olderSchemaPeerNames = const {},
     this.readFailedPeerDeviceIds = const {},
     this.readFailedPeerNames = const {},
     this.retiredPeerIds = const {},
@@ -71,6 +73,16 @@ class ChangesetReadResult {
   /// published one, keyed by device id. Same fallback contract as
   /// [skippedPeerNames]: absent means the UI shows a short id label.
   final Map<String, String> newerSchemaPeerNames;
+
+  /// Peers whose own schema is below this build's compatibility floor, so
+  /// they hold every payload this device publishes until they update (the
+  /// reverse of [newerSchemaPeerDeviceIds]). Their own payloads still apply
+  /// here; this only lets the user see that the sync is one-way.
+  final Set<String> olderSchemaPeerDeviceIds;
+
+  /// Display names for the entries in [olderSchemaPeerDeviceIds] that
+  /// published one. Same fallback contract as [skippedPeerNames].
+  final Map<String, String> olderSchemaPeerNames;
 
   /// Peers whose read threw partway through this pull (a provider error, a
   /// malformed manifest or changeset, an apply failure, ...). Their cursors
@@ -111,6 +123,7 @@ class ChangesetReader {
     required ApplyBaseFile applyBaseFile,
     String? currentEpochId,
     int localSchemaVersion = AppDatabase.currentSchemaVersion,
+    int localCompatibilityFloor = AppDatabase.minimumCompatibleSchemaVersion,
     List<CloudFileInfo>? preListedFiles,
     BaseDownloadProgress? onBaseDownloadProgress,
     PeerDeviceNameStore? peerNames,
@@ -150,6 +163,8 @@ class ChangesetReader {
     final skippedPeerNames = <String, String>{};
     final newerSchemaPeerDeviceIds = <String>{};
     final newerSchemaPeerNames = <String, String>{};
+    final olderSchemaPeerDeviceIds = <String>{};
+    final olderSchemaPeerNames = <String, String>{};
     final readFailedPeerDeviceIds = <String>{};
     final readFailedPeerNames = <String, String>{};
 
@@ -216,6 +231,23 @@ class ChangesetReader {
             newerSchemaPeerNames[peerId] = name;
           }
           continue;
+        }
+
+        // The same gate seen from the other side: a peer whose own schema is
+        // below the floor this device stamps holds everything we publish.
+        // Recorded, never skipped, because its payloads are still safe to
+        // apply here. writerSchemaVersion arrived in the same change that
+        // turned schemaVersion into the floor, so a manifest without it
+        // carries the writer's actual schema in schemaVersion.
+        final peerWriterSchema =
+            manifest.writerSchemaVersion ?? manifest.schemaVersion;
+        if (peerWriterSchema != null &&
+            peerWriterSchema < localCompatibilityFloor) {
+          olderSchemaPeerDeviceIds.add(peerId);
+          final name = manifest.deviceName;
+          if (name != null && name.isNotEmpty) {
+            olderSchemaPeerNames[peerId] = name;
+          }
         }
         peersProcessed++;
 
@@ -346,6 +378,8 @@ class ChangesetReader {
       skippedPeerNames: skippedPeerNames,
       newerSchemaPeerDeviceIds: newerSchemaPeerDeviceIds,
       newerSchemaPeerNames: newerSchemaPeerNames,
+      olderSchemaPeerDeviceIds: olderSchemaPeerDeviceIds,
+      olderSchemaPeerNames: olderSchemaPeerNames,
       readFailedPeerDeviceIds: readFailedPeerDeviceIds,
       readFailedPeerNames: readFailedPeerNames,
       retiredPeerIds: retiredPeerIds,

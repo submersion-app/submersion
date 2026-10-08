@@ -15,10 +15,19 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/courses/domain/models/course_filter_state.dart';
+import 'package:submersion/features/courses/presentation/providers/course_query_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
+import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/selection_contract.dart';
 
 // ---------------------------------------------------------------------------
@@ -70,7 +79,7 @@ final _now = DateTime.now();
 Course _makeCourse({
   required String id,
   required String name,
-  CertificationAgency agency = CertificationAgency.padi,
+  String agency = 'padi',
   DateTime? startDate,
   DateTime? completionDate,
   String? location,
@@ -108,6 +117,7 @@ Future<List<Override>> _buildOverrides({required List<Course> courses}) async {
 
 Future<List<Override>> _buildPhoneOverrides({
   required List<Course> courses,
+  ListViewMode viewMode = ListViewMode.detailed,
   String? highlightedCourseId,
 }) async {
   SharedPreferences.setMockInitialValues({});
@@ -120,7 +130,7 @@ Future<List<Override>> _buildPhoneOverrides({
     courseListNotifierProvider.overrideWith(
       (ref) => _MockCourseListNotifier(courses),
     ),
-    courseListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+    courseListViewModeProvider.overrideWith((ref) => viewMode),
     courseTableConfigProvider.overrideWith(
       (ref) => _TestCourseTableConfigNotifier(_testConfig),
     ),
@@ -129,6 +139,37 @@ Future<List<Override>> _buildPhoneOverrides({
 }
 
 void main() {
+  // The title's subtitle counts the list (#2669), in both the phone app bar
+  // and the desktop pane header.
+  group('entry count subtitle', () {
+    for (final showAppBar in const [true, false]) {
+      testWidgets('${showAppBar ? 'app bar' : 'compact bar'} counts the list', (
+        tester,
+      ) async {
+        final overrides = await _buildPhoneOverrides(
+          courses: [
+            _makeCourse(id: 'c1', name: 'Rescue'),
+            _makeCourse(id: 'c2', name: 'Deep'),
+          ],
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            child: CourseListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.descendant(
+            of: find.byType(FeatureAppBarTitle),
+            matching: find.text('2 courses'),
+          ),
+          findsOneWidget,
+        );
+      });
+    }
+  });
   group('bulk delete', () {
     late _MockCourseListNotifier notifier;
 
@@ -168,7 +209,8 @@ void main() {
       await verifyBulkDelete(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         expectedDeletedCount: 2,
       );
 
@@ -184,7 +226,8 @@ void main() {
       await verifyBulkDeleteCancels(
         tester,
         build: () => widget,
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
       );
 
       expect(notifier.deleted, isEmpty);
@@ -223,7 +266,8 @@ void main() {
           locale: const Locale('en'),
           child: const CourseListContent(showAppBar: true),
         ),
-        selectButton: find.byKey(const ValueKey('enter_selection')),
+        selectMenu: overflowMenuButton,
+        selectButton: find.byKey(selectItemsMenuKey),
         rowRoot: find.byType(CourseCard).first,
         firstRow: find.text('Aaa Course'),
         applyFilter: (tester) async {
@@ -234,13 +278,85 @@ void main() {
     });
   });
 
+  // "Select items" moved from a header icon into the overflow menu, first
+  // in the list (issue #2775), in both the phone app bar and the pane header.
+  group('overflow menu "Select items"', () {
+    for (final showAppBar in const [true, false]) {
+      testWidgets('${showAppBar ? 'app bar' : 'compact bar'} lists it first '
+          'and it enters selection', (tester) async {
+        final overrides = await _buildPhoneOverrides(
+          courses: [_makeCourse(id: 'c1', name: 'Rescue')],
+        );
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides,
+            locale: const Locale('en'),
+            child: CourseListContent(showAppBar: showAppBar),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // The header shows no Select icon of its own.
+        expect(find.byIcon(Icons.checklist), findsNothing);
+
+        await tester.tap(overflowMenuButton);
+        await tester.pumpAndSettle();
+        expect(
+          tester.getTopLeft(find.byKey(selectItemsMenuKey)).dy,
+          lessThan(tester.getTopLeft(find.text('Detailed')).dy),
+        );
+
+        await tester.tap(find.byKey(selectItemsMenuKey));
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(const ValueKey('selection_exit')), findsOneWidget);
+        expect(find.text('0 selected'), findsOneWidget);
+      });
+    }
+  });
+
   group('CourseListContent in table mode', () {
+    // Table mode owns no app bar (TableModeLayout does), so "Select items"
+    // sits in the page header's overflow and reaches the rows through the
+    // controller the page passes in (issue #2775). The list draws no Select
+    // strip of its own, and the contextual bar opens above the table.
+    testWidgets('draws no Select strip and opens the contextual bar when the '
+        "page's controller enters selection", (tester) async {
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
+      final overrides = await _buildOverrides(
+        courses: [_makeCourse(id: 'co1', name: 'Deep Diver')],
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: CourseListContent(
+            showAppBar: false,
+            selectionController: controller,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final exitButton = find.byKey(const ValueKey('selection_exit'));
+      expect(find.byKey(selectItemsMenuKey), findsNothing);
+      expect(find.byIcon(Icons.checklist), findsNothing);
+      expect(exitButton, findsNothing);
+
+      controller.enterExplicit();
+      await tester.pumpAndSettle();
+
+      expect(exitButton, findsOneWidget);
+      expect(find.text('0 selected'), findsOneWidget);
+    });
+
     testWidgets('renders table with column headers', (tester) async {
       final courses = [
         _makeCourse(
           id: 'co1',
           name: 'Advanced Open Water',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           startDate: DateTime(2024, 1, 10),
           completionDate: DateTime(2024, 1, 15),
           location: 'Koh Tao',
@@ -248,7 +364,7 @@ void main() {
         _makeCourse(
           id: 'co2',
           name: 'Rescue Diver',
-          agency: CertificationAgency.ssi,
+          agency: CertificationAgency.ssi.name,
           startDate: DateTime(2024, 3, 5),
         ),
       ];
@@ -329,7 +445,7 @@ void main() {
         _makeCourse(
           id: 'co1',
           name: 'Advanced Open Water',
-          agency: CertificationAgency.padi,
+          agency: CertificationAgency.padi.name,
           startDate: DateTime(2024, 1, 10),
           completionDate: DateTime(2024, 1, 15),
           location: 'Koh Tao',
@@ -567,5 +683,116 @@ void main() {
         expect(bravo.isSelected, isTrue);
       },
     );
+  });
+
+  group('status chips and query (#2365)', () {
+    Future<ProviderContainer> pump(
+      WidgetTester tester, {
+      required Set<String> ids,
+      CourseFilterState filter = const CourseFilterState(),
+      ListViewMode viewMode = ListViewMode.detailed,
+      Duration idsDelay = Duration.zero,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        courses: [
+          _makeCourse(id: 'k1', name: 'Open Water'),
+          _makeCourse(id: 'k2', name: 'Rescue'),
+        ],
+        viewMode: viewMode,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...overrides,
+            courseFilterProvider.overrideWith((ref) => filter),
+            entityQueryIdsProvider.overrideWith(
+              (ref, key) => Future.delayed(idsDelay, () => ids),
+            ),
+          ],
+          child: const CourseListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return ProviderScope.containerOf(
+        tester.element(find.byType(CourseListContent)),
+      );
+    }
+
+    testWidgets('a status chip writes the filter state', (tester) async {
+      final c = await pump(tester, ids: const {});
+      await tester.tap(find.widgetWithText(FilterChip, 'In Progress'));
+      await tester.pumpAndSettle();
+      expect(
+        c.read(courseFilterProvider).status,
+        CourseStatusFilter.inProgress,
+      );
+    });
+
+    testWidgets('a status chip keeps the checks that stay on screen', (
+      tester,
+    ) async {
+      // A real id set takes a query's time, so the list has a loading frame.
+      final c = await pump(
+        tester,
+        ids: const {'k1', 'k2'},
+        idsDelay: const Duration(milliseconds: 50),
+      );
+      await enterSelectionViaMenu(tester);
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+
+      // The chip's id set loads first; the selection must survive that.
+      await tester.tap(find.widgetWithText(FilterChip, 'In Progress'));
+      // One frame at once, as the app draws it, before the query answers.
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(
+        c.read(courseFilterProvider).status,
+        CourseStatusFilter.inProgress,
+      );
+      expect(find.text('2 selected'), findsOneWidget);
+    });
+
+    testWidgets('table mode reads the filtered courses', (tester) async {
+      await pump(
+        tester,
+        ids: {'k2'},
+        filter: const CourseFilterState(status: CourseStatusFilter.completed),
+        viewMode: ListViewMode.table,
+      );
+      expect(find.text('Rescue'), findsWidgets);
+      expect(find.text('Open Water'), findsNothing);
+    });
+
+    testWidgets('table mode shows the status chips and can reset them', (
+      tester,
+    ) async {
+      final c = await pump(
+        tester,
+        ids: const {'k1', 'k2'},
+        filter: const CourseFilterState(status: CourseStatusFilter.completed),
+        viewMode: ListViewMode.table,
+      );
+      await tester.tap(find.widgetWithText(FilterChip, 'All'));
+      await tester.pumpAndSettle();
+      expect(c.read(courseFilterProvider).status, CourseStatusFilter.all);
+    });
+
+    testWidgets('a query that keeps nothing shows the no-match state', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        ids: const {},
+        filter: CourseFilterState(
+          query: ConditionNode(
+            FieldPath(['agency']),
+            QueryOp.eq,
+            const EnumValue('tdi'),
+          ),
+        ),
+      );
+      expect(find.byType(QueryNoMatchState), findsOneWidget);
+    });
   });
 }

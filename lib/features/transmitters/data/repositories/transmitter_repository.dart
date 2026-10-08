@@ -102,6 +102,18 @@ class TransmitterRepository {
     if (affected.isNotEmpty) scheduleQualityScan(affected);
   }
 
+  /// Queues a rescan of the dives each of [transmitterIds] matches, after a
+  /// change of owner (issue #2852): which profile's registry knows the
+  /// serial decides the unknown-transmitter finding.
+  Future<void> rescanDivesForTransmitters(
+    Iterable<String> transmitterIds,
+  ) async {
+    for (final id in transmitterIds.toSet()) {
+      final t = await getById(id);
+      if (t != null) await _rescanAffectedDives(t);
+    }
+  }
+
   /// Clears every registry link to [equipmentId], as the cylinder an entry
   /// feeds or the transmitter item it is, and stages each changed row. Call
   /// it before the item is deleted: ON DELETE SET NULL would clear the link
@@ -239,7 +251,10 @@ class TransmitterRepository {
 
   /// Retroactive fill for the tanks that carry [t]'s key: empty size,
   /// working pressure, material, preset, gear link and name are filled; the
-  /// role is replaced only while it is still the uninformed backGas default.
+  /// role is replaced while it is still the uninformed backGas default, and
+  /// always while it is the computer's guess from the transmitter's name
+  /// (issue #2595), which also drops that source: the entry is the diver's
+  /// own configuration. A role the diver set is never replaced.
   /// One transaction; a failure leaves no half-applied dive.
   Future<ApplyToExistingResult> applyToExistingDives(Transmitter t) async {
     final candidates = await _tanksForEntry(t);
@@ -250,6 +265,9 @@ class TransmitterRepository {
     await _db.transaction(() async {
       for (final row in candidates) {
         final hasVolume = row.volume != null && row.volume! > 0;
+        final nameDerived =
+            TankRoleSource.fromName(row.roleSource) ==
+            TankRoleSource.transmitterName;
         final companion = DiveTanksCompanion(
           volume: !hasVolume && t.volumeL != null
               ? Value(t.volumeL)
@@ -273,10 +291,12 @@ class TransmitterRepository {
               ? Value(t.label)
               : const Value.absent(),
           tankRole:
-              row.tankRole == TankRole.backGas.name &&
-                  t.role != TankRole.backGas
+              nameDerived ||
+                  (row.tankRole == TankRole.backGas.name &&
+                      t.role != TankRole.backGas)
               ? Value(t.role.name)
               : const Value.absent(),
+          roleSource: nameDerived ? const Value(null) : const Value.absent(),
         );
         // Every field absent means nothing to write for this row.
         if (companion == const DiveTanksCompanion()) continue;

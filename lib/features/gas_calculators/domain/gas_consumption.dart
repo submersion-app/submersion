@@ -10,12 +10,6 @@ import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 /// dive 10 bar early is fine, one who turns it 10 bar late may not be.
 double roundUpTo(double value, double grid) => (value / grid).ceil() * grid;
 
-/// Round [value] down to the previous multiple of [grid].
-///
-/// Used where rounding must favour a shallower or leaner limit, such as MOD
-/// and best-mix oxygen fraction.
-double roundDownTo(double value, double grid) => (value / grid).floor() * grid;
-
 class ConsumptionInputs {
   final double avgDepthMeters;
   final int minutes;

@@ -73,7 +73,8 @@ class DeviceDescriptor {
     const std::string& vendor,
     const std::string& product,
     int64_t model,
-    const flutter::EncodableList& transports);
+    const flutter::EncodableList& transports,
+    bool delivers_oldest_first);
 
   const std::string& vendor() const;
   void set_vendor(std::string_view value_arg);
@@ -87,6 +88,13 @@ class DeviceDescriptor {
   const flutter::EncodableList& transports() const;
   void set_transports(const flutter::EncodableList& value_arg);
 
+  // Whether this backend hands dives over oldest-first. libdivecomputer is
+  // newest-first except where the fork reversed a driver (Shearwater
+  // Petrel, issue #480). Only for such a backend is an interrupted
+  // download's newest dive a safe resume point (issue #2902).
+  bool delivers_oldest_first() const;
+  void set_delivers_oldest_first(bool value_arg);
+
 
  private:
   static DeviceDescriptor FromEncodableList(const flutter::EncodableList& list);
@@ -98,6 +106,7 @@ class DeviceDescriptor {
   std::string product_;
   int64_t model_;
   flutter::EncodableList transports_;
+  bool delivers_oldest_first_;
 
 };
 
@@ -860,6 +869,8 @@ class DiveComputerFlutterApi {
     const std::string* serial_number,
     const std::string* firmware_version,
     const std::string* clock_sync_status,
+    const std::string* reported_product,
+    const int64_t* reported_model,
     std::function<void(void)>&& on_success,
     std::function<void(const FlutterError&)>&& on_error);
   void OnError(

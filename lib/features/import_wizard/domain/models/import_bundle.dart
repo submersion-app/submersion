@@ -2,6 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_source_details.dart';
+
+export 'package:submersion/features/import_wizard/domain/models/import_source_details.dart';
 
 /// The source system that produced an [ImportBundle].
 enum ImportSourceType {
@@ -23,8 +26,14 @@ enum ImportSourceType {
   /// A Suunto cloud (app.suunto.com) import.
   suuntoCloud,
 
+  /// A Suunto app JSON export file import.
+  suuntoFile,
+
   /// A Garmin Connect cloud import.
   garminCloud,
+
+  /// A divelogs.de logbook import.
+  divelogs,
 }
 
 /// The kind of entity represented by an [EntityGroup].
@@ -64,6 +73,9 @@ enum ImportEntityType {
 
   /// Photos referenced by an imported logbook.
   media,
+
+  /// Cylinder fills from the Submersion fills CSV (passports phase 5).
+  fills,
 }
 
 /// Metadata about the source of an [ImportBundle].
@@ -85,11 +97,15 @@ class ImportSourceInfo {
   /// re-download, never auto-suggested for consolidation).
   final String? currentComputerId;
 
+  /// What the Review step shows about this source (issue #161).
+  final ImportSourceDetails details;
+
   const ImportSourceInfo({
     required this.type,
     required this.displayName,
     this.metadata,
     this.currentComputerId,
+    this.details = const ImportSourceDetails(),
   });
 }
 

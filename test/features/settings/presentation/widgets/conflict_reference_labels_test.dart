@@ -42,6 +42,8 @@ void main() {
       'diveSites': 'Dive site',
       'tags': 'Tag',
       'diveTypes': 'Dive type',
+      'diveRoles': 'Dive role',
+      'weightPresets': 'Weight preset',
       'siteTypes': 'Site type',
       'divers': 'Diver',
       'buddies': 'Buddy',
@@ -54,11 +56,13 @@ void main() {
       'divePlanTanks': 'Planned tank',
       'divePlans': 'Dive plan',
       'trips': 'Trip',
+      'tripCylinders': 'Trip cylinder',
       'diveCenters': 'Dive center',
       'courses': 'Course',
       'certifications': 'Certification',
       'courseRequirements': 'Course requirement',
       'serviceKinds': 'Service type',
+      'equipmentLocations': 'Equipment location',
       'importedFiles': 'Imported file',
       'species': 'Species',
       'sightings': 'Sighting',
@@ -119,6 +123,22 @@ void main() {
         ),
         'Signed by',
       );
+      for (final (field, target, label) in [
+        ('diverRole', 'diveRoles', 'Your role'),
+        ('regulatorEquipmentId', 'equipment', 'Regulator'),
+        ('viaEquipmentId', 'equipment', 'Attached through'),
+        ('viaSetId', 'equipmentSets', 'Applied from set'),
+        ('parentEquipmentId', 'equipment', 'Installed in'),
+        ('componentEquipmentId', 'equipment', 'Component'),
+        ('transmitterEquipmentId', 'equipment', 'Transmitter'),
+        ('linkedDiverId', 'divers', 'Same person as'),
+      ]) {
+        expect(
+          conflictReferenceLabel(l10n, ref(field: field, targetType: target)),
+          label,
+          reason: field,
+        );
+      }
     });
 
     test('falls back to a readable entity name for an unknown target', () {

@@ -157,7 +157,10 @@ final swissBathyManualRefreshProvider =
 /// in a cell shares one entry. Never errors: null means no real terrain —
 /// but only DEFINITIVE nulls (a cached "no water here") are memoized;
 /// transient failures self-invalidate after
-/// [bathymetryTransientRetryBackoff] so a later visit retries.
+/// [bathymetryTransientRetryBackoff] so a later visit retries. A provisional
+/// grid (a fallback reached past a transiently failing source, issue #1770)
+/// is kept for the session like any grid; the repository wrote no row for
+/// it, so the next session re-resolves and can reach the better source.
 // no-tick: a write-once cache in the local-only cache database. Rows are keyed
 // by quantized cell and never updated in place -- a span change misses the old
 // key rather than rewriting it -- and the transient-failure case already

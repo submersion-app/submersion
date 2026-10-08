@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
 
 Map<String, dynamic> _header({
@@ -138,6 +139,141 @@ void main() {
       expect(elapsedFor('+02:00'), [0, 10, 60]);
       expect(elapsedFor('-08:00'), elapsedFor('+02:00'));
       expect(elapsedFor('Z'), elapsedFor('+02:00'));
+    });
+  });
+
+  // The cloud's sml export carries two clocks: the computer's own
+  // Header.DateTime, and a TimeISO8601 the cloud stamps on every sample
+  // envelope. On a Nautic dive logged at 13:44 CEST the envelope read 15:44,
+  // so the dive imported two hours late while Suunto showed 13:44 (#2604).
+  // The header is the computer's clock and settles the zone; the samples
+  // still place the dive-active moment within the log.
+  group('sample clock disagreeing with the header', () {
+    Map<String, dynamic> headerAt(String dateTime) => {
+      'DateTime': dateTime,
+      'ActivityType': 51,
+      'Device': {'Name': 'Porvoo'},
+      'DiveTime': 1800,
+    };
+
+    // A surface sample opening the log at [hhmm], then the dive-active
+    // sample 40 s in and a descent sample 10 s after that.
+    List<Map<String, dynamic>> samplesFrom(String hhmm, String offset) => [
+      {'TimeISO8601': '2026-04-19T$hhmm:00.000$offset', 'Depth': 0.0},
+      {
+        'TimeISO8601': '2026-04-19T$hhmm:40.000$offset',
+        'Depth': 1.2,
+        'DiveEvents': const {'DiveStatus': true},
+      },
+      {'TimeISO8601': '2026-04-19T$hhmm:50.000$offset', 'Depth': 6.0},
+    ];
+
+    test('files the dive at the header clock when the samples run late', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesFrom('15:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('files the dive at the header clock when the samples are UTC', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesFrom('11:44', 'Z'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('corrects a west-of-UTC dive in the other direction', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T09:10:00-05:00'),
+        samples: samplesFrom('04:10', '-05:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 9, 10, 40));
+    });
+
+    test('corrects by a half-hour zone exactly', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T10:15:00+05:30'),
+        samples: samplesFrom('15:45', '+05:30'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 10, 15, 40));
+    });
+
+    test('keeps the sample clock when the header agrees within minutes', () {
+      // The header may mark the log opening a little before or after the
+      // first sample; seconds-level disagreement is not a zone error.
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:46:30+02:00'),
+        samples: samplesFrom('13:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('keeps a real header-to-sample delay alongside the zone error', () {
+      // 27 minutes of the gap are real and 2 hours are the zone. Rounding
+      // the whole 2h27m to quarter hours would take 2h30m and move the dive
+      // 3 minutes early; the header's own +02:00 says which part is zone.
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T15:00:00+02:00'),
+        samples: samplesFrom('17:27', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 15, 27, 40));
+    });
+
+    test('keeps the sample clock when the gap is not the header offset', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T14:14:00+02:00'),
+        samples: samplesFrom('13:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('treats a Z header as a declared zero offset, not a missing one', () {
+      // Z declares UTC, so there is no zone for the samples to be off by;
+      // the gap is real and the sample clock stands.
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T11:44:00Z'),
+        samples: samplesFrom('13:44', 'Z'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('rounds to quarter hours when the header declares no offset', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00'),
+        samples: samplesFrom('15:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('keeps the sample clock for a gap shorter than any zone', () {
+      // Half an hour rounds cleanly to quarter hours, but no zone sits that
+      // close to UTC, so it cannot be an offset error.
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T14:14:00'),
+        samples: samplesFrom('13:44', ''),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+    });
+
+    test('leaves elapsed sample times unchanged by the correction', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesFrom('15:44', '+02:00'),
+      );
+
+      expect(result.dive.profile.map((s) => s.timeSeconds), [0, 10]);
     });
   });
 
@@ -304,13 +440,201 @@ void main() {
       expect(ascents, hasLength(1));
       expect(ascents.single.timeSeconds, 40);
     });
+  });
 
-    test('carries every transmitter reading at the same instant', () {
-      // Submersion's profile rows hold one pressure/tankIndex pair each, so
-      // a second live transmitter rides along as an extra row stamped with
-      // the same elapsed second.
+  // In sidemount mode a Nautic or Ocean logs both transmitters under one
+  // gas: that gas's Cylinders entry carries `Pressure` and `Pressure2`.
+  group('more than one transmitter', () {
+    Map<String, dynamic> nauticHeader({
+      List<Map<String, dynamic>> gases = const [
+        {'Oxygen': 0.32, 'Helium': 0.0, 'TankSize': 0.0111},
+      ],
+    }) => {
+      'DateTime': '2026-05-01T10:00:00Z',
+      'ActivityType': 51,
+      'Device': {'Name': 'Vaasa'},
+      'DiveTime': 1800,
+      'Diving': {'Gases': gases},
+    };
+
+    Map<String, dynamic> start() => {
+      'TimeISO8601': '2026-05-01T10:00:00Z',
+      'Depth': 0.5,
+      'DiveEvents': {'DiveStatus': true},
+    };
+
+    Map<String, dynamic> at(int seconds, List<Map<String, dynamic>> cyls) => {
+      'TimeISO8601': '2026-05-01T10:00:${seconds.toString().padLeft(2, '0')}Z',
+      'Depth': 18.0,
+      'Cylinders': cyls,
+    };
+
+    test('keeps one profile row per sample with every reading on it', () {
       final result = SuuntoDiveParser.parse(
-        header: eonHeader(),
+        header: nauticHeader(),
+        samples: [
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+          ]),
+          at(20, const [
+            {'GasNumber': 0, 'Pressure': 19400000, 'Pressure2': 20900000},
+          ]),
+        ],
+      );
+
+      final times = result.dive.profile.map((s) => s.timeSeconds).toList();
+      expect(times, [0, 10, 20]);
+
+      final atTen = result.dive.profile[1];
+      expect(atTen.depth, 18.0);
+      // The single pair holds the last reading, as ProfileSample documents.
+      expect(atTen.tankIndex, 1);
+      expect(atTen.pressure, closeTo(210.0, 0.001));
+      expect(atTen.tankPressures, hasLength(2));
+      expect(atTen.tankPressures![0], closeTo(195.0, 0.001));
+      expect(atTen.tankPressures![1], closeTo(210.0, 0.001));
+    });
+
+    test('turns a gas with two transmitters into a sidemount pair', () {
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(
+          gases: const [
+            {
+              'Oxygen': 0.32,
+              'Helium': 0.0,
+              'TankSize': 0.0111,
+              'StartPressure': 19500000,
+              'EndPressure': 6000000,
+            },
+          ],
+        ),
+        samples: [
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+          ]),
+        ],
+      );
+
+      final tanks = result.dive.tanks;
+      expect(tanks, hasLength(2));
+
+      final left = tanks.singleWhere((t) => t.index == 0);
+      expect(left.role, TankRole.sidemountLeft.name);
+      expect(left.o2Percent, closeTo(32.0, 0.001));
+      expect(left.startPressure, closeTo(195.0, 0.001));
+      expect(left.endPressure, closeTo(60.0, 0.001));
+
+      // Same gas and cylinder size as its partner. The gas's start/end
+      // pressures belong to the first transmitter, so this one leaves them
+      // for the importer to derive from its own series.
+      final right = tanks.singleWhere((t) => t.index == 1);
+      expect(right.role, TankRole.sidemountRight.name);
+      expect(right.o2Percent, closeTo(32.0, 0.001));
+      expect(right.hePercent, 0.0);
+      expect(right.volumeLiters, closeTo(11.1, 0.001));
+      expect(right.startPressure, isNull);
+      expect(right.endPressure, isNull);
+    });
+
+    test('leaves a single-transmitter dive as it was', () {
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(),
+        samples: [
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': null},
+          ]),
+        ],
+      );
+
+      expect(result.dive.profile, hasLength(2));
+      expect(result.dive.profile[1].tankPressures, isNull);
+      expect(result.dive.profile[1].tankIndex, 0);
+      expect(result.dive.tanks, hasLength(1));
+      expect(result.dive.tanks.single.role, isNull);
+    });
+
+    test('gives the second transmitter an index no gas uses', () {
+      // Sidemount plus a stage on its own transmitter: numbering transmitters
+      // straight through the Cylinders entries would put gas 0's Pressure2
+      // and gas 1's Pressure on the same tank.
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(
+          gases: const [
+            {'Oxygen': 0.32, 'Helium': 0.0, 'TankSize': 0.0111},
+            {'Oxygen': 0.5, 'Helium': 0.0, 'TankSize': 0.0057},
+          ],
+        ),
+        samples: [
+          {
+            ...start(),
+            'Events': const [
+              {
+                'GasSwitch': {'GasNumber': 0},
+              },
+            ],
+          },
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+            {'GasNumber': 1, 'Pressure': 20000000, 'Pressure2': null},
+          ]),
+          {
+            'TimeISO8601': '2026-05-01T10:00:20Z',
+            'Depth': 6.0,
+            'Events': const [
+              {
+                'GasSwitch': {'GasNumber': 1},
+              },
+            ],
+          },
+        ],
+      );
+
+      final pressures = result.dive.profile[1].tankPressures!;
+      expect(pressures, hasLength(3));
+      expect(pressures[0], closeTo(195.0, 0.001));
+      expect(pressures[1], closeTo(200.0, 0.001));
+      expect(pressures[2], closeTo(210.0, 0.001));
+
+      final roles = {for (final t in result.dive.tanks) t.index: t.role};
+      expect(roles, {
+        0: TankRole.sidemountLeft.name,
+        1: null,
+        2: TankRole.sidemountRight.name,
+      });
+      final right = result.dive.tanks.singleWhere((t) => t.index == 2);
+      expect(right.o2Percent, closeTo(32.0, 0.001));
+    });
+
+    test('puts a lone second-transmitter reading on its own tank', () {
+      // The first transmitter drops out; the second keeps reporting.
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(),
+        samples: [
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+          ]),
+          at(20, const [
+            {'GasNumber': 0, 'Pressure': null, 'Pressure2': 20900000},
+          ]),
+        ],
+      );
+
+      final atTwenty = result.dive.profile[2];
+      expect(atTwenty.tankIndex, 1);
+      expect(atTwenty.pressure, closeTo(209.0, 0.001));
+    });
+
+    test('numbers the second transmitter above the gases on an EON', () {
+      // EON-family gas numbers are one-based; the offset still applies.
+      final result = SuuntoDiveParser.parse(
+        header: {
+          ...nauticHeader(),
+          'Device': {'Name': 'EON Steel'},
+        },
         samples: const [
           {
             'TimeISO8601': '2026-05-01T10:00:00Z',
@@ -331,47 +655,178 @@ void main() {
         ],
       );
 
-      final atTen = result.dive.profile
-          .where((s) => s.timeSeconds == 10)
-          .toList();
-      expect(atTen, hasLength(2));
-      expect(atTen[0].tankIndex, 0);
-      expect(atTen[0].pressure, closeTo(195.0, 0.001));
-      expect(atTen[1].tankIndex, 1);
-      expect(atTen[1].pressure, closeTo(210.0, 0.001));
-      // The extra row repeats the depth so it never reads as a surface point.
-      expect(atTen[1].depth, 18.0);
+      expect(result.dive.profile, hasLength(2));
+      final pressures = result.dive.profile[1].tankPressures!;
+      expect(pressures[0], closeTo(195.0, 0.001));
+      expect(pressures[1], closeTo(210.0, 0.001));
+      expect(result.dive.tanks.map((t) => t.index), unorderedEquals([0, 1]));
     });
 
-    test('skips a null transmitter slot but keeps the sensor numbering', () {
+    test('invents no tank for a gas the header does not list', () {
+      // An app export without a Diving block has no gases at all; the
+      // pressures stay without a cylinder, as they were before.
       final result = SuuntoDiveParser.parse(
-        header: eonHeader(),
-        samples: const [
+        header: {...nauticHeader()}..remove('Diving'),
+        samples: [
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+          ]),
+        ],
+      );
+
+      expect(result.dive.tanks, isEmpty);
+      expect(result.dive.profile, hasLength(2));
+    });
+
+    const sidemountAndStage = [
+      {'Oxygen': 0.32, 'Helium': 0.0, 'TankSize': 0.0111},
+      {'Oxygen': 0.5, 'Helium': 0.0, 'TankSize': 0.0057},
+    ];
+
+    test('pairs a sidemount gas the watch never switched to', () {
+      // Multi-gas dive, no GasSwitch at all: the readings alone say the
+      // sidemount gas was breathed.
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(gases: sidemountAndStage),
+        samples: [
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+          ]),
+        ],
+      );
+
+      final roles = {for (final t in result.dive.tanks) t.index: t.role};
+      expect(roles, {
+        0: TankRole.sidemountLeft.name,
+        2: TankRole.sidemountRight.name,
+      });
+    });
+
+    test('keeps each gas on its own index when the dive starts on gas 1', () {
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(gases: sidemountAndStage),
+        samples: [
           {
-            'TimeISO8601': '2026-05-01T10:00:00Z',
-            'Depth': 0.5,
-            'Events': [
+            ...start(),
+            'Events': const [
               {
-                'State': {'Active': true, 'Type': 'Dive Active'},
+                'GasSwitch': {'GasNumber': 1},
               },
             ],
           },
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+          ]),
           {
-            'TimeISO8601': '2026-05-01T10:00:10Z',
+            'TimeISO8601': '2026-05-01T10:00:20Z',
             'Depth': 18.0,
-            'Cylinders': [
-              {'GasNumber': 1, 'Pressure': null, 'Pressure2': 21000000},
+            'Events': const [
+              {
+                'GasSwitch': {'GasNumber': 0},
+              },
             ],
           },
         ],
       );
 
-      final atTen = result.dive.profile
-          .where((s) => s.timeSeconds == 10)
-          .toList();
-      expect(atTen, hasLength(1));
-      expect(atTen.single.tankIndex, 1);
-      expect(atTen.single.pressure, closeTo(210.0, 0.001));
+      final o2ByIndex = {
+        for (final t in result.dive.tanks) t.index: t.o2Percent.round(),
+      };
+      expect(o2ByIndex, {0: 32, 1: 50, 2: 32});
+    });
+
+    test('ignores readings on samples the profile skips', () {
+      // Pressure2 shows up only before the dive starts, while the
+      // transmitters pair: no profile row, so no Sidemount Right either.
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(),
+        samples: [
+          {
+            'TimeISO8601': '2026-05-01T09:59:50Z',
+            'Depth': 0.0,
+            'Cylinders': const [
+              {'GasNumber': 0, 'Pressure': 19500000, 'Pressure2': 21000000},
+            ],
+          },
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000},
+          ]),
+        ],
+      );
+
+      expect(result.dive.tanks, hasLength(1));
+      expect(result.dive.tanks.single.role, isNull);
+      expect(result.dive.profile.every((s) => s.tankPressures == null), isTrue);
+    });
+
+    test('keeps the first of two readings for one gas', () {
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(),
+        samples: [
+          start(),
+          at(10, const [
+            {'GasNumber': 0, 'Pressure': 19500000},
+            {'GasNumber': 0, 'Pressure': 18000000},
+          ]),
+        ],
+      );
+
+      final atTen = result.dive.profile[1];
+      expect(atTen.tankIndex, 0);
+      expect(atTen.pressure, closeTo(195.0, 0.001));
+      expect(atTen.tankPressures, isNull);
+    });
+
+    test('pairs a gas whose only extra transmitter is Pressure3', () {
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(),
+        samples: [
+          start(),
+          at(10, const [
+            {
+              'GasNumber': 0,
+              'Pressure': 19500000,
+              'Pressure2': null,
+              'Pressure3': 21000000,
+            },
+          ]),
+        ],
+      );
+
+      final roles = {for (final t in result.dive.tanks) t.index: t.role};
+      expect(roles, {
+        0: TankRole.sidemountLeft.name,
+        1: TankRole.sidemountRight.name,
+      });
+    });
+
+    test('gives a third transmitter on one gas no sidemount role', () {
+      final result = SuuntoDiveParser.parse(
+        header: nauticHeader(),
+        samples: [
+          start(),
+          at(10, const [
+            {
+              'GasNumber': 0,
+              'Pressure': 19500000,
+              'Pressure2': 21000000,
+              'Pressure3': 20000000,
+            },
+          ]),
+        ],
+      );
+
+      final roles = {for (final t in result.dive.tanks) t.index: t.role};
+      expect(roles, {
+        0: TankRole.sidemountLeft.name,
+        1: TankRole.sidemountRight.name,
+        2: null,
+      });
+      final third = result.dive.tanks.singleWhere((t) => t.index == 2);
+      expect(third.o2Percent, closeTo(32.0, 0.001));
     });
   });
 
@@ -614,7 +1069,7 @@ void main() {
       });
     });
 
-    test('records a gas switch and assigns tanks by switch order', () {
+    test('records a gas switch and gives each gas its own tank', () {
       final header = _header(deviceName: 'EON Steel')
         ..['Diving']['Gases'] = [
           {'Oxygen': 0.21, 'Helium': 0.0, 'TankSize': 0.012},
@@ -924,6 +1379,201 @@ void main() {
 
       expect(result.dive.entryLatitude, isNull);
       expect(result.dive.entryLongitude, isNull);
+    });
+  });
+
+  group('computer tissue', () {
+    Map<String, dynamic> headerWithDiving(Map<String, dynamic> diving) => {
+      ..._header(),
+      'Diving': {..._header()['Diving'] as Map<String, dynamic>, ...diving},
+    };
+
+    test('builds a tissue snapshot from a DeviceLog EON Core header', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithDiving({
+          'Algorithm': 'Suunto Fused2 RGBM',
+          'StartTissue': {
+            'Nitrogen': [
+              79000, 79000, 79000, 79000, 79000, 79000, 79008, 79123, //
+              79457, 80568, 81755, 82776, 83604, 84269, 85254,
+            ],
+            'Helium': List<int>.filled(15, 0),
+          },
+          'EndTissue': {
+            'Nitrogen': [
+              89665, 97105, 116432, 135968, 142849, 131069, 113059, 103999, //
+              98930, 94002, 91918, 90918, 90376, 90058, 89736,
+            ],
+            'Helium': List<int>.filled(15, 0),
+            'CNS': 0.132,
+            'OTU': 35.57,
+            'RgbmNitrogen': 0.98,
+            'RgbmHelium': 0.985,
+          },
+        }),
+        samples: const [],
+      );
+
+      final snapshot = result.computerTissue;
+      expect(snapshot, isNotNull);
+      expect(snapshot!.algorithm, 'Suunto Fused2 RGBM');
+      expect(snapshot.start!.n2Bar, hasLength(15));
+      expect(snapshot.start!.n2Bar!.first, 0.79);
+      expect(snapshot.end!.n2Bar![4], 1.42849);
+      expect(snapshot.end!.cnsPercent, closeTo(13.2, 1e-9));
+      expect(snapshot.end!.otu, 35.57);
+      expect(snapshot.end!.rgbmNitrogen, 0.98);
+      // The import pipeline only ever sees the DownloadedDive, so the
+      // snapshot has to ride on it too.
+      expect(result.dive.computerTissue, snapshot);
+    });
+
+    test('reads the HelO2 Pressure-list encoding', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerWithDiving({
+          'Algorithm': 'Suunto Technical RGBM',
+          'StartTissue': {
+            'Nitrogen': {'Pressure': List<int>.filled(9, 79000)},
+          },
+          'EndTissue': {'OLF': 0.05, 'CNS': 0.04, 'OTU': 12.0},
+        }),
+        samples: const [],
+      );
+
+      expect(result.computerTissue!.start!.n2Bar, hasLength(9));
+      expect(result.computerTissue!.end!.cnsPercent, closeTo(4.0, 1e-9));
+    });
+
+    group('decoAlgorithm follows the header Algorithm', () {
+      // The header carries a GF pair in every case below, which alone used
+      // to make the dive Buhlmann even when the computer ran RGBM.
+      final cases = {
+        'Suunto Fused2 RGBM': 'rgbm',
+        'Suunto Technical RGBM': 'rgbm',
+        'Bühlmann 16 GF': 'buhlmann',
+        'Buhlmann 16 GF': 'buhlmann',
+        ' Something New ': 'something new',
+      };
+      for (final MapEntry(key: algorithm, value: expected) in cases.entries) {
+        test('"$algorithm" is $expected', () {
+          final result = SuuntoDiveParser.parse(
+            header: headerWithDiving({'Algorithm': algorithm}),
+            samples: const [],
+          );
+          expect(result.dive.decoAlgorithm, expected);
+        });
+      }
+
+      test('a blank Algorithm falls back to the GF pair', () {
+        final result = SuuntoDiveParser.parse(
+          header: headerWithDiving({'Algorithm': '  '}),
+          samples: const [],
+        );
+        expect(result.dive.decoAlgorithm, 'buhlmann');
+      });
+
+      test('the dive and its snapshot agree on the model', () {
+        final result = SuuntoDiveParser.parse(
+          header: headerWithDiving({
+            'Algorithm': 'Suunto Fused2 RGBM',
+            'EndTissue': {'CNS': 0.04},
+          }),
+          samples: const [],
+        );
+        expect(result.dive.decoAlgorithm, 'rgbm');
+        expect(result.computerTissue!.algorithm, 'Suunto Fused2 RGBM');
+      });
+    });
+
+    test('leaves the snapshot null for a header without tissue data', () {
+      final result = SuuntoDiveParser.parse(header: _header(), samples: []);
+      expect(result.computerTissue, isNull);
+      expect(result.dive.computerTissue, isNull);
+    });
+
+    test('leaves the snapshot null for a header without Diving', () {
+      final header = _header()..remove('Diving');
+      final result = SuuntoDiveParser.parse(header: header, samples: []);
+      expect(result.computerTissue, isNull);
+    });
+  });
+
+  // The Nautic S records an inertial route that the Suunto app exports as
+  // DiveRoute (#1445). It must land on the same clock as the dive itself,
+  // including when the cloud's sample clock runs a whole zone off (#2604).
+  group('DiveRoute', () {
+    Map<String, dynamic> headerAt(String dateTime) => {
+      'DateTime': dateTime,
+      'ActivityType': 51,
+      'Device': {'Name': 'Ylivieska', 'SerialNumber': 'NS-1'},
+      'DiveTime': 1800,
+    };
+
+    List<Map<String, dynamic>> samplesAt(String hhmm, String offset) => [
+      {
+        'TimeISO8601': '2026-04-19T$hhmm:40.000$offset',
+        'Depth': 1.2,
+        'DiveEvents': const {'DiveStatus': true},
+        'DiveRouteOrigin': const {'Latitude': 47.3, 'Longitude': -2.9},
+        'DiveRoute': const {'X': 0.0, 'Y': 0.0, 'Z': 1.2},
+      },
+      {
+        'TimeISO8601': '2026-04-19T$hhmm:41.000$offset',
+        'Depth': 1.8,
+        'DiveRoute': const {'X': 0.4, 'Y': 0.9, 'Z': 1.8},
+      },
+    ];
+
+    test('carries the route on the parsed dive, on the dive start clock', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesAt('13:44', '+02:00'),
+      );
+
+      final route = result.route!;
+      expect(route.points, hasLength(2));
+      expect(
+        route.points.first.timestamp,
+        result.dive.startTime.millisecondsSinceEpoch ~/ 1000,
+      );
+      expect(route.originLatitude, 47.3);
+      expect(route.originLongitude, -2.9);
+    });
+
+    test('shifts the route with the dive when the sample clock runs late '
+        '(#2604)', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesAt('15:44', '+02:00'),
+      );
+
+      expect(result.dive.startTime, DateTime.utc(2026, 4, 19, 13, 44, 40));
+      expect(
+        result.route!.points.first.timestamp,
+        result.dive.startTime.millisecondsSinceEpoch ~/ 1000,
+      );
+    });
+
+    test('has no route when the export carries no DiveRoute samples', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: [
+          {
+            'TimeISO8601': '2026-04-19T13:44:40.000+02:00',
+            'Depth': 1.2,
+            'DiveEvents': const {'DiveStatus': true},
+          },
+        ],
+      );
+      expect(result.route, isNull);
+    });
+
+    test('copyWith keeps the route', () {
+      final result = SuuntoDiveParser.parse(
+        header: headerAt('2026-04-19T13:44:00.000+02:00'),
+        samples: samplesAt('13:44', '+02:00'),
+      );
+      expect(result.copyWith(notes: 'n').route, same(result.route));
     });
   });
 }

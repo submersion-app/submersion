@@ -1,5 +1,5 @@
 // Coverage for the picker's tab shell: PhotoPickerPage.build() always
-// renders a DefaultTabController with Gallery / Files / URL tabs.
+// renders a tab bar with Gallery / Files / URL tabs.
 //
 // Phase 3a / Task 17 swapped the URL placeholder for [UrlTab]. The tab's
 // notifier eagerly reads [networkFetchPipelineProvider], which constructs
@@ -143,19 +143,17 @@ Widget _wrap({
 }
 
 void main() {
-  testWidgets(
-    'always renders DefaultTabController with Gallery / Files / URL tabs',
-    (tester) async {
-      await tester.pumpWidget(_wrap());
-      await tester.pump();
+  testWidgets('always renders a tab bar with Gallery / Files / URL tabs', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap());
+    await tester.pump();
 
-      expect(find.byType(DefaultTabController), findsOneWidget);
-      expect(find.byType(TabBar), findsOneWidget);
-      expect(find.text('Gallery'), findsOneWidget);
-      expect(find.text('Files'), findsOneWidget);
-      expect(find.text('URL'), findsOneWidget);
-    },
-  );
+    expect(find.byType(TabBar), findsOneWidget);
+    expect(find.text('Gallery'), findsOneWidget);
+    expect(find.text('Files'), findsOneWidget);
+    expect(find.text('URL'), findsOneWidget);
+  });
 
   testWidgets('switching to Files tab shows FilesTab', (tester) async {
     await tester.pumpWidget(_wrap());

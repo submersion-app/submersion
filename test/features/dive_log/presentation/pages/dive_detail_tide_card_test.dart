@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -10,6 +11,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -35,12 +38,24 @@ TideRecord _tideRecord({
   );
 }
 
+/// A dive at a Reykjavik site. Iceland keeps UTC all year with no daylight
+/// saving, so the site's wall clock equals UTC and stored instants print
+/// verbatim.
+Dive _utcSiteDive() => createTestDiveWithBottomTime().copyWith(
+  site: const DiveSite(
+    id: 'site-reykjavik',
+    name: 'Reykjavik',
+    location: GeoPoint(64.15, -21.95),
+  ),
+);
+
 Future<void> _pumpDetailPage(
   WidgetTester tester,
   TideRecord record, {
+  Dive? dive,
   DateFormatPreference dateFormat = DateFormatPreference.mmmDYYYY,
 }) async {
-  final dive = createTestDiveWithBottomTime();
+  final shownDive = dive ?? _utcSiteDive();
   final settings = MockSettingsNotifier();
   await settings.setTimeFormat(TimeFormat.twentyFourHour);
   await settings.setDateFormat(dateFormat);
@@ -56,20 +71,20 @@ Future<void> _pumpDetailPage(
     ProviderScope(
       overrides: [
         ...overrides,
-        diveProvider(dive.id).overrideWith((ref) async => dive),
+        diveProvider(shownDive.id).overrideWith((ref) async => shownDive),
         diveDataSourcesProvider(
-          dive.id,
+          shownDive.id,
         ).overrideWith((ref) async => <DiveDataSource>[]),
         healedTideRecordProvider((
-          diveId: dive.id,
-          location: dive.site?.location,
-          entryTime: dive.effectiveEntryTime,
+          diveId: shownDive.id,
+          location: shownDive.site?.location,
+          entryTime: shownDive.effectiveEntryTime,
         )).overrideWith((ref) async => record),
       ],
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: DiveDetailPage(diveId: dive.id, embedded: true),
+        home: DiveDetailPage(diveId: shownDive.id, embedded: true),
       ),
     ),
   );
@@ -154,5 +169,67 @@ void main() {
 
       expect(find.text('Sat, 28 Mar | 20:00 - 08:00 (29 Mar)'), findsOneWidget);
     });
+  });
+
+  group('DiveDetailPage tide card site-local times', () {
+    // Bonaire resolves to America/Caracas: UTC-4 with no DST.
+    const bonaire = GeoPoint(12.15, -68.27);
+
+    testWidgets('stored instants are shown in the site wall clock', (
+      tester,
+    ) async {
+      final dive = createTestDiveWithBottomTime().copyWith(
+        site: const DiveSite(
+          id: 'site-1',
+          name: 'Salt Pier',
+          location: bonaire,
+        ),
+      );
+      await _pumpDetailPage(
+        tester,
+        _tideRecord(
+          highTideTime: DateTime.utc(2026, 3, 28, 18, 20),
+          lowTideTime: DateTime.utc(2026, 3, 28, 12, 20),
+        ),
+        dive: dive,
+      );
+
+      expect(find.text('Sat, Mar 28 | 08:20 - 20:20'), findsOneWidget);
+      expect(find.textContaining('at 14:20'), findsOneWidget);
+      expect(find.textContaining('at 08:20'), findsOneWidget);
+    });
+  });
+
+  testWidgets('a site without coordinates shows no tide card', (tester) async {
+    // With no site clock, stored instants cannot be shown as local times.
+    final dive = createTestDiveWithBottomTime().copyWith(
+      site: const DiveSite(id: 'site-nowhere', name: 'Unmapped'),
+    );
+    await _pumpDetailPage(
+      tester,
+      _tideRecord(
+        highTideTime: DateTime.utc(2026, 3, 28, 14, 20),
+        lowTideTime: DateTime.utc(2026, 3, 28, 8, 20),
+      ),
+      dive: dive,
+    );
+
+    expect(find.textContaining('at 14:20'), findsNothing);
+    expect(find.text('Sat, Mar 28 | 08:20 - 20:20'), findsNothing);
+  });
+
+  testWidgets('a dive marked freshwater shows no tide card', (tester) async {
+    // The diver's own water type wins over the site's (Dive.effectiveWaterType).
+    final dive = _utcSiteDive().copyWith(waterType: WaterType.fresh);
+    await _pumpDetailPage(
+      tester,
+      _tideRecord(
+        highTideTime: DateTime.utc(2026, 3, 28, 14, 20),
+        lowTideTime: DateTime.utc(2026, 3, 28, 8, 20),
+      ),
+      dive: dive,
+    );
+
+    expect(find.textContaining('at 14:20'), findsNothing);
   });
 }

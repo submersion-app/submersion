@@ -1,7 +1,7 @@
 // Widget tests for the Network Sources settings page (Phase 3c, Task 10).
 //
 // Adapted from plan
-// `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 10. Deviations from the plan code:
 //
 // - The plan's stub fakes call `NetworkCredentialsService.listHosts()`,

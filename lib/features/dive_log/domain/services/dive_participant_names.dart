@@ -16,19 +16,20 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 /// Either source is normalized the same way: names are trimmed and a blank one
 /// is nobody, matching how the dive detail page reads the scalar (#1831).
 extension DiveParticipantNames on Dive {
-  /// Every recorded participant whose role is NOT a guide/divemaster (see
+  /// Every recorded participant holding no guide/divemaster role (see
   /// [_guideRoleIds]), comma-joined; null when there is no one to show.
+  /// Someone who is both buddy and guide is listed as a guide only (#1221).
   String? get resolvedBuddyNames =>
       buddies.isEmpty ? _nonBlank(buddy) : _joinedNames(guides: false);
 
-  /// Every recorded participant whose role is a guide/divemaster,
+  /// Every recorded participant holding a guide/divemaster role,
   /// comma-joined; null when there is no one to show.
   String? get resolvedDiveMasterNames =>
       buddies.isEmpty ? _nonBlank(diveMaster) : _joinedNames(guides: true);
 
   String? _joinedNames({required bool guides}) {
     final names = buddies
-        .where((b) => _guideRoleIds.contains(b.role.id) == guides)
+        .where((b) => b.roleIds.any(_guideRoleIds.contains) == guides)
         .map((b) => b.buddy.name.trim())
         .where((n) => n.isNotEmpty)
         .toList();

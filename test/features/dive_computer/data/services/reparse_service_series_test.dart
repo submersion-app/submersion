@@ -281,6 +281,13 @@ void main() {
             decoTime: 120,
             decoDepth: 6.0,
           ),
+          pigeon.ProfileSample(
+            timeSeconds: 120,
+            depthMeters: 20.0,
+            decoType: 2,
+            decoTime: 120,
+            decoDepth: 6.0,
+          ),
         ],
       ),
     );
@@ -290,8 +297,12 @@ void main() {
     expect(samples[0].ndl, 600);
     expect(samples[0].ceiling, isNull);
     expect(samples[0].rbt, libdcRbtToSeconds(12));
+    // A safety stop is not an obligation, so it carries no ceiling (#2550);
+    // a deco stop does.
     expect(samples[1].ndl, isNull);
-    expect(samples[1].ceiling, 6.0);
+    expect(samples[1].ceiling, isNull);
     expect(samples[1].decoType, 1);
+    expect(samples[2].ceiling, 6.0);
+    expect(samples[2].decoType, 2);
   });
 }

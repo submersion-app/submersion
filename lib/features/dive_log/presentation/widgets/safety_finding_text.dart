@@ -16,7 +16,7 @@ String safetyFindingTitle(
   const unknown = '--';
   return switch (finding.ruleId) {
     SafetyRuleId.rapidAscent => l10n.safetyReview_rapidAscent_title(
-      value == null ? unknown : '${units.formatDepth(value, decimals: 0)}/min',
+      value == null ? unknown : units.formatDepthRate(value, decimals: 0),
       _durationOf(finding),
     ),
     SafetyRuleId.missedDecoStop => l10n.safetyReview_missedDecoStop_title(
@@ -39,19 +39,32 @@ String safetyFindingTitle(
       // localized template owns every word; no baked-in English "GF" token.
       '${units.settings.gfHigh}%',
     ),
+    // A switch late by time alone can cost no deco; "added 0s of deco"
+    // would contradict itself.
+    SafetyRuleId.lateGasSwitch =>
+      value != null && value.round() == 0
+          ? l10n.safetyReview_lateGasSwitch_noCost_title
+          : l10n.safetyReview_lateGasSwitch_title(
+              value == null ? unknown : _formatSeconds(value.round()),
+            ),
   };
 }
 
 /// Localized rule name only (settings-page strings), for narrow contexts
 /// like wide lane chips.
-String safetyFindingShortLabel(SafetyFinding finding, AppLocalizations l10n) {
-  return switch (finding.ruleId) {
+String safetyFindingShortLabel(SafetyFinding finding, AppLocalizations l10n) =>
+    safetyRuleLabel(finding.ruleId, l10n);
+
+/// A rule's name as the safety settings page shows it.
+String safetyRuleLabel(SafetyRuleId rule, AppLocalizations l10n) {
+  return switch (rule) {
     SafetyRuleId.rapidAscent => l10n.safetySettings_rule_rapidAscent,
     SafetyRuleId.missedDecoStop => l10n.safetySettings_rule_missedDecoStop,
     SafetyRuleId.omittedSafetyStop =>
       l10n.safetySettings_rule_omittedSafetyStop,
     SafetyRuleId.sawtoothProfile => l10n.safetySettings_rule_sawtoothProfile,
     SafetyRuleId.highSurfaceGf => l10n.safetySettings_rule_highSurfaceGf,
+    SafetyRuleId.lateGasSwitch => l10n.safetySettings_rule_lateGasSwitch,
   };
 }
 

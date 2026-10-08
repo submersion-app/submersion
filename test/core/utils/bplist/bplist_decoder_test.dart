@@ -161,6 +161,77 @@ void main() {
     });
   });
 
+  // The decoder reads BLOBs straight out of a user's MacDive database, and
+  // its contract is that malformed input raises FormatException. Anything
+  // else (a stack overflow, a hang, a bare RangeError) escapes callers that
+  // rely on that contract and aborts a whole import over one bad row.
+  group('BPlistDecoder - malformed object graphs', () {
+    test('rejects an array that contains itself', () {
+      final bytes = _bplistOf([
+        [0xA1, 0x00], // object 0: array [object 0]
+      ]);
+      expect(
+        () => BPlistDecoder.decode(bytes),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects a dict whose value is the dict itself', () {
+      final bytes = _bplistOf([
+        [0xD1, 0x01, 0x00], // object 0: {object 1: object 0}
+        [0x51, 0x6B], // object 1: "k"
+      ]);
+      expect(
+        () => BPlistDecoder.decode(bytes),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('still decodes an object shared by two references', () {
+      final bytes = _bplistOf([
+        [0xA2, 0x01, 0x01], // object 0: array [object 1, object 1]
+        [0x51, 0x6B], // object 1: "k"
+      ]);
+      final items = BPlistDecoder.decode(bytes).asList!;
+      expect(items.map((o) => o.asString), ['k', 'k']);
+    });
+
+    test('rejects nesting deeper than any real archive uses', () {
+      // Object i is an array holding object i + 1; the last is a string.
+      const depth = 2000;
+      final bytes = _bplistOf([
+        for (var i = 0; i < depth; i++) [0xA1, (i + 1) >> 8, (i + 1) & 0xFF],
+        [0x51, 0x6B],
+      ], refSize: 2);
+      expect(
+        () => BPlistDecoder.decode(bytes),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects a zero object reference size', () {
+      // Every reference would read as object 0, so a large count in the
+      // root array would never run off the end of the stream.
+      final bytes = _bplistOf([
+        [0xAF, 0x13, 0x7F, 0xFF], // array claiming 32767 entries
+      ], refSize: 0);
+      expect(
+        () => BPlistDecoder.decode(bytes),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('reports a truncated array as a FormatException', () {
+      final bytes = _bplistOf([
+        [0xA5, 0x00], // array claiming five references, holding one
+      ]);
+      expect(
+        () => BPlistDecoder.decode(bytes),
+        throwsA(isA<FormatException>()),
+      );
+    });
+  });
+
   group('BPlistDecoder — real MacDive ZTIMEZONE BLOB', () {
     late BPlistObject root;
 
@@ -221,4 +292,32 @@ void main() {
       },
     );
   });
+}
+
+/// A bplist00 stream holding [objects], each already encoded, with object 0
+/// as the root. Offsets are written in two bytes and references in
+/// [refSize] bytes, so large synthetic graphs fit.
+Uint8List _bplistOf(List<List<int>> objects, {int refSize = 1}) {
+  const header = [0x62, 0x70, 0x6C, 0x69, 0x73, 0x74, 0x30, 0x30];
+  final body = <int>[];
+  final offsets = <int>[];
+  for (final object in objects) {
+    offsets.add(header.length + body.length);
+    body.addAll(object);
+  }
+  final offsetTableOffset = header.length + body.length;
+  List<int> u64(int value) => [
+    for (var shift = 56; shift >= 0; shift -= 8) (value >> shift) & 0xFF,
+  ];
+  return Uint8List.fromList([
+    ...header,
+    ...body,
+    for (final offset in offsets) ...[offset >> 8, offset & 0xFF],
+    0, 0, 0, 0, 0, 0, // unused, sortVersion
+    2, // offsetIntSize
+    refSize, // objectRefSize
+    ...u64(objects.length),
+    ...u64(0), // topObject
+    ...u64(offsetTableOffset),
+  ]);
 }

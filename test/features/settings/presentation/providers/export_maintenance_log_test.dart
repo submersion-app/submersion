@@ -41,12 +41,16 @@ void main() {
     required List<EquipmentItem> equipment,
     required Map<String, List<ServiceRecord>> recordsByEquipment,
     List<ServiceKind> kinds = const [],
+    Map<String, ServiceKind>? allKinds,
     _FakeExportService? exportService,
   }) {
     final container = ProviderContainer(
       overrides: [
         allEquipmentProvider.overrideWith((ref) async => equipment),
         serviceKindsProvider.overrideWith((ref) async => kinds),
+        allServiceKindsByIdProvider.overrideWith(
+          (ref) async => allKinds ?? {for (final k in kinds) k.id: k},
+        ),
         serviceRecordRepositoryProvider.overrideWithValue(
           _FakeServiceRecordRepository(recordsByEquipment),
         ),
@@ -107,6 +111,31 @@ void main() {
         expect(state.filePath, '/tmp/shared.xlsx');
       },
     );
+
+    test('names a record on another profile custom kind', () async {
+      // Issue #2046: a shared item's record can use its owner's custom kind,
+      // which the active diver's scoped kind list leaves out.
+      final fake = _FakeExportService();
+      final container = makeContainer(
+        equipment: const [jjccr],
+        recordsByEquipment: {
+          'e1': [record(id: 'r1', equipmentId: 'e1', kindId: 'owner-kind')],
+        },
+        allKinds: {
+          'owner-kind': ServiceKind(
+            id: 'owner-kind',
+            name: 'Owner clean',
+            createdAt: t0,
+            updatedAt: t0,
+          ),
+        },
+        exportService: fake,
+      );
+
+      await notifierOf(container).exportMaintenanceLog();
+
+      expect(fake.sharedRows.single.serviceTypeName, 'Owner clean');
+    });
 
     test(
       'reports an error and exports nothing when there is no history',

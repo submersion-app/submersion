@@ -9,8 +9,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// This getter drives on-screen UI so the same values honor the active locale
 /// (issue #1608).
 ///
-/// Agency-specific proprietary grade names (BSAC, GUE, TDI Extended Range, and
-/// the whole FFESSM federation cursus) keep their own-language names in every
+/// Agency-specific proprietary grade names (BSAC, GUE, TDI Extended Range,
+/// ACUC, DAN, and the whole FFESSM federation cursus) keep their own-language names in every
 /// locale, the same way the agency acronyms are not translated.
 ///
 /// The switch is exhaustive by enum value, so adding a value is a compile error
@@ -41,6 +41,9 @@ extension CertificationLevelDisplay on CertificationLevel {
     CertificationLevel.sidemount => l10n.enum_certificationLevel_sidemount,
     CertificationLevel.rebreather => l10n.enum_certificationLevel_rebreather,
     CertificationLevel.techDiver => l10n.enum_certificationLevel_techDiver,
+    CertificationLevel.firstAid => l10n.enum_certificationLevel_firstAid,
+    CertificationLevel.oxygenProvider =>
+      l10n.enum_certificationLevel_oxygenProvider,
     CertificationLevel.masterDiver => l10n.enum_certificationLevel_masterDiver,
     CertificationLevel.assistantInstructor =>
       l10n.enum_certificationLevel_assistantInstructor,
@@ -141,7 +144,27 @@ extension CertificationLevelDisplay on CertificationLevel {
     CertificationLevel.ffessmPhoto3 ||
     CertificationLevel.ffessmVideo1 ||
     CertificationLevel.ffessmVideo2 ||
-    CertificationLevel.ffessmVideo3 => displayName,
+    CertificationLevel.ffessmVideo3 ||
+    // ACUC and DAN credential names (issue #690) are the agencies' own
+    // proper names, kept in English like the BSAC and GUE ratings.
+    CertificationLevel.acucScubaDiver ||
+    CertificationLevel.acucAdvancedDiver ||
+    CertificationLevel.acucRescueLeader ||
+    CertificationLevel.acucUnderwaterGuide ||
+    CertificationLevel.acucTeachingAssistant ||
+    CertificationLevel.acucOpenWaterInstructor ||
+    CertificationLevel.acucAdvancedInstructor ||
+    CertificationLevel.acucInstructorTrainer ||
+    CertificationLevel.acucInstructorTrainerEvaluator ||
+    CertificationLevel.danBls ||
+    CertificationLevel.danEmergencyOxygen ||
+    CertificationLevel.danDfaPro ||
+    CertificationLevel.danDemp ||
+    CertificationLevel.danInstructor ||
+    CertificationLevel.danInstructorTrainer ||
+    CertificationLevel.danAdvancedOxygen ||
+    CertificationLevel.danNeurologicalAssessment ||
+    CertificationLevel.danMarineLifeInjuries => displayName,
     CertificationLevel.other => l10n.enum_certificationLevel_other,
   };
 }

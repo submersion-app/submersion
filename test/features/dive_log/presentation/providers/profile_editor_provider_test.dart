@@ -37,15 +37,29 @@ void main() {
     notifier.applySmoothing(windowSize: 3);
     expect(notifier.state.hasChanges, isTrue);
     expect(notifier.state.undoStack.length, 1);
+    expect(notifier.state.editKinds, [ProfileEditorEditKinds.smoothAll]);
+  });
+
+  test('combines multiple edit kinds into revision token', () {
+    notifier.setSelectedRange(start: 8, end: 24);
+    notifier.shiftSegmentDepth(1.0);
+    notifier.applySmoothingToRange(windowSize: 3);
+
+    expect(
+      notifier.state.revisionEditKindToken,
+      'shift_depth+smooth_selection',
+    );
   });
 
   test('undo restores previous state', () {
     final before = notifier.state.editedProfile;
     notifier.applySmoothing(windowSize: 5);
+    expect(notifier.state.editKinds, [ProfileEditorEditKinds.smoothAll]);
     expect(notifier.state.editedProfile, isNot(equals(before)));
     notifier.undo();
     expect(notifier.state.editedProfile, before);
     expect(notifier.state.undoStack, isEmpty);
+    expect(notifier.state.editKinds, isEmpty);
   });
 
   test('undo when stack empty is no-op', () {

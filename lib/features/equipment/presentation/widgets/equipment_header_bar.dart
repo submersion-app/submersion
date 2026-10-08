@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_section_toggle.dart';
+import 'package:submersion/shared/widgets/title_with_subtitle.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
+
 /// Pane width at or above which the section toggle and the action icons share
 /// a single row.
 ///
@@ -39,18 +44,26 @@ typedef EquipmentHeaderActionsBuilder =
 /// [toggleBuilder] is null on phone, where the page's own app bar carries the
 /// toggle as its title. This bar then holds the actions alone, with no title
 /// of its own to repeat the one directly above it.
-class EquipmentHeaderBar extends StatelessWidget {
+class EquipmentHeaderBar extends ConsumerWidget {
   const EquipmentHeaderBar({
     super.key,
     this.toggleBuilder,
     required this.actionsBuilder,
+    this.subtitle,
   });
 
   final EquipmentHeaderToggleBuilder? toggleBuilder;
   final EquipmentHeaderActionsBuilder actionsBuilder;
 
+  /// A muted line under the toggle, such as the list's entry count. Only
+  /// shown with a toggle: without one the bar has no title to sit under.
+  final SubtitleText? subtitle;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final subtitleIndent = EquipmentSectionToggle.textInset(
+      withAccentIcon: EquipmentSectionToggle.showsAccentIcon(context, ref),
+    );
     return LayoutBuilder(
       builder: (context, constraints) {
         final toggle = toggleBuilder;
@@ -79,7 +92,7 @@ class EquipmentHeaderBar extends StatelessWidget {
                 Expanded(
                   child: Align(
                     alignment: AlignmentDirectional.centerStart,
-                    child: _title(context, toggle),
+                    child: _title(context, toggle, subtitleIndent),
                   ),
                 ),
                 ...actions,
@@ -96,7 +109,11 @@ class EquipmentHeaderBar extends StatelessWidget {
             // it sits where titles sit rather than centred like a control.
             _shell(
               context,
-              Row(children: [Flexible(child: _title(context, toggle))]),
+              Row(
+                children: [
+                  Flexible(child: _title(context, toggle, subtitleIndent)),
+                ],
+              ),
             ),
             if (actions.isNotEmpty) _shell(context, _actionRow(actions)),
           ],
@@ -105,13 +122,23 @@ class EquipmentHeaderBar extends StatelessWidget {
     );
   }
 
-  /// The toggle in the style every compact pane header gives its title.
-  Widget _title(BuildContext context, EquipmentHeaderToggleBuilder toggle) {
-    return DefaultTextStyle.merge(
-      style: Theme.of(
-        context,
-      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-      child: Builder(builder: toggle),
+  /// The toggle in the style every compact pane header gives its title, with
+  /// [subtitle] under it. The subtitle sits outside the merged title style so
+  /// it keeps its own, and starts [subtitleIndent] in, under the first name.
+  Widget _title(
+    BuildContext context,
+    EquipmentHeaderToggleBuilder toggle,
+    double subtitleIndent,
+  ) {
+    return TitleWithSubtitle(
+      title: DefaultTextStyle.merge(
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        child: Builder(builder: toggle),
+      ),
+      subtitle: subtitle,
+      subtitleIndent: subtitleIndent,
     );
   }
 

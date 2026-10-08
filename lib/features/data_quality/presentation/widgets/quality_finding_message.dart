@@ -4,13 +4,24 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 class QualityUnitFormatters {
   const QualityUnitFormatters({
     required this.depth,
+    required this.depthRate,
     required this.pressure,
     required this.temperature,
     required this.sac,
     required this.date,
     required this.dateTime,
+    required this.limitDepth,
+    required this.time,
   });
   final String Function(double meters) depth;
+
+  /// Formats a vertical rate given in m/min, including the rate unit.
+  final String Function(double metersPerMinute) depthRate;
+
+  /// Formats a limit depth such as a MOD, rounded DOWN so it never reads
+  /// deeper than the gas may be taken. Required, so no formatter set can
+  /// silently round a limit to nearest.
+  final String Function(double meters) limitDepth;
   final String Function(double bar) pressure;
   final String Function(double celsius) temperature;
 
@@ -28,6 +39,10 @@ class QualityUnitFormatters {
   /// as well as the day: repetitive dives share a date, and the findings that
   /// pair two of them are exactly the ones minutes apart.
   final String Function(DateTime dateTime) dateTime;
+
+  /// Formats a clock time alone in the diver's 12h/24h preference, for a
+  /// finding that already names the day (issue #2853).
+  final String Function(DateTime time) time;
 }
 
 class QualityFindingMessage {
@@ -50,6 +65,7 @@ String detectorTitle(AppLocalizations l10n, String detectorId) =>
       'tank_assignment' => l10n.dataQuality_detector_tank_assignment,
       'unknown_transmitter' => l10n.dataQuality_detector_unknown_transmitter,
       'source_conflict' => l10n.dataQuality_detector_source_conflict,
+      'shared_gear_overlap' => l10n.dataQuality_detector_shared_gear_overlap,
       _ => detectorId,
     };
 
@@ -117,7 +133,7 @@ QualityFindingMessage buildFindingMessage(
       }
     case 'impossible_rate':
       detail = l10n.dataQuality_msg_rate(
-        '${fmt.depth(d('maxRateMetersPerMinute'))}/min',
+        fmt.depthRate(d('maxRateMetersPerMinute')),
         i('durationSeconds'),
       );
     case 'temp_anomaly':
@@ -147,6 +163,12 @@ QualityFindingMessage buildFindingMessage(
           fmt.pressure(d('recordBar')),
           fmt.pressure(d('seriesBar')),
         );
+      } else if (p.containsKey('mixedSources')) {
+        detail = l10n.dataQuality_msg_pressureMixed;
+      } else if (p.containsKey('dropoutCount')) {
+        detail = l10n.dataQuality_msg_pressureDropout(
+          (p['dropoutCount'] as num?)?.toInt() ?? 1,
+        );
       } else if (p.containsKey('riseBar')) {
         detail = l10n.dataQuality_msg_pressureRise(fmt.pressure(d('riseBar')));
       } else {
@@ -162,7 +184,7 @@ QualityFindingMessage buildFindingMessage(
       } else if (p.containsKey('switchDepth')) {
         detail = l10n.dataQuality_msg_switchMod(
           fmt.depth(d('switchDepth')),
-          fmt.depth(d('modMeters')),
+          fmt.limitDepth(d('modMeters')),
         );
       } else {
         detail = l10n.dataQuality_msg_hypoxic('${d('o2Percent').round()}%');
@@ -191,8 +213,53 @@ QualityFindingMessage buildFindingMessage(
       } else {
         detail = l10n.dataQuality_msg_sourceTemp;
       }
+    case 'shared_gear_overlap':
+      detail = _sharedGearDetail(l10n, p, fmt);
     default:
       detail = '';
   }
   return QualityFindingMessage(title: title, detail: detail);
+}
+
+/// "{item} is on {diverA}'s dive at {timeA} and {diverB}'s dive at
+/// {timeB}." in the params' dive order (ascending dive id, so the same on
+/// every device), plus the installed parts (issue #2853). Entry times are
+/// UTC wall-clock instants, rebuilt with isUtc so they format as recorded.
+String _sharedGearDetail(
+  AppLocalizations l10n,
+  Map<String, Object?> p,
+  QualityUnitFormatters fmt,
+) {
+  final dives = p['dives'];
+  final sides = dives is Map
+      ? [
+          for (final s in dives.values)
+            if (s is Map) s,
+        ]
+      : const <Map>[];
+  if (sides.length != 2) return '';
+  String name(Map s) {
+    final n = s['diverName'];
+    return n is String && n.isNotEmpty ? n : l10n.sharedItems_ownerUnknown;
+  }
+
+  String time(Map s) => fmt.time(
+    DateTime.fromMillisecondsSinceEpoch(
+      (s['entryMs'] as num?)?.toInt() ?? 0,
+      isUtc: true,
+    ),
+  );
+
+  var detail = l10n.dataQuality_msg_shared_gear_overlap(
+    p['itemName'] as String? ?? '',
+    name(sides[0]),
+    time(sides[0]),
+    name(sides[1]),
+    time(sides[1]),
+  );
+  final parts = (p['partIds'] as List?)?.length ?? 0;
+  if (parts > 0) {
+    detail = '$detail ${l10n.dataQuality_msg_shared_gear_overlap_parts(parts)}';
+  }
+  return detail;
 }

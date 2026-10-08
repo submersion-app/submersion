@@ -253,4 +253,73 @@ void main() {
       expect(await repo.watchOpenCountForDives({'d1', 'dP'}).first, 1);
     },
   );
+
+  // A newer build can sync a finding whose category, severity or status this
+  // build does not know; the inbox must still load the rest (issue #2853).
+  group('rows this build cannot read', () {
+    Future<void> insertRow(String id, {String category = 'time'}) async {
+      await db
+          .into(db.qualityFindings)
+          .insert(
+            QualityFindingsCompanion.insert(
+              id: id,
+              diveId: 'd-unreadable',
+              detectorId: 'clock_offset',
+              detectorVersion: 1,
+              category: category,
+              severity: 'info',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+
+    setUp(() async {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'd-unreadable',
+              diveDateTime: 1,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await insertRow('readable');
+      await insertRow('from-the-future', category: 'gear');
+    });
+
+    test('getFindings skips them', () async {
+      final ids = (await repo.getFindings()).map((f) => f.id);
+      expect(ids, contains('readable'));
+      expect(ids, isNot(contains('from-the-future')));
+    });
+
+    test('watchFindings skips them', () async {
+      final ids = (await repo.watchFindings().first).map((f) => f.id);
+      expect(ids, contains('readable'));
+      expect(ids, isNot(contains('from-the-future')));
+    });
+
+    // The badge and the dive counts must match what the inbox lists.
+    test('the open counts skip them', () async {
+      await db
+          .into(db.qualityFindings)
+          .insert(
+            QualityFindingsCompanion.insert(
+              id: 'severity-from-the-future',
+              diveId: 'd-unreadable',
+              detectorId: 'clock_offset',
+              detectorVersion: 1,
+              category: 'time',
+              severity: 'fatal',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      expect(await repo.watchOpenCount().first, 1);
+      expect(await repo.watchOpenCountForDive('d-unreadable').first, 1);
+      expect(await repo.watchOpenCountForDives({'d-unreadable'}).first, 1);
+    });
+  });
 }

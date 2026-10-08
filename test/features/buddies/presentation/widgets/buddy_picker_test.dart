@@ -32,7 +32,7 @@ final _testBuddies = [
   Buddy(
     id: '2',
     name: 'Bob Jones',
-    certificationLevel: CertificationLevel.advancedOpenWater,
+    certificationLevel: CertificationLevel.advancedOpenWater.name,
     createdAt: _now,
     updatedAt: _now,
   ),
@@ -243,7 +243,7 @@ void main() {
     ) async {
       final selectedBuddy = BuddyWithRole(
         buddy: _testBuddies[0],
-        role: DiveRole.builtInBuddy(),
+        roles: [DiveRole.builtInBuddy()],
       );
 
       await tester.pumpWidget(
@@ -305,8 +305,10 @@ void main() {
       await tester.tap(find.text('Alice Smith'));
       await tester.pumpAndSettle();
 
-      // Select "Instructor" role
+      // Tick "Instructor" and confirm the role sheet
       await tester.tap(find.text('Instructor'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done').last);
       await tester.pumpAndSettle();
 
       // Alice should now be selected (check icon visible)
@@ -317,7 +319,7 @@ void main() {
       _useTallScreen(tester);
       final selectedBuddy = BuddyWithRole(
         buddy: _testBuddies[0],
-        role: DiveRole.builtInBuddy(),
+        roles: [DiveRole.builtInBuddy()],
       );
 
       await tester.pumpWidget(
@@ -497,6 +499,8 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Instructor'));
       await tester.pumpAndSettle();
+      await tester.tap(find.text('Done').last);
+      await tester.pumpAndSettle();
 
       // Tap "Done" -- it's the TextButton in the sheet header. The sheet
       // also has a sort-toggle TextButton (issue #638), so disambiguate by
@@ -511,7 +515,7 @@ void main() {
       expect(result, isNotNull);
       expect(result!.length, equals(1));
       expect(result![0].buddy.name, equals('Alice Smith'));
-      expect(result![0].role.id, equals(DiveRole.instructorId));
+      expect(result![0].primaryRole.id, equals(DiveRole.instructorId));
     });
   });
 

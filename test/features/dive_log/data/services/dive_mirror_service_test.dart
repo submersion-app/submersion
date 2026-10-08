@@ -62,6 +62,7 @@ void main() {
   Future<Dive> sourceDive({
     DiveSite? site,
     String? diverRoleId,
+    List<String>? diverRoleIds,
     List<BuddyWithRole>? members,
   }) async {
     final dive = await dives.createDive(
@@ -75,14 +76,16 @@ void main() {
         waterTemp: 18,
         notes: 'private',
         rating: 5,
-        diverRoleId: diverRoleId,
+        diverRoleIds: diverRoleIds ?? [?diverRoleId],
         diveNumber: 12,
       ),
     );
     await buddies.setBuddiesForDive(
       dive.id,
       members ??
-          [BuddyWithRole(buddy: chrisBuddy, role: DiveRole.builtInBuddy())],
+          [
+            BuddyWithRole(buddy: chrisBuddy, roles: [DiveRole.builtInBuddy()]),
+          ],
     );
     return dive;
   }
@@ -97,7 +100,9 @@ void main() {
   test('candidates ignores unlinked buddies', () async {
     final dave = await buddies.createBuddy(buddy(eric, 'Dave'));
     final dive = await sourceDive(
-      members: [BuddyWithRole(buddy: dave, role: DiveRole.builtInBuddy())],
+      members: [
+        BuddyWithRole(buddy: dave, roles: [DiveRole.builtInBuddy()]),
+      ],
     );
     expect(await service.candidates(dive.id), isEmpty);
   });
@@ -138,7 +143,7 @@ void main() {
     expect(siblingBuddies.single.buddy.linkedDiverId, eric);
     expect(siblingBuddies.single.buddy.diverId, chris);
     expect(siblingBuddies.single.buddy.name, 'Eric');
-    expect(siblingBuddies.single.role.id, DiveRole.buddyId);
+    expect(siblingBuddies.single.primaryRole.id, DiveRole.buddyId);
   });
 
   test('the target takes the role its buddy held on the source', () async {
@@ -146,7 +151,7 @@ void main() {
       members: [
         BuddyWithRole(
           buddy: chrisBuddy,
-          role: DiveRole.synthetic(DiveRole.instructorId),
+          roles: [DiveRole.synthetic(DiveRole.instructorId)],
         ),
       ],
     );
@@ -155,7 +160,38 @@ void main() {
       targetDiverIds: [chris],
     );
     final sibling = await dives.getDiveById(outcome.createdDiveIds.single);
-    expect(sibling?.diverRoleId, DiveRole.instructorId);
+    expect(sibling?.diverRoleIds.firstOrNull, DiveRole.instructorId);
+  });
+
+  test('the sibling carries every role on both sides (#1221)', () async {
+    final dive = await sourceDive(
+      diverRoleIds: const [DiveRole.diveMasterId, DiveRole.diveGuideId],
+      members: [
+        BuddyWithRole(
+          buddy: chrisBuddy,
+          roles: [
+            DiveRole.synthetic(DiveRole.instructorId),
+            DiveRole.synthetic(DiveRole.safetyDiverId),
+          ],
+        ),
+      ],
+    );
+    final outcome = await service.mirror(
+      sourceDiveId: dive.id,
+      targetDiverIds: [chris],
+    );
+    final siblingId = outcome.createdDiveIds.single;
+    final sibling = await dives.getDiveById(siblingId);
+    expect(sibling?.diverRoleIds, [
+      DiveRole.instructorId,
+      DiveRole.safetyDiverId,
+    ]);
+    final siblingBuddies = await buddies.getBuddiesForDive(siblingId);
+    expect(siblingBuddies.single.buddy.linkedDiverId, eric);
+    expect(siblingBuddies.single.roleIds, [
+      DiveRole.diveGuideId,
+      DiveRole.diveMasterId,
+    ]);
   });
 
   test(
@@ -166,8 +202,8 @@ void main() {
       );
       final dive = await sourceDive(
         members: [
-          BuddyWithRole(buddy: chrisBuddy, role: DiveRole.builtInBuddy()),
-          BuddyWithRole(buddy: dave, role: DiveRole.builtInBuddy()),
+          BuddyWithRole(buddy: chrisBuddy, roles: [DiveRole.builtInBuddy()]),
+          BuddyWithRole(buddy: dave, roles: [DiveRole.builtInBuddy()]),
         ],
       );
       final outcome = await service.mirror(
@@ -199,6 +235,24 @@ void main() {
     expect((await sites.getSiteById(site.id))?.isShared, isTrue);
     final sibling = await dives.getDiveById(outcome.createdDiveIds.single);
     expect(sibling?.site?.id, site.id);
+  });
+
+  test('another profile\'s private site is not shared by the mirror', () async {
+    // Ann made her site private after Eric logged a dive there: only Ann
+    // changes its sharing (issue #2594), so the sibling goes without it.
+    final ann = await diver('Ann');
+    final site = await sites.createSite(
+      DiveSite(id: '', name: 'Ann Reef', diverId: ann),
+    );
+    final dive = await sourceDive(site: site);
+    final outcome = await service.mirror(
+      sourceDiveId: dive.id,
+      targetDiverIds: [chris],
+    );
+    expect((await sites.getSiteById(site.id))?.isShared, isFalse);
+    expect(outcome.sharedSiteId, isNull);
+    final sibling = await dives.getDiveById(outcome.createdDiveIds.single);
+    expect(sibling?.site, isNull);
   });
 
   test(

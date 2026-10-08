@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
@@ -69,7 +70,7 @@ ActiveCourseProgress _course(String name, int total) => (
     id: 'c1',
     diverId: 'd1',
     name: name,
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     startDate: _t0,
     createdAt: _t0,
     updatedAt: _t0,
@@ -98,7 +99,8 @@ ProviderContainer makeContainer({
   Diver? diver,
   NoFlyStatus? noFly,
   int? daysSinceLastDive,
-  int certCount = 0,
+  CurrencyAttention certCurrency = CurrencyAttention.none,
+  bool currencyFails = false,
   List<Trip> trips = const [],
   PreDiveSession? activeSession,
   List<ActiveCourseProgress> courses = const [],
@@ -115,7 +117,15 @@ ProviderContainer makeContainer({
       currentDiverProvider.overrideWith((ref) async => diver),
       noFlyStatusProvider.overrideWith((ref) async => noFly),
       daysSinceLastDiveProvider.overrideWith((ref) async => daysSinceLastDive),
-      expiringCertificationCountProvider.overrideWith((ref) async => certCount),
+      if (currencyFails) ...[
+        // The real attention provider over inputs that throw: the gauges
+        // must still resolve, with the currency chip empty.
+        allCertificationsProvider.overrideWith((ref) async => const []),
+        currencyRulesProvider.overrideWith(
+          (ref) async => throw StateError('corrupt catalog'),
+        ),
+      ] else
+        currencyAttentionProvider.overrideWith((ref) async => certCurrency),
       allTripsProvider.overrideWith((ref) async => trips),
       preDiveActiveSessionProvider.overrideWith((ref) async => activeSession),
       activeCoursesProgressProvider.overrideWith((ref) async => courses),
@@ -136,6 +146,14 @@ ProviderContainer makeContainer({
 }
 
 void main() {
+  test('a currency failure leaves the strip standing', () async {
+    final container = makeContainer(daysSinceLastDive: 12, currencyFails: true);
+    final gauges = await container.read(dashboardGaugesProvider.future);
+    expect(gauges.daysSinceLastDive, 12);
+    expect(gauges.hasGear, isFalse);
+    expect(gauges.certCurrency.count, 0);
+  });
+
   group('nextUpcomingTrip', () {
     final now = DateTime(2026, 7, 24);
 
@@ -190,7 +208,7 @@ void main() {
           updatedAt: _t0,
         ),
         daysSinceLastDive: 12,
-        certCount: 2,
+        certCurrency: const CurrencyAttention(count: 2),
         trips: [_trip('Bonaire', DateTime.now().add(const Duration(days: 12)))],
         courses: [_course('AN/DP', 12)],
         uploads: 3,
@@ -217,7 +235,7 @@ void main() {
       expect(gauges.gearOverdue?.worst.itemName, 'Regulator');
       expect(gauges.insurance?.provider, 'DAN');
       expect(gauges.daysSinceLastDive, 12);
-      expect(gauges.expiringCertCount, 2);
+      expect(gauges.certCurrency.count, 2);
       expect(gauges.nextTrip?.name, 'Bonaire');
       expect(gauges.firstCourse?.course.name, 'AN/DP');
       expect(gauges.uploadsPending, 3);

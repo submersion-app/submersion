@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -26,7 +27,7 @@ class GpsRecordingStrip extends ConsumerWidget {
     return Material(
       color: colorScheme.errorContainer,
       child: InkWell(
-        onTap: () => context.go('/gps-log'),
+        onTap: () => context.go(kTracksLocation),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(

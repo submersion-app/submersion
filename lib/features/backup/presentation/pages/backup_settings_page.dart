@@ -11,6 +11,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
@@ -18,10 +19,12 @@ import 'package:submersion/features/backup/presentation/providers/backup_provide
 import 'package:submersion/features/backup/presentation/widgets/backup_encryption_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
 import 'package:submersion/features/backup/presentation/widgets/export_bottom_sheet.dart';
+import 'package:submersion/features/backup/presentation/widgets/quarantined_databases_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_passphrase_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 import 'package:path/path.dart' as p;
 
 class BackupSettingsPage extends ConsumerWidget {
@@ -78,6 +81,9 @@ class BackupSettingsPage extends ConsumerWidget {
           // Backup encryption section (issue #580)
           const BackupEncryptionSection(),
           const Divider(),
+          // Database copies a restore set aside (issue #1923); renders nothing
+          // when there are none.
+          const QuarantinedDatabasesSection(),
           // History section
           _buildHistorySection(context, ref, historyAsync),
         ],
@@ -175,6 +181,49 @@ class BackupSettingsPage extends ConsumerWidget {
   // ===========================================================================
   // Export Handler
   // ===========================================================================
+
+  /// Lets the diver pick a backup folder in the form each platform can keep
+  /// writing to across launches.
+  Future<void> _pickLocation(BuildContext context, WidgetRef ref) async {
+    final BackupFolderPick? picked;
+    if (Platform.isIOS) {
+      // iOS: capture a security-scoped bookmark directly. A bare file_picker
+      // path would lose its scope on the next launch.
+      picked = await BackupBookmarkService.pickFolder();
+    } else if (Platform.isAndroid) {
+      // Android: pick a SAF tree (content:// URI). A file_picker path is
+      // unwritable under scoped storage, so persist the URI + its display
+      // name and skip the bookmark flow entirely. Native + platform-gated,
+      // so the branch body is excluded from coverage; setSafBackupLocation
+      // itself is unit-tested separately.
+      // coverage:ignore-start
+      final folder = await SubmersionSaf.pickFolder();
+      if (folder != null) {
+        await ref
+            .read(backupSettingsProvider.notifier)
+            .setSafBackupLocation(folder.uri, folder.displayName);
+      }
+      return;
+      // coverage:ignore-end
+    } else {
+      final path = await FilePicker.getDirectoryPath(
+        dialogTitle: context.l10n.backup_location_title,
+      );
+      picked = path == null
+          ? null
+          : BackupFolderPick(
+              path: path,
+              bookmark: BackupBookmarkService.isSupported
+                  ? await BackupBookmarkService.createBookmark(path)
+                  : null,
+            );
+    }
+    if (picked != null) {
+      await ref
+          .read(backupSettingsProvider.notifier)
+          .setBackupLocationWithBookmark(picked.path, picked.bookmark);
+    }
+  }
 
   void _handleExport(BuildContext context, WidgetRef ref) {
     final encrypted = ref.read(backupSettingsProvider).backupEncryptionEnabled;
@@ -524,7 +573,7 @@ class BackupSettingsPage extends ConsumerWidget {
         if (settings.enabled)
           ListTile(
             title: Text(context.l10n.backup_schedule_retention),
-            subtitle: Text(context.l10n.backup_schedule_retention_subtitle),
+            subtitle: _buildRetentionSubtitle(context, ref),
             trailing: DropdownButton<int>(
               value: settings.retentionCount,
               underline: const SizedBox(),
@@ -544,60 +593,25 @@ class BackupSettingsPage extends ConsumerWidget {
         // Cloud backup switch it is mutually exclusive with.
         ListTile(
           title: Text(context.l10n.backup_location_title),
-          subtitle: Text(
-            cloudDestination ??
-                ref.read(backupSettingsProvider.notifier).locationLabel ??
-                settings.backupLocation ??
-                context.l10n.backup_location_default,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          subtitle: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                cloudDestination ??
+                    ref.read(backupSettingsProvider.notifier).locationLabel ??
+                    settings.backupLocation ??
+                    context.l10n.backup_location_default,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              TileSubtitleAction(
+                onPressed: () => _pickLocation(context, ref),
+                label: context.l10n.backup_location_change,
+              ),
+            ],
           ),
-          trailing: TextButton(
-            onPressed: () async {
-              final BackupFolderPick? picked;
-              if (Platform.isIOS) {
-                // iOS: capture a security-scoped bookmark directly -- a bare
-                // file_picker path would lose its scope on the next launch.
-                picked = await BackupBookmarkService.pickFolder();
-              } else if (Platform.isAndroid) {
-                // Android: pick a SAF tree (content:// URI). A file_picker path
-                // is unwritable under scoped storage, so persist the URI + its
-                // display name and skip the bookmark flow entirely. Native +
-                // platform-gated, so the branch body is excluded from coverage;
-                // setSafBackupLocation itself is unit-tested separately.
-                // coverage:ignore-start
-                final folder = await SubmersionSaf.pickFolder();
-                if (folder != null) {
-                  await ref
-                      .read(backupSettingsProvider.notifier)
-                      .setSafBackupLocation(folder.uri, folder.displayName);
-                }
-                return;
-                // coverage:ignore-end
-              } else {
-                final path = await FilePicker.getDirectoryPath(
-                  dialogTitle: context.l10n.backup_location_title,
-                );
-                picked = path == null
-                    ? null
-                    : BackupFolderPick(
-                        path: path,
-                        bookmark: BackupBookmarkService.isSupported
-                            ? await BackupBookmarkService.createBookmark(path)
-                            : null,
-                      );
-              }
-              if (picked != null) {
-                await ref
-                    .read(backupSettingsProvider.notifier)
-                    .setBackupLocationWithBookmark(
-                      picked.path,
-                      picked.bookmark,
-                    );
-              }
-            },
-            child: Text(context.l10n.backup_location_change),
-          ),
+          isThreeLine: true,
         ),
         // Cloud sync
         if (cloudProvider != null)
@@ -626,6 +640,30 @@ class BackupSettingsPage extends ConsumerWidget {
               label: Text(context.l10n.backup_backupNow),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  /// The retention explanation plus what the retained backups cost, so the
+  /// count is chosen knowing that every backup is a full copy of the database
+  /// (issue #1376).
+  Widget _buildRetentionSubtitle(BuildContext context, WidgetRef ref) {
+    final history = ref.watch(backupHistoryProvider).value;
+    final explanation = Text(context.l10n.backup_schedule_retention_subtitle);
+    if (history == null || history.isEmpty) return explanation;
+    final bytes = history.fold<int>(0, (sum, r) => sum + r.sizeBytes);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        explanation,
+        Text(
+          context.l10n.backup_schedule_retention_footprint(
+            history.length,
+            formatBytes(bytes),
+          ),
+          key: const ValueKey('backup_retention_footprint'),
         ),
       ],
     );

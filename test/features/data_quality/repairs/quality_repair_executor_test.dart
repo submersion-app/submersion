@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_rep
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 
+import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/test_database.dart';
 
 void main() {
@@ -28,7 +29,7 @@ void main() {
     executor = QualityRepairExecutor();
   });
   tearDown(() {
-    QualityScanScheduler.enabled = true;
+    applyGlobalTestDefaults();
     return tearDownTestDatabase();
   });
 
@@ -896,6 +897,105 @@ void main() {
         throwsArgumentError,
       );
       expect(await diveRepo.getDiveById('dB'), isNotNull);
+    });
+  });
+
+  group('removeGearFromDive (issue #2853)', () {
+    Future<void> seedDiveWithGear(String diveId) async {
+      final db = DatabaseService.instance.database;
+      final entry = DateTime.utc(2026, 7, 1, 10);
+      await diveRepo.createDive(
+        domain.Dive(id: diveId, dateTime: entry, entryTime: entry),
+      );
+      for (final id in ['light', 'reg', 'hose']) {
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: id,
+                name: id,
+                type: 'other',
+                createdAt: 1,
+                updatedAt: 1,
+              ),
+            );
+      }
+      for (final (item, via) in [
+        ('light', null),
+        ('reg', null),
+        ('hose', 'reg'),
+      ]) {
+        await db
+            .into(db.diveEquipment)
+            .insert(
+              DiveEquipmentCompanion.insert(
+                diveId: diveId,
+                equipmentId: item,
+                viaEquipmentId: Value(via),
+              ),
+            );
+      }
+    }
+
+    Future<Set<(String, String?)>> gearOf(String diveId) async {
+      final db = DatabaseService.instance.database;
+      return {
+        for (final r in await (db.select(
+          db.diveEquipment,
+        )..where((t) => t.diveId.equals(diveId))).get())
+          (r.equipmentId, r.viaEquipmentId),
+      };
+    }
+
+    test(
+      'removes the item and its subtree, resolves, and undo restores',
+      () async {
+        await seedDiveWithGear('d1');
+        final finding = await seedFindingForDive('d1');
+        final result = await executor.removeGearFromDive(
+          diveId: 'd1',
+          otherDiveId: 'd2',
+          equipmentIds: ['reg'],
+          findingId: finding.id,
+        );
+        expect(result.changed, isTrue);
+        expect(await gearOf('d1'), {('light', null)});
+        final after = await findingsRepo.getFindings(diveId: 'd1');
+        expect(after.single.status, QualityStatus.resolved);
+
+        await result.undo!();
+        expect(await gearOf('d1'), {
+          ('light', null),
+          ('reg', null),
+          ('hose', 'reg'),
+        });
+      },
+    );
+
+    test('removes every listed item that is on the dive', () async {
+      await seedDiveWithGear('d1');
+      final finding = await seedFindingForDive('d1');
+      final result = await executor.removeGearFromDive(
+        diveId: 'd1',
+        otherDiveId: 'd2',
+        equipmentIds: ['light', 'hose', 'gone'],
+        findingId: finding.id,
+      );
+      expect(result.changed, isTrue);
+      expect(await gearOf('d1'), {('reg', null)});
+    });
+
+    test('an item already gone changes nothing', () async {
+      await seedDiveWithGear('d1');
+      final finding = await seedFindingForDive('d1');
+      final result = await executor.removeGearFromDive(
+        diveId: 'd1',
+        otherDiveId: 'd2',
+        equipmentIds: ['mask'],
+        findingId: finding.id,
+      );
+      expect(result.changed, isFalse);
+      expect(await gearOf('d1'), hasLength(3));
     });
   });
 }

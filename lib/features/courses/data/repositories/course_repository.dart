@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -112,12 +111,12 @@ class CourseRepository {
 
   /// Get courses by agency
   Future<List<domain.Course>> getCoursesByAgency(
-    CertificationAgency agency, {
+    String agencyId, {
     String? diverId,
   }) async {
     try {
       final query = _db.select(_db.courses)
-        ..where((t) => t.agency.equals(agency.name))
+        ..where((t) => t.agency.equals(agencyId))
         ..orderBy([(t) => OrderingTerm.desc(t.startDate)]);
 
       if (diverId != null) {
@@ -128,7 +127,7 @@ class CourseRepository {
       return rows.map(_mapRowToCourse).toList();
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get courses by agency: ${agency.name}',
+        'Failed to get courses by agency: $agencyId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -266,7 +265,7 @@ class CourseRepository {
               id: Value(id),
               diverId: Value(course.diverId),
               name: Value(course.name),
-              agency: Value(course.agency.name),
+              agency: Value(course.agency),
               startDate: Value(course.startDate.millisecondsSinceEpoch),
               completionDate: Value(
                 course.completionDate?.millisecondsSinceEpoch,
@@ -313,7 +312,7 @@ class CourseRepository {
           )..where((t) => t.id.equals(course.id))).write(
             CoursesCompanion(
               name: Value(course.name),
-              agency: Value(course.agency.name),
+              agency: Value(course.agency),
               startDate: Value(course.startDate.millisecondsSinceEpoch),
               completionDate: Value(
                 course.completionDate?.millisecondsSinceEpoch,
@@ -522,7 +521,7 @@ class CourseRepository {
       id: row.id,
       diverId: row.diverId,
       name: row.name,
-      agency: _parseCertificationAgency(row.agency),
+      agency: row.agency,
       startDate: DateTime.fromMillisecondsSinceEpoch(row.startDate),
       completionDate: _parseDateTime(row.completionDate),
       instructorId: row.instructorId,
@@ -541,7 +540,7 @@ class CourseRepository {
       id: row.data['id'] as String,
       diverId: row.data['diver_id'] as String,
       name: row.data['name'] as String,
-      agency: _parseCertificationAgency(row.data['agency'] as String),
+      agency: row.data['agency'] as String,
       startDate: DateTime.fromMillisecondsSinceEpoch(
         row.data['start_date'] as int,
       ),
@@ -565,12 +564,5 @@ class CourseRepository {
     return timestamp != null
         ? DateTime.fromMillisecondsSinceEpoch(timestamp)
         : null;
-  }
-
-  CertificationAgency _parseCertificationAgency(String value) {
-    return CertificationAgency.values.firstWhere(
-      (a) => a.name == value,
-      orElse: () => CertificationAgency.other,
-    );
   }
 }

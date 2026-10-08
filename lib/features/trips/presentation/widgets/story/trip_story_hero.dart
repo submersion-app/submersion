@@ -3,10 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
-import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Story header: trip identity plus mode-specific extras (countdown and
@@ -16,14 +13,27 @@ class TripStoryHero extends ConsumerWidget {
   final TripStory story;
   final VoidCallback? onScanForDives;
 
-  const TripStoryHero({super.key, required this.story, this.onScanForDives});
+  /// The Prepare overview (#2845) has its own rows under the hero, so it
+  /// turns the empty state off.
+  final bool showEmptyState;
+
+  /// The Prepare overview's summary card has a Checklist row with the same
+  /// progress, so it turns the checklist card off (#2881).
+  final bool showChecklist;
+
+  const TripStoryHero({
+    super.key,
+    required this.story,
+    this.onScanForDives,
+    this.showEmptyState = true,
+    this.showChecklist = true,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trip = story.trip;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
-    final hasItinerary = story.days.any((d) => d.itineraryDay != null);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,19 +86,11 @@ class TripStoryHero extends ConsumerWidget {
             ),
           ),
         ],
-        if (trip.isUpcoming && !story.checklist.isEmpty) ...[
+        if (showChecklist && trip.isUpcoming && !story.checklist.isEmpty) ...[
           const SizedBox(height: 12),
           _ChecklistCard(story: story),
         ],
-        // Only liveaboards get itinerary generation: generateForTrip emits
-        // embark/disembark day types, and only the liveaboard layout exposes an
-        // itinerary editor, so a shore/resort trip could otherwise mint
-        // maritime days it can never edit.
-        if (trip.isLiveaboard && trip.isUpcoming && !hasItinerary) ...[
-          const SizedBox(height: 8),
-          _GenerateItineraryButton(story: story),
-        ],
-        if (story.isEmpty) ...[
+        if (showEmptyState && story.isEmpty) ...[
           const SizedBox(height: 16),
           _EmptyState(onScanForDives: onScanForDives),
         ],
@@ -163,67 +165,6 @@ class _ChecklistCard extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _GenerateItineraryButton extends ConsumerStatefulWidget {
-  final TripStory story;
-
-  const _GenerateItineraryButton({required this.story});
-
-  @override
-  ConsumerState<_GenerateItineraryButton> createState() =>
-      _GenerateItineraryButtonState();
-}
-
-class _GenerateItineraryButtonState
-    extends ConsumerState<_GenerateItineraryButton> {
-  bool _saving = false;
-
-  Future<void> _generate() async {
-    // Guard against a second tap while the first save is in flight: the
-    // itinerary table has no (trip_id, day_number) uniqueness constraint, so a
-    // double tap would insert two full batches and duplicate every chapter.
-    if (_saving) return;
-    setState(() => _saving = true);
-    final trip = widget.story.trip;
-    try {
-      final days = ItineraryDay.generateForTrip(
-        tripId: trip.id,
-        startDate: trip.startDate,
-        endDate: trip.endDate,
-      );
-      await ref.read(itineraryDayRepositoryProvider).saveAll(days);
-      ref.invalidate(itineraryDaysProvider(trip.id));
-      ref.invalidate(tripStoryProvider(trip.id));
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.l10n.trips_story_generateItineraryError('$e'),
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      icon: _saving
-          ? const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Icon(Icons.event_note, size: 18),
-      label: Text(context.l10n.trips_story_generateItinerary),
-      onPressed: _saving ? null : _generate,
     );
   }
 }

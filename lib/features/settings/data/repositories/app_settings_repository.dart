@@ -6,6 +6,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
@@ -23,6 +24,7 @@ class AppSettingsRepository {
   static const _navAlwaysHideLabelsKey = 'nav_always_hide_labels';
   static const _blenderPrefsKey = 'gas_blender_prefs';
   static const _equipmentArrangementKey = 'equipment_arrangement';
+  static const _equipmentGroupByLocationKey = 'equipment_group_by_location';
 
   /// Emits whenever the `settings` table changes so providers holding a
   /// setting refresh after a sync applies a remote change.
@@ -78,6 +80,18 @@ class AppSettingsRepository {
   Future<void> setNavAlwaysHideLabels(bool value) =>
       setRawSetting(_navAlwaysHideLabelsKey, value ? 'true' : 'false');
 
+  /// Whether the Equipment page groups its list under one heading per
+  /// location (v268). The Equipment page's own switch: the shared gear
+  /// arrangement, which the dive surfaces also read, is untouched. False
+  /// when unset or on a read error.
+  Future<bool> getEquipmentGroupByLocation() async =>
+      await getRawSetting(_equipmentGroupByLocationKey) == 'true';
+
+  /// Persists the group-by-location switch. Rethrows so a failed save is
+  /// visible.
+  Future<void> setEquipmentGroupByLocation(bool value) =>
+      setRawSetting(_equipmentGroupByLocationKey, value ? 'true' : 'false');
+
   /// Reads a JSON-encoded list of strings, returning `null` when unset, when
   /// the stored value is not a JSON list, or on read error.
   Future<List<String>?> _getIdListRaw(String key) async {
@@ -97,7 +111,8 @@ class AppSettingsRepository {
     }
   }
 
-  /// Writes a JSON-encoded list of strings and marks it pending for sync.
+  /// Writes a JSON-encoded list of strings and, unless the key is
+  /// device-local, marks it pending for sync.
   ///
   /// Rethrows so a failed save is visible to the caller, which rolls the UI
   /// back rather than leaving the user believing a layout was stored.
@@ -113,6 +128,9 @@ class AppSettingsRepository {
               updatedAt: Value(now),
             ),
           );
+      // A device-local key never syncs (issue #2947); queuing it would only
+      // publish a changeset that carries nothing.
+      if (deviceLocalSettingsKeys.contains(key)) return;
       await _syncRepository.markRecordPending(
         entityType: 'settings',
         recordId: key,
@@ -327,7 +345,8 @@ class AppSettingsRepository {
     }
   }
 
-  /// Writes [value] under [key] and stages the row for sync.
+  /// Writes [value] under [key] and, unless the key is device-local
+  /// ([deviceLocalSettingsKeys]), stages the row for sync.
   ///
   /// Writes rethrow (unlike reads) so a caller can tell the user their change
   /// did not take.
@@ -343,6 +362,9 @@ class AppSettingsRepository {
               updatedAt: Value(now),
             ),
           );
+      // A device-local key never syncs (issue #2947); queuing it would only
+      // publish a changeset that carries nothing.
+      if (deviceLocalSettingsKeys.contains(key)) return;
       await _syncRepository.markRecordPending(
         entityType: 'settings',
         recordId: key,

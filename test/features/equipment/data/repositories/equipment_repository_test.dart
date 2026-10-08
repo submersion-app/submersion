@@ -459,6 +459,120 @@ void main() {
       });
     });
 
+    group('wanted gear (#2025)', () {
+      Future<EquipmentItem> wanted(String name, {bool isActive = false}) =>
+          repository.createEquipment(
+            createTestEquipment(
+              name: name,
+              status: EquipmentStatus.wanted,
+              isActive: isActive,
+            ),
+          );
+
+      test('is not active gear, even with isActive left true', () async {
+        await repository.createEquipment(createTestEquipment(name: 'Owned'));
+        await wanted('Wishlist Wing');
+        await wanted('Odd Row', isActive: true);
+
+        expect((await repository.getActiveEquipment()).map((e) => e.name), [
+          'Owned',
+        ]);
+      });
+
+      test('is not retired gear', () async {
+        await repository.createEquipment(
+          createTestEquipment(name: 'Retired Reg', isActive: false),
+        );
+        await wanted('Wishlist Wing');
+
+        expect((await repository.getRetiredEquipment()).map((e) => e.name), [
+          'Retired Reg',
+        ]);
+        expect(
+          (await repository.getEquipmentByStatus(
+            EquipmentStatus.retired,
+          )).map((e) => e.name),
+          ['Retired Reg'],
+        );
+      });
+
+      test('is listed under its own status', () async {
+        await repository.createEquipment(createTestEquipment(name: 'Owned'));
+        await wanted('Wishlist Wing');
+
+        expect(
+          (await repository.getEquipmentByStatus(
+            EquipmentStatus.wanted,
+          )).map((e) => e.name),
+          ['Wishlist Wing'],
+        );
+      });
+
+      test('reactivate leaves a wanted row alone', () async {
+        final item = await wanted('Wishlist Wing');
+
+        await repository.reactivateEquipment(item.id);
+
+        final stored = await repository.getEquipmentById(item.id);
+        expect(stored!.status, EquipmentStatus.wanted);
+        expect(stored.isActive, isFalse);
+      });
+
+      test('mark as purchased makes it active and dates it today', () async {
+        final item = await wanted('Wishlist Wing');
+
+        await repository.markEquipmentPurchased(
+          item.id,
+          today: DateTime(2026, 10, 5, 14, 30),
+        );
+
+        final stored = await repository.getEquipmentById(item.id);
+        expect(stored!.status, EquipmentStatus.active);
+        expect(stored.isActive, isTrue);
+        expect(stored.purchaseDate, DateTime(2026, 10, 5));
+        expect((await repository.getActiveEquipment()).map((e) => e.name), [
+          'Wishlist Wing',
+        ]);
+      });
+
+      test('mark as purchased keeps a date entered on the wishlist', () async {
+        final item = await repository.createEquipment(
+          createTestEquipment(
+            name: 'Planned Reg',
+            status: EquipmentStatus.wanted,
+            isActive: false,
+            purchaseDate: DateTime(2026, 12, 24),
+            purchasePrice: 899,
+          ),
+        );
+
+        await repository.markEquipmentPurchased(
+          item.id,
+          today: DateTime(2026, 10, 5),
+        );
+
+        final stored = await repository.getEquipmentById(item.id);
+        expect(stored!.purchaseDate, DateTime(2026, 12, 24));
+        expect(stored.purchasePrice, 899);
+      });
+
+      test('mark as purchased ignores gear that is not wanted', () async {
+        final item = await repository.createEquipment(
+          createTestEquipment(
+            name: 'Sold Reg',
+            status: EquipmentStatus.sold,
+            isActive: false,
+          ),
+        );
+
+        await repository.markEquipmentPurchased(item.id);
+
+        final stored = await repository.getEquipmentById(item.id);
+        expect(stored!.status, EquipmentStatus.sold);
+        expect(stored.isActive, isFalse);
+      });
+    });
+
     group('getRetiredEquipment', () {
       test('should return only retired equipment', () async {
         await repository.createEquipment(

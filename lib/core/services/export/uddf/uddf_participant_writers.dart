@@ -3,28 +3,30 @@ import 'package:xml/xml.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Participant elements shared by the full backup and the dives-only
 /// export, so the two paths write people the same way.
 ///
-/// A participant is one `dive_buddies` row: a person and their role on the
-/// dive. Leaders ([DiveRole.leaderIds]) go into the `<divemaster>` text,
-/// every other role except solo is written inline as a plain `<buddy>`,
-/// and every row is linked to its `<buddy id>` declaration. The exact role
-/// rides in the private `<buddyroles>` block that
-/// `UddfExportBuilders.buildApplicationData` writes.
+/// A participant is one `dive_buddies` row: a person and their roles on the
+/// dive. Anyone holding a leader role ([DiveRole.leaderIds]) goes into the
+/// `<divemaster>` text, everyone else except solo is written inline as a
+/// plain `<buddy>`, and every row is linked to its `<buddy id>`
+/// declaration. The exact roles ride in the private `<buddyroles>` block
+/// that `UddfExportBuilders.buildApplicationData` writes.
 abstract final class UddfParticipantWriters {
-  /// The rows whose role leads the dive, in row order.
+  /// The rows holding any role that leads the dive, in row order: a person
+  /// who is both buddy and divemaster is a leader (issue #1221).
   static List<BuddyWithRole> leaders(List<BuddyWithRole> rows) => [
     for (final row in rows)
-      if (DiveRole.leaderIds.contains(row.role.id)) row,
+      if (row.roleIds.any(DiveRole.leaderIds.contains)) row,
   ];
 
-  /// The rows written inline as plain buddies: neither a leader nor solo.
+  /// The rows written inline as plain buddies: no leader role and not solo.
   static List<BuddyWithRole> plainBuddies(List<BuddyWithRole> rows) => [
     for (final row in rows)
-      if (!DiveRole.leaderIds.contains(row.role.id) &&
-          row.role.id != DiveRole.soloId)
+      if (!row.roleIds.any(DiveRole.leaderIds.contains) &&
+          !row.roleIds.contains(DiveRole.soloId))
         row,
   ];
 
@@ -36,7 +38,10 @@ abstract final class UddfParticipantWriters {
     XmlBuilder builder,
     Iterable<Buddy> people, {
     bool trimmed = false,
+    CertificationCatalog? certificationCatalog,
   }) {
+    // Custom agencies and levels export by name (issue #690).
+    final catalog = certificationCatalog ?? CertificationCatalog.builtInOnly;
     for (final buddy in people) {
       builder.element(
         'buddy',
@@ -62,13 +67,13 @@ abstract final class UddfParticipantWriters {
                 if (buddy.certificationLevel != null) {
                   builder.element(
                     'level',
-                    nest: buddy.certificationLevel!.name,
+                    nest: catalog.levelExportText(buddy.certificationLevel!),
                   );
                 }
                 if (buddy.certificationAgency != null) {
                   builder.element(
                     'agency',
-                    nest: buddy.certificationAgency!.name,
+                    nest: catalog.agencyExportText(buddy.certificationAgency!),
                   );
                 }
               },

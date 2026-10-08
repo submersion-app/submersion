@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -10,9 +12,15 @@ import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/certifications/presentation/providers/certification_currency_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_import/data/services/additional_computer_writer.dart';
+import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -29,10 +37,12 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
@@ -49,6 +59,7 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/batch_source_files.dart';
+import 'package:submersion/features/import_wizard/data/adapters/file_source_details.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_number_conflict_notice.dart';
 import 'package:submersion/features/import_wizard/data/adapters/diver_slice_review.dart';
 import 'package:submersion/features/import_wizard/data/adapters/existing_import_records.dart';
@@ -57,6 +68,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/universal_import/data/services/diver_slice_duplicates.dart';
 import 'package:submersion/features/universal_import/data/services/payload_slicer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
+import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_photo_linker.dart';
 import 'package:submersion/features/import_wizard/data/adapters/resolved_photo_attachment.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -129,7 +141,8 @@ bool _hasBundledPhotos(Map<String, List<String>> byBaseName) =>
     byBaseName.values.any((paths) => paths.isNotEmpty);
 
 /// True when the import carries no photos at all: the parsed payload
-/// references none and no imported archive bundled any.
+/// references none, no imported archive bundled any, and no remote source
+/// listed any.
 ///
 /// Used as the Photos step's auto-advance condition, so the step is invisible
 /// for every import that has nothing to ask about.
@@ -140,8 +153,11 @@ final universalAdapterNoPhotosProvider = Provider<bool>((ref) {
   final bundled = ref.watch(
     universalImportNotifierProvider.select((s) => s.photoPathsByBaseName),
   );
+  final remote = ref.watch(
+    universalImportNotifierProvider.select((s) => s.remotePhotoCount),
+  );
   final referenced = payload?.entitiesOf(ui.ImportEntityType.media) ?? const [];
-  return referenced.isEmpty && !_hasBundledPhotos(bundled);
+  return referenced.isEmpty && !_hasBundledPhotos(bundled) && remote == 0;
 });
 
 /// True when the Photos step has nothing left to ask.
@@ -158,9 +174,12 @@ final universalAdapterPhotosReadyProvider = Provider<bool>((ref) {
   final referenced =
       state.payload?.entitiesOf(ui.ImportEntityType.media) ?? const [];
   final referencedReady = referenced.isEmpty || state.photoResolution != null;
+  // Remote photos are written into the same chosen folder as bundled ones.
+  final needsDestination =
+      _hasBundledPhotos(state.photoPathsByBaseName) ||
+      state.remotePhotoCount > 0;
   final bundledReady =
-      !_hasBundledPhotos(state.photoPathsByBaseName) ||
-      state.bundledPhotoFolderPath != null;
+      !needsDestination || state.bundledPhotoFolderPath != null;
   return referencedReady && bundledReady;
 });
 
@@ -205,6 +224,10 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   final WidgetRef _ref;
   final String _displayName;
+
+  /// The ref this adapter reads providers through, for subclasses.
+  @protected
+  WidgetRef get widgetRef => _ref;
 
   bool get hasPreloadedState {
     final state = _ref.read(universalImportNotifierProvider);
@@ -262,9 +285,16 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// channel the importer understands. Offering it on the buddies/equipment/
   /// trips tabs would let the user mark a duplicate "decided" and then have it
   /// silently dropped, so those tabs get the base set without it.
+  ///
+  /// A fill already here or deleted here can only be skipped: its id is its
+  /// identity and CsvFillImporter never stores a fill twice, so any other
+  /// choice would be dropped the same way (cylinder passports phase 5).
   @override
   Set<DuplicateAction> duplicateActionsFor(wizard.ImportEntityType type) {
     if (type == wizard.ImportEntityType.sites) return supportedDuplicateActions;
+    if (type == wizard.ImportEntityType.fills) {
+      return const {DuplicateAction.skip};
+    }
     return supportedDuplicateActions.difference(const {
       DuplicateAction.replaceSource,
     });
@@ -304,6 +334,14 @@ class UniversalAdapter implements ImportSourceAdapter {
         await _seedDiverMapping();
       },
     ),
+    ...payloadSteps,
+  ];
+
+  /// The steps that act on a payload once it exists, whatever produced it.
+  /// A subclass that fetches its payload rather than parsing a file keeps
+  /// these after its own acquisition steps.
+  @protected
+  List<WizardStepDef> get payloadSteps => [
     WizardStepDef(
       label: 'Divers',
       icon: Icons.people_outline,
@@ -336,6 +374,36 @@ class UniversalAdapter implements ImportSourceAdapter {
       hiddenWhen: universalAdapterNoPhotosProvider,
     ),
   ];
+
+  /// Attaches photos this source brings that neither the archive-bundled nor
+  /// the path-referenced flow covers. Runs after both, with the same dive
+  /// targets, and only when the user chose a destination folder.
+  ///
+  /// Returns what was attached and what failed; a failure is reported in the
+  /// summary and never fails the import. File imports have none.
+  @protected
+  Future<RemotePhotoOutcome> attachAdditionalPhotos({
+    required Map<int, String> photoDiveIds,
+    required Set<String> removedDiveIds,
+    required Map<String, DateTime> diveStartById,
+    required List<Map<String, dynamic>> dives,
+    required String destinationDir,
+    ImportCancellationToken? cancelToken,
+  }) async => (attached: 0, failed: 0);
+
+  @visibleForTesting
+  List<String> get debugPayloadStepLabels =>
+      payloadSteps.map((s) => s.label).toList();
+
+  @visibleForTesting
+  Future<RemotePhotoOutcome> debugAttachAdditionalPhotos() =>
+      attachAdditionalPhotos(
+        photoDiveIds: const {},
+        removedDiveIds: const {},
+        diveStartById: const {},
+        dives: const [],
+        destinationDir: '',
+      );
 
   /// Seeds the Divers step's defaults (issue #1893). Runs as Map Fields is
   /// left, which the wizard does even when it auto-skips that step, after
@@ -441,12 +509,19 @@ class UniversalAdapter implements ImportSourceAdapter {
       payload.entitiesOf(ui.ImportEntityType.media),
       _mediaToEntityItem,
     );
+    _addGroupIfNotEmpty(
+      groups,
+      wizard.ImportEntityType.fills,
+      payload.entitiesOf(ui.ImportEntityType.fills),
+      _fillToEntityItem,
+    );
 
     final targets = await _importTargets(payload);
     return ImportBundle(
       source: ImportSourceInfo(
-        type: ImportSourceType.universal,
+        type: sourceType,
         displayName: _displayName,
+        details: await sourceDetails(),
       ),
       // One profile needs no labels; the counts already say where it goes.
       groups: targets.length > 1
@@ -454,6 +529,15 @@ class UniversalAdapter implements ImportSourceAdapter {
           : groups,
       nextDiveNumberByTarget: await _nextDiveNumbers(targets.keys),
     );
+  }
+
+  /// What the Review step shows about where this import came from (issue
+  /// #161): the picked files, by [fileSourceDetails]. Sources that are not
+  /// files override this.
+  @protected
+  Future<ImportSourceDetails> sourceDetails() {
+    final state = _ref.read(universalImportNotifierProvider);
+    return fileSourceDetails(state.files, confirmed: state.options);
   }
 
   /// The profile behind each target key of an expanded payload (#1893).
@@ -636,6 +720,15 @@ class UniversalAdapter implements ImportSourceAdapter {
       entityMatches: dupResult.entityMatches[ui.ImportEntityType.diveTypes],
     );
 
+    // A fill's identity is its id (passports phase 5): one already here or
+    // deleted here is marked, so it starts deselected and the review agrees
+    // with the import, which would skip it anyway.
+    _applyDuplicateIndices(
+      updatedGroups,
+      wizard.ImportEntityType.fills,
+      await _fillsAlreadyHere(payload.entitiesOf(ui.ImportEntityType.fills)),
+    );
+
     return ImportBundle(
       source: bundle.source,
       groups: updatedGroups,
@@ -719,6 +812,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       diveTypes: resolve(wizard.ImportEntityType.diveTypes),
       equipmentSets: resolve(wizard.ImportEntityType.equipmentSets),
       courses: resolve(wizard.ImportEntityType.courses),
+      fills: resolve(wizard.ImportEntityType.fills),
     );
 
     return importer.import(
@@ -771,6 +865,9 @@ class UniversalAdapter implements ImportSourceAdapter {
       defaultStartPressure: settings.defaultStartPressure,
       applyDefaultTankToImports: settings.applyDefaultTankToImports,
       placeNameLanguage: settings.placeNameLanguage,
+      shareCustomAgenciesByDefault: await _ref.read(
+        shareByDefaultProvider.future,
+      ),
     );
   }
 
@@ -1038,6 +1135,10 @@ class UniversalAdapter implements ImportSourceAdapter {
         duplicateResult: ImportDuplicateResult(diveMatches: reached.matches),
         consolidationService: _ref.read(diveConsolidationServiceProvider),
         diveRepository: repos.diveRepository,
+        attachMissingComputers: _missingComputerAttacherFor(
+          payload,
+          notifierState,
+        ),
       );
       consolidated = summary.consolidated;
       removedDiveIds = summary.removedDiveIds;
@@ -1128,6 +1229,20 @@ class UniversalAdapter implements ImportSourceAdapter {
       resolvedPhotos = attached - linker.alreadyLinked;
     }
 
+    // Photos a remote source listed, downloaded now into the same folder
+    // the bundled flow uses.
+    var additional = (attached: 0, failed: 0);
+    if (bundledFolder != null && notifierState.remotePhotoCount > 0) {
+      additional = await attachAdditionalPhotos(
+        photoDiveIds: photoDiveIds,
+        removedDiveIds: removedDiveIds,
+        diveStartById: diveStartById,
+        dives: payload.entitiesOf(ui.ImportEntityType.dives),
+        destinationDir: bundledFolder,
+        cancelToken: cancelToken,
+      );
+    }
+
     // `importer.import` counted folded/removed dives as imported; subtract only
     // the dives that were ACTUALLY removed (folded, or compensating-deleted).
     // A dive whose fold AND cleanup both failed is still standalone in the DB,
@@ -1183,6 +1298,9 @@ class UniversalAdapter implements ImportSourceAdapter {
             },
             importedDives: importedByFileId['f$i'] ?? 0,
             error: f.error,
+            isNavTrackRoute: f.detection.format == ui.ImportFormat.navTrack,
+            isSuuntoJson: f.detection.format == ui.ImportFormat.suuntoJson,
+            filePath: f.path,
           ),
       ];
     }
@@ -1190,6 +1308,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(netImportedDiveIds);
     scheduleSensorSummaryRefresh(netImportedDiveIds);
+    scheduleDerivedMetricsRefresh(netImportedDiveIds);
     // Check-ins ride inside imported equipment, with or without new dives;
     // merged into the batch above when there is one, so no extra pass.
     scheduleAllConditionFindingsRefresh();
@@ -1201,6 +1320,11 @@ class UniversalAdapter implements ImportSourceAdapter {
     );
     final notices = [
       ...groupImportNotices(payload.warnings, netDives),
+      if (additional.failed > 0)
+        ImportNotice(
+          kind: ImportNoticeKind.photosNotDownloaded,
+          count: additional.failed,
+        ),
       ?numberConflict,
     ];
 
@@ -1222,7 +1346,7 @@ class UniversalAdapter implements ImportSourceAdapter {
                 if (outcome.isActive) ...outcome.diveIds,
             ],
       fileOutcomes: fileOutcomes,
-      attachedPhotoCount: attachedPhotos + resolvedPhotos,
+      attachedPhotoCount: attachedPhotos + resolvedPhotos + additional.attached,
       unmatchedPhotoCount:
           notifierState.unmatchedPhotoCount + (resolution?.notFoundCount ?? 0),
       diverOutcomes: diverOutcomes,
@@ -1427,6 +1551,20 @@ class UniversalAdapter implements ImportSourceAdapter {
     // The foreign path may use either separator, so basename it accordingly.
     final base = filename.isEmpty ? 'Unnamed' : foreignBasename(filename);
     return EntityItem(title: base, subtitle: filename);
+  }
+
+  EntityItem _fillToEntityItem(Map<String, dynamic> data) {
+    final passportId = (data['passportId'] as String?) ?? '';
+    final filledAt = data['filledAt'] as DateTime?;
+    final o2 = asDoubleOrNull(data['o2Percent']);
+    final he = asDoubleOrNull(data['hePercent']) ?? 0;
+    final mix = o2 == null ? '' : GasMix(o2: o2, he: he).name;
+    // Led by when the fill was made: a cylinder's fills share one passport
+    // id, and two can fall on the same day.
+    return EntityItem(
+      title: filledAt == null ? passportId : _units.formatDateTime(filledAt),
+      subtitle: [passportId, mix].where((s) => s.isNotEmpty).join(', '),
+    );
   }
 
   EntityItem _courseToEntityItem(Map<String, dynamic> data) {
@@ -1672,6 +1810,21 @@ class UniversalAdapter implements ImportSourceAdapter {
   // Helpers — duplicate application
   // ---------------------------------------------------------------------------
 
+  /// Indices of [fills] whose id is already here or was deleted here, or
+  /// repeats an earlier row of this import (two files holding the same
+  /// fill): the importer stores each id once, so the review marks the rest.
+  Future<Set<int>> _fillsAlreadyHere(List<Map<String, dynamic>> fills) async {
+    final ids = [for (final fill in fills) fill['id'] as String?];
+    final known = await _ref
+        .read(cylinderFillRepositoryProvider)
+        .knownIds(ids.nonNulls);
+    final seen = <String>{};
+    return {
+      for (final (i, id) in ids.indexed)
+        if (id != null && (known.contains(id) || !seen.add(id))) i,
+    };
+  }
+
   void _applyDuplicateIndices(
     Map<wizard.ImportEntityType, EntityGroup> groups,
     wizard.ImportEntityType type,
@@ -1693,6 +1846,44 @@ class UniversalAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
   // Helpers — import
   // ---------------------------------------------------------------------------
+
+  /// Adds to a matched dive the computers its re-imported copy carries and it
+  /// lacks, for a dive imported before the importer kept every computer
+  /// (issue #2672). [performConsolidations] asks this before folding.
+  Future<MatchAttachment> Function(int index, String targetDiveId)
+  _missingComputerAttacherFor(
+    ImportPayload payload,
+    UniversalImportState notifierState,
+  ) {
+    final dives = payload.entitiesOf(ui.ImportEntityType.dives);
+    final filesById = batchSourceFiles(notifierState.files);
+    // Built on first use: most imports carry no further computers and never
+    // reach the database through here.
+    late final attacher = MissingComputerAttacher(
+      db: DatabaseService.instance.database,
+    );
+    return (index, targetDiveId) async {
+      if (index < 0 || index >= dives.length) {
+        return MatchAttachment.notApplicable;
+      }
+      final dive = dives[index];
+      if (AdditionalComputerWriter.entriesOf(dive).isEmpty) {
+        return MatchAttachment.notApplicable;
+      }
+      // A batch stamps each dive with the file it came from.
+      final file = filesById[dive['_sourceFileId']];
+      final format =
+          file?.format ??
+          notifierState.options?.format ??
+          notifierState.detectionResult?.format;
+      return attacher.attachToMatch(
+        targetDiveId: targetDiveId,
+        diveData: dive,
+        sourceFileName: file?.fileName ?? notifierState.fileName,
+        sourceFileFormat: format?.name ?? 'uddf',
+      );
+    };
+  }
 
   /// Build a map of import-list index → existing site ID for sites the user
   /// chose to overwrite ([DuplicateAction.replaceSource]).
@@ -1805,6 +1996,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     if (result.courses > 0) {
       counts[wizard.ImportEntityType.courses] = result.courses;
     }
+    if (result.fills > 0) counts[wizard.ImportEntityType.fills] = result.fills;
     return counts;
   }
 
@@ -1825,6 +2017,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       equipmentSets: payload.entitiesOf(ui.ImportEntityType.equipmentSets),
       courses: payload.entitiesOf(ui.ImportEntityType.courses),
       serviceRecords: payload.entitiesOf(ui.ImportEntityType.serviceRecords),
+      fills: payload.entitiesOf(ui.ImportEntityType.fills),
       customDiveRoles: [
         for (final role
             in (payload.metadata[ImportPayload.customDiveRolesKey] as List?) ??
@@ -1838,7 +2031,21 @@ class UniversalAdapter implements ImportSourceAdapter {
                 const [])
           if (type is Map<String, dynamic>) type,
       ],
+      // Certification currency (issue #2267), metadata for the same reason.
+      currencyRules: _metadataRows(payload, ImportPayload.currencyRulesKey),
+      currencyPrefs: _metadataRows(payload, ImportPayload.currencyPrefsKey),
+      currencyEvents: _metadataRows(payload, ImportPayload.currencyEventsKey),
     );
+  }
+
+  static List<Map<String, dynamic>> _metadataRows(
+    ImportPayload payload,
+    String key,
+  ) {
+    return [
+      for (final row in (payload.metadata[key] as List?) ?? const [])
+        if (row is Map<String, dynamic>) row,
+    ];
   }
 }
 
@@ -1877,8 +2084,23 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     // Equipment tags (issue #1942); without it imported gear arrives with
     // none of its tags.
     equipmentTagRepository: ref.read(equipmentTagRepositoryProvider),
+    // Equipment locations (v268); without both, a CSV's Location column is
+    // dropped.
+    equipmentLocationRepository: ref.read(equipmentLocationRepositoryProvider),
+    equipmentLocationMoveRepository: ref.read(
+      equipmentLocationMoveRepositoryProvider,
+    ),
     // Site features (issue #2200); without it every feature in the file is
     // dropped and the site arrives with none of its markers.
     siteFeatureRepository: ref.read(siteFeatureRepositoryProvider),
+    // Cylinder fills (passports phase 5); without both, every fill in a
+    // fills CSV is skipped.
+    cylinderFillRepository: ref.read(cylinderFillRepositoryProvider),
+    cylinderPassportRepository: ref.read(cylinderPassportRepositoryProvider),
+    // Certification currency (issue #2267); without it a backup's custom
+    // rules, prefs and refresher history are skipped.
+    certificationCurrencyRepository: ref.read(
+      certificationCurrencyRepositoryProvider,
+    ),
   );
 }

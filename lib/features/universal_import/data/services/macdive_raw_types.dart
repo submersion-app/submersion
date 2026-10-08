@@ -9,13 +9,13 @@ class MacDiveRawDive {
   final String? identifier;
 
   /// Reference date from `ZRAWDATE` — Core Data stores NSDate as seconds
-  /// since 2001-01-01 UTC. The reader converts to a Dart UTC [DateTime].
+  /// since 2001-01-01 UTC. The reader converts to a Dart UTC [DateTime],
+  /// with the seconds MacDive drops put back from [identifier] (#2509).
   final DateTime? rawDate;
 
-  /// NSTimeZone bplist from `ZTIMEZONE`. Carried but not yet decoded: the
-  /// mapper emits `rawDate` as absolute UTC, matching the M2 XML parser.
-  /// `BPlistDecoder` in `lib/core/utils/bplist/` can read this payload and is
-  /// waiting on the cross-parser move to the wall-time-as-UTC convention.
+  /// NSTimeZone bplist from `ZTIMEZONE`: the zone the dive was logged in.
+  /// The mapper reads its name with `MacDiveTimeZone` to turn [rawDate]
+  /// into the dive's wall clock.
   final Uint8List? timezoneBplist;
 
   /// Max depth in raw MacDive units (depends on `ZMETADATA.SystemOfUnits`).

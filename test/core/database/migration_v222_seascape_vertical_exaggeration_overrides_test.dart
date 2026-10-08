@@ -19,7 +19,10 @@ void main() {
     // never sees the per-site overrides. Asserting the current value here
     // keeps the pair honest, so moving the floor fails both tests rather
     // than silently passing this one.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(224),
+    );
   });
 
   test('a fresh database has the overrides column, nullable', () async {

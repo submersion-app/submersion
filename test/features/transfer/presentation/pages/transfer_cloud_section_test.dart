@@ -34,6 +34,13 @@ void main() {
           return const Scaffold(body: Text('garmin wizard'));
         },
       ),
+      GoRoute(
+        path: '/transfer/import-cloud/divelogs',
+        builder: (context, state) {
+          pushedRoutes.add(state.matchedLocation);
+          return const Scaffold(body: Text('divelogs wizard'));
+        },
+      ),
     ],
   );
 
@@ -110,6 +117,31 @@ void main() {
 
     expect(pushedRoutes, ['/transfer/import-cloud/garmin']);
     expect(find.text('garmin wizard'), findsOneWidget);
+  });
+
+  testWidgets('the cloud section offers divelogs.de', (tester) async {
+    await pumpTransfer(tester);
+
+    expect(find.text('divelogs.de'), findsOneWidget);
+    expect(
+      find.text(
+        'Import your logbook, sites, gear, certifications and photos from '
+        'divelogs.de',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('tapping the divelogs.de card opens its wizard route', (
+    tester,
+  ) async {
+    await pumpTransfer(tester);
+
+    await tester.tap(find.text('divelogs.de'));
+    await tester.pumpAndSettle();
+
+    expect(pushedRoutes, ['/transfer/import-cloud/divelogs']);
+    expect(find.text('divelogs wizard'), findsOneWidget);
   });
 
   testWidgets('an unknown section id still renders a message', (tester) async {

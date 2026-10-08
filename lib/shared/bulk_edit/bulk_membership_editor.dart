@@ -111,6 +111,7 @@ class BulkMembershipEditor extends StatefulWidget {
     required this.onChanged,
     this.secondaryAction,
     this.trailingBuilder,
+    this.detailBuilder,
     this.ensureOn,
     this.absentStartsChecked = true,
   });
@@ -130,7 +131,18 @@ class BulkMembershipEditor extends StatefulWidget {
   /// whose links carry an attribute beyond membership. Buddies use it for the
   /// role on each dive_buddies link (#1220); the attribute-free collections
   /// (tags, dive types, equipment) leave it null.
+  ///
+  /// ListTile sizes the trailing slot before the label, so it suits only a
+  /// short, bounded control. Anything whose width follows user data belongs
+  /// in [detailBuilder] instead.
   final Widget Function(BulkMembershipItem item)? trailingBuilder;
+
+  /// Optional per-row detail shown under the status line, at the label's full
+  /// width. Equipment uses it for the assembly chips, whose `Part of <name>`
+  /// grows with the assembly's name; in the trailing slot a long one left the
+  /// label a sliver that wrapped one character per line (#2276). Returning
+  /// null shows nothing for that row.
+  final Widget? Function(BulkMembershipItem item)? detailBuilder;
 
   /// A one-shot instruction to put [ids] on every selected entity, whatever
   /// their rows currently say. An update carrying the same [serial] changes
@@ -285,6 +297,21 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
     };
   }
 
+  /// The status line and the caller's detail, stacked; null when neither has
+  /// anything to show, so the row keeps its one-line height.
+  Widget? _rowSubtitle(BulkMembershipItem item) {
+    final status = _subtitle(item.id);
+    final detail = widget.detailBuilder?.call(item);
+    if (detail == null) return status == null ? null : Text(status);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      // No gap above the detail: a caller's detail may be empty for a row
+      // (AssemblyChips on plain gear), and a pad would still add height.
+      children: [if (status != null) Text(status), detail],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -343,10 +370,7 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
                     Expanded(child: Text(item.label)),
                   ],
                 ),
-                subtitle: switch (_subtitle(item.id)) {
-                  final s? => Text(s),
-                  _ => null,
-                },
+                subtitle: _rowSubtitle(item),
                 trailing: widget.trailingBuilder?.call(item),
                 onTap: () => _cycle(item.id),
               ),

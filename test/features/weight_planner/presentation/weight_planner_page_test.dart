@@ -319,6 +319,33 @@ void main() {
     expect(entries.single.weightKg, 85.0);
   });
 
+  testWidgets('an unreadable body weight says why (#1900)', (tester) async {
+    await pumpPage(tester);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Body Weight (optional)'),
+      '8..5',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+  });
+
+  testWidgets('a negative body weight is flagged and never offered for '
+      'saving (#1900 review)', (tester) async {
+    await pumpPage(tester, latestWeight: null);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Body Weight (optional)'),
+      '-85',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter 0 or more'), findsOneWidget);
+    // The field refuses it, so the prediction and the profile must too.
+    expect(find.byTooltip('Save weight to profile'), findsNothing);
+  });
+
   testWidgets('through-the-dive panel renders swing and ditchable rows', (
     tester,
   ) async {

@@ -1,4 +1,5 @@
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_place_values.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_row_values.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
@@ -95,9 +96,22 @@ class DivingLogReferenceMapper {
       if (place?.longitude != null) map['longitude'] = place!.longitude;
       final maxDepth = positiveOrNull(place?.maxDepthMeters);
       if (maxDepth != null) map['maxDepth'] = maxDepth;
+      // Each Place detail goes to the site field that holds it (#2271).
+      // They used to be folded into the description as text, which left
+      // the fields themselves empty.
+      if (place?.waterName != null) map['bodyOfWater'] = place!.waterName;
+      final waterType = DivingLogPlaceValues.waterType(place?.water);
+      if (waterType != null) map['waterType'] = waterType.name;
+      final difficulty = DivingLogPlaceValues.difficulty(place?.difficulty);
+      if (difficulty != null) map['difficulty'] = difficulty.name;
+      final rating = DivingLogPlaceValues.rating(place?.rating);
+      if (rating != null) map['rating'] = rating;
+      final altitude = DivingLogPlaceValues.altitudeMeters(place?.altitude);
+      if (altitude != null) map['altitude'] = altitude;
       final notes = [
-        if (place?.waterName != null) 'Water: ${place!.waterName}',
-        if (place?.difficulty != null) 'Difficulty: ${place!.difficulty}',
+        // A label with no matching level stays readable rather than lost.
+        if (difficulty == null && place?.difficulty != null)
+          'Difficulty: ${place!.difficulty}',
         if (place?.comments != null) place!.comments!,
       ].join('\n');
       if (notes.isNotEmpty) map['description'] = notes;

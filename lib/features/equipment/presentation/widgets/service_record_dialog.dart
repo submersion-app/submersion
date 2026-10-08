@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
@@ -12,9 +14,11 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/equipment/domain/services/default_service_cost_resolver.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_category_label.dart';
+import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Service Record Dialog for Add/Edit
 class ServiceRecordDialog extends ConsumerStatefulWidget {
@@ -48,6 +52,10 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
   final _notesController = TextEditingController();
   DateTime? _nextServiceDue;
   String? _serviceKindId;
+
+  /// The kind the record had when the dialog opened, offered even when
+  /// hidden (issue #401) so picking another one can be undone.
+  String? _initialServiceKindId;
   bool _isSaving = false;
 
   /// Diver preference for the service-type dropdown: narrow it to the kinds
@@ -100,6 +108,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
       _initialCurrencyCode = _fallbackCurrencyCode();
     }
     _currencyController.text = _initialCurrencyCode;
+    _initialServiceKindId = _serviceKindId;
   }
 
   /// The code to store when the currency field is left blank: the diver's
@@ -188,10 +197,36 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
             .valueOrNull ??
         const <ServiceSchedule>[];
 
+    // The diver's own kinds plus any kind this item's schedules use: a
+    // shared item's schedule can use its owner's custom kind (issue #2046).
+    final allKinds = ref.watch(allServiceKindsByIdProvider).value ?? const {};
+    final hiddenKinds = ref.watch(
+      hiddenBuiltInIdsProvider(BuiltInCatalog.serviceKinds),
+    );
+    // Hidden built-in kinds leave the dropdown (issue #401), except the one
+    // this record uses; any kind this item's own clocks use is re-added below.
+    List<ServiceKind> offered(List<ServiceKind> scoped) {
+      final shown = visibleBuiltIns(
+        scoped,
+        hiddenKinds,
+        isBuiltIn: (k) => k.isBuiltIn,
+        idOf: (k) => k.id,
+        keep: [_serviceKindId, _initialServiceKindId],
+      );
+      return [
+        ...shown,
+        for (final s in schedules)
+          if (allKinds[s.serviceKindId] case final k?)
+            if (!shown.any((e) => e.id == k.id)) k,
+      ];
+    }
+
     // Resolved every build while the field is untouched, so switching the
     // clock re-prices the record.
     _maybePrefillFromKind(
-      ref.watch(serviceKindsProvider).valueOrNull ?? const <ServiceKind>[],
+      offered(
+        ref.watch(serviceKindsProvider).valueOrNull ?? const <ServiceKind>[],
+      ),
       schedules,
     );
 
@@ -227,6 +262,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 // diver must choose, and the category below follows from it.
                 ref
                     .watch(serviceKindsProvider)
+                    .whenData(offered)
                     .maybeWhen(
                       data: (kinds) => Column(
                         mainAxisSize: MainAxisSize.min,
@@ -403,17 +439,14 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
-                            validator: (value) {
-                              if (value != null && value.isNotEmpty) {
-                                final parsed = parseUserDecimal(value);
-                                if (parsed == null || parsed < 0) {
-                                  return context
-                                      .l10n
-                                      .equipment_serviceDialog_costValidation;
-                                }
-                              }
-                              return null;
-                            },
+                            validator: numberValidator(
+                              context,
+                              check: (cost) => cost < 0
+                                  ? context
+                                        .l10n
+                                        .equipment_serviceDialog_costValidation
+                                  : null,
+                            ),
                           );
                         },
                       ),
@@ -578,7 +611,11 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
         provider: _providerController.text.trim().isEmpty
             ? null
             : _providerController.text.trim(),
-        cost: parseUserDecimal(_costController.text),
+        // Blank is "no cost"; validate() stopped unreadable text.
+        cost: switch (readNumber(_costController.text)) {
+          NumberValue(:final value) => value,
+          NumberBlank() || NumberInvalid() => null,
+        },
         currency: _currencyController.text.trim().isEmpty
             ? _fallbackCurrencyCode()
             : _currencyController.text.trim().toUpperCase(),

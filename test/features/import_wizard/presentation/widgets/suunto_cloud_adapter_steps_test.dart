@@ -304,18 +304,24 @@ void main() {
       );
       final client = _FakeCloudClient();
       SuuntoCloudClient? signedInWith;
+      String? account;
 
       await tester.pumpWidget(
         _host(
           store: store,
           clientFactory: () => client,
-          child: SuuntoCloudSignInStep(onSignedIn: (c) => signedInWith = c),
+          child: SuuntoCloudSignInStep(
+            onSignedIn: (c) => signedInWith = c,
+            onAccountSignedIn: (email) => account = email,
+          ),
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.text('Signed in as diver@example.com'), findsOneWidget);
       expect(signedInWith, same(client));
+      // The Review step names this account (#161).
+      expect(account, 'diver@example.com');
       expect(client.sessionKey, 'cached-key');
       // The cached fast path must not re-prompt for a password.
       expect(find.text('Sign In'), findsNothing);
@@ -571,6 +577,37 @@ void main() {
       expect(client.requestedPageSizes, [CloudImportPaging.pageSize]);
       // The offset in the fixture must survive as the wall clock.
       expect(fetched!.first.dive.startTime, DateTime.utc(2026, 5, 1, 10));
+    });
+
+    testWidgets('carries the workout notes onto the parsed dive', (
+      tester,
+    ) async {
+      final client = _FakeCloudClient(
+        workouts: [
+          SuuntoWorkoutSummary(
+            key: 'w1',
+            startTime: DateTime.utc(2026, 5, 1, 10),
+            activityId: 78,
+            notes: 'Turtle at the mooring',
+          ),
+        ],
+        smlByKey: {'w1': _diveJson()},
+      );
+      List<SuuntoParsedDive>? fetched;
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeCloudClient.new,
+          child: SuuntoCloudFetchStep(
+            client: client,
+            onDivesFetched: (dives) => fetched = dives,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(fetched!.single.notes, 'Turtle at the mooring');
     });
 
     testWidgets('skips a single unreadable dive rather than aborting', (

@@ -68,7 +68,8 @@ class ConflictReferenceResolver {
   /// without a declared Drift constraint (`Media.subscriptionId` and
   /// `connectorAccountId`, `DiveDiveTypes.diveTypeId`,
   /// `SiteSiteTypes.siteTypeId`,
-  /// `DivePlanSegments.switchToTankId`, `DiveProfileEvents.tankId`); they are
+  /// `DivePlanSegments.switchToTankId`, `DiveProfileEvents.tankId`,
+  /// `DivePlanMissionMembers.scooterEquipmentId`); they are
   /// listed here because the dialog can resolve them just as well, so verify
   /// those against their table rather than expecting a `references` clause.
   /// Columns whose name is ambiguous across tables are disambiguated by
@@ -83,10 +84,13 @@ class ConflictReferenceResolver {
     'diveTypeId': 'diveTypes',
     'siteTypeId': 'siteTypes',
     'diverId': 'divers',
+    'fromDiverId': 'divers',
+    'toDiverId': 'divers',
     'buddyId': 'buddies',
     'instructorId': 'buddies',
     'signerId': 'buddies',
     'equipmentId': 'equipment',
+    'scooterEquipmentId': 'equipment',
     'setId': 'equipmentSets',
     'equipmentSetId': 'equipmentSets',
     'configId': 'cylinderConfigs',
@@ -97,23 +101,42 @@ class ConflictReferenceResolver {
     'switchToTankId': 'divePlanTanks',
     'planId': 'divePlans',
     'tripId': 'trips',
+    'tripCylinderId': 'tripCylinders',
     'diveCenterId': 'diveCenters',
     'courseId': 'courses',
     'certificationId': 'certifications',
     'requirementId': 'courseRequirements',
     'serviceKindId': 'serviceKinds',
+    'locationId': 'equipmentLocations',
     'speciesId': 'species',
     'sightingId': 'sightings',
     'mediaId': 'media',
     'subscriptionId': 'mediaSubscriptions',
     'connectorAccountId': 'connectedAccounts',
+    // Soft links with no Drift constraint (#694): the dialog would otherwise
+    // compare and print raw ids for them.
+    'diverRole': 'diveRoles',
+    // The role junctions (#1221).
+    'roleId': 'diveRoles',
+    'regulatorEquipmentId': 'equipment',
+    'viaEquipmentId': 'equipment',
+    'viaSetId': 'equipmentSets',
+    'parentEquipmentId': 'equipment',
+    'componentEquipmentId': 'equipment',
+    'transmitterEquipmentId': 'equipment',
+    'diveComputerId': 'diveComputers',
+    'linkedDiverId': 'divers',
     'sessionId': 'preDiveSessions',
     'templateId': 'checklistTemplates',
   };
 
-  /// Owning entity type -> column -> target, for the two column names the
-  /// schema reuses across unrelated tables.
+  /// Owning entity type -> column -> target, for column names the schema
+  /// reuses across unrelated tables or that are generic words elsewhere.
   static const _targetOverrides = <String, Map<String, String>>{
+    // Generic names that hold a row id only on these tables (#694).
+    'dives': {'diveType': 'diveTypes'},
+    'diveBuddies': {'role': 'diveRoles'},
+    'weightPresetEntries': {'presetId': 'weightPresets'},
     'divePlanSegments': {'tankId': 'divePlanTanks'},
     'preDiveSessions': {'templateId': 'preDiveChecklistTemplates'},
     'preDiveChecklistTemplateItems': {

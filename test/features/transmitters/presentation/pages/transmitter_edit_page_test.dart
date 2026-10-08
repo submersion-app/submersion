@@ -235,6 +235,26 @@ void main() {
     expect(await TransmitterRepository().getForDiver('diver-1'), isEmpty);
   });
 
+  testWidgets('refuses a channel that is not a whole number (#1900)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_buildPage(diverIdNotifier, prefs));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('transmitter_label')), 'T1');
+    await tester.enterText(find.byKey(const Key('transmitter_serial')), '777');
+    await tester.enterText(find.byKey(const Key('transmitter_channel')), '1.5');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter a whole number'), findsOneWidget);
+    expect(
+      await TransmitterRepository().getForDiver('diver-1'),
+      isEmpty,
+      reason: 'an unreadable channel used to save as no channel',
+    );
+  });
+
   testWidgets('refuses a duplicate serial naming the existing entry', (
     tester,
   ) async {

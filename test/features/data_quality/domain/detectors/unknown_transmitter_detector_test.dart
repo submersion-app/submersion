@@ -69,4 +69,11 @@ void main() {
     expect((repairs.first as AssignTransmitterRepair).serial, '180777');
     expect(repairs.last, isA<GoToDiveRepair>());
   });
+
+  // Version 2 shows the inbox's new-checks banner, prompting the library
+  // scan that brings back the findings earlier library scans retired by
+  // never running this check (#2870).
+  test('is past the version earlier library scans skipped', () {
+    expect(const UnknownTransmitterDetector().version, 2);
+  });
 }

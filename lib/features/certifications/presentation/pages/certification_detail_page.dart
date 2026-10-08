@@ -8,6 +8,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/icon_detail_row.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -15,10 +16,12 @@ import 'package:submersion/features/certifications/domain/certification_title.da
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
-import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_currency_section.dart';
 import 'package:submersion/features/certifications/presentation/widgets/certification_ecard.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;
@@ -124,6 +127,7 @@ class _CertificationDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(certificationCatalogSyncProvider);
     final units = UnitFormatter(ref.watch(settingsProvider));
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -146,6 +150,9 @@ class _CertificationDetailContent extends ConsumerWidget {
           // Dates
           _buildDatesSection(context, units),
           const SizedBox(height: 16),
+          // Refresher and renewal currency (issue #2267). Carries its own
+          // bottom gap, so an absent section leaves no extra space.
+          CertificationCurrencySection(certification: certification),
 
           // Instructor info
           if (certification.instructorName != null ||
@@ -181,7 +188,13 @@ class _CertificationDetailContent extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(certificationTitleL10n(certification, context.l10n)),
+        title: Text(
+          certificationTitleL10n(
+            certification,
+            context.l10n,
+            catalog: context.certificationCatalog,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -242,7 +255,9 @@ class _CertificationDetailContent extends ConsumerWidget {
             child: Center(
               child: Text(
                 _abbreviateAgency(
-                  certification.agency.localizedName(context.l10n),
+                  context.certificationCatalog
+                      .agency(certification.agency)
+                      .localizedName(context.l10n),
                 ),
                 style: TextStyle(
                   color: colorScheme.onPrimaryContainer,
@@ -259,13 +274,19 @@ class _CertificationDetailContent extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  certificationTitleL10n(certification, context.l10n),
+                  certificationTitleL10n(
+                    certification,
+                    context.l10n,
+                    catalog: context.certificationCatalog,
+                  ),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  certification.agency.localizedName(context.l10n),
+                  context.certificationCatalog
+                      .agency(certification.agency)
+                      .localizedName(context.l10n),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -442,17 +463,11 @@ class _CertificationDetailContent extends ConsumerWidget {
             ),
             child: Center(
               child: Text(
-                certification.agency
-                    .localizedName(context.l10n)
-                    .substring(
-                      0,
-                      certification.agency.localizedName(context.l10n).length >
-                              4
-                          ? 4
-                          : certification.agency
-                                .localizedName(context.l10n)
-                                .length,
-                    ),
+                _agencyBadge(
+                  context.certificationCatalog
+                      .agency(certification.agency)
+                      .localizedName(context.l10n),
+                ),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.bold,
@@ -463,13 +478,19 @@ class _CertificationDetailContent extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            certificationTitleL10n(certification, context.l10n),
+            certificationTitleL10n(
+              certification,
+              context.l10n,
+              catalog: context.certificationCatalog,
+            ),
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
-            certification.agency.localizedName(context.l10n),
+            context.certificationCatalog
+                .agency(certification.agency)
+                .localizedName(context.l10n),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
@@ -495,37 +516,55 @@ class _CertificationDetailContent extends ConsumerWidget {
             const SizedBox(height: 12),
             // Only shown when the stored name says something the agency and
             // certification rows do not already say.
-            if (customNameOrNull(certification) != null)
-              _InfoRow(
+            if (customNameOrNull(
+                  certification,
+                  catalog: context.certificationCatalog,
+                ) !=
+                null)
+              IconDetailRow(
                 icon: Icons.card_membership,
                 label: context.l10n.certifications_detail_label_type,
-                value: customNameOrNull(certification)!,
+                value: customNameOrNull(
+                  certification,
+                  catalog: context.certificationCatalog,
+                )!,
               ),
-            _InfoRow(
+            IconDetailRow(
               icon: Icons.business,
               label: context.l10n.certifications_detail_label_agency,
-              value: certification.agency.localizedName(context.l10n),
+              value: context.certificationCatalog
+                  .agency(certification.agency)
+                  .localizedName(context.l10n),
             ),
             if (certification.level != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.workspace_premium,
                 label: context.l10n.certifications_detail_label_certification,
-                value: certification.level!.localizedName(context.l10n),
+                value: context.certificationCatalog
+                    .level(certification.level!)
+                    .localizedName(context.l10n),
               ),
             if (certification.hasMultipleCredentials)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.workspace_premium_outlined,
                 label: context.l10n.certifications_detail_label_alsoRecognized,
                 value: certification.additionalCredentials
                     .map((c) {
-                      final a = c.agency.localizedName(context.l10n);
-                      final l = c.level?.localizedName(context.l10n);
+                      final a = context.certificationCatalog
+                          .agency(c.agency)
+                          .localizedName(context.l10n);
+                      final level = c.level;
+                      final l = level == null
+                          ? null
+                          : context.certificationCatalog
+                                .level(level)
+                                .localizedName(context.l10n);
                       return l == null ? a : '$a $l';
                     })
                     .join(' · '),
               ),
             if (certification.cardNumber != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.numbers,
                 label: context.l10n.certifications_detail_label_cardNumber,
                 value: certification.cardNumber!,
@@ -551,13 +590,13 @@ class _CertificationDetailContent extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             if (certification.issueDate != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.event_available,
                 label: context.l10n.certifications_detail_label_issueDate,
                 value: units.formatDate(certification.issueDate),
               ),
             if (certification.expiryDate != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.event_busy,
                 label: context.l10n.certifications_detail_label_expiryDate,
                 value: units.formatDate(certification.expiryDate),
@@ -568,7 +607,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     : null,
               ),
             if (certification.expiryDate == null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.all_inclusive,
                 label: context.l10n.certifications_detail_label_validity,
                 value: context.l10n.certifications_detail_noExpiration,
@@ -627,7 +666,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                         }
                       },
                     )
-                  : _InfoRow(
+                  : IconDetailRow(
                       icon: Icons.person,
                       label: context
                           .l10n
@@ -635,7 +674,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                       value: displayName,
                     ),
             if (certification.instructorNumber != null)
-              _InfoRow(
+              IconDetailRow(
                 icon: Icons.badge,
                 label:
                     context.l10n.certifications_detail_label_instructorNumber,
@@ -703,7 +742,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       subtitle: Text(
-                        '${course.agency.localizedName(context.l10n)} - ${course.isCompleted ? context.l10n.certifications_detail_courseCompleted : context.l10n.certifications_detail_courseInProgress}',
+                        '${context.certificationCatalog.agency(course.agency).localizedName(context.l10n)} - ${course.isCompleted ? context.l10n.certifications_detail_courseCompleted : context.l10n.certifications_detail_courseInProgress}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -719,7 +758,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                     ),
                     if (course.instructorDisplay.isNotEmpty) ...[
                       const Divider(),
-                      _InfoRow(
+                      IconDetailRow(
                         icon: Icons.person,
                         label: 'Instructor',
                         value: course.instructorDisplay,
@@ -789,7 +828,11 @@ class _CertificationDetailContent extends ConsumerWidget {
           label: context.l10n
               .certifications_detail_semanticLabel_photoTapToView(
                 label,
-                certificationTitleL10n(certification, context.l10n),
+                certificationTitleL10n(
+                  certification,
+                  context.l10n,
+                  catalog: context.certificationCatalog,
+                ),
               ),
           child: GestureDetector(
             onTap: () => _showFullscreenPhoto(context, imageData, label),
@@ -858,7 +901,11 @@ class _CertificationDetailContent extends ConsumerWidget {
             title: Text(
               context.l10n.certifications_detail_photo_fullscreenTitle(
                 label,
-                certificationTitleL10n(certification, context.l10n),
+                certificationTitleL10n(
+                  certification,
+                  context.l10n,
+                  catalog: context.certificationCatalog,
+                ),
               ),
             ),
           ),
@@ -924,7 +971,11 @@ class _CertificationDetailContent extends ConsumerWidget {
             title: Text(context.l10n.certifications_detail_dialog_deleteTitle),
             content: Text(
               context.l10n.certifications_detail_dialog_deleteContent(
-                certificationTitleL10n(certification, context.l10n),
+                certificationTitleL10n(
+                  certification,
+                  context.l10n,
+                  catalog: context.certificationCatalog,
+                ),
               ),
             ),
             actions: [
@@ -954,50 +1005,8 @@ class _CertificationDetailContent extends ConsumerWidget {
     }
     return displayName.substring(0, 4);
   }
-}
 
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color? valueColor;
-
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: '$label: $value',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          children: [
-            ExcludeSemantics(
-              child: Icon(
-                icon,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
-            ),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: valueColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  /// The first four characters of an agency name, for the badge.
+  String _agencyBadge(String name) =>
+      name.length > 4 ? name.substring(0, 4) : name;
 }

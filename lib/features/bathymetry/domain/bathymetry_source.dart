@@ -11,6 +11,18 @@ class BathymetryFetchException implements Exception {
   String toString() => 'BathymetryFetchException: $message';
 }
 
+/// The source answered, and the answer is "no data here" (every tile in
+/// the span is a confirmed gap). Unlike a plain [BathymetryFetchException]
+/// it repeats identically on every visit, so the resolver skips the source
+/// without treating the walk as failed: counting it as a hiccup would stop
+/// the fallback answer from ever being cached (issue #1770).
+class BathymetryNoDataException extends BathymetryFetchException {
+  const BathymetryNoDataException(super.message);
+
+  @override
+  String toString() => 'BathymetryNoDataException: $message';
+}
+
 /// What a source claims it can deliver at one coordinate. Declared, not
 /// measured: a source reports the finest grid it believes it holds there,
 /// which the resolver uses only to ORDER candidates. The wet-cell and
@@ -66,9 +78,14 @@ abstract interface class BathymetrySource {
   double get minKnownFraction;
 
   /// What this source can deliver at [center], or null when it does not
-  /// cover the point. May make a network call, so a probe that fails for
-  /// any reason must return null rather than throw: one unreachable source
-  /// must never block the others.
+  /// cover the point. May make a network call. A probe that could not find
+  /// out (an unreachable service) throws [BathymetryFetchException]; it
+  /// never blocks the others, since the resolver drops the source and
+  /// moves on, but it marks that resolve as not definitive, so its answer
+  /// is shown and not cached (issue #1770). Throw only where this source
+  /// could plausibly have data: anywhere else, "could not ask" and "does
+  /// not cover" end the same way, and throwing would only stop an
+  /// unrelated site from caching while the service is down.
   Future<SourceCapability?> probe(GeoPoint center);
 
   /// Fetches a depth grid roughly [spanMeters] across centered on [center].

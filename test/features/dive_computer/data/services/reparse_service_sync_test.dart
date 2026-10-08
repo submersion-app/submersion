@@ -4,11 +4,17 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 
 import '../../../../helpers/bound_variables.dart';
+import '../../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../../helpers/peer_pull.dart';
 import '../../../../helpers/test_database.dart';
 
 /// A re-parse rewrites its source row, the dive's tanks, events and gas
@@ -210,11 +216,17 @@ void main() {
         hasLength(1),
         reason: 'every replaced event is gone',
       );
+      // One tombstone for the dive's events, not one per event (#1926).
+      final tombstones = await db.select(db.deletionLog).get();
       expect(
-        (await db.select(db.deletionLog).get()).where(
-          (d) => d.entityType == 'diveProfileEvents',
-        ),
-        hasLength(1201),
+        tombstones.where((d) => d.entityType == 'diveProfileEvents'),
+        isEmpty,
+      );
+      expect(
+        tombstones
+            .where((d) => d.entityType == EventScopeTombstone.entityType)
+            .map((d) => d.recordId),
+        ['d1'],
       );
     },
   );
@@ -269,8 +281,28 @@ void main() {
     List<String> ids(String entity) =>
         (deletions[entity] ?? const []).map((d) => d.id).toList();
     expect(ids('diveTanks'), ['gone']);
-    expect(ids('diveProfileEvents'), ['old-event']);
+    expect(ids('diveProfileEvents'), isEmpty);
+    expect(ids(EventScopeTombstone.entityType), ['d1']);
     expect(ids('gasSwitches'), ['old-switch']);
+  });
+
+  test('the re-inserted events are newer than the events tombstone', () async {
+    // A peer applying the scope deletes only events that predate it, so the
+    // fresh events must carry a later clock or they would be deleted too.
+    await seedPublishedDive();
+    await publishEverything();
+
+    await reparse();
+
+    final scope = (await db.select(db.deletionLog).get()).singleWhere(
+      (d) => d.entityType == EventScopeTombstone.entityType,
+    );
+    final scopeClock = Hlc.parse(scope.originHlc!);
+    final events = await db.select(db.diveProfileEvents).get();
+    expect(events, isNotEmpty);
+    for (final e in events) {
+      expect(Hlc.parse(e.hlc!).compareTo(scopeClock), greaterThan(0));
+    }
   });
 
   test('a non-primary source publishes its source row without re-stamping '
@@ -301,5 +333,44 @@ void main() {
     await Future<void>.delayed(Duration.zero);
 
     expect(notifications, 1);
+  });
+
+  test('a transmitter serial the re-parse clears is cleared on a peer '
+      '(#2644)', () async {
+    addTearDown(SyncClock.instance.reset);
+    await seedPublishedDive();
+    await db.customStatement(
+      "UPDATE dive_tanks SET transmitter_serial = '111111' WHERE id = 'kept'",
+    );
+    final watermark = await publishEverything();
+    final published = (await serializer.fetchRecord('diveTanks', 'kept'))!;
+
+    // parsedDive() reports no transmitter serial for tank 0.
+    await reparse();
+
+    final sent = (await nextChangeset(
+      watermark,
+    )).data.diveTanks.singleWhere((t) => t['id'] == 'kept');
+    expect(sent.containsKey('transmitterSerial'), isTrue);
+    expect(sent['transmitterSerial'], isNull);
+
+    // A peer still holding the tank as it was published.
+    await db.customUpdate(
+      'UPDATE dive_tanks SET transmitter_serial = ?, hlc = ? WHERE id = ?',
+      variables: [
+        Variable.withString('111111'),
+        Variable<String>(published['hlc'] as String?),
+        Variable.withString('kept'),
+      ],
+    );
+    await db.customStatement('DELETE FROM sync_records');
+
+    final result = await pullPeerPayload(
+      FakeCloudStorageProvider(),
+      SyncData(diveTanks: [sent]),
+    );
+    expect(result.status, isNot(SyncResultStatus.error));
+    final onPeer = (await serializer.fetchRecord('diveTanks', 'kept'))!;
+    expect(onPeer['transmitterSerial'], isNull);
   });
 }

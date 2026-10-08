@@ -64,7 +64,9 @@ class ScratchSweepReport {
 /// What it does NOT touch, and why:
 ///
 /// - The temp root itself. Other plugins write there, and this app's own share
-///   files land loose among them under names it cannot distinguish.
+///   files land loose among them under names it cannot distinguish. The one
+///   exception, sync's `ssv1_` files, has its own every-launch sweep
+///   (`sweepLeftoverSyncTempFiles`), since that prefix is unambiguous.
 /// - The Documents root. It holds the database and the user's exports, which
 ///   are visible in the Files app on iOS.
 /// - The backups directory. Every file there is a full copy of the database.

@@ -30,8 +30,9 @@ class _AttributesFail extends EquipmentRepository {
   @override
   Future<void> saveAttributes(
     String equipmentId,
-    List<EquipmentAttribute> desired,
-  ) async {
+    List<EquipmentAttribute> desired, {
+    bool preserveSystem = true,
+  }) async {
     throw StateError('attributes failed');
   }
 }

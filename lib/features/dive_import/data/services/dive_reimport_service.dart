@@ -5,14 +5,18 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_import/data/services/missing_computer_attacher.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
@@ -28,13 +32,21 @@ class DiveReimportResult {
   /// (#1164): callers must not tell the diver the dive was rewritten.
   final bool profilePreserved;
 
-  const DiveReimportResult.updated({this.profilePreserved = false})
-    : updated = true,
-      skippedReason = null;
+  /// Further computers the fresh parse carried and the dive did not, added
+  /// as sources of their own (issue #2672). A dive imported before the
+  /// importer kept every computer gains them on its first resync.
+  final int computersAdded;
+
+  const DiveReimportResult.updated({
+    this.profilePreserved = false,
+    this.computersAdded = 0,
+  }) : updated = true,
+       skippedReason = null;
 
   const DiveReimportResult.skipped(this.skippedReason)
     : updated = false,
-      profilePreserved = false;
+      profilePreserved = false,
+      computersAdded = 0;
 }
 
 /// Writes a freshly re-parsed file-import payload back onto an EXISTING
@@ -69,14 +81,17 @@ class DiveReimportService {
     SyncRepository? syncRepository,
     ProfileSeriesRepository? profileSeries,
     TankPressureRepository? tankPressureRepository,
+    MissingComputerAttacher? missingComputers,
   }) : _syncRepository = syncRepository ?? SyncRepository(database: db),
        _profileSeries = profileSeries ?? ProfileSeriesRepository(database: db),
        _tankPressureRepository =
-           tankPressureRepository ?? TankPressureRepository(database: db);
+           tankPressureRepository ?? TankPressureRepository(database: db),
+       _missingComputers = missingComputers ?? MissingComputerAttacher(db: db);
 
   final SyncRepository _syncRepository;
   final ProfileSeriesRepository _profileSeries;
   final TankPressureRepository _tankPressureRepository;
+  final MissingComputerAttacher _missingComputers;
 
   Future<DiveReimportResult> applyReimport({
     required String diveId,
@@ -91,6 +106,7 @@ class DiveReimportService {
     }
 
     var profilePreserved = false;
+    DiveDataSourcesData? primarySource;
     await db.transaction(() async {
       final sourceRows = await (db.select(
         db.diveDataSources,
@@ -116,6 +132,7 @@ class DiveReimportService {
       final ownsEverything =
           sourceRows.isEmpty || (ownsStrand && !isMultiSource);
       profilePreserved = !ownsEverything;
+      primarySource = primary;
 
       // Outside the ownership gate, inside a primary-source one: the dive's
       // summary belongs to whichever source is primary, which on a resync is
@@ -144,6 +161,7 @@ class DiveReimportService {
           diveId: diveId,
           diveData: diveData,
           tanks: tanks,
+          sourceId: primary?.id,
         );
 
         await _replaceProfile(
@@ -158,6 +176,15 @@ class DiveReimportService {
           diveData: diveData,
           now: now,
         );
+
+        // A tank the file gained is new, with no source yet (v251, issue
+        // #2716); the dive's sources are already in place.
+        await attributeTankSources(
+          db,
+          _syncRepository,
+          diveId,
+          now: now.millisecondsSinceEpoch,
+        );
       }
 
       await _updateDataSourceSnapshot(
@@ -168,7 +195,47 @@ class DiveReimportService {
     });
 
     SyncEventBus.notifyLocalChange();
-    return DiveReimportResult.updated(profilePreserved: profilePreserved);
+    final computersAdded = await _addMissingComputers(
+      diveId: diveId,
+      diveData: diveData,
+      primary: primarySource,
+      now: now,
+    );
+    return DiveReimportResult.updated(
+      profilePreserved: profilePreserved,
+      computersAdded: computersAdded,
+    );
+  }
+
+  /// Adds the computers the fresh parse carries and the dive lacks, after
+  /// the primary's own data is rewritten: a dive holding one source still
+  /// owns its strand then, so its samples are refreshed first (issue #2672).
+  ///
+  /// Best-effort: the resync above has already committed, so a failure here
+  /// costs the added computers, never the resync itself.
+  Future<int> _addMissingComputers({
+    required String diveId,
+    required Map<String, dynamic> diveData,
+    required DiveDataSourcesData? primary,
+    required DateTime now,
+  }) async {
+    if (primary == null) return 0;
+    try {
+      return await _missingComputers.attach(
+        diveId: diveId,
+        diveData: diveData,
+        sourceFileName: primary.sourceFileName,
+        sourceFileFormat: primary.sourceFileFormat ?? 'uddf',
+        now: now,
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Resync of dive $diveId could not add its further computers',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return 0;
+    }
   }
 
   static double? _asDouble(Object? v) => v is num ? v.toDouble() : null;
@@ -272,6 +339,12 @@ class DiveReimportService {
     final decoConservatism = _asInt(diveData['decoConservatism']);
     final gfLow = _asInt(diveData['gradientFactorLow']);
     final gfHigh = _asInt(diveData['gradientFactorHigh']);
+    // The dive-level tissue state the computer reported. It belongs to the
+    // parse like the summary columns beside it, so a parse without one
+    // clears it.
+    final computerTissue = ComputerTissueSnapshot.from(
+      diveData['computerTissue'],
+    );
 
     await (db.update(db.dives)..where((t) => t.id.equals(diveId))).write(
       DivesCompanion(
@@ -292,6 +365,7 @@ class DiveReimportService {
         otu: Value(_asDouble(diveData['otu'])),
         decoAlgorithm: Value(decoAlgorithm),
         decoConservatism: Value(decoConservatism),
+        computerTissueJson: Value(computerTissue?.encode()),
         gradientFactorLow: Value(gfLow),
         gradientFactorHigh: Value(gfHigh),
         entryLatitude: entryLatitude != null
@@ -385,6 +459,9 @@ class DiveReimportService {
       final gasMix = t['gasMix'];
       final o2Percent = gasMix is GasMix ? gasMix.o2 : null;
       final hePercent = gasMix is GasMix ? gasMix.he : null;
+      // How long the file says the tank was breathed (issue #1496). A dive
+      // imported before v259 has none stored, so this is how it gets one.
+      final usageSeconds = (t['usageDuration'] as Duration?)?.inSeconds;
 
       final row = matched[i];
       if (row != null) {
@@ -404,6 +481,9 @@ class DiveReimportService {
                 : const Value.absent(),
             hePercent: hePercent != null
                 ? Value(hePercent)
+                : const Value.absent(),
+            usageDuration: usageSeconds != null
+                ? Value(usageSeconds)
                 : const Value.absent(),
           ),
         );
@@ -426,6 +506,7 @@ class DiveReimportService {
                 endPressure: Value(endPressure),
                 o2Percent: Value(o2Percent ?? 21.0),
                 hePercent: Value(hePercent ?? 0.0),
+                usageDuration: Value(usageSeconds),
               ),
             );
         await _syncRepository.markRecordPending(
@@ -505,6 +586,7 @@ class DiveReimportService {
     required String diveId,
     required Map<String, dynamic> diveData,
     required _ParsedTanks tanks,
+    required String? sourceId,
   }) async {
     final profileData = _profileOf(diveData);
     if (profileData == null) return;
@@ -532,6 +614,7 @@ class DiveReimportService {
       diveId,
       pressuresByTank.keys,
       pressuresByTank,
+      sourceId: sourceId,
     );
   }
 
@@ -590,6 +673,8 @@ class DiveReimportService {
             ndl: p['ndl'] as int?,
             tts: p['tts'] as int?,
             ceiling: _asDouble(p['ceiling']),
+            gf99: p['gf99'] as int?,
+            n2Load: p['n2Load'] as int?,
           ),
       ],
       now: now.millisecondsSinceEpoch,
@@ -614,16 +699,15 @@ class DiveReimportService {
     final eventsRaw = diveData['events'] ?? diveData['profileEvents'];
     if (eventsRaw is! List) return;
 
-    final existing = await (db.select(
-      db.diveProfileEvents,
-    )..where((t) => t.diveId.equals(diveId))).get();
-    await (db.delete(
+    final deleted = await (db.delete(
       db.diveProfileEvents,
     )..where((t) => t.diveId.equals(diveId))).go();
-    for (final row in existing) {
-      await _syncRepository.logDeletion(
-        entityType: 'diveProfileEvents',
-        recordId: row.id,
+    // One tombstone for the dive's events, not one per event (#1926). Logged
+    // before the fresh events are staged below, so their clocks are newer
+    // and a peer applying the scope keeps them.
+    if (deleted > 0) {
+      await _syncRepository.logScopedDeletion(
+        EventScopeTombstone(diveId: diveId),
       );
     }
 
@@ -689,7 +773,9 @@ class DiveReimportService {
       DiveDataSourcesCompanion(
         maxDepth: Value(_asDouble(diveData['maxDepth'])),
         avgDepth: Value(avgDepth == 0.0 ? null : avgDepth),
-        duration: Value(_deriveBottomTimeSeconds(diveData)),
+        // The runtime the parse reports, never the bottom time derived from
+        // it (issue #2421).
+        duration: Value(runtime?.inSeconds),
         waterTemp: Value(_asDouble(diveData['waterTemp'])),
         entryTime: Value(entryTime),
         exitTime: Value(exitTime),

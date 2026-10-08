@@ -28,6 +28,7 @@ import 'package:submersion/core/services/cloud_storage/icloud_native_service.dar
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
@@ -47,6 +48,7 @@ import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
@@ -521,6 +523,15 @@ final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) {
   return out.stream;
 });
 
+/// This device's id and display name, for labelling the local side of a
+/// sync conflict. Same resolver the manifests use, so a peer sees this
+/// device under the same name.
+final conflictLocalDeviceProvider =
+    FutureProvider<({String? id, String? name})>((ref) async {
+      final identity = await SyncDeviceMetadata(SyncRepository()).resolve();
+      return (id: identity.id, name: identity.name);
+    });
+
 /// Sync service provider
 // no-tick: the value is a SERVICE, not a query result. Its one repository
 // call (applyResolutionHints) is a write made inside a callback at merge
@@ -559,6 +570,13 @@ class SyncState {
   /// newer-schema banner; cleared when a fresh sync starts. A null name means
   /// the peer published none, and the UI renders a short id instead.
   final List<({String? name, String shortId})> newerSchemaPeerLabels;
+
+  /// Peers whose own schema is below this build's compatibility floor during
+  /// the last pull, as (name, shortId) pairs: they hold this device's changes
+  /// until they update (issue #2619). Drives the older-device banner; cleared
+  /// when a fresh sync starts. Same null-name contract as
+  /// [newerSchemaPeerLabels].
+  final List<({String? name, String shortId})> olderSchemaPeerLabels;
 
   /// Peers held back by the library-epoch fence during the last pull, as
   /// (name, shortId) pairs. Drives the "needs to adopt" banner; cleared when a
@@ -614,6 +632,7 @@ class SyncState {
     this.pendingChanges = 0,
     this.conflicts = 0,
     this.newerSchemaPeerLabels = const [],
+    this.olderSchemaPeerLabels = const [],
     this.skippedPeerLabels = const [],
     this.readFailedPeerLabels = const [],
     this.isAuthenticated = false,
@@ -634,6 +653,7 @@ class SyncState {
     int? pendingChanges,
     int? conflicts,
     List<({String? name, String shortId})>? newerSchemaPeerLabels,
+    List<({String? name, String shortId})>? olderSchemaPeerLabels,
     List<({String? name, String shortId})>? skippedPeerLabels,
     List<({String? name, String shortId})>? readFailedPeerLabels,
     bool? isAuthenticated,
@@ -656,6 +676,8 @@ class SyncState {
       conflicts: conflicts ?? this.conflicts,
       newerSchemaPeerLabels:
           newerSchemaPeerLabels ?? this.newerSchemaPeerLabels,
+      olderSchemaPeerLabels:
+          olderSchemaPeerLabels ?? this.olderSchemaPeerLabels,
       skippedPeerLabels: skippedPeerLabels ?? this.skippedPeerLabels,
       readFailedPeerLabels: readFailedPeerLabels ?? this.readFailedPeerLabels,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
@@ -1030,8 +1052,8 @@ class SyncNotifier extends StateNotifier<SyncState> {
     SyncResult result,
   ) => heldPeerLabels(result.skippedPeerDeviceIds, result.skippedPeerNames);
 
-  /// (name, shortId) per held peer, shared by the epoch-fence and
-  /// newer-schema banners. Sorted so the banner text is stable across syncs
+  /// (name, shortId) per held peer, shared by the epoch-fence, newer-schema,
+  /// older-schema and read-failed banners. Sorted so the banner text is stable across syncs
   /// instead of reordering each pull.
   @visibleForTesting
   static List<({String? name, String shortId})> heldPeerLabels(
@@ -1302,6 +1324,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
         message: _l10n.settings_cloudSync_message_startingSync,
         progress: 0.0,
         newerSchemaPeerLabels: const [],
+        olderSchemaPeerLabels: const [],
         skippedPeerLabels: const [],
         readFailedPeerLabels: const [],
         firstSyncAwaitingConfirmation: false,
@@ -1389,6 +1412,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
               result.newerSchemaPeerDeviceIds,
               result.newerSchemaPeerNames,
             ),
+            olderSchemaPeerLabels: heldPeerLabels(
+              result.olderSchemaPeerDeviceIds,
+              result.olderSchemaPeerNames,
+            ),
             skippedPeerLabels: skippedPeerLabels(result),
             readFailedPeerLabels: heldPeerLabels(
               result.readFailedPeerDeviceIds,
@@ -1408,11 +1435,16 @@ class SyncNotifier extends StateNotifier<SyncState> {
           }
           await _ref.read(postRestoreSyncStoreProvider).clear();
           await _surfaceOldBackendCleanupOffer();
-          // Sensor summaries are device-local: dives this sync pulled in have
-          // none until the stale sweep builds them, and a first sync can land
-          // after the launch sweep ran. Single-flight, a no-op when current;
-          // the condition findings follow the batch it runs.
+          // Sensor summaries and derived metrics are device-local: dives this
+          // sync pulled in have none until the stale sweep builds them, and a
+          // first sync can land after the launch sweep ran. The sweep is also
+          // what rebuilds them for a dive whose profile or pressure series
+          // changed in this pull, since series never re-stamp their dive
+          // (#1769) and only the source stamp sees them. Single-flight, a
+          // no-op when current; the condition findings follow the batch it
+          // runs.
           SensorSummaryScheduler.instance.scheduleStaleSweep();
+          DerivedMetricsScheduler.instance.scheduleStaleSweep();
           // A straggler syncing into a backend another device moved away from
           // learns of the move here -- the moment it is actively writing into
           // the now-orphaned copy.
@@ -1431,6 +1463,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
               stackTrace: stackTrace,
             );
           }
+          // No underwater-route sweep here: a sweep no longer links
+          // anything by itself (#2394: confirming a dive is always the
+          // diver's own choice), and the routes list's pending-choice hint
+          // already refreshes when synced routes land.
           // Gallery rows linked before links recorded an origin learn it
           // here (media sync program spec 6.1). After a sync, never at
           // launch: a stamp bumps the row clock, so this device's copies
@@ -1626,7 +1662,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
   Future<void> repairSync() async {
     await resetSyncState();
     await _ref.read(libraryEpochStoreProvider).clear();
-    await _syncService.deleteLeftoverBaseTempFiles();
+    await sweepLeftoverSyncTempFiles();
     state = state.copyWith(status: SyncStatus.idle, message: null);
     await refreshState();
   }
@@ -1750,8 +1786,13 @@ final syncMessageProvider = Provider<String?>((ref) {
   return ref.watch(syncStateProvider).message;
 });
 
-/// Get conflicts provider
-final conflictsProvider = FutureProvider<List<SyncConflict>>((ref) async {
+/// The unresolved sync conflicts, read fresh each time the Resolve Conflicts
+/// dialog opens. Nothing invalidates this after a sync or a resolution, so a
+/// cached list outlived the conflicts it showed: a reopened dialog offered
+/// conflicts already resolved and hid ones raised since (#2943).
+final conflictsProvider = FutureProvider.autoDispose<List<SyncConflict>>((
+  ref,
+) async {
   final syncService = ref.watch(syncServiceProvider);
   return syncService.getConflicts();
 });

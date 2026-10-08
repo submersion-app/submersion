@@ -60,11 +60,16 @@ void main() {
       expect(journal().classifyPreRestore(), PreRestoreState.precious);
     });
 
-    test('stale without a marker when the live file opens at this schema', () {
+    test('unproven without a marker when the live file opens at this '
+        'schema', () {
+      // A build before the journal could strand the diver's only copy here
+      // and then create a fresh empty database at the live path, which opens
+      // cleanly at this schema. Nothing on disk proves such a leftover stale
+      // (issue #1924).
       touch(db);
       versions[db] = current;
       touch('$db.pre-restore');
-      expect(journal().classifyPreRestore(), PreRestoreState.stale);
+      expect(journal().classifyPreRestore(), PreRestoreState.unproven);
     });
 
     for (final (label, arrange) in <(String, void Function())>[
@@ -110,7 +115,7 @@ void main() {
       touch(db);
       versions[db] = current;
       touch('$db.pre-restore-wal');
-      expect(journal().classifyPreRestore(), PreRestoreState.stale);
+      expect(journal().classifyPreRestore(), PreRestoreState.unproven);
     });
   });
 
@@ -280,12 +285,17 @@ void main() {
       expect(journal().findInterrupted()!.startedAt, isNull);
     });
 
-    test('nothing when the aside copy is stale', () {
+    test('nothing for an unproven leftover, which is kept but not '
+        'offered', () {
+      // Most unmarked leftovers beside a healthy database are the remains of
+      // a restore that completed; offering to "recover" each one would put
+      // an old library back in front of a diver who replaced it on purpose.
       touch(db);
       versions[db] = current;
       touch('$db.pre-restore');
       versions['$db.pre-restore'] = current;
       expect(journal().findInterrupted(), isNull);
+      expect(exists('$db.pre-restore'), isTrue);
     });
 
     test('nothing when this build cannot open the aside copy', () {

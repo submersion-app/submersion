@@ -9,9 +9,11 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
 import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
+import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
@@ -445,6 +447,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// TTS (Time To Surface) curve in seconds
   final List<int>? ttsCurve;
 
+  /// Late and missed gas switches to shade (#2939); null hides the overlay.
+  final GasSwitchEfficiency? gasSwitchEfficiency;
+
   /// Gas time remaining curve in seconds; a null sample is a blank (the
   /// line breaks there rather than dropping to zero)
   final List<int?>? gtrCurve;
@@ -746,6 +751,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.surfaceGfCurve,
     this.meanDepthCurve,
     this.ttsCurve,
+    this.gasSwitchEfficiency,
     this.gtrCurve,
     this.cnsCurve,
     this.otuCurve,
@@ -767,9 +773,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showHeartRate = false;
   bool _showSac = false;
 
-  // Per-tank pressure visibility (keyed by tank ID)
-  // Defaults to all visible; populated on first build if multi-tank data exists
+  // Per-tank pressure visibility (keyed by tank ID), mirroring the legend's
+  // per-tank choices. A tank with no entry follows [_showPressure].
   final Map<String, bool> _showTankPressure = {};
+  bool _showPressure = false;
 
   // Decompression visualization toggles
   bool _showCeiling = true;
@@ -812,6 +819,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showMeanDepth = false;
   bool _showTts = false;
   bool _showGtr = false;
+  bool _showLateGasSwitches = true;
   bool _showCns = false;
   bool _showOtu = false;
 
@@ -1563,7 +1571,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showDecoStops = widget.showDecoStops;
     _showAscentRateColors = widget.showAscentRateColors;
     _showEvents = widget.showEvents;
-    _scheduleTankPressureVisibilityInitialization();
     _scheduleComputedEventsSeed();
   }
 
@@ -1575,9 +1582,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _liveCursorTooltipRows = const [];
       _lastTooltipSpotIndex = null;
       _lastTooltipItems = const [];
-    }
-    if (oldWidget.tankPressures != widget.tankPressures) {
-      _scheduleTankPressureVisibilityInitialization();
     }
     if (oldWidget.events != widget.events) {
       _scheduleComputedEventsSeed();
@@ -1712,15 +1716,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final x = plotInsets.left + (timestamp - visibleMinX) / rangeX * plotWidth;
     final y = plotInsets.top + (depth - visibleMinDepth) / rangeY * plotHeight;
     return (cursorLocal: Offset(x, y), rows: rows);
-  }
-
-  void _scheduleTankPressureVisibilityInitialization() {
-    if (!_hasMultiTankPressure) return;
-    final tankIds = widget.tankPressures!.keys.toList();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || tankIds.isEmpty) return;
-      ref.read(profileLegendProvider.notifier).initializeTankPressures(tankIds);
-    });
   }
 
   /// Whether this dive carries the computer's own (imported) events.
@@ -2036,7 +2031,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         TooltipRow(
           label: l10n.diveLog_tooltip_rate,
           value:
-              '$arrow ${convertedRate.toStringAsFixed(1)} ${units.depthSymbol}/min',
+              '$arrow ${convertedRate.toStringAsFixed(1)} ${units.depthRateSymbol}',
           bulletColor: rateColor,
           metric: ProfileRightAxisMetric.ascentRate,
         ),
@@ -2237,7 +2232,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         TooltipRow(
           label: l10n.diveLog_tooltip_mod,
           value: mod != null && mod > 0 && mod < 200
-              ? units.formatDepth(mod)
+              // A limit depth, so rounded down (issue #2342).
+              ? units.formatDepthFloor(mod)
               : '-',
           bulletColor: const Color(0xFFFFB300),
           metric: ChartOnlyMetric.mod,
@@ -2488,7 +2484,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
       for (var i = 0; i < sortedTankIds.length; i++) {
         final tankId = sortedTankIds[i];
-        if (!(_showTankPressure[tankId] ?? true)) continue;
+        if (!(_showTankPressure[tankId] ?? _showPressure)) continue;
         if (!_isComputerVisible(tankComputerIds[tankId])) continue;
         final pressurePoints = widget.tankPressures![tankId];
         if (pressurePoints == null || pressurePoints.isEmpty) continue;
@@ -2516,6 +2512,33 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             metric: ProfileRightAxisMetric.pressure,
           ),
         );
+      }
+    }
+
+    // Late or missed gas switch under the cursor (#2939).
+    if (_showLateGasSwitches) {
+      final window = widget.gasSwitchEfficiency?.windowAt(point.timestamp);
+      if (window != null) {
+        final color = GasColors.forMixFraction(window.fO2, window.fHe);
+        final delay = lateSwitchDelayValue(window, units);
+        rows.addAll([
+          TooltipRow(
+            label: lateSwitchTooltipLabel(window, l10n),
+            value: lateSwitchTooltipValue(window),
+            bulletColor: color,
+          ),
+          if (delay != null)
+            TooltipRow(
+              label: l10n.diveLog_tooltip_switchDelay,
+              value: delay,
+              bulletColor: color,
+            ),
+          TooltipRow(
+            label: l10n.diveLog_tooltip_extraDeco,
+            value: lateSwitchExtraDecoValue(window),
+            bulletColor: color,
+          ),
+        ]);
       }
     }
 
@@ -2716,6 +2739,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showMaxDepthMarkerLocal = legendState.showMaxDepthMarker;
     _showPressureMarkersLocal = legendState.showPressureMarkers;
     _showGasSwitchMarkers = legendState.showGasSwitchMarkers;
+    _showLateGasSwitches = legendState.showLateGasSwitches;
     _showPhotoMarkers = legendState.showPhotoMarkers;
     // Must be synced before _metricBand() is read for the cache signatures
     // below, or a mode flip would key bars on the outgoing band.
@@ -2736,10 +2760,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showGtr = legendState.showGtr;
     _showCns = legendState.showCns;
     _showOtu = legendState.showOtu;
-    // Sync per-tank pressure visibility
-    for (final entry in legendState.showTankPressure.entries) {
-      _showTankPressure[entry.key] = entry.value;
-    }
+    // Sync per-tank pressure visibility. Replace rather than merge: the
+    // legend's map holds only the user's choices, and it starts over empty
+    // when the provider rebuilds, so a leftover entry here would outlive it.
+    _showPressure = legendState.showPressure;
+    _showTankPressure
+      ..clear()
+      ..addAll(legendState.showTankPressure);
 
     // Per-group signatures for the memoized bars (see _barsCache): playback /
     // hover / zoom rebuilds inside one decimation bucket reuse every group;
@@ -2858,6 +2885,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           widget.showPressureThresholdMarkers && _hasPressureMarkers,
       hasGasSwitches:
           widget.gasSwitches != null && widget.gasSwitches!.isNotEmpty,
+      hasLateGasSwitches:
+          widget.gasSwitchEfficiency?.windows.isNotEmpty ?? false,
       hasPhotoMarkers:
           widget.photoMarkers != null && widget.photoMarkers!.isNotEmpty,
       hasMultiTankPressure: _hasMultiTankPressure,
@@ -5416,6 +5445,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           spec: ProfileMetricBands.ppO2,
           max: _getPpO2MaxScale(),
           leadIn: _OverlayLeadIn.computed,
+          curved: false,
         );
       }
 
@@ -5430,6 +5460,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           spec: ProfileMetricBands.ppN2,
           max: _getPpN2MaxScale(),
           leadIn: _OverlayLeadIn.computed,
+          curved: false,
         );
       }
 
@@ -5446,6 +5477,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           spec: ProfileMetricBands.ppHe,
           max: _getPpHeMaxScale(),
           leadIn: _OverlayLeadIn.computed,
+          curved: false,
           include: (value) => value > 0.001,
         );
       }
@@ -5666,6 +5698,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // Drops points that should not be plotted at all, such as helium on a
     // dive that carried none.
     bool Function(double value)? include,
+    // False draws straight segments between samples: the partial-pressure
+    // lines step at every gas switch, and a spline overshoots a step.
+    bool curved = true,
   }) {
     if (curve == null || curve.isEmpty) return;
 
@@ -5705,7 +5740,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ),
                 owner: overlay.points,
               ),
-        isCurved: true,
+        isCurved: curved,
         curveSmoothness: 0.2,
         preventCurveOverShooting: _seriesGetsLeadIn(spots, overlay.points),
         color: _overlayColor(overlay, spec.color),
@@ -5972,6 +6007,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         hasMultiTankPressure: _hasMultiTankPressure,
         tankPressures: widget.tankPressures,
         showTankPressure: _showTankPressure,
+        tankPressureVisibleByDefault: _showPressure,
         estimatedTankIds: widget.estimatedTankIds,
         profile: widget.profile,
         sortedTankIds: _sortedTankIds,
@@ -6043,7 +6079,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _decimatedCurveIndices,
     _withSurfaceLeadIn,
     _surfaceValueOf,
-    _seriesGetsLeadIn,
   );
 
   List<AscentRatePoint>? _ascentRateAxisRangeSource;
@@ -6478,7 +6513,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _decimatedCurveIndices,
     _withSurfaceLeadIn,
     _surfaceValueOf,
-    _seriesGetsLeadIn,
   );
 
   /// Build ppHe (partial pressure of helium) line for trimix dives
@@ -6490,7 +6524,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _decimatedCurveIndices,
     _withSurfaceLeadIn,
     _surfaceValueOf,
-    _seriesGetsLeadIn,
   );
 
   /// Build MOD (Maximum Operating Depth) line
@@ -6701,6 +6734,32 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     required double visibleMaxX,
   }) {
     final annotations = <VerticalRangeAnnotation>[];
+    // Late and missed gas switches (#2939), tinted with the gas the ideal
+    // ascent would have been breathing. Drawn first so a selected finding's
+    // band paints over them.
+    if (_showLateGasSwitches) {
+      for (final window
+          in widget.gasSwitchEfficiency?.windows ?? const <GasSwitchWindow>[]) {
+        final color = GasColors.forMixFraction(window.fO2, window.fHe);
+        final visible = visibleHighlightSpan(
+          ProfileHighlightRange(
+            startTimestamp: window.idealTimestamp,
+            endTimestamp: window.endTimestamp,
+            color: color,
+          ),
+          visibleMinX: visibleMinX,
+          visibleMaxX: visibleMaxX,
+        );
+        if (visible == null) continue;
+        annotations.add(
+          VerticalRangeAnnotation(
+            x1: visible.x1,
+            x2: visible.x2,
+            color: color.withValues(alpha: 0.12),
+          ),
+        );
+      }
+    }
     if (_showO2Cells) {
       for (final range in widget.secondaryRanges) {
         final visible = visibleHighlightSpan(
@@ -6793,11 +6852,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         .toList();
     if (visibleEvents.isEmpty) return [];
 
-    // Group events by timestamp, keeping only the most severe at each time
+    // Group events by timestamp, keeping only the most severe at each time.
+    // On equal severity the computer's own event beats a computed one: it
+    // can carry the computer's exact label (#1523).
     final byTimestamp = <int, ProfileEvent>{};
     for (final event in visibleEvents) {
       final existing = byTimestamp[event.timestamp];
-      if (existing == null || event.severity.index > existing.severity.index) {
+      if (existing == null ||
+          event.severity.index > existing.severity.index ||
+          (event.severity == existing.severity &&
+              existing.source == EventSource.computed &&
+              event.source != EventSource.computed)) {
         byTimestamp[event.timestamp] = event;
       }
     }
@@ -6848,7 +6913,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       if (t < visibleMinX || t > visibleMaxX) continue;
       final painter = TextPainter(
         text: TextSpan(
-          text: kept[i].eventType.localizedName(context.l10n),
+          text: kept[i].markerLabel(context.l10n),
           style: labelStyle,
         ),
         // Deliberately LTR regardless of locale: fl_chart's painter lays
@@ -6926,7 +6991,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           fontSize: 9,
           backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
         ),
-        labelResolver: (line) => event.eventType.localizedName(context.l10n),
+        labelResolver: (line) => event.markerLabel(context.l10n),
       ),
     );
   }

@@ -47,6 +47,10 @@ class ProfileLegendState {
   final bool showMaxDepthMarker;
   final bool showPressureMarkers;
   final bool showGasSwitchMarkers;
+
+  /// Late and missed deco gas switch bands (#2939). Seeds from
+  /// [AppSettings.defaultShowLateGasSwitches].
+  final bool showLateGasSwitches;
   final bool showPhotoMarkers;
 
   // Advanced decompression/gas toggles
@@ -89,6 +93,8 @@ class ProfileLegendState {
 
   // Per-tank visibility (keyed by tank ID). Hides the tank's pressure trace
   // on multi-tank dives and its gas-switch markers on gas-switch dives.
+  // Holds only the choices the user made this session: a tank with no entry
+  // falls back to a default (see [isTankPressureVisible]).
   final Map<String, bool> showTankPressure;
 
   // Gas timeline strip visibility
@@ -99,7 +105,7 @@ class ProfileLegendState {
 
   /// Whether secondary-axis metric overlays follow the visible depth window
   /// when zoomed, instead of magnifying with the depth axis and potentially
-  /// leaving the viewport. Seeds from the device-local
+  /// leaving the viewport. Seeds from the diver's saved
   /// [AppSettings.profileMetricsFollowViewport]; this is a rendering mode, not
   /// a series toggle, so it is excluded from [activeSecondaryCount].
   final bool metricsFollowViewport;
@@ -127,6 +133,7 @@ class ProfileLegendState {
     this.showMaxDepthMarker = true,
     this.showPressureMarkers = true,
     this.showGasSwitchMarkers = true,
+    this.showLateGasSwitches = true,
     this.showPhotoMarkers = true,
     this.showNdl = false,
     this.showPpO2 = false,
@@ -143,11 +150,13 @@ class ProfileLegendState {
     this.showO2Cells = false,
     this.o2CellUnit = O2CellUnit.ppO2,
     this.showGtr = false,
-    this.ndlSource = MetricDataSource.calculated,
-    this.ttsSource = MetricDataSource.calculated,
-    this.cnsSource = MetricDataSource.calculated,
-    this.decoStopSource = MetricDataSource.calculated,
-    this.gtrSource = MetricDataSource.calculated,
+    // Same per-metric default as AppSettings (#1859); build() seeds from
+    // settings, so these only apply to reset() and a state built without them.
+    this.ndlSource = MetricDataSource.computer,
+    this.ttsSource = MetricDataSource.computer,
+    this.cnsSource = MetricDataSource.computer,
+    this.decoStopSource = MetricDataSource.computer,
+    this.gtrSource = MetricDataSource.computer,
     this.showTankPressure = const {},
     this.showGas = true,
     this.sectionExpanded = const {
@@ -176,6 +185,7 @@ class ProfileLegendState {
     if (showMaxDepthMarker) count++;
     if (showPressureMarkers) count++;
     if (showGasSwitchMarkers) count++;
+    if (showLateGasSwitches) count++;
     if (showPhotoMarkers) count++;
     if (showNdl) count++;
     if (showPpO2) count++;
@@ -198,6 +208,12 @@ class ProfileLegendState {
   /// Whether any secondary toggle is active
   bool get hasActiveSecondary => activeSecondaryCount > 0;
 
+  /// Whether [tankId]'s pressure trace is drawn: the user's own choice for
+  /// that tank when they made one, otherwise the Pressure default seeded from
+  /// [AppSettings.defaultShowPressure] (issue #1999).
+  bool isTankPressureVisible(String tankId) =>
+      showTankPressure[tankId] ?? showPressure;
+
   ProfileLegendState copyWith({
     ProfileRightAxisMetric? rightAxisMetric,
     bool clearRightAxisMetric = false,
@@ -215,6 +231,7 @@ class ProfileLegendState {
     bool? showMaxDepthMarker,
     bool? showPressureMarkers,
     bool? showGasSwitchMarkers,
+    bool? showLateGasSwitches,
     bool? showPhotoMarkers,
     bool? showNdl,
     bool? showPpO2,
@@ -260,6 +277,7 @@ class ProfileLegendState {
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureMarkers: showPressureMarkers ?? this.showPressureMarkers,
       showGasSwitchMarkers: showGasSwitchMarkers ?? this.showGasSwitchMarkers,
+      showLateGasSwitches: showLateGasSwitches ?? this.showLateGasSwitches,
       showPhotoMarkers: showPhotoMarkers ?? this.showPhotoMarkers,
       showNdl: showNdl ?? this.showNdl,
       showPpO2: showPpO2 ?? this.showPpO2,
@@ -310,6 +328,7 @@ class ProfileLegendState {
           showMaxDepthMarker == other.showMaxDepthMarker &&
           showPressureMarkers == other.showPressureMarkers &&
           showGasSwitchMarkers == other.showGasSwitchMarkers &&
+          showLateGasSwitches == other.showLateGasSwitches &&
           showPhotoMarkers == other.showPhotoMarkers &&
           showNdl == other.showNdl &&
           showPpO2 == other.showPpO2 &&
@@ -354,6 +373,7 @@ class ProfileLegendState {
     showMaxDepthMarker,
     showPressureMarkers,
     showGasSwitchMarkers,
+    showLateGasSwitches,
     showPhotoMarkers,
     showNdl,
     showPpO2,
@@ -415,6 +435,7 @@ class ProfileLegend extends _$ProfileLegend {
           showMaxDepthMarker: s.showMaxDepthMarker,
           showPressureThresholdMarkers: s.showPressureThresholdMarkers,
           defaultShowGasSwitchMarkers: s.defaultShowGasSwitchMarkers,
+          defaultShowLateGasSwitches: s.defaultShowLateGasSwitches,
           defaultShowPhotoMarkers: s.defaultShowPhotoMarkers,
           defaultShowGasTimeline: s.defaultShowGasTimeline,
           defaultShowO2CellMv: s.defaultShowO2CellMv,
@@ -461,6 +482,7 @@ class ProfileLegend extends _$ProfileLegend {
       showMaxDepthMarker: settings.showMaxDepthMarker,
       showPressureMarkers: settings.showPressureThresholdMarkers,
       showGasSwitchMarkers: settings.defaultShowGasSwitchMarkers,
+      showLateGasSwitches: settings.defaultShowLateGasSwitches,
       showPhotoMarkers: settings.defaultShowPhotoMarkers,
       showGas: settings.defaultShowGasTimeline,
       showO2Cells: settings.defaultShowO2CellMv,
@@ -488,7 +510,7 @@ class ProfileLegend extends _$ProfileLegend {
   }
 
   /// Flip the overlay scaling mode for this chart session only, leaving the
-  /// device-local default untouched.
+  /// saved default untouched.
   void toggleMetricsFollowViewport() {
     state = state.copyWith(metricsFollowViewport: !state.metricsFollowViewport);
   }
@@ -597,6 +619,10 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(showGasSwitchMarkers: !state.showGasSwitchMarkers);
   }
 
+  void toggleLateGasSwitches() {
+    state = state.copyWith(showLateGasSwitches: !state.showLateGasSwitches);
+  }
+
   void togglePhotoMarkers() {
     state = state.copyWith(showPhotoMarkers: !state.showPhotoMarkers);
   }
@@ -703,39 +729,22 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(showGas: !state.showGas);
   }
 
-  /// Toggle visibility for a specific tank's pressure line
-  void toggleTankPressure(String tankId) {
-    final current = state.showTankPressure[tankId] ?? true;
+  /// Flip one tank's checkbox. [visibleByDefault] is what the checkbox shows
+  /// before the user has touched it: the Pressure default for a pressure
+  /// trace, and visible for a cylinder's gas-switch markers.
+  void toggleTankPressure(String tankId, {bool visibleByDefault = true}) {
+    final current = state.showTankPressure[tankId] ?? visibleByDefault;
     state = state.copyWith(
       showTankPressure: {...state.showTankPressure, tankId: !current},
     );
   }
 
-  /// Initialize tank pressure visibility for tanks that don't have state yet
-  void initializeTankPressures(List<String> tankIds) {
-    final updated = Map<String, bool>.from(state.showTankPressure);
-    var hasChanges = false;
-
-    for (final tankId in tankIds) {
-      if (!updated.containsKey(tankId)) {
-        updated[tankId] = true; // Default to visible
-        hasChanges = true;
-      }
-    }
-
-    if (hasChanges) {
-      state = state.copyWith(showTankPressure: updated);
-    }
-  }
-
-  /// Check if a specific tank's pressure is visible
-  bool isTankPressureVisible(String tankId) {
-    return state.showTankPressure[tankId] ?? true;
-  }
-
-  /// Reset all toggles to their default values
+  /// Reset all toggles and sources to the diver's settings, the same state
+  /// [build] seeds. Rebuilding rather than assigning `const
+  /// ProfileLegendState()` keeps a diver who stored Calculated from being
+  /// moved to the constructor's computer default (#1859).
   void reset() {
     _computedEventsUserSet = false;
-    state = const ProfileLegendState();
+    ref.invalidateSelf();
   }
 }

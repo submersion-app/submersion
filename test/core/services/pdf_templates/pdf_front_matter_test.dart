@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_front_matter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 
@@ -18,7 +19,7 @@ void main() {
   Certification cert(String name, {String? card}) => Certification(
     id: name,
     name: name,
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     cardNumber: card,
     issueDate: DateTime(2020, 5, 1),
     createdAt: DateTime(2020, 5, 1),
@@ -39,6 +40,7 @@ void main() {
         build: (context) => PdfFrontMatter.buildDiverPage(
           diver: diver,
           dates: dates,
+          l10n: PdfLocalization.english().l10n,
           diveCount: 42,
           certifications: certs,
         ),

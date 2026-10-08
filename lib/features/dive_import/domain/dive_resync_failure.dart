@@ -20,6 +20,12 @@ enum DiveResyncFailure {
   /// The file parsed, but none of its dives still matches this one.
   noMatchingDive,
 
+  /// The file is shared by several divers, more than one of them logged a
+  /// matching dive, and the dive does not record whose copy it is (it was
+  /// imported before that was stored), so any pick could replay a buddy's
+  /// samples (issue #1921).
+  ambiguousDiver,
+
   /// Reading or parsing the stored file threw.
   unexpectedError,
 }

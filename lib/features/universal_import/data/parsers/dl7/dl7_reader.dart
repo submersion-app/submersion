@@ -12,6 +12,7 @@ class Dl7Reader {
     final warnings = <String>[];
     var fsh = const <String>[];
     var zrh = const <String>[];
+    final zarBlocks = <String>[];
     final zarLines = <String>[];
     final dives = <Dl7DiveRecord>[];
 
@@ -19,6 +20,11 @@ class Dl7Reader {
     List<List<String>>? currentZdpRows;
     var inZdp = false;
     var inZar = false;
+
+    void closeZar() {
+      if (zarLines.isNotEmpty) zarBlocks.add(zarLines.join('\n'));
+      zarLines.clear();
+    }
 
     void closeDive(List<String> zdtFields) {
       if (currentZdh == null) {
@@ -44,6 +50,7 @@ class Dl7Reader {
       if (inZar) {
         if (line.trim() == '}') {
           inZar = false;
+          closeZar();
         } else {
           zarLines.add(line);
         }
@@ -65,6 +72,7 @@ class Dl7Reader {
         if (rest.endsWith('}')) {
           final inner = rest.substring(0, rest.length - 1);
           if (inner.isNotEmpty) zarLines.add(inner);
+          closeZar();
         } else {
           if (rest.isNotEmpty) zarLines.add(rest);
           inZar = true;
@@ -93,6 +101,9 @@ class Dl7Reader {
       // Unknown segments (ZPD, ZPA, ZDD, ZSR, ...) are skipped by design.
     }
 
+    // A block left open by a truncated file still holds what it read.
+    closeZar();
+
     if (currentZdh != null) {
       warnings.add("File ended before the last dive's ZDT segment");
       closeDive(const []);
@@ -101,7 +112,7 @@ class Dl7Reader {
     return Dl7Document(
       fshFields: fsh,
       zrhFields: zrh,
-      zarContent: zarLines.join('\n'),
+      zarBlocks: zarBlocks,
       dives: dives,
       readerWarnings: warnings,
     );

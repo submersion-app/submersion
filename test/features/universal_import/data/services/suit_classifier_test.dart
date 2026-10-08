@@ -217,4 +217,41 @@ void main() {
       }
     });
   });
+
+  group('classifySuitGear (#633)', () {
+    test('a wetsuit or drysuit comes from classifySuit, with thickness', () {
+      expect(classifySuitGear('Bare 7mm'), (
+        type: EquipmentType.wetsuit,
+        thickness: '7mm',
+      ));
+      expect(classifySuitGear('Drysuit'), (
+        type: EquipmentType.drysuit,
+        thickness: null,
+      ));
+    });
+
+    test('a layer that names itself takes the layer type', () {
+      expect(classifySuitGear('Dry undersuit'), (
+        type: EquipmentType.undersuit,
+        thickness: null,
+      ));
+      expect(classifySuitGear('Merino base layer'), (
+        type: EquipmentType.baselayer,
+        thickness: null,
+      ));
+      expect(classifySuitGear('Rash guard'), (
+        type: EquipmentType.rashGuard,
+        thickness: null,
+      ));
+    });
+
+    test('a name that says neither is unclear', () {
+      expect(classifySuitGear('Full suit'), isNull);
+      expect(classifySuitGear('Fourth Element Argonaut'), isNull);
+      // The mapper reads fins in "Definition"; only layers are trusted.
+      expect(classifySuitGear('Definition'), isNull);
+      expect(classifySuitGear('   '), isNull);
+      expect(classifySuitGear(null), isNull);
+    });
+  });
 }

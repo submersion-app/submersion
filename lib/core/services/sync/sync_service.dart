@@ -12,6 +12,8 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/child_column_clears.dart';
+import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/media_resolution_hints.dart';
@@ -22,7 +24,7 @@ import 'package:submersion/core/services/sync/changeset_log/base_parse_client.da
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/byte_progress_stream.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_codec.dart';
-import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_reader.dart';
 import 'package:submersion/core/services/sync/changeset_log/changeset_writer.dart';
@@ -33,6 +35,8 @@ import 'package:submersion/core/services/sync/changeset_log/stale_restore_detect
 import 'package:submersion/core/services/sync/changeset_log/sync_liveness.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/core/services/sync/changeset_log/tombstone_horizon.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone_applier.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
@@ -44,6 +48,8 @@ import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_record_overlay.dart';
+import 'package:submersion/core/services/sync/tag_fill_copy_merge.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -88,6 +94,15 @@ class SyncResult {
   /// [skippedPeerNames].
   final Map<String, String> newerSchemaPeerNames;
 
+  /// Peers whose own schema is below this build's compatibility floor, so
+  /// they hold this device's changes until they update. Their own changes
+  /// still merge here.
+  final Set<String> olderSchemaPeerDeviceIds;
+
+  /// Display names for [olderSchemaPeerDeviceIds], same contract as
+  /// [skippedPeerNames].
+  final Map<String, String> olderSchemaPeerNames;
+
   /// Peers whose changeset read threw during the pull. Their cursors stayed
   /// put, so the next sync retries them; the UI names them so the user can
   /// see whose data did not merge this run.
@@ -113,6 +128,8 @@ class SyncResult {
     this.skippedPeerNames = const {},
     this.newerSchemaPeerDeviceIds = const {},
     this.newerSchemaPeerNames = const {},
+    this.olderSchemaPeerDeviceIds = const {},
+    this.olderSchemaPeerNames = const {},
     this.readFailedPeerDeviceIds = const {},
     this.readFailedPeerNames = const {},
     this.replaceMarker,
@@ -227,6 +244,7 @@ class _EpochGate {
 /// Core sync service that orchestrates cloud sync operations
 class SyncService {
   final SyncRepository _syncRepository;
+  final EventScopeTombstoneApplier _eventScopeApplier;
   final SyncDataSerializer _serializer;
   final CloudStorageProvider? _cloudProvider;
   final SyncInitializer? _syncInitializer;
@@ -315,6 +333,9 @@ class SyncService {
     PeerDeviceNameStore? peerNames,
     Future<void> Function(MediaResolutionHints hints)? onMediaResolutionHints,
   }) : _syncRepository = syncRepository,
+       _eventScopeApplier = EventScopeTombstoneApplier(
+         syncRepository: syncRepository,
+       ),
        _serializer = serializer,
        _cloudProvider = cloudProvider,
        _syncInitializer = syncInitializer,
@@ -403,7 +424,12 @@ class SyncService {
     for (final record in conflictRecords) {
       if (record.conflictData != null) {
         try {
-          final remoteData = _parseConflictData(record.conflictData!);
+          // A conflict stored before a column became device-local may still
+          // carry it; fetchRecord strips the local side the same way.
+          final remoteData = withoutDeviceLocalColumns(
+            record.entityType,
+            _parseConflictData(record.conflictData!),
+          );
           final localData = await _serializer.fetchRecord(
             record.entityType,
             record.recordId,
@@ -875,6 +901,8 @@ class SyncService {
         skippedPeerNames: pullResult.skippedPeerNames,
         newerSchemaPeerDeviceIds: pullResult.newerSchemaPeerDeviceIds,
         newerSchemaPeerNames: pullResult.newerSchemaPeerNames,
+        olderSchemaPeerDeviceIds: pullResult.olderSchemaPeerDeviceIds,
+        olderSchemaPeerNames: pullResult.olderSchemaPeerNames,
         readFailedPeerDeviceIds: pullResult.readFailedPeerDeviceIds,
         readFailedPeerNames: pullResult.readFailedPeerNames,
       );
@@ -1228,7 +1256,7 @@ class SyncService {
     // at a dive site appearing later in the apply order, or a dive whose
     // courseId points at a course in the same payload) fail immediately and
     // the affected rows never reach the receiving DB. See
-    // docs/superpowers/findings/2026-06-02-icloud-sync-diagnosis.md.
+    // docs/design/findings/2026-06-02-icloud-sync-diagnosis.md.
     return _serializer.applyInDeferredFkTransaction(
       () => _applyRemotePayloadInner(remotePayload, localLastSync),
     );
@@ -1279,6 +1307,15 @@ class SyncService {
       }
       if (contradicted.isNotEmpty) {
         contradictedByEntity[delEntry.key] = contradicted;
+      }
+    }
+    final payloadScopes = _payloadEventScopes(
+      remotePayload.deletions,
+      remotePayload.exportedAt,
+    );
+    if (payloadScopes != null) {
+      for (final rec in remotePayload.data.diveProfileEvents) {
+        _addScopeContradiction(contradictedByEntity, payloadScopes, rec);
       }
     }
 
@@ -1368,6 +1405,7 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'gpsTracks', records: data.gpsTracks, hasUpdatedAt: true),
+          (type: 'navTracks', records: data.navTracks, hasUpdatedAt: true),
           (type: 'divePlans', records: data.divePlans, hasUpdatedAt: true),
           (
             type: 'divePlanTanks',
@@ -1379,7 +1417,36 @@ class SyncService {
             records: data.divePlanSegments,
             hasUpdatedAt: true,
           ),
+          // Mission rows reference only their plan, applied above.
+          (
+            type: 'divePlanMissions',
+            records: data.divePlanMissions,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'divePlanMissionLegs',
+            records: data.divePlanMissionLegs,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'divePlanMissionMembers',
+            records: data.divePlanMissionMembers,
+            hasUpdatedAt: true,
+          ),
           (type: 'equipment', records: data.equipment, hasUpdatedAt: true),
+          // Trip cylinder slots reference trips and equipment; their ledger
+          // references the slots and dive centers. Both before dives, whose
+          // tanks link the slots.
+          (
+            type: 'tripCylinders',
+            records: data.tripCylinders,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'tripCylinderEvents',
+            records: data.tripCylinderEvents,
+            hasUpdatedAt: true,
+          ),
           (
             type: 'equipmentSets',
             records: data.equipmentSets,
@@ -1439,6 +1506,16 @@ class SyncService {
           (type: 'diveTypes', records: data.diveTypes, hasUpdatedAt: true),
           (type: 'siteTypes', records: data.siteTypes, hasUpdatedAt: true),
           (type: 'diveRoles', records: data.diveRoles, hasUpdatedAt: true),
+          (
+            type: 'customCertificationAgencies',
+            records: data.customCertificationAgencies,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'customCertificationLevels',
+            records: data.customCertificationLevels,
+            hasUpdatedAt: true,
+          ),
           (type: 'tankPresets', records: data.tankPresets, hasUpdatedAt: true),
           (
             type: 'weightPresets',
@@ -1458,6 +1535,31 @@ class SyncService {
           (
             type: 'transmitters',
             records: data.transmitters,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'cylinderFills',
+            records: data.cylinderFills,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'connectionMaps',
+            records: data.connectionMaps,
+            hasUpdatedAt: true,
+          ),
+          // Saved queries reference sites and buddies only inside their
+          // JSON (by id, resolved at load), so they carry no FK but the
+          // diver and can apply anywhere in the order.
+          (
+            type: 'savedQueries',
+            records: data.savedQueries,
+            hasUpdatedAt: true,
+          ),
+          // Observation dismissals (#2381) carry a diver FK only, and their
+          // deterministic ids make a plain last-writer-wins upsert safe.
+          (
+            type: 'insightObservationDismissals',
+            records: data.insightObservationDismissals,
             hasUpdatedAt: true,
           ),
           (type: 'species', records: data.species, hasUpdatedAt: false),
@@ -1504,6 +1606,16 @@ class SyncService {
           (
             type: 'diveDiveTypes',
             records: data.diveDiveTypes,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'diveDiverRoles',
+            records: data.diveDiverRoles,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'diveBuddyRoles',
+            records: data.diveBuddyRoles,
             hasUpdatedAt: false,
           ),
           (type: 'diveBuddies', records: data.diveBuddies, hasUpdatedAt: false),
@@ -1575,6 +1687,37 @@ class SyncService {
             records: data.equipmentTags,
             hasUpdatedAt: false,
           ),
+          // After both parents (equipment and divers), issue #2046.
+          (
+            type: 'equipmentShares',
+            records: data.equipmentShares,
+            hasUpdatedAt: false,
+          ),
+          // After both parents (trips and equipment), issue #2338.
+          (
+            type: 'tripEquipment',
+            records: data.tripEquipment,
+            hasUpdatedAt: false,
+          ),
+          // After their parents (trips, sites and divers), issue #2594.
+          (type: 'tripHides', records: data.tripHides, hasUpdatedAt: false),
+          (type: 'siteHides', records: data.siteHides, hasUpdatedAt: false),
+          (
+            type: 'equipmentOwnershipEvents',
+            records: data.equipmentOwnershipEvents,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'equipmentLocations',
+            records: data.equipmentLocations,
+            hasUpdatedAt: true,
+          ),
+          // After equipment and the places they point at.
+          (
+            type: 'equipmentLocationMoves',
+            records: data.equipmentLocationMoves,
+            hasUpdatedAt: false,
+          ),
           (
             type: 'mediaSpecies',
             records: data.mediaSpecies,
@@ -1617,6 +1760,21 @@ class SyncService {
           (
             type: 'serviceSchedules',
             records: data.serviceSchedules,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'certificationCurrencyRules',
+            records: data.certificationCurrencyRules,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'certificationCurrencyPrefs',
+            records: data.certificationCurrencyPrefs,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'certificationCurrencyEvents',
+            records: data.certificationCurrencyEvents,
             hasUpdatedAt: true,
           ),
           (type: 'settings', records: data.settings, hasUpdatedAt: true),
@@ -1663,38 +1821,31 @@ class SyncService {
           ),
         ];
 
-    // Precompute the locally-tombstoned parents this payload will REVIVE (a
-    // remote edit strictly newer than our deletion). A child must not be
+    // Precompute the locally-tombstoned parents this payload will REVIVE
+    // (_revivedParents). A child must not be
     // dropped/cleared for a parent that is coming back. The merge order does
     // not guarantee a parent is processed before its children, and a revival
     // only clears the tombstone in the DB (not the in-memory snapshot used by
     // the guard below), so this is computed up front to stay order-independent.
-    final recordsByType = {for (final e in mergeOrder) e.type: e};
-    final revivedParents = <String, Set<String>>{};
     final parentTypes = <String>{
       for (final refs in parentRefs.values)
         for (final ref in refs) ref.parent,
     };
-    for (final parentType in parentTypes) {
-      final tombs = tombstonesByEntity[parentType];
-      final entry = recordsByType[parentType];
-      if (tombs == null ||
-          tombs.isEmpty ||
-          entry == null ||
-          !entry.hasUpdatedAt) {
-        continue;
-      }
-      for (final rec in entry.records) {
-        final id = recordIdForEntity(parentType, rec);
-        if (id == null) continue;
-        final deletedAt = tombs[id];
-        if (deletedAt == null) continue;
-        final remoteUpdatedAt = _extractUpdatedAtMillis(rec);
-        if (remoteUpdatedAt != null && remoteUpdatedAt > deletedAt) {
-          revivedParents.putIfAbsent(parentType, () => <String>{}).add(id);
-        }
-      }
-    }
+    final revivedParents = _revivedParents(
+      parentTypes: parentTypes,
+      stamps: {
+        for (final e in mergeOrder)
+          if (parentTypes.contains(e.type) &&
+              tombstonesByEntity[e.type]?.isNotEmpty == true)
+            e.type: {
+              for (final rec in e.records)
+                ?recordIdForEntity(e.type, rec): _parentStamp(e.type, rec),
+            },
+      },
+      tombstones: tombstonesByEntity,
+      tombstoneClocks: tombstoneClocks,
+      contradicted: contradictedByEntity,
+    );
 
     for (final entry in mergeOrder) {
       final result = await _mergeEntity(
@@ -1880,11 +2031,15 @@ class SyncService {
     final deletionIds = <String, Set<String>>{
       for (final e in deletions.entries) e.key: {for (final d in e.value) d.id},
     };
-    final parentUpdatedAt = <String, Map<String, int>>{};
+    // Each parent row's stamps, for the revived-parent check.
+    final parentStamps = <String, Map<String, _ParentStamp>>{};
     final contradictedByEntity = <String, Set<String>>{};
+    final payloadScopes = _payloadEventScopes(deletions, baseExportedAt);
     final pass2Tables = <String>{
       for (final table in _baseApplyEntityFlags.keys)
-        if (parentTypes.contains(table) || deletionIds.containsKey(table))
+        if (parentTypes.contains(table) ||
+            deletionIds.containsKey(table) ||
+            (payloadScopes != null && table == 'diveProfileEvents'))
           table,
     };
     progress.beginPass(1);
@@ -1896,13 +2051,15 @@ class SyncService {
         final rec = r.row;
         final id = recordIdForEntity(table, rec);
         if (id == null) continue;
-        if (parentTypes.contains(table) &&
-            _baseApplyEntityFlags[table] == true) {
-          final u = _extractUpdatedAtMillis(rec);
-          if (u != null) (parentUpdatedAt[table] ??= {})[id] = u;
+        // Every parent, whatever its merge flag, as in the payload apply.
+        if (parentTypes.contains(table)) {
+          (parentStamps[table] ??= {})[id] = _parentStamp(table, rec);
         }
         if (deletionIds[table]?.contains(id) == true) {
           (contradictedByEntity[table] ??= {}).add(id);
+        }
+        if (payloadScopes != null && table == 'diveProfileEvents') {
+          _addScopeContradiction(contradictedByEntity, payloadScopes, rec);
         }
       }
     }
@@ -1927,18 +2084,13 @@ class SyncService {
       final (deletedAt: tombstonesByEntity, clocks: tombstoneClocks) =
           await _deletionMaps();
 
-      final revivedParents = <String, Set<String>>{};
-      for (final parentType in parentTypes) {
-        final tombs = tombstonesByEntity[parentType];
-        final ups = parentUpdatedAt[parentType];
-        if (tombs == null || tombs.isEmpty || ups == null) continue;
-        ups.forEach((id, updatedAt) {
-          final deletedAt = tombs[id];
-          if (deletedAt != null && updatedAt > deletedAt) {
-            (revivedParents[parentType] ??= {}).add(id);
-          }
-        });
-      }
+      final revivedParents = _revivedParents(
+        parentTypes: parentTypes,
+        stamps: parentStamps,
+        tombstones: tombstonesByEntity,
+        tombstoneClocks: tombstoneClocks,
+        contradicted: contradictedByEntity,
+      );
 
       // ---- Pass 3: batched apply ----
       const batchSize = 500;
@@ -2058,26 +2210,32 @@ class SyncService {
     final deletionIds = <String, Set<String>>{
       for (final e in deletions.entries) e.key: {for (final d in e.value) d.id},
     };
-    final parentUpdatedAt = <String, Map<String, int>>{};
+    // Each parent row's stamps, for the revived-parent check.
+    final parentStamps = <String, Map<String, _ParentStamp>>{};
     final contradictedByEntity = <String, Set<String>>{};
+    final payloadScopes = _payloadEventScopes(deletions, baseExportedAt);
     progress.beginPass(1);
     await BaseJsonStreamReader().parse(
       openWithProgress(),
       wantRows: (section, table) =>
           section == 'data' &&
           _baseApplyEntityFlags.containsKey(table) &&
-          (parentTypes.contains(table) || deletionIds.containsKey(table)),
+          (parentTypes.contains(table) ||
+              deletionIds.containsKey(table) ||
+              (payloadScopes != null && table == 'diveProfileEvents')),
       onRow: (section, table, rowBytes) async {
         final rec = jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>;
         final id = recordIdForEntity(table, rec);
         if (id == null) return;
-        if (parentTypes.contains(table) &&
-            _baseApplyEntityFlags[table] == true) {
-          final u = _extractUpdatedAtMillis(rec);
-          if (u != null) (parentUpdatedAt[table] ??= {})[id] = u;
+        // Every parent, whatever its merge flag, as in the payload apply.
+        if (parentTypes.contains(table)) {
+          (parentStamps[table] ??= {})[id] = _parentStamp(table, rec);
         }
         if (deletionIds[table]?.contains(id) == true) {
           (contradictedByEntity[table] ??= {}).add(id);
+        }
+        if (payloadScopes != null && table == 'diveProfileEvents') {
+          _addScopeContradiction(contradictedByEntity, payloadScopes, rec);
         }
       },
     );
@@ -2104,22 +2262,16 @@ class SyncService {
       final (deletedAt: tombstonesByEntity, clocks: tombstoneClocks) =
           await _deletionMaps();
 
-      // Revived parents: a parent row whose remote updatedAt is newer than our
-      // local tombstone. Combines pass-2 file data with post-deletion
-      // tombstones, so it is complete before any row is merged (a child may
-      // precede its parent in file order).
-      final revivedParents = <String, Set<String>>{};
-      for (final parentType in parentTypes) {
-        final tombs = tombstonesByEntity[parentType];
-        final ups = parentUpdatedAt[parentType];
-        if (tombs == null || tombs.isEmpty || ups == null) continue;
-        ups.forEach((id, updatedAt) {
-          final deletedAt = tombs[id];
-          if (deletedAt != null && updatedAt > deletedAt) {
-            (revivedParents[parentType] ??= {}).add(id);
-          }
-        });
-      }
+      // Revived parents (_revivedParents). Combines pass-2 file data with
+      // post-deletion tombstones, so it is complete before any row is merged
+      // (a child may precede its parent in file order).
+      final revivedParents = _revivedParents(
+        parentTypes: parentTypes,
+        stamps: parentStamps,
+        tombstones: tombstonesByEntity,
+        tombstoneClocks: tombstoneClocks,
+        contradicted: contradictedByEntity,
+      );
 
       // ---- Pass 3: batched apply ----
       const batchSize = 500;
@@ -2187,6 +2339,47 @@ class SyncService {
     });
   }
 
+  /// The payload's own event scope tombstones (#1926), or null when it has
+  /// none. A delete time missing from an older peer falls back to the
+  /// payload's export time, as [_applyRemoteDeletions] does.
+  static EventScopeCoverage? _payloadEventScopes(
+    Map<String, List<SyncDeletion>> deletions,
+    int exportedAt,
+  ) {
+    final scopes = deletions[EventScopeTombstone.entityType];
+    if (scopes == null || scopes.isEmpty) return null;
+    // Only the clocks that parse: a scope without one falls back to its
+    // delete time, as it does in the applier.
+    final clocks = <String, Hlc>{};
+    for (final d in scopes) {
+      final clock = tryParseHlc(d.hlc);
+      if (clock != null) clocks[d.id] = clock;
+    }
+    return EventScopeCoverage.from(
+      deletedAt: {
+        for (final d in scopes)
+          d.id: d.deletedAt > 0 ? d.deletedAt : exportedAt,
+      },
+      clocks: clocks,
+    );
+  }
+
+  /// Records [event] as contradicted when a scope in the same payload covers
+  /// it. The publisher sends it live beside that scope, so it still holds
+  /// it, and the same-payload rule the per-row path follows applies: the
+  /// live row is the publisher's current truth and survives both the scope
+  /// and the merge guard.
+  static void _addScopeContradiction(
+    Map<String, Set<String>> contradictedByEntity,
+    EventScopeCoverage payloadScopes,
+    Map<String, dynamic> event,
+  ) {
+    final id = recordIdForEntity('diveProfileEvents', event);
+    if (id != null && payloadScopes.covers(event)) {
+      (contradictedByEntity['diveProfileEvents'] ??= {}).add(id);
+    }
+  }
+
   Future<_MergeResult> _applyRemoteDeletions(
     Map<String, List<SyncDeletion>> deletions,
     int? lastSyncMs,
@@ -2203,6 +2396,29 @@ class SyncService {
       for (final deletion in entry.value) {
         final recordId = deletion.id;
         try {
+          // One tombstone for a set of events (#1926): expanded here into
+          // the rows it covers, never looked up as a record of its own.
+          if (entityType == EventScopeTombstone.entityType) {
+            final deletionHlc = _parseHlc(deletion.hlc);
+            if (deletionHlc != null) SyncClock.instance.receive(deletionHlc);
+            // The rows it removed, not the scope: a relayed copy that finds
+            // nothing left to delete applied nothing.
+            applied += await _eventScopeApplier.apply(
+              deletion: deletion,
+              deletedAt: deletion.deletedAt > 0
+                  ? deletion.deletedAt
+                  : remoteExportedAt,
+              pendingEventIds:
+                  pendingByEntity['diveProfileEvents'] ?? const <String>{},
+              contradictedEventIds:
+                  contradictedByEntity['diveProfileEvents'] ?? const <String>{},
+            );
+            continue;
+          }
+          // A device-local settings key never syncs (issue #2947), so a
+          // peer's tombstone for one neither deletes this device's value nor
+          // raises a conflict, as the merge treats a live copy.
+          if (isDeviceLocalRecord(entityType, recordId)) continue;
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }
@@ -2216,28 +2432,36 @@ class SyncService {
           final deletionTimestamp = deletion.deletedAt > 0
               ? deletion.deletedAt
               : remoteExportedAt;
-          // A child with its own clock, against a tombstone carrying the
-          // clock of the delete: the later event wins, with no conflict
-          // card (children resolve per row, as their upserts do). A child
-          // edited after the peer deleted it, which reached us before the
-          // delete did, is kept. Either clock missing: the rules below.
-          final localHlc =
-              SyncDataSerializer.ownClockEntities.contains(entityType)
-              ? _ownClock(entityType, local)
-              : null;
+          // A local row against a tombstone carrying the clock of the
+          // delete: the clocks order them, for every entity, as they order
+          // two live copies in _mergeEntity. A row not later than the delete
+          // is deleted with no conflict, whatever the wall clocks say: its
+          // updatedAt is the stamp of whichever device wrote it, so reading
+          // it against this device's own lastSync made a row nobody touched
+          // here look edited whenever that writer's clock ran ahead (#2943).
+          // A later row was edited after the delete: a child with its own
+          // clock keeps it with no card (children resolve per row, as their
+          // upserts do), anything else raises the deletion conflict below.
+          // Either clock missing: the wall-clock rules below.
+          final localHlc = _ownClock(entityType, local);
           final deletionHlc = _parseHlc(deletion.hlc);
           if (deletionHlc != null) SyncClock.instance.receive(deletionHlc);
-          if (localHlc != null && deletionHlc != null) {
-            if (localHlc.compareTo(deletionHlc) > 0) continue;
-            await _serializer.deleteRecord(entityType, recordId);
-            await _syncRepository.logDeletionIfMissing(
-              entityType: entityType,
-              recordId: recordId,
-              deletedAt: deletionTimestamp,
-              originHlc: deletion.hlc,
-            );
-            applied += 1;
-            continue;
+          final clockOrdered = localHlc != null && deletionHlc != null;
+          if (clockOrdered) {
+            if (localHlc.compareTo(deletionHlc) <= 0) {
+              await _serializer.deleteRecord(entityType, recordId);
+              await _syncRepository.logDeletionIfMissing(
+                entityType: entityType,
+                recordId: recordId,
+                deletedAt: deletionTimestamp,
+                originHlc: deletion.hlc,
+              );
+              applied += 1;
+              continue;
+            }
+            if (SyncDataSerializer.ownClockEntities.contains(entityType)) {
+              continue;
+            }
           }
           // _extractUpdatedAtMillis falls back to createdAt, so a row created
           // locally after our last sync (or after the tombstone itself) is
@@ -2252,7 +2476,10 @@ class SyncService {
           // already drops a tombstone whose key the same payload re-inserts.
           final localUpdatedAt = _extractUpdatedAtMillis(local);
 
-          // Two independent guards; either one routes to a conflict:
+          // Reached with clockOrdered only for a row later than the delete,
+          // which is a conflict on its own. Otherwise, for a row or
+          // tombstone with no clock (a pre-HLC peer), two independent
+          // guards; either one routes to a conflict:
           //  * edited since our last sync (three-way; needs a horizon), and
           //  * the tombstone's own age: a local row edited AFTER the peer
           //    deleted it is newer than the deletion. This mirrors the
@@ -2269,7 +2496,16 @@ class SyncService {
               localUpdatedAt > lastSyncMs;
           final newerThanTombstone =
               localUpdatedAt != null && localUpdatedAt > deletionTimestamp;
-          final hasConflict = editedSinceLastSync || newerThanTombstone;
+          // A fill copied from a tag is not an edit of the fill the peer
+          // deleted: the delete wins, with no conflict to resolve, so every
+          // device agrees it stays deleted (tag_fill_copy_merge.dart).
+          final tagCopy =
+              entityType == 'cylinderFills' &&
+              local != null &&
+              isTagFillCopy(local);
+          final hasConflict =
+              !tagCopy &&
+              (clockOrdered || editedSinceLastSync || newerThanTombstone);
 
           if (hasConflict) {
             conflicts += 1;
@@ -2282,7 +2518,9 @@ class SyncService {
                 'hlc': ?deletion.hlc,
                 'recordId': recordId,
               }),
-              localUpdatedAt: localUpdatedAt,
+              // Only a row ordered by its clock can conflict with no
+              // timestamp, and its clock says when it was last written.
+              localUpdatedAt: localUpdatedAt ?? localHlc!.physicalTime,
             );
             continue;
           }
@@ -2351,6 +2589,8 @@ class SyncService {
     'liveaboardDetails': true,
     'itineraryDays': true,
     'tripDayWeather': true,
+    'tripCylinders': true,
+    'tripCylinderEvents': true,
     'checklistTemplates': true,
     'checklistTemplateItems': true,
     'tripChecklistItems': true,
@@ -2359,9 +2599,13 @@ class SyncService {
     'preDiveSessions': true,
     'preDiveSessionItems': true,
     'gpsTracks': true,
+    'navTracks': true,
     'divePlans': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
+    'divePlanMissions': true,
+    'divePlanMissionLegs': true,
+    'divePlanMissionMembers': true,
     'equipment': true,
     'equipmentSets': true,
     'equipmentSetItems': false,
@@ -2377,11 +2621,17 @@ class SyncService {
     'diveTypes': true,
     'siteTypes': true,
     'diveRoles': true,
+    'customCertificationAgencies': true,
+    'customCertificationLevels': true,
     'tankPresets': true,
     'weightPresets': true,
     'weightPresetEntries': false,
     'diveComputers': true,
     'transmitters': true,
+    'cylinderFills': true,
+    'connectionMaps': true,
+    'savedQueries': true,
+    'insightObservationDismissals': true,
     'species': false,
     'tags': true,
     'courses': true,
@@ -2411,8 +2661,17 @@ class SyncService {
     'diveDataSources': false,
     'siteSpecies': false,
     'siteSiteTypes': false,
+    'diveDiverRoles': false,
+    'diveBuddyRoles': false,
     'siteTags': false,
     'equipmentTags': false,
+    'equipmentShares': false,
+    'tripEquipment': false,
+    'tripHides': false,
+    'siteHides': false,
+    'equipmentOwnershipEvents': false,
+    'equipmentLocations': true,
+    'equipmentLocationMoves': false,
     'mediaSpecies': false,
     'siteFeatures': true,
     'csvPresets': true,
@@ -2424,6 +2683,9 @@ class SyncService {
     'serviceRecords': true,
     'serviceKinds': true,
     'serviceSchedules': true,
+    'certificationCurrencyRules': true,
+    'certificationCurrencyPrefs': true,
+    'certificationCurrencyEvents': true,
     'settings': true,
     'media': false,
     'mediaEnrichment': false,
@@ -2482,6 +2744,25 @@ class SyncService {
   /// before the diver's tombstone reached it, is cleared by
   /// SyncDataSerializer.repairDanglingForeignKeys, which drops the row
   /// instead where the column is NOT NULL.)
+  /// Fields cleared together with a set-null [parentRefs] reference when
+  /// its parent is tombstoned, keyed by entity type and then by the
+  /// reference's field: values that only mean something while the
+  /// reference is set.
+  ///
+  /// navTracks.linkMode records HOW diveId got linked ('auto'/'manual') and
+  /// is null exactly when diveId is (nav_tracks schema comment,
+  /// database.dart). Clearing it here keeps that invariant when a peer's
+  /// still-linked route arrives after this device already tombstoned its
+  /// dive, mirroring what NavTrackRepository does for the same unlink on
+  /// the local delete path. isPrimary is left alone: it is NOT NULL with a
+  /// default, and nothing reads it without also filtering on diveId.
+  @visibleForTesting
+  static const Map<String, Map<String, List<String>>> alsoClearedWithParent = {
+    'navTracks': {
+      'diveId': ['linkMode'],
+    },
+  };
+
   @visibleForTesting
   static const Map<String, List<ParentRef>> parentRefs = {
     'dives': [
@@ -2514,6 +2795,11 @@ class SyncService {
       (field: 'transmitterEquipmentId', parent: 'equipment', nullable: true),
       (field: 'diveComputerId', parent: 'diveComputers', nullable: true),
     ],
+    // The gear link is nullable: a fill outlives a deleted cylinder (set
+    // null) and a fill of a rental cylinder never had one.
+    'cylinderFills': [
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
+    ],
     // v202: a child item (O2 cell, battery) points at the item it is installed
     // in. Nullable: deleting the parent orphans the child, never drops it.
     'equipment': [
@@ -2525,7 +2811,14 @@ class SyncService {
       // v202: the regulator breathed from the cylinder; user-authored and
       // nullable, so a deleted regulator only clears the link.
       (field: 'regulatorEquipmentId', parent: 'equipment', nullable: true),
+      // v232: the trip cylinder slot; nullable, so a slot the peer never
+      // sent, or has deleted, only clears the link.
+      (field: 'tripCylinderId', parent: 'tripCylinders', nullable: true),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
+      // v251: the data source the tank row came from (#2716); nullable, as
+      // on tank pressure series, so a source the peer deleted only clears
+      // the link.
+      (field: 'sourceId', parent: 'diveDataSources', nullable: true),
     ],
     'diveWeights': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveEquipment': [
@@ -2550,6 +2843,11 @@ class SyncService {
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
     'diveDiveTypes': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveDiverRoles': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveBuddyRoles': [
+      (field: 'diveId', parent: 'dives', nullable: false),
+      (field: 'buddyId', parent: 'buddies', nullable: false),
+    ],
     'diveProfileEvents': [
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
@@ -2573,7 +2871,10 @@ class SyncService {
     ],
     'diveSafetyReviews': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveSafetyFindings': [(field: 'diveId', parent: 'dives', nullable: false)],
-    'gasSwitches': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'gasSwitches': [
+      (field: 'diveId', parent: 'dives', nullable: false),
+      (field: 'computerId', parent: 'diveComputers', nullable: true),
+    ],
     'diveCustomFields': [(field: 'diveId', parent: 'dives', nullable: false)],
     'tideRecords': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveDataSources': [
@@ -2589,6 +2890,8 @@ class SyncService {
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'tankId', parent: 'diveTanks', nullable: false),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
+      // v241 (issue #2440): the owning source, like diveProfileSeries.
+      (field: 'sourceId', parent: 'diveDataSources', nullable: true),
     ],
     'sightings': [
       (field: 'diveId', parent: 'dives', nullable: false),
@@ -2599,6 +2902,15 @@ class SyncService {
       (field: 'siteId', parent: 'diveSites', nullable: true),
       (field: 'equipmentId', parent: 'equipment', nullable: true),
       (field: 'signerId', parent: 'buddies', nullable: true),
+    ],
+    // All three nullable (onDelete: KeyAction.setNull): the recording
+    // outlives a deleted dive, site or equipment item and just loses the
+    // link (spec 2026-09-10-underwater-nav-track-design.md).
+    'navTracks': [
+      // diveId also clears linkMode: see [alsoClearedWithParent].
+      (field: 'diveId', parent: 'dives', nullable: true),
+      (field: 'siteId', parent: 'diveSites', nullable: true),
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
     'siteSpecies': [
       (field: 'siteId', parent: 'diveSites', nullable: false),
@@ -2616,6 +2928,34 @@ class SyncService {
       (field: 'equipmentId', parent: 'equipment', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
+    // v234: equipment sharing (issue #2046). The diver keys are left to
+    // repairDanglingForeignKeys like every diverId (see the note above).
+    'equipmentShares': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
+    // v248: gear packed for a trip (issue #2338).
+    'tripEquipment': [
+      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
+    // v250: a profile's hidden shared trips and sites (issue #2594).
+    'tripHides': [
+      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'diverId', parent: 'divers', nullable: false),
+    ],
+    'siteHides': [
+      (field: 'siteId', parent: 'diveSites', nullable: false),
+      (field: 'diverId', parent: 'divers', nullable: false),
+    ],
+    'equipmentOwnershipEvents': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
+    ],
+    // v268: an item's location log. The place reference is cleared, not
+    // skipped, when the place is gone: the move then reads "No location".
+    'equipmentLocationMoves': [
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
+      (field: 'locationId', parent: 'equipmentLocations', nullable: true),
+    ],
     'mediaSpecies': [
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'speciesId', parent: 'species', nullable: false),
@@ -2624,6 +2964,14 @@ class SyncService {
     'liveaboardDetails': [(field: 'tripId', parent: 'trips', nullable: false)],
     'itineraryDays': [(field: 'tripId', parent: 'trips', nullable: false)],
     'tripDayWeather': [(field: 'tripId', parent: 'trips', nullable: false)],
+    'tripCylinders': [
+      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
+    ],
+    'tripCylinderEvents': [
+      (field: 'tripCylinderId', parent: 'tripCylinders', nullable: false),
+      (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+    ],
     'checklistTemplateItems': [
       (field: 'templateId', parent: 'checklistTemplates', nullable: false),
     ],
@@ -2658,6 +3006,20 @@ class SyncService {
     'divePlanSegments': [
       (field: 'planId', parent: 'divePlans', nullable: false),
       (field: 'tankId', parent: 'divePlanTanks', nullable: false),
+    ],
+    'divePlanMissions': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+    ],
+    // A mission row's id is its plan's id, so planId also names the
+    // mission: a leg or member whose mission this device removed is dropped
+    // rather than landing as an orphan the mission read never shows.
+    'divePlanMissionLegs': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+      (field: 'planId', parent: 'divePlanMissions', nullable: false),
+    ],
+    'divePlanMissionMembers': [
+      (field: 'planId', parent: 'divePlans', nullable: false),
+      (field: 'planId', parent: 'divePlanMissions', nullable: false),
     ],
     'certifications': [
       (field: 'courseId', parent: 'courses', nullable: true),
@@ -2714,6 +3076,17 @@ class SyncService {
       (field: 'equipmentId', parent: 'equipment', nullable: false),
       (field: 'serviceKindId', parent: 'serviceKinds', nullable: false),
     ],
+    // Currency rule and event ids on a pref or event are plain text with no
+    // FK, so only the certification and the owning diver gate them.
+    'certificationCurrencyRules': [
+      (field: 'diverId', parent: 'divers', nullable: true),
+    ],
+    'certificationCurrencyPrefs': [
+      (field: 'certificationId', parent: 'certifications', nullable: false),
+    ],
+    'certificationCurrencyEvents': [
+      (field: 'certificationId', parent: 'certifications', nullable: false),
+    ],
   };
 
   Future<_MergeResult> _mergeEntity({
@@ -2755,6 +3128,22 @@ class SyncService {
     // merge and compared by timestamp when a delete arrives.
     final ownClocked = SyncDataSerializer.ownClockEntities.contains(entityType);
     final clockGuarded = ownClocked;
+    // Deletions apply before the merge, but the local-deletion guard below
+    // matches by exact id. A lagging peer can still hold events a scope
+    // delete removed (#1926), so those are checked against the scopes too.
+    final eventScopes = entityType == 'diveProfileEvents'
+        ? EventScopeCoverage.from(
+            deletedAt:
+                allTombstones[EventScopeTombstone.entityType] ??
+                const <String, int>{},
+            clocks:
+                tombstoneClocks[EventScopeTombstone.entityType] ??
+                const <String, Hlc>{},
+          )
+        : null;
+    // Events the payload sends live beside a scope that covers them: kept,
+    // then given a fresh clock (see below).
+    final scopeSurvivors = <String>{};
     final factGroups = SyncFactGroups.of(entityType);
     final localById = hasUpdatedAt || clockGuarded || factGroups.isNotEmpty
         ? await _serializer.fetchRecords(entityType, [
@@ -2763,6 +3152,9 @@ class SyncService {
           ])
         : const <String, Map<String, dynamic>>{};
     final toUpsert = <Map<String, dynamic>>[];
+    // A parent-gated child's deliberate clears, by record id: written after
+    // the batched upsert, which drops nulls (#2644).
+    final childClears = <String, Set<String>>{};
     // Fact groups written after the batched upsert with explicit values, so
     // a peer's cleared stamp lands (the upsert drops nulls; spec 5.1).
     // [inBatch] records whether this row also went into the batched upsert,
@@ -2793,6 +3185,11 @@ class SyncService {
           failed += 1;
           continue;
         }
+
+        // A device-local settings key never syncs (issue #2947). A peer on
+        // an older build may still send one; it neither applies nor raises
+        // a conflict for a value that stays on each device.
+        if (isDeviceLocalRecord(entityType, recordId)) continue;
 
         // A locally pending row used to skip the peer's copy outright, and
         // the changeset cursor still advanced past it, so the peer's update
@@ -2828,7 +3225,7 @@ class SyncService {
         // or resurrect an orphan. A NOT NULL (cascade) child is skipped; a
         // nullable (set-null) reference is cleared so the row survives detached
         // (e.g. a photo whose dive was deleted keeps the photo, sans dive link).
-        var recordToApply = _withoutDeviceLocalFields(entityType, record);
+        var recordToApply = withoutDeviceLocalColumns(entityType, record);
         var droppedByParent = false;
         for (final ref in entityParentRefs) {
           final parentId = record[ref.field];
@@ -2838,7 +3235,14 @@ class SyncService {
               // the child's reference intact regardless of merge order.
               (revivedParents[ref.parent]?.contains(parentId) != true)) {
             if (ref.nullable) {
-              recordToApply = {...recordToApply, ref.field: null};
+              recordToApply = {
+                ...recordToApply,
+                ref.field: null,
+                for (final also
+                    in alsoClearedWithParent[entityType]?[ref.field] ??
+                        const <String>[])
+                  also: null,
+              };
             } else {
               droppedByParent = true;
               break;
@@ -2863,6 +3267,11 @@ class SyncService {
               entityType: entityType,
               recordId: recordId,
             );
+          } else if (entityType == 'cylinderFills' && isTagFillCopy(record)) {
+            // A fill copied from a tag is not an edit of the fill we deleted,
+            // so it never revives it, whatever its clock
+            // (tag_fill_copy_merge.dart).
+            continue;
           } else {
             // Read the remote clock whether or not this entity resolves as
             // LWW. [hasUpdatedAt] selects the merge STRATEGY (an entity that
@@ -2872,23 +3281,17 @@ class SyncService {
             // gear junctions, so a link lost anywhere could never be revived
             // by a live copy from a peer (issue #1728). A genuinely clockless
             // entity still yields null here and is unaffected.
-            // A child with its own clock, against the clock of our delete:
-            // only an edit made after the delete revives it. Either clock
-            // missing: the timestamps below.
-            final deleteClock = ownClocked
-                ? selfTombstoneClocks[recordId]
-                : null;
-            final remoteClock = deleteClock == null
-                ? null
-                : _ownClock(entityType, record);
-            if (deleteClock != null && remoteClock != null) {
-              if (remoteClock.compareTo(deleteClock) <= 0) continue;
-            } else {
-              final remoteUpdatedAt = _extractUpdatedAtMillis(record);
-              if (remoteUpdatedAt == null || remoteUpdatedAt <= deletedAt) {
-                // No newer remote edit -- the deletion wins; stay deleted.
-                continue;
-              }
+            // Against the clock of our delete, when both carry one: only an
+            // edit made after the delete revives it. Either clock missing:
+            // the timestamps.
+            if (!_outlivesDelete(
+              copyClock: _ownClock(entityType, record),
+              copyUpdatedAt: _extractUpdatedAtMillis(record),
+              deleteClock: selfTombstoneClocks[recordId],
+              deletedAt: deletedAt,
+            )) {
+              // No newer remote edit -- the deletion wins; stay deleted.
+              continue;
             }
             // Remote edit is newer than the deletion: revive the record and
             // drop the now-obsolete tombstone so it stops re-deleting it.
@@ -2899,17 +3302,29 @@ class SyncService {
           }
         }
 
+        // A scope delete covers this event: the same rule as the per-row
+        // guard above, where only a copy newer than the delete comes back.
+        // The exception is a row the same payload sends live beside it,
+        // which the publisher still holds and so wins.
+        if (eventScopes != null &&
+            !eventScopes.isEmpty &&
+            eventScopes.covers(record)) {
+          if (!contradicted.contains(recordId)) continue;
+          scopeSurvivors.add(recordId);
+        }
+
         if (!hasUpdatedAt) {
           final local = localById[recordId];
           var rowFromRemote = true;
+          // Parsed once: the stale-copy guard and the child clears read both.
+          final remoteHlc = clockGuarded ? _extractHlc(record) : null;
+          final localHlc = clockGuarded ? _extractHlc(local) : null;
           if (clockGuarded) {
-            final remoteHlc = _extractHlc(record);
             if (remoteHlc != null) SyncClock.instance.receive(remoteHlc);
             for (final g in factGroups) {
               final factClock = _parseHlc(record[g.clockKey]);
               if (factClock != null) SyncClock.instance.receive(factClock);
             }
-            final localHlc = _extractHlc(local);
             // A copy strictly older than the local row is stale: a peer's
             // snapshot taken before this device's newer edit to the same
             // child, which the blind upsert used to write over it. An exact
@@ -2930,13 +3345,21 @@ class SyncService {
             if (!rowFromRemote) continue;
             toUpsert.add(recordToApply);
             applied += 1;
+            final cleared = _childClears(
+              entityType,
+              recordToApply,
+              local,
+              remoteHlc: remoteHlc,
+              localHlc: localHlc,
+            );
+            if (cleared.isNotEmpty) childClears[recordId] = cleared;
             continue;
           }
           // Facts resolve per group by their own clocks (spec 5.1): a stale
           // row still hands over newer facts, and a newer row does not take
           // older ones.
           //
-          // No _overlayOntoLocal here, unlike the LWW path below, and it is
+          // No overlayOntoLocal here, unlike the LWW path below, and it is
           // not needed: these arms build their insert with nullToAbsent, so
           // a column an older peer omits is simply not written and the local
           // value stands. That is the same property writeFactGroup exists to
@@ -2991,6 +3414,21 @@ class SyncService {
           SyncClock.instance.receive(remoteHlc);
         }
 
+        // A fill copied from an NFC tag never beats the fill it was copied
+        // from, whatever the clocks say (tag_fill_copy_merge.dart).
+        if (entityType == 'cylinderFills') {
+          switch (tagFillCopyMerge(local, record)) {
+            case TagFillCopyMerge.keepLocal:
+              continue;
+            case TagFillCopyMerge.takeRemote:
+              toUpsert.add(overlayOntoLocal(entityType, recordToApply, local));
+              applied += 1;
+              continue;
+            case null:
+              break;
+          }
+        }
+
         // When BOTH sides carry an HLC it is the authoritative, deterministic
         // resolution -- it already encodes causal order across devices, so we
         // do NOT raise a manual conflict (that would defeat the purpose of the
@@ -2998,7 +3436,7 @@ class SyncService {
         // remote HLC wins; an exact tie or a local-newer HLC keeps local.
         if (localHlc != null && remoteHlc != null) {
           if (remoteHlc.compareTo(localHlc) > 0) {
-            toUpsert.add(_overlayOntoLocal(entityType, recordToApply, local));
+            toUpsert.add(overlayOntoLocal(entityType, recordToApply, local));
             applied += 1;
           }
           continue;
@@ -3025,7 +3463,7 @@ class SyncService {
         if (remoteUpdatedAt == null ||
             localUpdatedAt == null ||
             remoteUpdatedAt >= localUpdatedAt) {
-          toUpsert.add(_overlayOntoLocal(entityType, recordToApply, local));
+          toUpsert.add(overlayOntoLocal(entityType, recordToApply, local));
           applied += 1;
         }
       } catch (e, stackTrace) {
@@ -3069,6 +3507,22 @@ class SyncService {
       }
     }
 
+    // A live event that beat a scope keeps an old clock, but the scope is
+    // stored and relayed: a later copy of it (from another peer, or relayed
+    // on from here) would delete the event again. The per-row path drops a
+    // contradicted tombstone; a scope also covers other rows, so instead the
+    // event takes a clock newer than the scope and is published with it, and
+    // no copy of the scope covers it anywhere any more.
+    if (!batchFailed) {
+      for (final id in scopeSurvivors) {
+        await _syncRepository.markRecordPending(
+          entityType: entityType,
+          recordId: id,
+          localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+        );
+      }
+    }
+
     // Rethrown, not counted, unlike the row upsert above. The upsert has
     // already written this row including its new fact clock, while the
     // group's own columns are still the old values (the upsert builds with
@@ -3092,6 +3546,25 @@ class SyncService {
       } catch (e, stackTrace) {
         _log.error(
           'Failed to write facts for $entityType ${w.id}; rolling back the '
+          'payload so the changeset is re-applied next sync',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        rethrow;
+      }
+    }
+
+    // Rethrown for the same reason as the fact writes: the batch has already
+    // written each row with the peer's clock, so a swallowed failure would
+    // leave the row looking applied, the next copy would tie, and the clear
+    // would be lost for good. Throwing rolls the payload back so the
+    // changeset is re-applied next sync.
+    if (!batchFailed && childClears.isNotEmpty) {
+      try {
+        await _serializer.clearChildColumns(entityType, childClears);
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to write cleared columns for $entityType; rolling back the '
           'payload so the changeset is re-applied next sync',
           error: e,
           stackTrace: stackTrace,
@@ -3125,52 +3598,6 @@ class SyncService {
       conflictsFound: conflicts,
       recordsFailed: failed,
     );
-  }
-
-  /// Overlays a winning remote row onto the receiver's current row so a column
-  /// the remote payload OMITS keeps its local value, while every key the remote
-  /// actually sends -- including an explicit `null` that clears a field (#474)
-  /// -- wins. Rows are applied via `.toCompanion(false)` (so explicit nulls are
-  /// written as SQL NULL); without this overlay that would also write NULL for
-  /// every omitted column, silently clearing values a cross-version peer -- one
-  /// predating a newly-added nullable column -- never intended to touch. Same-
-  /// version peers export full rows, so the overlay is a no-op for them.
-  ///
-  /// One exception: a service clock's `anchorSetAt` (v213) says when the
-  /// diver set its baseline, and a null keeps the pre-v213 rule for it. A
-  /// pre-v213 peer that CHANGES the baseline sends no set time, and
-  /// refilling ours would stamp the peer's baseline with a time that belongs
-  /// to a different date. So a schedule payload that omits the set time but
-  /// moves the baseline lands with none; one that leaves the baseline alone
-  /// keeps ours.
-  static Map<String, dynamic> _overlayOntoLocal(
-    String entityType,
-    Map<String, dynamic> remote,
-    Map<String, dynamic>? local,
-  ) {
-    if (local == null) return remote;
-    final merged = {...local, ...remote};
-    if (entityType == 'serviceSchedules' &&
-        !remote.containsKey('anchorSetAt') &&
-        remote.containsKey('anchorDate') &&
-        remote['anchorDate'] != local['anchorDate']) {
-      merged['anchorSetAt'] = null;
-    }
-    return merged;
-  }
-
-  /// BLE identifiers are host-specific and must never cross the sync boundary.
-  static Map<String, dynamic> _withoutDeviceLocalFields(
-    String entityType,
-    Map<String, dynamic> data,
-  ) {
-    if (entityType != 'diveComputers' ||
-        !data.containsKey('bluetoothAddress')) {
-      return data;
-    }
-    final copy = Map<String, dynamic>.from(data);
-    copy.remove('bluetoothAddress');
-    return copy;
   }
 
   Future<Map<String, Set<String>>> _pendingRecordMap() async {
@@ -3226,6 +3653,27 @@ class SyncService {
     return null;
   }
 
+  /// The keys a parent-gated child's [remote] copy clears on [local]: its
+  /// explicit nulls, when the copy's clock ([remoteHlc], against the local
+  /// row's [localHlc]) is strictly newer (#2644). Empty for anything else,
+  /// including a row this device does not have yet.
+  Set<String> _childClears(
+    String entityType,
+    Map<String, dynamic> remote,
+    Map<String, dynamic>? local, {
+    required Hlc? remoteHlc,
+    required Hlc? localHlc,
+  }) {
+    if (local == null ||
+        !SyncDataSerializer.parentGatedChildEntities.contains(entityType)) {
+      return const {};
+    }
+    if (!isNewerChildCopy(remote: remoteHlc, local: localHlc)) {
+      return const {};
+    }
+    return explicitlyClearedKeys(remote: remote, local: local);
+  }
+
   /// Parse a record's Hybrid Logical Clock, or null if absent/blank (rows
   /// written before the HLC rollout). Malformed values are treated as absent
   /// so a bad value can never crash the merge.
@@ -3262,53 +3710,84 @@ class SyncService {
     return newest;
   }
 
+  /// Whether a peer's live copy of a row this device deleted is newer than
+  /// the delete, and so revives the row. The two clocks decide when both
+  /// exist ([copyClock] is the copy's [_ownClock], [deleteClock] the
+  /// tombstone's origin clock), for every entity: the copy's updatedAt was
+  /// stamped by another device's wall clock and [deletedAt] by this one's,
+  /// so comparing them let a stale copy from a fast clock revive the row,
+  /// or a later edit from a slow one stay deleted (#2943). Either clock
+  /// missing: the wall-clock comparison.
+  static bool _outlivesDelete({
+    required Hlc? copyClock,
+    required int? copyUpdatedAt,
+    required Hlc? deleteClock,
+    required int deletedAt,
+  }) {
+    if (copyClock != null && deleteClock != null) {
+      return copyClock.compareTo(deleteClock) > 0;
+    }
+    return copyUpdatedAt != null && copyUpdatedAt > deletedAt;
+  }
+
+  /// What [_revivedParents] reads of a peer's copy of a parent row.
+  _ParentStamp _parentStamp(String entityType, Map<String, dynamic> row) => (
+    updatedAt: _extractUpdatedAtMillis(row),
+    clock: _ownClock(entityType, row),
+  );
+
+  /// The locally tombstoned parents a payload brings back, by type, decided
+  /// as [_mergeEntity]'s local-deletion guard decides them: a copy newer
+  /// than our delete ([_outlivesDelete]), or one the same payload both
+  /// deletes and sends live ([contradicted]), which the merge applies over
+  /// our tombstone. Every parent counts, whatever its merge flag (species,
+  /// media and diveTanks resolve by their clock alone). Computed before any
+  /// row merges, so a child keeps its link to a parent that is coming back
+  /// whichever of the two merges first.
+  static Map<String, Set<String>> _revivedParents({
+    required Set<String> parentTypes,
+    required Map<String, Map<String, _ParentStamp>> stamps,
+    required Map<String, Map<String, int>> tombstones,
+    required Map<String, Map<String, Hlc>> tombstoneClocks,
+    required Map<String, Set<String>> contradicted,
+  }) {
+    final revived = <String, Set<String>>{};
+    for (final parentType in parentTypes) {
+      final tombs = tombstones[parentType];
+      if (tombs == null || tombs.isEmpty) continue;
+      final ids = <String>{
+        for (final id in contradicted[parentType] ?? const <String>{})
+          if (tombs.containsKey(id)) id,
+      };
+      stamps[parentType]?.forEach((id, stamp) {
+        final deletedAt = tombs[id];
+        if (deletedAt != null &&
+            _outlivesDelete(
+              copyClock: stamp.clock,
+              copyUpdatedAt: stamp.updatedAt,
+              deleteClock: tombstoneClocks[parentType]?[id],
+              deletedAt: deletedAt,
+            )) {
+          ids.add(id);
+        }
+      });
+      if (ids.isNotEmpty) revived[parentType] = ids;
+    }
+    return revived;
+  }
+
   /// Whether a local row and a peer's copy can be ordered: both carry a
   /// clock. A pending local row is protected from the peer's copy only when
   /// they cannot be.
   bool _orderable(Map<String, dynamic>? local, Map<String, dynamic> remote) =>
       _extractHlc(local) != null && _extractHlc(remote) != null;
 
-  /// The id the merge keys a record by: `id` for most entities, the natural
-  /// key for the handful that have none. Must agree with the id
-  /// [SyncDataSerializer.recordIdsFor] emits and [SyncDataSerializer
-  /// .deleteRecord] accepts, or the entity's rows silently fail to merge --
-  /// which is what a missing `divePlanEquipment` case did (issue #1728).
-  /// A structural test pins every composite-key table to a case here.
+  /// The id the merge keys a record by; see [syncRecordId].
   @visibleForTesting
   static String? recordIdForEntity(
     String entityType,
     Map<String, dynamic> record,
-  ) {
-    switch (entityType) {
-      case 'settings':
-        return record['key'] as String?;
-      case 'diveSafetyReviews':
-        // PK is dive_id (one marker row per dive), not id.
-        return record['diveId'] as String?;
-      case 'diveEquipment':
-        return record['id'] as String? ??
-            _compositeId(record['diveId'], record['equipmentId']);
-      case 'equipmentSetItems':
-        return record['id'] as String? ??
-            _compositeId(record['setId'], record['equipmentId']);
-      case 'divePlanEquipment':
-        // Composite (planId, equipmentId), same shape as diveEquipment. The
-        // serializer has always keyed it that way in fetchRecord,
-        // deleteRecord and allRecordIds; without this case the merge fell
-        // through to record['id'], which these rows do not have, so every
-        // incoming dive-plan gear row was counted as malformed and never
-        // applied.
-        return record['id'] as String? ??
-            _compositeId(record['planId'], record['equipmentId']);
-      default:
-        return record['id'] as String?;
-    }
-  }
-
-  static String? _compositeId(Object? left, Object? right) {
-    if (left == null || right == null) return null;
-    return '$left|$right';
-  }
+  ) => syncRecordId(entityType, record);
 
   bool _isConflictCopy(String filename) {
     final lower = filename.toLowerCase();
@@ -3340,7 +3819,7 @@ class SyncService {
       return;
     }
 
-    final remoteData = _withoutDeviceLocalFields(
+    final remoteData = withoutDeviceLocalColumns(
       entityType,
       _parseConflictData(match.conflictData!),
     );
@@ -3388,13 +3867,16 @@ class SyncService {
           // null still clears. Clockless entities upsert with nullToAbsent, so
           // an omitted key is already preserved -- apply their map directly.
           final toApply = entityHasUpdatedAt[entityType] == true
-              ? _overlayOntoLocal(
+              ? overlayOntoLocal(
                   entityType,
                   remoteData,
                   await _serializer.fetchRecord(entityType, recordId),
                 )
               : remoteData;
           await _serializer.upsertRecord(entityType, toApply);
+          // The batch paths re-derive this in repairDanglingForeignKeys;
+          // this single-record write skips it.
+          await _serializer.alignLinkedRouteOwners();
         }
         await _syncRepository.clearConflict(
           entityType: entityType,
@@ -3403,18 +3885,10 @@ class SyncService {
         break;
 
       case ConflictResolution.keepBoth:
-        if (isDeletion) {
-          await _syncRepository.clearConflict(
-            entityType: entityType,
-            recordId: recordId,
-          );
-          await _markPendingForConflict(entityType, recordId);
-          break;
-        }
-        final newId = _duplicateId(entityType, remoteData);
-        if (newId != null) {
-          remoteData['id'] = newId;
+        if (keepBothMakesCopy(entityType, remoteData)) {
+          remoteData['id'] = _uuid.v4();
           await _serializer.upsertRecord(entityType, remoteData);
+          await _serializer.alignLinkedRouteOwners();
         }
         await _syncRepository.clearConflict(
           entityType: entityType,
@@ -3439,11 +3913,18 @@ class SyncService {
     );
   }
 
-  String? _duplicateId(String entityType, Map<String, dynamic> record) {
-    if (entityType == 'settings') return null;
-    if (record['id'] == null) return null;
-    return _uuid.v4();
-  }
+  /// Whether resolving with [ConflictResolution.keepBoth] copies the remote
+  /// row under a new id. It cannot for a deletion, for a row with no `id` of
+  /// its own (a composite-key junction) or for `settings`; there Keep both
+  /// keeps the local row only. The conflict dialog reads this to decide
+  /// whether to offer Keep both, so the offer and the outcome cannot drift.
+  static bool keepBothMakesCopy(
+    String entityType,
+    Map<String, dynamic> remoteData,
+  ) =>
+      entityType != 'settings' &&
+      remoteData['_deleted'] != true &&
+      remoteData['id'] != null;
 
   /// Reset sync state (for debugging or account changes).
   ///
@@ -3470,61 +3951,8 @@ class SyncService {
     await resetSyncState();
     await _syncRepository.setLastAcceptedEpochId(null);
     await _epochStore?.clear();
-    await deleteLeftoverBaseTempFiles();
+    await sweepLeftoverSyncTempFiles();
     _log.info('Local sync state repaired');
-  }
-
-  /// How recently a sync temp file must have been touched to be spared as
-  /// "probably still being written" rather than swept as a leftover. Mirrors
-  /// `ResumableBasePublishStore._orphanGrace`, for the same reason.
-  static const Duration _tempFileGrace = Duration(minutes: 5);
-
-  /// Best-effort sweep of leftover streaming-base temp files (base exports
-  /// `ssv1_base_*.json` and assembled `ssv1_*.base` / `ssv1_adopt_*` parts)
-  /// from the app temp dir. Every sync temp file is prefixed `ssv1_`, so
-  /// the sweep matches ONLY that prefix -- never an unrelated app temp file
-  /// (the dir is a shared, general-purpose temp location). Failure is logged
-  /// and ignored; a stale temp file is harmless.
-  ///
-  /// Skips anything touched within [_tempFileGrace]. The prefix keeps the
-  /// sweep off files this app did not write, but NOT off files another
-  /// instance of it is writing right now: under `flutter test`
-  /// [resolveSyncTempDir] falls back to the machine-wide
-  /// `Directory.systemTemp`, so every concurrent test process shares one
-  /// directory and a base export in flight in one of them sits next to this
-  /// sweep running in another. Deleting it fails that publish, which surfaces
-  /// as a sync returning non-success in a test file that touched no sync code
-  /// at all. The uuid in each name prevents collisions but cannot help here,
-  /// because the sweep matches on prefix rather than on a name it chose. A
-  /// leftover worth reaping is by definition from a run that already ended, so
-  /// it is old; a true orphan younger than the grace is simply reclaimed by
-  /// the next sweep.
-  ///
-  /// [tempDir] is injectable so tests can sweep a private directory instead of
-  /// the shared one -- otherwise this test would be the very hazard it covers.
-  Future<void> deleteLeftoverBaseTempFiles({
-    @visibleForTesting Future<Directory> Function()? tempDir,
-  }) async {
-    try {
-      final dir = await (tempDir?.call() ?? resolveSyncTempDir());
-      final cutoff = DateTime.now().subtract(_tempFileGrace);
-      await for (final entity in dir.list(followLinks: false)) {
-        if (entity is! File) continue;
-        final name = entity.uri.pathSegments.last;
-        if (name.startsWith('ssv1_')) {
-          try {
-            // Inside the try: the file can vanish between the listing and the
-            // stat, which is exactly what a concurrent sweep looks like.
-            if ((await entity.lastModified()).isAfter(cutoff)) continue;
-            await entity.delete();
-          } catch (_) {
-            // best effort
-          }
-        }
-      }
-    } catch (e) {
-      _log.warning('Could not sweep leftover base temp files: $e');
-    }
   }
 
   /// Best-effort removal of [deviceId]'s entire changeset log from the cloud
@@ -4238,7 +4666,11 @@ class SyncService {
           final id = recordIdForEntity(entityType, record);
           if (id == null) continue;
           (cloudIds[entityType] ??= <String>{}).add(id);
-          (restored[entityType] ??= {})[id] = record;
+          // A later copy wins for the keys it carries; a column an older
+          // build omits keeps the earlier copy's value (#2553), as the
+          // streaming path's upserts do.
+          final byId = restored[entityType] ??= {};
+          byId[id] = overlayOntoLocal(entityType, record, byId[id]);
         }
       }
     }
@@ -4262,6 +4694,7 @@ class SyncService {
         await _serializer.upsertRecord(entry.key, record);
       }
       await _landAdoptedFactClears(entry.key, entry.value.values);
+      await _landAdoptedChildClears(entry.key, entry.value.values);
     }
 
     await _serializer.repairDanglingForeignKeys();
@@ -4311,6 +4744,36 @@ class SyncService {
     }
   }
 
+  /// Lands the explicit clears on parent-gated children an adopt's upsert
+  /// would drop (#2644).
+  ///
+  /// The same gap as [_landAdoptedFactClears]: without this, an adopted row
+  /// keeps a value the library cleared, under the clock of the change that
+  /// cleared it, so every later copy ties and nothing repairs it. As there,
+  /// the replay order is the resolution and there is no local side to weigh;
+  /// [SyncDataSerializer.clearChildColumns] skips the columns already null
+  /// and batches the rest. Only the keys a clear may touch are collected, and
+  /// a table with none (the tag and type links) is skipped outright, since an
+  /// adopt replays every row.
+  Future<void> _landAdoptedChildClears(
+    String entityType,
+    Iterable<Map<String, dynamic>> rows,
+  ) async {
+    final clearable = _serializer.clearableChildKeys(entityType);
+    if (clearable.isEmpty) return;
+    final clears = <String, Set<String>>{};
+    for (final row in rows) {
+      final id = recordIdForEntity(entityType, row);
+      if (id == null) continue;
+      final nulls = {
+        for (final k in clearable)
+          if (row.containsKey(k) && row[k] == null) k,
+      };
+      if (nulls.isNotEmpty) clears[id] = nulls;
+    }
+    await _serializer.clearChildColumns(entityType, clears);
+  }
+
   /// Test seam: in-memory adopt of [payloads] (the parity reference). Captures
   /// the local snapshot, sorts payloads ascending, and applies in one
   /// deferred-FK transaction. No re-baseline, so a parity comparison sees only
@@ -4348,6 +4811,24 @@ class SyncService {
     required List<int> baseExportedAt,
     required List<SyncPayload> changesets,
   }) async {
+    try {
+      await _adoptApplyStreamingRows(
+        baseFilePaths: baseFilePaths,
+        baseExportedAt: baseExportedAt,
+        changesets: changesets,
+      );
+    } finally {
+      // The device-local values the table clears remembered belong to this
+      // adopt's refill only (issue #2947).
+      _serializer.endAdoptRefill();
+    }
+  }
+
+  Future<void> _adoptApplyStreamingRows({
+    required List<String> baseFilePaths,
+    required List<int> baseExportedAt,
+    required List<SyncPayload> changesets,
+  }) async {
     // Replace semantics: clear every synced table, then insert the cloud union
     // (latest export wins). Equivalent to the old upsert-then-delete-not-in-
     // cloud, but needs no in-RAM id set to diff against, so adopt memory stays
@@ -4377,6 +4858,7 @@ class SyncService {
       if (valid.isEmpty) return;
       await _serializer.upsertRecords(table, valid);
       await _landAdoptedFactClears(table, valid);
+      await _landAdoptedChildClears(table, valid);
     }
 
     // Apply units: each base file and each changeset, ascending by exportedAt
@@ -4824,3 +5306,7 @@ class _MergeResult {
     this.recordsFailed = 0,
   });
 }
+
+/// A peer copy's stamps for the revived-parent check: its updatedAt and its
+/// own clock.
+typedef _ParentStamp = ({int? updatedAt, Hlc? clock});

@@ -26,7 +26,7 @@ ZAxisInput? buildZAxisInput(
         for (final r in data.ascentRates)
           r == null ? null : units.convertDepth(r),
       ],
-      '${units.depthSymbol}/min',
+      units.depthRateSymbol,
     ),
     SceneMetric.ppO2 => (data.ppO2s, ''),
     SceneMetric.cns => (data.cnss, '%'),

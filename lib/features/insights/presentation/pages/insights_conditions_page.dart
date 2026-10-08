@@ -314,20 +314,7 @@ class InsightsConditionsPage extends ConsumerWidget {
             );
           }
 
-          final months = [
-            context.l10n.insights_timePatterns_month_jan,
-            context.l10n.insights_timePatterns_month_feb,
-            context.l10n.insights_timePatterns_month_mar,
-            context.l10n.insights_timePatterns_month_apr,
-            context.l10n.insights_timePatterns_month_may,
-            context.l10n.insights_timePatterns_month_jun,
-            context.l10n.insights_timePatterns_month_jul,
-            context.l10n.insights_timePatterns_month_aug,
-            context.l10n.insights_timePatterns_month_sep,
-            context.l10n.insights_timePatterns_month_oct,
-            context.l10n.insights_timePatterns_month_nov,
-            context.l10n.insights_timePatterns_month_dec,
-          ];
+          final months = insightsMonthLabels(context.l10n);
 
           List<TrendDataPoint> toTrendData(double? Function(dynamic) selector) {
             return data.where((d) => selector(d) != null).map((d) {

@@ -209,6 +209,56 @@ void main() {
           );
       return [('transmitters', 'transmitters', 'tx-a')];
     },
+    'a saved query': () async {
+      await db
+          .into(db.savedQueries)
+          .insert(
+            SavedQueriesCompanion.insert(
+              id: 'sq-a',
+              subject: 'dives',
+              name: 'Deep',
+              queryJson: '{"version":1,"node":{"t":"text","words":["x"]}}',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [('saved_queries', 'savedQueries', 'sq-a')];
+    },
+    'an underwater route': () async {
+      await db
+          .into(db.navTracks)
+          .insert(
+            NavTracksCompanion.insert(
+              id: 'route-a',
+              diverId: const Value('diver-a'),
+              source: 'seacraft_enc',
+              startTime: stale,
+              endTime: stale,
+              pointCount: 0,
+              points: Uint8List(0),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [('nav_tracks', 'navTracks', 'route-a')];
+    },
+    'a cylinder fill': () async {
+      await db
+          .into(db.cylinderFills)
+          .insert(
+            CylinderFillsCompanion.insert(
+              id: 'fill-a',
+              passportId: 'pp-a',
+              filledAt: stale,
+              o2Percent: 32,
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [('cylinder_fills', 'cylinderFills', 'fill-a')];
+    },
     'a custom dive role': () async {
       await db
           .into(db.diveRoles)
@@ -222,6 +272,41 @@ void main() {
             ),
           );
       return [('dive_roles', 'diveRoles', 'role-a')];
+    },
+    'a custom certification agency and level': () async {
+      await db
+          .into(db.customCertificationAgencies)
+          .insert(
+            CustomCertificationAgenciesCompanion.insert(
+              id: 'agency-a',
+              diverId: 'diver-a',
+              name: 'Club X',
+              colorArgb: 0xFF3B82F6,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.customCertificationLevels)
+          .insert(
+            CustomCertificationLevelsCompanion.insert(
+              id: 'level-a',
+              diverId: 'diver-a',
+              agencyId: 'agency-a',
+              name: 'Club Diver',
+              isProgression: true,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        (
+          'custom_certification_agencies',
+          'customCertificationAgencies',
+          'agency-a',
+        ),
+        ('custom_certification_levels', 'customCertificationLevels', 'level-a'),
+      ];
     },
     'a dive plan with its tanks and segments': () async {
       await db
@@ -264,10 +349,56 @@ void main() {
               updatedAt: stale,
             ),
           );
+      await db
+          .into(db.divePlanMissions)
+          .insert(
+            DivePlanMissionsCompanion.insert(
+              id: 'plan-a',
+              planId: 'plan-a',
+              batteryReserveFraction: 1 / 3,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.divePlanMissionLegs)
+          .insert(
+            DivePlanMissionLegsCompanion.insert(
+              id: 'pleg-a',
+              planId: 'plan-a',
+              label: 'T',
+              distanceM: 300,
+              depthM: 20,
+              headingDeg: 90,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.divePlanMissionMembers)
+          .insert(
+            DivePlanMissionMembersCompanion.insert(
+              id: 'pmember-a',
+              planId: 'plan-a',
+              displayName: 'Sam',
+              sacBottom: 15,
+              swimSpeedMps: 0.2,
+              scooterName: 'Blacktip',
+              scooterSpeedMps: 0.9,
+              scooterBurnSeconds: 5400,
+              towSpeedFactor: 0.6,
+              towBurnFactor: 1.5,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
       return [
         ('dive_plans', 'divePlans', 'plan-a'),
         ('dive_plan_tanks', 'divePlanTanks', 'ptank-a'),
         ('dive_plan_segments', 'divePlanSegments', 'pseg-a'),
+        ('dive_plan_missions', 'divePlanMissions', 'plan-a'),
+        ('dive_plan_mission_legs', 'divePlanMissionLegs', 'pleg-a'),
+        ('dive_plan_mission_members', 'divePlanMissionMembers', 'pmember-a'),
       ];
     },
     'a trip checklist template and its items': () async {
@@ -404,6 +535,70 @@ void main() {
       return [
         ('trip_checklist_items', 'tripChecklistItems', 'tci-a'),
         ('trip_day_weather', 'tripDayWeather', 'tdw-a'),
+      ];
+    },
+    // A custom currency rule references the diver with no ON DELETE action.
+    // The pref and event cascade with the certification, so the delete has
+    // to tombstone them itself (issue #2267).
+    'a custom currency rule and a certification with currency rows': () async {
+      await db
+          .into(db.certificationCurrencyRules)
+          .insert(
+            CertificationCurrencyRulesCompanion.insert(
+              id: 'ccr-a',
+              diverId: const Value('diver-a'),
+              name: 'Club refresher',
+              clockKind: 'activity',
+              lapseDays: 365,
+              leadDays: 90,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.certifications)
+          .insert(
+            CertificationsCompanion.insert(
+              id: 'cert-a',
+              name: 'Open Water',
+              agency: 'padi',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.certificationCurrencyPrefs)
+          .insert(
+            CertificationCurrencyPrefsCompanion.insert(
+              id: 'ccp-a',
+              certificationId: 'cert-a',
+              ruleId: 'ccr-a',
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.certificationCurrencyEvents)
+          .insert(
+            CertificationCurrencyEventsCompanion.insert(
+              id: 'cce-a',
+              certificationId: 'cert-a',
+              eventType: 'refresher',
+              eventDate: stale,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        ('certification_currency_rules', 'certificationCurrencyRules', 'ccr-a'),
+        ('certifications', 'certifications', 'cert-a'),
+        ('certification_currency_prefs', 'certificationCurrencyPrefs', 'ccp-a'),
+        (
+          'certification_currency_events',
+          'certificationCurrencyEvents',
+          'cce-a',
+        ),
       ];
     },
   };
@@ -635,11 +830,14 @@ void main() {
     // Adding a table with a plain `diver_id REFERENCES divers(id)` re-breaks
     // the delete for any diver who owns a row of it. This fails until the
     // new table gets an ON DELETE action or a step in
-    // deleteDiverWithReassignment, and is listed in _clearedByDelete.
+    // deleteDiverWithReassignment, and is listed in _clearedByDelete. SET
+    // NULL keeps the row and cannot block the delete, as in the reference
+    // census below (equipment_ownership_events, issue #2046).
     final unhandled = {
       for (final (table, _, target, onDelete) in await foreignKeys())
         if (target == 'divers' &&
             onDelete != 'CASCADE' &&
+            onDelete != 'SET NULL' &&
             !_clearedByDelete.contains(table))
           table,
     };
@@ -657,6 +855,9 @@ void main() {
     // here.
     const clearedReferences = {
       'checklist_template_items.template_id',
+      'dive_plan_mission_legs.plan_id',
+      'dive_plan_mission_members.plan_id',
+      'dive_plan_missions.plan_id',
       'dive_plan_segments.plan_id',
       'dive_plan_tanks.plan_id',
       'dive_plans.linked_dive_id',
@@ -670,6 +871,7 @@ void main() {
       'pre_dive_checklist_template_items.template_id',
       'trip_checklist_items.trip_id',
       'trip_day_weather.trip_id',
+      'trip_cylinders.trip_id',
       'trip_itinerary_days.trip_id',
     };
     final unhandled = {
@@ -688,8 +890,11 @@ void main() {
 /// that deleteDiverWithReassignment clears itself.
 const _clearedByDelete = {
   'buddies',
+  'certification_currency_rules',
   'certifications',
   'checklist_templates',
+  'custom_certification_agencies',
+  'custom_certification_levels',
   'cylinder_configs',
   'dive_centers',
   'dive_computers',
@@ -701,6 +906,7 @@ const _clearedByDelete = {
   'diver_weight_entries',
   'dives',
   'equipment',
+  'equipment_locations',
   'equipment_sets',
   'pre_dive_checklist_templates',
   'pre_dive_sessions',
@@ -709,6 +915,9 @@ const _clearedByDelete = {
   'tags',
   'tank_presets',
   'transmitters',
+  'cylinder_fills',
+  'saved_queries',
+  'nav_tracks',
   'trips',
   'weight_presets',
 };

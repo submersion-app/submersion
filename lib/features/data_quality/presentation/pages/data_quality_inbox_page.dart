@@ -21,12 +21,14 @@ import 'package:submersion/features/data_quality/presentation/widgets/dive_ident
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_unit_formatters.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassign_tank_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 QualityUnitFormatters buildQualityUnitFormatters(WidgetRef ref) =>
     qualityUnitFormattersFor(UnitFormatter(ref.watch(settingsProvider)));
@@ -73,6 +75,14 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
 
   ({int done, int total})? _scanProgress;
   bool _cancelRequested = false;
+
+  /// The selected category chip. Page state rather than a provider: a dive
+  /// pushed over the inbox keeps it, every new visit starts on All, and an
+  /// inbox stacked on another (inbox, a dive, that dive's Data Quality link)
+  /// keeps a selection of its own.
+  QualityChip _chip = QualityChip.all;
+
+  void _selectChip(QualityChip chip) => setState(() => _chip = chip);
 
   Future<void> _runFullScan() async {
     setState(() {
@@ -236,6 +246,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
               .split(diveId: diveId, sourceId: sourceId);
           scheduleQualityScan([diveId, newId]);
           scheduleSensorSummaryRefresh([diveId, newId], force: true);
+          scheduleDerivedMetricsRefresh([diveId, newId], force: true);
         } catch (e) {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.diveLog_sources_splitFailed)),
@@ -334,6 +345,19 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
             findingId: f.id,
           ),
         );
+      case RemoveGearFromDiveRepair(
+        :final diveId,
+        :final otherDiveId,
+        :final equipmentIds,
+      ):
+        await withUndo(
+          () => executor.removeGearFromDive(
+            diveId: diveId,
+            otherDiveId: otherDiveId,
+            equipmentIds: equipmentIds,
+            findingId: f.id,
+          ),
+        );
       case SwapPressureSeriesRepair(
         :final diveId,
         :final tankIdA,
@@ -382,7 +406,6 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final chip = ref.watch(qualityInboxChipProvider);
     final findingsAsync = ref.watch(qualityFindingsStreamProvider);
     final store = ref.watch(qualityScanStateStoreProvider);
     final formatters = buildQualityUnitFormatters(ref);
@@ -424,7 +447,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           ];
           final open = [
             for (final f in scoped)
-              if (categoriesFor(chip).contains(f.category)) f,
+              if (categoriesFor(_chip).contains(f.category)) f,
           ];
           // Keyed off the scoped set, not the visible one: narrowing by the
           // fixed dive filter keeps a deep link (from the import summary, say)
@@ -474,12 +497,21 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                     ),
                   ],
                 ),
-              _ChipRow(chip: chip, findings: all),
+              // Counted off the same scoped set the cards come from, so a
+              // chip's number matches what tapping it shows.
+              _ChipRow(chip: _chip, findings: scoped, onSelected: _selectChip),
               Expanded(
-                child: open.isEmpty
+                // Nothing in scope reads "All clear"; findings hidden only by
+                // the chip must not, or the page claims a clean logbook while
+                // the other chips still count open findings.
+                child: scoped.isEmpty
                     ? _EmptyState(
                         lastScanAt: store.lastFullScanAt,
                         onScan: _runFullScan,
+                      )
+                    : open.isEmpty
+                    ? _ChipEmptyState(
+                        onShowAll: () => _selectChip(QualityChip.all),
                       )
                     : ListView(
                         children: [
@@ -553,18 +585,23 @@ class _ScanProgressBar extends StatelessWidget {
   }
 }
 
-class _ChipRow extends ConsumerWidget {
-  const _ChipRow({required this.chip, required this.findings});
+class _ChipRow extends StatelessWidget {
+  const _ChipRow({
+    required this.chip,
+    required this.findings,
+    required this.onSelected,
+  });
   final QualityChip chip;
+  final ValueChanged<QualityChip> onSelected;
+
+  /// The findings the page can show: already open and already narrowed to
+  /// the dive filter, so each count only has to split them by category.
   final List<QualityFinding> findings;
 
-  int _count(QualityChip c) => findings
-      .where(
-        (f) =>
-            f.status == QualityStatus.open &&
-            categoriesFor(c).contains(f.category),
-      )
-      .length;
+  int _count(QualityChip c) {
+    final categories = categoriesFor(c);
+    return findings.where((f) => categories.contains(f.category)).length;
+  }
 
   String _label(BuildContext context, QualityChip c) {
     final l10n = context.l10n;
@@ -580,7 +617,7 @@ class _ChipRow extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -596,11 +633,44 @@ class _ChipRow extends ConsumerWidget {
                       : '${_label(context, c)} (${_count(c)})',
                 ),
                 selected: chip == c,
-                onSelected: (_) =>
-                    ref.read(qualityInboxChipProvider.notifier).state = c,
+                onSelected: (_) => onSelected(c),
                 visualDensity: VisualDensity.compact,
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Shown when the selected chip hides every open finding in scope while other
+/// chips still have some.
+class _ChipEmptyState extends StatelessWidget {
+  const _ChipEmptyState({required this.onShowAll});
+  final VoidCallback onShowAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.filter_list_off,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.dataQuality_empty_chipFiltered,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: onShowAll,
+            child: Text(l10n.dataQuality_empty_showAll),
+          ),
         ],
       ),
     );
@@ -735,6 +805,7 @@ Future<({Duration offset, bool importWide})?> showTimeShiftSheet(
         : formatDecimalForInput(suggestedOffset.inHours.toDouble()),
   );
   var importWide = false;
+  final formKey = GlobalKey<FormState>();
   return showModalBottomSheet<({Duration offset, bool importWide})>(
     context: context,
     isScrollControlled: true,
@@ -752,13 +823,17 @@ Future<({Duration offset, bool importWide})?> showTimeShiftSheet(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(
-                  signed: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: l10n.dataQuality_repairLabel_shiftTime('h'),
+              Form(
+                key: formKey,
+                child: TextFormField(
+                  controller: controller,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    signed: true,
+                  ),
+                  validator: numberValidator(context, integer: true),
+                  decoration: InputDecoration(
+                    labelText: l10n.dataQuality_repairLabel_shiftTime('h'),
+                  ),
                 ),
               ),
               if (offerImportWide)
@@ -771,7 +846,17 @@ Future<({Duration offset, bool importWide})?> showTimeShiftSheet(
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: () {
-                  final hours = parseUserInt(controller.text) ?? 0;
+                  // Unreadable hours used to apply no shift and report
+                  // success (#1900).
+                  if (!formKey.currentState!.validate()) return;
+                  final hours = switch (readNumber(
+                    controller.text,
+                    integer: true,
+                  )) {
+                    NumberValue(:final value) => value.toInt(),
+                    NumberBlank() => 0, // no shift, as before
+                    NumberInvalid() => 0, // unreachable: validated above
+                  };
                   Navigator.of(context).pop((
                     offset: Duration(hours: hours),
                     importWide: importWide,

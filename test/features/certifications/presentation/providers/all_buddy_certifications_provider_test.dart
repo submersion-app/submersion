@@ -73,8 +73,8 @@ void main() {
           id: '',
           buddyId: buddy.id,
           name: 'Instructor',
-          agency: CertificationAgency.padi,
-          level: CertificationLevel.instructor,
+          agency: CertificationAgency.padi.name,
+          level: CertificationLevel.instructor.name,
           cardNumber: '12345',
           createdAt: now,
           updatedAt: now,
@@ -86,7 +86,7 @@ void main() {
 
       final map = await container.read(allBuddyCertificationsProvider.future);
       expect(map[buddy.id], hasLength(1));
-      expect(map[buddy.id]!.single.level, CertificationLevel.instructor);
+      expect(map[buddy.id]!.single.level, CertificationLevel.instructor.name);
     },
   );
 }

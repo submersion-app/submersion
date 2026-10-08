@@ -1,4 +1,4 @@
-// Adapted from plan `docs/superpowers/plans/2026-04-28-media-source-extension-phase3c.md`
+// Adapted from plan `docs/design/plans/2026-04-28-media-source-extension-phase3c.md`
 // Task 5. Deviations from the plan code:
 //
 // - The plan imports `domain/entities/manifest_subscription.dart` and

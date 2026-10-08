@@ -190,24 +190,116 @@ void main() {
       expect(await source.probe(keys), isNull);
     });
 
-    test('declines on a non-200', () async {
-      final source = NoaaDemSource(
-        client: MockClient((req) async => http.Response('nope', 503)),
-      );
-      expect(await source.probe(keys), isNull);
-    });
+    group('a failed probe (issue #1770)', () {
+      // Inside NOAA's coverage, "could not ask" is not "has nothing": the
+      // resolver must hear it as a transient failure, or a lower-tier grid
+      // gets cached forever over the DEM that would have won. Outside it, a
+      // NOAA outage must not stop every other site worldwide from caching.
+      test('throws a transient failure on a non-200 inside NOAA coverage', () {
+        final source = NoaaDemSource(
+          client: MockClient((req) async => http.Response('nope', 503)),
+        );
+        expect(source.probe(keys), throwsA(isA<BathymetryFetchException>()));
+      });
 
-    test(
-      'declines rather than throwing when the service is unreachable',
-      () async {
-        // A probe must never throw: one unreachable source cannot be allowed
-        // to block the others.
+      test('throws a transient failure when the service is unreachable '
+          'inside NOAA coverage', () {
         final source = NoaaDemSource(
           client: MockClient((req) async => throw const SocketishError()),
         );
+        expect(source.probe(keys), throwsA(isA<BathymetryFetchException>()));
+      });
+
+      test('declines on a non-200 outside NOAA coverage', () async {
+        final source = NoaaDemSource(
+          client: MockClient((req) async => http.Response('nope', 503)),
+        );
+        expect(await source.probe(bonaire), isNull);
+      });
+
+      test('declines when the service is unreachable outside NOAA '
+          'coverage', () async {
+        final source = NoaaDemSource(
+          client: MockClient((req) async => throw const SocketishError()),
+        );
+        expect(await source.probe(bonaire), isNull);
+      });
+
+      test('an unparseable 200 is still a decline, not a failure', () async {
+        // The service answered; the answer just holds nothing usable.
+        final source = NoaaDemSource(
+          client: MockClient((req) async => http.Response('{not json', 200)),
+        );
         expect(await source.probe(keys), isNull);
-      },
-    );
+      });
+
+      test('coverage spans the US states and territories NOAA maps', () {
+        const inside = [
+          GeoPoint(25.010, -80.376), // Florida Keys
+          GeoPoint(32.85, -117.27), // La Jolla
+          GeoPoint(47.6, -122.4), // Puget Sound
+          GeoPoint(45.0, -87.0), // Great Lakes
+          GeoPoint(60.0, -149.0), // Alaska, Kenai
+          GeoPoint(52.0, 175.0), // Aleutians, west of the antimeridian
+          GeoPoint(20.8, -156.3), // Hawaii, Maui
+          GeoPoint(18.3, -64.9), // US Virgin Islands
+          GeoPoint(13.4, 144.7), // Guam
+          GeoPoint(-14.3, -170.7), // American Samoa
+        ];
+        const outside = [
+          GeoPoint(12.093, -68.287), // Bonaire
+          GeoPoint(47.135503, 9.144546), // Walensee
+          GeoPoint(-16.5, 145.8), // Great Barrier Reef
+          GeoPoint(20.5, -87.0), // Cozumel
+        ];
+        for (final p in inside) {
+          expect(NoaaDemSource.plausiblyCovers(p), isTrue, reason: '$p');
+        }
+        for (final p in outside) {
+          expect(NoaaDemSource.plausiblyCovers(p), isFalse, reason: '$p');
+        }
+      });
+
+      test('coverage also spans the non-US places where the live catalogue '
+          'holds a sub-50 m DEM (checked 2026-09-26), not just US soil', () {
+        const covered = <String, GeoPoint>{
+          'Bermuda': GeoPoint(32.3, -64.8),
+          'Nassau, Bahamas': GeoPoint(25.08, -77.35),
+          'Victoria, BC': GeoPoint(48.42, -123.37),
+          'Tortola, BVI': GeoPoint(18.43, -64.62),
+          'Grenada': GeoPoint(12.05, -61.75),
+          'Rarotonga': GeoPoint(-21.23, -159.78),
+          'Tahiti': GeoPoint(-17.53, -149.57),
+          'Galapagos': GeoPoint(-0.75, -90.3),
+          'Wake': GeoPoint(19.28, 166.63),
+          'Midway': GeoPoint(28.2, -177.37),
+          'Shemya': GeoPoint(52.7, 174.1),
+          'Nome': GeoPoint(64.5, -165.4),
+        };
+        for (final entry in covered.entries) {
+          expect(
+            NoaaDemSource.plausiblyCovers(entry.value),
+            isTrue,
+            reason: entry.key,
+          );
+        }
+      });
+
+      test('declines outside every coverage region without a network call: '
+          'the catalogue holds nothing finer than ETOPO there', () async {
+        var requests = 0;
+        final source = NoaaDemSource(
+          client: MockClient((req) async {
+            requests++;
+            return http.Response(identifyBody([]), 200);
+          }),
+        );
+        expect(await source.probe(bonaire), isNull);
+        expect(await source.probe(const GeoPoint(47.13, 9.14)), isNull);
+        expect(await source.probe(const GeoPoint(27.25, 33.84)), isNull);
+        expect(requests, 0);
+      });
+    });
 
     test(
       'reports the coarser axis, so latitude cannot flatter a DEM',

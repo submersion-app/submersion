@@ -46,6 +46,7 @@ import 'package:submersion/features/universal_import/data/services/payload_diver
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/surfacing_pressure_normalizer.dart';
+import 'package:submersion/features/universal_import/data/services/tank_pressure_glitch_normalizer.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/data/services/zip_expansion_service.dart';
 import 'package:submersion/features/universal_import/domain/services/bundled_photo_exporter.dart';
@@ -55,6 +56,7 @@ import 'package:submersion/features/universal_import/presentation/providers/univ
 import 'package:submersion/core/services/files/picked_file_materializer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 export 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
 
@@ -242,7 +244,13 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         ),
       ],
       detectionResult: detection,
-      currentStep: ImportWizardStep.sourceConfirmation,
+      // A hand-off format (a Seacraft ENC route, a Suunto JSON export) is
+      // imported by its own flow; it never advances to Confirm Source. The
+      // file-selection step shows that flow's hand-off card instead, which
+      // reads the bytes straight off this state.
+      currentStep: detection.format.isHandoff
+          ? ImportWizardStep.fileSelection
+          : ImportWizardStep.sourceConfirmation,
     );
   }
 
@@ -291,8 +299,11 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
 
       // Don't advance to sourceConfirmation for unsupported formats so the
       // wizard isn't left holding stale bytes if the caller shows a snackbar
-      // and doesn't navigate.
-      if (!detection.format.isSupported) {
+      // and doesn't navigate. A hand-off format (a Seacraft ENC route, a
+      // Suunto JSON export) is the one exception: deliberately unsupported
+      // by the universal pipeline, it still needs its bytes kept in state so
+      // the file-selection step's hand-off card can pass them on.
+      if (!detection.format.isSupported && !detection.format.isHandoff) {
         state = state.copyWith(isLoading: false);
         return detection;
       }
@@ -308,7 +319,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
           ),
         ],
         detectionResult: detection,
-        currentStep: ImportWizardStep.sourceConfirmation,
+        currentStep: detection.format.isHandoff
+            ? ImportWizardStep.fileSelection
+            : ImportWizardStep.sourceConfirmation,
         wasLoadedExternally: true,
       );
 
@@ -387,7 +400,14 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       try {
         final bytes = await File(path).readAsBytes();
         final detection = await _detectFormat(bytes);
-        final status = detection.format == ImportFormat.csv
+        // A hand-off file (a Seacraft ENC route, a Suunto JSON export) is
+        // excluded from the batch exactly like a CSV needing the single-file
+        // mapping wizard: it needs its own import flow, not the universal
+        // pipeline, so it reuses `excludedCsv` ->
+        // `ImportFileOutcomeStatus.needsIndividualImport` in the bulk summary
+        // (universal_adapter.dart) rather than `unsupported`.
+        final status =
+            detection.format == ImportFormat.csv || detection.format.isHandoff
             ? ImportFileStatus.excludedCsv
             : detection.format.isSupported
             ? ImportFileStatus.pending
@@ -934,9 +954,18 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       );
     }
 
-    final dupResult = await _checkDuplicatesOrEmpty(payload);
+    await _installPayload(payload);
+  }
 
-    // Build default selections: all selected, minus duplicates
+  /// Duplicate-checks [payload] and makes it the one the review steps act
+  /// on, with every row selected except the duplicates. Shared by file
+  /// parsing and [setExternalPayload] so both leave the notifier in the
+  /// same state.
+  Future<void> _installPayload(
+    ImportPayload payload, {
+    int remotePhotoCount = 0,
+  }) async {
+    final dupResult = await _checkDuplicatesOrEmpty(payload);
     final selections = _defaultSelections(payload, dupResult);
 
     state = state.copyWith(
@@ -946,6 +975,35 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       duplicateResult: dupResult,
       selections: selections,
       currentStep: ImportWizardStep.review,
+      remotePhotoCount: remotePhotoCount,
+    );
+  }
+
+  /// Installs a payload built outside file parsing, by a source that
+  /// fetches it itself (divelogs.de).
+  ///
+  /// Goes through the same surfacing-pressure rule and duplicate check a
+  /// parsed file does. Photo decisions from any earlier import are cleared,
+  /// and [remotePhotoCount] tells the Photos step how many photos the
+  /// source will download at import time. The caller only hands over a
+  /// payload with something in it; an empty fetch is its own message.
+  Future<void> setExternalPayload(
+    ImportPayload payload, {
+    int remotePhotoCount = 0,
+  }) async {
+    state = state.copyWith(
+      isLoading: true,
+      clearError: true,
+      photoPathsByBaseName: const {},
+      unmatchedPhotoCount: 0,
+      photosSkipped: false,
+      clearPhotoResolution: true,
+      clearPhotoFolderPath: true,
+      clearBundledPhotoFolderPath: true,
+    );
+    await _installPayload(
+      _applySurfacingPressureRule(payload),
+      remotePhotoCount: remotePhotoCount,
     );
   }
 
@@ -1030,9 +1088,14 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// to the finished payload so every format is covered at one seam, and after
   /// the parsers have run so a parser that derives other figures from the
   /// source's own start/end pair (FIT cylinder volume) still sees them.
+  ///
+  /// A start or end pressure taken from a transmitter dropout is replaced
+  /// first, whatever the preference (issue #2441): it is wrong for every
+  /// diver, and the surfacing rule should see the corrected value.
   ImportPayload _applySurfacingPressureRule(ImportPayload payload) {
+    final deglitched = replaceGlitchedTankPressures(payload);
     final trim = _ref.read(settingsProvider).trimTankPressureAtSurfacing;
-    return trim ? trimTankPressuresAtSurfacing(payload) : payload;
+    return trim ? trimTankPressuresAtSurfacing(deglitched) : deglitched;
   }
 
   Future<ImportDuplicateResult> _checkDuplicates(ImportPayload payload) async {
@@ -1066,6 +1129,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       existingSourceUuidByDiveId: existingSourceUuidByDiveId,
       checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
       units: UnitFormatter(_ref.read(settingsProvider)),
+      certificationCatalog: await _ref.read(
+        allCustomCertificationsCatalogProvider.future,
+      ),
     );
   }
 

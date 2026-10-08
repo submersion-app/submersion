@@ -7,7 +7,11 @@ const _log = LoggerService('BathymetryResolver');
 
 /// The outcome of walking the source tiers for one coordinate.
 ///
-/// - `grid != null`: usable terrain (definitive).
+/// - `grid != null && definitive`: usable terrain from the best source that
+///   answered, cacheable as final.
+/// - `grid != null && !definitive`: usable terrain, but only because a
+///   higher-priority source failed transiently on the way to it. Show it,
+///   but do NOT cache it, or the preferred source is never retried.
 /// - `grid == null && definitive`: fetched fine, genuinely no water here —
 ///   cacheable as a negative answer.
 /// - `grid == null && !definitive`: transient failure — must NOT be cached.
@@ -16,6 +20,8 @@ class BathymetryResolution {
   final bool definitive;
 
   const BathymetryResolution.ok(BathymetryGrid this.grid) : definitive = true;
+  const BathymetryResolution.provisional(BathymetryGrid this.grid)
+    : definitive = false;
   const BathymetryResolution.empty() : grid = null, definitive = true;
   const BathymetryResolution.transientFailure()
     : grid = null,
@@ -61,8 +67,14 @@ class BathymetryResolver {
     double? spanMeters,
   }) async {
     final span = spanMeters ?? defaultSpanMeters;
-    final ordered = await _order(center);
+    final (:ordered, :anyProbeFailed) = await _order(center);
     var globalSourceSaidDry = false;
+    // Whether any source threw instead of answering, in its probe or its
+    // fetch (issue #1770). Such a source might have had better terrain, or
+    // water where a global model says dry, so whatever the walk settles on
+    // is not final: a single network hiccup must not permanently downgrade
+    // the cell.
+    var anySourceFailed = anyProbeFailed;
     for (final source in ordered) {
       try {
         final grid = await source.fetch(center, spanMeters: span);
@@ -80,7 +92,9 @@ class BathymetryResolver {
           continue;
         }
         if (grid.wetFraction >= minWetFraction) {
-          return BathymetryResolution.ok(grid);
+          return anySourceFailed
+              ? BathymetryResolution.provisional(grid)
+              : BathymetryResolution.ok(grid);
         }
         _log.debug(
           '${source.id} rejected at ${center.latitude},${center.longitude}: '
@@ -89,8 +103,17 @@ class BathymetryResolver {
         // A dry answer only proves "no water here" if the source actually
         // covers everywhere; a regional edge cell proves nothing.
         if (source.global) globalSourceSaidDry = true;
+      } on BathymetryNoDataException catch (e) {
+        // A stable "nothing here", not a hiccup: fall through without
+        // marking the walk as failed.
+        _log.debug(
+          '${source.id} has no data at '
+          '${center.latitude},${center.longitude}',
+          error: e,
+        );
       } on BathymetryFetchException catch (e) {
         // Transient: fall through to the next source.
+        anySourceFailed = true;
         _log.warning(
           '${source.id} fetch failed at ${center.latitude},${center.longitude}',
           error: e,
@@ -99,6 +122,7 @@ class BathymetryResolver {
         // A source blowing up with anything else (a TypeError from an
         // unexpected response shape, an ArgumentError) must not kill the
         // whole scene: treat it exactly like a transient failure.
+        anySourceFailed = true;
         _log.warning(
           '${source.id} fetch threw unexpectedly at '
           '${center.latitude},${center.longitude}',
@@ -107,20 +131,30 @@ class BathymetryResolver {
         );
       }
     }
-    return globalSourceSaidDry
+    return globalSourceSaidDry && !anySourceFailed
         ? const BathymetryResolution.empty()
         : const BathymetryResolution.transientFailure();
   }
 
   /// Covering sources in fetch order. Probes run concurrently because a
   /// probe may be a network call and they are independent; a probe that
-  /// fails for any reason drops that source rather than failing the scene.
-  Future<List<BathymetrySource>> _order(GeoPoint center) async {
+  /// fails for any reason drops that source rather than failing the scene,
+  /// and is reported in `anyProbeFailed` so the resolve that follows is
+  /// not taken as definitive (see [BathymetrySource.probe]).
+  Future<({List<BathymetrySource> ordered, bool anyProbeFailed})> _order(
+    GeoPoint center,
+  ) async {
+    var anyProbeFailed = false;
     final caps = await Future.wait(
       sources.map((s) async {
         try {
           return await s.probe(center);
-        } catch (_) {
+        } catch (e) {
+          anyProbeFailed = true;
+          _log.warning(
+            '${s.id} probe failed at ${center.latitude},${center.longitude}',
+            error: e,
+          );
           return null;
         }
       }),
@@ -144,6 +178,9 @@ class BathymetryResolver {
       if (b.cell * preemptionFactor < a.cell) return 1;
       return a.rank.compareTo(b.rank);
     });
-    return [for (final c in covering) c.source];
+    return (
+      ordered: [for (final c in covering) c.source],
+      anyProbeFailed: anyProbeFailed,
+    );
   }
 }

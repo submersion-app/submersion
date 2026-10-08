@@ -36,12 +36,13 @@ G_DECLARE_FINAL_TYPE(LibdivecomputerPluginDeviceDescriptor, libdivecomputer_plug
  * product: field in this object.
  * model: field in this object.
  * transports: field in this object.
+ * delivers_oldest_first: field in this object.
  *
  * Creates a new #DeviceDescriptor object.
  *
  * Returns: a new #LibdivecomputerPluginDeviceDescriptor
  */
-LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_descriptor_new(const gchar* vendor, const gchar* product, int64_t model, FlValue* transports);
+LibdivecomputerPluginDeviceDescriptor* libdivecomputer_plugin_device_descriptor_new(const gchar* vendor, const gchar* product, int64_t model, FlValue* transports, gboolean delivers_oldest_first);
 
 /**
  * libdivecomputer_plugin_device_descriptor_get_vendor
@@ -82,6 +83,19 @@ int64_t libdivecomputer_plugin_device_descriptor_get_model(LibdivecomputerPlugin
  * Returns: the field value.
  */
 FlValue* libdivecomputer_plugin_device_descriptor_get_transports(LibdivecomputerPluginDeviceDescriptor* object);
+
+/**
+ * libdivecomputer_plugin_device_descriptor_get_delivers_oldest_first
+ * @object: a #LibdivecomputerPluginDeviceDescriptor.
+ *
+ * Whether this backend hands dives over oldest-first. libdivecomputer is
+ * newest-first except where the fork reversed a driver (Shearwater
+ * Petrel, issue #480). Only for such a backend is an interrupted
+ * download's newest dive a safe resume point (issue #2902).
+ *
+ * Returns: the field value.
+ */
+gboolean libdivecomputer_plugin_device_descriptor_get_delivers_oldest_first(LibdivecomputerPluginDeviceDescriptor* object);
 
 /**
  * LibdivecomputerPluginDiscoveredDevice:
@@ -1803,12 +1817,14 @@ LibdivecomputerPluginDiveComputerFlutterApiOnDiveDownloadedResponse* libdivecomp
  * @serial_number: (allow-none): parameter for this method.
  * @firmware_version: (allow-none): parameter for this method.
  * @clock_sync_status: (allow-none): parameter for this method.
+ * @reported_product: (allow-none): parameter for this method.
+ * @reported_model: (allow-none): parameter for this method.
  * @cancellable: (allow-none): a #GCancellable or %NULL.
  * @callback: (scope async): (allow-none): a #GAsyncReadyCallback to call when the call is complete or %NULL to ignore the response.
  * @user_data: (closure): user data to pass to @callback.
  *
  */
-void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* api, int64_t total_dives, const gchar* serial_number, const gchar* firmware_version, const gchar* clock_sync_status, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
+void libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete(LibdivecomputerPluginDiveComputerFlutterApi* api, int64_t total_dives, const gchar* serial_number, const gchar* firmware_version, const gchar* clock_sync_status, const gchar* reported_product, int64_t* reported_model, GCancellable* cancellable, GAsyncReadyCallback callback, gpointer user_data);
 
 /**
  * libdivecomputer_plugin_dive_computer_flutter_api_on_download_complete_finish:

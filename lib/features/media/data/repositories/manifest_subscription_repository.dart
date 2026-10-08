@@ -1,4 +1,4 @@
-// Adapted from plan `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md`
+// Adapted from plan `docs/design/plans/2026-04-28-media-source-extension-phase3b.md`
 // Task 8. Implementation matches the plan verbatim; the only deviations are
 // the shared test helpers (see the test file for details). Schema column
 // names match the v72 migration (`MediaSubscriptions` synced + per-device

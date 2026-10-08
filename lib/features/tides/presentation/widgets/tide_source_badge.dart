@@ -40,7 +40,7 @@ class TideSourceBadge extends ConsumerWidget {
     }
 
     return InkWell(
-      onTap: () => _showDetails(context, source),
+      onTap: () => _showDetails(context, source, units),
       borderRadius: BorderRadius.circular(4),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
@@ -64,7 +64,11 @@ class TideSourceBadge extends ConsumerWidget {
     );
   }
 
-  void _showDetails(BuildContext context, TideDataSource source) {
+  void _showDetails(
+    BuildContext context,
+    TideDataSource source,
+    UnitFormatter units,
+  ) {
     final isStation = source.kind == TideDataSourceKind.noaaStation;
     showModalBottomSheet<void>(
       context: context,
@@ -97,7 +101,21 @@ class TideSourceBadge extends ConsumerWidget {
                     context.l10n.tides_source_datumMsl,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  if (source.resolutionKm != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      context.l10n.tides_source_modelResolution(
+                        units.formatGeoDistance(source.resolutionKm! * 1000),
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ],
+                const SizedBox(height: 4),
+                Text(
+                  context.l10n.tides_source_siteLocalTime,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),

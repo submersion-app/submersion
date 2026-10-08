@@ -149,6 +149,7 @@ add_library(${PLUGIN_NAME} SHARED
     dive_converter.cc
     ble_scanner.cc
     ble_io_stream.cc
+    ble_read_poll.cc
     native_logger.cc
     serial_scanner.cc
     serial_io_stream.cc

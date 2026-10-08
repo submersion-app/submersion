@@ -221,13 +221,42 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
-      // Bronze active: its 3300s duration renders as 55 min.
-      expect(statValue('Bottom Time'), '55 min');
+      // Bronze active: its bottom time is derived from its own profile
+      // (final ascent starts at t=120), never read from its 3300 s duration,
+      // which is the runtime it measured (issue #2421).
+      expect(statValue('Bottom Time'), '2 min');
       final chartAfter = tester.widget<DiveProfileChart>(
         find.byType(DiveProfileChart),
       );
       expect(chartAfter.profile.length, 4);
       expect(chartAfter.activeComputerId, 'dc-b');
+    },
+  );
+
+  testWidgets(
+    'a viewed source with no profile shows the dive bottom time, never its '
+    'runtime',
+    (tester) async {
+      profiles.remove('src-b');
+      await pumpPage(tester);
+
+      await tester.ensureVisible(inSourceBar(find.text('Erics Teric')));
+      await tester.pump();
+      await tester.tap(inSourceBar(find.text('Erics Teric')));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      final column = find
+          .ancestor(of: find.text('Bottom Time'), matching: find.byType(Column))
+          .first;
+      final value = tester
+          .widgetList<Text>(
+            find.descendant(of: column, matching: find.byType(Text)),
+          )
+          .first
+          .data;
+      // Not '55 min', the 3300 s runtime the source measured.
+      expect(value, '45 min');
     },
   );
 

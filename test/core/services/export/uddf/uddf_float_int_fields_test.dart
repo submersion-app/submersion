@@ -1,14 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
-import 'package:submersion/core/services/export/uddf/uddf_import_service.dart';
 
 // Every integer-semantics field below is written in the float form that
 // Oceanic Plus and MacDive emit. int.tryParse rejects all of them, so these
 // exercise parseUddfInt at the call sites the headline regression test does
 // not reach.
 
-// Fields reached only by the simple import path (UddfImportService).
-const _legacyUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+// Dive-level fields: gradient factors, surface interval, tank order,
+// waypoint heart rate, duration and rating.
+const _diveFieldsUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
 <uddf version="3.2.1">
   <gasdefinitions>
     <mix id="air"><name>air</name><o2>0.21</o2><n2>0.79</n2><he>0.0</he></mix>
@@ -56,9 +56,9 @@ const _legacyUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
   </profiledata>
 </uddf>''';
 
-// Fields reached only by the full import path: profile events, the
-// rebreather section, waypoint heart rate, and a custom dive type.
-const _fullUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+// Profile events, the rebreather section, waypoint heart rate, and a custom
+// dive type.
+const _extendedUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
 <uddf version="3.2.1">
   <applicationdata>
     <submersion>
@@ -103,12 +103,14 @@ const _fullUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
 </uddf>''';
 
 void main() {
-  group('float-formatted integers, simple import path', () {
+  group('float-formatted integers, dive fields', () {
     late Map<String, dynamic> dive;
 
     setUpAll(() async {
-      final result = await UddfImportService().importDivesFromUddf(_legacyUddf);
-      dive = result['dives']!.single;
+      final result = await UddfFullImportService().importAllDataFromUddf(
+        _diveFieldsUddf,
+      );
+      dive = result.dives.single;
     });
 
     test('gradient factors', () {
@@ -136,10 +138,10 @@ void main() {
     });
   });
 
-  group('float-formatted integers, full import path', () {
+  group('float-formatted integers, extended fields', () {
     test('profile event timestamp', () async {
       final result = await UddfFullImportService().importAllDataFromUddf(
-        _fullUddf,
+        _extendedUddf,
       );
       final events =
           result.dives.single['profileEvents'] as List<Map<String, dynamic>>;
@@ -149,7 +151,7 @@ void main() {
 
     test('rebreather scrubber durations', () async {
       final result = await UddfFullImportService().importAllDataFromUddf(
-        _fullUddf,
+        _extendedUddf,
       );
       final dive = result.dives.single;
 
@@ -159,7 +161,7 @@ void main() {
 
     test('waypoint heart rate', () async {
       final result = await UddfFullImportService().importAllDataFromUddf(
-        _fullUddf,
+        _extendedUddf,
       );
       final profile =
           result.dives.single['profile'] as List<Map<String, dynamic>>;
@@ -169,7 +171,7 @@ void main() {
 
     test('custom dive type sort order', () async {
       final result = await UddfFullImportService().importAllDataFromUddf(
-        _fullUddf,
+        _extendedUddf,
       );
 
       expect(result.customDiveTypes.single['sortOrder'], 3);

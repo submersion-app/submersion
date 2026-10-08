@@ -225,12 +225,22 @@ class _RankingTile extends StatelessWidget {
     if (onTap != null) {
       tile = Semantics(
         button: true,
-        label: context.l10n.insights_ranking_semanticLabel(
-          item.name,
-          rank,
-          item.count,
-          countLabel,
-        ),
+        // The subtitle tells rows with the same name apart (a region in
+        // two countries), so the button label carries it too.
+        label: item.subtitle == null
+            ? context.l10n.insights_ranking_semanticLabel(
+                item.name,
+                rank,
+                item.count,
+                countLabel,
+              )
+            : context.l10n.insights_ranking_semanticLabelWithSubtitle(
+                item.name,
+                item.subtitle!,
+                rank,
+                item.count,
+                countLabel,
+              ),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),

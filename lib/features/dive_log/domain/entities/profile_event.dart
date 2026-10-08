@@ -42,6 +42,11 @@ class ProfileEvent extends Equatable {
   /// user-authored / computed without per-computer attribution).
   final String? computerId;
 
+  /// Manufacturer of [computerId]'s computer, resolved when events are read
+  /// for display (`withComputerManufacturers`); never persisted. It is what
+  /// says whether [value] holds that vendor's own event code (#1523).
+  final String? computerManufacturer;
+
   /// When this event was created
   final DateTime createdAt;
 
@@ -64,6 +69,7 @@ class ProfileEvent extends Equatable {
     // event type — prefer factories over direct construction.
     this.source = EventSource.imported,
     this.computerId,
+    this.computerManufacturer,
     required this.createdAt,
   });
 
@@ -88,27 +94,6 @@ class ProfileEvent extends Equatable {
 
   /// Whether this event has associated data value
   bool get hasValue => value != null;
-
-  /// Get formatted value with appropriate units based on event type
-  String? get formattedValue {
-    if (value == null) return null;
-
-    switch (eventType) {
-      case ProfileEventType.ascentRateWarning:
-      case ProfileEventType.ascentRateCritical:
-        return '${value!.toStringAsFixed(1)} m/min';
-      case ProfileEventType.ppO2High:
-      case ProfileEventType.ppO2Low:
-        return '${value!.toStringAsFixed(2)} bar';
-      case ProfileEventType.cnsWarning:
-      case ProfileEventType.cnsCritical:
-        return '${value!.toStringAsFixed(0)}%';
-      case ProfileEventType.setpointChange:
-        return '${value!.toStringAsFixed(1)} bar';
-      default:
-        return value!.toStringAsFixed(1);
-    }
-  }
 
   /// Create an ascent start event
   factory ProfileEvent.ascentStart({
@@ -373,6 +358,7 @@ class ProfileEvent extends Equatable {
     String? tankId,
     EventSource? source,
     String? computerId,
+    String? computerManufacturer,
     DateTime? createdAt,
   }) {
     return ProfileEvent(
@@ -387,6 +373,7 @@ class ProfileEvent extends Equatable {
       tankId: tankId ?? this.tankId,
       source: source ?? this.source,
       computerId: computerId ?? this.computerId,
+      computerManufacturer: computerManufacturer ?? this.computerManufacturer,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -404,6 +391,7 @@ class ProfileEvent extends Equatable {
     tankId,
     source,
     computerId,
+    computerManufacturer,
     createdAt,
   ];
 }

@@ -79,6 +79,7 @@ class DiveParser {
     endPressure: tank.endPressure,
     volumeLiters: tank.volumeLiters,
     role: tank.role,
+    roleSource: tank.roleSource?.name,
     transmitterSerial: tank.transmitterSerial,
   );
 

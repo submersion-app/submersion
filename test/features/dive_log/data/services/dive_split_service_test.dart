@@ -1,6 +1,9 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_clock.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -9,7 +12,10 @@ import 'package:submersion/features/dive_log/data/services/dive_split_service.da
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 
+import '../../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../../helpers/peer_pull.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -254,6 +260,22 @@ void main() {
     expect(await fkViolations(), isEmpty);
   });
 
+  test('the diver\'s roles travel with the split dive (#1221)', () async {
+    await insertDive('dive-1', computerId: 'dc-a');
+    await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);
+    await insertSource('src-b', 'dive-1', 'dc-b', isPrimary: false);
+    await insertProfileSeriesRow('dive-1', 'dc-a', isPrimary: true);
+    await insertProfileSeriesRow('dive-1', 'dc-b', isPrimary: false);
+    final roles = DiveRoleLinkRepository();
+    await roles.writeDiverRoles('dive-1', ['diveMaster', 'diveGuide']);
+
+    final newDiveId = await service.split(diveId: 'dive-1', sourceId: 'src-b');
+
+    final sets = await roles.diverRoleIdsForDives(['dive-1', newDiveId]);
+    expect(sets['dive-1'], ['diveGuide', 'diveMaster']);
+    expect(sets[newDiveId], ['diveGuide', 'diveMaster']);
+  });
+
   test('splitting the primary promotes the remaining source', () async {
     await insertDive('dive-1', computerId: 'dc-a');
     await insertSource(
@@ -384,8 +406,33 @@ void main() {
     expect(byRecord[movedProfile], 'diveProfileSeries');
     expect(byRecord[movedTank], 'diveTanks');
     expect(byRecord[movedPressure], 'tankPressureSeries');
-    expect(byRecord[movedEvent], 'diveProfileEvents');
+    expect(byRecord.containsKey(movedEvent), isFalse);
+    expect(byRecord['dive-1|dc-b'], 'diveProfileEventsScope');
     expect(byRecord['src-b'], 'diveDataSources');
+  });
+
+  test('split writes one events tombstone however many events move', () async {
+    await insertDive('dive-1', computerId: 'dc-a');
+    await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);
+    await insertSource('src-b', 'dive-1', 'dc-b', isPrimary: false);
+    await insertProfileSeriesRow('dive-1', 'dc-a', isPrimary: true);
+    await insertProfileSeriesRow('dive-1', 'dc-b', isPrimary: false);
+    for (var i = 0; i < 50; i++) {
+      await insertEvent('dive-1', 'dc-b');
+    }
+    final keptEvent = await insertEvent('dive-1', 'dc-a');
+
+    await service.split(diveId: 'dive-1', sourceId: 'src-b');
+
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(
+      tombstones.where((t) => t.entityType.startsWith('diveProfileEvents')),
+      hasLength(1),
+    );
+    final events = await db.select(db.diveProfileEvents).get();
+    expect(events.where((e) => e.diveId == 'dive-1').map((e) => e.id), [
+      keptEvent,
+    ]);
   });
 
   test(
@@ -498,6 +545,61 @@ void main() {
     expect(tombstones.map((t) => t.recordId), isNot(contains(sharedTank)));
 
     expect(await fkViolations(), isEmpty);
+  });
+
+  test('the computer a split clears on a shared tank is cleared on a peer '
+      '(#2644)', () async {
+    addTearDown(SyncClock.instance.reset);
+    await insertDive('dive-1', computerId: 'dc-a');
+    await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);
+    await insertSource('src-b', 'dive-1', 'dc-b', isPrimary: false);
+    await insertProfileSeriesRow('dive-1', 'dc-a', isPrimary: true);
+    await insertProfileSeriesRow('dive-1', 'dc-b', isPrimary: false);
+    final sharedTank = await insertTank('dive-1', 'dc-b');
+    await insertTankPressureSeriesRow('dive-1', sharedTank, 'dc-a');
+    await insertTankPressureSeriesRow('dive-1', sharedTank, 'dc-b');
+    final serializer = SyncDataSerializer();
+    final published = (await serializer.fetchRecord('diveTanks', sharedTank))!;
+    // This device publishes everything so far; the split's changes are
+    // what the next changeset carries.
+    final base = await serializer.exportChangeset(
+      deviceId: 'test-device',
+      hlcWatermark: null,
+      deletions: await db.select(db.deletionLog).get(),
+    );
+    await db.customStatement('DELETE FROM sync_records');
+
+    await service.split(diveId: 'dive-1', sourceId: 'src-b');
+
+    final changeset = await serializer.exportChangeset(
+      deviceId: 'test-device',
+      hlcWatermark: base.toHlc,
+      deletions: await db.select(db.deletionLog).get(),
+    );
+    final sent = changeset.data.diveTanks.singleWhere(
+      (t) => t['id'] == sharedTank,
+    );
+    expect(sent.containsKey('computerId'), isTrue);
+    expect(sent['computerId'], isNull);
+
+    // A peer still holding the tank as it was before the split.
+    await db.customUpdate(
+      'UPDATE dive_tanks SET computer_id = ?, hlc = ? WHERE id = ?',
+      variables: [
+        Variable.withString('dc-b'),
+        Variable<String>(published['hlc'] as String?),
+        Variable.withString(sharedTank),
+      ],
+    );
+    await db.customStatement('DELETE FROM sync_records');
+
+    final result = await pullPeerPayload(
+      FakeCloudStorageProvider(),
+      SyncData(diveTanks: [sent]),
+    );
+    expect(result.status, isNot(SyncResultStatus.error));
+    final onPeer = (await serializer.fetchRecord('diveTanks', sharedTank))!;
+    expect(onPeer['computerId'], isNull);
   });
 
   test('a gas switch pins its tank to the original dive', () async {

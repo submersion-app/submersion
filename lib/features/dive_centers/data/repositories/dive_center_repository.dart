@@ -154,6 +154,8 @@ class DiveCenterRepository {
               affiliations: Value(center.affiliations.join(',')),
               rating: Value(center.rating),
               notes: Value(center.notes),
+              fillOpensAt: Value(center.fillOpensAt),
+              fillClosesAt: Value(center.fillClosesAt),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -202,6 +204,8 @@ class DiveCenterRepository {
           affiliations: Value(center.affiliations.join(',')),
           rating: Value(center.rating),
           notes: Value(center.notes),
+          fillOpensAt: Value(center.fillOpensAt),
+          fillClosesAt: Value(center.fillClosesAt),
           updatedAt: Value(now),
         ),
       );
@@ -355,6 +359,8 @@ class DiveCenterRepository {
       affiliations: _parseAffiliations(row.affiliations),
       rating: row.rating,
       notes: row.notes,
+      fillOpensAt: row.fillOpensAt,
+      fillClosesAt: row.fillClosesAt,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -377,6 +383,8 @@ class DiveCenterRepository {
       affiliations: _parseAffiliations(row.data['affiliations'] as String?),
       rating: (row.data['rating'] as num?)?.toDouble(),
       notes: (row.data['notes'] as String?) ?? '',
+      fillOpensAt: row.data['fill_opens_at'] as int?,
+      fillClosesAt: row.data['fill_closes_at'] as int?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         row.data['created_at'] as int,
       ),

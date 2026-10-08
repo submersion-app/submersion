@@ -6,7 +6,9 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
@@ -14,12 +16,23 @@ import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/observations_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class InsightsOverviewPage extends ConsumerWidget {
   final bool embedded;
-  const InsightsOverviewPage({super.key, this.embedded = false});
+
+  /// Leads with the observations strip (#2381). On for the desktop summary
+  /// pane only: the Overview category detail is the same page and would
+  /// otherwise repeat it.
+  final bool showObservations;
+
+  const InsightsOverviewPage({
+    super.key,
+    this.embedded = false,
+    this.showObservations = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,7 +43,8 @@ class InsightsOverviewPage extends ConsumerWidget {
       error: (e, _) => _ErrorCard(
         onRetry: () => ref.invalidate(filteredDiveStatisticsProvider),
       ),
-      data: (stats) => _OverviewBody(stats: stats),
+      data: (stats) =>
+          _OverviewBody(stats: stats, showObservations: showObservations),
     );
 
     if (embedded) return body;
@@ -45,7 +59,8 @@ class InsightsOverviewPage extends ConsumerWidget {
 
 class _OverviewBody extends ConsumerWidget {
   final DiveStatistics stats;
-  const _OverviewBody({required this.stats});
+  final bool showObservations;
+  const _OverviewBody({required this.stats, required this.showObservations});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -89,6 +104,8 @@ class _OverviewBody extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (showObservations)
+            const ObservationsStrip(padding: EdgeInsets.only(bottom: 16)),
           _AggregateGrid(stats: stats, fmt: fmt, career: career),
           if (career.divingSinceResolved != null) ...[
             const SizedBox(height: 8),
@@ -256,6 +273,14 @@ class _AggregateGrid extends StatelessWidget {
           value: stats.divesPerYear!.toStringAsFixed(1),
           color: Colors.green.shade700,
         ),
+      // This year's actual count beside the lifetime average, which was read
+      // as this year's total when it stood alone (issue #2600).
+      _StatCard(
+        icon: Icons.event_available,
+        label: context.l10n.insights_summary_divesThisYear,
+        value: '${stats.divesThisYear}',
+        color: Colors.lightGreen.shade800,
+      ),
       _StatCard(
         icon: Icons.location_on,
         label: context.l10n.insights_summary_sitesVisited,
@@ -646,6 +671,7 @@ class _DistributionsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final diveTypesAsync = ref.watch(diveTypeDistributionProvider);
+    final typesById = watchDiveTypesById(ref);
 
     final depthChart = _DepthPieCard(
       depthDistribution: stats.depthDistribution,
@@ -664,7 +690,11 @@ class _DistributionsSection extends ConsumerWidget {
       data: (diveTypes) => _TypePieCard(
         diveTypes: localizeDistribution(
           diveTypes,
-          (key) => diveTypeDistributionLabel(key, context.l10n),
+          (key) => diveTypeDistributionLabel(
+            key,
+            context.l10n,
+            typesById: typesById,
+          ),
         ),
       ),
     );
@@ -738,7 +768,7 @@ class _DistributionsSection extends ConsumerWidget {
                 ),
               ),
               for (final segment in typeStats)
-                _DiveTypeStatRow(segment: segment),
+                _DiveTypeStatRow(segment: segment, typesById: typesById),
             ],
           ],
         ),
@@ -749,7 +779,8 @@ class _DistributionsSection extends ConsumerWidget {
 
 class _DiveTypeStatRow extends StatelessWidget {
   final DistributionSegment segment;
-  const _DiveTypeStatRow({required this.segment});
+  final Map<String, DiveTypeEntity> typesById;
+  const _DiveTypeStatRow({required this.segment, required this.typesById});
 
   @override
   Widget build(BuildContext context) {
@@ -758,7 +789,9 @@ class _DiveTypeStatRow extends StatelessWidget {
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
-      title: Text(diveTypeDistributionLabel(segment.label, l10n)),
+      title: Text(
+        diveTypeDistributionLabel(segment.label, l10n, typesById: typesById),
+      ),
       trailing: Text(
         '${l10n.insights_filterBar_diveCount(segment.count)} • '
         '${duration.inHours}h ${duration.inMinutes % 60}m',

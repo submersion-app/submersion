@@ -18,6 +18,11 @@ class DiveCenter extends Equatable {
   final List<String> affiliations; // PADI, SSI, etc.
   final double? rating;
   final String notes;
+
+  /// Fill hours (v249), minutes after local midnight: when the station fills
+  /// cylinders, for the trip fill forecast's deadline. Both or neither.
+  final int? fillOpensAt;
+  final int? fillClosesAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -38,6 +43,8 @@ class DiveCenter extends Equatable {
     this.affiliations = const [],
     this.rating,
     this.notes = '',
+    this.fillOpensAt,
+    this.fillClosesAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -109,6 +116,8 @@ class DiveCenter extends Equatable {
     List<String>? affiliations,
     double? rating,
     String? notes,
+    Object? fillOpensAt = _undefined,
+    Object? fillClosesAt = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -129,6 +138,12 @@ class DiveCenter extends Equatable {
       affiliations: affiliations ?? this.affiliations,
       rating: rating ?? this.rating,
       notes: notes ?? this.notes,
+      fillOpensAt: fillOpensAt == _undefined
+          ? this.fillOpensAt
+          : fillOpensAt as int?,
+      fillClosesAt: fillClosesAt == _undefined
+          ? this.fillClosesAt
+          : fillClosesAt as int?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -158,7 +173,12 @@ class DiveCenter extends Equatable {
     affiliations,
     rating,
     notes,
+    fillOpensAt,
+    fillClosesAt,
     createdAt,
     updatedAt,
   ];
 }
+
+// Sentinel value for distinguishing null from undefined in copyWith
+const _undefined = Object();

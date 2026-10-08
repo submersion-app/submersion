@@ -14,6 +14,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 
+import '../../../../helpers/mock_channels.dart';
 import '../../../../support/fake_keychain_storage.dart';
 
 const _fastKdf = KdfParams(m: 1024, t: 3, p: 1);
@@ -51,7 +52,19 @@ class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
 /// Restoring a backup written by a NEWER schema must be refused BEFORE the
 /// database swap. The post-swap open guard would otherwise fire with the new
 /// file already live, leaving the app with no working database (issue #1089).
+/// Per-file root for the mocked path_provider. Test processes run in parallel
+/// against one real $TMPDIR, so returning it directly would put every backup
+/// suite's fixed `Submersion/Backups` subtree in the same place.
+final _isolatedTempDir = Directory.systemTemp.createTempSync(
+  'newer_schema_pp_',
+);
+
 void main() {
+  tearDownAll(() {
+    if (_isolatedTempDir.existsSync()) {
+      _isolatedTempDir.deleteSync(recursive: true);
+    }
+  });
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory tempDir;
@@ -64,9 +77,10 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/path_provider'),
-          (MethodCall methodCall) async => Directory.systemTemp.path,
+          (MethodCall methodCall) async => _isolatedTempDir.path,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});

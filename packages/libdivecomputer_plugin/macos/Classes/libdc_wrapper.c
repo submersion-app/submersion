@@ -1,5 +1,6 @@
 #include "libdc_wrapper.h"
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -26,6 +27,24 @@ void libdc_set_log_callback(libdc_log_callback_fn callback, void *userdata) {
 
 const char *libdc_get_version(void) {
     return dc_version(NULL);
+}
+
+// Whether a backend delivers dives oldest-first. Upstream libdivecomputer is
+// newest-first throughout; the fork reverses only the shearwater_petrel.c
+// profile loop (issue #480). A family added to that list must have its
+// driver's foreach loop reversed too.
+static int family_delivers_oldest_first(dc_family_t family) {
+    return family == DC_FAMILY_SHEARWATER_PETREL;
+}
+
+// Copies a descriptor's identity into info, with its raw transport bitmask.
+static void fill_info(libdc_descriptor_info_t *info, dc_descriptor_t *desc) {
+    info->vendor = dc_descriptor_get_vendor(desc);
+    info->product = dc_descriptor_get_product(desc);
+    info->model = dc_descriptor_get_model(desc);
+    info->transports = dc_descriptor_get_transports(desc);
+    info->delivers_oldest_first =
+        family_delivers_oldest_first(dc_descriptor_get_type(desc));
 }
 
 // Internal iterator state.
@@ -70,10 +89,13 @@ int libdc_descriptor_iterator_next(libdc_descriptor_iterator_t *iter,
     }
 
     iter->current = desc;
-    info->vendor = dc_descriptor_get_vendor(desc);
-    info->product = dc_descriptor_get_product(desc);
-    info->model = dc_descriptor_get_model(desc);
-    info->transports = dc_descriptor_get_transports(desc);
+    fill_info(info, desc);
+    // Raw USB devices (the Atomic Aquatics Cobalts) talk through USB control
+    // transfers, and no platform bridge implements DC_IOCTL_USB_CONTROL_*, so
+    // the bit is withheld: every platform maps it to the USB tab, where such a
+    // model could only fail (issue #2837). USB HID and serial are unaffected.
+    info->transports =
+        dc_descriptor_get_transports(desc) & ~(unsigned int)LIBDC_TRANSPORT_USB;
     return 0;
 }
 
@@ -342,19 +364,13 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
         if (dc_descriptor_filter(desc, (dc_transport_t)transport, name)) {
             // Keep first family-level match as fallback.
             if (!found) {
-                info->vendor = dc_descriptor_get_vendor(desc);
-                info->product = dc_descriptor_get_product(desc);
-                info->model = dc_descriptor_get_model(desc);
-                info->transports = dc_descriptor_get_transports(desc);
+                fill_info(info, desc);
                 found = 1;
             }
 
             // If model code is present in the BLE name, prefer exact model match.
             if (has_name_model && dc_descriptor_get_model(desc) == name_model) {
-                info->vendor = dc_descriptor_get_vendor(desc);
-                info->product = dc_descriptor_get_product(desc);
-                info->model = dc_descriptor_get_model(desc);
-                info->transports = dc_descriptor_get_transports(desc);
+                fill_info(info, desc);
                 dc_descriptor_free(desc);
                 break;
             }
@@ -365,10 +381,7 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
             if (!has_name_model) {
                 const char *product = dc_descriptor_get_product(desc);
                 if (product && strcasecmp_nospace(name, product) == 0) {
-                    info->vendor = dc_descriptor_get_vendor(desc);
-                    info->product = product;
-                    info->model = dc_descriptor_get_model(desc);
-                    info->transports = dc_descriptor_get_transports(desc);
+                    fill_info(info, desc);
                     dc_descriptor_free(desc);
                     break;
                 }
@@ -378,10 +391,7 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
                 // which by definition cannot match an abbreviation.
                 if (alias_product && product &&
                     strcasecmp_nospace(alias_product, product) == 0) {
-                    info->vendor = dc_descriptor_get_vendor(desc);
-                    info->product = product;
-                    info->model = dc_descriptor_get_model(desc);
-                    info->transports = dc_descriptor_get_transports(desc);
+                    fill_info(info, desc);
                     dc_descriptor_free(desc);
                     break;
                 }
@@ -396,10 +406,7 @@ int libdc_descriptor_match(const char *name, unsigned int transport,
                     size_t plen = product_prefix_len(name, product);
                     if (plen > best_prefix_len) {
                         best_prefix_len = plen;
-                        info->vendor = dc_descriptor_get_vendor(desc);
-                        info->product = product;
-                        info->model = dc_descriptor_get_model(desc);
-                        info->transports = dc_descriptor_get_transports(desc);
+                        fill_info(info, desc);
                     }
                 }
             }
@@ -428,10 +435,7 @@ int libdc_descriptor_lookup_model(unsigned int transport, unsigned int model,
     while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
         if ((dc_descriptor_get_transports(desc) & transport) != 0 &&
             dc_descriptor_get_model(desc) == model) {
-            info->vendor = dc_descriptor_get_vendor(desc);
-            info->product = dc_descriptor_get_product(desc);
-            info->model = dc_descriptor_get_model(desc);
-            info->transports = dc_descriptor_get_transports(desc);
+            fill_info(info, desc);
             found = 1;
             dc_descriptor_free(desc);
             break;
@@ -522,4 +526,107 @@ void libdc_parsed_dive_free(libdc_parsed_dive_t *dive) {
     free(dive->samples);
     free(dive->events);
     free(dive);
+}
+
+// Families whose DEVINFO model shares the descriptor table's code space. Add
+// one only with evidence from its backend source: the model must be read
+// from the device and compared against descriptor model codes there.
+static int reported_model_family_allowed(dc_family_t family) {
+    return family == DC_FAMILY_CRESSI_GOA;
+}
+
+int libdc_resolve_reported_product(const char *vendor, const char *product,
+                                   unsigned int model,
+                                   unsigned int reported_model,
+                                   char *product_out,
+                                   size_t product_out_size) {
+    if (vendor == NULL || product == NULL || product_out == NULL ||
+        product_out_size == 0 || reported_model == model) {
+        return 0;
+    }
+
+    dc_iterator_t *iter = NULL;
+    if (dc_descriptor_iterator(&iter) != DC_STATUS_SUCCESS || iter == NULL) {
+        return 0;
+    }
+
+    // Pass 1: the family of the descriptor the download used.
+    dc_family_t family = DC_FAMILY_NULL;
+    int found = 0;
+    dc_descriptor_t *desc = NULL;
+    while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
+        const char *v = dc_descriptor_get_vendor(desc);
+        const char *p = dc_descriptor_get_product(desc);
+        if (!found && v != NULL && p != NULL && strcmp(v, vendor) == 0 &&
+            strcmp(p, product) == 0 &&
+            dc_descriptor_get_model(desc) == model) {
+            family = dc_descriptor_get_type(desc);
+            found = 1;
+        }
+        dc_descriptor_free(desc);
+    }
+    dc_iterator_free(iter);
+    if (!found || !reported_model_family_allowed(family)) {
+        return 0;
+    }
+
+    // Pass 2: the row the device named.
+    if (dc_descriptor_iterator(&iter) != DC_STATUS_SUCCESS || iter == NULL) {
+        return 0;
+    }
+    int resolved = 0;
+    while (dc_iterator_next(iter, &desc) == DC_STATUS_SUCCESS) {
+        const char *v = dc_descriptor_get_vendor(desc);
+        const char *p = dc_descriptor_get_product(desc);
+        if (!resolved && v != NULL && p != NULL && strcmp(v, vendor) == 0 &&
+            dc_descriptor_get_type(desc) == family &&
+            dc_descriptor_get_model(desc) == reported_model) {
+            size_t len = strlen(p);
+            if (len < product_out_size) {
+                memcpy(product_out, p, len + 1);
+                resolved = 1;
+            }
+        }
+        dc_descriptor_free(desc);
+    }
+    dc_iterator_free(iter);
+    return resolved;
+}
+
+// ============================================================
+// BLE Characteristic Read ioctl (issue #422)
+// ============================================================
+
+int libdc_ble_characteristic_read_decode(
+    unsigned int request, const void *data, size_t size,
+    char uuid_str[LIBDC_BLE_UUID_STRING_SIZE], size_t *value_size) {
+    if (request != LIBDC_IOCTL_BLE_CHARACTERISTIC_READ) {
+        return LIBDC_BLE_CHAR_READ_NOT_THIS;
+    }
+    if (data == NULL || size <= LIBDC_BLE_UUID_SIZE || uuid_str == NULL ||
+        value_size == NULL) {
+        return LIBDC_BLE_CHAR_READ_INVALID;
+    }
+    const unsigned char *u = (const unsigned char *)data;
+    snprintf(uuid_str, LIBDC_BLE_UUID_STRING_SIZE,
+             "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-"
+             "%02x%02x%02x%02x%02x%02x",
+             u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], u[8], u[9],
+             u[10], u[11], u[12], u[13], u[14], u[15]);
+    *value_size = size - LIBDC_BLE_UUID_SIZE;
+    return LIBDC_BLE_CHAR_READ_OK;
+}
+
+int libdc_ble_characteristic_read_fill(void *data, size_t size,
+                                       const unsigned char *value,
+                                       size_t value_len) {
+    if (data == NULL || size <= LIBDC_BLE_UUID_SIZE) {
+        return LIBDC_STATUS_INVALIDARGS;
+    }
+    size_t wanted = size - LIBDC_BLE_UUID_SIZE;
+    if (value == NULL || value_len < wanted) {
+        return LIBDC_STATUS_DATAFORMAT;
+    }
+    memcpy((unsigned char *)data + LIBDC_BLE_UUID_SIZE, value, wanted);
+    return LIBDC_STATUS_SUCCESS;
 }

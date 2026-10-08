@@ -4,11 +4,13 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 
 import 'package:submersion/core/constants/card_color.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
@@ -17,6 +19,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -35,39 +38,39 @@ import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
-import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/close_dive_search.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_header.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
+import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
-import 'package:submersion/shared/selection/selection_entry_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_list_count_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/shared/models/subtitle_text.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// True if [d]'s date falls within [r], inclusive of the end calendar day.
 bool inDateRange(DiveSummary d, DateTimeRange r) {
@@ -102,6 +105,14 @@ const double kGroupingPausedNoticeHeight = 56;
 /// Trailing spacer that keeps the last row clear of the FAB.
 const double _kListBottomSpacer = 80;
 
+/// Below this width, Sort folds into the overflow menu instead of sitting
+/// as its own app bar icon (#3076): four icons (map, search, sort, overflow)
+/// otherwise squeeze the title down to a few characters. Comfortably above
+/// the fixed master-detail pane (440dp, see kRefinePanelSideWidth's sibling
+/// constant in MasterDetailScaffold) once its own padding is subtracted, so
+/// that pane always folds; narrow phones fold too, wide hosts do not.
+const double _kFoldSortWidth = 480;
+
 class DiveListContent extends ConsumerStatefulWidget {
   /// Callback when an item is selected. Used in master-detail mode.
   final void Function(String?)? onItemSelected;
@@ -132,6 +143,13 @@ class DiveListContent extends ConsumerStatefulWidget {
   /// If null, the map icon will navigate to the map page (mobile behavior).
   final VoidCallback? onMapViewToggle;
 
+  /// Drives bulk selection from outside the list when set.
+  ///
+  /// In table mode the page's header carries the overflow menu, "Select
+  /// items" among it, so the page has to reach the same controller the rows
+  /// use. Left null, the list owns its own.
+  final SelectionController? selectionController;
+
   const DiveListContent({
     super.key,
     this.onItemSelected,
@@ -142,6 +160,7 @@ class DiveListContent extends ConsumerStatefulWidget {
     this.isMapMode = false,
     this.isMapViewActive = false,
     this.onMapViewToggle,
+    this.selectionController,
   });
 
   @override
@@ -149,12 +168,23 @@ class DiveListContent extends ConsumerStatefulWidget {
 }
 
 class _DiveListContentState extends ConsumerState<DiveListContent> {
-  /// Owns the bulk-selection state machine for this list.
+  /// The bulk-selection state machine for this list: the page's when it
+  /// passes one, otherwise this list's own.
   ///
   /// Replaces the hand-rolled `_isSelectionMode` / `_selectedIds` /
   /// `_anchorId` trio, so entry, exit, ranges and pruning follow the same
   /// rules as every other selectable surface.
-  final SelectionController _selection = SelectionController();
+  late final SelectionController _selection = _adoptSelection();
+
+  /// Only a controller this list created is this list's to dispose. Set in
+  /// the same step that picks the controller, so the two cannot disagree.
+  bool _ownsSelection = false;
+
+  SelectionController _adoptSelection() {
+    final external = widget.selectionController;
+    _ownsSelection = external == null;
+    return external ?? SelectionController();
+  }
 
   List<Dive>? _deletedDives;
   DiveMergeOutcome? _lastMergeOutcome;
@@ -212,7 +242,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
-    _selection.dispose();
+    if (_ownsSelection) _selection.dispose();
     super.dispose();
   }
 
@@ -623,6 +653,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 ...ids,
                 toUndo.mergedDive.id,
               ], force: true);
+              scheduleDerivedMetricsRefresh([
+                ...ids,
+                toUndo.mergedDive.id,
+              ], force: true);
               if (mounted) {
                 // The merged dive no longer exists; clear it from the detail
                 // pane and the row highlight if it is still selected.
@@ -864,6 +898,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       final diveTypesById = format == _BulkExportFormat.uddf
           ? const <String, DiveTypeEntity>{}
           : await diveTypesByIdOrEmpty(ref.read(diveTypesByIdProvider.future));
+      final diveRolesById = format == _BulkExportFormat.pdf
+          ? await diveRoleMapOrEmpty(ref.read(diveRoleMapProvider.future))
+          : const <String, DiveRole>{};
       if (!mounted) return BulkActionOutcome.cancelled;
 
       if (!keepDialogForDelivery) {
@@ -885,6 +922,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   diver: diver,
                   diverPhoto: diverPhoto,
                   diveTypesById: diveTypesById,
+                  diveRolesById: diveRolesById,
                 )
               : await exportService.saveDivesToPdfFile(
                   selectedDives,
@@ -895,6 +933,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   diver: diver,
                   diverPhoto: diverPhoto,
                   diveTypesById: diveTypesById,
+                  diveRolesById: diveRolesById,
                 ),
         _BulkExportFormat.csv =>
           sharing
@@ -923,6 +962,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
                   ),
+                  certificationCatalog: await ref.read(
+                    allCustomCertificationsCatalogProvider.future,
+                  ),
                 )
               : await exportService.saveDivesToUddfFile(
                   selectedDives,
@@ -935,6 +977,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   extras: await ref.read(uddfDivesExtrasFetchProvider)(
                     selectedDives.map((d) => d.id).toList(growable: false),
                     uddfOptions,
+                  ),
+                  certificationCatalog: await ref.read(
+                    allCustomCertificationsCatalogProvider.future,
                   ),
                 ),
       };
@@ -1025,7 +1070,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       _toggleSelection(dive.id);
       return;
     }
+    _openDive(dive);
+  }
 
+  /// Opens [dive] the way a list tap does outside selection mode. The search
+  /// row's jump list calls this directly: its rows may not be in the list
+  /// at all, so selecting them would do nothing visible.
+  void _openDive(DiveSummary dive) {
     // In map mode, call onItemTapForMap instead of navigating
     if (widget.isMapMode && widget.onItemTapForMap != null) {
       // Also update the visual selection highlight
@@ -1094,7 +1145,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // can never reach a dive the user cannot see. pruneTo is a no-op when
     // nothing changed, which is what keeps this off a rebuild loop.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && paginatedAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     return SelectableListScope(
@@ -1115,6 +1166,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, stack) => _buildErrorState(context, error),
           );
+          // The search row sits OUTSIDE the loading and empty states, so a
+          // search that matches nothing never takes its own field away.
+          final body = Column(
+            children: [
+              DiveSearchHeader(
+                onOpenDive: _openDive,
+                onEscape: selection.isActive ? _selection.exit : null,
+              ),
+              Expanded(child: content),
+            ],
+          );
 
           if (!widget.showAppBar) {
             // Used inside MasterDetailScaffold - no Scaffold wrapper
@@ -1124,36 +1186,49 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   _buildSelectionBar(loadedDives)
                 else
                   _buildCompactAppBar(context, filter),
-                Expanded(child: content),
+                Expanded(child: body),
               ],
             );
           }
 
           // Standalone mode with full Scaffold
-          return Scaffold(
-            appBar: selection.isActive
-                ? _buildSelectionAppBar(loadedDives)
-                : _buildAppBar(context, filter),
-            body: content,
-            floatingActionButton: selection.isActive
-                ? null
-                : widget.floatingActionButton,
+          return LayoutBuilder(
+            builder: (context, constraints) => Scaffold(
+              appBar: selection.isActive
+                  ? _buildSelectionAppBar(loadedDives)
+                  : _buildAppBar(
+                      context,
+                      filter,
+                      foldSort: constraints.maxWidth < _kFoldSortWidth,
+                    ),
+              body: body,
+              floatingActionButton: selection.isActive
+                  ? null
+                  : widget.floatingActionButton,
+            ),
           );
         },
       ),
     );
   }
 
+  /// "812 dives", or "34 of 812 dives" while a filter is active (#2669);
+  /// null until the first page loads.
+  SubtitleText? _countSubtitle(BuildContext context) =>
+      diveCountSubtitle(context, ref.watch(diveListCountProvider));
+
   AppBar _buildAppBar(
     BuildContext context,
     DiveFilterState filter, {
     String? title,
     List<Widget> extraActions = const [],
+    bool foldSort = false,
   }) {
     return AppBar(
       title: FeatureAppBarTitle(
         featureId: 'dives',
         title: title ?? context.l10n.diveLog_listPage_compactTitle,
+        subtitle: _countSubtitle(context),
       ),
       actions: [
         ...extraActions,
@@ -1174,47 +1249,20 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
             onPressed: () => context.push('/dives/activity'),
           ),
-        IconButton(
-          icon: const Icon(Icons.search),
-          tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
-          onPressed: () {
-            showSearch(context: context, delegate: DiveSearchDelegate(ref));
-          },
-        ),
-        IconButton(
-          icon: Badge(
-            isLabelVisible: filter.hasActiveFilters,
-            child: const Icon(Icons.filter_list),
+        const DiveSearchAction(),
+        if (!foldSort)
+          IconButton(
+            icon: const Icon(Icons.sort),
+            tooltip: context.l10n.diveLog_listPage_tooltip_sort,
+            onPressed: () => _showSortSheet(context),
           ),
-          tooltip: context.l10n.diveLog_listPage_tooltip_filterDives,
-          onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              builder: (context) => DiveFilterSheet(ref: ref),
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.sort),
-          tooltip: context.l10n.diveLog_listPage_tooltip_sort,
-          onPressed: () => _showSortSheet(context),
-        ),
-        // The only way into bulk actions: entry by long-press was removed,
-        // so nothing but this control opens selection mode on touch.
-        IconButton(
-          key: const ValueKey('enter_selection'),
-          icon: const Icon(Icons.checklist),
-          tooltip: context.l10n.common_selection_enterTooltip,
-          onPressed: _selection.enterExplicit,
-        ),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert),
           onSelected: (value) {
-            if (value == 'numbering') {
+            if (value == 'sort') {
+              _showSortSheet(context);
+            } else if (value == 'numbering') {
               showDiveNumberingDialog(context);
-            } else if (value == 'advanced_search') {
-              context.push('/dives/search');
             } else if (value == 'match_sites') {
               context.push('/dives/match-sites');
             } else if (value == 'data_quality') {
@@ -1239,6 +1287,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           itemBuilder: (context) {
             final currentMode = ref.read(diveListViewModeProvider);
             return [
+              if (foldSort)
+                PopupMenuItem(
+                  value: 'sort',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.sort),
+                      const SizedBox(width: 12),
+                      Text(context.l10n.diveLog_listPage_tooltip_sort),
+                    ],
+                  ),
+                ),
+              ...selectItemsMenuEntries(
+                context,
+                onSelect: _selection.enterExplicit,
+              ),
               ...ListViewModeToggle.menuItems(
                 context,
                 currentMode: currentMode,
@@ -1279,16 +1342,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 ),
               ],
               const PopupMenuDivider(),
-              PopupMenuItem(
-                value: 'advanced_search',
-                child: Row(
-                  children: [
-                    const Icon(Icons.manage_search),
-                    const SizedBox(width: 12),
-                    Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
-                  ],
-                ),
-              ),
               PopupMenuItem(
                 value: 'numbering',
                 child: Row(
@@ -1344,216 +1397,207 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
   /// Compact app bar for master pane in split view
   Widget _buildCompactAppBar(BuildContext context, DiveFilterState filter) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          // Expanded, and no Spacer: the title must be the row's only flexible
-          // child (see trip_list_content for the detail). This bar was already
-          // right-aligned with a bare title plus Spacer, but a non-flexible
-          // title overflows rather than yielding once a locale makes it long.
-          Expanded(
-            child: FeatureAppBarTitle(
-              featureId: 'dives',
-              title: context.l10n.diveLog_listPage_compactTitle,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final foldSort = constraints.maxWidth < _kFoldSortWidth;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 1,
+              ),
             ),
           ),
-          // Map toggle: shown in detailed/compact mode only.
-          // In table mode, TableModeLayout manages the map toggle.
-          if (widget.onMapViewToggle != null)
-            MapViewToggleButton(
-              isActive: widget.isMapViewActive,
-              onToggle: widget.onMapViewToggle!,
-            )
-          else if (ref.read(diveListViewModeProvider) != ListViewMode.table)
-            IconButton(
-              icon: const Icon(Icons.map, size: 20),
-              tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
-              onPressed: () => context.push('/dives/activity'),
-            ),
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
-            tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
-            onPressed: () {
-              showSearch(context: context, delegate: DiveSearchDelegate(ref));
-            },
-          ),
-          IconButton(
-            icon: Badge(
-              isLabelVisible: filter.hasActiveFilters,
-              child: const Icon(Icons.filter_list, size: 20),
-            ),
-            tooltip: context.l10n.diveLog_listPage_tooltip_filterDives,
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (context) => DiveFilterSheet(ref: ref),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.sort, size: 20),
-            tooltip: context.l10n.diveLog_listPage_tooltip_sort,
-            onPressed: () => _showSortSheet(context),
-          ),
-          IconButton(
-            key: const ValueKey('enter_selection'),
-            icon: const Icon(Icons.checklist, size: 20),
-            tooltip: context.l10n.common_selection_enterTooltip,
-            onPressed: _selection.enterExplicit,
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (value) {
-              if (value == 'numbering') {
-                showDiveNumberingDialog(context);
-              } else if (value == 'advanced_search') {
-                context.push('/dives/search');
-              } else if (value == 'match_sites') {
-                context.push('/dives/match-sites');
-              } else if (value == 'data_quality') {
-                context.push('/dives/quality');
-              } else if (value == 'group_trips') {
-                final next = !ref.read(diveListGroupTripsProvider);
-                ref.read(diveListGroupTripsProvider.notifier).state = next;
-                ref
-                    .read(settingsProvider.notifier)
-                    .setGroupTripsInDiveList(next);
-              } else if (value == 'expand_all_trips') {
-                ref.read(collapsedTripIdsProvider.notifier).expandAll();
-              } else if (value == 'collapse_all_trips') {
-                ref
-                    .read(collapsedTripIdsProvider.notifier)
-                    .collapseAll(_visibleTripIds());
-              } else if (value.startsWith('view_')) {
-                final mode = ListViewMode.fromName(
-                  value.replaceFirst('view_', ''),
-                );
-                ref.read(diveListViewModeProvider.notifier).state = mode;
-              }
-            },
-            itemBuilder: (context) {
-              final currentMode = ref.read(diveListViewModeProvider);
-              return [
-                ...ListViewModeToggle.menuItems(
-                  context,
-                  currentMode: currentMode,
-                  modes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.compact,
-                    ListViewMode.table,
-                  ],
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'group_trips',
-                  child: _groupingMenuRow(
-                    context,
-                    icon: Icons.card_travel,
-                    label: context.l10n.diveLog_listPage_menuGroupTrips,
-                    // The active state reads as a tinted icon and label, matching the
-                    // view-mode entries directly above rather than a checkbox.
-                    isActive: ref.watch(diveListGroupTripsProvider),
+          child: Row(
+            children: [
+              const SizedBox(width: 8),
+              // Expanded, and no Spacer: the title must be the row's only
+              // flexible child (see trip_list_content for the detail). This
+              // bar was already right-aligned with a bare title plus Spacer,
+              // but a non-flexible title overflows rather than yielding once
+              // a locale makes it long.
+              Expanded(
+                child: FeatureAppBarTitle(
+                  featureId: 'dives',
+                  title: context.l10n.diveLog_listPage_compactTitle,
+                  subtitle: _countSubtitle(context),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                if (ref.watch(diveListGroupingEnabledProvider)) ...[
-                  PopupMenuItem(
-                    value: 'expand_all_trips',
-                    child: _groupingMenuRow(
+              ),
+              // Map toggle: shown in detailed/compact mode only.
+              // In table mode, TableModeLayout manages the map toggle.
+              if (widget.onMapViewToggle != null)
+                MapViewToggleButton(
+                  isActive: widget.isMapViewActive,
+                  onToggle: widget.onMapViewToggle!,
+                )
+              else if (ref.read(diveListViewModeProvider) != ListViewMode.table)
+                IconButton(
+                  icon: const Icon(Icons.map, size: 20),
+                  tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
+                  onPressed: () => context.push('/dives/activity'),
+                ),
+              const DiveSearchAction(iconSize: 20),
+              if (!foldSort)
+                IconButton(
+                  icon: const Icon(Icons.sort, size: 20),
+                  tooltip: context.l10n.diveLog_listPage_tooltip_sort,
+                  onPressed: () => _showSortSheet(context),
+                ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, size: 20),
+                onSelected: (value) {
+                  if (value == 'sort') {
+                    _showSortSheet(context);
+                  } else if (value == 'numbering') {
+                    showDiveNumberingDialog(context);
+                  } else if (value == 'match_sites') {
+                    context.push('/dives/match-sites');
+                  } else if (value == 'data_quality') {
+                    context.push('/dives/quality');
+                  } else if (value == 'group_trips') {
+                    final next = !ref.read(diveListGroupTripsProvider);
+                    ref.read(diveListGroupTripsProvider.notifier).state = next;
+                    ref
+                        .read(settingsProvider.notifier)
+                        .setGroupTripsInDiveList(next);
+                  } else if (value == 'expand_all_trips') {
+                    ref.read(collapsedTripIdsProvider.notifier).expandAll();
+                  } else if (value == 'collapse_all_trips') {
+                    ref
+                        .read(collapsedTripIdsProvider.notifier)
+                        .collapseAll(_visibleTripIds());
+                  } else if (value.startsWith('view_')) {
+                    final mode = ListViewMode.fromName(
+                      value.replaceFirst('view_', ''),
+                    );
+                    ref.read(diveListViewModeProvider.notifier).state = mode;
+                  }
+                },
+                itemBuilder: (context) {
+                  final currentMode = ref.read(diveListViewModeProvider);
+                  return [
+                    if (foldSort)
+                      PopupMenuItem(
+                        value: 'sort',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.sort, size: 20),
+                            const SizedBox(width: 12),
+                            Text(context.l10n.diveLog_listPage_tooltip_sort),
+                          ],
+                        ),
+                      ),
+                    ...selectItemsMenuEntries(
                       context,
-                      icon: Icons.unfold_more,
-                      label: context.l10n.diveLog_listPage_menuExpandAllTrips,
+                      onSelect: _selection.enterExplicit,
                     ),
-                  ),
-                  PopupMenuItem(
-                    value: 'collapse_all_trips',
-                    child: _groupingMenuRow(
+                    ...ListViewModeToggle.menuItems(
                       context,
-                      icon: Icons.unfold_less,
-                      label: context.l10n.diveLog_listPage_menuCollapseAllTrips,
+                      currentMode: currentMode,
+                      modes: const [
+                        ListViewMode.detailed,
+                        ListViewMode.compact,
+                        ListViewMode.table,
+                      ],
                     ),
-                  ),
-                ],
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'advanced_search',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.manage_search, size: 20),
-                      const SizedBox(width: 12),
-                      Text(context.l10n.diveLog_listPage_menuAdvancedSearch),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'numbering',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.format_list_numbered, size: 20),
-                      const SizedBox(width: 12),
-                      Text(context.l10n.diveLog_listPage_menuDiveNumbering),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'match_sites',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.add_location_alt_outlined, size: 20),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(
-                          context.l10n.diveLog_listPage_menuMatchSites,
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'group_trips',
+                      child: _groupingMenuRow(
+                        context,
+                        icon: Icons.card_travel,
+                        label: context.l10n.diveLog_listPage_menuGroupTrips,
+                        // The active state reads as a tinted icon and label,
+                        // matching the view-mode entries directly above
+                        // rather than a checkbox.
+                        isActive: ref.watch(diveListGroupTripsProvider),
+                      ),
+                    ),
+                    if (ref.watch(diveListGroupingEnabledProvider)) ...[
+                      PopupMenuItem(
+                        value: 'expand_all_trips',
+                        child: _groupingMenuRow(
+                          context,
+                          icon: Icons.unfold_more,
+                          label:
+                              context.l10n.diveLog_listPage_menuExpandAllTrips,
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'collapse_all_trips',
+                        child: _groupingMenuRow(
+                          context,
+                          icon: Icons.unfold_less,
+                          label: context
+                              .l10n
+                              .diveLog_listPage_menuCollapseAllTrips,
                         ),
                       ),
                     ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'data_quality',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.rule, size: 20),
-                      const SizedBox(width: 12),
-                      Flexible(
-                        child: Text(context.l10n.dataQuality_badge_tooltip),
+                    const PopupMenuDivider(),
+                    PopupMenuItem(
+                      value: 'numbering',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.format_list_numbered, size: 20),
+                          const SizedBox(width: 12),
+                          Text(context.l10n.diveLog_listPage_menuDiveNumbering),
+                        ],
                       ),
-                      Builder(
-                        builder: (context) {
-                          final count =
-                              ref
-                                  .watch(openQualityFindingsCountProvider)
-                                  .value ??
-                              0;
-                          if (count == 0) return const SizedBox.shrink();
-                          return Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: Badge(label: Text('$count')),
-                          );
-                        },
+                    ),
+                    PopupMenuItem(
+                      value: 'match_sites',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.add_location_alt_outlined, size: 20),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Text(
+                              context.l10n.diveLog_listPage_menuMatchSites,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              ];
-            },
+                    ),
+                    PopupMenuItem(
+                      value: 'data_quality',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.rule, size: 20),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Text(context.l10n.dataQuality_badge_tooltip),
+                          ),
+                          Builder(
+                            builder: (context) {
+                              final count =
+                                  ref
+                                      .watch(openQualityFindingsCountProvider)
+                                      .value ??
+                                  0;
+                              if (count == 0) return const SizedBox.shrink();
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Badge(label: Text('$count')),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ];
+                },
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1645,13 +1689,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // Pass the real dive list, not an empty one. Passing const [] made
     // select-all vanish and select-by-date-range select nothing whenever the
     // list was in table mode.
-    final tableDives = ref.watch(allDivesForTableProvider).value ?? const [];
+    final tableAsync = ref.watch(allDivesForTableProvider);
+    final tableDives = tableAsync.value ?? const [];
     final visibleIds = tableDives.map((d) => d.id).toList();
 
     // Same pruning the list path does: drop checked dives that fell out of
     // the visible list, so the count always matches what is on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted && tableAsync.hasSettled) _selection.pruneTo(visibleIds);
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
@@ -1665,17 +1710,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         builder: (context, selection, _) {
           final content = _buildTableView(context, filter);
 
-          // Table mode has no app bar of its own, so the Select affordance
-          // lives in the same slot the contextual bar takes, at the same
-          // height -- the table does not shift as the mode opens.
+          // Table mode has no app bar of its own: "Select items" sits in the
+          // page header's overflow menu, and the contextual bar opens above
+          // the table while selecting.
           return Column(
             children: [
               if (selection.isActive)
                 _buildSelectionBar(
                   tableDives.map((d) => DiveSummary.fromDive(d)).toList(),
-                )
-              else
-                SelectionEntryBar(controller: _selection),
+                ),
+              DiveSearchHeader(
+                onOpenDive: _openDive,
+                onEscape: selection.isActive ? _selection.exit : null,
+              ),
               Expanded(child: content),
             ],
           );
@@ -1700,7 +1747,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         }
         return Column(
           children: [
-            if (filter.hasActiveFilters) _buildActiveFiltersBar(context),
             Expanded(
               child: DiveTableView(
                 dives: dives,
@@ -1875,7 +1921,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       onRefresh: () => ref.read(paginatedDiveListProvider.notifier).refresh(),
       child: Column(
         children: [
-          if (hasActiveFilters) _buildActiveFiltersBar(context),
           Expanded(
             child: CustomScrollView(
               controller: _scrollController,
@@ -2085,228 +2130,6 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
-  Widget _buildActiveFiltersBar(BuildContext context) {
-    final filter = ref.watch(diveFilterProvider);
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final chips = <Widget>[];
-
-    if (filter.startDate != null || filter.endDate != null) {
-      String dateText;
-      if (filter.startDate != null && filter.endDate != null) {
-        dateText = context.l10n.diveLog_filterChip_dateRange(
-          units.formatMonthDay(filter.startDate),
-          units.formatMonthDay(filter.endDate),
-        );
-      } else if (filter.startDate != null) {
-        dateText = context.l10n.diveLog_filterChip_from(
-          units.formatMonthDay(filter.startDate),
-        );
-      } else {
-        dateText = context.l10n.diveLog_filterChip_until(
-          units.formatMonthDay(filter.endDate),
-        );
-      }
-      chips.add(
-        _buildFilterChip(context, dateText, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearStartDate: true,
-            clearEndDate: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.diveTypeId != null) {
-      final diveTypeName =
-          ref
-              .watch(diveTypeProvider(filter.diveTypeId!))
-              .value
-              ?.localizedName(context.l10n) ??
-          builtInDiveTypeName(context.l10n, filter.diveTypeId!) ??
-          filter.diveTypeId!;
-      chips.add(
-        _buildFilterChip(context, diveTypeName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearDiveType: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.siteId != null) {
-      final siteName =
-          ref.watch(siteProvider(filter.siteId!)).value?.name ??
-          context.l10n.diveLog_edit_row_site;
-      chips.add(
-        _buildFilterChip(context, siteName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearSiteId: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.tripId != null) {
-      final tripName =
-          ref.watch(tripByIdProvider(filter.tripId!)).value?.name ??
-          context.l10n.diveLog_edit_row_trip;
-      chips.add(
-        _buildFilterChip(context, tripName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearTripId: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.diveCenterId != null) {
-      final centerName =
-          ref.watch(diveCenterByIdProvider(filter.diveCenterId!)).value?.name ??
-          context.l10n.diveLog_search_label_diveCenter;
-      chips.add(
-        _buildFilterChip(context, centerName, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearDiveCenterId: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.equipmentIds.isNotEmpty) {
-      final label = filter.equipmentIds.length == 1
-          ? (ref
-                    .watch(equipmentItemProvider(filter.equipmentIds.first))
-                    .value
-                    ?.name ??
-                context.l10n.diveLog_edit_section_equipment)
-          : context.l10n.diveLog_filterChip_equipmentCount(
-              filter.equipmentIds.length,
-            );
-      chips.add(
-        _buildFilterChip(context, label, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            equipmentIds: [],
-          );
-        }),
-      );
-    }
-
-    if (filter.minDepth != null || filter.maxDepth != null) {
-      // Bounds are stored in meters; show them in the diver's depth unit.
-      final unit = units.depthSymbol;
-      final minValue = filter.minDepth == null
-          ? null
-          : units.convertDepth(filter.minDepth!).round();
-      final maxValue = filter.maxDepth == null
-          ? null
-          : units.convertDepth(filter.maxDepth!).round();
-      String depthText;
-      if (minValue != null && maxValue != null) {
-        depthText = '$minValue-$maxValue$unit';
-      } else if (minValue != null) {
-        depthText = '>$minValue$unit';
-      } else {
-        depthText = '<${maxValue!}$unit';
-      }
-      chips.add(
-        _buildFilterChip(context, depthText, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearMinDepth: true,
-            clearMaxDepth: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.favoritesOnly == true) {
-      chips.add(
-        _buildFilterChip(
-          context,
-          context.l10n.diveLog_filterChip_favorites,
-          () {
-            ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-              clearFavoritesOnly: true,
-            );
-          },
-        ),
-      );
-    }
-
-    if (filter.noBuddyOnly == true) {
-      chips.add(
-        _buildFilterChip(context, context.l10n.diveLog_filterChip_noBuddy, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearNoBuddyOnly: true,
-          );
-        }),
-      );
-    }
-
-    if (filter.tagIds.isNotEmpty) {
-      final tagCount = filter.tagIds.length;
-      chips.add(
-        _buildFilterChip(
-          context,
-          context.l10n.diveLog_detail_tagCount(tagCount),
-          () {
-            ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-              clearTagIds: true,
-            );
-          },
-        ),
-      );
-    }
-
-    if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
-      chips.add(
-        _buildFilterChip(context, filter.buddyNameFilter!, () {
-          ref.read(diveFilterProvider.notifier).state = filter.copyWith(
-            clearBuddyNameFilter: true,
-          );
-        }),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(children: chips),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              ref.read(diveFilterProvider.notifier).state =
-                  const DiveFilterState();
-            },
-            child: Text(context.l10n.diveLog_filterChip_clearAll),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(
-    BuildContext context,
-    String label,
-    VoidCallback onRemove,
-  ) {
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(end: 8),
-      child: Chip(
-        label: Text(label, style: const TextStyle(fontSize: 12)),
-        deleteIcon: const Icon(Icons.close, size: 16),
-        onDeleted: onRemove,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-      ),
-    );
-  }
-
   Widget _buildEmptyState(BuildContext context, bool hasActiveFilters) {
     if (hasActiveFilters) {
       return Center(
@@ -2334,10 +2157,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
-              onPressed: () {
-                ref.read(diveFilterProvider.notifier).state =
-                    const DiveFilterState();
-              },
+              onPressed: () => closeDiveSearch(context, ref, collapse: false),
               icon: const Icon(Icons.clear_all),
               label: Text(context.l10n.diveLog_emptyFiltered_clearFilters),
             ),

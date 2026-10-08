@@ -193,7 +193,7 @@ void main() {
     test('downloadEvents stream emits completion', () async {
       expectLater(service.downloadEvents, emits(isA<DownloadCompleteEvent>()));
 
-      service.onDownloadComplete(5, null, null, null);
+      service.onDownloadComplete(5, null, null, null, null, null);
     });
 
     test('startDownload forwards syncClock and defaults it to false', () async {
@@ -224,7 +224,22 @@ void main() {
         ),
       );
 
-      service.onDownloadComplete(5, null, null, 'synced');
+      service.onDownloadComplete(5, null, null, 'synced', null, null);
+    });
+
+    // Issue #422: a device can name a different model than the one it was
+    // scanned as (a Donatello behind Cressi's adapter scans as a Cartesio).
+    test('completion carries the model the device reported', () async {
+      expectLater(
+        service.downloadEvents,
+        emits(
+          isA<DownloadCompleteEvent>()
+              .having((e) => e.reportedProduct, 'reportedProduct', 'Donatello')
+              .having((e) => e.reportedModel, 'reportedModel', 4),
+        ),
+      );
+
+      service.onDownloadComplete(3, '74565', '300', null, 'Donatello', 4);
     });
 
     test('downloadEvents stream emits errors', () async {

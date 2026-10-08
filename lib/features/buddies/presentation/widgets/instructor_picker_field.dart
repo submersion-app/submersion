@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -7,9 +9,11 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/certifications/domain/certification_primary.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/certifications/presentation/certification_level_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/features/certifications/presentation/certification_agency_display.dart';
+import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Dropdown for picking a certification/course instructor from the buddy
 /// list. Buddies holding an instructor-level certification (Instructor,
@@ -55,6 +59,7 @@ class _InstructorPickerFieldState extends ConsumerState<InstructorPickerField> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(certificationCatalogSyncProvider);
     final buddiesAsync = ref.watch(allBuddiesProvider);
     final buddies = buddiesAsync.value ?? const <Buddy>[];
     final certsByBuddy = _certsByBuddy;
@@ -62,7 +67,10 @@ class _InstructorPickerFieldState extends ConsumerState<InstructorPickerField> {
 
     Certification? instructorCert(String buddyId) {
       final qualifying = (certsByBuddy[buddyId] ?? const <Certification>[])
-          .where((c) => c.level?.isInstructorLevel ?? false)
+          .where(
+            (c) =>
+                CertificationLevel.fromId(c.level)?.isInstructorLevel ?? false,
+          )
           .toList();
       return primaryCertification(qualifying);
     }
@@ -94,7 +102,7 @@ class _InstructorPickerFieldState extends ConsumerState<InstructorPickerField> {
           final cert = instructorCert(buddy.id);
           final label = cert == null
               ? buddy.name
-              : '${buddy.name} (${_instructorCertLabel(cert, context.l10n)})';
+              : '${buddy.name} (${_instructorCertLabel(cert, context.l10n, context.certificationCatalog)})';
           return DropdownMenuItem(
             value: buddy.id,
             child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -114,11 +122,15 @@ class _InstructorPickerFieldState extends ConsumerState<InstructorPickerField> {
 }
 
 /// "PADI Instructor #12345" -- agency, level, and card number when present.
-String _instructorCertLabel(Certification cert, AppLocalizations l10n) {
+String _instructorCertLabel(
+  Certification cert,
+  AppLocalizations l10n,
+  CertificationCatalog catalog,
+) {
   final number = cert.cardNumber;
   return [
-    cert.agency.localizedName(l10n),
-    cert.level!.localizedName(l10n),
+    catalog.agency(cert.agency).localizedName(l10n),
+    catalog.level(cert.level!).localizedName(l10n),
     if (number != null && number.isNotEmpty) '#$number',
   ].join(' ');
 }

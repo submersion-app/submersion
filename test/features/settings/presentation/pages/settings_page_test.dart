@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -86,6 +88,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> get initialLoad async {}
 
   @override
+  Future<void> get settingsLoaded async {}
+
+  @override
   Future<void> setAccentNavIcons(bool value) async =>
       state = state.copyWith(accentNavIcons: value);
 
@@ -136,6 +141,22 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       ids.remove(presetName);
     }
     state = state.copyWith(hiddenTankPresetIds: ids);
+  }
+
+  @override
+  Future<void> setBuiltInHidden(
+    BuiltInCatalog catalog,
+    String id,
+    bool hidden,
+  ) async {
+    state = state.copyWith(
+      hiddenBuiltInIds: withBuiltInHidden(
+        state.hiddenBuiltInIds,
+        catalog,
+        id,
+        hidden,
+      ),
+    );
   }
 
   @override
@@ -221,6 +242,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);
   @override
+  Future<void> setDistanceUnit(DistanceUnit unit) async =>
+      state = state.copyWith(distanceUnit: unit);
+  @override
   Future<void> setCoordinateFormat(CoordinateFormat format) async =>
       state = state.copyWith(coordinateFormat: format);
   @override
@@ -277,6 +301,16 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setPpO2Limits(double working, double max) async =>
       state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
+  @override
+  Future<void> setCcrPpO2Limits({
+    required double setpointLow,
+    required double setpointHigh,
+    required double diluentModPpO2,
+  }) async => state = state.copyWith(
+    ccrSetpointLow: setpointLow,
+    ccrSetpointHigh: setpointHigh,
+    ccrDiluentModPpO2: diluentModPpO2,
+  );
   @override
   Future<void> setCnsWarningThreshold(int value) async =>
       state = state.copyWith(cnsWarningThreshold: value);
@@ -369,6 +403,20 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
+  Future<void> setObservationRuleMuted(
+    ObservationRuleId rule,
+    bool muted,
+  ) async {
+    final rules = {...state.insightsMutedObservationRules};
+    if (muted) {
+      rules.add(rule.dbValue);
+    } else {
+      rules.remove(rule.dbValue);
+    }
+    state = state.copyWith(insightsMutedObservationRules: rules);
+  }
+
+  @override
   Future<void> setShowAscentRateColors(bool value) async =>
       state = state.copyWith(showAscentRateColors: value);
   @override
@@ -395,9 +443,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultNdlSource(MetricDataSource value) async =>
       state = state.copyWith(defaultNdlSource: value);
-  @override
-  Future<void> setDefaultCeilingSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultCeilingSource: value);
   @override
   Future<void> setDefaultDecoStopSource(MetricDataSource value) async =>
       state = state.copyWith(defaultDecoStopSource: value);
@@ -431,6 +476,12 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDiveCenterListViewMode(ListViewMode mode) async =>
       state = state.copyWith(diveCenterListViewMode: mode);
+  @override
+  Future<void> setCertificationListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(certificationListViewMode: mode);
+  @override
+  Future<void> setCourseListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(courseListViewMode: mode);
   @override
   Future<void> setMapStyle(MapStyle style) async =>
       state = state.copyWith(mapStyle: style);
@@ -543,6 +594,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDefaultShowGasSwitchMarkers(bool value) async =>
       state = state.copyWith(defaultShowGasSwitchMarkers: value);
   @override
+  Future<void> setDefaultShowLateGasSwitches(bool value) async =>
+      state = state.copyWith(defaultShowLateGasSwitches: value);
+  @override
   Future<void> setDefaultShowPpO2(bool value) async =>
       state = state.copyWith(defaultShowPpO2: value);
   @override
@@ -575,6 +629,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowDataSourceBadges(bool value) async =>
       state = state.copyWith(showDataSourceBadges: value);
+  @override
+  Future<void> setShowDiveFigure(bool value) async =>
+      state = state.copyWith(showDiveFigure: value);
   @override
   Future<void> setShowProfilePanelInTableView(bool value) async =>
       state = state.copyWith(showProfilePanelInTableView: value);
@@ -1235,7 +1292,10 @@ void main() {
       expect(prefs.getString('update_release_channel'), isNull);
     });
 
-    testWidgets('switching back to stable shows the ride-forward notice', (
+    // Issue #2619: leaving beta keeps this build (and its upgraded dive log)
+    // until stable catches up, and stable peers stop receiving its changes,
+    // so the switch is confirmed with that spelled out, as joining beta is.
+    testWidgets('switching back to stable asks for confirmation first', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -1250,12 +1310,59 @@ void main() {
       await tester.tap(find.text('Tested releases only'));
       await tester.pumpAndSettle();
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('update_release_channel'), 'stable');
+      expect(find.text('Return to stable updates?'), findsOneWidget);
       expect(
-        find.textContaining('until the next stable release'),
+        find.textContaining('until a stable release is newer than it'),
         findsOneWidget,
       );
+      expect(
+        find.textContaining('Do not install an older stable build'),
+        findsOneWidget,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('update_release_channel'), 'beta');
+    });
+
+    testWidgets('confirming the stable dialog switches the channel', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildAboutWidget(await aboutOverrides(channel: 'beta')),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      await tester.tap(find.text('Update channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tested releases only'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Switch to Stable'));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('update_release_channel'), 'stable');
+    });
+
+    testWidgets('cancelling the stable dialog keeps the beta channel', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildAboutWidget(await aboutOverrides(channel: 'beta')),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+
+      await tester.scrollUntilVisible(find.text('Update channel'), 100);
+      await tester.tap(find.text('Update channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tested releases only'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('update_release_channel'), 'beta');
     });
 
     testWidgets('status text renders the downloading and ready states', (
@@ -1430,7 +1537,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(NavCustomizationTile), findsOneWidget);
-      expect(find.text('Insights · GPS Log · Planning'), findsOneWidget);
+      expect(find.text('Insights · Tracks · Planning'), findsOneWidget);
     });
 
     // The desktop master-detail pane renders _AppearanceSectionContent, a
@@ -1636,8 +1743,16 @@ void main() {
             builder: (context, state) => const Text('Service Types Stub'),
           ),
           GoRoute(
+            path: '/equipment/locations',
+            builder: (context, state) => const Text('Locations Stub'),
+          ),
+          GoRoute(
             path: '/site-types',
             builder: (context, state) => const Text('Site Types Stub'),
+          ),
+          GoRoute(
+            path: '/currency-rules',
+            builder: (context, state) => const Text('Currency Rules Stub'),
           ),
           GoRoute(
             path: '/settings/trimix-mixer',
@@ -1699,6 +1814,45 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('renders the locations tile and navigates on tap', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildManageWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      final tile = find.byKey(const ValueKey('settings_manage_locations'));
+      expect(tile, findsOneWidget);
+      expect(
+        find.text('Where your gear is kept, serviced or lent'),
+        findsOneWidget,
+      );
+
+      await tester.ensureVisible(tile);
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Locations Stub'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+      'renders the certification currency tile and navigates on tap',
+      (tester) async {
+        await tester.pumpWidget(buildManageWidget(getOverrides()));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Certification currency'), findsOneWidget);
+        expect(find.text('Refresher and renewal rules'), findsOneWidget);
+
+        await tester.ensureVisible(find.text('Certification currency'));
+        await tester.tap(find.text('Certification currency'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Currency Rules Stub'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+
     testWidgets('renders the site types tile and navigates on tap', (
       tester,
     ) async {
@@ -1727,6 +1881,9 @@ void main() {
 
       expect(find.text('Trimix Mixer'), findsOneWidget);
 
+      // The Certification Agencies tile (issue #690) pushed this one down.
+      await tester.ensureVisible(find.text('Trimix Mixer'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Trimix Mixer'));
       await tester.pumpAndSettle();
 
@@ -2182,8 +2339,43 @@ void main() {
       await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      expect(find.text('ppO2 limits'), findsOneWidget);
+      expect(find.text('ppO2 limits OC'), findsOneWidget);
       expect(find.text('Working 1.4 bar · Max 1.6 bar'), findsOneWidget);
+    });
+
+    testWidgets('the CCR tile shows the setpoints and the diluent MOD '
+        '(issue #2342)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 6000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ppO2 limits CCR'), findsOneWidget);
+      expect(
+        find.text('Setpoint low 0.7 · high 1.3 · Dil MOD 1.6 bar'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('ppO2 limits CCR'));
+      await tester.pumpAndSettle();
+      expect(find.text('Setpoint low'), findsOneWidget);
+      expect(find.text('Setpoint high'), findsOneWidget);
+      expect(find.text('Dil MOD'), findsOneWidget);
+
+      // Drag the high setpoint to the far left: the pair is never inverted,
+      // so the low setpoint is pulled down with it to 0.5.
+      final sliders = find.byType(Slider);
+      expect(sliders, findsNWidgets(3));
+      await tester.drag(sliders.at(1), const Offset(-1000, 0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Setpoint low 0.5 · high 0.5 · Dil MOD 1.6 bar'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('saving a new maximum updates the tile', (tester) async {
@@ -2193,7 +2385,7 @@ void main() {
       await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('ppO2 limits'));
+      await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
       // The "Maximum ppO2" dropdown currently reads 1.6 bar (working is 1.4).
@@ -2216,7 +2408,7 @@ void main() {
       await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('ppO2 limits'));
+      await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
       // Working starts at 1.4; raise it to 1.6, above the 1.4/1.5/1.6 max.
@@ -2249,7 +2441,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('ppO2 limits'));
+      await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
       // Snapped to the grid: 1.4 working, 1.5 max.

@@ -333,6 +333,46 @@ void main() {
       expect(_types(outcome), isNot(contains(PlanIssueType.minGasViolation)));
     });
   });
+
+  // Issue #1499: the END warning is judged against the diver's END limit
+  // (Settings, via PlanEngineConfig.endLimitMeters). The plan's best-mix END
+  // only steers best-mix suggestions and must not move the warning.
+  group('PlanEngine END limit', () {
+    PlanIssue? endIssue(PlanOutcome outcome) => outcome.issues
+        .where((i) => i.type == PlanIssueType.endExceeded)
+        .firstOrNull;
+
+    test('air at 32 m warns against the default 30 m limit', () {
+      final issue = endIssue(engine.compute(_airPlan(depth: 32.0)));
+      expect(issue, isNotNull);
+      expect(issue!.threshold, 30.0);
+    });
+
+    test('air at 32 m stays quiet under a 40 m END limit', () {
+      const relaxed = PlanEngine(
+        config: PlanEngineConfig(endLimitMeters: 40.0),
+      );
+      expect(endIssue(relaxed.compute(_airPlan(depth: 32.0))), isNull);
+    });
+
+    test('a 25 m END limit flags air at 28 m and reports that limit', () {
+      const strict = PlanEngine(config: PlanEngineConfig(endLimitMeters: 25.0));
+      final issue = endIssue(strict.compute(_airPlan(depth: 28.0)));
+      expect(issue, isNotNull);
+      expect(issue!.threshold, 25.0);
+    });
+
+    test('the plan best-mix END does not change the warning limit', () {
+      const relaxed = PlanEngine(
+        config: PlanEngineConfig(endLimitMeters: 40.0),
+      );
+      final plan = _airPlan(depth: 32.0).copyWith(bestMixEndMeters: 20.0);
+      expect(endIssue(relaxed.compute(plan)), isNull);
+
+      final strictPlan = _airPlan(depth: 32.0).copyWith(bestMixEndMeters: 45.0);
+      expect(endIssue(engine.compute(strictPlan)), isNotNull);
+    });
+  });
 }
 
 /// A tissue state the Buhlmann engine cannot consume — used to prove the

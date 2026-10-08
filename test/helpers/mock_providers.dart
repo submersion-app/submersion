@@ -4,6 +4,10 @@ import 'package:http/testing.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -17,6 +21,7 @@ import 'package:submersion/features/dive_sites/domain/matching/site_match_sensit
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
+import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -29,6 +34,8 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
@@ -52,6 +59,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   /// awaits a database read.
   @override
   Future<void> get initialLoad async {}
+
+  @override
+  Future<void> get settingsLoaded async {}
 
   @override
   Future<void> setDepthUnit(DepthUnit unit) async =>
@@ -98,6 +108,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setAltitudeUnit(AltitudeUnit unit) async =>
       state = state.copyWith(altitudeUnit: unit);
+  @override
+  Future<void> setDistanceUnit(DistanceUnit unit) async =>
+      state = state.copyWith(distanceUnit: unit);
   @override
   Future<void> setSeascapeAppearance(SeascapeAppearance appearance) async =>
       state = state.copyWith(seascapeAppearance: appearance);
@@ -177,6 +190,22 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
+  Future<void> setBuiltInHidden(
+    BuiltInCatalog catalog,
+    String id,
+    bool hidden,
+  ) async {
+    state = state.copyWith(
+      hiddenBuiltInIds: withBuiltInHidden(
+        state.hiddenBuiltInIds,
+        catalog,
+        id,
+        hidden,
+      ),
+    );
+  }
+
+  @override
   Future<void> setApplyDefaultTankToImports(bool value) async =>
       state = state.copyWith(applyDefaultTankToImports: value);
   @override
@@ -197,6 +226,16 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setPpO2Limits(double working, double max) async =>
       state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
+  @override
+  Future<void> setCcrPpO2Limits({
+    required double setpointLow,
+    required double setpointHigh,
+    required double diluentModPpO2,
+  }) async => state = state.copyWith(
+    ccrSetpointLow: setpointLow,
+    ccrSetpointHigh: setpointHigh,
+    ccrDiluentModPpO2: diluentModPpO2,
+  );
   @override
   Future<void> setCnsWarningThreshold(int value) async =>
       state = state.copyWith(cnsWarningThreshold: value);
@@ -305,6 +344,20 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
+  Future<void> setObservationRuleMuted(
+    ObservationRuleId rule,
+    bool muted,
+  ) async {
+    final rules = {...state.insightsMutedObservationRules};
+    if (muted) {
+      rules.add(rule.dbValue);
+    } else {
+      rules.remove(rule.dbValue);
+    }
+    state = state.copyWith(insightsMutedObservationRules: rules);
+  }
+
+  @override
   Future<void> setShowAscentRateColors(bool value) async =>
       state = state.copyWith(showAscentRateColors: value);
   @override
@@ -331,9 +384,6 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultNdlSource(MetricDataSource value) async =>
       state = state.copyWith(defaultNdlSource: value);
-  @override
-  Future<void> setDefaultCeilingSource(MetricDataSource value) async =>
-      state = state.copyWith(defaultCeilingSource: value);
   @override
   Future<void> setDefaultDecoStopSource(MetricDataSource value) async =>
       state = state.copyWith(defaultDecoStopSource: value);
@@ -367,6 +417,12 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDiveCenterListViewMode(ListViewMode mode) async =>
       state = state.copyWith(diveCenterListViewMode: mode);
+  @override
+  Future<void> setCertificationListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(certificationListViewMode: mode);
+  @override
+  Future<void> setCourseListViewMode(ListViewMode mode) async =>
+      state = state.copyWith(courseListViewMode: mode);
   @override
   Future<void> setMapStyle(MapStyle style) async =>
       state = state.copyWith(mapStyle: style);
@@ -412,6 +468,8 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     pressureUnit: PressureUnit.bar,
     volumeUnit: VolumeUnit.liters,
     weightUnit: WeightUnit.kilograms,
+    altitudeUnit: AltitudeUnit.meters,
+    distanceUnit: DistanceUnit.kilometers,
   );
   @override
   Future<void> setImperial() async => state = state.copyWith(
@@ -420,6 +478,8 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     pressureUnit: PressureUnit.psi,
     volumeUnit: VolumeUnit.cubicFeet,
     weightUnit: WeightUnit.pounds,
+    altitudeUnit: AltitudeUnit.feet,
+    distanceUnit: DistanceUnit.miles,
   );
   @override
   Future<void> setNotificationsEnabled(bool value) async =>
@@ -465,6 +525,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultShowGasSwitchMarkers(bool value) async =>
       state = state.copyWith(defaultShowGasSwitchMarkers: value);
+  @override
+  Future<void> setDefaultShowLateGasSwitches(bool value) async =>
+      state = state.copyWith(defaultShowLateGasSwitches: value);
   @override
   Future<void> setDefaultShowPhotoMarkers(bool value) async =>
       state = state.copyWith(defaultShowPhotoMarkers: value);
@@ -580,6 +643,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowDataSourceBadges(bool value) async =>
       state = state.copyWith(showDataSourceBadges: value);
   @override
+  Future<void> setShowDiveFigure(bool value) async =>
+      state = state.copyWith(showDiveFigure: value);
+  @override
   Future<void> setShowProfilePanelInTableView(bool value) async =>
       state = state.copyWith(showProfilePanelInTableView: value);
   @override
@@ -679,6 +745,9 @@ Future<List<Override>> getBaseOverrides({
   PreDiveSession? linkedPreDiveSession,
   Map<int, TripDayWeather>? tripDayWeather,
   List<TankPresetEntity>? tankPresets,
+  NavTrack? primaryNavTrack,
+  IncomingLinkSource? incomingLinks,
+  NfcTagService? nfcTagService,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -687,6 +756,14 @@ Future<List<Override>> getBaseOverrides({
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith(
       (ref) => settingsNotifier ?? MockSettingsNotifier(),
+    ),
+    // Widget tests of the app root must never reach the app_links channel.
+    incomingLinkSourceProvider.overrideWithValue(
+      incomingLinks ?? const NoIncomingLinks(),
+    ),
+    // Widget tests never reach the NFC plugin.
+    nfcTagServiceProvider.overrideWithValue(
+      nfcTagService ?? const UnsupportedNfcTagService(),
     ),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     // The Dives app-bar data-quality badge watches a live Drift stream; stub
@@ -703,6 +780,14 @@ Future<List<Override>> getBaseOverrides({
     // and a database that widget tests do not have.
     preDiveSessionForDiveProvider.overrideWith(
       (ref, diveId) async => linkedPreDiveSession,
+    ),
+    // spatialReckonedPathProvider checks for a linked underwater route
+    // ahead of dead reckoning; without this it reaches the real repository
+    // and a database widget tests do not have. Defaults to null (no linked
+    // route, falling back to dead reckoning); pass primaryNavTrack to
+    // exercise the nav-track branch.
+    primaryNavTrackForDiveProvider.overrideWith(
+      (ref, diveId) async => primaryNavTrack,
     ),
     // Weather/elevation lookups must never hit the network in widget tests;
     // the default stub fails fast so altitude auto-fill resolves to null.

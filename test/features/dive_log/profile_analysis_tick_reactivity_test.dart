@@ -153,6 +153,49 @@ void main() {
     },
   );
 
+  test('diveComputerEventsProvider stamps each event with its computer\'s '
+      'manufacturer (#1523)', () async {
+    await seedDiveWithProfile('d1');
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: 'c1',
+            name: 'Nautic',
+            manufacturer: const Value('Suunto'),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    await db
+        .into(db.diveProfileEvents)
+        .insert(
+          DiveProfileEventsCompanion.insert(
+            id: 'ev1',
+            diveId: 'd1',
+            timestamp: 300,
+            eventType: 'lowGas',
+            computerId: const Value('c1'),
+            createdAt: now,
+          ),
+        );
+    await insertProfileEvent('d1', 'ev2');
+
+    final container = makeContainer();
+    addTearDown(container.dispose);
+
+    final events = await container.read(
+      diveComputerEventsProvider('d1').future,
+    );
+    final byId = {for (final e in events) e.id: e};
+    expect(byId['ev1']!.computerManufacturer, 'Suunto');
+    expect(
+      byId['ev2']!.computerManufacturer,
+      isNull,
+      reason: 'an event with no computer stays unstamped',
+    );
+  });
+
   test('a media write does not recompute the profile analysis', () async {
     await seedDiveWithProfile('d1');
 

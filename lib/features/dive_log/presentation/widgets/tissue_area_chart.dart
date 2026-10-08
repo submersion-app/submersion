@@ -127,7 +127,7 @@ class _TissueAreaChartState extends State<TissueAreaChart> {
     widget.onCompartmentHoverChanged?.call(leadingCompIdx);
 
     final comp = status.compartments[leadingCompIdx];
-    final isOffgassing = comp.totalInertGas > ambient;
+    final isOffgassing = status.isOffgassing(comp);
     final gfAtDepth = comp.gradientFactor(ambient);
 
     final lines = <String>[
@@ -138,7 +138,7 @@ class _TissueAreaChartState extends State<TissueAreaChart> {
       if (comp.currentPHe > 0.001)
         'He: ${comp.currentPHe.toStringAsFixed(2)} bar',
       'Half-time: ${comp.halfTimeN2.toStringAsFixed(0)} min',
-      isOffgassing ? 'Offgassing' : 'Ongassing',
+      if (isOffgassing != null) isOffgassing ? 'Offgassing' : 'Ongassing',
     ];
     final message = lines.join('\n');
 

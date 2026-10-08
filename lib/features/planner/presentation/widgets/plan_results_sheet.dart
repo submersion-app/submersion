@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -8,12 +10,15 @@ import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/schedule_lines.dart';
+import 'package:submersion/features/planner/presentation/mission/mission_results_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Localized, unit-aware message for a plan issue. Reuses the existing
 /// `divePlanner_warning_*` strings where a type overlaps, so only genuinely
@@ -39,8 +44,22 @@ String planIssueMessage(
         issue.value?.toStringAsFixed(2) ?? '--',
       );
     case PlanIssueType.endExceeded:
-      return l10n.divePlanner_warning_endHighWithDepth(
-        units.formatDepth(issue.value ?? 0, decimals: 0),
+      // The engine compares unrounded values, so plain rounding could print
+      // "30m exceeds the 30m limit" for an END of 30.05 m. Round the END up
+      // and the limit down; the epsilon stops float noise (32.0000001) from
+      // bumping a whole value. The engine only raises this issue when the END
+      // is above the limit, so an END within the epsilon of it is still shown
+      // one unit higher rather than equal.
+      const epsilon = 1e-6;
+      final limit = (units.convertDepth(issue.threshold ?? 0) + epsilon)
+          .floor();
+      final end = max(
+        (units.convertDepth(issue.value ?? 0) - epsilon).ceil(),
+        limit + 1,
+      );
+      return l10n.divePlanner_warning_endExceedsLimit(
+        units.formatDepth(units.depthToMeters(end.toDouble()), decimals: 0),
+        units.formatDepth(units.depthToMeters(limit.toDouble()), decimals: 0),
       );
     case PlanIssueType.gasDensityHigh:
       return l10n.plannerCanvas_issue_gasDensityHigh(
@@ -71,6 +90,11 @@ String planIssueMessage(
     case PlanIssueType.minGasViolation:
       return l10n.plannerCanvas_issue_minGas(
         units.formatPressure(issue.threshold ?? 0),
+      );
+    case PlanIssueType.diluentModExceeded:
+      return l10n.plannerCanvas_issue_diluentModExceeded(
+        units.formatDepth(issue.atDepth ?? 0, decimals: 0),
+        issue.value?.toStringAsFixed(2) ?? '--',
       );
   }
 }
@@ -133,6 +157,13 @@ class PlanResultsSheet extends ConsumerWidget {
         PlanSectionHeader(context.l10n.divePlanner_label_gasConsumption),
         for (final usage in outcome.tankUsages)
           _GasRow(usage: usage, label: tankLabel(usage.tankId), units: units),
+        if (ref.watch(
+          divePlanNotifierProvider.select((s) => s.mission != null),
+        )) ...[
+          const SizedBox(height: 20),
+          PlanSectionHeader(context.l10n.plannerMission_results_title),
+          const MissionResultsSection(),
+        ],
         if (bailout != null) ...[
           const SizedBox(height: 20),
           PlanSectionHeader(context.l10n.plannerCanvas_bailout_title),
@@ -484,6 +515,7 @@ class _StopMinimumDialog extends ConsumerStatefulWidget {
 
 class _StopMinimumDialogState extends ConsumerState<_StopMinimumDialog> {
   late final TextEditingController _controller;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -507,11 +539,16 @@ class _StopMinimumDialogState extends ConsumerState<_StopMinimumDialog> {
       title: Text(
         l10n.plannerCanvas_stopMinimum_dialogTitle(widget.depthLabel),
       ),
-      content: TextField(
-        controller: _controller,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: l10n.plannerCanvas_stopMinimum_minutesLabel,
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          controller: _controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: numberInputFormatters(),
+          validator: numberValidator(context, integer: true),
+          decoration: InputDecoration(
+            labelText: l10n.plannerCanvas_stopMinimum_minutesLabel,
+          ),
         ),
       ),
       actions: [
@@ -531,7 +568,17 @@ class _StopMinimumDialogState extends ConsumerState<_StopMinimumDialog> {
         ),
         FilledButton(
           onPressed: () {
-            final minutes = int.tryParse(_controller.text);
+            // "5.5" used to close the dialog as if applied, leaving the deco
+            // stop unchanged (#1900).
+            if (!_formKey.currentState!.validate()) return;
+            final minutes = switch (readNumber(
+              _controller.text,
+              integer: true,
+            )) {
+              NumberValue(:final value) => value.toInt(),
+              // Blank closes with no change, as before.
+              NumberBlank() || NumberInvalid() => null,
+            };
             if (minutes != null) {
               // Non-positive is "no minimum": the engine ignores <= 0,
               // so persisting 0 would pin the row with no effect.

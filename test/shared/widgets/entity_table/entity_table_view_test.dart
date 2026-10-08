@@ -40,6 +40,10 @@ class _TestField implements EntityField {
     false,
   );
 
+  /// Not in [values]: the count for an even count, the name for an odd one,
+  /// so a sort compares numbers with text (issue #2444).
+  static const entityMixed = _TestField._('entityMixed', 'Mix', 'Mix', false);
+
   @override
   final String name;
   @override
@@ -100,6 +104,8 @@ class _TestAdapter extends EntityFieldAdapter<_TestEntity, _TestField> {
         return entity.count;
       case _TestField.entityAliases:
         return [entity.name];
+      case _TestField.entityMixed:
+        return entity.count.isEven ? entity.count : entity.name;
     }
   }
 
@@ -484,6 +490,38 @@ void main() {
       double rowY(String text) => tester.getTopLeft(find.text(text)).dy;
       expect(rowY('anchor'), lessThan(rowY('plage')));
       expect(rowY('plage'), lessThan(rowY('Zebra')));
+    });
+
+    testWidgets('a column mixing numbers and text sorts numbers first, '
+        'without throwing (issue #2444)', (tester) async {
+      final entities = [
+        const _TestEntity('p', 'Poor', 1),
+        const _TestEntity('twelve', 'x', 12),
+        const _TestEntity('g', 'Good', 3),
+        const _TestEntity('four', 'y', 4),
+      ];
+
+      final configWithSort = EntityTableViewConfig<_TestField>(
+        columns: [
+          EntityTableColumnConfig(field: _TestField.entityName, isPinned: true),
+          EntityTableColumnConfig(field: _TestField.entityMixed),
+        ],
+        sortField: _TestField.entityMixed,
+        sortAscending: true,
+      );
+
+      await tester.pumpWidget(
+        _buildTable(entities: entities, config: configWithSort),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      // An odd count shows its name in both columns; either hit is the row.
+      double rowY(String name) => tester.getTopLeft(find.text(name).first).dy;
+      // 4, 12, then the text values alphabetically: Good, Poor.
+      expect(rowY('y'), lessThan(rowY('x')));
+      expect(rowY('x'), lessThan(rowY('Good')));
+      expect(rowY('Good'), lessThan(rowY('Poor')));
     });
 
     testWidgets('sorts descending when sortAscending is false', (tester) async {

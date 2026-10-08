@@ -30,7 +30,7 @@ class DeadReckoningService {
     if (n == 0) {
       return const ReckonedPath(
         points: [],
-        reconstructed: false,
+        provenance: PathProvenance.straightLine,
         minEast: 0,
         maxEast: 0,
         minNorth: 0,
@@ -97,7 +97,9 @@ class DeadReckoningService {
 
     return ReckonedPath(
       points: points,
-      reconstructed: canReckon,
+      provenance: canReckon
+          ? PathProvenance.deadReckoned
+          : PathProvenance.straightLine,
       minEast: minE,
       maxEast: maxE,
       minNorth: minN,

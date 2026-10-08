@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_course_export_service.dart';
@@ -12,8 +13,10 @@ import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_channels.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/fake_hosts.dart';
 
 /// The course training log must report total *runtime*, not bottom time (#644).
 /// The historical ISO rendering these tests were written against; the diver's
@@ -32,6 +35,13 @@ const imperial = UnitFormatter(
 );
 
 void main() {
+  // PdfFonts downloads Roboto on first use. The font host answers as
+  // offline, so the PDF falls back to Helvetica, as it would on a device
+  // without a network, and its text stays readable for the assertions.
+  setUp(() {
+    serveFakeHost('fonts.gstatic.com');
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late Directory shareDir;
@@ -52,6 +62,7 @@ void main() {
           (call) async => null,
         );
   });
+  tearDownAll(clearPathAndShareChannelMocks);
 
   tearDownAll(() async {
     if (await shareDir.exists()) await shareDir.delete(recursive: true);
@@ -70,7 +81,7 @@ void main() {
     id: 'course-1',
     diverId: 'diver-1',
     name: 'Advanced Open Water',
-    agency: CertificationAgency.padi,
+    agency: CertificationAgency.padi.name,
     startDate: DateTime(2026, 5, 27),
     completionDate: DateTime(2026, 5, 29),
     instructorName: 'Jane Instructor',
@@ -99,12 +110,14 @@ void main() {
   Future<String> exportText(
     List<Dive> dives, {
     UnitFormatter units = metric,
+    PdfLocalization? localization,
   }) async {
     final path = await service.exportCourseTrainingLogToPdf(
       course,
       dives,
       dates: isoDates,
       units: units,
+      localization: localization,
     );
     final bytes = await File(path).readAsBytes();
     expect(String.fromCharCodes(bytes.take(4)), '%PDF');
@@ -272,5 +285,54 @@ void main() {
       expect(text, isNot(contains('ft')));
       expect(text, isNot(contains('°F')));
     });
+  });
+
+  test('prints in the app language (#2252)', () async {
+    final fr = PdfLocalization.forLanguageCode('fr');
+
+    final text = await exportText([
+      trainingDive(id: 'fr1', number: 1, runtime: const Duration(minutes: 40)),
+    ], localization: fr);
+
+    expect(text, contains(fr.l10n.pdf_trainingLog));
+    expect(text, isNot(contains('Training Log')));
+    expect(text, contains(fr.l10n.pdf_trainingDives));
+  });
+
+  test('instructor number and location print in French (#2252)', () async {
+    final fr = PdfLocalization.forLanguageCode('fr');
+    final path = await service.exportCourseTrainingLogToPdf(
+      course.copyWith(instructorNumber: 'PADI-123', location: 'Marseille'),
+      [
+        trainingDive(
+          id: 'fr2',
+          number: 1,
+          runtime: const Duration(minutes: 40),
+        ),
+      ],
+      dates: isoDates,
+      units: metric,
+      localization: fr,
+    );
+    final text = pdfVisibleText(await File(path).readAsBytes());
+
+    expect(text, contains(fr.l10n.pdf_instructorNumber));
+    expect(text, contains('PADI-123'));
+    expect(text, contains(fr.l10n.pdf_location));
+    expect(text, contains(fr.l10n.pdf_completionDate));
+    expect(text, contains(fr.l10n.pdf_statusCompleted));
+  });
+
+  test('the training log is named after the course in any script', () {
+    final day = DateTime(2026, 5, 28);
+    expect(
+      trainingLogFileName('Advanced Open Water', day),
+      'training_log_Advanced_Open_Water_2026-05-28.pdf',
+    );
+    expect(
+      trainingLogFileName('Plongée Épave', day),
+      'training_log_Plongée_Épave_2026-05-28.pdf',
+    );
+    expect(trainingLogFileName('', day), 'training_log_2026-05-28.pdf');
   });
 }

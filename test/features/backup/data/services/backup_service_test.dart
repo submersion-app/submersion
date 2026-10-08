@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cryptography/cryptography.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
@@ -22,6 +23,8 @@ import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
+
+import '../../../../helpers/mock_channels.dart';
 
 // =============================================================================
 // Test Doubles
@@ -292,6 +295,7 @@ void main() {
             },
           );
     });
+    tearDownAll(clearPathAndShareChannelMocks);
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
@@ -349,8 +353,10 @@ void main() {
           postRestoreSyncStore: intentStore,
         );
         final src = File(
-          '${Directory.systemTemp.path}/restore_merge_'
-          '${DateTime.now().microsecondsSinceEpoch}.db',
+          p.join(
+            _isolatedTempDir.path,
+            'restore_merge_${DateTime.now().microsecondsSinceEpoch}.db',
+          ),
         );
         await src.writeAsString('db');
         addTearDown(() async {
@@ -377,8 +383,10 @@ void main() {
           postRestoreSyncStore: intentStore,
         );
         final src = File(
-          '${Directory.systemTemp.path}/restore_replace_'
-          '${DateTime.now().microsecondsSinceEpoch}.db',
+          p.join(
+            _isolatedTempDir.path,
+            'restore_replace_${DateTime.now().microsecondsSinceEpoch}.db',
+          ),
         );
         await src.writeAsString('db');
         addTearDown(() async {
@@ -403,8 +411,10 @@ void main() {
       // untouched live library as freshly restored on the way out.
       Future<File> vanishingSource(String tag) async {
         final src = File(
-          '${Directory.systemTemp.path}/restore_${tag}_'
-          '${DateTime.now().microsecondsSinceEpoch}.db',
+          p.join(
+            _isolatedTempDir.path,
+            'restore_${tag}_${DateTime.now().microsecondsSinceEpoch}.db',
+          ),
         );
         await src.writeAsString('db');
         addTearDown(() async {
@@ -487,8 +497,10 @@ void main() {
         );
 
         final src = File(
-          '${Directory.systemTemp.path}/restore_src_'
-          '${DateTime.now().microsecondsSinceEpoch}.db',
+          p.join(
+            _isolatedTempDir.path,
+            'restore_src_${DateTime.now().microsecondsSinceEpoch}.db',
+          ),
         );
         await src.writeAsString('db');
         addTearDown(() async {
@@ -529,8 +541,10 @@ void main() {
         );
 
         final src = File(
-          '${Directory.systemTemp.path}/restore_src_'
-          '${DateTime.now().microsecondsSinceEpoch}.db',
+          p.join(
+            _isolatedTempDir.path,
+            'restore_src_${DateTime.now().microsecondsSinceEpoch}.db',
+          ),
         );
         await src.writeAsString('db');
         addTearDown(() async {
@@ -1770,7 +1784,7 @@ void main() {
               (call) async =>
                   call.method == 'getTemporaryDirectory' ||
                       call.method == 'getApplicationDocumentsDirectory'
-                  ? Directory.systemTemp.path
+                  ? _isolatedTempDir.path
                   : null,
             );
         if (sandbox.existsSync()) await sandbox.delete(recursive: true);

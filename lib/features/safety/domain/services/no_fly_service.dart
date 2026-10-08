@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 /// Conservatism preset for the flying-after-diving countdown.
 enum NoFlyPreset {
   standard,
@@ -29,6 +31,9 @@ class NoFlyDiveInput {
 
 /// An active flying restriction.
 class NoFlyStatus {
+  /// End of the restriction, in the frame of the dive end times it was
+  /// evaluated from: a true UTC instant from `noFlyStatusProvider`, which
+  /// converts the stored wall-clock values first.
   final DateTime until;
   final NoFlyCategory category;
 
@@ -154,9 +159,9 @@ class NoFlyService {
   /// Dive entry/exit times are stored as `DateTime.utc(local components)`,
   /// so comparisons against them must use the same construction -- NOT
   /// `DateTime.now().toUtc()`, which is the true instant and differs by the
-  /// device's UTC offset.
+  /// device's UTC offset. Read through [clock] so a test can fix it.
   static DateTime wallClockNowUtc() {
-    final now = DateTime.now();
+    final now = clock.now();
     return DateTime.utc(
       now.year,
       now.month,

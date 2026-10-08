@@ -2,6 +2,12 @@ import 'dart:async';
 
 import 'package:libdivecomputer_plugin/src/generated/dive_computer_api.g.dart';
 
+/// PlatformException code a native startDiscovery fails with when the
+/// Bluetooth radio is off or missing, so the app can say that instead of
+/// showing the platform's error text (issue #2507). Windows reports it; the
+/// other platforms end the scan without an error.
+const bluetoothUnavailableErrorCode = 'bluetooth_unavailable';
+
 /// Events emitted during a download.
 sealed class DownloadEvent {}
 
@@ -24,11 +30,22 @@ class DownloadCompleteEvent extends DownloadEvent {
   /// or null when no sync was requested. Parsed by the app layer.
   final String? clockSyncStatus;
 
+  /// The libdivecomputer product the device reported about itself during the
+  /// download, when that differs from the one it was scanned as (issue #422:
+  /// a Cressi Donatello behind Cressi's Bluetooth adapter scans as a
+  /// Cartesio). Null when there is nothing to relabel.
+  final String? reportedProduct;
+
+  /// The descriptor model code matching [reportedProduct].
+  final int? reportedModel;
+
   DownloadCompleteEvent(
     this.totalDives, {
     this.serialNumber,
     this.firmwareVersion,
     this.clockSyncStatus,
+    this.reportedProduct,
+    this.reportedModel,
   });
 }
 
@@ -146,6 +163,8 @@ class DiveComputerService implements DiveComputerFlutterApi {
     String? serialNumber,
     String? firmwareVersion,
     String? clockSyncStatus,
+    String? reportedProduct,
+    int? reportedModel,
   ) {
     _downloadEventsController.add(
       DownloadCompleteEvent(
@@ -153,6 +172,8 @@ class DiveComputerService implements DiveComputerFlutterApi {
         serialNumber: serialNumber,
         firmwareVersion: firmwareVersion,
         clockSyncStatus: clockSyncStatus,
+        reportedProduct: reportedProduct,
+        reportedModel: reportedModel,
       ),
     );
   }

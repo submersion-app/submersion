@@ -10,7 +10,7 @@ BuddyWithRole linkedParticipant(String name, String roleId) => BuddyWithRole(
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   ),
-  role: DiveRole.synthetic(roleId),
+  roles: [DiveRole.synthetic(roleId)],
 );
 
 /// A dive whose team was linked through the buddy picker: one peer buddy plus

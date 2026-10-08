@@ -144,4 +144,143 @@ void main() {
     final reloaded = (await dives.getDiveById(dive.id))!;
     expect(reloaded.weights.single.amountKg, closeTo(2.5, 1e-9));
   });
+
+  testWidgets('the weights total follows every amount edit (#956)', (
+    tester,
+  ) async {
+    final dive = await dives.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 3, 1, 10),
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: '',
+            weightType: WeightType.belt,
+            amountKg: 4.0,
+          ),
+        ],
+      ),
+    );
+    await pumpEditor(tester, dive.id);
+    expect(find.text('Total: 4.0 kg'), findsOneWidget);
+
+    // The first edit marks the page dirty, which rebuilds it once anyway;
+    // the second must refresh the total on its own.
+    await tester.enterText(find.widgetWithText(TextFormField, '4'), '5');
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextFormField, '5'), '6');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Total: 6.0 kg'), findsOneWidget);
+  });
+
+  testWidgets('a dive with only the legacy weight opens as one editable row', (
+    tester,
+  ) async {
+    final dive = await dives.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 3, 2, 10),
+        weightAmount: 5.0,
+        weightType: WeightType.ankleWeights,
+      ),
+    );
+    await pumpEditor(tester, dive.id);
+
+    expect(find.widgetWithText(TextFormField, '5'), findsOneWidget);
+    expect(find.text('Ankle Weights'), findsOneWidget);
+    expect(find.text('Total: 5.0 kg'), findsOneWidget);
+  });
+
+  testWidgets('Add Weight Entry appends a row after the existing ones', (
+    tester,
+  ) async {
+    final dive = await dives.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 3, 3, 10),
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: '',
+            weightType: WeightType.belt,
+            amountKg: 4.0,
+          ),
+        ],
+      ),
+    );
+    await pumpEditor(tester, dive.id);
+    final add = find.text('Add Weight Entry');
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Weight Belt'), findsOneWidget);
+    expect(find.text('Integrated Weights'), findsOneWidget);
+    expect(find.widgetWithText(TextFormField, '4'), findsOneWidget);
+  });
+
+  testWidgets('a name typed in the editor is saved with the dive (#956)', (
+    tester,
+  ) async {
+    final dive = await dives.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 3, 4, 10),
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: '',
+            weightType: WeightType.trimWeights,
+            amountKg: 2.0,
+          ),
+        ],
+      ),
+    );
+    await pumpEditor(tester, dive.id);
+    final name = find.byWidgetPredicate(
+      (w) => w is TextField && w.decoration?.labelText == 'Name (optional)',
+    );
+    await tester.enterText(name, 'Top pocket');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final reloaded = (await dives.getDiveById(dive.id))!;
+    expect(reloaded.weights.single.label, 'Top pocket');
+    expect(reloaded.weights.single.amountKg, 2.0);
+  });
+
+  testWidgets('removing a weight row deletes it on save', (tester) async {
+    final dive = await dives.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 3, 5, 10),
+        weights: const [
+          DiveWeight(
+            id: 'w1',
+            diveId: '',
+            weightType: WeightType.belt,
+            amountKg: 4.0,
+          ),
+          DiveWeight(
+            id: 'w2',
+            diveId: '',
+            weightType: WeightType.trimWeights,
+            amountKg: 1.0,
+          ),
+        ],
+      ),
+    );
+    await pumpEditor(tester, dive.id);
+    await tester.tap(find.byTooltip('Remove').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Weight Belt'), findsNothing);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final reloaded = (await dives.getDiveById(dive.id))!;
+    expect(reloaded.weights.single.weightType, WeightType.trimWeights);
+  });
 }

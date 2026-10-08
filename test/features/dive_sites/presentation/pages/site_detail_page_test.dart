@@ -40,6 +40,17 @@ void _setMobileTestSurfaceSize(WidgetTester tester) {
   });
 }
 
+/// The map preview's own fullscreen button. The Site Seascape card has one
+/// too, so the icon alone does not say which; the preview is the card that
+/// holds the 2D map. Found by structure rather than by its label, so it does
+/// not depend on the test's locale.
+final _previewFullscreen = find.descendant(
+  of: find
+      .ancestor(of: find.byType(FlutterMap).first, matching: find.byType(Card))
+      .first,
+  matching: find.byIcon(Icons.fullscreen),
+);
+
 void main() {
   group('SiteDetailPage desktop redirect', () {
     const site = DiveSite(id: 'site-1', name: 'Blue Hole');
@@ -140,6 +151,66 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('SITE_LIST_PAGE'), findsNothing);
     });
+
+    testWidgets('Open in Connections centres the map on the site', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+
+      final router = GoRouter(
+        initialLocation: '/sites/site-1',
+        routes: [
+          GoRoute(
+            path: '/sites',
+            builder: (context, state) =>
+                const Scaffold(body: Text('SITE_LIST_PAGE')),
+          ),
+          GoRoute(
+            path: '/sites/:id',
+            builder: (context, state) =>
+                SiteDetailPage(siteId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/insights/connections',
+            builder: (context, state) =>
+                Scaffold(body: Text('CONNECTIONS ${state.uri.query}')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            siteListViewModeProvider.overrideWith((ref) => ListViewMode.table),
+            siteProvider(site.id).overrideWith((ref) async => site),
+            siteDiveCountProvider(site.id).overrideWith((ref) async => 0),
+          ].cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Connections'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('CONNECTIONS mode=around&focus=site:site-1'),
+        findsOneWidget,
+      );
+    });
   });
 
   group('delete confirmation on shared site', () {
@@ -178,6 +249,8 @@ void main() {
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
+              // No active profile, as before sharing: every action is the owner's.
+              validatedCurrentDiverIdProvider.overrideWith((_) async => null),
               ...overrides,
               siteProvider(
                 sharedSite.id,
@@ -1029,7 +1102,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       expect(find.byType(FlutterMap), findsWidgets);
-      await tester.tap(find.byIcon(Icons.fullscreen));
+      await tester.tap(_previewFullscreen);
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       // The fullscreen route also renders a FlutterMap.
@@ -1061,7 +1134,7 @@ void main() {
       expect(find.byType(SiteScapeView), findsNothing);
       expect(find.byKey(const ValueKey('siteScape2dButton')), findsNothing);
       expect(find.byKey(const ValueKey('siteScape3dButton')), findsNothing);
-      expect(find.byIcon(Icons.fullscreen), findsOneWidget);
+      expect(_previewFullscreen, findsOneWidget);
     });
   });
 

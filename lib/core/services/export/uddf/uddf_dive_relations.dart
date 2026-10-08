@@ -5,7 +5,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
-    show Dive, TankPressurePoint;
+    show Dive;
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/data/repositories/service_record_r
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_tank_pressure_export.dart';
 
 /// What a full UDDF export writes about each dive beyond the dive itself.
 ///
@@ -28,7 +29,7 @@ class UddfDiveRelations {
   final Map<String, List<DiveWeight>> diveWeights;
   final Map<String, List<GasSwitchWithTank>> diveGasSwitches;
   final Map<String, List<ProfileEvent>> diveProfileEvents;
-  final Map<String, Map<String, List<TankPressurePoint>>> diveTankPressures;
+  final Map<String, DiveTankPressureExport> diveTankPressures;
 
   const UddfDiveRelations({
     this.diveBuddies = const {},

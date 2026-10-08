@@ -83,7 +83,7 @@ class GasWarningsDisplay extends ConsumerWidget {
                   child: _buildMetric(
                     context,
                     label: 'MOD',
-                    value: units.formatDepth(mod),
+                    value: units.formatDepthFloor(mod),
                     status: modStatus,
                     tooltip: modStatus == WarningStatus.ok
                         ? context.l10n.decoCalculator_modSafe

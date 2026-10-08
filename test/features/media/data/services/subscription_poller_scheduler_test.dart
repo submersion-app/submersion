@@ -1,4 +1,4 @@
-// Adapted from plan `docs/superpowers/plans/2026-04-28-media-source-extension-phase3b.md`
+// Adapted from plan `docs/design/plans/2026-04-28-media-source-extension-phase3b.md`
 // Task 12. Unit tests cover the pure surfaces of
 // `SubscriptionPollerScheduler`:
 //

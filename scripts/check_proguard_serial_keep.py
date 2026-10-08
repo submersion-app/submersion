@@ -74,6 +74,7 @@ JNI_HANDLERS = {
     "com.submersion.libdivecomputer.BleIoStream": (
         "read", "write", "purge", "close",
         "onPinCodeRequired", "getAccessCode", "setAccessCode",
+        "readCharacteristic",
     ),
 }
 

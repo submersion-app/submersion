@@ -6,10 +6,12 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
+import 'package:submersion/features/dive_log/domain/entities/bulk_edit_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart'
@@ -64,12 +66,12 @@ void main() {
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
     ),
-    role: DiveRole.builtInBuddy(),
+    roles: [DiveRole.builtInBuddy()],
   );
   domain.BuddyWithRole bwrRole(String id, String roleId) =>
       domain.BuddyWithRole(
         buddy: bwr(id).buddy,
-        role: DiveRole.synthetic(roleId),
+        roles: [DiveRole.synthetic(roleId)],
       );
   Future<List<String>> buddyRolesOf(String d) async => (await (db.select(
     db.diveBuddies,
@@ -217,6 +219,29 @@ void main() {
     expect((await sightingsOf('d1')).single, 'origFish');
   });
 
+  test('undo restores each weight\'s name', () async {
+    await seed('d1');
+    await diveRepo.bulkAddWeights(
+      ['d1'],
+      [weight(3).copyWith(label: 'Top pocket')],
+    );
+
+    final snap = await service.apply(
+      BulkEditRequest(
+        diveIds: const ['d1'],
+        ops: [
+          WeightsOp(mode: BulkCollectionMode.replace, weights: [weight(9)]),
+        ],
+      ),
+    );
+    await service.undo(snap);
+
+    final rows = await (db.select(
+      db.diveWeights,
+    )..where((t) => t.diveId.equals('d1'))).get();
+    expect(rows.single.label, 'Top pocket');
+  });
+
   test(
     'undoing a tank replace keeps each tank linked to its cylinder',
     () async {
@@ -254,6 +279,76 @@ void main() {
       expect(rows.single.equipmentId, 'cyl1');
     },
   );
+
+  group('undoing a tank replace keeps each tank\'s source (#2716)', () {
+    Future<BulkEditSnapshot> replaceAttributedTank() async {
+      await seed('d1');
+      await diveRepo.bulkAddTank(['d1'], tank('OrigTank'));
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: 'src-1',
+              diveId: 'd1',
+              importedAt: DateTime.utc(2026),
+              createdAt: DateTime.utc(2026),
+            ),
+          );
+      await (db.update(db.diveTanks)..where((t) => t.diveId.equals('d1')))
+          .write(const DiveTanksCompanion(sourceId: Value('src-1')));
+      return service.apply(
+        BulkEditRequest(
+          diveIds: const ['d1'],
+          ops: [
+            TanksOp(mode: BulkCollectionMode.replace, tanks: [tank('NewTank')]),
+          ],
+        ),
+      );
+    }
+
+    Future<DiveTank> restored() => (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals('d1'))).getSingle();
+
+    test('the source comes back with the tank', () async {
+      final snap = await replaceAttributedTank();
+      await service.undo(snap);
+      final row = await restored();
+      expect(row.tankName, 'OrigTank');
+      expect(row.sourceId, 'src-1');
+    });
+
+    test('a source deleted since the edit is not written back', () async {
+      final snap = await replaceAttributedTank();
+      await diveRepo.deleteComputerReading('src-1');
+      await service.undo(snap);
+      final row = await restored();
+      expect(row.tankName, 'OrigTank');
+      expect(row.sourceId, isNull);
+    });
+  });
+
+  test('undoing a tank replace restores its recorded usage (#1496)', () async {
+    await seed('d1');
+    await diveRepo.bulkAddTank(['d1'], tank('OrigTank'));
+    await db.customStatement('UPDATE dive_tanks SET usage_duration = 1800');
+    final snap = await service.apply(
+      BulkEditRequest(
+        diveIds: const ['d1'],
+        ops: [
+          TanksOp(mode: BulkCollectionMode.replace, tanks: [tank('NewTank')]),
+        ],
+      ),
+    );
+
+    await service.undo(snap);
+
+    final row = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals('d1'))).getSingle();
+    expect(row.tankName, 'OrigTank');
+    expect(row.usageDuration, 1800);
+  });
 
   test('a bulk template never writes a cylinder link', () async {
     // The link belongs to the transmitter registry, which knows which
@@ -543,6 +638,73 @@ void main() {
         ),
       ),
       throwsUnsupportedError,
+    );
+  });
+
+  group('role sets (#1221)', () {
+    test(
+      'DiverRolesOp replaces the set on every dive; undo restores',
+      () async {
+        await seed('d1');
+        await seed('d2');
+        final roleLinks = DiveRoleLinkRepository();
+        await roleLinks.writeDiverRoles('d1', ['diveMaster', 'diveGuide']);
+        await roleLinks.writeDiverRoles('d2', ['instructor']);
+
+        final snap = await service.apply(
+          const BulkEditRequest(
+            diveIds: ['d1', 'd2'],
+            ops: [
+              DiverRolesOp(roleIds: ['safetyDiver', 'supportDiver']),
+            ],
+          ),
+        );
+        expect(await roleLinks.diverRoleIdsForDives(['d1', 'd2']), {
+          'd1': ['supportDiver', 'safetyDiver'],
+          'd2': ['supportDiver', 'safetyDiver'],
+        });
+
+        await service.undo(snap);
+        expect(await roleLinks.diverRoleIdsForDives(['d1', 'd2']), {
+          'd1': ['diveGuide', 'diveMaster'],
+          'd2': ['instructor'],
+        });
+      },
+    );
+
+    test(
+      'a buddy role update rewrites the set where the buddy is linked',
+      () async {
+        await seed('d1');
+        await seed('d2');
+        await seedBuddy('ana');
+        await buddyRepo.setBuddiesForDive('d1', [bwrRole('ana', 'diveMaster')]);
+
+        await service.apply(
+          BulkEditRequest(
+            diveIds: const ['d1', 'd2'],
+            ops: [
+              BuddiesOp(
+                mode: BulkCollectionMode.update,
+                buddies: [
+                  domain.BuddyWithRole(
+                    buddy: bwr('ana').buddy,
+                    roles: [
+                      DiveRole.synthetic('diveGuide'),
+                      DiveRole.synthetic('diveMaster'),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+        expect((await buddyRepo.getBuddiesForDive('d1')).single.roleIds, [
+          'diveGuide',
+          'diveMaster',
+        ]);
+        expect(await buddyRepo.getBuddiesForDive('d2'), isEmpty);
+      },
     );
   });
 }

@@ -108,4 +108,20 @@ void main() {
       expect(find.byIcon(Icons.push_pin), findsNothing);
     },
   );
+
+  testWidgets(
+    'a fractional minimum keeps the dialog open and says why (#1900 review)',
+    (tester) async {
+      final notifier = await _pumpSheet(tester);
+      await tester.tap(find.text('6m'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '5.5');
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Enter a whole number'), findsOneWidget);
+      expect(notifier.state.stopMinimums, isEmpty);
+    },
+  );
 }

@@ -78,4 +78,23 @@ abstract final class SubmersionIcons {
 
   /// Pouch under a pointed flap held down by a snap.
   static const IconData gearPocket = IconData(0xe90e, fontFamily: fontFamily);
+
+  /// A lens barrel seen side-on: mount, ribbed grip and a flared front.
+  static const IconData lens = IconData(0xe90f, fontFamily: fontFamily);
+
+  /// A dome port seen side-on: a half-dome on its mounting collar.
+  static const IconData port = IconData(0xe910, fontFamily: fontFamily);
+
+  /// A camera tray with a handle rising at each end and a camera on it.
+  static const IconData trayHandle = IconData(0xe911, fontFamily: fontFamily);
+
+  /// Two arm segments with ball ends, joined by a ball clamp with its knob.
+  static const IconData armClamp = IconData(0xe912, fontFamily: fontFamily);
+
+  /// A video light seen front-on: a square head round a wide LED, on a ball
+  /// mount.
+  static const IconData videoLight = IconData(0xe913, fontFamily: fontFamily);
+
+  /// A foam float: a fat banded body with a ball at each end.
+  static const IconData floatArm = IconData(0xe914, fontFamily: fontFamily);
 }

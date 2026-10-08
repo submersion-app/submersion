@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_type_from_name.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
@@ -17,17 +18,30 @@ class DivingLogEquipmentMapper {
   static String _uddfId(int id) => 'divinglog_gear_$id';
 
   static Map<String, Map<String, dynamic>> entities(DivingLogLogbook book) {
+    final computers = _computerNames(book);
     final out = <String, Map<String, dynamic>>{};
     for (final item in book.equipmentById.values) {
       final name = item.object?.trim();
       if (name == null || name.isEmpty) continue;
       final key = _uddfId(item.id);
-      final read = typeFromName(name);
+      final model = _modelFrom(name, item.manufacturer);
+      final isComputer = computers.any(
+        (c) => computerNamesAgree(
+          brandA: null,
+          modelA: c,
+          brandB: item.manufacturer,
+          modelB: model,
+        ),
+      );
+      final read = isComputer ? null : typeFromName(name);
       final map = <String, dynamic>{
         'name': name,
         'uddfId': key,
-        'type': (read?.type ?? EquipmentType.other).name,
+        'type': isComputer
+            ? EquipmentType.computer.name
+            : (read?.type ?? EquipmentType.other).name,
       };
+      if (isComputer) map['model'] = model;
       if (read?.thickness != null) map['thickness'] = read!.thickness;
       if (item.manufacturer != null) map['brand'] = item.manufacturer;
       if (item.serial != null) map['serialNumber'] = item.serial;
@@ -65,6 +79,34 @@ class DivingLogEquipmentMapper {
       out[key] = map;
     }
     return out;
+  }
+
+  /// Every distinct `Logbook.Computer` value, the names the import
+  /// registers dive computers under.
+  ///
+  /// A registered computer mints its own gear twin unless it finds active
+  /// `computer` gear with the same identity (#2299). Diving Log's Equipment
+  /// table has no type column, so the row for that same computer would
+  /// import as `other` with no model, invisible to that search, and the
+  /// logbook would list the computer twice. Matching the row against these
+  /// names is what lets the twin adopt it instead. The logbook naming the
+  /// row as the computer outranks anything its name suggests: "Scubapro G2
+  /// Console" reads as an instrument.
+  static Set<String> _computerNames(DivingLogLogbook book) => {
+    for (final dive in book.dives)
+      if (dive.computer?.trim() case final name? when name.isNotEmpty) name,
+  };
+
+  /// The model an item's [name] carries once the [manufacturer] it repeats
+  /// is dropped, so "Shearwater Teric" from "Shearwater" is model "Teric".
+  static String _modelFrom(String name, String? manufacturer) {
+    final brand = manufacturer?.trim() ?? '';
+    if (brand.isEmpty ||
+        !name.toLowerCase().startsWith('${brand.toLowerCase()} ')) {
+      return name;
+    }
+    final rest = name.substring(brand.length).trim();
+    return rest.isEmpty ? name : rest;
   }
 
   /// Whether [item] becomes an entity, which is also what decides whether a

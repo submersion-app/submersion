@@ -1,13 +1,19 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/database/database.dart' show EquipmentCompanion;
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
+import 'package:submersion/core/services/export/csv/csv_fills_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
@@ -23,8 +29,10 @@ import 'package:submersion/features/import_wizard/data/adapters/universal_adapte
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
+import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../uddf/uddf_raw_data_round_trip_test.dart'
@@ -221,6 +229,47 @@ void main() {
             expect(back.site?.country, original.site!.country);
             expect(back.site?.city, original.site!.city);
           }
+        }
+      });
+
+      test('fills come back', () async {
+        final diverId = await importCsv(
+          CsvFillsWriter(
+            units,
+          ).write(goldenFills(), equipmentById: goldenFillEquipment()),
+          ImportFormat.submersionFillsCsv,
+        );
+        final stored = {
+          for (final f in await CylinderFillRepository().getAllVisibleTo(
+            diverId,
+          ))
+            f.id: f,
+        };
+        expect(
+          stored.keys,
+          unorderedEquals(goldenFills().map((f) => f.id)),
+          reason: 'the fill id survives the round trip',
+        );
+        for (final original in goldenFills()) {
+          final back = stored[original.id]!;
+          final what = original.id;
+          expect(back.passportId, original.passportId, reason: what);
+          expect(back.diverId, diverId, reason: what);
+          expect(
+            back.equipmentId,
+            isNull,
+            reason: 'no cylinder of this diver carries the id',
+          );
+          expect(back.filledAt, original.filledAt, reason: what);
+          expect(back.o2Percent, original.o2Percent, reason: what);
+          expect(back.hePercent, original.hePercent, reason: what);
+          // psi is written whole (0.5 psi is 0.034 bar); °F whole (0.28 °C).
+          near(back.pressureBar, original.pressureBar, 0.06, 'pressure');
+          near(back.temperatureC, original.temperatureC, 0.6, 'temperature');
+          expect(back.analyzer, original.analyzer, reason: what);
+          expect(back.stationName, original.stationName, reason: what);
+          expect(back.source, original.source, reason: what);
+          expect(back.notes, original.notes.replaceAll('\n', ' '));
         }
       });
     });
@@ -457,5 +506,182 @@ void main() {
     final blue = sites.firstWhere((s) => s.name == 'Blue Hole');
     final tags = await SiteClassificationRepository().getTagsForSite(blue.id);
     expect(tags.map((t) => t.name), ['To try']);
+  });
+
+  group('fills CSV (cylinder passports phase 5)', () {
+    Future<UddfEntityImportResult> importFills(
+      String csv,
+      String diverId,
+    ) async {
+      final bytes = Uint8List.fromList(utf8.encode(csv));
+      final payload = await parserForFormat(
+        ImportFormat.submersionFillsCsv,
+      ).parse(bytes);
+      final data = UniversalAdapter.payloadToUddfResult(payload);
+      return UddfEntityImporter().import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: buildRepositories(),
+        diverId: diverId,
+      );
+    }
+
+    test('the same file imported twice adds nothing', () async {
+      final csv = CsvFillsWriter(CsvExportUnits.metric).write(goldenFills());
+      final diverId = await createTestDiver();
+      expect((await importFills(csv, diverId)).fills, 2);
+      expect((await importFills(csv, diverId)).fills, 0);
+      expect(
+        await CylinderFillRepository().getAllVisibleTo(diverId),
+        hasLength(2),
+      );
+    });
+
+    test('a fill deleted here stays deleted after a re-import', () async {
+      final csv = CsvFillsWriter(CsvExportUnits.metric).write(goldenFills());
+      final diverId = await createTestDiver();
+      await importFills(csv, diverId);
+      final gone = goldenFills().first.id;
+      await CylinderFillRepository().delete(gone);
+      expect((await importFills(csv, diverId)).fills, 0);
+      expect(await CylinderFillRepository().getById(gone), isNull);
+      expect(
+        await CylinderFillRepository().getAllVisibleTo(diverId),
+        hasLength(1),
+      );
+    });
+
+    test('a fill links to the cylinder holding its passport id', () async {
+      final diverId = await createTestDiver();
+      final db = DatabaseService.instance.database;
+      final t = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'tank-1',
+              name: 'AL80',
+              type: 'tank',
+              createdAt: t,
+              updatedAt: t,
+              diverId: Value(diverId),
+            ),
+          );
+      await CylinderPassportRepository().assignPassportId(
+        equipmentId: 'tank-1',
+        passportId: 'pp-al80',
+        diverId: diverId,
+      );
+
+      await importFills(
+        CsvFillsWriter(CsvExportUnits.metric).write(goldenFills()),
+        diverId,
+      );
+
+      final fills = CylinderFillRepository();
+      expect(
+        (await fills.getById(goldenFills().first.id))!.equipmentId,
+        'tank-1',
+      );
+      expect((await fills.getById(goldenFills()[1].id))!.equipmentId, isNull);
+      // The passport page reads it through the gear link.
+      expect(
+        (await fills.getForCylinder(
+          passportId: 'pp-al80',
+          equipmentId: 'tank-1',
+        )).map((f) => f.id),
+        [goldenFills().first.id],
+      );
+    });
+
+    test(
+      'an unlinked fill is picked up when a cylinder gets its passport id',
+      () async {
+        final diverId = await createTestDiver();
+        await importFills(
+          CsvFillsWriter(CsvExportUnits.metric).write(goldenFills()),
+          diverId,
+        );
+        final db = DatabaseService.instance.database;
+        final t = DateTime.now().millisecondsSinceEpoch;
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: 'tank-2',
+                name: 'Stage',
+                type: 'tank',
+                createdAt: t,
+                updatedAt: t,
+                diverId: Value(diverId),
+              ),
+            );
+        // Link an existing tag: assignPassportId relinks the fills under it.
+        await CylinderPassportRepository().assignPassportId(
+          equipmentId: 'tank-2',
+          passportId: 'pp-foreign',
+          diverId: diverId,
+        );
+        expect(
+          (await CylinderFillRepository().getById(
+            goldenFills()[1].id,
+          ))!.equipmentId,
+          'tank-2',
+        );
+      },
+    );
+
+    test('an equipment CSV and a fills CSV import together', () async {
+      // The batch merger prefixes every uddfId with the file id; the fill
+      // must still land under the id the file wrote.
+      final equipmentCsv = CsvEquipmentWriter(
+        CsvExportUnits.metric,
+      ).write(goldenEquipment());
+      final fillsCsv = CsvFillsWriter(
+        CsvExportUnits.metric,
+      ).write(goldenFills(), equipmentById: goldenFillEquipment());
+      Future<ImportPayload> parse(String csv, ImportFormat format) =>
+          parserForFormat(format).parse(Uint8List.fromList(utf8.encode(csv)));
+      final merged = const PayloadMerger().merge([
+        FilePayload(
+          fileId: 'f0',
+          fileName: 'equipment.csv',
+          payload: await parse(
+            equipmentCsv,
+            ImportFormat.submersionEquipmentCsv,
+          ),
+        ),
+        FilePayload(
+          fileId: 'f1',
+          fileName: 'fills.csv',
+          payload: await parse(fillsCsv, ImportFormat.submersionFillsCsv),
+        ),
+      ]);
+      expect(
+        merged.entitiesOf(ImportEntityType.fills).first['uddfId'],
+        'f1:${goldenFills().first.id}',
+        reason: 'the merger namespaces uddfId like every entity',
+      );
+
+      final data = UniversalAdapter.payloadToUddfResult(merged);
+      final diverId = await createTestDiver();
+      final result = await UddfEntityImporter().import(
+        data: data,
+        selections: UddfImportSelections.selectAll(data),
+        repositories: buildRepositories(),
+        diverId: diverId,
+      );
+      expect(result.equipment, goldenEquipment().length);
+      expect(result.fills, 2);
+      final stored = await CylinderFillRepository().getAllVisibleTo(diverId);
+      expect(
+        stored.map((f) => f.id),
+        unorderedEquals(goldenFills().map((f) => f.id)),
+        reason: 'the stored id is the file\'s, not the namespaced one',
+      );
+      // The imported AL80 has no passport id (the equipment parser drops the
+      // system attribute on purpose), so the fill stays unlinked.
+      expect(stored.every((f) => f.equipmentId == null), isTrue);
+    });
   });
 }

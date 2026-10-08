@@ -76,7 +76,10 @@ class _FakeEquipmentRepository extends EquipmentRepository {
   Object? throwOnCount;
 
   @override
-  Future<int> getDiveCountForEquipment(String equipmentId) async {
+  Future<int> getDiveCountForEquipment(
+    String equipmentId, {
+    String? diverId,
+  }) async {
     if (throwOnCount != null) throw throwOnCount!;
     return diveCount;
   }
@@ -405,26 +408,6 @@ void main() {
     ]);
   });
 
-  testWidgets('type groups follow the declared enum order', (tester) async {
-    // Fins arrive first, but Hose is declared earlier in EquipmentType, so
-    // its group renders above Fins, matching the type dropdown.
-    await tester.pumpWidget(
-      build(
-        _FakeComponentRepository(),
-        gear: [
-          item('reg', EquipmentType.regulator),
-          item('fins', EquipmentType.fins),
-          item('hose', EquipmentType.hose),
-        ],
-      ),
-    );
-    await tester.pumpAndSettle();
-    expect(
-      tester.getTopLeft(find.text('Hose')).dy,
-      lessThan(tester.getTopLeft(find.text('Fins')).dy),
-    );
-  });
-
   testWidgets('offers nothing while the index is still loading', (
     tester,
   ) async {
@@ -540,6 +523,20 @@ void main() {
     expect(
       find.textContaining('cannot be added as a component'),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('groups follow the type label, not the enum (#2937)', (
+    tester,
+  ) async {
+    // Hose arrives first and is declared first in the enum; alphabetically
+    // it follows Fins, so neither order can produce the result.
+    await tester.pumpWidget(build(_FakeComponentRepository()));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getTopLeft(find.text('Fins')).dy,
+      lessThan(tester.getTopLeft(find.text('Hose')).dy),
     );
   });
 }

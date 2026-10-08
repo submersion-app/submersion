@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -10,8 +11,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/services/certification_card_renderer.dart';
+import 'package:submersion/features/certifications/presentation/services/certification_file_names.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/domain/certification_title.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
+import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
 /// Bottom sheet for sharing a certification as an image.
 ///
@@ -43,6 +47,9 @@ class _CertificationShareSheetState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // The subtitle titles a custom level through the catalog, which can
+    // arrive after the first frame (issue #690).
+    ref.watch(certificationCatalogSyncProvider);
 
     return SafeArea(
       child: Padding(
@@ -63,7 +70,11 @@ class _CertificationShareSheetState
 
             // Subtitle with certification name
             Text(
-              certificationTitleL10n(widget.certification, context.l10n),
+              certificationTitleL10n(
+                widget.certification,
+                context.l10n,
+                catalog: context.certificationCatalog,
+              ),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -98,6 +109,8 @@ class _CertificationShareSheetState
   }
 
   Future<void> _shareAsCard(Rect? anchor) async {
+    // Read before the first await: the context is not used across gaps.
+    final catalog = context.certificationCatalog;
     setState(() => _isExporting = true);
 
     try {
@@ -105,6 +118,7 @@ class _CertificationShareSheetState
         certification: widget.certification,
         diverName: widget.diverName,
         l10n: context.l10n,
+        catalog: catalog,
       );
       if (bytes == null) {
         throw Exception('Failed to generate card image');
@@ -112,11 +126,11 @@ class _CertificationShareSheetState
 
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
-      final sanitizedName = _sanitizeFilename(
-        certificationTitle(widget.certification),
+      final filename = certificationImageFileName(
+        certificationTitle(widget.certification, catalog: catalog),
+        CertificationImage.card,
       );
-      final filename = 'certification_${sanitizedName}_card.png';
-      final file = File('${tempDir.path}/$filename');
+      final file = File(p.join(tempDir.path, filename));
       await file.writeAsBytes(bytes);
 
       // Pop before sharing to avoid UI issues
@@ -138,6 +152,8 @@ class _CertificationShareSheetState
   }
 
   Future<void> _shareAsCertificate(Rect? anchor) async {
+    // Read before the first await: the context is not used across gaps.
+    final catalog = context.certificationCatalog;
     setState(() => _isExporting = true);
 
     try {
@@ -147,6 +163,7 @@ class _CertificationShareSheetState
         diverName: widget.diverName,
         l10n: context.l10n,
         dateFormat: ref.read(dateFormatProvider),
+        catalog: catalog,
       );
       if (bytes == null) {
         throw Exception('Failed to generate certificate image');
@@ -154,11 +171,11 @@ class _CertificationShareSheetState
 
       // Save to temp file
       final tempDir = await getTemporaryDirectory();
-      final sanitizedName = _sanitizeFilename(
-        certificationTitle(widget.certification),
+      final filename = certificationImageFileName(
+        certificationTitle(widget.certification, catalog: catalog),
+        CertificationImage.certificate,
       );
-      final filename = 'certification_${sanitizedName}_certificate.png';
-      final file = File('${tempDir.path}/$filename');
+      final file = File(p.join(tempDir.path, filename));
       await file.writeAsBytes(bytes);
 
       // Pop before sharing to avoid UI issues
@@ -177,15 +194,6 @@ class _CertificationShareSheetState
         _showError(context.l10n.certifications_share_error_certificate('$e'));
       }
     }
-  }
-
-  /// Sanitizes a string for use in a filename.
-  String _sanitizeFilename(String name) {
-    return name
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^\w\s-]'), '')
-        .replaceAll(RegExp(r'\s+'), '_')
-        .replaceAll(RegExp(r'_+'), '_');
   }
 
   void _showError(String message) {

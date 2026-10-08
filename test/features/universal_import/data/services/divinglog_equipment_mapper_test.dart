@@ -118,6 +118,100 @@ void main() {
       expect(item['isActive'], isFalse);
     });
 
+    group('the gear a dive names as its computer (#2299)', () {
+      // The dive's Computer column registers a dive computer, and a
+      // registered computer mints its own gear twin unless it finds active
+      // computer gear with the same identity. Typed `other` with no model,
+      // this row is invisible to that search, so the logbook ends up with
+      // the computer twice.
+      test('is typed computer, with the brand stripped from its model', () {
+        final book = logbook(
+          {
+            1: const DivingLogRawEquipment(
+              id: 1,
+              object: 'Shearwater Teric',
+              manufacturer: 'Shearwater',
+              serial: 'T123',
+            ),
+          },
+          dives: [const DivingLogRawDive(id: 1, computer: 'Shearwater Teric')],
+        );
+        final item = DivingLogEquipmentMapper.entities(book).values.single;
+        expect(item['type'], EquipmentType.computer.name);
+        expect(item['name'], 'Shearwater Teric');
+        expect(item['brand'], 'Shearwater');
+        expect(item['model'], 'Teric');
+        expect(item['serialNumber'], 'T123');
+      });
+
+      test('matches a Computer value that adds the manufacturer', () {
+        final book = logbook(
+          {
+            1: const DivingLogRawEquipment(
+              id: 1,
+              object: 'Teric',
+              manufacturer: 'Shearwater',
+            ),
+          },
+          dives: [const DivingLogRawDive(id: 1, computer: 'shearwater  TERIC')],
+        );
+        final item = DivingLogEquipmentMapper.entities(book).values.single;
+        expect(item['type'], EquipmentType.computer.name);
+        expect(item['model'], 'Teric');
+      });
+
+      test('matches a Computer value that names only the model', () {
+        final book = logbook(
+          {
+            1: const DivingLogRawEquipment(
+              id: 1,
+              object: 'Teric',
+              manufacturer: 'Shearwater',
+            ),
+          },
+          dives: [const DivingLogRawDive(id: 1, computer: 'Teric')],
+        );
+        final item = DivingLogEquipmentMapper.entities(book).values.single;
+        expect(item['type'], EquipmentType.computer.name);
+      });
+
+      test('leaves gear no dive names as its computer untouched', () {
+        final book = logbook(
+          {
+            1: const DivingLogRawEquipment(
+              id: 1,
+              object: 'Teric',
+              manufacturer: 'Shearwater',
+            ),
+          },
+          dives: [const DivingLogRawDive(id: 1, computer: 'Perdix')],
+        );
+        final item = DivingLogEquipmentMapper.entities(book).values.single;
+        expect(item['type'], EquipmentType.other.name);
+        expect(item.containsKey('model'), isFalse);
+      });
+
+      test('wins over a type the name alone would suggest', () {
+        // "Console" reads as an instrument, but the logbook itself says this
+        // row is the computer the dive was logged on, which is the stronger
+        // evidence.
+        final book = logbook(
+          {
+            1: const DivingLogRawEquipment(
+              id: 1,
+              object: 'G2 Console',
+              manufacturer: 'Scubapro',
+            ),
+          },
+          dives: [
+            const DivingLogRawDive(id: 1, computer: 'Scubapro G2 Console'),
+          ],
+        );
+        final item = DivingLogEquipmentMapper.entities(book).values.single;
+        expect(item['type'], EquipmentType.computer.name);
+      });
+    });
+
     test('emits no ref for a row that produces no entity', () {
       // A blank Object is skipped by entities(), so a ref to it would
       // dangle: the importer silently drops it and nothing counts the loss.

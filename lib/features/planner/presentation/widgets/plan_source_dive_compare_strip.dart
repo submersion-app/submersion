@@ -21,12 +21,10 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
     if (dive == null) return const SizedBox.shrink();
 
     final outcome = ref.watch(activePlanOutcomeProvider);
-    final actualTtsSeconds = ref
-        .watch(sourceDiveTtsSecondsProvider)
-        .valueOrNull;
-    final actualDecoSeconds = ref
-        .watch(sourceDiveDecoSecondsProvider)
-        .valueOrNull;
+    // .value keeps the last readings through a reload of the source dive.
+    final actualTtsSeconds = ref.watch(sourceDiveTtsSecondsProvider).value;
+    final actualDecoSeconds = ref.watch(sourceDiveDecoSecondsProvider).value;
+    final actualCnsEnd = ref.watch(sourceDiveCnsEndProvider).value;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final theme = Theme.of(context);
 
@@ -69,11 +67,11 @@ class PlanSourceDiveCompareStrip extends ConsumerWidget {
             planned: _plannedGasFor(outcome, tank.id, units),
             actual: units.formatVolume(tank.pressureUsed! * tank.volume!),
           ),
-      if (dive.profile.isNotEmpty && dive.profile.last.cns != null)
+      if (actualCnsEnd != null)
         _CompareRow(
           label: context.l10n.plannerCanvas_compare_cns,
           planned: '${outcome.cnsEnd.round()}%',
-          actual: '${dive.profile.last.cns!.round()}%',
+          actual: '${actualCnsEnd.round()}%',
         ),
     ];
 

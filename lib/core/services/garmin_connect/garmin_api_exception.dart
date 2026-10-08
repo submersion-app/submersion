@@ -30,3 +30,13 @@ class GarminApiException implements Exception {
 class GarminChallengeException extends GarminApiException {
   const GarminChallengeException(super.message);
 }
+
+/// Thrown when Garmin has no FIT file to give for an activity, as for one
+/// entered by hand in Connect, which has no original upload (issue #2410).
+///
+/// Separate from the generic [GarminApiException] because it is Garmin's
+/// final answer rather than a fault worth retrying: the caller imports the
+/// dive from its activity summary instead of reporting a failed download.
+class GarminNoFitException extends GarminApiException {
+  const GarminNoFitException(super.message, {super.statusCode});
+}

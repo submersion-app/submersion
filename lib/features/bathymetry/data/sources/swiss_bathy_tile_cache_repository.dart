@@ -50,12 +50,21 @@ class SwissBathyTileCacheEntry {
 /// task's OGD fair-use requirement — independent of, and finer-grained
 /// than, the outer [BathymetryCache]'s 0.02 degree quantized cells.
 class SwissBathyTileCacheRepository {
+  /// Status of a confirmed "no tile here" negative, written by [writeEmpty].
+  static const String gapStatus = 'gap';
+
+  /// Status of a negative written before asset downloads were validated
+  /// (issue #1770). ZipDecoder used to read an HTML error page served with
+  /// HTTP 200 as an empty zip, so such a row may record one bad download
+  /// rather than a real gap. [read] drops it, so the tile re-resolves once.
+  static const String legacyEmptyStatus = 'empty';
+
   final LocalCacheDatabase _db;
 
   const SwissBathyTileCacheRepository(this._db);
 
   /// The cached entry for [tileKey], or null when uncached, when the tile
-  /// is a cached negative ('empty'), OR when [expectedReferenceLevelMeters]
+  /// is a cached negative ('gap'), OR when [expectedReferenceLevelMeters]
   /// is given and does not match the level the row was actually cached
   /// under (see `SwissBathyTileCache.referenceLevelMeters`'s doc) — the row
   /// is deleted in that case too, exactly like corruption, so the caller
@@ -74,7 +83,7 @@ class SwissBathyTileCacheRepository {
     if (expectedReferenceLevelMeters != null &&
         row.referenceLevelMeters != expectedReferenceLevelMeters) {
       // Checked before the status guard below, and so applies to a cached
-      // 'empty' row exactly like an 'ok' one: a lake bbox correction can
+      // 'gap' row exactly like an 'ok' one: a lake bbox correction can
       // turn a tile that was genuinely dry land under the OLD lake
       // assignment into real, covered water under the new one, so a stale
       // negative is exactly as unreliable as a stale positive would be.
@@ -85,6 +94,12 @@ class SwissBathyTileCacheRepository {
       // correct without this field, so it gets the same one-time
       // re-resolution every other pre-existing-row migration in this table
       // already falls back to.
+      await (_db.delete(
+        _db.swissBathyTileCache,
+      )..where((t) => t.tileKey.equals(tileKey))).go();
+      return null;
+    }
+    if (row.status == legacyEmptyStatus) {
       await (_db.delete(
         _db.swissBathyTileCache,
       )..where((t) => t.tileKey.equals(tileKey))).go();
@@ -122,7 +137,7 @@ class SwissBathyTileCacheRepository {
     }
   }
 
-  /// Whether a definitive answer ('ok' or 'empty') is already cached for
+  /// Whether a definitive answer ('ok' or 'gap') is already cached for
   /// [tileKey]. False means "never resolved" or "a transient failure left
   /// no row" — both should retry.
   Future<bool> hasCachedAnswer(String tileKey) async {
@@ -132,7 +147,7 @@ class SwissBathyTileCacheRepository {
     return row != null;
   }
 
-  /// Every cached tile key, 'ok' AND 'empty' alike. Used by the manual
+  /// Every cached tile key, 'ok' AND 'gap' alike. Used by the manual
   /// "reload map data" action, which revalidates every cached tile
   /// immediately instead of waiting for each one's individual
   /// [SwissBathy3dSource.staleCheckInterval] to elapse. Negative rows are
@@ -210,14 +225,14 @@ class SwissBathyTileCacheRepository {
         .insertOnConflictUpdate(
           SwissBathyTileCacheCompanion.insert(
             tileKey: tileKey,
-            status: 'empty',
+            status: gapStatus,
             fetchedAt: DateTime.now().millisecondsSinceEpoch,
             referenceLevelMeters: Value(referenceLevelMeters),
           ),
         );
   }
 
-  /// Deletes every cached tile, 'ok' and 'empty' alike. Used by the "3D
+  /// Deletes every cached tile, 'ok' and 'gap' alike. Used by the "3D
   /// Maps" settings page's swissBATHY3D delete action, alongside clearing
   /// this tile's own rows in the outer [BathymetryCache] -- deleting only
   /// one of the two tables has no visible effect, since the other keeps

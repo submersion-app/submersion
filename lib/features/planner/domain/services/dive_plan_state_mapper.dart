@@ -9,8 +9,8 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 /// The UI state carries a subset of the aggregate; [existing] preserves
 /// fields the state does not know about across an edit-save cycle so a
 /// plan touched by the UI does not lose them. Mode, setpoints,
-/// contingency config, water type, dive links, and air breaks travel WITH
-/// the state.
+/// contingency config, water type, dive links, air breaks, and the DPV
+/// mission travel WITH the state.
 domain.DivePlan divePlanFromState(
   DivePlanState state, {
   domain.DivePlan? existing,
@@ -89,6 +89,8 @@ domain.DivePlan divePlanFromState(
     plannedWeightKg: state.plannedWeightKg,
     plannedWeightPlacement: state.plannedWeightPlacement,
     clearPlannedWeight: state.plannedWeightKg == null,
+    mission: state.mission,
+    clearMission: state.mission == null,
     createdAt: state.createdAt,
     updatedAt: state.updatedAt,
   );
@@ -150,6 +152,7 @@ DivePlanState stateFromDivePlan(domain.DivePlan plan) {
     gearProvenance: plan.gearProvenance,
     plannedWeightKg: plan.plannedWeightKg,
     plannedWeightPlacement: plan.plannedWeightPlacement,
+    mission: plan.mission,
     isDirty: false,
     createdAt: plan.createdAt,
     updatedAt: plan.updatedAt,

@@ -79,9 +79,21 @@ void main() {
     now: now,
   );
 
-  Widget buildCard({List<ServiceClockStatus>? statuses}) {
+  Widget buildCard({
+    List<ServiceClockStatus>? statuses,
+    List<ServiceSchedule>? schedules,
+    List<ServiceKind>? scopedKinds,
+    Map<String, ServiceKind>? allKinds,
+  }) {
     return ProviderScope(
       overrides: [
+        allServiceKindsByIdProvider.overrideWith(
+          (ref) async =>
+              allKinds ??
+              {
+                for (final k in [hydro, vip, o2]) k.id: k,
+              },
+        ),
         serviceClockStatusesProvider('e1').overrideWith(
           (ref) async =>
               statuses ??
@@ -94,10 +106,12 @@ void main() {
                 status(vip, ServiceClockSeverity.ok, DateTime(2027, 5, 1)),
               ],
         ),
-        serviceSchedulesForEquipmentProvider(
-          'e1',
-        ).overrideWith((ref) async => [sched('hydro'), sched('vip')]),
-        serviceKindsProvider.overrideWith((ref) async => [hydro, vip, o2]),
+        serviceSchedulesForEquipmentProvider('e1').overrideWith(
+          (ref) async => schedules ?? [sched('hydro'), sched('vip')],
+        ),
+        serviceKindsProvider.overrideWith(
+          (ref) async => scopedKinds ?? [hydro, vip, o2],
+        ),
       ],
       child: const MaterialApp(
         locale: Locale('en'),
@@ -114,6 +128,34 @@ void main() {
       ),
     );
   }
+
+  testWidgets('names a schedule on another profile custom kind (shared gear)', (
+    tester,
+  ) async {
+    // Issue #2046: a shared item's schedule can use its owner's custom
+    // kind, which the active diver's scoped kind list leaves out.
+    final ownerKind = ServiceKind(
+      id: 'owner-kind',
+      name: 'Owner clean',
+      applicableTypes: const [EquipmentType.tank],
+      diverId: 'owner',
+      createdAt: t0,
+      updatedAt: t0,
+    );
+    await tester.pumpWidget(
+      buildCard(
+        statuses: [
+          status(hydro, ServiceClockSeverity.ok, DateTime(2027, 1, 1)),
+        ],
+        schedules: [sched('hydro'), sched('owner-kind')],
+        scopedKinds: [hydro],
+        allKinds: {hydro.id: hydro, ownerKind.id: ownerKind},
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Owner clean'), findsOneWidget);
+  });
 
   testWidgets('renders one row per clock with trigger text', (tester) async {
     await tester.pumpWidget(buildCard());

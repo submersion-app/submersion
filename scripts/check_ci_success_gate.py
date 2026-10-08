@@ -89,13 +89,15 @@ def job_ids(text):
     return [job_id for job_id, _ in _job_lines(text)]
 
 
-def gate_needs(text):
+def gate_needs(text, gate_job=GATE_JOB):
     """Return the gate job's `needs` entries, or None if it declares none.
 
     Handles both the block sequence and the inline flow sequence spellings.
+    `gate_job` lets other workflows' aggregating jobs reuse the parser: the
+    Beta failure alert has the same every-job-must-be-listed requirement.
     """
     for job_id, body in _job_lines(text):
-        if job_id != GATE_JOB:
+        if job_id != gate_job:
             continue
         for index, line in enumerate(body):
             inline = _NEEDS_INLINE.match(line)

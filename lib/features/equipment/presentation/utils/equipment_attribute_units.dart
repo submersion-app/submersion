@@ -1,8 +1,10 @@
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Canonical metric -> diver's display units. thicknessMm and none are
@@ -54,7 +56,7 @@ String attributeUnitSymbol(AttributeDimension d, UnitFormatter units) =>
       AttributeDimension.lengthM ||
       AttributeDimension.depthM => units.depthSymbol,
       AttributeDimension.shortLengthM => units.shortLengthSymbol,
-      AttributeDimension.speedMps => '${units.depthSymbol}/min',
+      AttributeDimension.speedMps => units.depthRateSymbol,
       AttributeDimension.durationH => 'min',
       AttributeDimension.thicknessMm => 'mm',
       AttributeDimension.none => '',
@@ -140,6 +142,9 @@ String formatAttributeValue(
       // maps to No/Yes.
       if (attr.valueNum == null) return '';
       return attr.valueNum == 1 ? l10n.attr_flagYes : l10n.attr_flagNo;
+    case AttributeKind.color:
+      final code = normalizeEquipmentColor(attr.valueText);
+      return code == null ? '' : equipmentColorName(l10n, code);
     case AttributeKind.date:
       return attr.valueNum == null
           ? ''

@@ -8,6 +8,7 @@ import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/buddies/domain/services/legacy_name_parser.dart';
@@ -17,15 +18,20 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
+import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
+    show dartWhitespaceSqlChars;
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
+import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/domain/water_temp_bands.dart';
 
 export 'package:submersion/features/insights/domain/trend_aggregation.dart'
     show TrendDataPoint;
+
+part 'insights_repository_focus.dart';
 
 /// Per-dive outcome of the recorded (non-computed) deco classification.
 ///
@@ -108,7 +114,18 @@ class EntryExitPairCount {
   final int count;
 }
 
-/// Repository for all advanced statistics queries
+/// Repository for all advanced statistics queries.
+///
+/// A failed query is never answered with an empty result (issue #1930).
+/// Every card treats an empty result as "you have no data for this", so a
+/// default would show a broken query as a diver with no dives, and the
+/// card's error state would never appear. The failure reaches the caller
+/// instead and the provider completes with an `AsyncError`. Methods with a
+/// `catch` use it only to log the failure before rethrowing it; the few
+/// small ones without one (such as [countExcludedDives]) let it propagate
+/// unlogged. The callers outside Insights (the home dashboard, the site
+/// pages, the planner's logged SAC) already treat an error as nothing to
+/// show.
 class InsightsRepository {
   /// Equation of state used to convert cylinder pressure to gas volume.
   ///
@@ -196,6 +213,10 @@ class InsightsRepository {
           TableUpdateQuery.onTable(_db.diveDiveTypes),
           TableUpdateQuery.onTable(_db.diveBuddies),
           TableUpdateQuery.onTable(_db.buddies),
+          // Role sets (#1221); solo detection reads the primary, which a
+          // junction-only write can still accompany through sync.
+          TableUpdateQuery.onTable(_db.diveDiverRoles),
+          TableUpdateQuery.onTable(_db.diveBuddyRoles),
           TableUpdateQuery.onTable(_db.sightings),
           TableUpdateQuery.onTable(_db.species),
           TableUpdateQuery.onTable(_db.diveSites),
@@ -367,7 +388,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -428,7 +449,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -477,7 +498,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -604,7 +625,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (best: null, worst: null);
+      rethrow;
     }
   }
 
@@ -672,7 +693,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (best: null, worst: null);
+      rethrow;
     }
   }
 
@@ -755,7 +776,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return {};
+      rethrow;
     }
   }
 
@@ -809,7 +830,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return {};
+      rethrow;
     }
   }
 
@@ -870,7 +891,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -915,7 +936,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -952,7 +973,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -988,7 +1009,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1037,7 +1058,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return const YearStats(diveCount: 0, totalSeconds: 0);
+      rethrow;
     }
   }
 
@@ -1047,9 +1068,6 @@ class InsightsRepository {
   /// thickness at all. The thickness join is a LEFT JOIN so a suit without
   /// the attribute still reaches a bucket. COUNT(DISTINCT) so a dive with two
   /// suits in the same bucket counts once there.
-  ///
-  /// Errors are rethrown after logging: an empty result would render as
-  /// "no suits linked" and hide the failure behind the card's empty state.
   Future<SuitThicknessStats> getDivesBySuitThickness({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -1149,7 +1167,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1244,7 +1262,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1311,7 +1329,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1366,7 +1384,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1434,7 +1452,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1488,7 +1506,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1507,7 +1525,7 @@ class InsightsRepository {
   /// never made contribute to none of them, the count included.
   ///
   /// Returns [SiteDiveStatistics.empty] (diveCount 0, all other fields null)
-  /// when the site has no matching dives, or on error.
+  /// when the site has no matching dives.
   Future<SiteDiveStatistics> getSiteDiveStatistics({
     required String siteId,
     String? diverId,
@@ -1607,7 +1625,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return SiteDiveStatistics.empty;
+      rethrow;
     }
   }
 
@@ -1648,7 +1666,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1703,7 +1721,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1741,7 +1759,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return {};
+      rethrow;
     }
   }
 
@@ -1829,7 +1847,7 @@ class InsightsRepository {
       }).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get top buddies', error: e, stackTrace: stackTrace);
-      return [];
+      rethrow;
     }
   }
 
@@ -1854,7 +1872,6 @@ class InsightsRepository {
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
-    const zero = (solo: 0, buddy: 0, notRecorded: 0);
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
@@ -1905,7 +1922,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return zero;
+      rethrow;
     }
   }
 
@@ -1972,7 +1989,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -1980,7 +1997,16 @@ class InsightsRepository {
   // Geographic Statistics
   // ============================================================================
 
-  /// Get countries visited with dive counts
+  /// Get countries visited with dive counts.
+  ///
+  /// Grouped the way `site.country` compares: trimmed of every character
+  /// Dart's `trim` strips, and case-insensitively. So stray whitespace or
+  /// casing never splits a country, and a row opens the dives it counts
+  /// (#2623). Each row shows the first spelling in binary order.
+  ///
+  /// Like every Insights card, the count leaves out planned dives and dives
+  /// excluded from statistics (DiveStatsScope); the dive list a row opens
+  /// still shows the excluded ones.
   Future<List<RankingItem>> getCountriesVisited({
     String? diverId,
     int limit = 10,
@@ -1995,12 +2021,12 @@ class InsightsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          ds.country,
+          MIN(TRIM(ds.country, $dartWhitespaceSqlChars)) AS country,
           COUNT(d.id) AS dive_count
         FROM dive_sites ds
         JOIN dives d ON d.site_id = ds.id
-        WHERE ds.country IS NOT NULL AND ds.country != '' $diverFilter ${df.clause}
-        GROUP BY ds.country
+        WHERE TRIM(ds.country, $dartWhitespaceSqlChars) != '' $diverFilter ${df.clause}
+        GROUP BY LOWER(TRIM(ds.country, $dartWhitespaceSqlChars))
         ORDER BY dive_count DESC
         LIMIT ?
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -2019,11 +2045,13 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
-  /// Get regions explored with dive counts
+  /// Get regions explored with dive counts, one row per region and
+  /// country. Grouped like [getCountriesVisited]; a blank country reads as
+  /// none, the same way `site.country :none` does.
   Future<List<RankingItem>> getRegionsExplored({
     String? diverId,
     int limit = 10,
@@ -2038,13 +2066,14 @@ class InsightsRepository {
 
       final results = await _db.customSelect('''
         SELECT
-          ds.region,
-          ds.country,
+          MIN(TRIM(ds.region, $dartWhitespaceSqlChars)) AS region,
+          MIN(NULLIF(TRIM(ds.country, $dartWhitespaceSqlChars), '')) AS country,
           COUNT(d.id) AS dive_count
         FROM dive_sites ds
         JOIN dives d ON d.site_id = ds.id
-        WHERE ds.region IS NOT NULL AND ds.region != '' $diverFilter ${df.clause}
-        GROUP BY ds.region, ds.country
+        WHERE TRIM(ds.region, $dartWhitespaceSqlChars) != '' $diverFilter ${df.clause}
+        GROUP BY LOWER(TRIM(ds.region, $dartWhitespaceSqlChars)),
+          LOWER(NULLIF(TRIM(ds.country, $dartWhitespaceSqlChars), ''))
         ORDER BY dive_count DESC
         LIMIT ?
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -2064,7 +2093,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2109,7 +2138,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2141,7 +2170,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return 0;
+      rethrow;
     }
   }
 
@@ -2187,7 +2216,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2231,7 +2260,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2303,11 +2332,13 @@ class InsightsRepository {
         maxDepthMeters: statsResult.read<double?>('max_depth'),
         siteCount: statsResult.read<int>('site_count'),
         topSites: topSites,
+        // first_seen / last_seen are MIN / MAX of dive_date_time, a wall
+        // clock flagged UTC (issue #2808).
         firstSeen: firstSeenMs != null
-            ? DateTime.fromMillisecondsSinceEpoch(firstSeenMs)
+            ? wallClockUtcFromMillis(firstSeenMs)
             : null,
         lastSeen: lastSeenMs != null
-            ? DateTime.fromMillisecondsSinceEpoch(lastSeenMs)
+            ? wallClockUtcFromMillis(lastSeenMs)
             : null,
       );
     } catch (e, stackTrace) {
@@ -2316,7 +2347,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return SpeciesInsights.empty;
+      rethrow;
     }
   }
 
@@ -2356,7 +2387,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2417,7 +2448,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2450,7 +2481,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2513,7 +2544,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (avgMinutes: null, minMinutes: null, maxMinutes: null);
+      rethrow;
     }
   }
 
@@ -2571,7 +2602,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2617,7 +2648,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2657,7 +2688,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2700,11 +2731,12 @@ class InsightsRepository {
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
+    final List<QueryRow> scoped;
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
-      final scoped = await _db
+      scoped = await _db
           .customSelect(
             // Only dives that actually have a primary series: without this
             // the chunk loop pages over every filtered dive, most of which
@@ -2717,7 +2749,28 @@ class InsightsRepository {
             readsFrom: {_db.dives, _db.diveProfileSeries},
           )
           .get();
-      final diveIds = [for (final r in scoped) r.read<String>('id')];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get ascent/descent rates',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+    // Outside the try: the per-dive method logs its own failures, so one
+    // error is logged once.
+    return getAscentDescentRatesForDives([
+      for (final r in scoped) r.read<String>('id'),
+    ]);
+  }
+
+  /// [getAscentDescentRates] over exactly [diveIds], for a caller that has
+  /// already chosen its dives by instant rather than by calendar day (the
+  /// Insights observations, #2381). Dives without a primary series add
+  /// nothing; no ids gives nulls.
+  Future<({double? avgAscent, double? avgDescent})>
+  getAscentDescentRatesForDives(List<String> diveIds) async {
+    try {
       if (diveIds.isEmpty) return (avgAscent: null, avgDescent: null);
       var totals = emptyRateTotals;
       for (final chunk in _diveChunks(diveIds)) {
@@ -2731,11 +2784,11 @@ class InsightsRepository {
       return ratesFromTotals(totals);
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to get ascent/descent rates',
+        'Failed to get ascent/descent rates for dives',
         error: e,
         stackTrace: stackTrace,
       );
-      return (avgAscent: null, avgDescent: null);
+      rethrow;
     }
   }
 
@@ -2820,7 +2873,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return [];
+      rethrow;
     }
   }
 
@@ -2929,12 +2982,7 @@ class InsightsRepository {
         error: e,
         stackTrace: stackTrace,
       );
-      return (
-        recordedDeco: const <String>{},
-        recordedNoDeco: const <String>{},
-        needsCompute: const <String, int>{},
-        noProfile: const <String>{},
-      );
+      rethrow;
     }
   }
 

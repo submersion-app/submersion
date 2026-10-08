@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/domain/services/known_computer_reacquisition.dart';
@@ -14,6 +18,7 @@ import 'package:submersion/features/dive_computer/presentation/widgets/download_
 import 'package:submersion/features/dive_computer/presentation/widgets/scan_step_widget.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_direct_download_view.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class DcAdapterScanStep extends ConsumerWidget {
@@ -452,6 +457,24 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     var device = discoveryState.selectedDevice;
     final computer = widget.knownComputer ?? widget.adapter.computer;
 
+    // A USB computer saved on a desktop syncs here, but iOS has no USB host
+    // (issue #2837). Sync strips the host-local port, so the synced copy has
+    // no stored address and must be recognized by its connection type alone;
+    // with an address it would fail in the native layer with "No USB serial
+    // ports found". A Garmin keeps its FIT-file guidance inside the view.
+    if (device == null &&
+        computer != null &&
+        !ScanStepWidget.offersUsb &&
+        _connectionTypeFromString(computer.connectionType) ==
+            DeviceConnectionType.usb) {
+      return DcNoDirectDownloadView(
+        computer: computer,
+        reason: DcNoDirectDownloadReason.usbUnavailable,
+        onImportFromFile: () => context.push('/transfer/import-wizard'),
+        onDone: () => context.pop(),
+      );
+    }
+
     // For known-computer downloads, synthesize a DiscoveredDevice from the
     // computer's stored connection info when discovery state has no device.
     // The device descriptor lookup provides the dcModel integer that
@@ -481,6 +504,18 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
             ? DeviceModel.fromDescriptor(matchingDescriptor)
             : null,
         discoveredAt: DateTime.now(),
+      );
+    }
+
+    // A saved computer with no stored address (a Garmin watch, or any
+    // computer that came from a file or cloud import) leaves nothing to
+    // connect to. DownloadStepWidget silently never starts without a device,
+    // which spun on "Preparing..." forever (issue #1858); explain instead.
+    if (device == null && computer != null) {
+      return DcNoDirectDownloadView(
+        computer: computer,
+        onImportFromFile: () => context.push('/transfer/import-wizard'),
+        onDone: () => context.pop(),
       );
     }
 
@@ -525,25 +560,71 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       onError: (error) {
         // Download errors are shown by the DownloadStepWidget itself.
       },
-      onImportPartial: () {
-        // The user chose to keep the dives delivered before an interrupted
-        // download. For drivers that deliver oldest-first (as Shearwater
-        // does), this is a contiguous prefix of the oldest dives, so capturing
-        // it advances the fingerprint to a correct resume point for the next
-        // download. Ordering depends on the native driver, not this code.
-        _captureAndAdvance(ref.read(downloadNotifierProvider));
-      },
+      // The user chose to keep the dives delivered before an interrupted
+      // download.
+      onImportPartial: () => unawaited(_importPartial(device)),
+    );
+  }
+
+  /// Captures an interrupted download's dives, telling the adapter whether
+  /// the backend delivered them oldest-first.
+  ///
+  /// Only then (Shearwater Petrel, issue #480) are they the oldest run of new
+  /// dives, so that importing them may move the resume point. A newest-first
+  /// backend delivered the newest dives and skipped older ones, which a moved
+  /// resume point would hide for good (issue #2902). The order comes from the
+  /// native descriptor catalog; when it cannot be read, newest-first is
+  /// assumed, which at worst re-offers these dives next time.
+  Future<void> _importPartial(DiscoveredDevice? device) async {
+    // The dives to keep are the ones on screen now. Retry stays enabled
+    // during the lookup below, and a retry replaces this state.
+    final snapshot = ref.read(downloadNotifierProvider);
+    var descriptors = const <pigeon.DeviceDescriptor>[];
+    try {
+      descriptors = await ref.read(deviceDescriptorsProvider.future);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not read the descriptor catalog; treating the partial '
+        'download as newest-first',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+    if (!mounted) return;
+    // A retry started while the catalog was read: that attempt now owns the
+    // step, and capturing here would also block its own completion. A retry
+    // always starts a new phase and a fresh dive list.
+    final current = ref.read(downloadNotifierProvider);
+    if (current.phase != snapshot.phase ||
+        !identical(current.downloadedDives, snapshot.downloadedDives)) {
+      return;
+    }
+    _captureAndAdvance(
+      snapshot,
+      interrupted: true,
+      deliversOldestFirst: modelDeliversOldestFirst(
+        descriptors,
+        device?.recognizedModel,
+      ),
     );
   }
 
   /// Captures the downloaded dives into the adapter and advances the wizard to
   /// the Review step. Shared by the normal completion path and the
   /// import-partial action for an interrupted download.
-  void _captureAndAdvance(DownloadState state) {
+  void _captureAndAdvance(
+    DownloadState state, {
+    bool interrupted = false,
+    bool deliversOldestFirst = false,
+  }) {
     if (_captured) return;
     _captured = true;
     widget.adapter.setSinceCutoff(state.sinceCutoff);
-    widget.adapter.setDownloadedDives(state.downloadedDives);
+    widget.adapter.setDownloadedDives(
+      state.downloadedDives,
+      interrupted: interrupted,
+      deliversOldestFirst: deliversOldestFirst,
+    );
 
     // No dives — show an informational message instead of advancing to an
     // empty Review step. The computer itself is still saved below: reaching
@@ -559,16 +640,36 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
+      // Saving the computer and noting its clock sync answer are bookkeeping:
+      // the dives are already in hand. Each failure is logged and swallowed so
+      // it cannot skip the can-advance flip below, which is what left the
+      // wizard on "Download complete" with Next disabled (issue #2439).
       final discoveryState = ref.read(discoveryNotifierProvider);
       final device = discoveryState.selectedDevice;
       if (device != null) {
+        // If the save below fails, the adapter records this once a later
+        // retry recovers the computer.
+        widget.adapter.rememberClockSyncStatus(state.clockSyncStatus);
+
         // Serial and firmware ride on the completion event, not on the dives,
         // so the hardware-identity rebind still works with an empty download.
-        await widget.adapter.ensureComputer(
-          device: device,
-          serialNumber: state.serialNumber,
-          firmwareVersion: state.firmwareVersion,
-        );
+        try {
+          await widget.adapter.ensureComputer(
+            device: device,
+            serialNumber: state.serialNumber,
+            firmwareVersion: state.firmwareVersion,
+            reportedProduct: state.reportedProduct,
+            reportedModel: state.reportedModel,
+          );
+        } catch (e, stackTrace) {
+          _log.error(
+            'Could not save ${device.displayName} after its download; '
+            'continuing without a computer record',
+            category: LogCategory.database,
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
         if (!mounted) return;
 
         // Remember what the model answered about clock sync so the detail
@@ -578,9 +679,20 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
         final computer = widget.adapter.computer;
         final clockSyncStatus = state.clockSyncStatus;
         if (computer != null && clockSyncStatus != null) {
-          await ref
-              .read(clockSyncSettingsNotifierProvider.notifier)
-              .recordSupport(computer.id, clockSyncStatus);
+          try {
+            await ref
+                .read(clockSyncSettingsNotifierProvider.notifier)
+                .recordSupport(computer.id, clockSyncStatus);
+          } catch (e, stackTrace) {
+            _log.error(
+              'Could not record clock sync support for '
+              '${computer.displayName}',
+              category: LogCategory.app,
+              error: e,
+              stackTrace: stackTrace,
+            );
+          }
+          if (!mounted) return;
         }
       }
 

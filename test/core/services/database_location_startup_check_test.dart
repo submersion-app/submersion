@@ -19,12 +19,17 @@ void main() {
   /// Every method name the service sent down the bookmark channel, in order.
   late List<String> bookmarkCalls;
 
+  /// What the native side answers when asked for a file's iCloud state.
+  /// Null, the default, is what every build without iCloud support says.
+  String? iCloudStatusReply;
+
   setUp(() {
     // resetToDefault releases any security-scoped bookmark via a platform
     // channel that has no host implementation in tests. The binary
     // messenger is process-global, so the handler is removed again after
     // each test rather than leaking into later ones.
     bookmarkCalls = <String>[];
+    iCloudStatusReply = null;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(bookmarkChannel, (call) async {
           bookmarkCalls.add(call.method);
@@ -36,6 +41,7 @@ void main() {
               'isStale': false,
             };
           }
+          if (call.method == 'iCloudDownloadStatus') return iCloudStatusReply;
           return null;
         });
     addTearDown(
@@ -79,9 +85,10 @@ void main() {
       );
     });
 
-    /// Makes the database path exist but be impossible to open for
-    /// reading, which is the real "sandbox revoked access" shape. A merely
-    /// absent file is a different case (first launch) and must not reset.
+    /// Makes the database path exist but be impossible to open for reading,
+    /// in a folder that is itself perfectly readable: the FILE is the
+    /// problem. A merely absent file is a different case (first launch) and
+    /// must not reset.
     Future<Directory> folderWithUnreadableDatabase() async {
       final dir = await Directory.systemTemp.createTemp('submersion218');
       addTearDown(() => dir.delete(recursive: true));
@@ -141,7 +148,7 @@ void main() {
 
         expect(
           check,
-          StartupLocationCheck.keptInaccessible,
+          StartupLocationCheck.keptDatabaseUnreadable,
           reason:
               'without a sandbox there is nothing to recover from; wiping '
               'the user choice made the setting appear to never persist',
@@ -153,51 +160,77 @@ void main() {
       },
     );
 
+    // Issue #2178. This used to reset the storage location, on macOS and iOS
+    // only and with nothing said on screen, so a folder that was merely not
+    // available yet cost the diver their setting for good.
+    test('an unreadable database on a bookmark platform KEEPS the config, '
+        'bookmark included', () async {
+      SecurityScopedBookmarkService.debugSupportedOverride = true;
+      addTearDown(
+        () => SecurityScopedBookmarkService.debugSupportedOverride = null,
+      );
+      final dir = await folderWithUnreadableDatabase();
+
+      final service = await serviceWithCustomFolder(dir.path);
+      await prefs.setString('db_security_bookmark', base64Encode(<int>[1, 2]));
+
+      final check = await service.validateCustomLocationAtStartup(
+        isBookmarkPlatform: true,
+      );
+
+      expect(check, StartupLocationCheck.keptDatabaseUnreadable);
+      final config = await service.getStorageConfig();
+      expect(config.mode, StorageLocationMode.customFolder);
+      expect(config.customFolderPath, dir.path);
+      expect(
+        service.hasStoredBookmark(),
+        isTrue,
+        reason:
+            'the bookmark is the only way back into a sandboxed folder; '
+            'discarding it turns a temporary fault into a permanent one',
+      );
+      expect(
+        bookmarkCalls,
+        isNot(contains('stopAccessingSecurityScopedResource')),
+      );
+    });
+
     test(
-      'an unreadable database on a bookmark platform resets to default',
-      () async {
-        final dir = await folderWithUnreadableDatabase();
-
-        final service = await serviceWithCustomFolder(dir.path);
-        final check = await service.validateCustomLocationAtStartup(
-          isBookmarkPlatform: true,
-        );
-
-        expect(check, StartupLocationCheck.resetToDefault);
-        expect(
-          (await service.getStorageConfig()).mode,
-          StorageLocationMode.appDefault,
-        );
-      },
-    );
-
-    test(
-      'omitting isBookmarkPlatform falls back to the real platform capability',
+      'omitting isBookmarkPlatform keeps the config on every host',
       () async {
         // The default argument is what main.dart uses; the explicit-flag
-        // tests above never evaluate it. Whether the config survives an
-        // unreadable database is decided by that fallback, so assert the
-        // outcome the HOST platform is supposed to produce.
+        // tests above never evaluate it. The host platform used to decide
+        // whether the config survived, which is the inconsistency #2178 is
+        // about, so the same outcome is asserted wherever this runs.
         final dir = await folderWithUnreadableDatabase();
         final service = await serviceWithCustomFolder(dir.path);
 
         final check = await service.validateCustomLocationAtStartup();
 
-        final isSandboxed = Platform.isMacOS || Platform.isIOS;
-        expect(
-          check,
-          isSandboxed
-              ? StartupLocationCheck.resetToDefault
-              : StartupLocationCheck.keptInaccessible,
-        );
+        expect(check, StartupLocationCheck.keptDatabaseUnreadable);
         expect(
           (await service.getStorageConfig()).mode,
-          isSandboxed
-              ? StorageLocationMode.appDefault
-              : StorageLocationMode.customFolder,
+          StorageLocationMode.customFolder,
         );
       },
     );
+
+    test('a custom folder that is not there at all is told apart from a '
+        'first launch, and keeps the config', () async {
+      final parent = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => parent.delete(recursive: true));
+      final missing = p.join(parent.path, 'unplugged-drive');
+
+      final service = await serviceWithCustomFolder(missing);
+      final check = await service.validateCustomLocationAtStartup(
+        isBookmarkPlatform: false,
+      );
+
+      expect(check, StartupLocationCheck.keptFolderMissing);
+      final config = await service.getStorageConfig();
+      expect(config.mode, StorageLocationMode.customFolder);
+      expect(config.customFolderPath, missing);
+    });
 
     test('a stored bookmark is resolved before the accessibility check so a '
         'sandboxed folder is reachable again after restart', () async {
@@ -229,6 +262,119 @@ void main() {
       }
     });
 
+    /// Makes the bookmark resolve to [path], as it does once the diver has
+    /// moved or renamed the folder it points at.
+    void bookmarkResolvesTo(String path) {
+      SecurityScopedBookmarkService.debugSupportedOverride = true;
+      addTearDown(
+        () => SecurityScopedBookmarkService.debugSupportedOverride = null,
+      );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(bookmarkChannel, (call) async {
+            bookmarkCalls.add(call.method);
+            if (call.method == 'resolveBookmark') {
+              return <Object?, Object?>{'path': path, 'isStale': true};
+            }
+            return null;
+          });
+    }
+
+    // A bookmark follows its folder when the folder is moved or renamed; the
+    // stored path does not. Probing the old path would report the folder
+    // unreachable while the app already knows where it went.
+    test(
+      'a folder the bookmark followed to a new path is followed too',
+      () async {
+        final parent = await Directory.systemTemp.createTemp('submersion2178');
+        addTearDown(() => parent.delete(recursive: true));
+        final moved = Directory(p.join(parent.path, 'renamed'))..createSync();
+        File(
+          p.join(moved.path, 'submersion.db'),
+        ).writeAsBytesSync(List.filled(32, 1));
+        bookmarkResolvesTo(moved.path);
+
+        final service = await serviceWithCustomFolder(
+          p.join(parent.path, 'original'),
+        );
+        await prefs.setString(
+          'db_security_bookmark',
+          base64Encode(<int>[1, 2]),
+        );
+
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.accessible);
+        final config = await service.getStorageConfig();
+        expect(config.mode, StorageLocationMode.customFolder);
+        expect(config.customFolderPath, moved.path);
+        expect(service.hasStoredBookmark(), isTrue);
+      },
+    );
+
+    // main.dart awaits only this before the first frame: the open depends
+    // on the access it restores and the path it follows. The check itself is
+    // log-only there, so a dead network mount cannot hold the first frame.
+    test('restoring access resolves the bookmark and follows a moved folder, '
+        'without probing the database', () async {
+      final parent = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => parent.delete(recursive: true));
+      final moved = Directory(p.join(parent.path, 'renamed'))..createSync();
+      bookmarkResolvesTo(moved.path);
+
+      final service = await serviceWithCustomFolder(
+        p.join(parent.path, 'original'),
+      );
+      await prefs.setString('db_security_bookmark', base64Encode(<int>[1, 2]));
+
+      await service.restoreCustomLocationAccess(isBookmarkPlatform: true);
+
+      expect(bookmarkCalls, contains('resolveBookmark'));
+      expect(bookmarkCalls, isNot(contains('iCloudDownloadStatus')));
+      expect((await service.getStorageConfig()).customFolderPath, moved.path);
+    });
+
+    // Only a stored path that is GONE is replaced. A folder that is still
+    // where the diver put it stays the choice, whatever the bookmark says.
+    test('a stored folder that still exists is never repointed', () async {
+      final stored = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => stored.delete(recursive: true));
+      final elsewhere = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => elsewhere.delete(recursive: true));
+      bookmarkResolvesTo(elsewhere.path);
+
+      final service = await serviceWithCustomFolder(stored.path);
+      await prefs.setString('db_security_bookmark', base64Encode(<int>[1, 2]));
+
+      await service.validateCustomLocationAtStartup(isBookmarkPlatform: true);
+
+      expect((await service.getStorageConfig()).customFolderPath, stored.path);
+    });
+
+    test(
+      'a bookmark that resolves nowhere real leaves the config alone',
+      () async {
+        final parent = await Directory.systemTemp.createTemp('submersion2178');
+        addTearDown(() => parent.delete(recursive: true));
+        final original = p.join(parent.path, 'original');
+        bookmarkResolvesTo(p.join(parent.path, 'also-gone'));
+
+        final service = await serviceWithCustomFolder(original);
+        await prefs.setString(
+          'db_security_bookmark',
+          base64Encode(<int>[1, 2]),
+        );
+
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.keptFolderMissing);
+        expect((await service.getStorageConfig()).customFolderPath, original);
+      },
+    );
+
     test(
       'a bookmark platform with NO stored bookmark skips the resolve',
       () async {
@@ -251,6 +397,138 @@ void main() {
       },
     );
 
+    group('a database iCloud has evicted (#2177)', () {
+      setUp(() {
+        // The iCloud question is only ever put on Apple platforms. Forcing
+        // the gate open keeps these tests meaningful on the Linux shards.
+        SecurityScopedBookmarkService.debugSupportedOverride = true;
+        addTearDown(
+          () => SecurityScopedBookmarkService.debugSupportedOverride = null,
+        );
+      });
+
+      test('a placeholder where the database should be keeps the config and '
+          'says why', () async {
+        final dir = await Directory.systemTemp.createTemp('submersion2177');
+        addTearDown(() => dir.delete(recursive: true));
+        await File(
+          p.join(dir.path, '.submersion.db.icloud'),
+        ).writeAsString('stub');
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.keptNotDownloaded);
+        expect(
+          (await service.getStorageConfig()).mode,
+          StorageLocationMode.customFolder,
+        );
+      });
+
+      test('off Apple platforms a stray placeholder is not read as iCloud: '
+          'the database is simply missing', () async {
+        SecurityScopedBookmarkService.debugSupportedOverride = false;
+        final dir = await Directory.systemTemp.createTemp('submersion2177');
+        addTearDown(() => dir.delete(recursive: true));
+        await File(
+          p.join(dir.path, '.submersion.db.icloud'),
+        ).writeAsString('stub');
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: false,
+        );
+
+        expect(check, StartupLocationCheck.keptDatabaseMissing);
+      });
+
+      test('an unreadable database iCloud has not downloaded keeps the '
+          'config instead of resetting: macOS 14 and later evict in '
+          'place', () async {
+        iCloudStatusReply = 'notDownloaded';
+        final dir = await folderWithUnreadableDatabase();
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.keptNotDownloaded);
+        expect(
+          (await service.getStorageConfig()).mode,
+          StorageLocationMode.customFolder,
+          reason:
+              'resetting here opens an empty dive log at the default path '
+              'while the real one waits in iCloud',
+        );
+        expect(bookmarkCalls, contains('iCloudDownloadStatus'));
+        expect(
+          bookmarkCalls,
+          isNot(contains('stopAccessingSecurityScopedResource')),
+        );
+      });
+
+      test('a database iCloud has not downloaded is left unread, so the '
+          'fetch happens under the splash rather than before the first '
+          'frame', () async {
+        // Reading an evicted file makes macOS fetch all of it before the
+        // read returns, with no limit, before the app has drawn anything.
+        // A real file here reads fine, so "accessible" would prove the read
+        // ran first.
+        iCloudStatusReply = 'notDownloaded';
+        final dir = await Directory.systemTemp.createTemp('submersion2177');
+        addTearDown(() => dir.delete(recursive: true));
+        await File(
+          p.join(dir.path, 'submersion.db'),
+        ).writeAsBytes(List.filled(32, 1));
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.keptNotDownloaded);
+      });
+
+      // Nothing resets any more (#2178); what these pin is that an unreadable
+      // file iCloud does not report as evicted is read as a file problem, not
+      // as a download still to happen, and the diver's choice is kept.
+      test('an unreadable database iCloud says is downloaded is not a '
+          'download: it is a problem with the file', () async {
+        iCloudStatusReply = 'downloaded';
+        final dir = await folderWithUnreadableDatabase();
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.keptDatabaseUnreadable);
+        expect(
+          (await service.getStorageConfig()).mode,
+          StorageLocationMode.customFolder,
+        );
+      });
+
+      test('an unreadable database whose iCloud state is unknown is a '
+          'problem with the file too', () async {
+        final dir = await folderWithUnreadableDatabase();
+
+        final service = await serviceWithCustomFolder(dir.path);
+        final check = await service.validateCustomLocationAtStartup(
+          isBookmarkPlatform: true,
+        );
+
+        expect(check, StartupLocationCheck.keptDatabaseUnreadable);
+        expect(
+          (await service.getStorageConfig()).mode,
+          StorageLocationMode.customFolder,
+        );
+      });
+    });
+
     test('default location short-circuits', () async {
       SharedPreferences.setMockInitialValues({});
       final service = DatabaseLocationService(
@@ -263,6 +541,227 @@ void main() {
         ),
         StartupLocationCheck.defaultLocation,
       );
+    });
+  });
+
+  group('checkCustomLocation (#2178)', () {
+    // The failure screen probes again, long after startup resolved the
+    // bookmark. Resolving it a second time there would start a second
+    // security-scoped access that nothing ever stops.
+    test('probes without touching the bookmark', () async {
+      SecurityScopedBookmarkService.debugSupportedOverride = true;
+      addTearDown(
+        () => SecurityScopedBookmarkService.debugSupportedOverride = null,
+      );
+      final dir = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => dir.delete(recursive: true));
+      await File(
+        p.join(dir.path, 'submersion.db'),
+      ).writeAsBytes(List.filled(32, 1));
+
+      final service = await serviceWithCustomFolder(dir.path);
+      await prefs.setString('db_security_bookmark', base64Encode(<int>[1, 2]));
+
+      expect(
+        await service.checkCustomLocation(),
+        StartupLocationCheck.accessible,
+      );
+      expect(bookmarkCalls, isNot(contains('resolveBookmark')));
+    });
+  });
+
+  /// A folder whose contents can be stat-ed but not read: the shape a
+  /// sandbox leaves behind once it takes a folder back, which permits
+  /// metadata and refuses data. [mode] is the folder's own permission bits.
+  ///
+  /// POSIX-only, like the other chmod-based tests in this suite. The
+  /// permissions are restored before the delete, which a 000 folder refuses.
+  Future<Directory> lockedFolder({required String mode}) async {
+    final dir = await Directory.systemTemp.createTemp('submersion2178');
+    addTearDown(() async {
+      await Process.run('chmod', ['-R', 'u+rwX', dir.path]);
+      await dir.delete(recursive: true);
+    });
+    final db = File(p.join(dir.path, 'submersion.db'));
+    await db.writeAsBytes(List.filled(32, 1));
+    await Process.run('chmod', ['000', db.path]);
+    await Process.run('chmod', [mode, dir.path]);
+    return dir;
+  }
+
+  const posixOnly = 'chmod-based permission tests are POSIX-only';
+
+  // Listing alone cannot be the only witness on Apple platforms: a
+  // security-scoped folder can still be listed after the sandbox refuses its
+  // files. The refusal itself is the sandbox's signature: it denies a read
+  // with EPERM, where plain permissions answer EACCES.
+  group('unreadableVerdict (#2178)', () {
+    const sandboxRefusal = FileSystemException(
+      'Cannot open file',
+      '/Users/diver/iCloud/submersion.db',
+      OSError('Operation not permitted', 1),
+    );
+    const permissionDenied = FileSystemException(
+      'Cannot open file',
+      '/Users/diver/iCloud/submersion.db',
+      OSError('Permission denied', 13),
+    );
+
+    test('a sandbox refusal blames the folder even when it can be listed', () {
+      expect(
+        DatabaseLocationService.unreadableVerdict(
+          sandboxRefusal,
+          folderListable: true,
+          sandboxed: true,
+        ),
+        StartupLocationCheck.keptInaccessible,
+      );
+    });
+
+    test('EPERM means nothing special outside the sandbox', () {
+      expect(
+        DatabaseLocationService.unreadableVerdict(
+          sandboxRefusal,
+          folderListable: true,
+          sandboxed: false,
+        ),
+        StartupLocationCheck.keptDatabaseUnreadable,
+      );
+    });
+
+    test('any other refusal in a listable folder is the file', () {
+      expect(
+        DatabaseLocationService.unreadableVerdict(
+          permissionDenied,
+          folderListable: true,
+          sandboxed: true,
+        ),
+        StartupLocationCheck.keptDatabaseUnreadable,
+      );
+    });
+
+    test('a folder that cannot be listed is always the folder', () {
+      for (final error in [sandboxRefusal, permissionDenied]) {
+        for (final sandboxed in [true, false]) {
+          expect(
+            DatabaseLocationService.unreadableVerdict(
+              error,
+              folderListable: false,
+              sandboxed: sandboxed,
+            ),
+            StartupLocationCheck.keptInaccessible,
+          );
+        }
+      }
+    });
+  });
+
+  group('checkCustomLocation tells the folder from the file (#2178)', () {
+    // Copilot on PR 2497: an open failure alone does not mean the FOLDER is
+    // unreachable. A readable folder with a bad file in it is a file problem,
+    // and the failure screen must keep the routes that repair the file.
+    test(
+      'a readable folder with an unreadable database is a file problem',
+      () async {
+        final dir = await Directory.systemTemp.createTemp('submersion2178');
+        addTearDown(() => dir.delete(recursive: true));
+        await Directory(p.join(dir.path, 'submersion.db')).create();
+
+        final service = await serviceWithCustomFolder(dir.path);
+
+        expect(
+          await service.checkCustomLocation(),
+          StartupLocationCheck.keptDatabaseUnreadable,
+        );
+      },
+    );
+
+    test('a folder that can be stat-ed but not read is inaccessible', () async {
+      final dir = await lockedFolder(mode: '111');
+      final service = await serviceWithCustomFolder(dir.path);
+
+      expect(
+        await service.checkCustomLocation(),
+        StartupLocationCheck.keptInaccessible,
+      );
+    }, skip: Platform.isWindows ? posixOnly : null);
+
+    // With traversal refused too, the database reads as absent. That must
+    // not pass for a first launch, or startup would try to create a fresh
+    // dive log in a folder it cannot even list.
+    test(
+      'a folder that cannot be entered is not mistaken for a first launch',
+      () async {
+        final dir = await lockedFolder(mode: '000');
+        final service = await serviceWithCustomFolder(dir.path);
+
+        expect(
+          await service.checkCustomLocation(),
+          StartupLocationCheck.keptInaccessible,
+        );
+      },
+      skip: Platform.isWindows ? posixOnly : null,
+    );
+  });
+
+  group('unreachableCustomFolder (#2178)', () {
+    test('names a folder that cannot be read', () async {
+      final dir = await lockedFolder(mode: '111');
+      final service = await serviceWithCustomFolder(dir.path);
+
+      expect(await service.unreachableCustomFolder(), dir.path);
+    }, skip: Platform.isWindows ? posixOnly : null);
+
+    test('is null when only the database file cannot be read', () async {
+      final dir = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => dir.delete(recursive: true));
+      await Directory(p.join(dir.path, 'submersion.db')).create();
+
+      final service = await serviceWithCustomFolder(dir.path);
+
+      expect(await service.unreachableCustomFolder(), isNull);
+    });
+
+    test('names a folder that is not there at all', () async {
+      final parent = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => parent.delete(recursive: true));
+      final missing = p.join(parent.path, 'unplugged-drive');
+
+      final service = await serviceWithCustomFolder(missing);
+
+      expect(await service.unreachableCustomFolder(), missing);
+    });
+
+    test('is null when the custom database can be read', () async {
+      final dir = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => dir.delete(recursive: true));
+      await File(
+        p.join(dir.path, 'submersion.db'),
+      ).writeAsBytes(List.filled(32, 1));
+
+      final service = await serviceWithCustomFolder(dir.path);
+
+      expect(await service.unreachableCustomFolder(), isNull);
+    });
+
+    // A failure on the first launch after choosing a folder has some other
+    // cause: the folder is right there, it just holds no database yet.
+    test('is null for a reachable folder with no database yet', () async {
+      final dir = await Directory.systemTemp.createTemp('submersion2178');
+      addTearDown(() => dir.delete(recursive: true));
+
+      final service = await serviceWithCustomFolder(dir.path);
+
+      expect(await service.unreachableCustomFolder(), isNull);
+    });
+
+    test('is null at the default location', () async {
+      SharedPreferences.setMockInitialValues({});
+      final service = DatabaseLocationService(
+        await SharedPreferences.getInstance(),
+      );
+
+      expect(await service.unreachableCustomFolder(), isNull);
     });
   });
 }

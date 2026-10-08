@@ -44,8 +44,14 @@ void main() {
       // measured zero for junk input, which then binned the dive as the worst
       // band. Unknown visibility must stay unknown.
       expect(parseVisibilityInput('abc', metric), isNull);
-      expect(parseVisibilityInput('6,4', metric), isNull);
       expect(parseVisibilityInput('--', metric), isNull);
+    });
+
+    test('reads a lone wrong decimal separator as the diver meant it', () {
+      // Under #1091 "6,4" on an English device was rejected rather than
+      // misread as 64. Smart parsing (#1876, #1900) reads the single comma
+      // with a non-three-digit tail as the decimal separator: 6.4, not 64.
+      expect(parseVisibilityInput('6,4', metric), closeTo(6.4, 0.0001));
     });
 
     test('returns null for a negative entry', () {

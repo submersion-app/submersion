@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:csv/csv.dart';
 
 import 'package:submersion/core/services/export/csv/codec/submersion_csv_signatures.dart';
+import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_signature.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 
@@ -60,6 +61,10 @@ class FormatDetector {
     final xmlResult = _detectXml(textContent);
     if (xmlResult != null) return xmlResult;
 
+    // 2a. Suunto app JSON export (a hand-off to the Suunto importer)
+    final suuntoJsonResult = _detectSuuntoJson(textContent);
+    if (suuntoJsonResult != null) return suuntoJsonResult;
+
     // 2b. DAN DL7 pipe-segment detection (plain text, not XML)
     final dl7Result = _detectDl7(textContent);
     if (dl7Result != null) return dl7Result;
@@ -73,6 +78,25 @@ class FormatDetector {
       format: ImportFormat.unknown,
       confidence: 0.0,
       warnings: ['Could not identify file format'],
+    );
+  }
+
+  // ======================== Suunto JSON Detection ========================
+
+  /// The Suunto app's JSON export (`DeviceLog`) or a saved cloud export
+  /// (`suunto/sml`), issue #1445. Matched on the opening brace plus a
+  /// Suunto-only key in the peeked text, since a full export runs to
+  /// megabytes and is never decoded here.
+  DetectionResult? _detectSuuntoJson(String text) {
+    final body = (text.startsWith(_bom) ? text.substring(1) : text).trimLeft();
+    if (!body.startsWith('{')) return null;
+    if (!body.contains('"DeviceLog"') && !body.contains('"suunto/sml"')) {
+      return null;
+    }
+    return const DetectionResult(
+      format: ImportFormat.suuntoJson,
+      sourceApp: SourceApp.suunto,
+      confidence: 0.95,
     );
   }
 
@@ -295,6 +319,23 @@ class FormatDetector {
 
     if (headers.isEmpty || headers.length < 2) return null;
 
+    // A Seacraft ENC navigation console log ahead of every app-scoring
+    // heuristic below: it carries no dive data at all (spec
+    // 2026-09-10-underwater-nav-track-design.md), so it must never be
+    // scored as -- or fall through to -- a generic dive CSV. Checked
+    // against the raw header text (not `headers`, which is already
+    // lower-cased and trimmed by the caller): `looksLikeSeacraftEnc`
+    // normalizes on its own and this keeps that one signature function the
+    // single source of truth for every entry point.
+    final untrimmedHeaders = rows.first.map((e) => e.toString()).toList();
+    if (looksLikeSeacraftEnc(untrimmedHeaders)) {
+      return DetectionResult(
+        format: ImportFormat.navTrack,
+        confidence: 1.0,
+        csvHeaders: rows.first.map((e) => e.toString().trim()).toList(),
+      );
+    }
+
     // Submersion's own exports carry their full column set, so they are
     // recognised exactly and routed to their dedicated parsers (#1813).
     final rawHeaders = rows.first.map((e) => e.toString().trim()).toList();
@@ -305,6 +346,7 @@ class FormatDetector {
           SubmersionCsvKind.dives => ImportFormat.submersionDivesCsv,
           SubmersionCsvKind.sites => ImportFormat.submersionSitesCsv,
           SubmersionCsvKind.equipment => ImportFormat.submersionEquipmentCsv,
+          SubmersionCsvKind.fills => ImportFormat.submersionFillsCsv,
         },
         sourceApp: SourceApp.submersion,
         confidence: 1.0,

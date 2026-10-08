@@ -52,19 +52,75 @@ const List<_OwnedTable> _ownedTables = [
     children: [],
   ),
   (
+    table: 'cylinder_fills',
+    entityType: 'cylinderFills',
+    hasBuiltIns: false,
+    children: [],
+  ),
+  (
+    table: 'saved_queries',
+    entityType: 'savedQueries',
+    hasBuiltIns: false,
+    children: [],
+  ),
+  (
+    table: 'nav_tracks',
+    entityType: 'navTracks',
+    hasBuiltIns: false,
+    children: [],
+  ),
+  (
     table: 'dive_roles',
     entityType: 'diveRoles',
     hasBuiltIns: true,
     children: [],
   ),
-  // Segments before tanks: a segment's tank_id has no ON DELETE action. The
-  // plan's equipment links cascade, here and on a peer applying the plan's
-  // tombstone, as DivePlanRepository.deletePlan leaves them.
+  // Built-in currency rules belong to the device, not the diver, and stay.
+  // Prefs and events hang off certifications and go with them.
+  (
+    table: 'certification_currency_rules',
+    entityType: 'certificationCurrencyRules',
+    hasBuiltIns: true,
+    children: [],
+  ),
+  // Custom certification levels before agencies: a level names its agency
+  // by id (issue #690).
+  (
+    table: 'custom_certification_levels',
+    entityType: 'customCertificationLevels',
+    hasBuiltIns: false,
+    children: [],
+  ),
+  (
+    table: 'custom_certification_agencies',
+    entityType: 'customCertificationAgencies',
+    hasBuiltIns: false,
+    children: [],
+  ),
+  // Mission rows first (they reference only the plan), then segments before
+  // tanks: a segment's tank_id has no ON DELETE action. The plan's equipment
+  // links cascade, here and on a peer applying the plan's tombstone, as
+  // DivePlanRepository.deletePlan leaves them.
   (
     table: 'dive_plans',
     entityType: 'divePlans',
     hasBuiltIns: false,
     children: [
+      (
+        table: 'dive_plan_mission_legs',
+        entityType: 'divePlanMissionLegs',
+        parentColumn: 'plan_id',
+      ),
+      (
+        table: 'dive_plan_mission_members',
+        entityType: 'divePlanMissionMembers',
+        parentColumn: 'plan_id',
+      ),
+      (
+        table: 'dive_plan_missions',
+        entityType: 'divePlanMissions',
+        parentColumn: 'plan_id',
+      ),
       (
         table: 'dive_plan_segments',
         entityType: 'divePlanSegments',

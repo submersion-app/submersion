@@ -86,9 +86,12 @@ class _GasMixSelectorState extends ConsumerState<GasMixSelector> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 children: [
+                  // A chevron before its label shows the state, as the
+                  // dive list's group headers do: right while folded, down
+                  // once open. A down chevron here looked open (#2061).
                   ExcludeSemantics(
                     child: Icon(
-                      _showAdvanced ? Icons.expand_less : Icons.expand_more,
+                      _showAdvanced ? Icons.expand_more : Icons.chevron_right,
                       size: 20,
                       color: colorScheme.onSurfaceVariant,
                     ),

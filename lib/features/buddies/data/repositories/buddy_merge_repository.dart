@@ -7,6 +7,8 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 
 /// Snapshot of a DiveBuddies junction row for undo.
 class DiveBuddySnapshot {
@@ -56,6 +58,11 @@ class BuddyMergeSnapshot {
   final List<CertificationInstructorSnapshot> repointedCertifications;
   final List<CertificationOwnerSnapshot> repointedOwnerCerts;
 
+  /// The merged buddies' role rows before the merge, and every dive they
+  /// were linked to, so an undo can put the role sets back (issue #1221).
+  final List<DiveBuddyRole> roleRows;
+  final List<String> roleDiveIds;
+
   const BuddyMergeSnapshot({
     required this.originalSurvivor,
     required this.deletedBuddies,
@@ -63,6 +70,8 @@ class BuddyMergeSnapshot {
     required this.modifiedDiveBuddyEntries,
     this.repointedCertifications = const [],
     this.repointedOwnerCerts = const [],
+    this.roleRows = const [],
+    this.roleDiveIds = const [],
   });
 }
 
@@ -82,16 +91,8 @@ class BuddyMergeRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final CertificationRepository _certRepo = CertificationRepository();
+  final DiveRoleLinkRepository _roleLinks = DiveRoleLinkRepository();
   final _log = LoggerService.forClass(BuddyMergeRepository);
-
-  static const _roleRank = {
-    'solo': 0,
-    'student': 1,
-    'buddy': 2,
-    'diveGuide': 3,
-    'diveMaster': 4,
-    'instructor': 5,
-  };
 
   /// Look up a buddy by [id]. Returns null if not found.
   Future<domain.Buddy?> _getBuddyById(String id) async {
@@ -206,6 +207,21 @@ class BuddyMergeRepository {
           )
           .toList(growable: false);
 
+      // Role sets (#1221): captured before any write, both the raw rows for
+      // undo and the resolved sets the union below starts from.
+      final roleDiveIds = {
+        for (final row in allDiveBuddyRows) row.diveId,
+      }.toList(growable: false);
+      final roleRows = await (_db.select(
+        _db.diveBuddyRoles,
+      )..where((t) => t.buddyId.isIn(orderedIds))).get();
+      final roleSets = {
+        for (final entry in (await _roleLinks.buddyRoleIdsForDives(
+          roleDiveIds,
+        )).entries)
+          entry.key: {...entry.value},
+      };
+
       final deletedDiveBuddyEntries = <DiveBuddySnapshot>[];
       final modifiedDiveBuddyEntries = <DiveBuddySnapshot>[];
       // Track which survivor rows have already been snapshotted so that
@@ -250,6 +266,17 @@ class BuddyMergeRepository {
                 recordId: dupRow.id,
                 localUpdatedAt: now,
               );
+              // The duplicate's roles on this dive move with the link.
+              final moved =
+                  roleSets[dupRow.diveId]?[duplicateId] ?? [dupRow.role];
+              await _roleLinks.deleteBuddyRoles(dupRow.diveId, [duplicateId]);
+              await _roleLinks.writeBuddyRoles(
+                dupRow.diveId,
+                survivorId,
+                moved,
+                now: now,
+              );
+              (roleSets[dupRow.diveId] ??= {})[survivorId] = moved;
               // Update our local map so subsequent duplicates see updated state
               survivorDiveMap[dupRow.diveId] = DiveBuddy(
                 id: dupRow.id,
@@ -259,45 +286,42 @@ class BuddyMergeRepository {
                 createdAt: dupRow.createdAt,
               );
             } else {
-              // Collision: compare roles via hierarchy
-              final dupRank = _roleRank[dupRow.role] ?? 0;
-              final survivorRank = _roleRank[existingSurvivorRow.role] ?? 0;
-
-              if (dupRank > survivorRank) {
-                // Duplicate's role outranks survivor's - upgrade survivor entry.
-                // Only snapshot the original role the first time this row is
-                // modified, so 3+ merges don't record intermediate roles.
-                if (!modifiedRowIds.contains(existingSurvivorRow.id)) {
-                  modifiedRowIds.add(existingSurvivorRow.id);
-                  modifiedDiveBuddyEntries.add(
-                    DiveBuddySnapshot(
-                      id: existingSurvivorRow.id,
-                      diveId: existingSurvivorRow.diveId,
-                      buddyId: existingSurvivorRow.buddyId,
-                      role: existingSurvivorRow.role,
-                      createdAt: existingSurvivorRow.createdAt,
-                    ),
-                  );
-                }
-
-                await (_db.update(_db.diveBuddies)
-                      ..where((t) => t.id.equals(existingSurvivorRow.id)))
-                    .write(DiveBuddiesCompanion(role: Value(dupRow.role)));
-                await _syncRepository.markRecordPending(
-                  entityType: 'diveBuddies',
-                  recordId: existingSurvivorRow.id,
-                  localUpdatedAt: now,
-                );
-
-                // Update in-memory map so subsequent duplicates see the new role
-                survivorDiveMap[dupRow.diveId] = DiveBuddy(
-                  id: existingSurvivorRow.id,
-                  diveId: existingSurvivorRow.diveId,
-                  buddyId: existingSurvivorRow.buddyId,
-                  role: dupRow.role,
-                  createdAt: existingSurvivorRow.createdAt,
+              // Collision: the survivor keeps every role either held on
+              // this dive (issue #1221). Only snapshot the survivor row the
+              // first time it is modified, so 3+ merges don't record
+              // intermediate roles.
+              final union = DiveRoleSet.union([
+                roleSets[dupRow.diveId]?[survivorId] ??
+                    [existingSurvivorRow.role],
+                roleSets[dupRow.diveId]?[duplicateId] ?? [dupRow.role],
+              ]);
+              if (!modifiedRowIds.contains(existingSurvivorRow.id)) {
+                modifiedRowIds.add(existingSurvivorRow.id);
+                modifiedDiveBuddyEntries.add(
+                  DiveBuddySnapshot(
+                    id: existingSurvivorRow.id,
+                    diveId: existingSurvivorRow.diveId,
+                    buddyId: existingSurvivorRow.buddyId,
+                    role: existingSurvivorRow.role,
+                    createdAt: existingSurvivorRow.createdAt,
+                  ),
                 );
               }
+              await _roleLinks.deleteBuddyRoles(dupRow.diveId, [duplicateId]);
+              await _roleLinks.writeBuddyRoles(
+                dupRow.diveId,
+                survivorId,
+                union,
+                now: now,
+              );
+              (roleSets[dupRow.diveId] ??= {})[survivorId] = union;
+              survivorDiveMap[dupRow.diveId] = DiveBuddy(
+                id: existingSurvivorRow.id,
+                diveId: existingSurvivorRow.diveId,
+                buddyId: existingSurvivorRow.buddyId,
+                role: union.first,
+                createdAt: existingSurvivorRow.createdAt,
+              );
 
               // Delete the duplicate's junction entry
               deletedDiveBuddyEntries.add(
@@ -421,6 +445,8 @@ class BuddyMergeRepository {
           modifiedDiveBuddyEntries: modifiedDiveBuddyEntries,
           repointedCertifications: repointedCertifications,
           repointedOwnerCerts: repointedOwnerCerts,
+          roleRows: roleRows,
+          roleDiveIds: roleDiveIds,
         ),
       );
     } catch (e, stackTrace) {
@@ -512,6 +538,17 @@ class BuddyMergeRepository {
             localUpdatedAt: now,
           );
         }
+
+        // 4b. Restore the merged buddies' role rows (issue #1221), touching
+        // no other person's roles on those dives.
+        await _roleLinks.restoreRows(
+          diveIds: snapshot.roleDiveIds,
+          buddyRows: snapshot.roleRows,
+          onlyBuddyIds: {
+            snapshot.originalSurvivor.id,
+            for (final b in snapshot.deletedBuddies) b.id,
+          },
+        );
 
         // 5. Restore certification instructor links.
         for (final entry in snapshot.repointedCertifications) {

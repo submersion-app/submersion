@@ -19,6 +19,8 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.sidemount,
     CertificationLevel.rebreather,
     CertificationLevel.techDiver,
+    CertificationLevel.firstAid,
+    CertificationLevel.oxygenProvider,
   ];
 
   static const List<CertificationLevel> _genericLadder = [
@@ -180,6 +182,41 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.ffessmVideo3,
   ];
 
+  /// ACUC progression (issue #690), from ACUC's own course pages: entry,
+  /// recreational, leadership, then the instructor track.
+  static const List<CertificationLevel> _acucLadder = [
+    CertificationLevel.acucScubaDiver,
+    CertificationLevel.openWater,
+    CertificationLevel.acucAdvancedDiver,
+    CertificationLevel.acucRescueLeader,
+    CertificationLevel.masterDiver,
+    CertificationLevel.acucUnderwaterGuide,
+    CertificationLevel.acucTeachingAssistant,
+    CertificationLevel.acucOpenWaterInstructor,
+    CertificationLevel.acucAdvancedInstructor,
+    CertificationLevel.acucInstructorTrainer,
+    CertificationLevel.acucInstructorTrainerEvaluator,
+  ];
+
+  /// DAN issues first-aid and emergency credentials, not diver grades
+  /// (issue #690). The provider track, then the teaching track.
+  static const List<CertificationLevel> _danLadder = [
+    CertificationLevel.danBls,
+    CertificationLevel.danEmergencyOxygen,
+    CertificationLevel.danDfaPro,
+    CertificationLevel.danDemp,
+    CertificationLevel.danInstructor,
+    CertificationLevel.danInstructorTrainer,
+  ];
+
+  /// DAN's add-on provider courses. They replace the diving [specialties]
+  /// so DAN never offers "Trimix".
+  static const List<CertificationLevel> _danSpecialties = [
+    CertificationLevel.danAdvancedOxygen,
+    CertificationLevel.danNeurologicalAssessment,
+    CertificationLevel.danMarineLifeInjuries,
+  ];
+
   /// Core progression ladder for an agency, in rank order. A null agency
   /// (possible on buddies) behaves like [CertificationAgency.other].
   static List<CertificationLevel> ladderFor(CertificationAgency? agency) =>
@@ -195,6 +232,8 @@ abstract final class CertificationLevelCatalog {
         CertificationAgency.bsac => _bsacLadder,
         CertificationAgency.cmas => _cmasLadder,
         CertificationAgency.ffessm => _ffessmLadder,
+        CertificationAgency.acuc => _acucLadder,
+        CertificationAgency.dan => _danLadder,
         CertificationAgency.other || null => _genericLadder,
       };
 
@@ -203,9 +242,11 @@ abstract final class CertificationLevelCatalog {
   /// level that the ladder already lists.
   static List<CertificationLevel> specialtiesFor(CertificationAgency? agency) {
     final ladder = ladderFor(agency);
-    final pool = agency == CertificationAgency.ffessm
-        ? _ffessmSpecialties
-        : specialties;
+    final pool = switch (agency) {
+      CertificationAgency.ffessm => _ffessmSpecialties,
+      CertificationAgency.dan => _danSpecialties,
+      _ => specialties,
+    };
     return pool.where((s) => !ladder.contains(s)).toList();
   }
 

@@ -59,7 +59,7 @@ void main() {
     ) async {
       final repo = FakeAppSettingsRepository()
         ..navPrimaryIds = ['equipment', 'buddies', 'insights']
-        ..navRailIds = ['gps-log', 'planning', 'transfer'];
+        ..navRailIds = ['tracks', 'planning', 'transfer'];
 
       await _pumpTile(tester, width: 500, repo: repo);
 
@@ -71,11 +71,11 @@ void main() {
     ) async {
       final repo = FakeAppSettingsRepository()
         ..navPrimaryIds = ['equipment', 'buddies', 'insights']
-        ..navRailIds = ['gps-log', 'planning', 'transfer'];
+        ..navRailIds = ['tracks', 'planning', 'transfer'];
 
       await _pumpTile(tester, width: 900, repo: repo);
 
-      expect(find.text('GPS Log · Planning · Transfer'), findsOneWidget);
+      expect(find.text('Tracks · Planning · Transfer'), findsOneWidget);
     });
   });
 }

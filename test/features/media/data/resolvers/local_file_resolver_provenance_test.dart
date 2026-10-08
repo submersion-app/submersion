@@ -4,7 +4,6 @@ import 'dart:ui' show Size;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/resolvers/local_file_resolver.dart';
-import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
@@ -85,7 +84,6 @@ void main() {
     final resolver = LocalFileResolver(
       bookmarkStorage: LocalBookmarkStorage(),
       platform: LocalMediaPlatform(),
-      exifExtractor: ExifExtractor(),
       usesSecurityScopedBookmarks: () => false,
     );
 
@@ -100,7 +98,6 @@ void main() {
     final resolver = LocalFileResolver(
       bookmarkStorage: _StubBookmarkStorage(Uint8List.fromList(const [9])),
       platform: _StubPlatform(Uint8List.fromList(const [4, 5, 6])),
-      exifExtractor: ExifExtractor(),
       usesSecurityScopedBookmarks: () => true,
     );
 
@@ -117,7 +114,6 @@ void main() {
     final resolver = LocalFileResolver(
       bookmarkStorage: LocalBookmarkStorage(),
       platform: LocalMediaPlatform(),
-      exifExtractor: ExifExtractor(),
       videoThumbnails: _StubThumbs(Uint8List.fromList(const [8, 8])),
       usesSecurityScopedBookmarks: () => false,
     );
@@ -136,7 +132,6 @@ void main() {
     final resolver = LocalFileResolver(
       bookmarkStorage: LocalBookmarkStorage(),
       platform: LocalMediaPlatform(),
-      exifExtractor: ExifExtractor(),
       usesSecurityScopedBookmarks: () => false,
     );
 

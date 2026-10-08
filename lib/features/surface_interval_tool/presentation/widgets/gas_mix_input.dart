@@ -194,7 +194,7 @@ class _ModWarning extends ConsumerWidget {
                 safety.ppO2.toStringAsFixed(2),
                 units.formatDepth(safety.depthMeters, decimals: 0),
                 safety.limit.toStringAsFixed(2),
-                units.formatDepth(safety.modMeters, decimals: 0),
+                units.formatDepthFloor(safety.modMeters, decimals: 0),
               ),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onErrorContainer,

@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -38,19 +41,31 @@ final excludedDiveCountProvider = FutureProvider<int>((ref) async {
 });
 
 /// Overview totals scoped by the Insights filter. Kept separate from
-/// diveStatisticsProvider so the home dashboard and dive-log summary (which
-/// read diveStatisticsProvider) stay unfiltered.
+/// diveStatisticsProvider so the home dashboard (which reads
+/// diveStatisticsProvider) stays unfiltered, and from the dive-log summary
+/// (diveListScopedStatisticsProvider), which follows the dive list's own
+/// filter rather than this tab's.
 final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
   ref,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
-  // An attribute condition makes the totals read the gear tables (#1805).
-  if (filter.equipmentAttrConditions.isNotEmpty) {
-    ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
-  }
+  // ONE debounced tick over every table the query reads (`dives` and the
+  // `dive_sites` name join) plus every table the filter joins (#2365), so a
+  // site rename, an attribute-only or a junction-only write refreshes the
+  // totals once, never twice.
+  final touched = diveFilterTablesTouched(filter);
+  await awaitServiceStatusIfRead(ref, touched);
+  ref.invalidateSelfWhen(
+    repository.watchTables({
+      ...DiveRepository.statisticsTickTables,
+      ...touched,
+    }),
+  );
+  // "Dives This Year" reads the clock once per build (#2600), so a date
+  // change has to rebuild it too.
+  ref.invalidateSelfWhen(localDayChanges());
   return repository.getStatistics(diverId: currentDiverId, filter: filter);
 });
 
@@ -58,7 +73,7 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
 ///
 /// Split from diveRecordsProvider for the same reason
 /// [filteredDiveStatisticsProvider] is split from diveStatisticsProvider: the
-/// dive-log summary widget reads the unfiltered one and has no filter UI, so
+/// dive-log summary follows the dive list's filter, never this tab's, so
 /// the Insights tab's scope must not reach it. Issue #1028: before this
 /// split, the Insights tab's records were the only panel on the page that
 /// ignored the filter.
@@ -70,11 +85,18 @@ final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
-  // An attribute condition makes the records read the gear tables (#1805).
-  if (filter.equipmentAttrConditions.isNotEmpty) {
-    ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
-  }
+  // ONE debounced tick over every table the query reads (`dives` and the
+  // `dive_sites` name join) plus every table the filter joins (#2365), so a
+  // site rename, an attribute-only or a junction-only write refreshes the
+  // records once, never twice.
+  final touched = diveFilterTablesTouched(filter);
+  await awaitServiceStatusIfRead(ref, touched);
+  ref.invalidateSelfWhen(
+    repository.watchTables({
+      ...DiveRepository.statisticsTickTables,
+      ...touched,
+    }),
+  );
   return repository.getRecords(diverId: currentDiverId, filter: filter);
 });
 

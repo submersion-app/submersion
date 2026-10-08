@@ -8,8 +8,10 @@ enum TakenAtSource {
   /// `native_exif` read DateTimeOriginal. iOS and Android only.
   nativeExif,
 
-  /// The pure-Dart reader parsed JPEG EXIF or an MP4/MOV `mvhd` box. This is
-  /// the only tier that can date a file on macOS, Windows, or Linux.
+  /// The pure-Dart readers dated the file from its own metadata: JPEG/HEIC
+  /// EXIF, or a video's creationdate key, `©day` tag or `mvhd` header (see
+  /// `readVideoCaptureTime`). This is the only tier that can date a file on
+  /// macOS, Windows, or Linux.
   containerMetadata,
 
   /// Nothing could date the file, so its modification time was used. For most

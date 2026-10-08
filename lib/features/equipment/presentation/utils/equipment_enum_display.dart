@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Localized labels for the equipment enums shown on screen.
@@ -40,8 +41,14 @@ extension EquipmentTypeDisplay on EquipmentType {
     EquipmentType.weights => l10n.enum_equipmentType_weights,
     EquipmentType.light => l10n.enum_equipmentType_light,
     EquipmentType.camera => l10n.enum_equipmentType_camera,
+    EquipmentType.lens => l10n.enum_equipmentType_lens,
+    EquipmentType.port => l10n.enum_equipmentType_port,
     EquipmentType.housing => l10n.enum_equipmentType_housing,
+    EquipmentType.trayHandle => l10n.enum_equipmentType_trayHandle,
+    EquipmentType.armClamp => l10n.enum_equipmentType_armClamp,
     EquipmentType.strobe => l10n.enum_equipmentType_strobe,
+    EquipmentType.videoLight => l10n.enum_equipmentType_videoLight,
+    EquipmentType.floatArm => l10n.enum_equipmentType_floatArm,
     EquipmentType.smb => l10n.enum_equipmentType_smb,
     EquipmentType.reel => l10n.enum_equipmentType_reel,
     EquipmentType.knife => l10n.enum_equipmentType_knife,
@@ -50,10 +57,18 @@ extension EquipmentTypeDisplay on EquipmentType {
     EquipmentType.gloves => l10n.enum_equipmentType_gloves,
     EquipmentType.boots => l10n.enum_equipmentType_boots,
     EquipmentType.dpv => l10n.enum_equipmentType_dpv,
+    EquipmentType.bag => l10n.enum_equipmentType_bag,
     EquipmentType.o2Cell => l10n.enum_equipmentType_o2Cell,
     EquipmentType.battery => l10n.enum_equipmentType_battery,
     EquipmentType.other => l10n.enum_equipmentType_other,
   };
+}
+
+/// Orders a set of types the way a diver scans for one: alphabetically by
+/// the label on screen, in the active locale (#2937).
+extension EquipmentTypeListDisplay on Iterable<EquipmentType> {
+  List<EquipmentType> sortedByLocalizedName(AppLocalizations l10n) =>
+      sortEquipmentTypesByLabel(this, (type) => type.localizedName(l10n));
 }
 
 extension EquipmentStatusDisplay on EquipmentStatus {
@@ -66,5 +81,6 @@ extension EquipmentStatusDisplay on EquipmentStatus {
     EquipmentStatus.sold => l10n.enum_equipmentStatus_sold,
     EquipmentStatus.loaned => l10n.enum_equipmentStatus_loaned,
     EquipmentStatus.lost => l10n.enum_equipmentStatus_lost,
+    EquipmentStatus.wanted => l10n.enum_equipmentStatus_wanted,
   };
 }

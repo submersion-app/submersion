@@ -115,13 +115,27 @@ class _EncryptionSettingsSectionState
         ListTile(
           leading: const Icon(Icons.lock_clock),
           title: Text(l10n.settings_cloudSync_encryption_statusLocked),
-          subtitle: Text(
-            l10n.settings_cloudSync_encryption_statusLockedSubtitle,
+          subtitle: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.settings_cloudSync_encryption_statusLockedSubtitle),
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: FilledButton.tonal(
+                  style: FilledButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed: () => _unlock(context),
+                  child: Text(
+                    l10n.settings_cloudSync_encryption_enterPassphrase,
+                  ),
+                ),
+              ),
+            ],
           ),
-          trailing: FilledButton.tonal(
-            onPressed: () => _unlock(context),
-            child: Text(l10n.settings_cloudSync_encryption_enterPassphrase),
-          ),
+          isThreeLine: true,
         ),
       );
     } else {

@@ -140,6 +140,16 @@ object GattDiagnostics {
     }
 
     /**
+     * Warning for a command write a read-poll computer rejected on a live
+     * link, which BleIoStream reports to libdivecomputer as sent (issue
+     * #1454; see [ReadPollPolicy.writeOutcome]).
+     */
+    fun describeRejectedReadPollWrite(status: Int, size: Int): String =
+        "write: the computer rejected a $size-byte command " +
+            "(status=$status, ${describeAttStatus(status)}); " +
+            "treating it as sent and reading the reply"
+
+    /**
      * Reason for a status delivered by
      * [android.bluetooth.BluetoothGattCallback.onConnectionStateChange],
      * which reads in the HCI connection space rather than the ATT one.
@@ -265,7 +275,8 @@ object GattDiagnostics {
                 "no services at all"
         }
         return "No discovered service carries both a write and a notify " +
-            "characteristic; ${serviceUuids.size} service(s) seen: " +
+            "characteristic, nor matches a known read-poll service; " +
+            "${serviceUuids.size} service(s) seen: " +
             serviceUuids.joinToString(", ")
     }
 }

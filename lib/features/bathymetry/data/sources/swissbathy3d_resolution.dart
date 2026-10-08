@@ -267,6 +267,14 @@ Future<List<RawEsriGrid>> _downloadAndParseFiltered(
   final zipBytes = await _downloadZipBytes(source, href, shared);
   try {
     final archive = ZipDecoder().decodeBytes(zipBytes);
+    // ZipDecoder reads bytes with no zip structure at all (an HTML error
+    // page served with HTTP 200) as an EMPTY archive instead of throwing.
+    // Every real swissBATHY3D asset holds at least one grid, so this is a
+    // bad download, not "this asset does not cover the tile": left to fall
+    // through, the tile would be cached as a permanent gap (issue #1770).
+    if (archive.isEmpty) {
+      throw const FormatException('swissBATHY3D asset is not a zip archive');
+    }
     final grids = <RawEsriGrid>[];
     for (final entry in _entriesNearTile(archive, tileE: tileE, tileN: tileN)) {
       grids.add(await _parsedEntry(href, entry, parsedEntries));

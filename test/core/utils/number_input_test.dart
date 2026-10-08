@@ -156,6 +156,61 @@ void main() {
       expect(formatDecimalForInput(12.345678), '12.345678');
       expect(formatDecimalForInput(2.7215420), anyOf('2.721542', '2.72154200'));
     });
+
+    test('drops floating-point noise from a percentage that round-tripped '
+        'through a fraction (#2032)', () {
+      // Every native bridge hands a gas mix over as fraction * 100, and the
+      // Shearwater parser built that fraction as percent / 100.0. The round
+      // trip misses the integer in both directions.
+      const heNoisyUp = 55 / 100.0 * 100.0;
+      const heNoisyDown = 29 / 100.0 * 100.0;
+      expect(heNoisyUp, isNot(55.0), reason: 'guard: the input must be noisy');
+      expect(
+        heNoisyDown,
+        isNot(29.0),
+        reason: 'guard: the input must be noisy',
+      );
+
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForInput(heNoisyUp), '55');
+      expect(formatDecimalForInput(heNoisyDown), '29');
+      expect(formatDecimalForInput(-heNoisyUp), '-55');
+      expect(formatDecimalForInput(0.1 + 0.2), '0.3');
+      Intl.defaultLocale = 'de';
+      expect(formatDecimalForInput(0.1 + 0.2), '0,3');
+    });
+
+    test('keeps every digit of a value with up to fifteen significant '
+        'digits', () {
+      // Fifteen is DBL_DIG: every decimal that short round-trips through a
+      // double exactly, so noise removal must never cost one of its digits.
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForInput(12.3456789012), '12.3456789012');
+      expect(formatDecimalForInput(-122.1234567), '-122.1234567');
+      expect(formatDecimalForInput(123456789.12345), '123456789.12345');
+      expect(formatDecimalForInput(123456789.123456), '123456789.123456');
+      expect(formatDecimalForInput(0.123456789012345), '0.123456789012345');
+    });
+
+    test('seeds negative zero as plain zero', () {
+      // A slightly negative value rounded to fixed decimals comes back as
+      // -0.0 ("-0.04" at one digit is "-0.0"), and "-0" is not a value any
+      // diver would type or expect to see in a field.
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForInput(-0.0), '0');
+      expect(formatRoundedForInput(-0.04, 1), '0');
+    });
+
+    test('drops noise left by a chained unit conversion', () {
+      // metres -> feet -> metres, the kind of multi-step path a seeded field
+      // can sit at the end of.
+      Intl.defaultLocale = 'en_US';
+      for (var tenths = 0; tenths <= 3000; tenths++) {
+        final metres = tenths / 10.0;
+        final seeded = formatDecimalForInput(metres * 3.28084 / 3.28084);
+        expect(seeded, formatDecimalForInput(metres), reason: '$metres m');
+      }
+    });
   });
 
   group('formatRoundedForInput', () {
@@ -324,6 +379,52 @@ void main() {
       Intl.defaultLocale = 'de';
       expect(smartParseUserDecimal(''), isNull);
       expect(smartParseUserDecimal('   '), isNull);
+    });
+  });
+
+  group('grouping separator after the decimal separator', () {
+    test('is unreadable rather than silently dropped', () {
+      // intl skips a grouping separator anywhere, so under de "12,5.6" read
+      // as 12.56: a number the diver never typed (#1900).
+      Intl.defaultLocale = 'de';
+      expect(parseUserDecimal('12,5.6'), isNull);
+      expect(parseUserDecimal('1.234,5.6'), isNull);
+      Intl.defaultLocale = 'en_US';
+      expect(parseUserDecimal('12.5,6'), isNull);
+    });
+
+    test('leaves well-formed grouping alone', () {
+      Intl.defaultLocale = 'de';
+      expect(parseUserDecimal('1.234,56'), 1234.56);
+    });
+  });
+
+  group('smartParseUserInt', () {
+    test('reads a whole number', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('42'), 42);
+    });
+
+    test('returns null for blank input', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('  '), isNull);
+    });
+
+    test('rejects a fraction, including a corrected wrong separator', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('12,5'), isNull);
+      // "12.5" is corrected to 12,5 by the smart parser, still a fraction.
+      expect(smartParseUserInt('12.5'), isNull);
+    });
+
+    test('accepts a corrected separator that yields a whole value', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('12.0'), 12);
+    });
+
+    test('returns null for garbage', () {
+      Intl.defaultLocale = 'en_US';
+      expect(smartParseUserInt('abc'), isNull);
     });
   });
 }

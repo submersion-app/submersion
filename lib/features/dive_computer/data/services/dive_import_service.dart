@@ -760,6 +760,7 @@ class DiveImportService {
       gfLow: dive.gfLow,
       gfHigh: dive.gfHigh,
       decoConservatism: dive.decoConservatism,
+      computerTissue: dive.computerTissue,
       diveMode: dive.diveMode,
       diluentO2: dive.diluentO2,
       diluentHe: dive.diluentHe,
@@ -782,6 +783,13 @@ class DiveImportService {
       // that log temperature only in the header (the Cressi Leonardo) have no
       // other route into the dive record.
       minTemperature: dive.minTemperature,
+      // A summary the source reported itself (Garmin Connect, issue #1798).
+      // All null for libdivecomputer downloads, which derive what they can.
+      bottomTimeSeconds: dive.bottomTimeSeconds,
+      surfaceIntervalSeconds: dive.surfaceIntervalSeconds,
+      waterType: dive.waterType,
+      cnsEnd: dive.cnsEnd,
+      otu: dive.otu,
     );
 
     return diveId;
@@ -820,7 +828,9 @@ class DiveImportService {
   /// Replace an existing dive's source data with a fresh download.
   ///
   /// Clears the old profile and data source rows for this computer, then
-  /// re-imports so the new raw bytes and parsed data are stored.
+  /// re-imports so the new raw bytes and parsed data are stored. Other
+  /// computers' readings of the dive are left alone, and this computer keeps
+  /// the primary or secondary role it had (#2582).
   Future<void> _updateExistingDive(
     DownloadedDive dive,
     String existingDiveId,
@@ -832,7 +842,7 @@ class DiveImportService {
   }) async {
     // Remove the existing profile + source row so importProfile won't
     // short-circuit on the "already exists" check.
-    await _repository.clearSourceAndProfiles(
+    final wasPrimary = await _repository.clearSourceAndProfiles(
       diveId: existingDiveId,
       computerId: computerId,
     );
@@ -840,9 +850,11 @@ class DiveImportService {
     final profilePoints = _parser.parseProfile(dive);
     final events = _convertEvents(dive.events);
     final gasSwitches = _parser.parseGasSwitches(dive);
-    // Tanks are passed (though importProfile does not re-create them for an
-    // existing dive) so gas switches can be matched to the existing cylinders
-    // by gas mix rather than by a possibly-stale cylinder index.
+    // Tanks are passed so gas switches can be matched to the existing
+    // cylinders by gas mix rather than by a possibly-stale cylinder index.
+    // importProfile keeps the stored cylinders, which may be the diver's
+    // edits, and adds only those this parse reports at an index none of them
+    // holds, such as a sidemount pair's second transmitter (#2517).
     final tanks = _parser.parseTanks(dive);
 
     // Re-import using the existing dive's start time so that importProfile
@@ -854,12 +866,14 @@ class DiveImportService {
       durationSeconds: dive.durationSeconds,
       maxDepth: dive.maxDepth,
       avgDepth: dive.avgDepth,
-      isPrimary: true,
+      // A dive left with no reading makes this one primary regardless.
+      isPrimary: wasPrimary,
       tanks: tanks,
       decoAlgorithm: dive.decoAlgorithm,
       gfLow: dive.gfLow,
       gfHigh: dive.gfHigh,
       decoConservatism: dive.decoConservatism,
+      computerTissue: dive.computerTissue,
       diveMode: dive.diveMode,
       diluentO2: dive.diluentO2,
       diluentHe: dive.diluentHe,
@@ -880,6 +894,13 @@ class DiveImportService {
       // that log temperature only in the header (the Cressi Leonardo) have no
       // other route into the dive record.
       minTemperature: dive.minTemperature,
+      // Only the source row takes these on an existing dive (issue #1798).
+      bottomTimeSeconds: dive.bottomTimeSeconds,
+      surfaceIntervalSeconds: dive.surfaceIntervalSeconds,
+      waterType: dive.waterType,
+      cnsEnd: dive.cnsEnd,
+      otu: dive.otu,
+      addMissingTanks: true,
     );
   }
 
@@ -928,6 +949,11 @@ class DiveImportService {
       exitLatitude: dive.exitLatitude,
       exitLongitude: dive.exitLongitude,
       minTemperature: dive.minTemperature,
+      bottomTimeSeconds: dive.bottomTimeSeconds,
+      surfaceIntervalSeconds: dive.surfaceIntervalSeconds,
+      waterType: dive.waterType,
+      cnsEnd: dive.cnsEnd,
+      otu: dive.otu,
       targetDiveId: plannedDiveId,
     );
     if (attachedTo != plannedDiveId) {

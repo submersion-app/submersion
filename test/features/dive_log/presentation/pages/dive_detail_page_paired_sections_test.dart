@@ -233,6 +233,16 @@ TideRecord _tideRecord(String diveId) => TideRecord(
   createdAt: DateTime.utc(2026, 3, 15, 12),
 );
 
+/// [dive] at a Reykjavik site. Tide cards need site coordinates, and
+/// Iceland keeps UTC all year, so stored times print verbatim.
+Dive _atUtcSite(Dive dive) => dive.copyWith(
+  site: const DiveSite(
+    id: 'site-reykjavik',
+    name: 'Reykjavik',
+    location: GeoPoint(64.15, -21.95),
+  ),
+);
+
 /// Overrides the healed tide record for [dive]; [record] null = no tide data.
 Override _tideOverride(Dive dive, TideRecord? record) =>
     healedTideRecordProvider((
@@ -260,7 +270,7 @@ final _buddy = BuddyWithRole(
     createdAt: DateTime(2026, 1, 1),
     updatedAt: DateTime(2026, 1, 1),
   ),
-  role: DiveRole.builtInBuddy(),
+  roles: [DiveRole.builtInBuddy()],
 );
 
 void main() {
@@ -504,7 +514,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _diveWithGps('gps-tide-wide');
+      final dive = _atUtcSite(_diveWithGps('gps-tide-wide'));
       final settings = _settingsWithOrder([
         DiveDetailSectionId.surfaceGps,
         DiveDetailSectionId.tide,
@@ -545,7 +555,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _diveWithGps('gps-tide-gap');
+      final dive = _atUtcSite(_diveWithGps('gps-tide-gap'));
       // The pre-existing default order, which every upgrading user has saved.
       final settings = _settingsWithOrder([
         DiveDetailSectionId.tide,
@@ -578,7 +588,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(700, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _diveWithGps('gps-tide-narrow');
+      final dive = _atUtcSite(_diveWithGps('gps-tide-narrow'));
       final settings = _settingsWithOrder([
         DiveDetailSectionId.surfaceGps,
         DiveDetailSectionId.tide,
@@ -606,7 +616,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = _diveWithGps('gps-no-tide');
+      final dive = _atUtcSite(_diveWithGps('gps-no-tide'));
       final settings = _settingsWithOrder([
         DiveDetailSectionId.surfaceGps,
         DiveDetailSectionId.tide,
@@ -629,11 +639,18 @@ void main() {
       expect(find.text('Tide'), findsNothing);
     });
 
-    testWidgets('no pairing when the dive has no GPS fixes', (tester) async {
+    // Tide needs site coordinates, and those alone now give the location
+    // card a map (issue #402), so a dive with no GPS fix still pairs: the
+    // card is titled Location rather than Surface GPS.
+    testWidgets('a dive with no GPS fix pairs its Location card with Tide', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      final dive = Dive(id: 'no-gps', dateTime: DateTime(2026, 3, 15, 10, 0));
+      final dive = _atUtcSite(
+        Dive(id: 'no-gps', dateTime: DateTime(2026, 3, 15, 10, 0)),
+      );
       final settings = _settingsWithOrder([
         DiveDetailSectionId.surfaceGps,
         DiveDetailSectionId.tide,
@@ -651,9 +668,24 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(ResponsiveSectionPair), findsNothing);
-      expect(find.byType(SurfaceGpsSection), findsNothing);
-      expect(find.text('Tide'), findsOneWidget);
+      expect(find.byType(ResponsiveSectionPair), findsOneWidget);
+      expect(
+        find.ancestor(
+          of: find.byType(SurfaceGpsSection),
+          matching: find.byType(ResponsiveSectionPair),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Surface GPS'), findsNothing);
+      final locationPos = tester.getTopLeft(
+        find.descendant(
+          of: find.byType(SurfaceGpsSection),
+          matching: find.text('Location'),
+        ),
+      );
+      final tidePos = tester.getTopLeft(find.text('Tide'));
+      expect(locationPos.dx, lessThan(tidePos.dx));
+      expect((locationPos.dy - tidePos.dy).abs(), lessThan(4));
     });
   });
 
@@ -902,6 +934,94 @@ void main() {
       expect(find.byType(ResponsiveSectionPair), findsNothing);
       expect(find.text('Cylinders'), findsOneWidget);
       expect(find.text(_sacTitle), findsNothing);
+    });
+  });
+
+  group('Weight names (#956)', () {
+    testWidgets('a named weight shows its name before its placement', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final base = _diveWithGasAndWeights('weights-named');
+      final dive = base.copyWith(
+        weights: [
+          base.weights.single.copyWith(label: 'Top pocket'),
+          DiveWeight(
+            id: 'w2',
+            diveId: base.id,
+            weightType: WeightType.trimWeights,
+            amountKg: 1,
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: _settingsWithOrder([DiveDetailSectionId.weights]),
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, buoyancyOutcome()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Top pocket · Weight Belt', findRichText: true),
+        findsOneWidget,
+      );
+      expect(find.text('Trim Weights'), findsOneWidget);
+    });
+
+    testWidgets('a legacy single weight shows its placement', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndWeights('weights-legacy').copyWith(
+        weights: const [],
+        weightAmount: 5.0,
+        weightType: WeightType.ankleWeights,
+      );
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: _settingsWithOrder([DiveDetailSectionId.weights]),
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, buoyancyOutcome()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ankle Weights'), findsOneWidget);
+    });
+
+    testWidgets('a legacy weight with no type falls back to "Weight"', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(1000, 3000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final dive = _diveWithGasAndWeights(
+        'weights-legacy-untyped',
+      ).copyWith(weights: const [], weightAmount: 5.0);
+      await tester.pumpWidget(
+        _buildTestWidget(
+          dive: dive,
+          settings: _settingsWithOrder([DiveDetailSectionId.weights]),
+          extraOverrides: [
+            ..._renderOverrides(dive.id, prefs),
+            _buoyancyOverride(dive, buoyancyOutcome()),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The card title and the row title.
+      expect(find.text('Weight'), findsNWidgets(2));
     });
   });
 
