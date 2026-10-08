@@ -20,7 +20,7 @@ light or dark mode, the navigation layout, and service reminders.
 | **Units** | Units, gas consumption, date and time formats |
 | **Decompression** | Gradient factors, oxygen limits, data sources, narcosis |
 | **Appearance** | Theme, language, maps, navigation, Home screen and section layouts |
-| **Notifications** | Service reminders; see [Equipment](equipment.md) |
+| **Notifications** | Service reminders; see [Equipment](equipment.md#service-reminders) |
 | **Manage** | Dive types, presets, catalogs and other reusable lists |
 | **Data** | Backup, sync, storage, import preferences and data tools |
 | **Safety** | The post-dive review, flying after diving and equipment condition; see [Safety](safety.md) |
@@ -170,7 +170,7 @@ page. What you can set depends on the area:
 Service reminders for your gear, on iOS and Android: whether they are on, how
 many days before service is due, the time of day, and how long before a trip to
 warn about gear that falls due. See
-[Equipment](equipment.md).
+[Equipment](equipment.md#service-reminders).
 
 ## Manage
 

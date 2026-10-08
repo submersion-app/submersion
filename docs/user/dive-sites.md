@@ -61,7 +61,7 @@ Record the site's altitude above sea level in metres (or feet if you use imperia
 
 ### Site types and tags
 
-**Site types** describe the kind of site: reef, wreck, cave, and so on. Pick one or more from the built-in types or your own; **Manage types** (also **Settings > Manage > Site Types**) adds, renames or hides them. **Tags** work as they do for dives (see [Logging Dives](dive-logging.md)).
+**Site types** describe the kind of site: reef, wreck, cave, and so on. Pick one or more from the built-in types or your own; **Manage types** (also **Settings > Manage > Site Types**) adds, renames or hides them. **Tags** work as they do for dives (see [Logging Dives](dive-logging.md#tags-and-dive-types)).
 
 ### Life and notes
 

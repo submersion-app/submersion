@@ -19,7 +19,7 @@ own dives.
 The rig composer is the top half of the tool:
 
 - **Equipment:** tap **Add gear** for individual items, or **Use set** to pull
-  in a whole [equipment set](equipment.md) at once. Your exposure suit is the
+  in a whole [equipment set](equipment.md#equipment-sets) at once. Your exposure suit is the
   single biggest term, so start there.
 - **Tanks:** tap **Add tank** for one or more tanks from your presets. Material
   and size matter: an aluminium cylinder is noticeably buoyant when it is nearly
