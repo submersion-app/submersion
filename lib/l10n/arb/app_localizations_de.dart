@@ -12032,7 +12032,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_certificationAgency_dan => 'DAN';
 
   @override
-  String get enum_certificationAgency_gue => 'GÜ';
+  String get enum_certificationAgency_gue => 'GUE';
 
   @override
   String get enum_certificationAgency_iantd => 'IANTD';

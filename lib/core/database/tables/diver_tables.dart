@@ -178,8 +178,10 @@ class DiverSettings extends Table {
   BoolColumn get applyDefaultTankToImports =>
       boolean().withDefault(const Constant(false))();
   // Decompression settings
-  IntColumn get gfLow => integer().withDefault(const Constant(30))();
-  IntColumn get gfHigh => integer().withDefault(const Constant(70))();
+  // The app's default (AppSettings, GF 50/85, the Medium preset). Every
+  // insert names its values; this is the fallback for one that does not.
+  IntColumn get gfLow => integer().withDefault(const Constant(50))();
+  IntColumn get gfHigh => integer().withDefault(const Constant(85))();
   RealColumn get ppO2MaxWorking => real().withDefault(const Constant(1.4))();
   RealColumn get ppO2MaxDeco => real().withDefault(const Constant(1.6))();
   // CCR ppO2 limits (v231, issue #2342): the diver's default setpoints and

@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -669,6 +670,7 @@ class _DistributionsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final diveTypesAsync = ref.watch(diveTypeDistributionProvider);
+    final typesById = watchDiveTypesById(ref);
 
     final depthChart = _DepthPieCard(
       depthDistribution: stats.depthDistribution,
@@ -687,7 +689,11 @@ class _DistributionsSection extends ConsumerWidget {
       data: (diveTypes) => _TypePieCard(
         diveTypes: localizeDistribution(
           diveTypes,
-          (key) => diveTypeDistributionLabel(key, context.l10n),
+          (key) => diveTypeDistributionLabel(
+            key,
+            context.l10n,
+            typesById: typesById,
+          ),
         ),
       ),
     );
@@ -780,7 +786,11 @@ class _DistributionsSection extends ConsumerWidget {
               ),
               for (final (index, segment) in typeStats.indexed)
                 _DistributionBarRow(
-                  label: diveTypeDistributionLabel(segment.label, context.l10n),
+                  label: diveTypeDistributionLabel(
+                    segment.label,
+                    context.l10n,
+                    typesById: typesById,
+                  ),
                   count: segment.count,
                   totalDurationSeconds: segment.totalDurationSeconds,
                   color: _typeColors[index % _typeColors.length],

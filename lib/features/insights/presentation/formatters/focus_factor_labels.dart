@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
@@ -72,12 +73,16 @@ String focusNumericDifference(
 
 /// Display text for one category value, from the stable key the repository
 /// and the analyzer emit.
+///
+/// [typesById] (the loaded `dive_types` rows) is only consulted for
+/// [FocusFactorId.diveType]; see [diveTypeDistributionLabel].
 String focusCategoryLabel(
   FocusFactorId id,
   CategoryShare share,
   AppLocalizations l10n,
-  UnitFormatter units,
-) {
+  UnitFormatter units, {
+  Map<String, DiveTypeEntity>? typesById,
+}) {
   final key = share.key;
   switch (id) {
     case FocusFactorId.visibility:
@@ -104,7 +109,7 @@ String focusCategoryLabel(
     case FocusFactorId.site:
       return share.label ?? key;
     case FocusFactorId.diveType:
-      return diveTypeDistributionLabel(key, l10n);
+      return diveTypeDistributionLabel(key, l10n, typesById: typesById);
     case FocusFactorId.gas:
       return switch (key) {
         'air' => l10n.insights_focus_gas_air,

@@ -1118,7 +1118,7 @@ setting with no reason to be per diver can live in SharedPreferences instead
 
 When a change moves a setting between synced and device-local, in this table,
 the `settings` table, or SharedPreferences, update the
-[What Syncs Between Devices](../user/guide/multi-device-sync.md#what-syncs-between-devices) section of the user
+[What Syncs Between Devices](../user/multi-device-sync.md#what-syncs-between-devices) section of the Multi-Device Sync page of the user
 guide in the same PR.
 
 ## Sync Tables

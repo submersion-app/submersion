@@ -15,39 +15,41 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// actually changed.
 typedef DiveTypeLabelResolver = String Function(String id);
 
-/// Builds a [DiveTypeLabelResolver] from the currently loaded dive types.
+/// The currently loaded dive types, keyed by id.
 ///
-/// Call once per list, above the item builder, and pass the result down. The
-/// lookup map is then built once for the whole list instead of once per row,
-/// and only the calling widget subscribes to `diveTypesProvider`.
+/// Call once per list or section, above the item builder, and pass the
+/// result down (or build a resolver from it) so the lookup map is built
+/// once instead of once per row, and only the calling widget subscribes to
+/// `diveTypesByIdProvider`.
+///
+/// A thin sync wrapper around [diveTypesByIdProvider] rather than a second
+/// map built from [diveTypesProvider] directly: the two must stay the same
+/// map, not two parallel copies of the same `{for (t in types) t.id: t}`.
 ///
 /// Types that have not loaded yet yield an empty map, which is not an error:
 /// [diveTypeLabel] falls through to the built-in localization table, so
 /// built-in slugs still render translated on the first frame.
+Map<String, DiveTypeEntity> watchDiveTypesById(WidgetRef ref) =>
+    ref.watch(diveTypesByIdProvider).value ?? const <String, DiveTypeEntity>{};
+
+/// Builds a [DiveTypeLabelResolver] from the currently loaded dive types.
+/// Same call-once-per-list contract as [watchDiveTypesById].
 DiveTypeLabelResolver watchDiveTypeLabelResolver(
   WidgetRef ref,
   AppLocalizations l10n,
 ) {
-  final typesById = {
-    for (final t
-        in ref.watch(diveTypesProvider).value ?? const <DiveTypeEntity>[])
-      t.id: t,
-  };
+  final typesById = watchDiveTypesById(ref);
   return (id) => diveTypeLabel(l10n, id, typesById: typesById);
 }
 
 /// Short-form counterpart to [watchDiveTypeLabelResolver], for space
 /// -constrained surfaces like list-row type badges. Same call-once-per-list
-/// contract and empty-map-before-load fallback.
+/// contract as [watchDiveTypesById].
 DiveTypeLabelResolver watchDiveTypeShortLabelResolver(
   WidgetRef ref,
   AppLocalizations l10n,
 ) {
-  final typesById = {
-    for (final t
-        in ref.watch(diveTypesProvider).value ?? const <DiveTypeEntity>[])
-      t.id: t,
-  };
+  final typesById = watchDiveTypesById(ref);
   return (id) => diveTypeShortLabel(l10n, id, typesById: typesById);
 }
 
@@ -66,10 +68,6 @@ typedef DiveTypeListVisibilityPredicate = bool Function(String id);
 DiveTypeListVisibilityPredicate watchDiveTypeListVisibilityPredicate(
   WidgetRef ref,
 ) {
-  final typesById = {
-    for (final t
-        in ref.watch(diveTypesProvider).value ?? const <DiveTypeEntity>[])
-      t.id: t,
-  };
+  final typesById = watchDiveTypesById(ref);
   return (id) => typesById[id]?.showInListView ?? true;
 }

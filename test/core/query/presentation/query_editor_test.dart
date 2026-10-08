@@ -139,4 +139,38 @@ void main() {
     await tester.pumpWidget(host(null, (_) {}));
     expect(find.text('Save query'), findsNothing);
   });
+
+  // #3076: a Row with Save beside the tabs squeezed "Builder" behind the
+  // button on any narrow host (a phone sheet, the Refine panel's fixed
+  // 440dp desktop side panel). Save always sits in its own row below the
+  // tabs now, so neither label is ever hidden, regardless of width.
+  testWidgets('the save button sits below the tab bar, never beside it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 320,
+            child: SingleChildScrollView(
+              child: QueryEditor(
+                context: context,
+                value: null,
+                onChanged: (_) {},
+                strings: strings,
+                onSave: () {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Text'), findsOneWidget);
+    expect(find.text('Builder'), findsOneWidget);
+    expect(find.text('Save query'), findsOneWidget);
+    final tabBarBottom = tester.getBottomLeft(find.byType(TabBar)).dy;
+    final saveTop = tester.getTopLeft(find.text('Save query')).dy;
+    expect(saveTop, greaterThanOrEqualTo(tabBarBottom));
+  });
 }

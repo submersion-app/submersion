@@ -14,8 +14,9 @@ By participating in this project, you agree to abide by our
   and app version.
 - **Suggest a feature** — check the [roadmap](docs/contributing/roadmap.md)
   first, then [start a discussion](https://github.com/submersion-app/submersion/discussions).
-- **Improve documentation** — the `docs/` directory powers the developer guide
-  and the published site.
+- **Improve documentation**: the user guide is the Markdown in `docs/user/`,
+  published at [submersion.app/guide](https://submersion.app/guide/) once
+  merged; developer docs are the rest of `docs/`.
 - **Report a security issue** — please do *not* open a public issue. Follow the
   [Security Policy](SECURITY.md) instead.
 - **Submit code** — see the workflow below.

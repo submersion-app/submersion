@@ -60,7 +60,7 @@ class LinkTests(unittest.TestCase):
 
     def test_excluded_trees_are_not_checked(self):
         write(self.root, "docs/design/specs/a.md", "[x](../../lib/gone.dart)\n")
-        write(self.root, "docs/user/guide/a.md", "[x](guide/gone.md)\n")
+        write(self.root, "docs/design/plans/b.md", "[x](gone.md)\n")
         self.assertEqual(guard.check_links(self.root), [])
 
     def test_root_relative_link_resolves_from_repo_root(self):
@@ -207,6 +207,122 @@ class RetiredTests(unittest.TestCase):
         self.assertEqual(len(failures), 2)
         self.assertIn("docs/design/", failures[0])
         self.assertIn("docs/design/", failures[1])
+
+
+class UserDocsTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = self._tmp.name
+        self.addCleanup(self._tmp.cleanup)
+        write(self.root, "docs/user/README.md", "# Home\n")
+        write(self.root, "docs/user/_sidebar.md", "* [Home](README.md)\n* [Sites](dive-sites.md)\n")
+        write(self.root, "docs/user/dive-sites.md", "# Dive Sites\n\n## Maps & Layers\n")
+
+    def test_valid_tree_passes(self):
+        self.assertEqual(guard.check_user_docs(self.root), [])
+
+    def test_no_user_docs_folder_passes(self):
+        with tempfile.TemporaryDirectory() as root:
+            self.assertEqual(guard.check_user_docs(root), [])
+
+    def test_subfolder_fails(self):
+        write(self.root, "docs/user/guide/old.md")
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("flat", failures[0])
+
+    def test_images_folder_is_allowed_but_not_for_pages(self):
+        write(self.root, "docs/user/images/shot.png")
+        self.assertEqual(guard.check_user_docs(self.root), [])
+        write(self.root, "docs/user/images/stray.md")
+        self.assertEqual(len(guard.check_user_docs(self.root)), 1)
+
+    def test_page_missing_from_sidebar_fails(self):
+        write(self.root, "docs/user/trips.md", "# Trips\n")
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("trips.md", failures[0])
+
+    def test_same_page_and_cross_page_anchors_resolve(self):
+        write(
+            self.root,
+            "docs/user/README.md",
+            "# Home\n\n## Getting Started\n\n[a](#getting-started) "
+            "[b](dive-sites.md#maps--layers)\n",
+        )
+        self.assertEqual(guard.check_user_docs(self.root), [])
+
+    def test_missing_anchor_fails(self):
+        write(self.root, "docs/user/README.md", "# Home\n\n[a](#nowhere) [b](dive-sites.md#gone)\n")
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 2)
+        self.assertIn("#nowhere", failures[0])
+
+    def test_github_slug_rules(self):
+        self.assertEqual(guard.github_slug("Security & Privacy"), "security--privacy")
+        self.assertEqual(guard.github_slug("Use `ppO2` limits"), "use-ppo2-limits")
+        self.assertEqual(guard.github_slug("See [Sites](dive-sites.md) **now**"), "see-sites-now")
+        self.assertEqual(guard.github_slug("Tanks &mdash; or gear?"), "tanks--or-gear")
+
+    def test_repeated_heading_gets_a_suffix(self):
+        write(self.root, "docs/user/README.md", "# Home\n\n## Notes\n\n## Notes\n\n[a](#notes-1)\n")
+        self.assertEqual(guard.check_user_docs(self.root), [])
+
+    def test_link_to_digit_leading_heading_fails(self):
+        write(
+            self.root,
+            "docs/user/README.md",
+            "# Home\n\n## 1. Enable R2\n\n## 2. Create a bucket\n\n[a](#1-enable-r2)\n",
+        )
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("'_1-enable-r2'", failures[0])
+
+    def test_docsify_slug_rules(self):
+        # docsify 5 drops only its fixed punctuation set and lowercases A-Z.
+        self.assertEqual(guard.docsify_slug("Security & Privacy"), "security--privacy")
+        self.assertEqual(guard.docsify_slug("Depth \u2265 30 m"), "depth-\u2265-30-m")
+        self.assertEqual(guard.docsify_slug("\u00dcber Gas"), "\u00dcber-gas")
+        self.assertEqual(guard.docsify_slug("1. Enable R2"), "_1-enable-r2")
+
+    def test_link_to_heading_docsify_slugs_differently_fails(self):
+        write(self.root, "docs/user/README.md", "# Home\n\n## Depth \u2265 30 m\n\n[a](#depth--30-m)\n")
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("docsify", failures[0])
+
+    def test_external_sidebar_link_does_not_count_as_a_page(self):
+        write(
+            self.root,
+            "docs/user/_sidebar.md",
+            "* [Home](README.md)\n* [Sites](dive-sites.md)\n"
+            "* [Spec](https://github.com/o/r/blob/main/trips.md)\n",
+        )
+        write(self.root, "docs/user/trips.md", "# Trips\n")
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("trips.md", failures[0])
+
+    def test_stray_file_beside_the_pages_fails(self):
+        write(self.root, "docs/user/shot.png")
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("images/", failures[0])
+
+    def test_links_outside_user_docs_are_left_to_check_links(self):
+        write(self.root, "docs/user/README.md", "# Home\n\n[a](../developer/x.md#y) [b](https://e.org/a#b)\n")
+        self.assertEqual(guard.check_user_docs(self.root), [])
+
+    def test_raw_relative_html_link_or_image_fails(self):
+        write(
+            self.root,
+            "docs/user/README.md",
+            '# Home\n\n<a href="dive-sites.md">Sites</a>\n<img src="images/x.png" alt="x">\n'
+            '<a href="https://example.com">ok</a>\n',
+        )
+        failures = guard.check_user_docs(self.root)
+        self.assertEqual(len(failures), 2)
+        self.assertIn("Markdown", failures[0])
 
 
 class MainTests(unittest.TestCase):

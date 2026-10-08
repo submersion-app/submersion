@@ -3649,7 +3649,7 @@
   "enum_certificationAgency_ffessm": "FFESSM",
   "enum_certificationAgency_acuc": "ACUC",
   "enum_certificationAgency_dan": "DAN",
-  "enum_certificationAgency_gue": "GÜ",
+  "enum_certificationAgency_gue": "GUE",
   "enum_certificationAgency_iantd": "IANTD",
   "enum_certificationAgency_naui": "NAUI",
   "enum_certificationAgency_other": "Sonstige",

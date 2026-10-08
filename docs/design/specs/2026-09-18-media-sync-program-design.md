@@ -21,7 +21,7 @@ Open and genuinely about media sync:
 | --- | --- | --- |
 | #425 | Mac and iPhone on one iCloud Photo Library; each device sees only the photos it linked itself. Retested 2026-08-11, still failing. | Resolution |
 | #1937 | Match gallery photos across devices by PhotoKit cloud identifier. The durable fix for #425 on Apple. | Resolution |
-| #1625 | Android says "media not available" for a photo that was never moved or deleted. Undiagnosed. | Resolution |
+| #1625 | Android says "media not available" for a photo that was never moved or deleted. Closed 2026-10-05 on another user's confirmation; the compatibility-mode cause found 2026-09-26 is fixed by #3103 (6.3). | Resolution |
 | #2018 | Google Drive transfer errors show a bare HTTP status. | Media store |
 | #1954 | Deleting a diver leaves their media detached and unsynced. | Row sync |
 | #1738 | Dropbox app frozen pending review. External to the code. | Media store |
@@ -489,6 +489,41 @@ hides rows the device did link.
   the picker and "Allow full access". A gallery query that throws is
   `accessDenied` too, since `unavailable` read as `notFound` on the linking
   device. The PR refs #1625 rather than closing it (section 10).
+- Found 2026-09-26, after slice 9 shipped in v1.8.0: on Android the
+  `limited` verdict above is unreachable, and this is the likely cause of
+  #1625. Not yet reproduced on a device.
+  - The manifest declares `READ_MEDIA_IMAGES` and `READ_MEDIA_VIDEO` but not
+    `READ_MEDIA_VISUAL_USER_SELECTED`, and no plugin adds it (photo_manager
+    3.12.0 declares only `READ_EXTERNAL_STORAGE`). Without it, Android 14 and
+    later run the app in partial-access compatibility mode: "Select photos
+    and videos" grants `READ_MEDIA_IMAGES` and `READ_MEDIA_VIDEO` for the
+    session only, and the system revokes them once the app goes to the
+    background or is killed.
+  - photo_manager's `PermissionDelegate34.getAuthValue` reports that
+    temporary grant as `Authorized`. It reports `Limited` only while
+    `READ_MEDIA_VISUAL_USER_SELECTED` is held, which an undeclared permission
+    never is. So the limited placeholder, "Choose photo again" and the
+    limited-miss path in `AssetResolutionService._searchGallery` never run
+    on Android.
+  - The failure: the user links photos under a session grant; in a later
+    session they reselect different items. Permission reads `authorized`,
+    the earlier picks are invisible to both the id probe and the metadata
+    tiers, `_searchGallery` returns `unavailable` and caches it, and on the
+    linking device that is `notFound`, which orphans the row and syncs. A
+    session with the grant revoked outright stays `accessDenied` and is
+    harmless. This fits the report: every row flagged at once, a
+    permission-shaped failure rather than per-file moves.
+  - Decided 2026-10-07, once Google approved the `READ_MEDIA_*` declaration
+    (#2320): declare `READ_MEDIA_VISUAL_USER_SELECTED` (#3103). A limited
+    selection then persists across sessions and photo_manager reports it as
+    `limited`, which makes slice 9's handling reachable on Android with no
+    Dart change. The system photo picker is no longer needed. A test fails
+    if the manifest reads the library without declaring it. Checklist items
+    2.3 and 2.12 verify it on hardware.
+  - Secondary lead: the reporter's video is named `20260905_185338_701.mp4`
+    but its info panel shows a capture time of 21:59, about three hours
+    later. If the stored time is shifted, the metadata tiers can miss even
+    with full access.
 
 ### 6.4 #425
 

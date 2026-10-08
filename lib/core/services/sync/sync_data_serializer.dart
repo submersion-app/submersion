@@ -10037,8 +10037,8 @@ class SyncDataSerializer {
       'defaultTankPreset': 'al80',
       'applyDefaultTankToImports': false,
       // Decompression settings
-      'gfLow': 30,
-      'gfHigh': 70,
+      'gfLow': 50,
+      'gfHigh': 85,
       'ppO2MaxWorking': 1.4,
       'ppO2MaxDeco': 1.6,
       'cnsWarningThreshold': 80,

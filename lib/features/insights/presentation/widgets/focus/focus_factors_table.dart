@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor.dart';
 import 'package:submersion/features/insights/presentation/formatters/focus_factor_labels.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -29,6 +31,7 @@ class FocusFactorsTable extends ConsumerWidget {
         ),
       );
     }
+    final typesById = watchDiveTypesById(ref);
     final percent = NumberFormat.percentPattern(
       Localizations.localeOf(context).toLanguageTag(),
     );
@@ -61,7 +64,12 @@ class FocusFactorsTable extends ConsumerWidget {
             for (final factor in report.factors.where(
               (f) => f.id.group == group,
             ))
-              _FactorRow(factor: factor, units: units, percent: percent),
+              _FactorRow(
+                factor: factor,
+                units: units,
+                percent: percent,
+                typesById: typesById,
+              ),
           ],
       ],
     );
@@ -73,11 +81,13 @@ class _FactorRow extends StatelessWidget {
     required this.factor,
     required this.units,
     required this.percent,
+    required this.typesById,
   });
 
   final FocusFactor factor;
   final UnitFormatter units;
   final NumberFormat percent;
+  final Map<String, DiveTypeEntity> typesById;
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +116,7 @@ class _FactorRow extends StatelessWidget {
       CategoricalFactor(:final top) when top.isNotEmpty => [
         for (final share in top)
           Text(
-            '${focusCategoryLabel(factor.id, share, l10n, units)}: '
+            '${focusCategoryLabel(factor.id, share, l10n, units, typesById: typesById)}: '
             '${l10n.insights_focus_factors_versus(percent.format(share.groupShare), percent.format(share.baselineShare))}',
             style: share.standsOut
                 ? const TextStyle(fontWeight: FontWeight.w600)
