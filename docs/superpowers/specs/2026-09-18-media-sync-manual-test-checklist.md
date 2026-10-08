@@ -104,7 +104,10 @@ Store: S3, then Google Drive.
       nothing reads "File not found", and after Check all media the row is
       not flagged missing (on this device or, after a sync, on Windows).
       Open the photo: the viewer offers "Allow full access" and "Choose
-      photo again".
+      photo again". Expected to fail as the app stands: the manifest does
+      not declare `READ_MEDIA_VISUAL_USER_SELECTED`, so Android reports a
+      limited selection as full access and this placeholder never appears
+      (spec 6.3, 2026-09-26 finding). 2.12 covers the resulting failure.
 - [ ] 2.4 Choose photo again [no scenario]. From 2.3, tap Choose photo again,
       add the photo in the system sheet, and return: the photo shows without
       leaving the viewer.
@@ -145,6 +148,15 @@ Store: S3, then Google Drive.
       stays on the first. Settings > Media Storage shows "Transfers paused"
       and says the device and the cloud no longer agree on the store.
       Reconnecting to the store the cloud holds resumes transfers.
+- [ ] 2.12 A reselected limited grant [#1625, no scenario]. On Android 14
+      or later, reset the app's photo permission, open the photo picker,
+      choose "Select photos and videos", pick two photos or videos and link
+      them to a dive. Force-stop the app, reopen it, open the picker again,
+      choose "Select photos and videos" and pick different items. The first
+      two must not read "File not found", and Check all media must not flag
+      them missing, on this device or, after a sync, on Windows. Expected to
+      fail as the app stands (spec 6.3, 2026-09-26 finding); a failure here
+      reproduces #1625, so capture Copy diagnostics for one of the two.
 
 ## Pair 3: Linux as a pure peer
 
@@ -170,8 +182,8 @@ Store: S3. Linux links nothing; every row comes from the other devices.
       diagnostics for one photo linked on each device. Close #425 when they
       confirm (spec 6.4).
 - [ ] R2. #1625 (media not available on Android). Close #1625 when items
-      2.3 to 2.8 pass on hardware, or when the reporter confirms the fix on
-      the current build (spec 6.3, section 10). Either way, ask the reporter
+      2.3 to 2.8 and 2.12 pass on hardware, or when the reporter confirms
+      the fix on the current build (spec 6.3, section 10). Either way, ask the reporter
       for Copy diagnostics on one affected photo, so a case the checklist
       does not cover is not closed unseen.
 - [ ] R3. Close the tracking issue #2090 when every pair above has passed
