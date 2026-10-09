@@ -1469,6 +1469,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'عرض أقل';
+
+  @override
   String get gasCalculators_bestMix_withoutHelium => 'بدون هيليوم';
 
   @override

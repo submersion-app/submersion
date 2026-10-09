@@ -2216,6 +2216,18 @@ abstract class AppLocalizations {
   /// **'Calculated mix {mix}, MOD {mod}'**
   String gasCalculators_bestMix_semanticsLabel(String mix, String mod);
 
+  /// No description provided for @gasCalculators_bestMix_showAllMixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String gasCalculators_bestMix_showAllMixes(int count);
+
+  /// No description provided for @gasCalculators_bestMix_showFewerMixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get gasCalculators_bestMix_showFewerMixes;
+
   /// No description provided for @gasCalculators_bestMix_withoutHelium.
   ///
   /// In en, this message translates to:

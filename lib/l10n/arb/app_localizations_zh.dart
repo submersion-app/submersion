@@ -1381,6 +1381,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return '显示全部 ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => '显示更少';
+
+  @override
   String get gasCalculators_bestMix_withoutHelium => '不含氦气';
 
   @override

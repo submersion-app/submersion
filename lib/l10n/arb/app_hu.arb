@@ -322,6 +322,8 @@
   "gasCalculators_bestMix_nearestStandard": "A legközelebbi szabványkeverék erre a mélységre",
   "gasCalculators_bestMix_recommendedMix": "Számított keverék",
   "gasCalculators_bestMix_semanticsLabel": "Számított keverék {mix}, MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "Összes mutatása ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "Kevesebb mutatása",
   "gasCalculators_bestMix_withoutHelium": "Hélium nélkül",
   "gasCalculators_bestMix_ccrSource": "Gázforrás",
   "gasCalculators_bestMix_ccrSourceBailout": "Bailout",

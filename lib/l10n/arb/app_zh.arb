@@ -322,6 +322,8 @@
   "gasCalculators_bestMix_nearestStandard": "可覆盖此深度的最接近标准混合气",
   "gasCalculators_bestMix_recommendedMix": "计算混合气",
   "gasCalculators_bestMix_semanticsLabel": "计算混合气 {mix}，MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "显示全部 ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "显示更少",
   "gasCalculators_bestMix_withoutHelium": "不含氦气",
   "gasCalculators_bestMix_ccrSource": "气体来源",
   "gasCalculators_bestMix_ccrSourceBailout": "备用",

@@ -3,24 +3,40 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/gas_calculators/domain/standard_gas_mix.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The nearest standard mix advisory and a reference table of common mixes
-/// with their MOD at the active ppO2 limit.
-class BestMixCommonMixesCard extends ConsumerWidget {
+/// How many catalog entries show before "Show all" (issue #3117).
+const int _collapsedMixCount = 6;
+
+/// The nearest standard mix advisory, and a reference table of catalog
+/// entries (issue #3117) whose MOD (and, for a trimix, END) cover the
+/// target depth, nearest fit first. Collapsed to six by default, with a
+/// toggle to show every covering entry.
+class BestMixCommonMixesCard extends ConsumerStatefulWidget {
   const BestMixCommonMixesCard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BestMixCommonMixesCard> createState() =>
+      _BestMixCommonMixesCardState();
+}
+
+class _BestMixCommonMixesCardState
+    extends ConsumerState<BestMixCommonMixesCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final result = ref.watch(bestMixCalculatorResultProvider);
-    final ppO2 = result.limitPpO2;
+    final mixes = result.standardMixes;
+    final shown = _expanded ? mixes : mixes.take(_collapsedMixCount).toList();
 
     return Card(
       child: Padding(
@@ -51,12 +67,22 @@ class BestMixCommonMixesCard extends ConsumerWidget {
                 isHighlight: true,
               ),
             const SizedBox(height: 4),
-            _mixRow(context, l10n.gas_air_displayName, 21, ppO2, units),
-            _mixRow(context, 'EAN32', 32, ppO2, units),
-            _mixRow(context, 'EAN36', 36, ppO2, units),
-            _mixRow(context, 'EAN40', 40, ppO2, units),
-            _mixRow(context, 'EAN50', 50, ppO2, units),
-            _mixRow(context, l10n.gas_oxygen_displayName, 100, ppO2, units),
+            for (final mix in shown)
+              _mixRow(context, mix, units, result.limitPpO2),
+            if (mixes.length > _collapsedMixCount)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () => setState(() => _expanded = !_expanded),
+                  child: Text(
+                    _expanded
+                        ? l10n.gasCalculators_bestMix_showFewerMixes
+                        : l10n.gasCalculators_bestMix_showAllMixes(
+                            mixes.length,
+                          ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -65,42 +91,46 @@ class BestMixCommonMixesCard extends ConsumerWidget {
 
   Widget _mixRow(
     BuildContext context,
-    String name,
-    int o2,
-    double ppO2Limit,
+    StandardGasMix mix,
     UnitFormatter units,
+    double ppO2Limit,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     // MOD rounds DOWN toward the shallower, safer limit.
     final displayMod = units.formatDepthFloor(
-      maxOperatingDepthMeters(o2 / 100, maxPpO2: ppO2Limit),
+      maxOperatingDepthMeters(mix.o2Percent / 100, maxPpO2: ppO2Limit),
       decimals: 0,
     );
+    final composition = mix.isTrimix
+        ? '${mix.o2Percent.toStringAsFixed(0)}% O₂ / '
+              '${mix.hePercent.toStringAsFixed(0)}% He'
+        : '${mix.o2Percent.toStringAsFixed(0)}% O₂';
 
     return Semantics(
-      label: '$name, $o2% O2, MOD: $displayMod',
+      label: '${mix.name}, $composition, MOD: $displayMod',
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
           children: [
             SizedBox(
-              width: 80,
+              width: 120,
               child: Text(
-                name,
+                mix.name,
                 style: textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            Text(
-              '$o2% O₂',
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+            Expanded(
+              child: Text(
+                composition,
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
-            const Spacer(),
             Text(
               'MOD: $displayMod',
               style: textTheme.bodySmall?.copyWith(

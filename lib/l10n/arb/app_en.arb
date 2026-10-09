@@ -863,6 +863,15 @@
       }
     }
   },
+  "gasCalculators_bestMix_showAllMixes": "Show all ({count})",
+  "@gasCalculators_bestMix_showAllMixes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gasCalculators_bestMix_showFewerMixes": "Show fewer",
   "gasCalculators_bestMix_withoutHelium": "Without helium",
   "gasCalculators_bestMix_ccrSource": "Gas source",
   "gasCalculators_bestMix_ccrSourceBailout": "Bailout",

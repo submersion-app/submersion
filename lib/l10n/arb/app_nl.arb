@@ -322,6 +322,8 @@
   "gasCalculators_bestMix_nearestStandard": "Dichtstbijzijnde standaardmengsel voor deze diepte",
   "gasCalculators_bestMix_recommendedMix": "Berekend mengsel",
   "gasCalculators_bestMix_semanticsLabel": "Berekend mengsel {mix}, MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "Alles tonen ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "Minder tonen",
   "gasCalculators_bestMix_withoutHelium": "Zonder helium",
   "gasCalculators_bestMix_ccrSource": "Gasbron",
   "gasCalculators_bestMix_ccrSourceBailout": "Bailout",

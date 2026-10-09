@@ -1434,6 +1434,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'Összes mutatása ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'Kevesebb mutatása';
+
+  @override
   String get gasCalculators_bestMix_withoutHelium => 'Hélium nélkül';
 
   @override

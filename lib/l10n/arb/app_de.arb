@@ -333,6 +333,8 @@
   "gasCalculators_bestMix_nearestStandard": "Nächstes Standardgemisch für diese Tiefe",
   "gasCalculators_bestMix_recommendedMix": "Berechnetes Gemisch",
   "gasCalculators_bestMix_semanticsLabel": "Berechnetes Gemisch {mix}, MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "Alle anzeigen ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "Weniger anzeigen",
   "gasCalculators_bestMix_withoutHelium": "Ohne Helium",
   "gasCalculators_bestMix_ccrSource": "Gasquelle",
   "gasCalculators_bestMix_ccrSourceBailout": "Bailout",

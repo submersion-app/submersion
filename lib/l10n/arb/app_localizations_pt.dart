@@ -1433,6 +1433,14 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'Mostrar tudo ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'Mostrar menos';
+
+  @override
   String get gasCalculators_bestMix_withoutHelium => 'Sem hélio';
 
   @override

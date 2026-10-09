@@ -270,4 +270,35 @@ void main() {
       await _settle(tester);
     },
   );
+
+  testWidgets('the common-mixes table collapses to 6 and can expand', (
+    tester,
+  ) async {
+    final ref = await _pump(tester);
+    // Shallow enough (and END limit generous enough by default) that every
+    // catalog entry except pure O2 covers the depth -- well over 6 entries.
+    ref.read(bestMixCalculatorNotifierProvider.notifier).setDepth(10);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('MOD: '), findsNWidgets(6));
+    final showAllButton = find.textContaining('Show all (');
+    expect(showAllButton, findsOneWidget);
+
+    await tester.scrollUntilVisible(showAllButton, 200);
+    await tester.tap(showAllButton);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('MOD: '), findsWidgets);
+    final expandedRows = tester.widgetList<Text>(find.textContaining('MOD: '));
+    expect(expandedRows.length, greaterThan(6));
+    expect(find.text('Show fewer'), findsOneWidget);
+
+    final showFewerButton = find.text('Show fewer');
+    await tester.scrollUntilVisible(showFewerButton, 200);
+    await tester.tap(showFewerButton);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('MOD: '), findsNWidgets(6));
+    await _settle(tester);
+  });
 }

@@ -322,6 +322,8 @@
   "gasCalculators_bestMix_nearestStandard": "Mélange standard le plus proche couvrant cette profondeur",
   "gasCalculators_bestMix_recommendedMix": "Mélange calculé",
   "gasCalculators_bestMix_semanticsLabel": "Mélange calculé {mix}, MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "Tout afficher ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "Afficher moins",
   "gasCalculators_bestMix_withoutHelium": "Sans hélium",
   "gasCalculators_bestMix_ccrSource": "Source de gaz",
   "gasCalculators_bestMix_ccrSourceBailout": "Secours",

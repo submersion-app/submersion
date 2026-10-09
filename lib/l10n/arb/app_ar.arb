@@ -322,6 +322,8 @@
   "gasCalculators_bestMix_nearestStandard": "أقرب خليط قياسي يغطي هذا العمق",
   "gasCalculators_bestMix_recommendedMix": "الخليط المحسوب",
   "gasCalculators_bestMix_semanticsLabel": "الخليط المحسوب {mix}، MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "عرض الكل ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "عرض أقل",
   "gasCalculators_bestMix_withoutHelium": "بدون هيليوم",
   "gasCalculators_bestMix_ccrSource": "مصدر الغاز",
   "gasCalculators_bestMix_ccrSourceBailout": "طوارئ",
