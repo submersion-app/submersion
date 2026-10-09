@@ -16301,6 +16301,63 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'Maximale narkotische Tiefe';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'Aktuelles Gas';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'Wechselgas';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'ICD-Bewertung';
+
+  @override
+  String get gasCalculators_icd_ok => 'Kein ICD-Risiko nach der Fünftel-Regel.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'Grenzwertig: Der Stickstoffanstieg liegt nahe am erlaubten Maximum.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'Fünftel-Regel verletzt: Stickstoff steigt um $increase%, erlaubt ist maximal $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'Die ICD-Bewertung ist in Einstellungen > Dekompression ausgeschaltet.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'Lösungsvorschlag';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'Aktuelles Gas beibehalten, He des Wechselgases auf $he% setzen';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'Wechselgas beibehalten, He des aktuellen Gases auf $he% setzen';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'Übernehmen';
+
+  @override
+  String get gasCalculators_icd_infoTitle => 'Über isobare Gegendiffusion';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'Isobare Gegendiffusion (ICD) ist das Risiko, dass der Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas die Gesamt-Gasspannung im Gewebe erhöht, da Helium schneller diffundiert als Stickstoff. Die Fünftel-Regel ist eine gängige Faustregel: Der Stickstoffanteil sollte um höchstens ein Fünftel der Abnahme des Heliumanteils steigen.\n\nOb dies in der Praxis bei einem gut geplanten Tauchgang mit Standardgasen wirklich relevant ist, darüber sind sich die Verbände uneinig. Dieser Rechner wendet die Faustregel auf die beiden eingegebenen Gase an; er ersetzt keine Ausbildung oder fachkundige Beratung.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'ppO₂-Limit';
 
   @override
@@ -16317,6 +16374,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'Trimix-Mischer';
@@ -16816,6 +16876,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'Narkosetiefe-Grenze für ein Gemisch';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'Isobares Gegendiffusionsrisiko zwischen zwei Gasen';
 
   @override
   String get gasCalculators_tab_density => 'Gasdichte';
@@ -21448,6 +21512,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Grenze der narkotischen Tiefe';
 
   @override
+  String get settings_conflict_field_icdWarningsEnabled =>
+      'ICD-Warnungen aktiviert';
+
+  @override
   String get settings_conflict_field_endLongitude => 'Längengrad am Ende';
 
   @override
@@ -23314,6 +23382,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'END-Grenze';
+
+  @override
+  String get settings_decompression_header_icd => 'Isobare Gegendiffusion';
+
+  @override
+  String get settings_decompression_icdWarnings => 'Vor ICD-Risiko warnen';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'Zeigt im ICD-Rechner eine Bewertung nach der Fünftel-Regel beim Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS-Berechnung';

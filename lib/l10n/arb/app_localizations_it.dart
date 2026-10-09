@@ -16319,6 +16319,65 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'Profondità narcotica massima';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'Gas attuale';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'Gas di cambio';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'Valutazione ICD';
+
+  @override
+  String get gasCalculators_icd_ok =>
+      'Nessun rischio di ICD secondo la regola del quinto.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'Al limite: l\'aumento di azoto è vicino al massimo consentito.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'Regola del quinto violata: l\'azoto aumenta del $increase%, il massimo consentito è $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'La valutazione ICD è disattivata in Impostazioni > Decompressione.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'Rendi conforme';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'Mantieni il gas attuale, imposta l\'He del gas di cambio al $he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'Mantieni il gas di cambio, imposta l\'He del gas attuale al $he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'Applica';
+
+  @override
+  String get gasCalculators_icd_infoTitle =>
+      'Informazioni sulla controdiffusione isobarica';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'La controdiffusione isobarica (ICD) è il rischio che passando da un gas più ricco di elio a uno più ricco di azoto aumenti la tensione totale dei gas inerti nei tessuti, poiché l\'elio diffonde più velocemente dell\'azoto. La regola del quinto è una regola empirica comune: la frazione di azoto non dovrebbe aumentare più di un quinto della diminuzione della frazione di elio.\n\nLe agenzie non sono d\'accordo su quanto ciò conti davvero in un\'immersione ben pianificata con gas standard. Questo calcolatore applica la regola ai due gas inseriti; non sostituisce la formazione né una consulenza professionale.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'Limite ppO₂';
 
   @override
@@ -16335,6 +16394,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'Miscelatore trimix';
@@ -16835,6 +16897,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get gasCalculators_desc_mnd =>
       'Profondità narcotica limite di una miscela';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'Rischio di controdiffusione isobarica tra due gas';
 
   @override
   String get gasCalculators_tab_density => 'Densità del gas';
@@ -21488,6 +21554,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Limite di profondità narcotica';
 
   @override
+  String get settings_conflict_field_icdWarningsEnabled =>
+      'Avvisi ICD attivati';
+
+  @override
   String get settings_conflict_field_endLongitude => 'Longitudine finale';
 
   @override
@@ -23373,6 +23443,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'Limite END';
+
+  @override
+  String get settings_decompression_header_icd => 'Controdiffusione isobarica';
+
+  @override
+  String get settings_decompression_icdWarnings =>
+      'Avvisa in caso di rischio ICD';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'Mostra nel calcolatore ICD una valutazione secondo la regola del quinto quando si passa da un gas più ricco di elio a uno più ricco di azoto.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'Calcolo del CNS';

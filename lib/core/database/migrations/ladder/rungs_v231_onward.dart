@@ -288,5 +288,11 @@ extension RungsFromV231 on AppDatabase {
       await _migrateTdiCertificationStructure();
     }
     if (from < 273) await reportProgress();
+    // v274: diver_settings.icd_warnings_enabled (issue #3121). Column
+    // only, defaulting on; re-asserted in beforeOpen.
+    if (from < 274) {
+      await _assertIcdWarningsColumn();
+    }
+    if (from < 274) await reportProgress();
   }
 }

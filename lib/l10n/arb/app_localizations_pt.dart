@@ -16315,6 +16315,63 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'Profundidade Narcótica Máxima';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'Gás atual';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'Gás de troca';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'Avaliação de ICD';
+
+  @override
+  String get gasCalculators_icd_ok => 'Sem risco de ICD pela regra do quinto.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'Limite: o aumento de nitrogênio está próximo do máximo permitido.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'Regra do quinto violada: o nitrogênio aumenta $increase%, o máximo permitido é $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'A avaliação de ICD está desativada em Configurações > Descompressão.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'Tornar conforme';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'Manter o gás atual, definir o He do gás de troca para $he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'Manter o gás de troca, definir o He do gás atual para $he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'Aplicar';
+
+  @override
+  String get gasCalculators_icd_infoTitle => 'Sobre a contradifusão isobárica';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'A contradifusão isobárica (ICD) é o risco de que a troca de um gás mais rico em hélio para um mais rico em nitrogênio aumente a tensão total de gases inertes no tecido, pois o hélio se difunde mais rápido que o nitrogênio. A regra do quinto é uma regra prática comum: a fração de nitrogênio não deve aumentar mais do que um quinto da redução da fração de hélio.\n\nAs agências não concordam sobre a importância real disso em uma imersão bem planejada com gases padrão. Esta calculadora aplica a regra aos dois gases informados; não substitui treinamento nem orientação profissional.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'Limite ppO₂';
 
   @override
@@ -16331,6 +16388,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'Misturador de trimix';
@@ -16829,6 +16889,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get gasCalculators_desc_mnd =>
       'Profundidade narcótica limite de uma mistura';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'Risco de contradifusão isobárica entre dois gases';
 
   @override
   String get gasCalculators_tab_density => 'Densidade do gás';
@@ -21478,6 +21542,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Limite de profundidade narcótica';
 
   @override
+  String get settings_conflict_field_icdWarningsEnabled =>
+      'Avisos de ICD ativados';
+
+  @override
   String get settings_conflict_field_endLongitude => 'Longitude final';
 
   @override
@@ -23356,6 +23424,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'Limite END';
+
+  @override
+  String get settings_decompression_header_icd => 'Contradifusão isobárica';
+
+  @override
+  String get settings_decompression_icdWarnings => 'Avisar sobre risco de ICD';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'Mostra na calculadora de ICD uma avaliação pela regra do quinto ao trocar de um gás mais rico em hélio para um mais rico em nitrogênio.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'Cálculo de CNS';

@@ -645,4 +645,21 @@ extension DiverMigrations on AppDatabase {
       );
     }
   }
+
+  /// v274: diver_settings.icd_warnings_enabled (issue #3121). Column only,
+  /// defaulting on; re-asserted in beforeOpen.
+  Future<void> _assertIcdWarningsColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('icd_warnings_enabled')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN icd_warnings_enabled '
+        'INTEGER NOT NULL DEFAULT 1 '
+        'CHECK (icd_warnings_enabled IN (0, 1))',
+      );
+    }
+  }
 }

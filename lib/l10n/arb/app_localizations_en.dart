@@ -16067,6 +16067,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'Maximum Narcotic Depth';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'Current gas';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'Switched-to gas';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'ICD Assessment';
+
+  @override
+  String get gasCalculators_icd_ok => 'No ICD risk under the rule of fifths.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'Borderline: the nitrogen increase is close to the allowed maximum.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'Rule of fifths violated: nitrogen rises $increase%, the allowed maximum is $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'The ICD assessment is turned off in Settings > Decompression.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'Make it comply';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'Keep the current gas, set the switched-to gas\'s He to $he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'Keep the switched-to gas, set the current gas\'s He to $he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'Apply';
+
+  @override
+  String get gasCalculators_icd_infoTitle => 'About Isobaric Counterdiffusion';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'Isobaric counterdiffusion (ICD) is the risk that switching from a more helium-rich to a more nitrogen-rich gas increases total inert gas tension in tissue, because helium diffuses faster than nitrogen. The rule of fifths is a common rule of thumb: the nitrogen fraction should not rise by more than a fifth of how much the helium fraction falls.\n\nAgencies disagree on how much this matters in practice for a well-planned dive with standard gases. This calculator applies the rule of thumb to whichever two gases you enter; it is not a substitute for training or professional advice.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'ppO₂ Limit';
 
   @override
@@ -16083,6 +16140,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'Trimix blender';
@@ -16573,6 +16633,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'Narcosis depth limit for a mix';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'Isobaric counterdiffusion risk between two gases';
 
   @override
   String get gasCalculators_tab_density => 'Gas Density';
@@ -21134,6 +21198,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_endLimit => 'Narcotic depth limit';
 
   @override
+  String get settings_conflict_field_icdWarningsEnabled =>
+      'ICD warnings enabled';
+
+  @override
   String get settings_conflict_field_endLongitude => 'End longitude';
 
   @override
@@ -22956,6 +23024,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'END Limit';
+
+  @override
+  String get settings_decompression_header_icd => 'Isobaric Counterdiffusion';
+
+  @override
+  String get settings_decompression_icdWarnings => 'Warn on ICD risk';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS calculation';

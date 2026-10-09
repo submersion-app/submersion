@@ -4,6 +4,7 @@ import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart'
 import 'package:submersion/features/gas_calculators/domain/rock_bottom.dart';
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/density_calculator_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/providers/icd_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mnd_calculator_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -147,6 +148,8 @@ void resetGasCalculators(WidgetRef ref) {
   ref.read(rockBottomSafetyStopProvider.notifier).state = true;
   // MND/END
   resetMndCalculator(ref);
+  // ICD
+  resetIcdCalculator(ref);
   // Gas Density
   resetDensityCalculator(ref);
   // Gas Blender

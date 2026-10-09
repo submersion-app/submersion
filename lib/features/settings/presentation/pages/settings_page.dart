@@ -1409,6 +1409,27 @@ class _DecompressionSectionContent extends ConsumerWidget {
           const SizedBox(height: 24),
           _buildSectionHeader(
             context,
+            context.l10n.settings_decompression_header_icd,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.compare_arrows),
+              title: Text(context.l10n.settings_decompression_icdWarnings),
+              subtitle: Text(
+                context.l10n.settings_decompression_icdWarnings_subtitle,
+              ),
+              value: settings.icdWarningsEnabled,
+              onChanged: (value) {
+                ref
+                    .read(settingsProvider.notifier)
+                    .setIcdWarningsEnabled(value);
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
             context.l10n.settings_decompression_header_ascent,
           ),
           const SizedBox(height: 4),

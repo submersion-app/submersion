@@ -15954,6 +15954,63 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'עומק נרקוטי מרבי';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'הגז הנוכחי';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'הגז שהוחלף אליו';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'הערכת ICD';
+
+  @override
+  String get gasCalculators_icd_ok => 'אין סיכון ICD לפי כלל החמישית.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'גבולי: עליית החנקן קרובה למקסימום המותר.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'כלל החמישית הופר: החנקן עולה ב-$increase%, המקסימום המותר הוא $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'הערכת ה-ICD כבויה בהגדרות > דקומפרסיה.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'כך שהכלל יתקיים';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'השאר את הגז הנוכחי, קבע את ההליום של הגז שהוחלף אליו ל-$he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'השאר את הגז שהוחלף אליו, קבע את ההליום של הגז הנוכחי ל-$he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'החל';
+
+  @override
+  String get gasCalculators_icd_infoTitle => 'על דיפוזיה הפכית איזובארית';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'דיפוזיה הפכית איזובארית (ICD) היא הסיכון שמעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן יגדיל את מתח הגזים האינרטיים הכולל ברקמה, מכיוון שהליום מתפזר מהר יותר מחנקן. כלל החמישית הוא כלל אצבע נפוץ: חלקיק החנקן לא אמור לעלות ביותר מחמישית מהירידה בחלקיק ההליום.\n\nארגונים חלוקים בדעתם עד כמה זה חשוב בפועל בצלילה מתוכננת היטב עם גזים סטנדרטיים. מחשבון זה מחיל את כלל האצבע על שני הגזים שהוזנו; הוא אינו מחליף הכשרה או ייעוץ מקצועי.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'מגבלת ppO₂';
 
   @override
@@ -15970,6 +16027,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'מערבל טרימיקס';
@@ -16457,6 +16517,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'גבול עומק הנרקוזה לתערובת';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'סיכון דיפוזיה הפכית איזובארית בין שני גזים';
 
   @override
   String get gasCalculators_tab_density => 'צפיפות גז';
@@ -20963,6 +21027,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_endLimit => 'מגבלת עומק נרקוטי';
 
   @override
+  String get settings_conflict_field_icdWarningsEnabled => 'אזהרות ICD מופעלות';
+
+  @override
   String get settings_conflict_field_endLongitude => 'קו אורך בסיום';
 
   @override
@@ -22768,6 +22835,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'מגבלת END';
+
+  @override
+  String get settings_decompression_header_icd => 'דיפוזיה הפכית איזובארית';
+
+  @override
+  String get settings_decompression_icdWarnings => 'הזהר מסיכון ICD';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'מציג במחשבון ה-ICD הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'חישוב CNS';

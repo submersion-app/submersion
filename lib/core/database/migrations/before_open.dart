@@ -53,6 +53,8 @@ extension BeforeOpenBackstops on AppDatabase {
     // default_show_late_gas_switches.
     await _assertAutoTagImportsColumn();
     await _assertLateGasSwitchSettingColumn();
+    // v274 backstop: diver_settings.icd_warnings_enabled.
+    await _assertIcdWarningsColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do

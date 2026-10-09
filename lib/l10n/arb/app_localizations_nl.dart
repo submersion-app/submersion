@@ -16206,6 +16206,64 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'Maximale narcotische diepte';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'Huidig gas';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'Overgeschakeld gas';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'ICD-beoordeling';
+
+  @override
+  String get gasCalculators_icd_ok =>
+      'Geen ICD-risico volgens de vijfde-regel.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'Grensgeval: de stikstoftoename ligt dicht bij het toegestane maximum.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'Vijfde-regel overtreden: stikstof stijgt met $increase%, het toegestane maximum is $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'De ICD-beoordeling is uitgeschakeld in Instellingen > Decompressie.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'Conform maken';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'Huidig gas behouden, He van het overgeschakelde gas instellen op $he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'Overgeschakeld gas behouden, He van het huidige gas instellen op $he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'Toepassen';
+
+  @override
+  String get gasCalculators_icd_infoTitle => 'Over isobare tegendiffusie';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'Isobare tegendiffusie (ICD) is het risico dat het overschakelen van een heliumrijker naar een stikstofrijker gas de totale inerte gasspanning in weefsel verhoogt, omdat helium sneller diffundeert dan stikstof. De vijfde-regel is een veelgebruikte vuistregel: het stikstofaandeel mag met maximaal een vijfde van de afname van het heliumaandeel stijgen.\n\nOrganisaties zijn het er niet over eens hoe belangrijk dit in de praktijk is bij een goed geplande duik met standaardgassen. Deze rekenmachine past de vuistregel toe op de twee ingevoerde gassen; het vervangt geen training of professioneel advies.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'ppO₂ limiet';
 
   @override
@@ -16222,6 +16280,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'Trimix-menger';
@@ -16719,6 +16780,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'Narcosediepte-limiet voor een mengsel';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'Risico op isobare tegendiffusie tussen twee gassen';
 
   @override
   String get gasCalculators_tab_density => 'Gasdichtheid';
@@ -21337,6 +21402,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Grens van de narcotische diepte';
 
   @override
+  String get settings_conflict_field_icdWarningsEnabled =>
+      'ICD-waarschuwingen ingeschakeld';
+
+  @override
   String get settings_conflict_field_endLongitude =>
       'Lengtegraad aan het einde';
 
@@ -23198,6 +23267,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'END-limiet';
+
+  @override
+  String get settings_decompression_header_icd => 'Isobare tegendiffusie';
+
+  @override
+  String get settings_decompression_icdWarnings => 'Waarschuwen bij ICD-risico';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'Toont in de ICD-rekenmachine een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS-berekening';

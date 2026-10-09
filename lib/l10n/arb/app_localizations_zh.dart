@@ -15545,6 +15545,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => '最大麻醉深度';
 
   @override
+  String get gasCalculators_icd_gasATitle => '当前气体';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => '切换后气体';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'ICD评估';
+
+  @override
+  String get gasCalculators_icd_ok => '根据五分之一法则,无ICD风险。';
+
+  @override
+  String get gasCalculators_icd_caution => '临界:氮气增量接近允许的最大值。';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return '违反五分之一法则:氮气上升$increase%,允许的最大值为$max%。';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice => 'ICD评估已在设置 > 减压中关闭。';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => '使其符合规则';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return '保留当前气体,将切换后气体的He设为$he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return '保留切换后气体,将当前气体的He设为$he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => '应用';
+
+  @override
+  String get gasCalculators_icd_infoTitle => '关于等压逆向扩散';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      '等压逆向扩散(ICD)是指从氦气含量较高的气体切换到氮气含量较高的气体时,由于氦气扩散速度快于氮气,可能导致组织中惰性气体总张力升高的风险。五分之一法则是一个常见的经验法则:氮气比例的上升幅度不应超过氦气比例下降幅度的五分之一。\n\n各机构对于在使用标准气体、规划良好的潜水中这一风险的实际重要性存在分歧。本计算器将该经验法则应用于输入的两种气体;它不能替代培训或专业建议。';
+
+  @override
   String get gasCalculators_ppO2Limit => '氧分压限制';
 
   @override
@@ -15561,6 +15616,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => '最大麻醉深度/等效麻醉深度';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => '三混气配气器';
@@ -16027,6 +16085,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => '混合气体的麻醉深度极限';
+
+  @override
+  String get gasCalculators_desc_icd => '两种气体之间的等压逆向扩散风险';
 
   @override
   String get gasCalculators_tab_density => '气体密度';
@@ -20343,6 +20404,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_endLimit => '麻醉深度上限';
 
   @override
+  String get settings_conflict_field_icdWarningsEnabled => '已启用ICD警告';
+
+  @override
   String get settings_conflict_field_endLongitude => '终点经度';
 
   @override
@@ -22082,6 +22146,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'END 限制';
+
+  @override
+  String get settings_decompression_header_icd => '等压逆向扩散';
+
+  @override
+  String get settings_decompression_icdWarnings => 'ICD风险警告';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      '在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器中显示根据五分之一法则得出的评估。';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS 计算';

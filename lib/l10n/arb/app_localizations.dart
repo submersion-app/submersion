@@ -26373,6 +26373,102 @@ abstract class AppLocalizations {
   /// **'Maximum Narcotic Depth'**
   String get gasCalculators_mnd_resultTitle;
 
+  /// No description provided for @gasCalculators_icd_gasATitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current gas'**
+  String get gasCalculators_icd_gasATitle;
+
+  /// No description provided for @gasCalculators_icd_gasBTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switched-to gas'**
+  String get gasCalculators_icd_gasBTitle;
+
+  /// No description provided for @gasCalculators_icd_o2Percent.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 %'**
+  String get gasCalculators_icd_o2Percent;
+
+  /// No description provided for @gasCalculators_icd_hePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'He %'**
+  String get gasCalculators_icd_hePercent;
+
+  /// No description provided for @gasCalculators_icd_n2Percent.
+  ///
+  /// In en, this message translates to:
+  /// **'N2 %'**
+  String get gasCalculators_icd_n2Percent;
+
+  /// No description provided for @gasCalculators_icd_resultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ICD Assessment'**
+  String get gasCalculators_icd_resultTitle;
+
+  /// No description provided for @gasCalculators_icd_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'No ICD risk under the rule of fifths.'**
+  String get gasCalculators_icd_ok;
+
+  /// No description provided for @gasCalculators_icd_caution.
+  ///
+  /// In en, this message translates to:
+  /// **'Borderline: the nitrogen increase is close to the allowed maximum.'**
+  String get gasCalculators_icd_caution;
+
+  /// No description provided for @gasCalculators_icd_violation.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule of fifths violated: nitrogen rises {increase}%, the allowed maximum is {max}%.'**
+  String gasCalculators_icd_violation(String increase, String max);
+
+  /// No description provided for @gasCalculators_icd_disabledNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The ICD assessment is turned off in Settings > Decompression.'**
+  String get gasCalculators_icd_disabledNotice;
+
+  /// No description provided for @gasCalculators_icd_suggestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it comply'**
+  String get gasCalculators_icd_suggestionsTitle;
+
+  /// No description provided for @gasCalculators_icd_suggestionKeepA.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the current gas, set the switched-to gas\'s He to {he}%'**
+  String gasCalculators_icd_suggestionKeepA(String he);
+
+  /// No description provided for @gasCalculators_icd_suggestionKeepB.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the switched-to gas, set the current gas\'s He to {he}%'**
+  String gasCalculators_icd_suggestionKeepB(String he);
+
+  /// No description provided for @gasCalculators_icd_applyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get gasCalculators_icd_applyButton;
+
+  /// No description provided for @gasCalculators_icd_infoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Isobaric Counterdiffusion'**
+  String get gasCalculators_icd_infoTitle;
+
+  /// No description provided for @gasCalculators_icd_infoContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion (ICD) is the risk that switching from a more helium-rich to a more nitrogen-rich gas increases total inert gas tension in tissue, because helium diffuses faster than nitrogen. The rule of fifths is a common rule of thumb: the nitrogen fraction should not rise by more than a fifth of how much the helium fraction falls.\n\nAgencies disagree on how much this matters in practice for a well-planned dive with standard gases. This calculator applies the rule of thumb to whichever two gases you enter; it is not a substitute for training or professional advice.'**
+  String get gasCalculators_icd_infoContent;
+
   /// No description provided for @gasCalculators_ppO2Limit.
   ///
   /// In en, this message translates to:
@@ -26408,6 +26504,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'MND/END'**
   String get gasCalculators_tab_mnd;
+
+  /// No description provided for @gasCalculators_tab_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'ICD'**
+  String get gasCalculators_tab_icd;
 
   /// No description provided for @gasCalculators_tab_blender.
   ///
@@ -27224,6 +27326,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Narcosis depth limit for a mix'**
   String get gasCalculators_desc_mnd;
+
+  /// No description provided for @gasCalculators_desc_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion risk between two gases'**
+  String get gasCalculators_desc_icd;
 
   /// No description provided for @gasCalculators_tab_density.
   ///
@@ -34352,6 +34460,12 @@ abstract class AppLocalizations {
   /// **'Narcotic depth limit'**
   String get settings_conflict_field_endLimit;
 
+  /// No description provided for @settings_conflict_field_icdWarningsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'ICD warnings enabled'**
+  String get settings_conflict_field_icdWarningsEnabled;
+
   /// No description provided for @settings_conflict_field_endLongitude.
   ///
   /// In en, this message translates to:
@@ -37703,6 +37817,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'END Limit'**
   String get settings_decompression_endLimit_dialog_title;
+
+  /// No description provided for @settings_decompression_header_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric Counterdiffusion'**
+  String get settings_decompression_header_icd;
+
+  /// No description provided for @settings_decompression_icdWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Warn on ICD risk'**
+  String get settings_decompression_icdWarnings;
+
+  /// No description provided for @settings_decompression_icdWarnings_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.'**
+  String get settings_decompression_icdWarnings_subtitle;
 
   /// Title of the CNS calculation method setting tile and its picker dialog.
   ///

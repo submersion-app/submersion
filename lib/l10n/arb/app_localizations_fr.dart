@@ -16361,6 +16361,65 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'Profondeur narcotique maximale';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'Gaz actuel';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'Gaz de bascule';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'Évaluation ICD';
+
+  @override
+  String get gasCalculators_icd_ok =>
+      'Aucun risque d\'ICD selon la règle du cinquième.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'Limite : l\'augmentation d\'azote est proche du maximum autorisé.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'Règle du cinquième non respectée : l\'azote augmente de $increase%, le maximum autorisé est de $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'L\'évaluation ICD est désactivée dans Paramètres > Décompression.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'Rendre conforme';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'Garder le gaz actuel, régler l\'hélium du gaz de bascule à $he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'Garder le gaz de bascule, régler l\'hélium du gaz actuel à $he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'Appliquer';
+
+  @override
+  String get gasCalculators_icd_infoTitle =>
+      'À propos de la contre-diffusion isobare';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'La contre-diffusion isobare (ICD) est le risque qu\'un passage d\'un gaz plus riche en hélium à un gaz plus riche en azote augmente la tension totale des gaz inertes dans les tissus, l\'hélium diffusant plus vite que l\'azote. La règle du cinquième est une règle empirique courante : la fraction d\'azote ne devrait pas augmenter de plus d\'un cinquième de la baisse de la fraction d\'hélium.\n\nLes avis divergent sur l\'importance réelle de ce phénomène pour une plongée bien planifiée avec des gaz standards. Ce calculateur applique la règle empirique aux deux gaz saisis ; il ne remplace ni une formation ni un avis professionnel.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'Limite ppO₂';
 
   @override
@@ -16377,6 +16436,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'Mélangeur trimix';
@@ -16879,6 +16941,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get gasCalculators_desc_mnd =>
       'Profondeur narcotique limite d\'un mélange';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'Risque de contre-diffusion isobare entre deux gaz';
 
   @override
   String get gasCalculators_tab_density => 'Densité du gaz';
@@ -21546,6 +21612,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Limite de profondeur narcotique';
 
   @override
+  String get settings_conflict_field_icdWarningsEnabled =>
+      'Avertissements ICD activés';
+
+  @override
   String get settings_conflict_field_endLongitude => 'Longitude finale';
 
   @override
@@ -23427,6 +23497,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'Limite END';
+
+  @override
+  String get settings_decompression_header_icd => 'Contre-diffusion isobare';
+
+  @override
+  String get settings_decompression_icdWarnings =>
+      'Avertir en cas de risque d\'ICD';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'Affiche une évaluation selon la règle du cinquième dans le calculateur ICD lors d\'un passage d\'un gaz plus riche en hélium à un gaz plus riche en azote.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'Calcul du CNS';

@@ -343,6 +343,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_highO2ThresholdPercent,
     FieldKind.percent,
   ),
+  'icdWarningsEnabled': ConflictField(
+    (l) => l.settings_conflict_field_icdWarningsEnabled,
+    FieldKind.boolean,
+  ),
   'insightsMutedObservationRules': ConflictField(
     (l) => l.settings_conflict_field_insightsMutedObservationRules,
     FieldKind.opaque,

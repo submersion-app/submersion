@@ -208,6 +208,8 @@ class DiverSettings extends Table {
   // coverage:ignore-end
   BoolColumn get o2Narcotic => boolean().withDefault(const Constant(true))();
   RealColumn get endLimit => real().withDefault(const Constant(30.0))();
+  BoolColumn get icdWarningsEnabled =>
+      boolean().withDefault(const Constant(true))();
   BoolColumn get useDiveComputerCnsData =>
       boolean().withDefault(const Constant(false))();
   // The per-metric data sources stay at DEFAULT 1 (calculated) even though a

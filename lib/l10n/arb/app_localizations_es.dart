@@ -16303,6 +16303,65 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'Profundidad Narcótica Máxima';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'Gas actual';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'Gas de cambio';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'Evaluación ICD';
+
+  @override
+  String get gasCalculators_icd_ok =>
+      'Sin riesgo de ICD según la regla del quinto.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'Límite: el aumento de nitrógeno está cerca del máximo permitido.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'Regla del quinto incumplida: el nitrógeno aumenta $increase%, el máximo permitido es $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'La evaluación ICD está desactivada en Configuración > Descompresión.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'Hacerlo cumplir';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'Mantener el gas actual, ajustar el He del gas de cambio a $he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'Mantener el gas de cambio, ajustar el He del gas actual a $he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'Aplicar';
+
+  @override
+  String get gasCalculators_icd_infoTitle =>
+      'Acerca de la contradifusión isobárica';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'La contradifusión isobárica (ICD) es el riesgo de que cambiar de un gas más rico en helio a uno más rico en nitrógeno aumente la tensión total de gases inertes en el tejido, porque el helio difunde más rápido que el nitrógeno. La regla del quinto es una norma habitual: la fracción de nitrógeno no debería aumentar más de un quinto de lo que disminuye la fracción de helio.\n\nLas agencias no coinciden en la importancia real de esto en una inmersión bien planificada con gases estándar. Esta calculadora aplica la regla a los dos gases introducidos; no sustituye la formación ni el asesoramiento profesional.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'Límite ppO₂';
 
   @override
@@ -16319,6 +16378,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'Mezclador de trimix';
@@ -16821,6 +16883,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get gasCalculators_desc_mnd =>
       'Profundidad narcótica límite de una mezcla';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'Riesgo de contradifusión isobárica entre dos gases';
 
   @override
   String get gasCalculators_tab_density => 'Densidad del gas';
@@ -21485,6 +21551,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Límite de profundidad narcótica';
 
   @override
+  String get settings_conflict_field_icdWarningsEnabled =>
+      'Avisos de ICD activados';
+
+  @override
   String get settings_conflict_field_endLongitude => 'Longitud final';
 
   @override
@@ -23368,6 +23438,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'Límite END';
+
+  @override
+  String get settings_decompression_header_icd => 'Contradifusión isobárica';
+
+  @override
+  String get settings_decompression_icdWarnings => 'Avisar de riesgo de ICD';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'Muestra una evaluación según la regla del quinto en la calculadora ICD al cambiar de un gas más rico en helio a uno más rico en nitrógeno.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'Cálculo de CNS';

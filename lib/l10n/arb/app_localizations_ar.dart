@@ -16506,6 +16506,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'العمق المخدر الأقصى';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'الغاز الحالي';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'الغاز المنتقل إليه';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'تقييم ICD';
+
+  @override
+  String get gasCalculators_icd_ok => 'لا يوجد خطر ICD وفق قاعدة الخُمس.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'حدي: ارتفاع النيتروجين قريب من الحد الأقصى المسموح.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'تم انتهاك قاعدة الخُمس: يرتفع النيتروجين بنسبة $increase%، والحد الأقصى المسموح به هو $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'تقييم ICD معطل في الإعدادات > إزالة الضغط.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'لتحقيق الامتثال';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'احتفظ بالغاز الحالي، واضبط نسبة الهليوم في الغاز المنتقل إليه على $he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'احتفظ بالغاز المنتقل إليه، واضبط نسبة الهليوم في الغاز الحالي على $he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'تطبيق';
+
+  @override
+  String get gasCalculators_icd_infoTitle =>
+      'حول الانتشار المعاكس متساوي الضغط';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'الانتشار المعاكس متساوي الضغط (ICD) هو خطر أن يؤدي التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين إلى زيادة إجمالي ضغط الغازات الخاملة في النسيج، لأن الهليوم ينتشر أسرع من النيتروجين. قاعدة الخُمس هي قاعدة تقريبية شائعة: لا ينبغي أن ترتفع نسبة النيتروجين بأكثر من خُمس مقدار انخفاض نسبة الهليوم.\n\nتختلف الجهات حول مدى أهمية ذلك عمليًا في غطسة مخططة جيدًا بغازات قياسية. تطبق هذه الحاسبة القاعدة التقريبية على الغازين المدخلين؛ وهي لا تحل محل التدريب أو المشورة المتخصصة.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'حد ppO₂';
 
   @override
@@ -16522,6 +16580,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'خلاط ترايمكس';
@@ -17013,6 +17074,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'حد عمق التخدير للخليط';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'خطر الانتشار المعاكس متساوي الضغط بين غازين';
 
   @override
   String get gasCalculators_tab_density => 'كثافة الغاز';
@@ -21709,6 +21774,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_endLimit => 'حد العمق المخدر';
 
   @override
+  String get settings_conflict_field_icdWarningsEnabled => 'تحذيرات ICD مفعلة';
+
+  @override
   String get settings_conflict_field_endLongitude => 'خط طول النهاية';
 
   @override
@@ -23541,6 +23609,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'حد END';
+
+  @override
+  String get settings_decompression_header_icd =>
+      'الانتشار المعاكس متساوي الضغط';
+
+  @override
+  String get settings_decompression_icdWarnings => 'التحذير من خطر ICD';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'يعرض في حاسبة ICD تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'حساب الـ CNS';
