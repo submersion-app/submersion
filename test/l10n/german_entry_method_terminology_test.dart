@@ -17,6 +17,8 @@ void main() {
   });
 
   test('no German string still says Großschritt', () {
+    // Matches the ss spelling too, so an ASCII-only rewrite cannot slip by.
+    final oldTerm = RegExp('gro(ß|ss)schritt', caseSensitive: false);
     final arb =
         json.decode(File('lib/l10n/arb/app_de.arb').readAsStringSync())
             as Map<String, dynamic>;
@@ -25,7 +27,7 @@ void main() {
       for (final entry in arb.entries)
         if (!entry.key.startsWith('@') &&
             entry.value is String &&
-            (entry.value as String).toLowerCase().contains('großschritt'))
+            oldTerm.hasMatch(entry.value as String))
           entry.key,
     ];
 
