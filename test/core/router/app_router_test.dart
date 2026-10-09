@@ -26,6 +26,7 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
 import 'package:submersion/features/settings/presentation/pages/manage_currency_rules_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
@@ -992,6 +993,31 @@ void main() {
       expect(divePlanner, isNotNull);
       final nestedNames = _collectRouteNames(divePlanner!.routes);
       expect(nestedNames, isNot(contains('noFly')));
+    });
+
+    testWidgets('surfaceInterval route builds the SurfaceIntervalToolPage', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
+
+      final surfaceInterval = _findRouteByName(
+        router.configuration.routes,
+        'surfaceInterval',
+      );
+      expect(surfaceInterval, isNotNull);
+      final state = GoRouterState(
+        router.configuration,
+        uri: Uri.parse('/planning/surface-interval'),
+        matchedLocation: '/planning/surface-interval',
+        fullPath: '/planning/surface-interval',
+        pathParameters: const {},
+        pageKey: const ValueKey('/planning/surface-interval'),
+      );
+      expect(
+        surfaceInterval!.builder!(context, state),
+        isA<SurfaceIntervalToolPage>(),
+      );
     });
 
     testWidgets('noFly route builds the NoFlyPage', (tester) async {
