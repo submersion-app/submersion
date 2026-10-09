@@ -163,6 +163,7 @@ import 'package:submersion/features/marine_life/presentation/pages/species_edit_
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
+import 'package:submersion/features/planning/presentation/widgets/planning_disclaimer_gate.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
@@ -263,124 +264,139 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
 
-          // Planning hub and tools
-          GoRoute(
-            path: '/planning',
-            name: 'planning',
-            pageBuilder: (context, state) {
-              // The hub is the landing surface on every width; the shell
-              // decides how much width it gets.
-              return NoTransitionPage(
-                key: state.pageKey,
-                child: const PlanningPage(),
-              );
-            },
+          // Planning hub and tools, gated behind the safety disclaimer
+          // (issue #3120). A plain GoRoute only wraps its own exact-match
+          // page: a deep link straight to a leaf route below (deco
+          // calculator, a gas calculator, weight/surface-interval/no-fly/
+          // CNS-OTU, ...) replaces PlanningPage/GasCalculatorsPage outright
+          // and would never reach a gate placed in their build() methods.
+          // A ShellRoute around the whole subtree instead wraps whichever
+          // leaf matched, so every route under /planning is covered.
+          ShellRoute(
+            builder: (context, state, child) =>
+                PlanningDisclaimerGate(child: child),
             routes: [
               GoRoute(
-                path: 'dive-planner',
-                name: 'divePlanner',
-                builder: (context, state) => const PlanCanvasPage(),
+                path: '/planning',
+                name: 'planning',
+                pageBuilder: (context, state) {
+                  // The hub is the landing surface on every width; the shell
+                  // decides how much width it gets.
+                  return NoTransitionPage(
+                    key: state.pageKey,
+                    child: const PlanningPage(),
+                  );
+                },
                 routes: [
                   GoRoute(
-                    path: 'compare',
-                    name: 'comparePlans',
-                    builder: (context, state) => PlanComparePage(
-                      planIds: (state.uri.queryParameters['ids'] ?? '')
-                          .split(',')
-                          .where((id) => id.isNotEmpty)
-                          .toList(),
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'chart',
-                    name: 'planChart',
-                    builder: (context, state) =>
-                        const PlanChartFullscreenPage(),
-                  ),
-                ],
-              ),
-              // Editing a saved plan is a SIBLING of the new-plan canvas, not a
-              // child. Nesting it under 'dive-planner' made go_router build the
-              // parent PlanCanvasPage() *and* the PlanCanvasPage(planId): since
-              // both read the same shared divePlanNotifierProvider, the first
-              // Back press only revealed the identical parent canvas, forcing a
-              // second press. Declared after the divePlanner subtree so its
-              // static children (compare/chart) still win route matching.
-              GoRoute(
-                path: 'dive-planner/:planId',
-                name: 'editPlan',
-                builder: (context, state) =>
-                    PlanCanvasPage(planId: state.pathParameters['planId']),
-              ),
-              GoRoute(
-                path: 'deco-calculator',
-                name: 'decoCalculator',
-                builder: (context, state) => const DecoCalculatorPage(),
-              ),
-              GoRoute(
-                path: 'gas-calculators',
-                name: 'gasCalculators',
-                builder: (context, state) => const GasCalculatorsPage(),
-                // The calculators are children, not tabs. On a narrow
-                // window each is pushed as its own page; in split view they
-                // ride in ?calc= instead and these routes go unused.
-                routes: [
-                  for (final id in kGasCalculatorIds)
-                    GoRoute(
-                      path: id,
-                      builder: (context, state) =>
-                          GasCalculatorDetailPage(toolId: id),
-                    ),
-                ],
-              ),
-              // The blender's paid-invoice archive is a SIBLING of the
-              // generated calculator routes above, not a child of the
-              // 'blender' entry: that entry is built inside the loop and has
-              // no routes: list of its own to extend. Declared after the loop
-              // for the same reason 'dive-planner/:planId' is declared after
-              // its subtree - static routes still win matching regardless of
-              // declaration order here, but this keeps the generated block
-              // readable as one unit.
-              GoRoute(
-                path: 'gas-calculators/blender/invoices',
-                name: 'blenderInvoiceArchive',
-                builder: (context, state) => const BlenderInvoiceArchivePage(),
-                routes: [
-                  GoRoute(
-                    path: ':invoiceId',
-                    name: 'blenderInvoiceArchiveDetail',
-                    builder: (context, state) =>
-                        BlenderInvoiceArchiveDetailPage(
-                          invoiceId: state.pathParameters['invoiceId']!,
+                    path: 'dive-planner',
+                    name: 'divePlanner',
+                    builder: (context, state) => const PlanCanvasPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'compare',
+                        name: 'comparePlans',
+                        builder: (context, state) => PlanComparePage(
+                          planIds: (state.uri.queryParameters['ids'] ?? '')
+                              .split(',')
+                              .where((id) => id.isNotEmpty)
+                              .toList(),
                         ),
+                      ),
+                      GoRoute(
+                        path: 'chart',
+                        name: 'planChart',
+                        builder: (context, state) =>
+                            const PlanChartFullscreenPage(),
+                      ),
+                    ],
+                  ),
+                  // Editing a saved plan is a SIBLING of the new-plan canvas, not a
+                  // child. Nesting it under 'dive-planner' made go_router build the
+                  // parent PlanCanvasPage() *and* the PlanCanvasPage(planId): since
+                  // both read the same shared divePlanNotifierProvider, the first
+                  // Back press only revealed the identical parent canvas, forcing a
+                  // second press. Declared after the divePlanner subtree so its
+                  // static children (compare/chart) still win route matching.
+                  GoRoute(
+                    path: 'dive-planner/:planId',
+                    name: 'editPlan',
+                    builder: (context, state) =>
+                        PlanCanvasPage(planId: state.pathParameters['planId']),
+                  ),
+                  GoRoute(
+                    path: 'deco-calculator',
+                    name: 'decoCalculator',
+                    builder: (context, state) => const DecoCalculatorPage(),
+                  ),
+                  GoRoute(
+                    path: 'gas-calculators',
+                    name: 'gasCalculators',
+                    builder: (context, state) => const GasCalculatorsPage(),
+                    // The calculators are children, not tabs. On a narrow
+                    // window each is pushed as its own page; in split view they
+                    // ride in ?calc= instead and these routes go unused.
+                    routes: [
+                      for (final id in kGasCalculatorIds)
+                        GoRoute(
+                          path: id,
+                          builder: (context, state) =>
+                              GasCalculatorDetailPage(toolId: id),
+                        ),
+                    ],
+                  ),
+                  // The blender's paid-invoice archive is a SIBLING of the
+                  // generated calculator routes above, not a child of the
+                  // 'blender' entry: that entry is built inside the loop and has
+                  // no routes: list of its own to extend. Declared after the loop
+                  // for the same reason 'dive-planner/:planId' is declared after
+                  // its subtree - static routes still win matching regardless of
+                  // declaration order here, but this keeps the generated block
+                  // readable as one unit.
+                  GoRoute(
+                    path: 'gas-calculators/blender/invoices',
+                    name: 'blenderInvoiceArchive',
+                    builder: (context, state) =>
+                        const BlenderInvoiceArchivePage(),
+                    routes: [
+                      GoRoute(
+                        path: ':invoiceId',
+                        name: 'blenderInvoiceArchiveDetail',
+                        builder: (context, state) =>
+                            BlenderInvoiceArchiveDetailPage(
+                              invoiceId: state.pathParameters['invoiceId']!,
+                            ),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'weight-calculator',
+                    name: 'weightCalculator',
+                    builder: (context, state) => const WeightPlannerPage(),
+                  ),
+                  GoRoute(
+                    path: 'surface-interval',
+                    name: 'surfaceInterval',
+                    builder: (context, state) =>
+                        const SurfaceIntervalToolPage(),
+                  ),
+                  GoRoute(
+                    path: 'no-fly',
+                    name: 'noFly',
+                    builder: (context, state) => const NoFlyPage(),
+                  ),
+                  GoRoute(
+                    path: 'cns-otu',
+                    name: 'cnsOtu',
+                    builder: (context, state) => const CnsOtuPage(),
+                  ),
+                  // The GPS logger moved into the Tracks area; keep old deep
+                  // links working.
+                  GoRoute(
+                    path: 'gps-logger',
+                    redirect: (context, state) => kTracksLocation,
                   ),
                 ],
-              ),
-              GoRoute(
-                path: 'weight-calculator',
-                name: 'weightCalculator',
-                builder: (context, state) => const WeightPlannerPage(),
-              ),
-              GoRoute(
-                path: 'surface-interval',
-                name: 'surfaceInterval',
-                builder: (context, state) => const SurfaceIntervalToolPage(),
-              ),
-              GoRoute(
-                path: 'no-fly',
-                name: 'noFly',
-                builder: (context, state) => const NoFlyPage(),
-              ),
-              GoRoute(
-                path: 'cns-otu',
-                name: 'cnsOtu',
-                builder: (context, state) => const CnsOtuPage(),
-              ),
-              // The GPS logger moved into the Tracks area; keep old deep
-              // links working.
-              GoRoute(
-                path: 'gps-logger',
-                redirect: (context, state) => kTracksLocation,
               ),
             ],
           ),

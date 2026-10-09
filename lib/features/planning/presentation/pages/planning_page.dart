@@ -3,7 +3,6 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/deco_calculator/presentation/pages/deco_calculator_page.dart';
 import 'package:submersion/features/planning/presentation/planning_tools.dart';
-import 'package:submersion/features/planning/presentation/widgets/planning_disclaimer_gate.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_list_content.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_summary_widget.dart';
 import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
@@ -25,27 +24,25 @@ class PlanningPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
-      return PlanningDisclaimerGate(
-        child: MasterDetailScaffold(
-          sectionId: 'planning',
-          // Not the default 'selected': the planning hub shares no route
-          // with another scaffold today, but 'tool' keeps the URL
-          // self-describing (/planning?tool=deco-calculator).
-          queryParamKey: 'tool',
-          masterBuilder: (context, onItemSelected, selectedId) =>
-              PlanningListContent(
-                onToolSelected: onItemSelected,
-                selectedId: selectedId,
-                showAppBar: false,
-              ),
-          detailBuilder: (context, toolId) => _buildTool(context, toolId),
-          summaryBuilder: (context) => const PlanningSummaryWidget(),
-          mobileDetailRoute: (id) => '/planning/$id',
-        ),
+      return MasterDetailScaffold(
+        sectionId: 'planning',
+        // Not the default 'selected': the planning hub shares no route with
+        // another scaffold today, but 'tool' keeps the URL self-describing
+        // (/planning?tool=deco-calculator).
+        queryParamKey: 'tool',
+        masterBuilder: (context, onItemSelected, selectedId) =>
+            PlanningListContent(
+              onToolSelected: onItemSelected,
+              selectedId: selectedId,
+              showAppBar: false,
+            ),
+        detailBuilder: (context, toolId) => _buildTool(context, toolId),
+        summaryBuilder: (context) => const PlanningSummaryWidget(),
+        mobileDetailRoute: (id) => '/planning/$id',
       );
     }
 
-    return const PlanningDisclaimerGate(child: PlanningListContent());
+    return const PlanningListContent();
   }
 
   /// The embedded form of each tool. Unknown ids fall back to the summary

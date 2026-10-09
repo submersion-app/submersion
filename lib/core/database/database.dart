@@ -1160,6 +1160,8 @@ class AppDatabase extends _$AppDatabase {
     // shipped those; 268 is held by an open branch (#3043).
     272,
     273,
+    // v274: diver_settings.has_accepted_planning_disclaimer (issue #3120).
+    274,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -18,7 +18,9 @@ import 'package:submersion/features/checklists/presentation/pages/checklist_temp
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
+import 'package:submersion/features/planning/presentation/widgets/planning_disclaimer_gate.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
@@ -64,6 +66,22 @@ GoRoute? _findRouteByPath(List<RouteBase> routes, String path) {
     }
   }
   return null;
+}
+
+/// Collects every [ShellRoute] in a route tree recursively, however deeply
+/// nested (a [ShellRoute] inside another [ShellRoute]'s routes list).
+List<ShellRoute> _collectShellRoutes(List<RouteBase> routes) {
+  final shells = <ShellRoute>[];
+  for (final route in routes) {
+    if (route is ShellRoute) {
+      shells.add(route);
+      shells.addAll(_collectShellRoutes(route.routes));
+    }
+    if (route is GoRoute) {
+      shells.addAll(_collectShellRoutes(route.routes));
+    }
+  }
+  return shells;
 }
 
 /// Collects all named [GoRoute]s from a route tree recursively.
@@ -1044,6 +1062,104 @@ void main() {
         expect(newWidget.planId, isNull);
       },
     );
+  });
+
+  group('planning disclaimer gate (issue #3120)', () {
+    // Regression: the gate used to live inside PlanningPage's and
+    // GasCalculatorsPage's own build() methods. A plain GoRoute only renders
+    // its own exact-match page, so a deep link straight to a leaf route below
+    // them (the deco calculator, a gas calculator detail page, ...) replaced
+    // those pages outright and never reached the gate. It now lives in a
+    // ShellRoute around the whole /planning subtree, so whichever leaf route
+    // matched is still wrapped.
+
+    // The MOST SPECIFIC (innermost) shell containing [routeName]: a nested
+    // ShellRoute's ancestor shells all transitively "contain" it too, and
+    // _collectShellRoutes lists an ancestor before the descendants nested
+    // inside it, so the last match is the innermost one -- the gate actually
+    // responsible for that route, not just some outer shell it happens to
+    // live under (e.g. the app-wide MainScaffold shell).
+    ShellRoute shellContaining(String routeName) {
+      final shells = _collectShellRoutes(router.configuration.routes);
+      return shells.lastWhere(
+        (shell) => _findRouteByName(shell.routes, routeName) != null,
+        orElse: () =>
+            throw StateError('$routeName is not inside any ShellRoute'),
+      );
+    }
+
+    test('deco-calculator and the gas calculators share one gated shell', () {
+      final decoShell = shellContaining('decoCalculator');
+      final gasShell = shellContaining('gasCalculators');
+      expect(
+        decoShell,
+        same(gasShell),
+        reason:
+            'One shell must cover the whole /planning subtree, not a '
+            'separate one per route -- otherwise a route added later could '
+            'be declared outside it by mistake.',
+      );
+    });
+
+    testWidgets('the gated shell wraps whichever child route matched in '
+        'PlanningDisclaimerGate', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
+
+      final shell = shellContaining('decoCalculator');
+      final state = GoRouterState(
+        router.configuration,
+        uri: Uri.parse('/planning/deco-calculator'),
+        matchedLocation: '/planning/deco-calculator',
+        fullPath: '/planning/deco-calculator',
+        pathParameters: const {},
+        pageKey: const ValueKey('/planning/deco-calculator'),
+      );
+      const leaf = SizedBox(key: Key('leaf'));
+      final wrapped = shell.builder!(context, state, leaf);
+
+      expect(wrapped, isA<PlanningDisclaimerGate>());
+      expect((wrapped as PlanningDisclaimerGate).child, same(leaf));
+    });
+
+    test('every tool under /planning is inside the gated shell', () {
+      // Each of these is reachable by a direct deep link that bypasses
+      // PlanningPage/GasCalculatorsPage entirely, so each needs its OWN
+      // membership checked rather than trusting that one being gated implies
+      // the rest are.
+      const names = [
+        'planning',
+        'divePlanner',
+        'editPlan',
+        'decoCalculator',
+        'gasCalculators',
+        'weightCalculator',
+        'surfaceInterval',
+        'noFly',
+        'cnsOtu',
+      ];
+      final shells = _collectShellRoutes(router.configuration.routes);
+      for (final name in names) {
+        expect(
+          shells.any((shell) => _findRouteByName(shell.routes, name) != null),
+          isTrue,
+          reason: '$name is reachable directly but not inside a ShellRoute',
+        );
+      }
+      // Each calculator id (mod, best-mix, ...) is a path under
+      // gas-calculators, not a name of its own; check it by path within the
+      // shell that gates the hub, rather than by name.
+      final gasCalculatorPaths = _collectRoutePaths(
+        shellContaining('gasCalculators').routes,
+      );
+      for (final id in kGasCalculatorIds) {
+        expect(
+          gasCalculatorPaths,
+          contains(id),
+          reason: 'gas calculator "$id" is not inside the gated shell',
+        );
+      }
+    });
   });
 
   // The GaugeStrip widget test navigates through a stub router, so a chip
