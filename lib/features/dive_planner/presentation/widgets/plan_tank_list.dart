@@ -199,9 +199,11 @@ class _TankEditDialog extends StatefulWidget {
   /// the bailout flag is offered there and nowhere else.
   final PlanMode mode;
 
-  /// The plan's best bottom mix at its deepest point, offered as a one-tap
-  /// fill of the O2/He fields; null hides the offer (a plan with no depth).
-  final ({double depthMeters, GasMix mix})? bestMix;
+  /// The plan's best mixes at its deepest point, offered as a one-tap fill
+  /// of the O2/He fields: [bestMix.diluent] on a CCR plan unless the
+  /// cylinder is ticked as bailout, [bestMix.bottom] otherwise. Null hides
+  /// the offer (a plan with no depth).
+  final ({double depthMeters, GasMix bottom, GasMix? diluent})? bestMix;
   final ValueChanged<DiveTank> onSave;
 
   const _TankEditDialog({
@@ -366,7 +368,10 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                   ),
                 ],
               ),
-              if (widget.bestMix case final bestMix?)
+              if ((widget.bestMix, _offeredMix) case (
+                final bestMix?,
+                final mix?,
+              ))
                 Align(
                   alignment: AlignmentDirectional.centerStart,
                   child: TextButton.icon(
@@ -377,10 +382,10 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                           bestMix.depthMeters,
                           decimals: 0,
                         ),
-                        bestMix.mix.name,
+                        mix.name,
                       ),
                     ),
-                    onPressed: () => _fillGas(bestMix.mix),
+                    onPressed: () => _fillGas(mix),
                   ),
                 ),
               const SizedBox(height: 8),
@@ -422,6 +427,14 @@ class _TankEditDialogState extends State<_TankEditDialog> {
         ),
       ],
     );
+  }
+
+  /// The best mix offered for this cylinder: a CCR diluent unless it is
+  /// ticked as bailout (an open-circuit gas, sized like a bottom gas).
+  GasMix? get _offeredMix {
+    final bestMix = widget.bestMix;
+    if (bestMix == null) return null;
+    return (_isBailout ? null : bestMix.diluent) ?? bestMix.bottom;
   }
 
   /// Writes [mix] into the O2/He fields; the diver still saves the dialog.

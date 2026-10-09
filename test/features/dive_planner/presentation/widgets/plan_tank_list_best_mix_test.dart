@@ -5,8 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -156,6 +159,59 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(error, findsNothing);
+  });
+
+  group('on a CCR plan', () {
+    /// The mix offered at 60 m when gated by [ppO2Limit] instead of the
+    /// bottom ceiling.
+    GasMix mixFor(ProviderContainer container, double ppO2Limit) {
+      final settings = container.read(settingsProvider);
+      return computeBestMix(
+        BestMixInputs(
+          depthMeters: 60,
+          ppO2Limit: ppO2Limit,
+          endLimitMeters: 30,
+          o2Narcotic: settings.o2Narcotic,
+        ),
+      ).recommended.mix;
+    }
+
+    Future<ProviderContainer> pumpCcr(WidgetTester tester) async {
+      final container = await pumpList(tester);
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.addSimplePlan(maxDepth: 60, bottomTimeMinutes: 20);
+      notifier.updateMode(PlanMode.ccr);
+      await tester.pumpAndSettle();
+      return container;
+    }
+
+    testWidgets('offers a diluent sized for the diluent MOD ppO2', (
+      tester,
+    ) async {
+      final container = await pumpCcr(tester);
+      final settings = container.read(settingsProvider);
+      final diluent = mixFor(container, settings.ccrDiluentModPpO2);
+      // The two ceilings must differ at 60 m, or this proves nothing.
+      expect(diluent, isNot(mixFor(container, settings.ppO2MaxWorking)));
+
+      await openAddTank(tester);
+
+      expect(find.text('Best mix for 60m: ${diluent.name}'), findsOneWidget);
+    });
+
+    testWidgets('a bailout cylinder gets the bottom-gas mix', (tester) async {
+      final container = await pumpCcr(tester);
+      final bottom = mixFor(
+        container,
+        container.read(settingsProvider).ppO2MaxWorking,
+      );
+
+      await openAddTank(tester);
+      await tester.tap(find.text('Bailout gas'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Best mix for 60m: ${bottom.name}'), findsOneWidget);
+    });
   });
 
   testWidgets('offers no best mix while the plan has no depth', (tester) async {

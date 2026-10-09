@@ -37,20 +37,36 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
 /// diver's Settings. The tank dialog offers it as a one-tap fill, which is
 /// the only place the best-mix END takes effect (issue #3093).
 ///
+/// A CCR plan also carries the best diluent, gated on the diver's diluent
+/// MOD ppO2 instead of the bottom ceiling: the same split the PlanEngine
+/// makes when it checks a CCR diluent against that limit. Other modes leave
+/// [diluent] null.
+///
 /// Null while the plan has no depth to suggest a mix for. Auto-dispose: it
 /// is only read when the dialog opens, so nothing should keep it recomputing
 /// on every later plan edit.
 final planBestMixProvider =
-    Provider.autoDispose<({double depthMeters, GasMix mix})?>((ref) {
+    Provider.autoDispose<
+      ({double depthMeters, GasMix bottom, GasMix? diluent})?
+    >((ref) {
       final state = ref.watch(divePlanNotifierProvider);
       final depth = state.maxDepth;
       if (depth <= 0) return null;
-      final result = suggestBestMixForPlan(
-        divePlanFromState(state),
-        ref.watch(planEngineConfigProvider),
+      final plan = divePlanFromState(state);
+      final config = ref.watch(planEngineConfigProvider);
+      GasMix mixFor({bool forDiluent = false}) => suggestBestMixForPlan(
+        plan,
+        config,
         depthMeters: depth,
+        forDiluent: forDiluent,
+      ).recommended.mix;
+      return (
+        depthMeters: depth,
+        bottom: mixFor(),
+        diluent: state.mode == domain.PlanMode.ccr
+            ? mixFor(forDiluent: true)
+            : null,
       );
-      return (depthMeters: depth, mix: result.recommended.mix);
     });
 
 /// The canvas's single source of computed truth: the current editing state
