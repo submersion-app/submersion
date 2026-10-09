@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -131,6 +132,30 @@ void main() {
       tight,
       expectedAt(container, depth: 60, endMeters: 20).recommended.mix.he,
     );
+  });
+
+  testWidgets('filling the best mix clears an earlier O2 error', (
+    tester,
+  ) async {
+    final container = await pumpList(tester);
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 60, bottomTimeMinutes: 20);
+    await tester.pumpAndSettle();
+    await openAddTank(tester);
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'O₂ %'), '150');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    final error = find.text(
+      lookupAppLocalizations(const Locale('en')).numberInput_percentRange,
+    );
+    expect(error, findsOneWidget);
+
+    await tester.tap(bestMixButton());
+    await tester.pumpAndSettle();
+
+    expect(error, findsNothing);
   });
 
   testWidgets('offers no best mix while the plan has no depth', (tester) async {

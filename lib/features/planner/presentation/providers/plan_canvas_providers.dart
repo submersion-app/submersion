@@ -37,20 +37,21 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
 /// diver's Settings. The tank dialog offers it as a one-tap fill, which is
 /// the only place the best-mix END takes effect (issue #3093).
 ///
-/// Null while the plan has no depth to suggest a mix for.
-final planBestMixProvider = Provider<({double depthMeters, GasMix mix})?>((
-  ref,
-) {
-  final state = ref.watch(divePlanNotifierProvider);
-  final depth = state.maxDepth;
-  if (depth <= 0) return null;
-  final result = suggestBestMixForPlan(
-    divePlanFromState(state),
-    ref.watch(planEngineConfigProvider),
-    depthMeters: depth,
-  );
-  return (depthMeters: depth, mix: result.recommended.mix);
-});
+/// Null while the plan has no depth to suggest a mix for. Auto-dispose: it
+/// is only read when the dialog opens, so nothing should keep it recomputing
+/// on every later plan edit.
+final planBestMixProvider =
+    Provider.autoDispose<({double depthMeters, GasMix mix})?>((ref) {
+      final state = ref.watch(divePlanNotifierProvider);
+      final depth = state.maxDepth;
+      if (depth <= 0) return null;
+      final result = suggestBestMixForPlan(
+        divePlanFromState(state),
+        ref.watch(planEngineConfigProvider),
+        depthMeters: depth,
+      );
+      return (depthMeters: depth, mix: result.recommended.mix);
+    });
 
 /// The canvas's single source of computed truth: the current editing state
 /// run through the PlanEngine on every change (live recalc, no button).

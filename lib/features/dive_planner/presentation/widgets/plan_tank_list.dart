@@ -425,9 +425,12 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   }
 
   /// Writes [mix] into the O2/He fields; the diver still saves the dialog.
+  /// Re-validates so an error left by an earlier save attempt on either
+  /// field clears now that it holds a valid mix.
   void _fillGas(GasMix mix) {
     _o2Controller.text = formatDecimalForInput(mix.o2);
     _heController.text = formatDecimalForInput(mix.he);
+    _formKey.currentState?.validate();
   }
 
   /// Empty is fine ([_save] defaults it); anything else must parse to a
