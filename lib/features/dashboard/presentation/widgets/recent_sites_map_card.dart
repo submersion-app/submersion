@@ -8,7 +8,6 @@ import 'package:submersion/features/dashboard/presentation/providers/dashboard_p
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
-import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Height of the map itself, exported because a card paired beside this one
@@ -72,63 +71,61 @@ class _RecentSitesMapCardState extends ConsumerState<RecentSitesMapCard> {
               borderRadius: BorderRadius.circular(12),
               child: SizedBox(
                 height: recentSitesMapHeight,
-                child: TrackpadZoomMap(
-                  controller: _controller,
-                  child: FlutterMap(
-                    mapController: _controller,
-                    options: MapOptions(
-                      initialCenter: points.first,
-                      initialZoom: 11,
-                      initialCameraFit: fit,
-                      // Never interactive: a live map here would fight the
-                      // parent scroll view for the gesture arena on every
-                      // drag. The expand icon above opens the full map.
-                      interactionOptions: const InteractionOptions(
-                        flags: InteractiveFlag.none,
+                child: FlutterMap(
+                  mapController: _controller,
+                  options: MapOptions(
+                    initialCenter: points.first,
+                    initialZoom: 11,
+                    initialCameraFit: fit,
+                    // Never interactive, including trackpad pan-zoom: a live
+                    // map here would fight the parent scroll view for the
+                    // gesture arena on every drag. The expand icon above
+                    // opens the full map.
+                    interactionOptions: const InteractionOptions(
+                      flags: InteractiveFlag.none,
+                    ),
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: ref.watch(mapTileUrlProvider),
+                      userAgentPackageName: 'app.submersion',
+                      maxZoom: ref.watch(mapTileMaxZoomProvider),
+                      tileProvider: TileCacheService.instance.tileProviderFor(
+                        urlTemplate: ref.watch(mapTileUrlProvider),
                       ),
                     ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: ref.watch(mapTileUrlProvider),
-                        userAgentPackageName: 'app.submersion',
-                        maxZoom: ref.watch(mapTileMaxZoomProvider),
-                        tileProvider: TileCacheService.instance.tileProviderFor(
-                          urlTemplate: ref.watch(mapTileUrlProvider),
-                        ),
-                      ),
-                      MarkerLayer(
-                        markers: [
-                          for (final p in pins)
-                            Marker(
-                              point: LatLng(p.latitude, p.longitude),
-                              width: 34,
-                              height: 34,
-                              child: Tooltip(
-                                message: p.siteName ?? '',
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: scheme.primary,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 2,
-                                    ),
+                    MarkerLayer(
+                      markers: [
+                        for (final p in pins)
+                          Marker(
+                            point: LatLng(p.latitude, p.longitude),
+                            width: 34,
+                            height: 34,
+                            child: Tooltip(
+                              message: p.siteName ?? '',
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: scheme.primary,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
                                   ),
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.place,
-                                      size: 16,
-                                      color: scheme.onPrimary,
-                                    ),
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    Icons.place,
+                                    size: 16,
+                                    color: scheme.onPrimary,
                                   ),
                                 ),
                               ),
                             ),
-                        ],
-                      ),
-                      const MapAttribution(),
-                    ],
-                  ),
+                          ),
+                      ],
+                    ),
+                    const MapAttribution(),
+                  ],
                 ),
               ),
             ),
