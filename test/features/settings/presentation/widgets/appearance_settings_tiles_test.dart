@@ -99,6 +99,30 @@ void main() {
       });
     }
 
+    // Semantics(selected) already announces the selected row. A label on its
+    // check mark said so a second time, in the language list's wording, whose
+    // translations agree with the word for language (French "Sélectionnée").
+    testWidgets('the selected light/dark row is announced once', (
+      tester,
+    ) async {
+      await _pumpGeneralTiles(
+        tester,
+        settings: const AppSettings(themeMode: ThemeMode.dark),
+      );
+
+      final check = tester.widget<Icon>(find.byIcon(Icons.check));
+      expect(check.semanticLabel, isNull);
+      expect(
+        find.ancestor(
+          of: find.text('Dark'),
+          matching: find.byWidgetPredicate(
+            (w) => w is Semantics && w.properties.selected == true,
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('tapping a light/dark row saves that mode', (tester) async {
       final notifier = await _pumpGeneralTiles(tester);
 

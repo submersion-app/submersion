@@ -276,12 +276,10 @@ class _ThemeModeTile extends ConsumerWidget {
       child: ListTile(
         leading: Icon(icon),
         title: Text(name),
+        // No semanticLabel: Semantics(selected) above already announces the
+        // row as selected, and a label would say it a second time.
         trailing: selected
-            ? Icon(
-                Icons.check,
-                color: Theme.of(context).colorScheme.primary,
-                semanticLabel: l10n.settings_language_selected,
-              )
+            ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
             : null,
         onTap: () => ref.read(settingsProvider.notifier).setThemeMode(mode),
       ),
