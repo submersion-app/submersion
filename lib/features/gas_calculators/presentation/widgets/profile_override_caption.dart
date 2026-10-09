@@ -27,32 +27,40 @@ class ProfileOverrideCaption extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            isOverridden ? Icons.edit : Icons.person_outline,
-            size: 16,
-            color: isOverridden
-                ? colorScheme.tertiary
-                : colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              isOverridden
-                  ? l10n.gasCalculators_differsFromProfile(profileValueText)
-                  : l10n.gasCalculators_mod_fromProfile,
-              style: textTheme.bodySmall?.copyWith(
+          Row(
+            children: [
+              Icon(
+                isOverridden ? Icons.edit : Icons.person_outline,
+                size: 16,
                 color: isOverridden
                     ? colorScheme.tertiary
                     : colorScheme.onSurfaceVariant,
               ),
-            ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  isOverridden
+                      ? l10n.gasCalculators_differsFromProfile(profileValueText)
+                      : l10n.gasCalculators_mod_fromProfile,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: isOverridden
+                        ? colorScheme.tertiary
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
           ),
           if (isOverridden)
-            TextButton(
-              onPressed: onReset,
-              child: Text(l10n.gasCalculators_mod_useProfileValue),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: onReset,
+                child: Text(l10n.gasCalculators_mod_useProfileValue),
+              ),
             ),
         ],
       ),
