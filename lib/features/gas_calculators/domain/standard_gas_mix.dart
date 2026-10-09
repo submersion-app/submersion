@@ -122,35 +122,35 @@ const List<StandardGasMix> standardGasMixes = [
 
   // Bottom gases (trimix), IANTD's own ladder
   StandardGasMix(
-    name: 'Rec. Trimix 28/25',
+    name: 'Trimix 28/25',
     o2Percent: 28,
     hePercent: 25,
     category: StandardGasCategory.bottomGas,
     associations: ['IANTD'],
   ),
   StandardGasMix(
-    name: 'Rec. Trimix 32/15',
+    name: 'Trimix 32/15',
     o2Percent: 32,
     hePercent: 15,
     category: StandardGasCategory.bottomGas,
     associations: ['IANTD'],
   ),
   StandardGasMix(
-    name: 'Tech Trimix 19/40',
+    name: 'Trimix 19/40',
     o2Percent: 19,
     hePercent: 40,
     category: StandardGasCategory.bottomGas,
     associations: ['IANTD'],
   ),
   StandardGasMix(
-    name: 'Tech Trimix 14/50',
+    name: 'Trimix 14/50',
     o2Percent: 14,
     hePercent: 50,
     category: StandardGasCategory.bottomGas,
     associations: ['IANTD'],
   ),
   StandardGasMix(
-    name: 'Tech Trimix 12/60',
+    name: 'Trimix 12/60',
     o2Percent: 12,
     hePercent: 60,
     category: StandardGasCategory.bottomGas,

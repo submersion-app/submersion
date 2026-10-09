@@ -38,17 +38,21 @@ depth:
 ## Bottom gases (trimix) — IANTD ladder
 
 IANTD's own technical and advanced-trimix course materials name a parallel
-but distinct set of blends for its depth bands. Two IANTD blends are
-"Rec. Trimix" (recreational/normoxic trimix course range) and three are
-"Tech Trimix" (advanced trimix course range):
+but distinct set of blends for its depth bands: two from the
+recreational/normoxic trimix course range (28/25, 32/15) and three from the
+advanced trimix course range (19/40, 14/50, 12/60). The catalog names all
+five simply "Trimix X/Y", without an IANTD-specific "Rec."/"Tech" prefix —
+that distinction stays in this document, not the entry name, since the
+prefixing read as inconsistent next to the plain "Trimix" names used
+elsewhere in the catalog:
 
 | Entry | Association |
 | --- | --- |
-| Rec. Trimix 28/25 | IANTD |
-| Rec. Trimix 32/15 | IANTD |
-| Tech Trimix 19/40 | IANTD |
-| Tech Trimix 14/50 | IANTD |
-| Tech Trimix 12/60 | IANTD |
+| Trimix 28/25 | IANTD |
+| Trimix 32/15 | IANTD |
+| Trimix 19/40 | IANTD |
+| Trimix 14/50 | IANTD |
+| Trimix 12/60 | IANTD |
 | Trimix 18/45 | IANTD (coincides with the GUE ladder's own 18/45) |
 
 ## Bottom gases (trimix) — no association found
