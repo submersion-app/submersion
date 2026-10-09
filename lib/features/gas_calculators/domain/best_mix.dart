@@ -76,13 +76,40 @@ class BestMixInputs {
     this.temperature = GasDensityTemperature.zeroC,
   });
 
+  BestMixInputs copyWith({
+    double? depthMeters,
+    double? ppO2Limit,
+    double? endLimitMeters,
+    bool? o2Narcotic,
+    BestMixMode? mode,
+    CcrGasSource? ccrSource,
+    double? flushPpO2,
+    WaterType? waterType,
+    bool? densityAware,
+    GasDensityTemperature? temperature,
+  }) => BestMixInputs(
+    depthMeters: depthMeters ?? this.depthMeters,
+    ppO2Limit: ppO2Limit ?? this.ppO2Limit,
+    endLimitMeters: endLimitMeters ?? this.endLimitMeters,
+    o2Narcotic: o2Narcotic ?? this.o2Narcotic,
+    mode: mode ?? this.mode,
+    ccrSource: ccrSource ?? this.ccrSource,
+    flushPpO2: flushPpO2 ?? this.flushPpO2,
+    waterType: waterType ?? this.waterType,
+    densityAware: densityAware ?? this.densityAware,
+    temperature: temperature ?? this.temperature,
+  );
+
   bool get _isTec => mode != BestMixMode.rec;
 
   /// The ppO2 the suggestion is actually built against: [ppO2Limit] for Rec
   /// and OC-Tec, [flushPpO2] for CCR-Tec with the diluent source, and
   /// [ppO2Limit] again for CCR-Tec with the bailout source (the OC working
   /// limit).
-  double get _limitPpO2 =>
+  ///
+  /// Exposed on [BestMixResult] as `limitPpO2` so the UI reads one resolved
+  /// number rather than re-deriving this switch in every card.
+  double get limitPpO2 =>
       mode == BestMixMode.ccrTec && ccrSource == CcrGasSource.diluent
       ? flushPpO2
       : ppO2Limit;
@@ -157,12 +184,18 @@ class BestMixResult {
   /// was needed.
   final HeliumDriver heliumDriver;
 
+  /// The ppO2 the suggestion was built against (see
+  /// [BestMixInputs.limitPpO2]), resolved once here so the UI never
+  /// re-derives the Rec/OC-Tec/CCR-Tec switch itself.
+  final double limitPpO2;
+
   const BestMixResult({
     required this.recommended,
     required this.nitroxAlternative,
     required this.idealO2Percent,
     required this.nearestStandardMix,
     this.heliumDriver = HeliumDriver.none,
+    required this.limitPpO2,
   });
 }
 
@@ -178,12 +211,14 @@ double _ambientAt(double depthMeters, DiveEnvironment? environment) =>
     ? ambientPressureAtDepth(depthMeters)
     : environment.pressureAtDepth(depthMeters);
 
-MixAssessment _assess(GasMix mix, BestMixInputs inputs) {
-  final environment = _environmentFor(inputs);
-  final limitPpO2 = inputs._limitPpO2;
+MixAssessment _assess(
+  GasMix mix,
+  BestMixInputs inputs,
+  DiveEnvironment? environment,
+) {
   final mod = maxOperatingDepthMeters(
     mix.o2 / 100,
-    maxPpO2: limitPpO2,
+    maxPpO2: inputs.limitPpO2,
     environment: environment,
   );
 
@@ -192,7 +227,14 @@ MixAssessment _assess(GasMix mix, BestMixInputs inputs) {
   double density;
 
   if (environment == null) {
-    // Rec: today's flat model, unchanged.
+    // Rec: today's flat model, unchanged. Note this is a different density
+    // formula from the Tec branch below, not just a different ambient
+    // model: `gasDensityGPerL`'s fixed 24.04 L/mol molar volume implies a
+    // gas temperature of roughly 16 C, where the Tec branch takes an
+    // explicit temperature (defaulting to a conservative 0 C). The two
+    // branches can therefore show a slightly different density for the
+    // same mix and depth; this is the accepted Rec/Tec trade-off already
+    // made for the ambient-pressure model, not a new one.
     end = mix.end(inputs.depthMeters, o2Narcotic: inputs.o2Narcotic);
     density = gasDensityGPerL(
       fO2: mix.o2 / 100,
@@ -269,33 +311,50 @@ double _heForNarcosisLimit({
 }
 
 /// Helium percent needed to bring the density of [o2Percent] nitrox/trimix
-/// down to [gasDensityCriticalGPerL] at [depthMeters], [temperature] and
-/// [waterType]. Zero when the nitrox mix alone is already compliant.
+/// down to [gasDensityCriticalGPerL] at [ambientBar] and [temperature].
+/// Zero when the nitrox mix alone is already compliant.
 ///
-/// Closed form, not a search: at fixed O2 and depth, density is affine in
-/// the helium fraction, since helium displaces nitrogen only:
+/// Closed form, not a search: at fixed O2 and ambient pressure, density is
+/// affine in the helium fraction, since helium displaces nitrogen only:
 ///
 /// `density(fHe) = ambient/(R*T) * [fO2*Mo2 + (1-fO2)*Mn2 + fHe*(Mhe-Mn2)]`
 ///
 /// `Mhe < Mn2`, so the coefficient of `fHe` is negative: density strictly
 /// decreases as helium increases, and the mix is compliant for every `fHe`
 /// at or above the solution of `density(fHe) = gasDensityCriticalGPerL`.
+double _heForDensityLimitAt(
+  double ambientBar,
+  double o2Percent,
+  GasDensityTemperature temperature,
+) {
+  final fO2 = o2Percent.clamp(0.0, 100.0) / 100;
+  final kelvin = temperature.celsius + 273.15;
+  final a = ambientBar / (gasConstantLBarPerMolK * kelvin);
+  final base = fO2 * o2MolarMassGPerMol + (1 - fO2) * n2MolarMassGPerMol;
+  const slope = heMolarMassGPerMol - n2MolarMassGPerMol; // negative
+  final fHe = (gasDensityCriticalGPerL / a - base) / slope;
+  return (fHe * 100).clamp(0.0, 100.0 - o2Percent);
+}
+
+/// Helium percent needed to bring the density of [o2Percent] nitrox/trimix
+/// down to [gasDensityCriticalGPerL] at [depthMeters], [temperature] and
+/// [waterType]. Zero when the nitrox mix alone is already compliant.
+///
+/// Public, standalone entry point for [_heForDensityLimitAt]; used directly
+/// by tests and by any caller that has not already resolved an ambient
+/// pressure. [computeBestMix] calls [_heForDensityLimitAt] instead, reusing
+/// the ambient pressure it already computed rather than rebuilding the
+/// [DiveEnvironment] a second time for the same depth and water type.
 double heForDensityLimit(
   double depthMeters,
   double o2Percent, {
   required GasDensityTemperature temperature,
   required WaterType waterType,
 }) {
-  final fO2 = o2Percent.clamp(0.0, 100.0) / 100;
   final ambient = DiveEnvironment.forConditions(
     waterType: waterType,
   ).pressureAtDepth(math.max(depthMeters, 0.0));
-  final kelvin = temperature.celsius + 273.15;
-  final a = ambient / (gasConstantLBarPerMolK * kelvin);
-  final base = fO2 * o2MolarMassGPerMol + (1 - fO2) * n2MolarMassGPerMol;
-  const slope = heMolarMassGPerMol - n2MolarMassGPerMol; // negative
-  final fHe = (gasDensityCriticalGPerL / a - base) / slope;
-  return (fHe * 100).clamp(0.0, 100.0 - o2Percent);
+  return _heForDensityLimitAt(ambient, o2Percent, temperature);
 }
 
 double _ceilToStep(double value, double step) => (value / step).ceil() * step;
@@ -315,12 +374,13 @@ double _ceilToStep(double value, double step) => (value / step).ceil() * step;
 BestMixResult computeBestMix(BestMixInputs inputs) {
   final environment = _environmentFor(inputs);
   final ambient = _ambientAt(inputs.depthMeters, environment);
-  final ideal = inputs._limitPpO2 / ambient * 100;
+  final limitPpO2 = inputs.limitPpO2;
+  final ideal = limitPpO2 / ambient * 100;
 
   // Round DOWN so the resulting MOD is at or beyond the target depth.
   final o2 = floorToFractionDigits(ideal, 0).clamp(1.0, 100.0);
 
-  final nitrox = _assess(GasMix(o2: o2), inputs);
+  final nitrox = _assess(GasMix(o2: o2), inputs, environment);
 
   var recommended = nitrox;
   MixAssessment? alternative;
@@ -341,34 +401,31 @@ BestMixResult computeBestMix(BestMixInputs inputs) {
 
   final heForDensity = inputs.densityAware && inputs._isTec
       ? _ceilToStep(
-          heForDensityLimit(
-            inputs.depthMeters,
-            o2,
-            temperature: inputs.temperature,
-            waterType: inputs.waterType,
-          ),
+          _heForDensityLimitAt(ambient, o2, inputs.temperature),
           1,
         ).clamp(0.0, 100.0 - o2)
       : 0.0;
 
   final he = math.max(heForEnd, heForDensity);
   if (he > 0) {
-    recommended = _assess(GasMix(o2: o2, he: he), inputs);
+    recommended = _assess(GasMix(o2: o2, he: he), inputs, environment);
     alternative = nitrox;
-    driver = switch ((heForEnd > 0, heForDensity > 0)) {
-      (true, true) => HeliumDriver.both,
-      (true, false) => HeliumDriver.endLimit,
-      (false, true) => HeliumDriver.density,
-      // Unreachable: he > 0 implies at least one of the two is positive.
-      (false, false) => HeliumDriver.none,
-    };
+    driver = heForEnd > 0 && heForDensity > 0
+        ? HeliumDriver.both
+        : heForEnd > 0
+        ? HeliumDriver.endLimit
+        : HeliumDriver.density;
   }
 
   GasMix? nearest;
   for (final candidate in _standardO2Percentages) {
-    final standard = GasMix(o2: candidate);
-    if (standard.mod(ppO2: inputs._limitPpO2) >= inputs.depthMeters) {
-      nearest = standard;
+    final mod = maxOperatingDepthMeters(
+      candidate / 100,
+      maxPpO2: limitPpO2,
+      environment: environment,
+    );
+    if (mod >= inputs.depthMeters) {
+      nearest = GasMix(o2: candidate);
       break;
     }
   }
@@ -379,5 +436,6 @@ BestMixResult computeBestMix(BestMixInputs inputs) {
     idealO2Percent: ideal,
     nearestStandardMix: nearest,
     heliumDriver: driver,
+    limitPpO2: limitPpO2,
   );
 }

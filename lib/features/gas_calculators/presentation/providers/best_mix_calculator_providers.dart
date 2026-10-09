@@ -140,21 +140,27 @@ class BestMixCalculatorNotifier
 
   /// Working and flush are each stored as "follow the profile" when they
   /// equal the profile value, mirroring `ModCalculatorNotifier`.
-  void setWorkingPpO2(double ppO2) => _updateOverrides(
-    _overrides.withLimits(
-      workingPpO2: ppO2,
-      decoPpO2: _profile().decoPpO2,
-      profile: _profile(),
-    ),
-  );
+  void setWorkingPpO2(double ppO2) {
+    final profile = _profile();
+    _updateOverrides(
+      _overrides.withLimits(
+        workingPpO2: ppO2,
+        decoPpO2: profile.decoPpO2,
+        profile: profile,
+      ),
+    );
+  }
 
-  void resetWorkingPpO2() => _updateOverrides(
-    _overrides.withLimits(
-      workingPpO2: _profile().workingPpO2,
-      decoPpO2: _profile().decoPpO2,
-      profile: _profile(),
-    ),
-  );
+  void resetWorkingPpO2() {
+    final profile = _profile();
+    _updateOverrides(
+      _overrides.withLimits(
+        workingPpO2: profile.workingPpO2,
+        decoPpO2: profile.decoPpO2,
+        profile: profile,
+      ),
+    );
+  }
 
   void setFlushPpO2(double ppO2) =>
       _updateOverrides(_overrides.withFlushPpO2(ppO2, _profile()));

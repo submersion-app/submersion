@@ -24,7 +24,6 @@ class BestMixInputCard extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final prefs = ref.watch(bestMixCalculatorNotifierProvider);
-    final limits = ref.watch(bestMixCalculatorLimitsProvider);
     final notifier = ref.read(bestMixCalculatorNotifierProvider.notifier);
     final mode = prefs.mode;
     final inputs = prefs.inputsFor(mode);
@@ -143,7 +142,7 @@ class BestMixInputCard extends ConsumerWidget {
               bestMixBreakdownRow(
                 context,
                 l10n.gasCalculators_bestMix_limitPpO2Label,
-                '${(mode == BestMixMode.ccrTec && prefs.ccrSource == CcrGasSource.diluent ? limits.flushPpO2 : limits.workingPpO2).toStringAsFixed(2)} bar',
+                '${ref.watch(bestMixCalculatorResultProvider).limitPpO2.toStringAsFixed(2)} bar',
               ),
           ],
         ),

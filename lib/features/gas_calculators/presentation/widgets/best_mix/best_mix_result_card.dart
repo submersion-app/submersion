@@ -21,19 +21,9 @@ class BestMixResultCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    final prefs = ref.watch(bestMixCalculatorNotifierProvider);
     final result = ref.watch(bestMixCalculatorResultProvider);
-    final limits = ref.watch(bestMixCalculatorLimitsProvider);
-    final inputs = prefs.inputsFor(prefs.mode);
     final recommended = result.recommended;
-    final ppO2 = switch (prefs.mode) {
-      BestMixMode.rec => inputs.recPpO2,
-      BestMixMode.ocTec => limits.workingPpO2,
-      BestMixMode.ccrTec =>
-        prefs.ccrSource == CcrGasSource.diluent
-            ? limits.flushPpO2
-            : limits.workingPpO2,
-    };
+    final ppO2 = result.limitPpO2;
 
     return Semantics(
       label:

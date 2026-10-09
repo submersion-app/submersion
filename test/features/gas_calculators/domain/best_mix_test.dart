@@ -212,6 +212,35 @@ void main() {
     });
 
     test(
+      'nearestStandardMix uses the same environment, not the flat model',
+      () {
+        // Fresh water sits further from the flat 1 bar/10 m model than
+        // salt water does, so a target depth right at a standard mix's
+        // flat-model MOD exposes a stale flat-model check in the search.
+        const freshDepth = 40.0;
+        final fresh = computeBestMix(
+          const BestMixInputs(
+            depthMeters: freshDepth,
+            ppO2Limit: 1.4,
+            endLimitMeters: 45,
+            o2Narcotic: true,
+            mode: BestMixMode.ocTec,
+            waterType: WaterType.fresh,
+          ),
+        );
+        final freshEnvironment = DiveEnvironment.forConditions(
+          waterType: WaterType.fresh,
+        );
+        if (fresh.nearestStandardMix != null) {
+          final mod = freshEnvironment.depthAtPressure(
+            1.4 / (fresh.nearestStandardMix!.o2 / 100),
+          );
+          expect(mod, greaterThanOrEqualTo(freshDepth - 1e-6));
+        }
+      },
+    );
+
+    test(
       'MOD uses the same environment as END/density, not the flat model',
       () {
         // Salt water barPerMeter (~0.10052) differs from the flat 0.1, so the

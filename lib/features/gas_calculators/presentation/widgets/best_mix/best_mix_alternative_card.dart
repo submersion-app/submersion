@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/deco/gas_density.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/gas_calculators/domain/best_mix.dart'
-    show BestMixMode, CcrGasSource;
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix/best_mix_formatting.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -24,18 +22,9 @@ class BestMixAlternativeCard extends ConsumerWidget {
     final l10n = context.l10n;
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
-    final prefs = ref.watch(bestMixCalculatorNotifierProvider);
-    final limits = ref.watch(bestMixCalculatorLimitsProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final ppO2 = switch (prefs.mode) {
-      BestMixMode.rec => prefs.rec.recPpO2,
-      BestMixMode.ocTec => limits.workingPpO2,
-      BestMixMode.ccrTec =>
-        prefs.ccrSource == CcrGasSource.diluent
-            ? limits.flushPpO2
-            : limits.workingPpO2,
-    };
+    final ppO2 = result.limitPpO2;
 
     return Card(
       child: Padding(
