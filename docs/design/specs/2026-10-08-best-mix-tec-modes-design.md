@@ -1,7 +1,7 @@
-# Best Mix Rec / OC-Tec / CCR-Tec modes (issue TBD)
+# Best Mix Rec / OC-Tec / CCR-Tec modes (issue #3112)
 
 Date: 2026-10-08
-Issue: not filed yet
+Issue: [#3112](https://github.com/submersion-app/submersion/issues/3112)
 Related: [issue #2342](https://github.com/submersion-app/submersion/issues/2342) (MOD calculator Rec/OC-Tec/CCR-Tec modes, merged as PR #2387)
 
 ## Summary

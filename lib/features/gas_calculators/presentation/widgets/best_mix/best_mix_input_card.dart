@@ -123,7 +123,12 @@ class BestMixInputCard extends ConsumerWidget {
                         for (final option in GasDensityTemperature.values)
                           ButtonSegment(
                             value: option,
-                            label: Text(option.celsius.toStringAsFixed(0)),
+                            label: Text(
+                              units.formatTemperature(
+                                option.celsius,
+                                decimals: 0,
+                              ),
+                            ),
                           ),
                       ],
                       selected: {prefs.temperature},

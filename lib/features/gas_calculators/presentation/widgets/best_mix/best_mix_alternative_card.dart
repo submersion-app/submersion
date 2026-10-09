@@ -25,6 +25,9 @@ class BestMixAlternativeCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final ppO2 = result.limitPpO2;
+    final endLimitMeters = ref
+        .watch(bestMixCalculatorInputsProvider)
+        .endLimitMeters;
 
     return Card(
       child: Padding(
@@ -76,7 +79,7 @@ class BestMixAlternativeCard extends ConsumerWidget {
               bestMixFlag(
                 context,
                 l10n.gasCalculators_bestMix_endExceeded(
-                  units.formatDepth(settings.endLimit, decimals: 0),
+                  units.formatDepth(endLimitMeters, decimals: 0),
                 ),
                 colorScheme.tertiary,
               ),

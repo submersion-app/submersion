@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/gas_calculators/domain/best_mix.dart'
+    show environmentFor;
 import 'package:submersion/features/gas_calculators/domain/standard_gas_mix.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -35,6 +38,8 @@ class _BestMixCommonMixesCardState
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final result = ref.watch(bestMixCalculatorResultProvider);
+    final inputs = ref.watch(bestMixCalculatorInputsProvider);
+    final environment = environmentFor(inputs);
     final mixes = result.standardMixes;
     final shown = _expanded ? mixes : mixes.take(_collapsedMixCount).toList();
 
@@ -68,7 +73,7 @@ class _BestMixCommonMixesCardState
               ),
             const SizedBox(height: 4),
             for (final mix in shown)
-              _mixRow(context, mix, units, result.limitPpO2),
+              _mixRow(context, mix, units, result.limitPpO2, environment),
             if (mixes.length > _collapsedMixCount)
               Align(
                 alignment: Alignment.centerLeft,
@@ -94,13 +99,20 @@ class _BestMixCommonMixesCardState
     StandardGasMix mix,
     UnitFormatter units,
     double ppO2Limit,
+    DiveEnvironment? environment,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    // MOD rounds DOWN toward the shallower, safer limit.
+    // MOD rounds DOWN toward the shallower, safer limit. Same ambient
+    // model as `coveringStandardMixes` used to decide this entry covers
+    // the target depth, so the displayed MOD never disagrees with it.
     final displayMod = units.formatDepthFloor(
-      maxOperatingDepthMeters(mix.o2Percent / 100, maxPpO2: ppO2Limit),
+      maxOperatingDepthMeters(
+        mix.o2Percent / 100,
+        maxPpO2: ppO2Limit,
+        environment: environment,
+      ),
       decimals: 0,
     );
     final composition = mix.isTrimix

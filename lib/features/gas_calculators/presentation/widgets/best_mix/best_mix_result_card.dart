@@ -24,6 +24,9 @@ class BestMixResultCard extends ConsumerWidget {
     final result = ref.watch(bestMixCalculatorResultProvider);
     final recommended = result.recommended;
     final ppO2 = result.limitPpO2;
+    final endLimitMeters = ref
+        .watch(bestMixCalculatorInputsProvider)
+        .endLimitMeters;
 
     return Semantics(
       label: l10n.gasCalculators_bestMix_semanticsLabel(
@@ -97,7 +100,7 @@ class BestMixResultCard extends ConsumerWidget {
                     HeliumDriver.both => l10n.gasCalculators_bestMix_heliumBoth,
                     HeliumDriver.endLimit || HeliumDriver.none =>
                       l10n.gasCalculators_bestMix_heliumAdded(
-                        units.formatDepth(settings.endLimit, decimals: 0),
+                        units.formatDepth(endLimitMeters, decimals: 0),
                       ),
                   },
                   textAlign: TextAlign.center,

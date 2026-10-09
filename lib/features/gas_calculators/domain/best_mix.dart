@@ -206,7 +206,12 @@ class BestMixResult {
 }
 
 /// The Tec modes' ambient pressure model, null for Rec's flat model.
-DiveEnvironment? _environmentFor(BestMixInputs inputs) => inputs._isTec
+///
+/// Public so callers formatting a catalog entry against these inputs (the
+/// common-mixes reference table) use the same model that decided whether
+/// that entry covers the target depth, rather than silently falling back
+/// to the flat model.
+DiveEnvironment? environmentFor(BestMixInputs inputs) => inputs._isTec
     ? DiveEnvironment.forConditions(waterType: inputs.waterType)
     : null;
 
@@ -375,7 +380,7 @@ double _ceilToStep(double value, double step) => (value / step).ceil() * step;
 /// excludes it when the target depth is itself beyond the END limit, which
 /// is correct: no nitrox, named or not, can fix narcosis without helium.
 List<StandardGasMix> coveringStandardMixes(BestMixInputs inputs) {
-  final environment = _environmentFor(inputs);
+  final environment = environmentFor(inputs);
   final scored = <(StandardGasMix, double)>[];
   for (final mix in standardGasMixes) {
     final assessment = _assess(
@@ -406,7 +411,7 @@ List<StandardGasMix> coveringStandardMixes(BestMixInputs inputs) {
 /// mix, which at 111 ft recommended EAN32 -- whose own MOD at ppO2 1.4 is
 /// 110.7 ft, shallower than the dive.
 BestMixResult computeBestMix(BestMixInputs inputs) {
-  final environment = _environmentFor(inputs);
+  final environment = environmentFor(inputs);
   final ambient = _ambientAt(inputs.depthMeters, environment);
   final limitPpO2 = inputs.limitPpO2;
   final ideal = limitPpO2 / ambient * 100;
