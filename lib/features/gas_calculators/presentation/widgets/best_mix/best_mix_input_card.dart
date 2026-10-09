@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_axis.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
+import 'package:submersion/features/gas_calculators/domain/best_mix_calculator_preferences.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart'
     show modFlushPpO2Max, modFlushPpO2Min, tecTargetMaxMeters;
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
@@ -82,26 +86,70 @@ class BestMixInputCard extends ConsumerWidget {
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-            if (mode == BestMixMode.ccrTec) ...[
+            if (!isRec) ...[
               const SizedBox(height: 16),
-              BestMixLabelled(
-                label: l10n.gasCalculators_bestMix_ccrSource,
-                child: SegmentedButton<CcrGasSource>(
-                  segments: [
-                    ButtonSegment(
-                      value: CcrGasSource.diluent,
-                      label: Text(l10n.gasCalculators_bestMix_ccrSourceDiluent),
+              Wrap(
+                spacing: 32,
+                runSpacing: 16,
+                children: [
+                  if (mode == BestMixMode.ccrTec)
+                    BestMixLabelled(
+                      label: l10n.gasCalculators_bestMix_ccrSource,
+                      child: SegmentedButton<CcrGasSource>(
+                        segments: [
+                          ButtonSegment(
+                            value: CcrGasSource.diluent,
+                            label: Text(
+                              l10n.gasCalculators_bestMix_ccrSourceDiluent,
+                            ),
+                          ),
+                          ButtonSegment(
+                            value: CcrGasSource.bailout,
+                            label: Text(
+                              l10n.gasCalculators_bestMix_ccrSourceBailout,
+                            ),
+                          ),
+                        ],
+                        selected: {prefs.ccrSource},
+                        showSelectedIcon: false,
+                        onSelectionChanged: (selection) =>
+                            notifier.setCcrSource(selection.first),
+                      ),
                     ),
-                    ButtonSegment(
-                      value: CcrGasSource.bailout,
-                      label: Text(l10n.gasCalculators_bestMix_ccrSourceBailout),
+                  BestMixLabelled(
+                    label: l10n.gasCalculators_density_temperature,
+                    child: SegmentedButton<GasDensityTemperature>(
+                      segments: [
+                        for (final option in GasDensityTemperature.values)
+                          ButtonSegment(
+                            value: option,
+                            label: Text(option.celsius.toStringAsFixed(0)),
+                          ),
+                      ],
+                      selected: {prefs.temperature},
+                      showSelectedIcon: false,
+                      onSelectionChanged: (selection) =>
+                          notifier.setTemperature(selection.first),
                     ),
-                  ],
-                  selected: {prefs.ccrSource},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (selection) =>
-                      notifier.setCcrSource(selection.first),
-                ),
+                  ),
+                  BestMixLabelled(
+                    label: l10n.decoCalculator_waterType,
+                    child: SegmentedButton<WaterType>(
+                      segments: [
+                        for (final type
+                            in BestMixCalculatorPreferences.waterTypes)
+                          ButtonSegment(
+                            value: type,
+                            label: Text(type.localizedName(l10n)),
+                          ),
+                      ],
+                      selected: {bestMixCalculatorWaterType(prefs, settings)},
+                      showSelectedIcon: false,
+                      onSelectionChanged: (selection) =>
+                          notifier.setWaterType(selection.first),
+                    ),
+                  ),
+                ],
               ),
             ],
             const SizedBox(height: 24),

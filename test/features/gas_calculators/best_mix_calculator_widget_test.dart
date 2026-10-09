@@ -186,6 +186,31 @@ void main() {
     await _settle(tester);
   });
 
+  testWidgets(
+    'Gas temperature and water type show in Tec modes even with density '
+    'awareness off',
+    (tester) async {
+      final ref = await _pump(tester);
+      final notifier = ref.read(bestMixCalculatorNotifierProvider.notifier);
+
+      notifier.setMode(BestMixMode.ocTec);
+      await tester.pumpAndSettle();
+      expect(find.text('Gas temperature'), findsOneWidget);
+      expect(find.text('Water type'), findsOneWidget);
+
+      notifier.setMode(BestMixMode.ccrTec);
+      await tester.pumpAndSettle();
+      expect(find.text('Gas temperature'), findsOneWidget);
+      expect(find.text('Water type'), findsOneWidget);
+
+      notifier.setMode(BestMixMode.rec);
+      await tester.pumpAndSettle();
+      expect(find.text('Gas temperature'), findsNothing);
+      expect(find.text('Water type'), findsNothing);
+      await _settle(tester);
+    },
+  );
+
   testWidgets('OC-Tec shows an editable ppO2 slider, not a static value', (
     tester,
   ) async {
