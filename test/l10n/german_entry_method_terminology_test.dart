@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Regression coverage for issue #3107: the German UI named the giant stride
@@ -20,7 +21,11 @@ void main() {
     // Matches the ss spelling too, so an ASCII-only rewrite cannot slip by.
     final oldTerm = RegExp('gro(ß|ss)schritt', caseSensitive: false);
     final arb =
-        json.decode(File('lib/l10n/arb/app_de.arb').readAsStringSync())
+        json.decode(
+              File(
+                p.join('lib', 'l10n', 'arb', 'app_de.arb'),
+              ).readAsStringSync(),
+            )
             as Map<String, dynamic>;
 
     final offenders = [
