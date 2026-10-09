@@ -14,6 +14,8 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_saved_tanks_bar.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
@@ -124,6 +126,9 @@ class PlanTankList extends ConsumerWidget {
         units: units,
         mode: ref.read(divePlanNotifierProvider).mode,
         bestMix: ref.read(planBestMixProvider),
+        derivedRole: const TankRoleResolver().rolesFor(
+          divePlanFromState(ref.read(divePlanNotifierProvider)),
+        )[tank.id],
         onSave: (updated) {
           ref
               .read(divePlanNotifierProvider.notifier)
@@ -204,6 +209,12 @@ class _TankEditDialog extends StatefulWidget {
   /// cylinder is ticked as bailout, [bestMix.bottom] otherwise. Null hides
   /// the offer (a plan with no depth).
   final ({double depthMeters, GasMix bottom, GasMix? diluent})? bestMix;
+
+  /// The cylinder's role as [TankRoleResolver] derives it from the plan, or
+  /// null for a new cylinder (which no segment breathes yet). Only a CCR
+  /// diluent is offered [bestMix.diluent], and the oxygen supply is offered
+  /// nothing.
+  final TankRole? derivedRole;
   final ValueChanged<DiveTank> onSave;
 
   const _TankEditDialog({
@@ -211,6 +222,7 @@ class _TankEditDialog extends StatefulWidget {
     required this.units,
     required this.mode,
     this.bestMix,
+    this.derivedRole,
     required this.onSave,
   });
 
@@ -429,12 +441,20 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     );
   }
 
-  /// The best mix offered for this cylinder: a CCR diluent unless it is
-  /// ticked as bailout (an open-circuit gas, sized like a bottom gas).
+  /// The best mix offered for this cylinder, by its derived role. A CCR
+  /// diluent (a cylinder the segments breathe) gets the diluent mix unless
+  /// it is ticked as bailout. The oxygen supply gets nothing, since any mix
+  /// would overwrite its 100% O2. Everything else, a derived bailout or any
+  /// open-circuit cylinder, is breathed open circuit and gets the bottom mix.
   GasMix? get _offeredMix {
     final bestMix = widget.bestMix;
     if (bestMix == null) return null;
-    return (_isBailout ? null : bestMix.diluent) ?? bestMix.bottom;
+    if (_isBailout) return bestMix.bottom;
+    return switch (widget.derivedRole) {
+      TankRole.oxygenSupply => null,
+      TankRole.diluent => bestMix.diluent ?? bestMix.bottom,
+      _ => bestMix.bottom,
+    };
   }
 
   /// Writes [mix] into the O2/He fields; the diver still saves the dialog.

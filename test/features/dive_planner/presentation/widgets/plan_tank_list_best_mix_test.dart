@@ -185,21 +185,45 @@ void main() {
       return container;
     }
 
-    testWidgets('offers a diluent sized for the diluent MOD ppO2', (
-      tester,
-    ) async {
+    /// Opens the edit dialog of the cylinder named [label] on its chip.
+    Future<void> editTank(WidgetTester tester, String label) async {
+      await tester.tap(find.widgetWithText(InputChip, label));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the breathed diluent gets a mix sized for the diluent MOD '
+        'ppO2', (tester) async {
       final container = await pumpCcr(tester);
       final settings = container.read(settingsProvider);
       final diluent = mixFor(container, settings.ccrDiluentModPpO2);
       // The two ceilings must differ at 60 m, or this proves nothing.
       expect(diluent, isNot(mixFor(container, settings.ppO2MaxWorking)));
+      final breathed = container.read(divePlanNotifierProvider).tanks.first;
 
-      await openAddTank(tester);
+      await editTank(tester, breathed.name ?? breathed.gasMix.name);
 
       expect(find.text('Best mix for 60m: ${diluent.name}'), findsOneWidget);
     });
 
-    testWidgets('a bailout cylinder gets the bottom-gas mix', (tester) async {
+    testWidgets('ticking Bailout gas switches the diluent to the bottom mix', (
+      tester,
+    ) async {
+      final container = await pumpCcr(tester);
+      final bottom = mixFor(
+        container,
+        container.read(settingsProvider).ppO2MaxWorking,
+      );
+      final breathed = container.read(divePlanNotifierProvider).tanks.first;
+
+      await editTank(tester, breathed.name ?? breathed.gasMix.name);
+      await tester.tap(find.text('Bailout gas'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Best mix for 60m: ${bottom.name}'), findsOneWidget);
+    });
+
+    testWidgets('a cylinder no segment breathes is a bailout and gets the '
+        'bottom mix', (tester) async {
       final container = await pumpCcr(tester);
       final bottom = mixFor(
         container,
@@ -207,10 +231,30 @@ void main() {
       );
 
       await openAddTank(tester);
-      await tester.tap(find.text('Bailout gas'));
-      await tester.pumpAndSettle();
 
       expect(find.text('Best mix for 60m: ${bottom.name}'), findsOneWidget);
+    });
+
+    testWidgets('the oxygen supply is never offered a mix to overwrite it', (
+      tester,
+    ) async {
+      final container = await pumpCcr(tester);
+      container
+          .read(divePlanNotifierProvider.notifier)
+          .addTank(
+            const DiveTank(
+              id: 'o2-supply',
+              name: 'O2 supply',
+              volume: 3,
+              startPressure: 200,
+              gasMix: GasMix(o2: 100),
+            ),
+          );
+      await tester.pumpAndSettle();
+
+      await editTank(tester, 'O2 supply');
+
+      expect(bestMixButton(), findsNothing);
     });
   });
 
