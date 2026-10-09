@@ -18,12 +18,13 @@ final icdO2BProvider = StateProvider<double>((ref) => 32.0);
 /// He% of Gas B.
 final icdHeBProvider = StateProvider<double>((ref) => 0.0);
 
-/// Whether the assessment is shown at all, initialized from settings.
-/// Uses ref.read (not ref.watch) so a user override is not lost when
-/// unrelated settings change. Reset via ref.invalidate re-reads settings.
-final icdWarningsEnabledProvider = StateProvider<bool>((ref) {
-  final settings = ref.read(settingsProvider);
-  return settings.icdWarningsEnabled;
+/// Whether the assessment is shown at all. The calculator has no control of
+/// its own for this -- it only ever reflects the Settings > Decompression
+/// toggle, so it is a plain derived provider rather than a `StateProvider`:
+/// it always follows the persisted setting, including a later change to it
+/// or the async settings load finishing after this provider was created.
+final icdWarningsEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.icdWarningsEnabled));
 });
 
 /// Computed gas inputs from the O2/He fields, each He clamped against its
@@ -62,6 +63,5 @@ void resetIcdCalculator(WidgetRef ref) {
   ref.read(icdHeAProvider.notifier).state = 45.0;
   ref.read(icdO2BProvider.notifier).state = 32.0;
   ref.read(icdHeBProvider.notifier).state = 0.0;
-  // icdWarningsEnabled resets to the settings value automatically.
-  ref.invalidate(icdWarningsEnabledProvider);
+  // icdWarningsEnabled always reflects the settings value; nothing to reset.
 }
