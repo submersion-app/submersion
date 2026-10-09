@@ -1429,7 +1429,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Miscela standard più vicina che copre questa quota';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Miscela consigliata';
+  String get gasCalculators_bestMix_recommendedMix => 'Miscela calcolata';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Miscela calcolata $mix, MOD $mod';
+  }
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Senza elio';

@@ -1426,7 +1426,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'A legközelebbi szabványkeverék erre a mélységre';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Ajánlott keverék';
+  String get gasCalculators_bestMix_recommendedMix => 'Számított keverék';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Számított keverék $mix, MOD $mod';
+  }
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Hélium nélkül';

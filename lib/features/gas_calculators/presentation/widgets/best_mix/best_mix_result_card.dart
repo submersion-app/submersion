@@ -26,9 +26,10 @@ class BestMixResultCard extends ConsumerWidget {
     final ppO2 = result.limitPpO2;
 
     return Semantics(
-      label:
-          'Recommended mix ${recommended.mix.name}, '
-          'MOD ${units.formatDepthFloor(recommended.modMeters, decimals: 0)}',
+      label: l10n.gasCalculators_bestMix_semanticsLabel(
+        recommended.mix.name,
+        units.formatDepthFloor(recommended.modMeters, decimals: 0),
+      ),
       child: Card(
         color: colorScheme.primaryContainer,
         child: Padding(

@@ -1373,7 +1373,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_bestMix_nearestStandard => '可覆盖此深度的最接近标准混合气';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => '推荐混合气';
+  String get gasCalculators_bestMix_recommendedMix => '计算混合气';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return '计算混合气 $mix，MOD $mod';
+  }
 
   @override
   String get gasCalculators_bestMix_withoutHelium => '不含氦气';

@@ -1413,7 +1413,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Nearest standard mix covering this depth';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Recommended mix';
+  String get gasCalculators_bestMix_recommendedMix => 'Calculated mix';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Calculated mix $mix, MOD $mod';
+  }
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Without helium';

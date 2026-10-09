@@ -851,7 +851,18 @@
     }
   },
   "gasCalculators_bestMix_nearestStandard": "Nearest standard mix covering this depth",
-  "gasCalculators_bestMix_recommendedMix": "Recommended mix",
+  "gasCalculators_bestMix_recommendedMix": "Calculated mix",
+  "gasCalculators_bestMix_semanticsLabel": "Calculated mix {mix}, MOD {mod}",
+  "@gasCalculators_bestMix_semanticsLabel": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      },
+      "mod": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_bestMix_withoutHelium": "Without helium",
   "gasCalculators_bestMix_ccrSource": "Gas source",
   "gasCalculators_bestMix_ccrSourceBailout": "Bailout",

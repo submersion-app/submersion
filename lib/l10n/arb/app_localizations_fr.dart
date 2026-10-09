@@ -1429,7 +1429,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mélange standard le plus proche couvrant cette profondeur';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Mélange recommandé';
+  String get gasCalculators_bestMix_recommendedMix => 'Mélange calculé';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Mélange calculé $mix, MOD $mod';
+  }
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Sans hélium';

@@ -1425,7 +1425,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Nächstes Standardgemisch für diese Tiefe';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Empfohlenes Gemisch';
+  String get gasCalculators_bestMix_recommendedMix => 'Berechnetes Gemisch';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Berechnetes Gemisch $mix, MOD $mod';
+  }
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Ohne Helium';

@@ -1425,7 +1425,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mistura padrão mais próxima que cobre esta profundidade';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Mistura recomendada';
+  String get gasCalculators_bestMix_recommendedMix => 'Mistura calculada';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Mistura calculada $mix, MOD $mod';
+  }
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Sem hélio';

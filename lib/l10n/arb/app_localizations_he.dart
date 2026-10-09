@@ -1408,7 +1408,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'התערובת התקנית הקרובה ביותר המכסה עומק זה';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'תערובת מומלצת';
+  String get gasCalculators_bestMix_recommendedMix => 'תערובת מחושבת';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'תערובת מחושבת $mix, MOD $mod';
+  }
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'ללא הליום';

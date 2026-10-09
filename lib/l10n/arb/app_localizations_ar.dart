@@ -1461,7 +1461,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'أقرب خليط قياسي يغطي هذا العمق';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'الخليط الموصى به';
+  String get gasCalculators_bestMix_recommendedMix => 'الخليط المحسوب';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'الخليط المحسوب $mix، MOD $mod';
+  }
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'بدون هيليوم';

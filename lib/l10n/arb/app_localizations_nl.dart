@@ -1417,7 +1417,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dichtstbijzijnde standaardmengsel voor deze diepte';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Aanbevolen mengsel';
+  String get gasCalculators_bestMix_recommendedMix => 'Berekend mengsel';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Berekend mengsel $mix, MOD $mod';
+  }
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Zonder helium';
