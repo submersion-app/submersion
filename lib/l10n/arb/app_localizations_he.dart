@@ -18739,6 +18739,20 @@ class AppLocalizationsHe extends AppLocalizations {
       'כלים אלה מיועדים למטרות תכנון בלבד. תמיד אמת חישובים ופעל לפי הכשרת הצלילה שלך.';
 
   @override
+  String get planning_disclaimer_dialog_title => 'אזהרת כלי התכנון';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'כלי התכנון ומחשבוני הגז (MOD, תמהיל אופטימלי, זמני דקומפרסיה) מיועדים למטרות תכנון בלבד. הם אינם מחליפים את הכשרת הצלילה שלך או את מחשב הצלילה שלך. תמיד אמת כל חישוב בעצמך לפני שתשתמש בו להחלטת בטיחות.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'הבנתי';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'אזהרת תכנון אושרה';
+
+  @override
   String get planning_section_tools => 'כלים';
 
   @override

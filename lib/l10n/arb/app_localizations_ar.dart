@@ -19413,6 +19413,20 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذه الأدوات لأغراض التخطيط فقط. تحقق دائمًا من الحسابات واتبع تدريبك على الغوص.';
 
   @override
+  String get planning_disclaimer_dialog_title => 'تنبيه أدوات التخطيط';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'أدوات التخطيط وحاسبات الغاز (MOD، أفضل مزيج، أوقات إزالة التشبع) هي لأغراض التخطيط فقط. لا تحل محل تدريبك على الغوص أو حاسوب الغوص الخاص بك. تحقق دائمًا من كل حساب بنفسك قبل استخدامه في قرار متعلق بالسلامة.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'فهمت';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'تم قبول تنبيه التخطيط';
+
+  @override
   String get planning_section_tools => 'أدوات';
 
   @override

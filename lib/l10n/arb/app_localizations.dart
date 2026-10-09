@@ -30703,6 +30703,30 @@ abstract class AppLocalizations {
   /// **'These tools are for planning purposes only. Always verify calculations and follow your dive training.'**
   String get planning_info_disclaimer;
 
+  /// No description provided for @planning_disclaimer_dialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning Tools Disclaimer'**
+  String get planning_disclaimer_dialog_title;
+
+  /// No description provided for @planning_disclaimer_dialog_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The Planning and Gas Calculator tools (MOD, best mix, decompression times) are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.'**
+  String get planning_disclaimer_dialog_body;
+
+  /// No description provided for @planning_disclaimer_dialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I Understand'**
+  String get planning_disclaimer_dialog_confirm;
+
+  /// No description provided for @settings_conflict_field_hasAcceptedPlanningDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning disclaimer accepted'**
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer;
+
   /// No description provided for @planning_section_tools.
   ///
   /// In en, this message translates to:

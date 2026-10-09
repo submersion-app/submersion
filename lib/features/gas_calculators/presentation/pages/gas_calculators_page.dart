@@ -5,6 +5,7 @@ import 'package:submersion/features/gas_calculators/presentation/pages/gas_calcu
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_calculators_list_content.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_calculators_summary_widget.dart';
 import 'package:submersion/features/planning/presentation/planning_tools.dart';
+import 'package:submersion/features/planning/presentation/widgets/planning_disclaimer_gate.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -30,25 +31,27 @@ class GasCalculatorsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (ResponsiveBreakpoints.isMasterDetail(context)) {
-      return MasterDetailScaffold(
-        sectionId: kGasCalculatorsToolId,
-        // Not the default 'selected': 'calc' keeps the URL self-describing
-        // (/planning/gas-calculators?calc=mod), matching the hub above, which
-        // uses 'tool' for the same reason.
-        queryParamKey: 'calc',
-        masterBuilder: (context, onItemSelected, selectedId) =>
-            GasCalculatorsListContent(
-              onToolSelected: onItemSelected,
-              selectedId: selectedId,
-              showAppBar: false,
-            ),
-        detailBuilder: (context, toolId) =>
-            GasCalculatorDetailPage(toolId: toolId, embedded: true),
-        summaryBuilder: (context) => const GasCalculatorsSummaryWidget(),
-        mobileDetailRoute: (id) => '$kGasCalculatorsRoutePrefix/$id',
+      return PlanningDisclaimerGate(
+        child: MasterDetailScaffold(
+          sectionId: kGasCalculatorsToolId,
+          // Not the default 'selected': 'calc' keeps the URL self-describing
+          // (/planning/gas-calculators?calc=mod), matching the hub above,
+          // which uses 'tool' for the same reason.
+          queryParamKey: 'calc',
+          masterBuilder: (context, onItemSelected, selectedId) =>
+              GasCalculatorsListContent(
+                onToolSelected: onItemSelected,
+                selectedId: selectedId,
+                showAppBar: false,
+              ),
+          detailBuilder: (context, toolId) =>
+              GasCalculatorDetailPage(toolId: toolId, embedded: true),
+          summaryBuilder: (context) => const GasCalculatorsSummaryWidget(),
+          mobileDetailRoute: (id) => '$kGasCalculatorsRoutePrefix/$id',
+        ),
       );
     }
 
-    return const GasCalculatorsListContent();
+    return const PlanningDisclaimerGate(child: GasCalculatorsListContent());
   }
 }

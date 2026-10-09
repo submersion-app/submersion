@@ -18250,6 +18250,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_info_disclaimer => '这些工具仅供计划参考。请务必验证计算结果并遵循您的潜水训练。';
 
   @override
+  String get planning_disclaimer_dialog_title => '计划工具提示';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      '计划和气体计算工具(MOD、最佳配比、减压时间)仅供计划参考。它们不能替代您的潜水训练或潜水电脑。在将计算结果用于安全决策之前,请务必自行验证每一项计算。';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => '我已了解';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer => '已接受计划提示';
+
+  @override
   String get planning_section_tools => '工具';
 
   @override

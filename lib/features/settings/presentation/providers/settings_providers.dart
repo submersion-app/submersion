@@ -586,6 +586,13 @@ class AppSettings {
   /// uses the automatically computed value. Per-diver, so it syncs.
   final Map<String, double> seascapeVerticalExaggerationOverrides;
 
+  /// Whether this diver has confirmed the planning safety disclaimer (issue
+  /// #3120): a one-time, non-dismissible acknowledgement that the Planning
+  /// and Gas Calculators tools are for planning only and do not replace dive
+  /// training or a dive computer. Per-diver, so it syncs; a new diver on the
+  /// same account must confirm it again.
+  final bool hasAcceptedPlanningDisclaimer;
+
   const AppSettings({
     this.depthUnit = DepthUnit.meters,
     this.temperatureUnit = TemperatureUnit.celsius,
@@ -739,6 +746,7 @@ class AppSettings {
     this.perdixOverlayY,
     this.seascapeAppearance = const SeascapeAppearance(),
     this.seascapeVerticalExaggerationOverrides = const {},
+    this.hasAcceptedPlanningDisclaimer = false,
   });
 
   /// Compute the current unit preset based on actual unit values
@@ -929,6 +937,7 @@ class AppSettings {
     double? perdixOverlayY,
     SeascapeAppearance? seascapeAppearance,
     Map<String, double>? seascapeVerticalExaggerationOverrides,
+    bool? hasAcceptedPlanningDisclaimer,
   }) {
     return AppSettings(
       depthUnit: depthUnit ?? this.depthUnit,
@@ -1129,6 +1138,8 @@ class AppSettings {
       seascapeVerticalExaggerationOverrides:
           seascapeVerticalExaggerationOverrides ??
           this.seascapeVerticalExaggerationOverrides,
+      hasAcceptedPlanningDisclaimer:
+          hasAcceptedPlanningDisclaimer ?? this.hasAcceptedPlanningDisclaimer,
     );
   }
 
@@ -2578,6 +2589,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setShowDiveFigure(bool value) async {
     state = state.copyWith(showDiveFigure: value);
+    await _saveSettings();
+  }
+
+  /// Records that this diver has confirmed the planning safety disclaimer
+  /// (issue #3120). Never set back to false from the app.
+  Future<void> acceptPlanningDisclaimer() async {
+    state = state.copyWith(hasAcceptedPlanningDisclaimer: true);
     await _saveSettings();
   }
 

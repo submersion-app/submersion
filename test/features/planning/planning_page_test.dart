@@ -20,7 +20,11 @@ import '../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier() : super(const AppSettings());
+  // Pre-accepted: these tests exercise hub navigation, not the planning
+  // disclaimer dialog (issue #3120), and the dialog's modal barrier would
+  // otherwise block every tap on the tools underneath it.
+  _TestSettingsNotifier()
+    : super(const AppSettings(hasAcceptedPlanningDisclaimer: true));
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
