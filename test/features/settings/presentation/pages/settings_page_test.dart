@@ -1551,7 +1551,8 @@ void main() {
 
       List<String> tileTitles() => [
         for (final tile in tester.widgetList<ListTile>(find.byType(ListTile)))
-          if (tile.title case final Text text) text.data!,
+          if (tile.title case final Text text)
+            text.data ?? text.textSpan!.toPlainText(),
       ];
 
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));

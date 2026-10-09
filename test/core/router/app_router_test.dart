@@ -28,6 +28,7 @@ import 'package:submersion/features/settings/presentation/pages/manage_currency_
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/appearance_settings_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
@@ -583,6 +584,18 @@ void main() {
       expect(names, contains('appearanceDiveCenters'));
       expect(names, contains('appearanceCertifications'));
       expect(names, contains('appearanceCourses'));
+    });
+
+    // The phone Appearance page pushes these routes; the settings pane opens
+    // the same pages inline by key, so a key without a matching route would
+    // work on a tablet or desktop and fail only on a phone (#3095).
+    test('every Appearance section key resolves to its own route', () {
+      for (final key in appearanceSectionKeys) {
+        final location = appearanceSectionRoute(key);
+        final match = router.configuration.findMatch(Uri.parse(location));
+        expect(match.isError, isFalse, reason: location);
+        expect(match.fullPath, location, reason: location);
+      }
     });
 
     test('columnConfig route exists under appearance', () {
