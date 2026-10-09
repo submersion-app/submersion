@@ -255,17 +255,19 @@ void main() {
     await _settle(tester);
   });
 
-  testWidgets('CCR-Tec Bailout shows the working ppO2 slider, same as OC-Tec', (
-    tester,
-  ) async {
-    final ref = await _pump(tester);
-    ref.read(bestMixCalculatorNotifierProvider.notifier)
-      ..setMode(BestMixMode.ccrTec)
-      ..setCcrSource(CcrGasSource.bailout);
-    await tester.pumpAndSettle();
+  testWidgets(
+    'CCR-Tec Bailout shows the deco (maximum) ppO2 slider, not working',
+    (tester) async {
+      final ref = await _pump(tester);
+      ref.read(bestMixCalculatorNotifierProvider.notifier)
+        ..setMode(BestMixMode.ccrTec)
+        ..setCcrSource(CcrGasSource.bailout);
+      await tester.pumpAndSettle();
 
-    expect(find.text('Working ppO₂'), findsOneWidget);
-    expect(find.text('ppO₂ for the diluent MOD (flush)'), findsNothing);
-    await _settle(tester);
-  });
+      expect(find.text('Deco ppO₂'), findsOneWidget);
+      expect(find.text('Working ppO₂'), findsNothing);
+      expect(find.text('ppO₂ for the diluent MOD (flush)'), findsNothing);
+      await _settle(tester);
+    },
+  );
 }

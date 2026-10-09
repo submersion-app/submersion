@@ -156,6 +156,18 @@ class BestMixInputCard extends ConsumerWidget {
                 onChanged: notifier.setFlushPpO2,
                 onReset: notifier.resetFlushPpO2,
               )
+            else if (mode == BestMixMode.ccrTec &&
+                prefs.ccrSource == CcrGasSource.bailout)
+              // Bailout is an OC emergency cylinder: the diver's maximum
+              // (deco) ppO2, not their working one.
+              ModPpO2LimitSlider(
+                label: l10n.gasCalculators_mod_decoPpO2,
+                value: limits.decoPpO2,
+                profileValue: settings.ppO2MaxDeco,
+                isOverridden: limits.decoOverridden,
+                onChanged: notifier.setDecoPpO2,
+                onReset: notifier.resetDecoPpO2,
+              )
             else
               ModPpO2LimitSlider(
                 label: l10n.gasCalculators_mod_workingPpO2,

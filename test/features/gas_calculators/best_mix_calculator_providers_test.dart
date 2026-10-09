@@ -335,6 +335,47 @@ void main() {
       expect(container.read(bestMixCalculatorInputsProvider).flushPpO2, 1.45);
     });
 
+    test(
+      'CCR Tec Bailout uses the deco (maximum) ppO2, not the working one',
+      () {
+        const settings = AppSettings(ppO2MaxWorking: 1.3, ppO2MaxDeco: 1.55);
+        final container = _container(_FakeRepository(), settings: settings);
+        container.read(bestMixCalculatorNotifierProvider.notifier)
+          ..setMode(BestMixMode.ccrTec)
+          ..setCcrSource(CcrGasSource.bailout);
+        expect(container.read(bestMixCalculatorInputsProvider).ppO2Limit, 1.55);
+      },
+    );
+
+    test(
+      'setDecoPpO2/setWorkingPpO2 never invert, shared across OC-Tec and CCR Bailout',
+      () {
+        final container = _container(_FakeRepository());
+        final notifier = container.read(
+          bestMixCalculatorNotifierProvider.notifier,
+        );
+        ModResolvedLimits limits() =>
+            container.read(bestMixCalculatorLimitsProvider);
+
+        notifier
+          ..setMode(BestMixMode.ccrTec)
+          ..setCcrSource(CcrGasSource.bailout)
+          ..setDecoPpO2(1.2); // below the default working ppO2 (1.4)
+        expect(limits().decoPpO2, 1.2);
+        expect(
+          limits().workingPpO2,
+          1.2,
+          reason: 'working pulled down with it',
+        );
+
+        notifier
+          ..setMode(BestMixMode.ocTec)
+          ..setWorkingPpO2(1.6); // above the deco override just set
+        expect(limits().workingPpO2, 1.6);
+        expect(limits().decoPpO2, 1.6, reason: 'deco pulled up with it');
+      },
+    );
+
     test('the water type defaults to the planner setting', () {
       final fresh = _container(
         _FakeRepository(),

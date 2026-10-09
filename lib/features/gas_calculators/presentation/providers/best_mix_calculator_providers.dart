@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:submersion/core/constants/enums.dart' show WaterType;
 import 'package:submersion/core/providers/provider.dart';
@@ -118,6 +119,8 @@ class BestMixCalculatorNotifier
   void _updateOverrides(ModLimitOverrides overrides) =>
       _update(state.withOverrides(_diverId(), overrides));
 
+  ModResolvedLimits get _resolved => resolveModLimits(_overrides, _profile());
+
   void setMode(BestMixMode mode) => _update(state.copyWith(mode: mode));
 
   void setCcrSource(CcrGasSource source) =>
@@ -138,29 +141,36 @@ class BestMixCalculatorNotifier
   void setTemperature(GasDensityTemperature temperature) =>
       _update(state.copyWith(temperature: temperature));
 
-  /// Working and flush are each stored as "follow the profile" when they
-  /// equal the profile value, mirroring `ModCalculatorNotifier`.
-  void setWorkingPpO2(double ppO2) {
-    final profile = _profile();
-    _updateOverrides(
-      _overrides.withLimits(
-        workingPpO2: ppO2,
-        decoPpO2: profile.decoPpO2,
-        profile: profile,
-      ),
-    );
-  }
+  /// Working and deco are never inverted, the rule the profile keeps:
+  /// raising working pulls deco up with it, lowering deco pulls working
+  /// down. Each is stored as "follow the profile" once it equals the
+  /// profile value, mirroring `ModCalculatorNotifier`. Shared by OC-Tec
+  /// (working) and CCR-Tec's Bailout source (deco, the diver's maximum
+  /// ppO2 rather than their working one): one per-diver override pair,
+  /// same as the MOD calculator keeps.
+  void setWorkingPpO2(double ppO2) =>
+      _setWorkingDeco(ppO2, math.max(_resolved.decoPpO2, ppO2));
+
+  void setDecoPpO2(double ppO2) =>
+      _setWorkingDeco(math.min(_resolved.workingPpO2, ppO2), ppO2);
 
   void resetWorkingPpO2() {
-    final profile = _profile();
-    _updateOverrides(
-      _overrides.withLimits(
-        workingPpO2: profile.workingPpO2,
-        decoPpO2: profile.decoPpO2,
-        profile: profile,
-      ),
-    );
+    final working = _profile().workingPpO2;
+    _setWorkingDeco(working, math.max(_resolved.decoPpO2, working));
   }
+
+  void resetDecoPpO2() {
+    final deco = _profile().decoPpO2;
+    _setWorkingDeco(math.min(_resolved.workingPpO2, deco), deco);
+  }
+
+  void _setWorkingDeco(double working, double deco) => _updateOverrides(
+    _overrides.withLimits(
+      workingPpO2: working,
+      decoPpO2: deco,
+      profile: _profile(),
+    ),
+  );
 
   void setFlushPpO2(double ppO2) =>
       _updateOverrides(_overrides.withFlushPpO2(ppO2, _profile()));
@@ -221,9 +231,10 @@ WaterType bestMixCalculatorWaterType(
 ) => resolveWaterType(prefs.waterType, settings.defaultPlannerWaterType);
 
 /// The ppO2 limits in effect for the active diver, and which of them differ
-/// from their profile. Only `workingPpO2` and `flushPpO2` are read by Best
-/// Mix; `decoPpO2`/`setpointBar` are carried along unused, same as the MOD
-/// calculator leaves fields unused outside the mode that needs them.
+/// from their profile. `workingPpO2` (OC-Tec), `decoPpO2` (CCR-Tec Bailout)
+/// and `flushPpO2` (CCR-Tec Diluent) are all read by Best Mix; `setpointBar`
+/// is carried along unused, same as the MOD calculator leaves fields unused
+/// outside the mode that needs them.
 final bestMixCalculatorLimitsProvider = Provider<ModResolvedLimits>((ref) {
   final prefs = ref.watch(bestMixCalculatorNotifierProvider);
   final diverId = ref.watch(currentDiverIdProvider);
@@ -243,9 +254,14 @@ final bestMixCalculatorInputsProvider = Provider<BestMixInputs>((ref) {
   final mode = prefs.inputsFor(prefs.mode);
   return BestMixInputs(
     depthMeters: mode.depthMeters,
-    ppO2Limit: prefs.mode == BestMixMode.rec
-        ? mode.recPpO2
-        : limits.workingPpO2,
+    ppO2Limit: switch (prefs.mode) {
+      BestMixMode.rec => mode.recPpO2,
+      BestMixMode.ocTec => limits.workingPpO2,
+      // Bailout is an OC emergency cylinder: the diver's maximum (deco)
+      // ppO2, not their normal working one, per issue #3112's own
+      // clarification.
+      BestMixMode.ccrTec => limits.decoPpO2,
+    },
     // Rec keeps reading the profile's narcosis settings live; only the
     // Tec modes expose an override (the UI has no control for Rec).
     endLimitMeters: prefs.mode == BestMixMode.rec

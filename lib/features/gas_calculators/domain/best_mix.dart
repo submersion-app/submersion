@@ -34,8 +34,10 @@ enum HeliumDriver { none, endLimit, density, both }
 class BestMixInputs {
   final double depthMeters;
 
-  /// Rec: one of the three ppO2 chips. OC-Tec, and CCR-Tec with
-  /// [CcrGasSource.bailout]: the resolved working ppO2 limit.
+  /// Rec: one of the three ppO2 chips. OC-Tec: the resolved working ppO2
+  /// limit. CCR-Tec with [CcrGasSource.bailout]: the resolved deco (the
+  /// diver's maximum, not working) ppO2 limit, since a bailout cylinder is
+  /// an OC emergency gas breathed past the normal working limit.
   final double ppO2Limit;
 
   final double endLimitMeters;
@@ -104,8 +106,8 @@ class BestMixInputs {
 
   /// The ppO2 the suggestion is actually built against: [ppO2Limit] for Rec
   /// and OC-Tec, [flushPpO2] for CCR-Tec with the diluent source, and
-  /// [ppO2Limit] again for CCR-Tec with the bailout source (the OC working
-  /// limit).
+  /// [ppO2Limit] again for CCR-Tec with the bailout source (there the
+  /// resolved deco/maximum ppO2, already selected by the caller).
   ///
   /// Exposed on [BestMixResult] as `limitPpO2` so the UI reads one resolved
   /// number rather than re-deriving this switch in every card.
