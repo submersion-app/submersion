@@ -14,9 +14,7 @@ import 'package:submersion/features/gas_calculators/domain/gas_density_calculato
     show GasDensityTemperature;
 import 'package:submersion/features/gas_calculators/domain/rock_bottom.dart'
     show ambientPressureAtDepth;
-
-/// Standard mixes a fill station is likely to have, richest first.
-const List<double> _standardO2Percentages = [50, 40, 36, 32, 30, 28, 21];
+import 'package:submersion/features/gas_calculators/domain/standard_gas_mix.dart';
 
 /// The Best Mix calculator's three modes (issue #3112), mirroring the MOD
 /// calculator's Rec/OC-Tec/CCR-Tec split (issue #2342).
@@ -178,9 +176,15 @@ class BestMixResult {
   /// The exact, unrounded ideal O2 percentage.
   final double idealO2Percent;
 
-  /// Nearest commonly stocked nitrox whose MOD still covers the target depth.
-  /// Advisory only, and never shallower than the dive.
-  final GasMix? nearestStandardMix;
+  /// Catalog entries (issue #3117) whose MOD, and for a trimix its END too,
+  /// cover the target depth, nearest fit (smallest covering MOD) first.
+  /// Advisory only; [recommended] is still the calculator's own answer.
+  final List<StandardGasMix> standardMixes;
+
+  /// The tightest-fitting entry of [standardMixes], or null when none
+  /// covers the target depth.
+  StandardGasMix? get nearestStandardMix =>
+      standardMixes.isEmpty ? null : standardMixes.first;
 
   /// Why helium was added to [recommended], [HeliumDriver.none] when none
   /// was needed.
@@ -195,7 +199,7 @@ class BestMixResult {
     required this.recommended,
     required this.nitroxAlternative,
     required this.idealO2Percent,
-    required this.nearestStandardMix,
+    required this.standardMixes,
     this.heliumDriver = HeliumDriver.none,
     required this.limitPpO2,
   });
@@ -361,14 +365,42 @@ double heForDensityLimit(
 
 double _ceilToStep(double value, double step) => (value / step).ceil() * step;
 
+/// Catalog entries (issue #3117) whose MOD covers [inputs]' target depth,
+/// and whose END (for a trimix) stays within [inputs]' END limit, nearest
+/// fit (smallest covering MOD) first.
+///
+/// The END check is a no-op for a helium-free entry: with no helium, its
+/// assessed END always equals the target depth itself (narcosis and
+/// nitrogen alone fill the whole ambient pressure), so the check only ever
+/// excludes it when the target depth is itself beyond the END limit, which
+/// is correct: no nitrox, named or not, can fix narcosis without helium.
+List<StandardGasMix> coveringStandardMixes(BestMixInputs inputs) {
+  final environment = _environmentFor(inputs);
+  final scored = <(StandardGasMix, double)>[];
+  for (final mix in standardGasMixes) {
+    final assessment = _assess(
+      GasMix(o2: mix.o2Percent, he: mix.hePercent),
+      inputs,
+      environment,
+    );
+    if (assessment.modMeters + 1e-9 < inputs.depthMeters) continue;
+    if (assessment.exceedsEndLimit) continue;
+    scored.add((mix, assessment.modMeters));
+  }
+  scored.sort((a, b) => a.$2.compareTo(b.$2));
+  return [for (final entry in scored) entry.$1];
+}
+
 /// Compute the best breathing mix for a target depth.
 ///
 /// Rounding is always toward safety: O2 DOWN to a whole percent, so the
-/// recommended mix's MOD is at or beyond the target depth; helium UP to 5%
-/// for the END-driven requirement (more helium is less narcosis), and UP to
-/// 1% for the density-driven requirement (Tec modes, [BestMixInputs.densityAware]),
-/// which does not need the same coarse step since it is not matched against
-/// a named fill-station mix.
+/// recommended mix's MOD is at or beyond the target depth; helium UP to a
+/// whole percent, for both the END-driven requirement (more helium is less
+/// narcosis) and the density-driven one (Tec modes,
+/// [BestMixInputs.densityAware]). Helium used to round up to a 5% step for
+/// the END-driven requirement, matched against a fill station's usual
+/// increments; the diver asked for the finer 1% step instead (issue
+/// #3112), the same step the density-driven requirement already used.
 ///
 /// The previous implementation bucketed the ideal fraction UP into a named
 /// mix, which at 111 ft recommended EAN32 -- whose own MOD at ppO2 1.4 is
@@ -397,7 +429,7 @@ BestMixResult computeBestMix(BestMixInputs inputs) {
             o2Narcotic: inputs.o2Narcotic,
             environment: environment,
           ),
-          5,
+          1,
         ).clamp(0.0, 100.0 - o2)
       : 0.0;
 
@@ -419,24 +451,11 @@ BestMixResult computeBestMix(BestMixInputs inputs) {
         : HeliumDriver.density;
   }
 
-  GasMix? nearest;
-  for (final candidate in _standardO2Percentages) {
-    final mod = maxOperatingDepthMeters(
-      candidate / 100,
-      maxPpO2: limitPpO2,
-      environment: environment,
-    );
-    if (mod >= inputs.depthMeters) {
-      nearest = GasMix(o2: candidate);
-      break;
-    }
-  }
-
   return BestMixResult(
     recommended: recommended,
     nitroxAlternative: alternative,
     idealO2Percent: ideal,
-    nearestStandardMix: nearest,
+    standardMixes: coveringStandardMixes(inputs),
     heliumDriver: driver,
     limitPpO2: limitPpO2,
   );

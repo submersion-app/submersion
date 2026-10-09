@@ -90,7 +90,7 @@ void main() {
     // Asserted positively on the recommendation rather than by the absence of
     // "EAN32": the common-mixes reference table further down legitimately
     // lists EAN32 alongside its MOD, and should keep doing so.
-    expect(find.text('Tx 31/10'), findsOneWidget);
+    expect(find.text('Tx 31/9'), findsOneWidget);
 
     // The helium-free fallback is EAN31, never the rounded-up EAN32.
     expect(find.text('EAN31'), findsOneWidget);

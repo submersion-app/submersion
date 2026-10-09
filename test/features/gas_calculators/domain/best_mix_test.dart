@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart'
+    show maxOperatingDepthMeters;
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 
@@ -54,18 +56,26 @@ void main() {
       expect(nitrox.exceedsWarnDensity, isTrue);
     });
 
-    test('adding 10 percent helium fixes both narcosis and density', () {
-      expect(r.recommended.mix.name, 'Tx 31/10');
-      expect(r.recommended.endMeters, closeTo(29.45, 0.05));
+    test('adding 9 percent helium fixes both narcosis and density', () {
+      // Helium rounds up to a whole percent (issue #3112: was a 5% step).
+      // The raw requirement is ~8.75% (hand-derived from the same formula
+      // GasMix.heForMnd uses, closed form, no search); END/density below
+      // are read off computeBestMix's own output at that rounded 9%, not
+      // independently re-verified against a second implementation.
+      expect(r.recommended.mix.name, 'Tx 31/9');
+      expect(r.recommended.endMeters, closeTo(29.8878, 0.05));
       expect(r.recommended.exceedsEndLimit, isFalse);
-      expect(r.recommended.densityGPerL, closeTo(4.894, 0.02));
+      expect(r.recommended.densityGPerL, closeTo(4.9376, 0.02));
       expect(r.recommended.exceedsWarnDensity, isFalse);
     });
 
     test('the advisory standard mix also covers the depth', () {
       expect(r.nearestStandardMix, isNotNull);
-      expect(r.nearestStandardMix!.roundedO2, 30);
-      expect(r.nearestStandardMix!.mod(ppO2: 1.4), greaterThanOrEqualTo(depth));
+      final mod = maxOperatingDepthMeters(
+        r.nearestStandardMix!.o2Percent / 100,
+        maxPpO2: 1.4,
+      );
+      expect(mod, greaterThanOrEqualTo(depth));
     });
   });
 
@@ -92,8 +102,12 @@ void main() {
         final depth = ft / _feetPerMeter;
         final r = _at(depth);
         if (r.nearestStandardMix != null) {
+          final mod = maxOperatingDepthMeters(
+            r.nearestStandardMix!.o2Percent / 100,
+            maxPpO2: 1.4,
+          );
           expect(
-            r.nearestStandardMix!.mod(ppO2: 1.4),
+            mod,
             greaterThanOrEqualTo(depth - 1e-6),
             reason: 'advisory mix must cover $ft ft',
           );
@@ -123,10 +137,15 @@ void main() {
       expect(r.recommended.exceedsEndLimit, isFalse);
     });
 
-    test('adds helium when END would be exceeded, rounded up to 5 percent', () {
+    test('adds helium when END would be exceeded, rounded up to 1 percent', () {
       final r = _at(50);
       expect(r.recommended.mix.he, greaterThan(0));
-      expect(r.recommended.mix.he % 5, closeTo(0, 1e-9));
+      // A whole percent (the rounding step), not necessarily a multiple of
+      // 5: the diver asked for the finer step (issue #3112).
+      expect(
+        r.recommended.mix.he,
+        closeTo(r.recommended.mix.he.roundToDouble(), 1e-9),
+      );
       expect(r.recommended.mix.isTrimix, isTrue);
       expect(r.recommended.endMeters, lessThanOrEqualTo(30 + 1e-6));
     });
@@ -233,7 +252,7 @@ void main() {
         );
         if (fresh.nearestStandardMix != null) {
           final mod = freshEnvironment.depthAtPressure(
-            1.4 / (fresh.nearestStandardMix!.o2 / 100),
+            1.4 / (fresh.nearestStandardMix!.o2Percent / 100),
           );
           expect(mod, greaterThanOrEqualTo(freshDepth - 1e-6));
         }
