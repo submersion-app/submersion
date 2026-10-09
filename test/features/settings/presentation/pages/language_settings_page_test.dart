@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -15,16 +14,11 @@ Future<MockSettingsNotifier> _pumpPage(
   await tester.binding.setSurfaceSize(const Size(400, 2000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
-  SharedPreferences.setMockInitialValues({});
-  final prefs = await SharedPreferences.getInstance();
   final notifier = MockSettingsNotifier(settings);
 
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [
-        settingsProvider.overrideWith((ref) => notifier),
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
+      overrides: [settingsProvider.overrideWith((ref) => notifier)],
       child: const MaterialApp(
         locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
