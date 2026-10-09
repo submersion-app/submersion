@@ -1900,7 +1900,7 @@ class _AppearanceSectionContentState
 
     // Priority 2: Language sub-page
     if (_showLanguageList) {
-      return _buildLanguageSubPage(context, ref.watch(settingsProvider));
+      return _buildLanguageSubPage(context, ref.watch(localeProvider));
     }
 
     // Priority 3: Section appearance sub-page
@@ -1977,7 +1977,7 @@ class _AppearanceSectionContentState
     );
   }
 
-  Widget _buildLanguageSubPage(BuildContext context, AppSettings settings) {
+  Widget _buildLanguageSubPage(BuildContext context, String currentLocale) {
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
@@ -2007,7 +2007,7 @@ class _AppearanceSectionContentState
           Card(
             child: Column(
               children: LanguageSettingsPage.supportedLocales.map((option) {
-                final isSelected = option.code == settings.locale;
+                final isSelected = option.code == currentLocale;
                 return Semantics(
                   selected: isSelected,
                   child: ListTile(

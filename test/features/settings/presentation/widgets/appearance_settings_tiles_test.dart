@@ -8,35 +8,20 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/widgets/appearance_settings_tiles.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Records the writes the General tiles make, without a database.
-class _RecordingSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _RecordingSettingsNotifier(super.state);
-
-  @override
-  Future<void> setMapStyle(MapStyle style) async =>
-      state = state.copyWith(mapStyle: style);
-
-  @override
-  Future<void> setThemeMode(ThemeMode mode) async =>
-      state = state.copyWith(themeMode: mode);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+import '../../../../helpers/mock_providers.dart';
 
 late SharedPreferences _prefs;
 
 /// Renders [AppearanceGeneralTiles] under a router whose /settings/themes
 /// stub stands in for the theme gallery.
-Future<_RecordingSettingsNotifier> _pumpGeneralTiles(
+Future<MockSettingsNotifier> _pumpGeneralTiles(
   WidgetTester tester, {
   AppSettings settings = const AppSettings(),
 }) async {
   await tester.binding.setSurfaceSize(const Size(500, 2000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
-  final notifier = _RecordingSettingsNotifier(settings);
+  final notifier = MockSettingsNotifier(settings);
   final router = GoRouter(
     routes: [
       GoRoute(
