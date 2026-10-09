@@ -20,7 +20,7 @@ Widget app() {
       ),
     ],
   );
-  return testAppRouter(router: router);
+  return testAppRouter(router: router, locale: const Locale('en'));
 }
 
 void main() {
