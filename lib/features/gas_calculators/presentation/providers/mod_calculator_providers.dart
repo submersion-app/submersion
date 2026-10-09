@@ -218,12 +218,7 @@ final modCalculatorNotifierProvider =
 WaterType modCalculatorWaterType(
   ModCalculatorPreferences prefs,
   AppSettings settings,
-) =>
-    prefs.waterType ??
-    switch (settings.defaultPlannerWaterType) {
-      PlannerWaterType.fresh => WaterType.fresh,
-      PlannerWaterType.salt || PlannerWaterType.custom => WaterType.salt,
-    };
+) => resolveWaterType(prefs.waterType, settings.defaultPlannerWaterType);
 
 /// The profile's CCR high setpoint, held to the calculator's setpoint range.
 ///

@@ -2,7 +2,24 @@ import 'dart:math' as math;
 
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
+
+/// The water type a Tec calculator uses when the diver has not chosen one:
+/// [stored] if set, else the planner's own default, with a custom salinity
+/// mapping to salt (the sea water it defaults to).
+///
+/// Shared by the MOD calculator and the Best Mix calculator so the fallback
+/// rule cannot drift between the two.
+WaterType resolveWaterType(
+  WaterType? stored,
+  PlannerWaterType plannerDefault,
+) =>
+    stored ??
+    switch (plannerDefault) {
+      PlannerWaterType.fresh => WaterType.fresh,
+      PlannerWaterType.salt || PlannerWaterType.custom => WaterType.salt,
+    };
 
 /// The ppO2 limits of the active diver's profile, as the MOD calculator
 /// reads them (issue #2342): the OC limits for Rec and OC Tec, the CCR
