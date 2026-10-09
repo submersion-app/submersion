@@ -1379,56 +1379,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_bestMix_withoutHelium => '不含氦气';
 
   @override
-  String get gasCalculators_bestMix_ccrSource => 'Gas source';
+  String get gasCalculators_bestMix_ccrSource => '气体来源';
 
   @override
-  String get gasCalculators_bestMix_ccrSourceBailout => 'Bailout';
+  String get gasCalculators_bestMix_ccrSourceBailout => '备用';
 
   @override
-  String get gasCalculators_bestMix_ccrSourceDiluent => 'Diluent';
+  String get gasCalculators_bestMix_ccrSourceDiluent => '稀释气';
 
   @override
-  String get gasCalculators_bestMix_densityAware =>
-      'Keep gas density within limits';
+  String get gasCalculators_bestMix_densityAware => '将气体密度保持在限值内';
 
   @override
-  String get gasCalculators_bestMix_eadLabel => 'EAD at depth';
+  String get gasCalculators_bestMix_eadLabel => '深度处 EAD';
 
   @override
-  String get gasCalculators_bestMix_heliumBoth =>
-      'Helium added to keep END and gas density within your limits.';
+  String get gasCalculators_bestMix_heliumBoth => '已加入氦气，使 END 与气体密度都保持在你的限值内。';
 
   @override
-  String get gasCalculators_bestMix_heliumDensity =>
-      'Helium added to keep gas density within limits.';
+  String get gasCalculators_bestMix_heliumDensity => '已加入氦气，使气体密度保持在限值内。';
 
   @override
-  String get gasCalculators_bestMix_limitPpO2Label =>
-      'ppO₂ limit (from profile)';
+  String get gasCalculators_bestMix_limitPpO2Label => 'ppO₂ 限值（来自资料）';
 
   @override
-  String get gasCalculators_bestMix_mode => 'Mode';
+  String get gasCalculators_bestMix_mode => '模式';
 
   @override
   String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
 
   @override
   String get gasCalculators_bestMix_modeCcrTecHint =>
-      'Closed circuit: Diluent checks against the diluent\'s flush ppO2, Bailout against your OC working ppO2.';
+      '密闭式循环呼吸器：稀释气模式按稀释气的冲洗 ppO₂ 校验，备用模式按你的开放式工作 ppO₂ 校验。';
 
   @override
   String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
 
   @override
-  String get gasCalculators_bestMix_modeOcTecHint =>
-      'Trimix on open circuit, checked against your working ppO2 limit.';
+  String get gasCalculators_bestMix_modeOcTecHint => '开放式三混气，按你的工作 ppO₂ 限值校验。';
 
   @override
   String get gasCalculators_bestMix_modeRec => 'Rec';
 
   @override
-  String get gasCalculators_bestMix_modeRecHint =>
-      'Nitrox for recreational diving, as today.';
+  String get gasCalculators_bestMix_modeRecHint => '休闲潜水高氧，与现在相同。';
 
   @override
   String get gasCalculators_planningCaveat =>

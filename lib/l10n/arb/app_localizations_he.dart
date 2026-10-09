@@ -1414,56 +1414,55 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_bestMix_withoutHelium => 'ללא הליום';
 
   @override
-  String get gasCalculators_bestMix_ccrSource => 'Gas source';
+  String get gasCalculators_bestMix_ccrSource => 'מקור הגז';
 
   @override
-  String get gasCalculators_bestMix_ccrSourceBailout => 'Bailout';
+  String get gasCalculators_bestMix_ccrSourceBailout => 'חילוץ';
 
   @override
-  String get gasCalculators_bestMix_ccrSourceDiluent => 'Diluent';
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'מדלל';
 
   @override
   String get gasCalculators_bestMix_densityAware =>
-      'Keep gas density within limits';
+      'לשמור על צפיפות הגז בתוך הגבולות';
 
   @override
-  String get gasCalculators_bestMix_eadLabel => 'EAD at depth';
+  String get gasCalculators_bestMix_eadLabel => 'EAD בעומק';
 
   @override
   String get gasCalculators_bestMix_heliumBoth =>
-      'Helium added to keep END and gas density within your limits.';
+      'נוסף הליום כדי לשמור על ה-END וצפיפות הגז בתוך הגבולות שלך.';
 
   @override
   String get gasCalculators_bestMix_heliumDensity =>
-      'Helium added to keep gas density within limits.';
+      'נוסף הליום כדי לשמור על צפיפות הגז בתוך הגבולות.';
 
   @override
-  String get gasCalculators_bestMix_limitPpO2Label =>
-      'ppO₂ limit (from profile)';
+  String get gasCalculators_bestMix_limitPpO2Label => 'מגבלת ppO₂ (מהפרופיל)';
 
   @override
-  String get gasCalculators_bestMix_mode => 'Mode';
+  String get gasCalculators_bestMix_mode => 'מצב';
 
   @override
   String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
 
   @override
   String get gasCalculators_bestMix_modeCcrTecHint =>
-      'Closed circuit: Diluent checks against the diluent\'s flush ppO2, Bailout against your OC working ppO2.';
+      'מעגל סגור: מדלל נבדק מול ppO₂ השטיפה של המדלל, חילוץ מול ppO₂ העבודה שלך במעגל פתוח.';
 
   @override
   String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
 
   @override
   String get gasCalculators_bestMix_modeOcTecHint =>
-      'Trimix on open circuit, checked against your working ppO2 limit.';
+      'טרימיקס במעגל פתוח, נבדק מול מגבלת ppO₂ העבודה שלך.';
 
   @override
   String get gasCalculators_bestMix_modeRec => 'Rec';
 
   @override
   String get gasCalculators_bestMix_modeRecHint =>
-      'Nitrox for recreational diving, as today.';
+      'ניטרוקס לצלילת פנאי, כמו היום.';
 
   @override
   String get gasCalculators_planningCaveat =>
