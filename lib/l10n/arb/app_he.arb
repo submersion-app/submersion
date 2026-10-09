@@ -334,7 +334,7 @@
   "gasCalculators_bestMix_heliumDensity": "נוסף הליום כדי לשמור על צפיפות הגז בתוך הגבולות.",
   "gasCalculators_bestMix_mode": "מצב",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
-  "gasCalculators_bestMix_modeCcrTecHint": "מעגל סגור: מדלל נבדק מול ppO₂ השטיפה של המדלל, חילוץ מול ppO₂ העבודה שלך במעגל פתוח.",
+  "gasCalculators_bestMix_modeCcrTecHint": "מעגל סגור: מדלל נבדק מול ppO₂ השטיפה של המדלל, חילוץ מול ppO₂ הדקו (המרבי) שלך במעגל פתוח.",
   "gasCalculators_bestMix_modeOcTec": "OC Tec",
   "gasCalculators_bestMix_modeOcTecHint": "טרימיקס במעגל פתוח, נבדק מול מגבלת ppO₂ העבודה שלך.",
   "gasCalculators_bestMix_modeRec": "Rec",

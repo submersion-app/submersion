@@ -124,5 +124,18 @@ void main() {
       final decoded = BestMixCalculatorPreferences.fromJson({});
       expect(decoded, BestMixCalculatorPreferences.defaults);
     });
+
+    test('a stored depth beyond its slot\'s slider range is dropped', () {
+      const d = BestMixCalculatorPreferences.defaults;
+      final decoded = BestMixCalculatorPreferences.fromJson({
+        'rec': {'depthMeters': 100},
+        'ocTec': {'depthMeters': 200},
+        'ccrTec': {'depthMeters': 120},
+      });
+      // Rec's slider stops at 60 m, the Tec sliders at 150 m.
+      expect(decoded.rec.depthMeters, d.rec.depthMeters);
+      expect(decoded.ocTec.depthMeters, d.ocTec.depthMeters);
+      expect(decoded.ccrTec.depthMeters, 120);
+    });
   });
 }

@@ -1467,7 +1467,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_bestMix_modeCcrTecHint =>
-      'Gesloten circuit: Diluent toetst aan de flush-ppO₂ van het diluent, Bailout aan je werk-ppO₂ in open circuit.';
+      'Gesloten circuit: Diluent toetst aan de flush-ppO₂ van het diluent, Bailout aan je deco-ppO₂ (maximum) in open circuit.';
 
   @override
   String get gasCalculators_bestMix_modeOcTec => 'OC Tec';

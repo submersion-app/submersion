@@ -430,4 +430,50 @@ void main() {
       );
     });
   });
+
+  group('review fixes', () {
+    BestMixInputs tec(double depth, {bool o2Narcotic = true}) => BestMixInputs(
+      depthMeters: depth,
+      ppO2Limit: 1.4,
+      endLimitMeters: 30,
+      o2Narcotic: o2Narcotic,
+      mode: BestMixMode.ocTec,
+      waterType: WaterType.salt,
+    );
+
+    test('Tec keeps a real END beside the EAD when O2 is not narcotic', () {
+      final r = computeBestMix(tec(30, o2Narcotic: false));
+      final mix = r.recommended;
+      // The checked value is the EAD, but the END row must not repeat it.
+      expect(mix.endMeters, closeTo(mix.eadMeters!, 1e-9));
+      expect(mix.o2NarcoticEndMeters, closeTo(30, 0.01));
+      expect(mix.o2NarcoticEndMeters, greaterThan(mix.eadMeters!));
+    });
+
+    test('Rec leaves the O2-narcotic END null', () {
+      expect(_at(30).recommended.o2NarcoticEndMeters, isNull);
+    });
+
+    test('a hypoxic catalog entry does not cover a shallow target', () {
+      // Trimix 10/70 at 6 m is about 0.16 bar ppO2, below the 0.18 floor.
+      final names = coveringStandardMixes(tec(6)).map((m) => m.name).toList();
+      expect(names, isNot(contains('Trimix 10/70')));
+      expect(names, contains('Trimix 12/65'));
+    });
+
+    test('every listed entry clears the hypoxic floor at the target', () {
+      for (final depth in [6.0, 10.0, 20.0, 40.0]) {
+        final ambient = DiveEnvironment.forConditions(
+          waterType: WaterType.salt,
+        ).pressureAtDepth(depth);
+        for (final mix in coveringStandardMixes(tec(depth))) {
+          expect(
+            mix.o2Percent / 100 * ambient,
+            greaterThanOrEqualTo(standardMixMinPpO2 - 1e-9),
+            reason: '${mix.name} at $depth m',
+          );
+        }
+      }
+    });
+  });
 }

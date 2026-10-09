@@ -82,7 +82,10 @@ class BestMixResultCard extends ConsumerWidget {
               bestMixBreakdownRow(
                 context,
                 l10n.gasCalculators_bestMix_endLabel,
-                units.formatDepth(recommended.endMeters, decimals: 0),
+                units.formatDepth(
+                  recommended.o2NarcoticEndMeters ?? recommended.endMeters,
+                  decimals: 0,
+                ),
                 onContainer: true,
               ),
               bestMixBreakdownRow(

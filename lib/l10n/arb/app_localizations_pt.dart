@@ -1475,7 +1475,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gasCalculators_bestMix_modeCcrTecHint =>
-      'Circuito fechado: Diluente verifica em relação à ppO₂ de purga do diluente, Bailout em relação à tua ppO₂ de trabalho em circuito aberto.';
+      'Circuito fechado: Diluente verifica em relação à ppO₂ de purga do diluente, Bailout em relação à tua ppO₂ de descompressão (máxima) em circuito aberto.';
 
   @override
   String get gasCalculators_bestMix_modeOcTec => 'OC Tec';

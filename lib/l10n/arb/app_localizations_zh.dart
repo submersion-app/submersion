@@ -1420,7 +1420,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_bestMix_modeCcrTecHint =>
-      '密闭式循环呼吸器：稀释气模式按稀释气的冲洗 ppO₂ 校验，备用模式按你的开放式工作 ppO₂ 校验。';
+      '密闭式循环呼吸器：稀释气模式按稀释气的冲洗 ppO₂ 校验，备用模式按你的开放式减压（最大）ppO₂ 校验。';
 
   @override
   String get gasCalculators_bestMix_modeOcTec => 'OC Tec';

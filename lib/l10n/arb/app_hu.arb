@@ -334,7 +334,7 @@
   "gasCalculators_bestMix_heliumDensity": "Hélium hozzáadva, hogy a gázsűrűség a határokon belül maradjon.",
   "gasCalculators_bestMix_mode": "Mód",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
-  "gasCalculators_bestMix_modeCcrTecHint": "Zárt rendszer: Hígítógáz a hígítógáz öblítési ppO₂-jéhez, Bailout a nyitott rendszerű munka-ppO₂-dhöz viszonyít.",
+  "gasCalculators_bestMix_modeCcrTecHint": "Zárt rendszer: Hígítógáz a hígítógáz öblítési ppO₂-jéhez, Bailout a nyitott rendszerű dekó-ppO₂-dhöz (maximum) viszonyít.",
   "gasCalculators_bestMix_modeOcTec": "OC Tec",
   "gasCalculators_bestMix_modeOcTecHint": "Trimix nyitott rendszerben, a munka-ppO₂ korlátodhoz viszonyítva.",
   "gasCalculators_bestMix_modeRec": "Rec",

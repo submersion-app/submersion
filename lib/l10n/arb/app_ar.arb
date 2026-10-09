@@ -334,7 +334,7 @@
   "gasCalculators_bestMix_heliumDensity": "تمت إضافة الهيليوم لإبقاء كثافة الغاز ضمن الحدود.",
   "gasCalculators_bestMix_mode": "الوضع",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
-  "gasCalculators_bestMix_modeCcrTecHint": "الدائرة المغلقة: يتحقق «غاز التخفيف» مقابل ppO₂ الشطف لغاز التخفيف، و«الطوارئ» مقابل ppO₂ العمل في الدائرة المفتوحة.",
+  "gasCalculators_bestMix_modeCcrTecHint": "الدائرة المغلقة: يتحقق «غاز التخفيف» مقابل ppO₂ الشطف لغاز التخفيف، و«الطوارئ» مقابل ppO₂ تخفيف الضغط (الحد الأقصى) في الدائرة المفتوحة.",
   "gasCalculators_bestMix_modeOcTec": "OC Tec",
   "gasCalculators_bestMix_modeOcTecHint": "ترايمكس في الدائرة المفتوحة، يُفحص مقابل حد ppO₂ العمل الخاص بك.",
   "gasCalculators_bestMix_modeRec": "Rec",

@@ -140,6 +140,12 @@ class MixAssessment {
   /// setting selects is shown, same as before the Tec modes existed.
   final double? eadMeters;
 
+  /// END counting O2 as narcotic, computed alongside [eadMeters] outside
+  /// Rec. [endMeters] is whichever of the two the O2-narcotic setting
+  /// selects, so with O2 not narcotic it holds the EAD; this field keeps
+  /// the END row showing an END either way. Null in Rec.
+  final double? o2NarcoticEndMeters;
+
   final bool exceedsEndLimit;
 
   final double densityGPerL;
@@ -152,6 +158,7 @@ class MixAssessment {
     required this.marginMeters,
     required this.endMeters,
     this.eadMeters,
+    this.o2NarcoticEndMeters,
     required this.exceedsEndLimit,
     required this.densityGPerL,
     required this.exceedsWarnDensity,
@@ -235,6 +242,7 @@ MixAssessment _assess(
 
   final double end;
   double? ead;
+  double? o2NarcoticEnd;
   double density;
 
   if (environment == null) {
@@ -266,6 +274,7 @@ MixAssessment _assess(
     final eadMeters = depthAt(pN2 / airN2Fraction);
     end = inputs.o2Narcotic ? endMeters : eadMeters;
     ead = eadMeters;
+    o2NarcoticEnd = endMeters;
     density = gasDensityFromPartialPressures(
       pO2Bar: pO2,
       pN2Bar: pN2,
@@ -280,6 +289,7 @@ MixAssessment _assess(
     marginMeters: mod - inputs.depthMeters,
     endMeters: end,
     eadMeters: ead,
+    o2NarcoticEndMeters: o2NarcoticEnd,
     exceedsEndLimit: end > inputs.endLimitMeters + 1e-9,
     densityGPerL: density,
     exceedsWarnDensity: density > gasDensityWarnGPerL,
@@ -368,7 +378,15 @@ double heForDensityLimit(
   return _heForDensityLimitAt(ambient, o2Percent, temperature);
 }
 
-double _ceilToStep(double value, double step) => (value / step).ceil() * step;
+/// [value] rounded up to a multiple of [step], with the same 1e-9 tolerance
+/// [MixAssessment.exceedsEndLimit] uses, so floating noise just above a
+/// whole step (20.000000000000004) does not add a full extra step.
+double _ceilToStep(double value, double step) =>
+    ((value - 1e-9) / step).ceil() * step;
+
+/// Lowest ppO2 a catalog entry may have at the target depth to count as
+/// covering it, the hypoxic floor the MOD calculator defaults to.
+const double standardMixMinPpO2 = 0.18;
 
 /// Catalog entries (issue #3117) whose MOD covers [inputs]' target depth,
 /// and whose END (for a trimix) stays within [inputs]' END limit, nearest
@@ -379,10 +397,16 @@ double _ceilToStep(double value, double step) => (value / step).ceil() * step;
 /// nitrogen alone fill the whole ambient pressure), so the check only ever
 /// excludes it when the target depth is itself beyond the END limit, which
 /// is correct: no nitrox, named or not, can fix narcosis without helium.
+///
+/// A hypoxic entry is also excluded when its ppO2 at the target depth is
+/// below [standardMixMinPpO2]: a deep bottom gas does not cover a shallow
+/// dive just because its MOD and END are deep enough.
 List<StandardGasMix> coveringStandardMixes(BestMixInputs inputs) {
   final environment = environmentFor(inputs);
+  final ambient = _ambientAt(inputs.depthMeters, environment);
   final scored = <(StandardGasMix, double)>[];
   for (final mix in standardGasMixes) {
+    if (mix.o2Percent / 100 * ambient + 1e-9 < standardMixMinPpO2) continue;
     final assessment = _assess(
       GasMix(o2: mix.o2Percent, he: mix.hePercent),
       inputs,

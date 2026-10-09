@@ -334,7 +334,7 @@
   "gasCalculators_bestMix_heliumDensity": "Helium toegevoegd om de gasdichtheid binnen de limieten te houden.",
   "gasCalculators_bestMix_mode": "Modus",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
-  "gasCalculators_bestMix_modeCcrTecHint": "Gesloten circuit: Diluent toetst aan de flush-ppO₂ van het diluent, Bailout aan je werk-ppO₂ in open circuit.",
+  "gasCalculators_bestMix_modeCcrTecHint": "Gesloten circuit: Diluent toetst aan de flush-ppO₂ van het diluent, Bailout aan je deco-ppO₂ (maximum) in open circuit.",
   "gasCalculators_bestMix_modeOcTec": "OC Tec",
   "gasCalculators_bestMix_modeOcTecHint": "Trimix in open circuit, getoetst aan je werk-ppO₂-limiet.",
   "gasCalculators_bestMix_modeRec": "Rec",

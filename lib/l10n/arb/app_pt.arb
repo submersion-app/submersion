@@ -334,7 +334,7 @@
   "gasCalculators_bestMix_heliumDensity": "Hélio adicionado para manter a densidade do gás dentro dos limites.",
   "gasCalculators_bestMix_mode": "Modo",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
-  "gasCalculators_bestMix_modeCcrTecHint": "Circuito fechado: Diluente verifica em relação à ppO₂ de purga do diluente, Bailout em relação à tua ppO₂ de trabalho em circuito aberto.",
+  "gasCalculators_bestMix_modeCcrTecHint": "Circuito fechado: Diluente verifica em relação à ppO₂ de purga do diluente, Bailout em relação à tua ppO₂ de descompressão (máxima) em circuito aberto.",
   "gasCalculators_bestMix_modeOcTec": "OC Tec",
   "gasCalculators_bestMix_modeOcTecHint": "Trimix em circuito aberto, verificado em relação ao teu limite de ppO₂ de trabalho.",
   "gasCalculators_bestMix_modeRec": "Rec",

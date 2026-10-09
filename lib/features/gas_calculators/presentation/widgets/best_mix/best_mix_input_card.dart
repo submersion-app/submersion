@@ -195,6 +195,14 @@ class BestMixInputCard extends ConsumerWidget {
                     ),
                 ],
               ),
+              const SizedBox(height: 12),
+              // Rec has no END control but still applies the profile's END
+              // limit, so the value behind any helium stays visible.
+              bestMixBreakdownRow(
+                context,
+                l10n.gasCalculators_bestMix_endLimitLabel,
+                units.formatDepth(settings.endLimit, decimals: 0),
+              ),
             ] else if (mode == BestMixMode.ccrTec &&
                 prefs.ccrSource == CcrGasSource.diluent)
               ModPpO2LimitSlider(

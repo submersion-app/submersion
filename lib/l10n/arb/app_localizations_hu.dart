@@ -1476,7 +1476,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_bestMix_modeCcrTecHint =>
-      'Zárt rendszer: Hígítógáz a hígítógáz öblítési ppO₂-jéhez, Bailout a nyitott rendszerű munka-ppO₂-dhöz viszonyít.';
+      'Zárt rendszer: Hígítógáz a hígítógáz öblítési ppO₂-jéhez, Bailout a nyitott rendszerű dekó-ppO₂-dhöz (maximum) viszonyít.';
 
   @override
   String get gasCalculators_bestMix_modeOcTec => 'OC Tec';

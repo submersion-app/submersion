@@ -2291,7 +2291,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_bestMix_modeCcrTecHint.
   ///
   /// In en, this message translates to:
-  /// **'Closed circuit: Diluent checks against the diluent\'s flush ppO2, Bailout against your OC working ppO2.'**
+  /// **'Closed circuit: Diluent checks against the diluent\'s flush ppO2, Bailout against your OC deco (maximum) ppO2.'**
   String get gasCalculators_bestMix_modeCcrTecHint;
 
   /// No description provided for @gasCalculators_bestMix_modeOcTec.

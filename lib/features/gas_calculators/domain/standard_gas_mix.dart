@@ -171,7 +171,8 @@ const List<StandardGasMix> standardGasMixes = [
     category: StandardGasCategory.bottomGas,
   ),
   StandardGasMix(
-    name: 'Heliox/Trimix 50/20',
+    // 30% nitrogen: a trimix, not heliox (O2 and helium only).
+    name: 'Trimix 50/20',
     o2Percent: 50,
     hePercent: 20,
     category: StandardGasCategory.bottomGas,

@@ -1458,7 +1458,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_bestMix_modeCcrTecHint =>
-      'מעגל סגור: מדלל נבדק מול ppO₂ השטיפה של המדלל, חילוץ מול ppO₂ העבודה שלך במעגל פתוח.';
+      'מעגל סגור: מדלל נבדק מול ppO₂ השטיפה של המדלל, חילוץ מול ppO₂ הדקו (המרבי) שלך במעגל פתוח.';
 
   @override
   String get gasCalculators_bestMix_modeOcTec => 'OC Tec';

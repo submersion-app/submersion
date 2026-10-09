@@ -1475,7 +1475,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_bestMix_modeCcrTecHint =>
-      'Kreislaufgerät: Diluent prüft gegen die Spül-ppO₂ des Diluentgases, Bailout gegen deine OC-Arbeits-ppO₂.';
+      'Kreislaufgerät: Diluent prüft gegen die Spül-ppO₂ des Diluentgases, Bailout gegen deine OC-Deko-ppO₂ (Maximum).';
 
   @override
   String get gasCalculators_bestMix_modeOcTec => 'OC Tec';

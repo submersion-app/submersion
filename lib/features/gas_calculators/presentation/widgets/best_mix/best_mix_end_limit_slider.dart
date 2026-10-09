@@ -31,6 +31,11 @@ class BestMixEndLimitSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final axis = UnitAxis.depthRange(
+      units,
+      minMeters: endLimitOverrideMinMeters,
+      maxMeters: endLimitOverrideMaxMeters,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -38,12 +43,16 @@ class BestMixEndLimitSlider extends StatelessWidget {
           icon: Icons.vertical_align_bottom,
           label: label,
           value: value,
-          axis: UnitAxis.depthRange(
-            units,
-            minMeters: endLimitOverrideMinMeters,
-            maxMeters: endLimitOverrideMaxMeters,
-          ),
-          onChanged: onChanged,
+          axis: axis,
+          // In feet the 5 ft grid rarely lands on the profile value (30 m is
+          // 98.4 ft), so the stop nearest it counts as following the profile;
+          // otherwise any drag would leave an override the slider cannot undo.
+          onChanged: (meters) =>
+              (axis.toDisplay(meters) - axis.toDisplay(profileValueMeters))
+                      .abs() <
+                  axis.step / 2
+              ? onReset()
+              : onChanged(meters),
         ),
         ProfileOverrideCaption(
           isOverridden: isOverridden,

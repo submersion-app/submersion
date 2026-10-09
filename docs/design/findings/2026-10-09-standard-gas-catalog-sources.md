@@ -64,7 +64,7 @@ above, which are each named in that organization's own course material):
 
 - Trimix 18/35
 - Trimix 25/50
-- Heliox/Trimix 50/20
+- Trimix 50/20 (30% nitrogen, so a trimix rather than heliox)
 
 ## Selection and display decisions (recap)
 

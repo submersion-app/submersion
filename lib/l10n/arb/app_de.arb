@@ -345,7 +345,7 @@
   "gasCalculators_bestMix_heliumDensity": "Helium zugefügt, damit die Gasdichte innerhalb der Grenzwerte bleibt.",
   "gasCalculators_bestMix_mode": "Modus",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
-  "gasCalculators_bestMix_modeCcrTecHint": "Kreislaufgerät: Diluent prüft gegen die Spül-ppO₂ des Diluentgases, Bailout gegen deine OC-Arbeits-ppO₂.",
+  "gasCalculators_bestMix_modeCcrTecHint": "Kreislaufgerät: Diluent prüft gegen die Spül-ppO₂ des Diluentgases, Bailout gegen deine OC-Deko-ppO₂ (Maximum).",
   "gasCalculators_bestMix_modeOcTec": "OC Tec",
   "gasCalculators_bestMix_modeOcTecHint": "Trimix im offenen System, geprüft gegen deine Arbeits-ppO₂-Grenze.",
   "gasCalculators_bestMix_modeRec": "Rec",

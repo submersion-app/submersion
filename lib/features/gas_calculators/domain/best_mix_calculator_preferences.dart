@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_limits.dart'
+    show recTargetMaxMeters, tecTargetMaxMeters;
 import 'package:submersion/features/gas_calculators/domain/mod_limit_overrides.dart';
 
 /// Key of the overrides kept while no diver is active, matching
@@ -41,11 +43,17 @@ class BestMixModeInputs extends Equatable {
     'recPpO2': recPpO2,
   };
 
-  static BestMixModeInputs fromJson(Object? json, BestMixModeInputs fallback) {
+  /// [maxDepthMeters] is the slot's own depth slider maximum, so a stored
+  /// depth the slider cannot show is never computed against.
+  static BestMixModeInputs fromJson(
+    Object? json,
+    BestMixModeInputs fallback, {
+    required double maxDepthMeters,
+  }) {
     if (json is! Map) return fallback;
-    final depth = _numberInRange(json['depthMeters'], 0, 300);
+    final depth = modNumberInRange(json['depthMeters'], 0, maxDepthMeters);
     final densityAware = json['densityAware'];
-    final ppO2 = _numberInRange(json['recPpO2'], 1.0, 1.6);
+    final ppO2 = modNumberInRange(json['recPpO2'], 1.0, 1.6);
     return BestMixModeInputs(
       depthMeters: depth ?? fallback.depthMeters,
       densityAware: densityAware is bool ? densityAware : fallback.densityAware,
@@ -199,9 +207,21 @@ class BestMixCalculatorPreferences extends Equatable {
     final overrides = json['overrides'];
     return BestMixCalculatorPreferences(
       mode: _enumByName(BestMixMode.values, json['mode']) ?? d.mode,
-      rec: BestMixModeInputs.fromJson(json['rec'], d.rec),
-      ocTec: BestMixModeInputs.fromJson(json['ocTec'], d.ocTec),
-      ccrTec: BestMixModeInputs.fromJson(json['ccrTec'], d.ccrTec),
+      rec: BestMixModeInputs.fromJson(
+        json['rec'],
+        d.rec,
+        maxDepthMeters: recTargetMaxMeters,
+      ),
+      ocTec: BestMixModeInputs.fromJson(
+        json['ocTec'],
+        d.ocTec,
+        maxDepthMeters: tecTargetMaxMeters,
+      ),
+      ccrTec: BestMixModeInputs.fromJson(
+        json['ccrTec'],
+        d.ccrTec,
+        maxDepthMeters: tecTargetMaxMeters,
+      ),
       ccrSource:
           _enumByName(CcrGasSource.values, json['ccrSource']) ?? d.ccrSource,
       // Only a type the calculator offers: another (brackish) would be
@@ -240,11 +260,4 @@ T? _enumByName<T extends Enum>(List<T> values, Object? name) {
     if (value.name == name) return value;
   }
   return null;
-}
-
-double? _numberInRange(Object? value, double min, double max) {
-  if (value is! num) return null;
-  final d = value.toDouble();
-  if (!d.isFinite || d < min || d > max) return null;
-  return d;
 }

@@ -9,6 +9,7 @@ import 'package:submersion/features/gas_calculators/domain/best_mix.dart'
 import 'package:submersion/features/gas_calculators/domain/standard_gas_mix.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// How many catalog entries show before "Show all" (issue #3117).
@@ -68,7 +69,7 @@ class _BestMixCommonMixesCardState
               _row(
                 context,
                 l10n.gasCalculators_bestMix_nearestStandard,
-                result.nearestStandardMix!.name,
+                _displayName(l10n, result.nearestStandardMix!),
                 isHighlight: true,
               ),
             const SizedBox(height: 4),
@@ -103,6 +104,7 @@ class _BestMixCommonMixesCardState
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final name = _displayName(context.l10n, mix);
 
     // MOD rounds DOWN toward the shallower, safer limit. Same ambient
     // model as `coveringStandardMixes` used to decide this entry covers
@@ -121,7 +123,7 @@ class _BestMixCommonMixesCardState
         : '${mix.o2Percent.toStringAsFixed(0)}% O₂';
 
     return Semantics(
-      label: '${mix.name}, $composition, MOD: $displayMod',
+      label: '$name, $composition, MOD: $displayMod',
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
@@ -129,7 +131,7 @@ class _BestMixCommonMixesCardState
             SizedBox(
               width: 120,
               child: Text(
-                mix.name,
+                name,
                 style: textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
@@ -154,6 +156,15 @@ class _BestMixCommonMixesCardState
         ),
       ),
     );
+  }
+
+  /// Air and oxygen in the diver's language, as the table showed them
+  /// before the catalog; every other entry's name is a formula.
+  String _displayName(AppLocalizations l10n, StandardGasMix mix) {
+    if (mix.isTrimix) return mix.name;
+    if (mix.o2Percent == 21) return l10n.gas_air_displayName;
+    if (mix.o2Percent == 100) return l10n.gas_oxygen_displayName;
+    return mix.name;
   }
 
   Widget _row(
