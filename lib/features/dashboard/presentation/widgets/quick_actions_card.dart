@@ -74,7 +74,7 @@ class QuickActionsCard extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => context.go(kTracksLocation),
                 icon: const Icon(Icons.gps_fixed),
-                label: Text(context.l10n.tools_gpsLogger_title),
+                label: Text(context.l10n.nav_tracks),
               ),
             ),
             const SizedBox(height: 8),

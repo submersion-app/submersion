@@ -24,10 +24,10 @@ Widget app() {
 }
 
 void main() {
-  testWidgets('GPS Logger quick action navigates to /tracks', (tester) async {
+  testWidgets('Tracks quick action navigates to /tracks', (tester) async {
     await tester.pumpWidget(app());
     await tester.pumpAndSettle();
-    await tester.tap(find.text('GPS Logger'));
+    await tester.tap(find.text('Tracks'));
     await tester.pumpAndSettle();
     expect(find.text('TRACKS-PAGE'), findsOneWidget);
   });
