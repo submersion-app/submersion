@@ -340,7 +340,6 @@
   "gasCalculators_bestMix_eadLabel": "EAD auf Tiefe",
   "gasCalculators_bestMix_heliumBoth": "Helium zugefügt, damit END und Gasdichte innerhalb deiner Grenzwerte bleiben.",
   "gasCalculators_bestMix_heliumDensity": "Helium zugefügt, damit die Gasdichte innerhalb der Grenzwerte bleibt.",
-  "gasCalculators_bestMix_limitPpO2Label": "ppO₂-Grenzwert (aus Profil)",
   "gasCalculators_bestMix_mode": "Modus",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
   "gasCalculators_bestMix_modeCcrTecHint": "Kreislaufgerät: Diluent prüft gegen die Spül-ppO₂ des Diluentgases, Bailout gegen deine OC-Arbeits-ppO₂.",

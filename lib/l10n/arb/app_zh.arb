@@ -329,7 +329,6 @@
   "gasCalculators_bestMix_eadLabel": "深度处 EAD",
   "gasCalculators_bestMix_heliumBoth": "已加入氦气，使 END 与气体密度都保持在你的限值内。",
   "gasCalculators_bestMix_heliumDensity": "已加入氦气，使气体密度保持在限值内。",
-  "gasCalculators_bestMix_limitPpO2Label": "ppO₂ 限值（来自资料）",
   "gasCalculators_bestMix_mode": "模式",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
   "gasCalculators_bestMix_modeCcrTecHint": "密闭式循环呼吸器：稀释气模式按稀释气的冲洗 ppO₂ 校验，备用模式按你的开放式工作 ppO₂ 校验。",

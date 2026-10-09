@@ -1491,10 +1491,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'تمت إضافة الهيليوم لإبقاء كثافة الغاز ضمن الحدود.';
 
   @override
-  String get gasCalculators_bestMix_limitPpO2Label =>
-      'حد ppO₂ (من الملف الشخصي)';
-
-  @override
   String get gasCalculators_bestMix_mode => 'الوضع';
 
   @override

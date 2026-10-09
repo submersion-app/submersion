@@ -329,7 +329,6 @@
   "gasCalculators_bestMix_eadLabel": "EAD a mélységben",
   "gasCalculators_bestMix_heliumBoth": "Hélium hozzáadva, hogy az END és a gázsűrűség is a határaidon belül maradjon.",
   "gasCalculators_bestMix_heliumDensity": "Hélium hozzáadva, hogy a gázsűrűség a határokon belül maradjon.",
-  "gasCalculators_bestMix_limitPpO2Label": "ppO₂ korlát (a profilból)",
   "gasCalculators_bestMix_mode": "Mód",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
   "gasCalculators_bestMix_modeCcrTecHint": "Zárt rendszer: Hígítógáz a hígítógáz öblítési ppO₂-jéhez, Bailout a nyitott rendszerű munka-ppO₂-dhöz viszonyít.",

@@ -329,7 +329,6 @@
   "gasCalculators_bestMix_eadLabel": "EAD a profundidad",
   "gasCalculators_bestMix_heliumBoth": "Helio añadido para mantener la END y la densidad del gas dentro de tus límites.",
   "gasCalculators_bestMix_heliumDensity": "Helio añadido para mantener la densidad del gas dentro de los límites.",
-  "gasCalculators_bestMix_limitPpO2Label": "Límite de ppO₂ (del perfil)",
   "gasCalculators_bestMix_mode": "Modo",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
   "gasCalculators_bestMix_modeCcrTecHint": "Circuito cerrado: Diluyente comprueba frente a la ppO₂ de purga del diluyente, Bailout frente a tu ppO₂ de trabajo en circuito abierto.",

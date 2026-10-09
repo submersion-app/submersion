@@ -860,7 +860,6 @@
   "gasCalculators_bestMix_eadLabel": "EAD at depth",
   "gasCalculators_bestMix_heliumBoth": "Helium added to keep END and gas density within your limits.",
   "gasCalculators_bestMix_heliumDensity": "Helium added to keep gas density within limits.",
-  "gasCalculators_bestMix_limitPpO2Label": "ppO₂ limit (from profile)",
   "gasCalculators_bestMix_mode": "Mode",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
   "gasCalculators_bestMix_modeCcrTecHint": "Closed circuit: Diluent checks against the diluent's flush ppO2, Bailout against your OC working ppO2.",

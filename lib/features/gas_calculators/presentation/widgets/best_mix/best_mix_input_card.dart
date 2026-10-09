@@ -5,9 +5,10 @@ import 'package:submersion/core/utils/unit_axis.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart'
-    show tecTargetMaxMeters;
+    show modFlushPpO2Max, modFlushPpO2Min, tecTargetMaxMeters;
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix/best_mix_formatting.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod_ppo2_limit_slider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
@@ -24,6 +25,7 @@ class BestMixInputCard extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final prefs = ref.watch(bestMixCalculatorNotifierProvider);
+    final limits = ref.watch(bestMixCalculatorLimitsProvider);
     final notifier = ref.read(bestMixCalculatorNotifierProvider.notifier);
     final mode = prefs.mode;
     final inputs = prefs.inputsFor(mode);
@@ -138,11 +140,28 @@ class BestMixInputCard extends ConsumerWidget {
                     ),
                 ],
               ),
-            ] else
-              bestMixBreakdownRow(
-                context,
-                l10n.gasCalculators_bestMix_limitPpO2Label,
-                '${ref.watch(bestMixCalculatorResultProvider).limitPpO2.toStringAsFixed(2)} bar',
+            ] else if (mode == BestMixMode.ccrTec &&
+                prefs.ccrSource == CcrGasSource.diluent)
+              ModPpO2LimitSlider(
+                label: l10n.gasCalculators_mod_flushPpO2,
+                min: modFlushPpO2Min,
+                max: modFlushPpO2Max,
+                step: 0.1,
+                fractionDigits: 1,
+                value: limits.flushPpO2,
+                profileValue: settings.ccrDiluentModPpO2,
+                isOverridden: limits.flushOverridden,
+                onChanged: notifier.setFlushPpO2,
+                onReset: notifier.resetFlushPpO2,
+              )
+            else
+              ModPpO2LimitSlider(
+                label: l10n.gasCalculators_mod_workingPpO2,
+                value: limits.workingPpO2,
+                profileValue: settings.ppO2MaxWorking,
+                isOverridden: limits.workingOverridden,
+                onChanged: notifier.setWorkingPpO2,
+                onReset: notifier.resetWorkingPpO2,
               ),
           ],
         ),

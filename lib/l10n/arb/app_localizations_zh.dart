@@ -1400,9 +1400,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_bestMix_heliumDensity => '已加入氦气，使气体密度保持在限值内。';
 
   @override
-  String get gasCalculators_bestMix_limitPpO2Label => 'ppO₂ 限值（来自资料）';
-
-  @override
   String get gasCalculators_bestMix_mode => '模式';
 
   @override

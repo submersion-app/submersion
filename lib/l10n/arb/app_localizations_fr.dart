@@ -1459,10 +1459,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Hélium ajouté pour maintenir la densité du gaz dans les limites.';
 
   @override
-  String get gasCalculators_bestMix_limitPpO2Label =>
-      'Limite de ppO₂ (du profil)';
-
-  @override
   String get gasCalculators_bestMix_mode => 'Mode';
 
   @override

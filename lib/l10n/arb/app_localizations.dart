@@ -2258,12 +2258,6 @@ abstract class AppLocalizations {
   /// **'Helium added to keep gas density within limits.'**
   String get gasCalculators_bestMix_heliumDensity;
 
-  /// No description provided for @gasCalculators_bestMix_limitPpO2Label.
-  ///
-  /// In en, this message translates to:
-  /// **'ppO₂ limit (from profile)'**
-  String get gasCalculators_bestMix_limitPpO2Label;
-
   /// No description provided for @gasCalculators_bestMix_mode.
   ///
   /// In en, this message translates to:

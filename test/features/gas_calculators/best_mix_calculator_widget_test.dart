@@ -5,7 +5,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart'
-    show BestMixMode;
+    show BestMixMode, CcrGasSource;
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix_calculator.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
@@ -183,6 +183,53 @@ void main() {
 
     expect(find.text('Diluent'), findsOneWidget);
     expect(find.text('Bailout'), findsOneWidget);
+    await _settle(tester);
+  });
+
+  testWidgets('OC-Tec shows an editable ppO2 slider, not a static value', (
+    tester,
+  ) async {
+    final ref = await _pump(tester);
+    final notifier = ref.read(bestMixCalculatorNotifierProvider.notifier)
+      ..setMode(BestMixMode.ocTec);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Working ppO₂'), findsOneWidget);
+    expect(find.text('From your diver profile'), findsOneWidget);
+
+    notifier.setWorkingPpO2(1.2);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Differs from your profile'), findsOneWidget);
+    expect(find.text('Use profile value'), findsOneWidget);
+    await _settle(tester);
+  });
+
+  testWidgets('CCR-Tec Diluent shows the diluent flush ppO2 slider', (
+    tester,
+  ) async {
+    final ref = await _pump(tester);
+    ref
+        .read(bestMixCalculatorNotifierProvider.notifier)
+        .setMode(BestMixMode.ccrTec);
+    await tester.pumpAndSettle();
+
+    expect(find.text('ppO₂ for the diluent MOD (flush)'), findsOneWidget);
+    expect(find.text('Working ppO₂'), findsNothing);
+    await _settle(tester);
+  });
+
+  testWidgets('CCR-Tec Bailout shows the working ppO2 slider, same as OC-Tec', (
+    tester,
+  ) async {
+    final ref = await _pump(tester);
+    ref.read(bestMixCalculatorNotifierProvider.notifier)
+      ..setMode(BestMixMode.ccrTec)
+      ..setCcrSource(CcrGasSource.bailout);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Working ppO₂'), findsOneWidget);
+    expect(find.text('ppO₂ for the diluent MOD (flush)'), findsNothing);
     await _settle(tester);
   });
 }

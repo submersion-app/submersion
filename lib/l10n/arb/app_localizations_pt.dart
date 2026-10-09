@@ -1455,10 +1455,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Hélio adicionado para manter a densidade do gás dentro dos limites.';
 
   @override
-  String get gasCalculators_bestMix_limitPpO2Label =>
-      'Limite de ppO₂ (do perfil)';
-
-  @override
   String get gasCalculators_bestMix_mode => 'Modo';
 
   @override

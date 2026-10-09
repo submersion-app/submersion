@@ -329,7 +329,6 @@
   "gasCalculators_bestMix_eadLabel": "EAD op diepte",
   "gasCalculators_bestMix_heliumBoth": "Helium toegevoegd om END en gasdichtheid binnen je limieten te houden.",
   "gasCalculators_bestMix_heliumDensity": "Helium toegevoegd om de gasdichtheid binnen de limieten te houden.",
-  "gasCalculators_bestMix_limitPpO2Label": "ppO₂-limiet (uit profiel)",
   "gasCalculators_bestMix_mode": "Modus",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
   "gasCalculators_bestMix_modeCcrTecHint": "Gesloten circuit: Diluent toetst aan de flush-ppO₂ van het diluent, Bailout aan je werk-ppO₂ in open circuit.",

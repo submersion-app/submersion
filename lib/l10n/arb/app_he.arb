@@ -329,7 +329,6 @@
   "gasCalculators_bestMix_eadLabel": "EAD בעומק",
   "gasCalculators_bestMix_heliumBoth": "נוסף הליום כדי לשמור על ה-END וצפיפות הגז בתוך הגבולות שלך.",
   "gasCalculators_bestMix_heliumDensity": "נוסף הליום כדי לשמור על צפיפות הגז בתוך הגבולות.",
-  "gasCalculators_bestMix_limitPpO2Label": "מגבלת ppO₂ (מהפרופיל)",
   "gasCalculators_bestMix_mode": "מצב",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
   "gasCalculators_bestMix_modeCcrTecHint": "מעגל סגור: מדלל נבדק מול ppO₂ השטיפה של המדלל, חילוץ מול ppO₂ העבודה שלך במעגל פתוח.",

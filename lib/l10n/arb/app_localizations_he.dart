@@ -1438,9 +1438,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'נוסף הליום כדי לשמור על צפיפות הגז בתוך הגבולות.';
 
   @override
-  String get gasCalculators_bestMix_limitPpO2Label => 'מגבלת ppO₂ (מהפרופיל)';
-
-  @override
   String get gasCalculators_bestMix_mode => 'מצב';
 
   @override

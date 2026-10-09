@@ -1456,10 +1456,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hélium hozzáadva, hogy a gázsűrűség a határokon belül maradjon.';
 
   @override
-  String get gasCalculators_bestMix_limitPpO2Label =>
-      'ppO₂ korlát (a profilból)';
-
-  @override
   String get gasCalculators_bestMix_mode => 'Mód';
 
   @override

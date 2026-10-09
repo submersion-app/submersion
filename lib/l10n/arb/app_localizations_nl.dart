@@ -1447,10 +1447,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Helium toegevoegd om de gasdichtheid binnen de limieten te houden.';
 
   @override
-  String get gasCalculators_bestMix_limitPpO2Label =>
-      'ppO₂-limiet (uit profiel)';
-
-  @override
   String get gasCalculators_bestMix_mode => 'Modus';
 
   @override

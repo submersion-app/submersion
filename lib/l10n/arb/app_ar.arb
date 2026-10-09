@@ -329,7 +329,6 @@
   "gasCalculators_bestMix_eadLabel": "EAD عند العمق",
   "gasCalculators_bestMix_heliumBoth": "تمت إضافة الهيليوم لإبقاء END وكثافة الغاز ضمن حدودك.",
   "gasCalculators_bestMix_heliumDensity": "تمت إضافة الهيليوم لإبقاء كثافة الغاز ضمن الحدود.",
-  "gasCalculators_bestMix_limitPpO2Label": "حد ppO₂ (من الملف الشخصي)",
   "gasCalculators_bestMix_mode": "الوضع",
   "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
   "gasCalculators_bestMix_modeCcrTecHint": "الدائرة المغلقة: يتحقق «غاز التخفيف» مقابل ppO₂ الشطف لغاز التخفيف، و«الطوارئ» مقابل ppO₂ العمل في الدائرة المفتوحة.",
