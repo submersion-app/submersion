@@ -1872,8 +1872,6 @@ class _AppearanceSectionContentState
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-
     // Priority 1: Column config sub-page
     if (_showColumnConfig) {
       final backLabel = _columnConfigSection != null
@@ -1902,7 +1900,7 @@ class _AppearanceSectionContentState
 
     // Priority 2: Language sub-page
     if (_showLanguageList) {
-      return _buildLanguageSubPage(context, settings);
+      return _buildLanguageSubPage(context, ref.watch(settingsProvider));
     }
 
     // Priority 3: Section appearance sub-page

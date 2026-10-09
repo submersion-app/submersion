@@ -128,11 +128,12 @@ and stops) may switch to: **All carried cylinders**, or only
 |---------|--------------|
 | **Color Theme** | Opens the theme gallery: **Submersion**, **Console**, **Tropical**, **Minimalist** or **Deep**, each a colour palette and typography |
 | Light and dark | **System default**, **Light** or **Dark** |
-| **App Language** | The app's language, or **System Default** (the tile is called **Language** on a tablet or computer) |
+| **Display size** | Scales the whole app from 70% to 140%; **Reset** returns to 100% |
+| **Language** | The app's language, or **System Default** |
 | **Map Style** | **Street Map**, **Topographic** or **Satellite** |
 | **Navigation layout** | Which destinations appear where (see below) |
 | **Color accents** | **Colored navigation icons**, **Colored section headers** and **Colored list icons** |
-| **Gear arrangement** | How equipment is grouped and sorted on a dive (on a phone) |
+| **Gear arrangement** | How equipment is grouped and sorted on a dive |
 
 **Navigation layout** has a **Phone** and a **Desktop** tab. On a phone, drag
 destinations to reorder them: the ones at the top appear in the bottom bar, as

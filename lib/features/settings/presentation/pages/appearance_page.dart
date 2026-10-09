@@ -36,18 +36,13 @@ class AppearancePage extends StatelessWidget {
             context.l10n.settings_appearance_sections,
           ),
           AppearanceSectionTiles(
-            onSectionTap: (key) =>
-                context.push('/settings/appearance/${_routeSegment(key)}'),
+            onSectionTap: (key) => context.push(appearanceSectionRoute(key)),
           ),
           const SizedBox(height: 32),
         ],
       ),
     );
   }
-
-  /// The route segment under /settings/appearance for a section key.
-  static String _routeSegment(String key) =>
-      key == 'diveCenters' ? 'dive-centers' : key;
 
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(

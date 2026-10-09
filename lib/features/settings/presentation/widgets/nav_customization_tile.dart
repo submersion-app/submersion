@@ -10,10 +10,11 @@ import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 
 /// Settings row that opens the navigation customizer.
 ///
-/// Its own widget because two surfaces render the Appearance section: the
-/// pushed AppearancePage on narrow windows, and the inline section content in
-/// the master-detail settings page. Adding the row to only one of them is how
-/// the wide-screen rail ended up with no way to reach its own ordering.
+/// Part of the shared Appearance tiles (AppearanceGeneralTiles), which both
+/// the pushed AppearancePage on narrow windows and the inline section content
+/// in the master-detail settings page render. Before they shared tiles, the row
+/// existed on only one of them, and the wide-screen rail had no way to reach
+/// its own ordering.
 class NavCustomizationTile extends ConsumerWidget {
   const NavCustomizationTile({super.key});
 

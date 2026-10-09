@@ -49,6 +49,11 @@ String appearanceSectionDisplayName(BuildContext context, String key) {
   };
 }
 
+/// Route of an [appearanceSectionKeys] entry's appearance page, which the
+/// phone pushes; the settings pane opens the same page inline instead.
+String appearanceSectionRoute(String key) =>
+    '/settings/appearance/${key == 'diveCenters' ? 'dive-centers' : key}';
+
 /// Places [separator] between [children]; with no separator, returns them
 /// unchanged.
 List<Widget> _separated(List<Widget> children, Widget? separator) {

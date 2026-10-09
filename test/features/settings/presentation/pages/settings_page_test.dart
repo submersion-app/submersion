@@ -1580,6 +1580,25 @@ void main() {
       expect(hubTitles, isNot(contains('App Language')));
     });
 
+    // The pane passes its own onLanguageTap: an inline sub-page, not the
+    // phone's pushed route, which this stub router does not define.
+    testWidgets('hub Language tile opens the inline language list', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+      expect(find.text('Deutsch'), findsNothing);
+
+      await tester.tap(find.text('Language'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Deutsch'), findsOneWidget);
+      expect(find.text('Gear arrangement'), findsNothing);
+    });
+
     testWidgets('hub opens the gear arrangement sheet', (tester) async {
       await tester.binding.setSurfaceSize(const Size(500, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -1762,7 +1781,7 @@ void main() {
       expect(find.byType(SectionAppearancePage), findsOneWidget);
     });
 
-    testWidgets('_getSectionDisplayName returns display name for known keys', (
+    testWidgets('a section entry opens that section by its display name', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
@@ -1771,7 +1790,7 @@ void main() {
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      // Navigate into "Sites" to exercise _getSectionDisplayName('sites')
+      // Navigate into "Sites" to exercise appearanceSectionDisplayName('sites')
       await tester.tap(find.text('Sites'));
       await tester.pumpAndSettle();
 
