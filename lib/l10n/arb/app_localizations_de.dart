@@ -12307,7 +12307,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_entryMethod_frontRoll => 'Vorwärtsrolle';
 
   @override
-  String get enum_entryMethod_giantStride => 'Großschritt';
+  String get enum_entryMethod_giantStride => 'Großer Schritt';
 
   @override
   String get enum_entryMethod_jetty => 'Steg/Dock';
