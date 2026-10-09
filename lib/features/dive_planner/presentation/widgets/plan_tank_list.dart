@@ -106,6 +106,7 @@ class PlanTankList extends ConsumerWidget {
         units: units,
         mode: ref.read(divePlanNotifierProvider).mode,
         bestMix: ref.read(planBestMixProvider),
+        resolveRole: _roleResolverFor(ref),
         onSave: (tank) {
           ref.read(divePlanNotifierProvider.notifier).addTank(tank);
         },
@@ -126,9 +127,7 @@ class PlanTankList extends ConsumerWidget {
         units: units,
         mode: ref.read(divePlanNotifierProvider).mode,
         bestMix: ref.read(planBestMixProvider),
-        derivedRole: const TankRoleResolver().rolesFor(
-          divePlanFromState(ref.read(divePlanNotifierProvider)),
-        )[tank.id],
+        resolveRole: _roleResolverFor(ref),
         onSave: (updated) {
           ref
               .read(divePlanNotifierProvider.notifier)
@@ -137,6 +136,23 @@ class PlanTankList extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The role [TankRoleResolver] would give a cylinder, as the dialog has it
+/// so far, once saved into the current plan: in place of the tank with its
+/// id, or added to the end when it is new.
+TankRole Function(DiveTank provisional) _roleResolverFor(WidgetRef ref) {
+  final plan = divePlanFromState(ref.read(divePlanNotifierProvider));
+  return (provisional) {
+    final isNew = plan.tanks.every((t) => t.id != provisional.id);
+    final tanks = [
+      for (final t in plan.tanks) t.id == provisional.id ? provisional : t,
+      if (isNew) provisional,
+    ];
+    return const TankRoleResolver().rolesFor(
+      plan.copyWith(tanks: tanks),
+    )[provisional.id]!;
+  };
 }
 
 class _TankChip extends StatelessWidget {
@@ -210,11 +226,10 @@ class _TankEditDialog extends StatefulWidget {
   /// the offer (a plan with no depth).
   final ({double depthMeters, GasMix bottom, GasMix? diluent})? bestMix;
 
-  /// The cylinder's role as [TankRoleResolver] derives it from the plan, or
-  /// null for a new cylinder (which no segment breathes yet). Only a CCR
-  /// diluent is offered [bestMix.diluent], and the oxygen supply is offered
-  /// nothing.
-  final TankRole? derivedRole;
+  /// The role the plan would give this cylinder as currently filled in (see
+  /// [_roleResolverFor]). Only a CCR diluent is offered [bestMix.diluent],
+  /// and the oxygen supply is offered nothing.
+  final TankRole Function(DiveTank provisional) resolveRole;
   final ValueChanged<DiveTank> onSave;
 
   const _TankEditDialog({
@@ -222,7 +237,7 @@ class _TankEditDialog extends StatefulWidget {
     required this.units,
     required this.mode,
     this.bestMix,
-    this.derivedRole,
+    required this.resolveRole,
     required this.onSave,
   });
 
@@ -237,6 +252,10 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   late TextEditingController _pressureController;
   late TextEditingController _o2Controller;
   late TextEditingController _heController;
+
+  /// The saved tank's id: the original's, or one minted now for a new tank,
+  /// so its provisional role is resolved under the id it will be saved with.
+  late final String _tankId = widget.tank?.id ?? _uuid.v4();
   bool _isTravelGas = false;
   bool _isBailout = false;
 
@@ -358,6 +377,8 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                         labelText: context.l10n.divePlanner_field_o2Percent,
                       ),
                       keyboardType: TextInputType.number,
+                      // The best-mix offer depends on the mix (#3093).
+                      onChanged: (_) => setState(() {}),
                       validator: (value) => _validateGasPercent(
                         value,
                         _otherPercent(_heController),
@@ -372,6 +393,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                         labelText: context.l10n.divePlanner_field_hePercent,
                       ),
                       keyboardType: TextInputType.number,
+                      onChanged: (_) => setState(() {}),
                       validator: (value) => _validateGasPercent(
                         value,
                         _otherPercent(_o2Controller),
@@ -441,16 +463,26 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     );
   }
 
-  /// The best mix offered for this cylinder, by its derived role. A CCR
-  /// diluent (a cylinder the segments breathe) gets the diluent mix unless
-  /// it is ticked as bailout. The oxygen supply gets nothing, since any mix
-  /// would overwrite its 100% O2. Everything else, a derived bailout or any
-  /// open-circuit cylinder, is breathed open circuit and gets the bottom mix.
+  /// The best mix offered for this cylinder, by the role the plan would give
+  /// it as currently filled in. A CCR diluent (a cylinder the segments
+  /// breathe) gets the diluent mix. The oxygen supply (unbreathed pure O2,
+  /// including one being typed into a new cylinder) gets nothing, since any
+  /// mix would overwrite its O2. Everything else, a ticked or derived bailout
+  /// or any open-circuit cylinder, is breathed open circuit and gets the
+  /// bottom mix.
   GasMix? get _offeredMix {
     final bestMix = widget.bestMix;
     if (bestMix == null) return null;
-    if (_isBailout) return bestMix.bottom;
-    return switch (widget.derivedRole) {
+    final provisional = DiveTank(
+      id: _tankId,
+      gasMix: GasMix(
+        o2: _otherPercent(_o2Controller) ?? 21,
+        he: _otherPercent(_heController) ?? 0,
+      ),
+      role: _isBailout ? TankRole.bailout : TankRole.backGas,
+      isTravelGas: _isTravelGas,
+    );
+    return switch (widget.resolveRole(provisional)) {
       TankRole.oxygenSupply => null,
       TankRole.diluent => bestMix.diluent ?? bestMix.bottom,
       _ => bestMix.bottom,
@@ -515,7 +547,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     final original = widget.tank;
 
     final tank = DiveTank(
-      id: original?.id ?? _uuid.v4(),
+      id: _tankId,
       name: _nameController.text.isNotEmpty ? _nameController.text : null,
       volume: specs.volumeLiters,
       workingPressure: specs.workingPressureBar,

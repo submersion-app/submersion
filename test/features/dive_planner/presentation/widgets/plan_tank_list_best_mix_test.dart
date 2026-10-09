@@ -235,6 +235,27 @@ void main() {
       expect(find.text('Best mix for 60m: ${bottom.name}'), findsOneWidget);
     });
 
+    testWidgets('typing 100% O2 into a new cylinder hides the offer, since it '
+        'will be the oxygen supply', (tester) async {
+      await pumpCcr(tester);
+      await openAddTank(tester);
+      final o2Field = find.widgetWithText(TextFormField, 'O₂ %');
+
+      await tester.enterText(o2Field, '100');
+      await tester.pumpAndSettle();
+      expect(bestMixButton(), findsNothing);
+
+      // Ticked as bailout, a 100% bottle is open-circuit gas again.
+      await tester.tap(find.text('Bailout gas'));
+      await tester.pumpAndSettle();
+      expect(bestMixButton(), findsOneWidget);
+
+      await tester.tap(find.text('Bailout gas'));
+      await tester.enterText(o2Field, '21');
+      await tester.pumpAndSettle();
+      expect(bestMixButton(), findsOneWidget);
+    });
+
     testWidgets('the oxygen supply is never offered a mix to overwrite it', (
       tester,
     ) async {
