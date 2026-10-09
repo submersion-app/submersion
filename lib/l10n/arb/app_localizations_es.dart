@@ -1432,6 +1432,58 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gasCalculators_bestMix_withoutHelium => 'Sin helio';
 
   @override
+  String get gasCalculators_bestMix_ccrSource => 'Gas source';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'Bailout';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'Diluent';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'Keep gas density within limits';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD at depth';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'Helium added to keep END and gas density within your limits.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'Helium added to keep gas density within limits.';
+
+  @override
+  String get gasCalculators_bestMix_limitPpO2Label =>
+      'ppO₂ limit (from profile)';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'Mode';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'Closed circuit: Diluent checks against the diluent\'s flush ppO2, Bailout against your OC working ppO2.';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'Trimix on open circuit, checked against your working ppO2 limit.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'Nitrox for recreational diving, as today.';
+
+  @override
   String get gasCalculators_planningCaveat =>
       'Estimación de planificación. Asume un ascenso directo. Verifica según tu formación y añade margen por las condiciones.';
 

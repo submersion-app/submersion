@@ -2216,6 +2216,96 @@ abstract class AppLocalizations {
   /// **'Without helium'**
   String get gasCalculators_bestMix_withoutHelium;
 
+  /// No description provided for @gasCalculators_bestMix_ccrSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas source'**
+  String get gasCalculators_bestMix_ccrSource;
+
+  /// No description provided for @gasCalculators_bestMix_ccrSourceBailout.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout'**
+  String get gasCalculators_bestMix_ccrSourceBailout;
+
+  /// No description provided for @gasCalculators_bestMix_ccrSourceDiluent.
+  ///
+  /// In en, this message translates to:
+  /// **'Diluent'**
+  String get gasCalculators_bestMix_ccrSourceDiluent;
+
+  /// No description provided for @gasCalculators_bestMix_densityAware.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep gas density within limits'**
+  String get gasCalculators_bestMix_densityAware;
+
+  /// No description provided for @gasCalculators_bestMix_eadLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'EAD at depth'**
+  String get gasCalculators_bestMix_eadLabel;
+
+  /// No description provided for @gasCalculators_bestMix_heliumBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Helium added to keep END and gas density within your limits.'**
+  String get gasCalculators_bestMix_heliumBoth;
+
+  /// No description provided for @gasCalculators_bestMix_heliumDensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Helium added to keep gas density within limits.'**
+  String get gasCalculators_bestMix_heliumDensity;
+
+  /// No description provided for @gasCalculators_bestMix_limitPpO2Label.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO₂ limit (from profile)'**
+  String get gasCalculators_bestMix_limitPpO2Label;
+
+  /// No description provided for @gasCalculators_bestMix_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get gasCalculators_bestMix_mode;
+
+  /// No description provided for @gasCalculators_bestMix_modeCcrTec.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR Tec'**
+  String get gasCalculators_bestMix_modeCcrTec;
+
+  /// No description provided for @gasCalculators_bestMix_modeCcrTecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed circuit: Diluent checks against the diluent\'s flush ppO2, Bailout against your OC working ppO2.'**
+  String get gasCalculators_bestMix_modeCcrTecHint;
+
+  /// No description provided for @gasCalculators_bestMix_modeOcTec.
+  ///
+  /// In en, this message translates to:
+  /// **'OC Tec'**
+  String get gasCalculators_bestMix_modeOcTec;
+
+  /// No description provided for @gasCalculators_bestMix_modeOcTecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimix on open circuit, checked against your working ppO2 limit.'**
+  String get gasCalculators_bestMix_modeOcTecHint;
+
+  /// No description provided for @gasCalculators_bestMix_modeRec.
+  ///
+  /// In en, this message translates to:
+  /// **'Rec'**
+  String get gasCalculators_bestMix_modeRec;
+
+  /// No description provided for @gasCalculators_bestMix_modeRecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nitrox for recreational diving, as today.'**
+  String get gasCalculators_bestMix_modeRecHint;
+
   /// No description provided for @gasCalculators_planningCaveat.
   ///
   /// In en, this message translates to:
