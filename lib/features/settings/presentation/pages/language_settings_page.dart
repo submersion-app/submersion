@@ -86,12 +86,10 @@ class LanguageOptionTiles extends ConsumerWidget {
               subtitle: option.englishName.isNotEmpty
                   ? Text(option.englishName)
                   : null,
+              // No semanticLabel: Semantics(selected) above already
+              // announces the row as selected.
               trailing: option.code == currentLocale
-                  ? Icon(
-                      Icons.check,
-                      color: theme.colorScheme.primary,
-                      semanticLabel: context.l10n.settings_language_selected,
-                    )
+                  ? Icon(Icons.check, color: theme.colorScheme.primary)
                   : null,
               onTap: () {
                 ref.read(settingsProvider.notifier).setLocale(option.code);

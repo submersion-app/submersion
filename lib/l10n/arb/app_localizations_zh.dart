@@ -22263,9 +22263,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_language_appBar_title => '语言';
 
   @override
-  String get settings_language_selected => '已选择';
-
-  @override
   String get settings_language_systemDefault => '系统默认';
 
   @override

@@ -23452,9 +23452,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_language_appBar_title => 'Nyelv';
 
   @override
-  String get settings_language_selected => 'Kiválasztva';
-
-  @override
   String get settings_language_systemDefault => 'Rendszer alapértelmezett';
 
   @override

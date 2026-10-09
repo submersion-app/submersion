@@ -23732,9 +23732,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_language_appBar_title => 'اللغة';
 
   @override
-  String get settings_language_selected => 'محدد';
-
-  @override
   String get settings_language_systemDefault => 'الافتراضي للنظام';
 
   @override

@@ -38040,12 +38040,6 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get settings_language_appBar_title;
 
-  /// No description provided for @settings_language_selected.
-  ///
-  /// In en, this message translates to:
-  /// **'Selected'**
-  String get settings_language_selected;
-
   /// No description provided for @settings_language_systemDefault.
   ///
   /// In en, this message translates to:

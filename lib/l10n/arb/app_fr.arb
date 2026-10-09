@@ -6525,7 +6525,6 @@
   "settings_import_phase_courses": "Importing courses...",
   "settings_import_phase_applyingTags": "Applying tags...",
   "settings_language_appBar_title": "Langue",
-  "settings_language_selected": "Sélectionnée",
   "settings_language_systemDefault": "Défaut du système",
   "settings_lightroom_albumFilter_all": "Catalogue entier",
   "settings_lightroom_albumFilter_title": "Albums à analyser",

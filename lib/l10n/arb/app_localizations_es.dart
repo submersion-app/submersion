@@ -23564,9 +23564,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_language_appBar_title => 'Idioma';
 
   @override
-  String get settings_language_selected => 'Seleccionado';
-
-  @override
   String get settings_language_systemDefault => 'Predeterminado del sistema';
 
   @override

@@ -6525,7 +6525,6 @@
   "settings_import_phase_courses": "Importing courses...",
   "settings_import_phase_applyingTags": "Applying tags...",
   "settings_language_appBar_title": "Nyelv",
-  "settings_language_selected": "Kiválasztva",
   "settings_language_systemDefault": "Rendszer alapértelmezett",
   "settings_lightroom_albumFilter_all": "Teljes katalógus",
   "settings_lightroom_albumFilter_title": "Vizsgálandó albumok",

@@ -6627,7 +6627,6 @@
   "settings_import_phase_courses": "Importing courses...",
   "settings_import_phase_applyingTags": "Applying tags...",
   "settings_language_appBar_title": "Idioma",
-  "settings_language_selected": "Seleccionado",
   "settings_language_systemDefault": "Predeterminado del sistema",
   "settings_lightroom_albumFilter_all": "Catálogo completo",
   "settings_lightroom_albumFilter_title": "Álbumes a escanear",

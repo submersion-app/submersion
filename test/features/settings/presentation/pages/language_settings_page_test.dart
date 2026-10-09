@@ -67,6 +67,15 @@ void main() {
     expect(find.byIcon(Icons.check), findsOneWidget);
   });
 
+  // Semantics(selected) already announces the row; a label on the check mark
+  // said "selected" a second time, as the light/dark rows did.
+  testWidgets('the selected language is announced once', (tester) async {
+    await _pumpPage(tester, settings: const AppSettings(locale: 'de'));
+
+    final check = tester.widget<Icon>(find.byIcon(Icons.check));
+    expect(check.semanticLabel, isNull);
+  });
+
   testWidgets('tapping a language saves it', (tester) async {
     final notifier = await _pumpPage(tester);
 

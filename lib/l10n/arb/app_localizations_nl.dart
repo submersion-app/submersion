@@ -23389,9 +23389,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_language_appBar_title => 'Taal';
 
   @override
-  String get settings_language_selected => 'Geselecteerd';
-
-  @override
   String get settings_language_systemDefault => 'Systeemstandaard';
 
   @override

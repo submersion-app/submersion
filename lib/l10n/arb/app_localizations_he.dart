@@ -22956,9 +22956,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_language_appBar_title => 'שפה';
 
   @override
-  String get settings_language_selected => 'נבחר';
-
-  @override
   String get settings_language_systemDefault => 'ברירת מחדל של המערכת';
 
   @override

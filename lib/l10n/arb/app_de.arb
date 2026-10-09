@@ -6744,7 +6744,6 @@
   "settings_import_phase_courses": "Importing courses...",
   "settings_import_phase_applyingTags": "Applying tags...",
   "settings_language_appBar_title": "Sprache",
-  "settings_language_selected": "Ausgewählt",
   "settings_language_systemDefault": "Systemstandard",
   "settings_lightroom_albumFilter_all": "Gesamter Katalog",
   "settings_lightroom_albumFilter_title": "Zu durchsuchende Alben",

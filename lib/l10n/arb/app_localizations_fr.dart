@@ -23625,9 +23625,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_language_appBar_title => 'Langue';
 
   @override
-  String get settings_language_selected => 'Sélectionnée';
-
-  @override
   String get settings_language_systemDefault => 'Défaut du système';
 
   @override
