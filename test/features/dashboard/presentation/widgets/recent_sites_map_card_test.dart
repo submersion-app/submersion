@@ -97,4 +97,13 @@ void main() {
 
     expect(spy.location, '/sites');
   });
+
+  testWidgets('map content is locked, not pannable by a swipe', (tester) async {
+    await pumpMapCard(tester, const [
+      RecentSitePin(siteName: 'Site A', latitude: 36.0, longitude: 25.0),
+    ]);
+
+    final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+    expect(map.options.interactionOptions.flags, InteractiveFlag.none);
+  });
 }

@@ -8,7 +8,6 @@ import 'package:submersion/features/dashboard/presentation/providers/dashboard_p
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -81,7 +80,12 @@ class _RecentSitesMapCardState extends ConsumerState<RecentSitesMapCard> {
                       initialCenter: points.first,
                       initialZoom: 11,
                       initialCameraFit: fit,
-                      interactionOptions: rotatableMapInteraction,
+                      // Never interactive: a live map here would fight the
+                      // parent scroll view for the gesture arena on every
+                      // drag. The expand icon above opens the full map.
+                      interactionOptions: const InteractionOptions(
+                        flags: InteractiveFlag.none,
+                      ),
                     ),
                     children: [
                       TileLayer(
