@@ -3093,6 +3093,7 @@
   "divePlanner_action_convertToDive": "In Tauchgang umwandeln",
   "divePlanner_action_deletePlan": "Plan löschen",
   "divePlanner_action_editTank": "Flasche bearbeiten",
+  "divePlanner_action_fillBestMix": "Bestes Gemisch für {depth}: {mix}",
   "divePlanner_action_moreOptions": "Weitere Optionen",
   "divePlanner_action_quickPlan": "Schnellplanung",
   "divePlanner_action_renamePlan": "Plan umbenennen",

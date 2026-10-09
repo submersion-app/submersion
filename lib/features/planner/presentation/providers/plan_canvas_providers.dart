@@ -10,6 +10,7 @@ import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/plan_best_mix.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
@@ -29,6 +30,26 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
     cnsMethod: ref.watch(cnsCalculationMethodProvider),
     gasModel: ref.watch(gasModelProvider),
   );
+});
+
+/// The best bottom mix for the plan's deepest point, judged against the
+/// plan's Gas options (best-mix END, O2 narcotic, bottom ppO2) over the
+/// diver's Settings. The tank dialog offers it as a one-tap fill, which is
+/// the only place the best-mix END takes effect (issue #3093).
+///
+/// Null while the plan has no depth to suggest a mix for.
+final planBestMixProvider = Provider<({double depthMeters, GasMix mix})?>((
+  ref,
+) {
+  final state = ref.watch(divePlanNotifierProvider);
+  final depth = state.maxDepth;
+  if (depth <= 0) return null;
+  final result = suggestBestMixForPlan(
+    divePlanFromState(state),
+    ref.watch(planEngineConfigProvider),
+    depthMeters: depth,
+  );
+  return (depthMeters: depth, mix: result.recommended.mix);
 });
 
 /// The canvas's single source of computed truth: the current editing state

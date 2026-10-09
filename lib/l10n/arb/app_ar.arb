@@ -3068,6 +3068,7 @@
   "divePlanner_action_convertToDive": "تحويل إلى غطسة",
   "divePlanner_action_deletePlan": "حذف الخطة",
   "divePlanner_action_editTank": "تعديل الأسطوانة",
+  "divePlanner_action_fillBestMix": "أفضل خليط لعمق {depth}: {mix}",
   "divePlanner_action_moreOptions": "المزيد من الخيارات",
   "divePlanner_action_quickPlan": "خطة سريعة",
   "divePlanner_action_renamePlan": "إعادة تسمية الخطة",

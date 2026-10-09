@@ -2966,6 +2966,7 @@
   "divePlanner_action_convertToDive": "Converti in Immersione",
   "divePlanner_action_deletePlan": "Elimina piano",
   "divePlanner_action_editTank": "Modifica Bombola",
+  "divePlanner_action_fillBestMix": "Miscela migliore per {depth}: {mix}",
   "divePlanner_action_moreOptions": "Altre opzioni",
   "divePlanner_action_quickPlan": "Piano Rapido",
   "divePlanner_action_renamePlan": "Rinomina Piano",

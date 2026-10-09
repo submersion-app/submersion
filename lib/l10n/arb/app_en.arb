@@ -6135,6 +6135,17 @@
   "divePlanner_action_convertToDive": "Convert to Dive",
   "divePlanner_action_deletePlan": "Delete plan",
   "divePlanner_action_editTank": "Edit Tank",
+  "divePlanner_action_fillBestMix": "Best mix for {depth}: {mix}",
+  "@divePlanner_action_fillBestMix": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
   "divePlanner_action_moreOptions": "More options",
   "divePlanner_action_quickPlan": "Quick Plan",
   "divePlanner_action_renamePlan": "Rename Plan",

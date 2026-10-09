@@ -3068,6 +3068,7 @@
   "divePlanner_action_convertToDive": "Omzetten naar duik",
   "divePlanner_action_deletePlan": "Plan verwijderen",
   "divePlanner_action_editTank": "Fles bewerken",
+  "divePlanner_action_fillBestMix": "Beste mengsel voor {depth}: {mix}",
   "divePlanner_action_moreOptions": "Meer opties",
   "divePlanner_action_quickPlan": "Snel plan",
   "divePlanner_action_renamePlan": "Plan hernoemen",

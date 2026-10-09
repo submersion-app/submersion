@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_saved_tanks_bar.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -102,6 +103,7 @@ class PlanTankList extends ConsumerWidget {
       builder: (context) => _TankEditDialog(
         units: units,
         mode: ref.read(divePlanNotifierProvider).mode,
+        bestMix: ref.read(planBestMixProvider),
         onSave: (tank) {
           ref.read(divePlanNotifierProvider.notifier).addTank(tank);
         },
@@ -121,6 +123,7 @@ class PlanTankList extends ConsumerWidget {
         tank: tank,
         units: units,
         mode: ref.read(divePlanNotifierProvider).mode,
+        bestMix: ref.read(planBestMixProvider),
         onSave: (updated) {
           ref
               .read(divePlanNotifierProvider.notifier)
@@ -195,12 +198,17 @@ class _TankEditDialog extends StatefulWidget {
   /// The plan's breathing mode. Only a loop plan can carry bailout gas, so
   /// the bailout flag is offered there and nowhere else.
   final PlanMode mode;
+
+  /// The plan's best bottom mix at its deepest point, offered as a one-tap
+  /// fill of the O2/He fields; null hides the offer (a plan with no depth).
+  final ({double depthMeters, GasMix mix})? bestMix;
   final ValueChanged<DiveTank> onSave;
 
   const _TankEditDialog({
     this.tank,
     required this.units,
     required this.mode,
+    this.bestMix,
     required this.onSave,
   });
 
@@ -358,6 +366,23 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                   ),
                 ],
               ),
+              if (widget.bestMix case final bestMix?)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.auto_fix_high, size: 18),
+                    label: Text(
+                      context.l10n.divePlanner_action_fillBestMix(
+                        widget.units.formatDepth(
+                          bestMix.depthMeters,
+                          decimals: 0,
+                        ),
+                        bestMix.mix.name,
+                      ),
+                    ),
+                    onPressed: () => _fillGas(bestMix.mix),
+                  ),
+                ),
               const SizedBox(height: 8),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
@@ -397,6 +422,12 @@ class _TankEditDialogState extends State<_TankEditDialog> {
         ),
       ],
     );
+  }
+
+  /// Writes [mix] into the O2/He fields; the diver still saves the dialog.
+  void _fillGas(GasMix mix) {
+    _o2Controller.text = formatDecimalForInput(mix.o2);
+    _heController.text = formatDecimalForInput(mix.he);
   }
 
   /// Empty is fine ([_save] defaults it); anything else must parse to a

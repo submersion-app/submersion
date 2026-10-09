@@ -3183,6 +3183,7 @@
   "divePlanner_action_convertToDive": "转换为潜水",
   "divePlanner_action_deletePlan": "删除计划",
   "divePlanner_action_editTank": "编辑气瓶",
+  "divePlanner_action_fillBestMix": "{depth} 的最佳混合气：{mix}",
   "divePlanner_action_moreOptions": "更多选项",
   "divePlanner_action_quickPlan": "快捷计划",
   "divePlanner_action_renamePlan": "重命名计划",

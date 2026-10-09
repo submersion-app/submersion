@@ -2966,6 +2966,7 @@
   "divePlanner_action_convertToDive": "המר לצלילה",
   "divePlanner_action_deletePlan": "מחק תוכנית",
   "divePlanner_action_editTank": "ערוך מיכל",
+  "divePlanner_action_fillBestMix": "תערובת מיטבית ל-{depth}: {mix}",
   "divePlanner_action_moreOptions": "אפשרויות נוספות",
   "divePlanner_action_quickPlan": "תכנון מהיר",
   "divePlanner_action_renamePlan": "שנה שם תכנית",

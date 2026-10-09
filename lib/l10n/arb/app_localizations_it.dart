@@ -9985,6 +9985,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get divePlanner_action_editTank => 'Modifica Bombola';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'Miscela migliore per $depth: $mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => 'Altre opzioni';
 
   @override

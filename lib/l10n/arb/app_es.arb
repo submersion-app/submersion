@@ -3068,6 +3068,7 @@
   "divePlanner_action_convertToDive": "Convertir a Inmersión",
   "divePlanner_action_deletePlan": "Eliminar plan",
   "divePlanner_action_editTank": "Editar Botella",
+  "divePlanner_action_fillBestMix": "Mejor mezcla para {depth}: {mix}",
   "divePlanner_action_moreOptions": "Más opciones",
   "divePlanner_action_quickPlan": "Plan Rápido",
   "divePlanner_action_renamePlan": "Renombrar Plan",

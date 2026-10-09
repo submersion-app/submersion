@@ -3068,6 +3068,7 @@
   "divePlanner_action_convertToDive": "Converter em Mergulho",
   "divePlanner_action_deletePlan": "Excluir plano",
   "divePlanner_action_editTank": "Editar Cilindro",
+  "divePlanner_action_fillBestMix": "Melhor mistura para {depth}: {mix}",
   "divePlanner_action_moreOptions": "Mais opções",
   "divePlanner_action_quickPlan": "Plano Rápido",
   "divePlanner_action_renamePlan": "Renomear Plano",

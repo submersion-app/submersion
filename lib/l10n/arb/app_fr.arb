@@ -2966,6 +2966,7 @@
   "divePlanner_action_convertToDive": "Convertir en plongée",
   "divePlanner_action_deletePlan": "Supprimer le plan",
   "divePlanner_action_editTank": "Modifier la bouteille",
+  "divePlanner_action_fillBestMix": "Meilleur mélange pour {depth} : {mix}",
   "divePlanner_action_moreOptions": "Plus d'options",
   "divePlanner_action_quickPlan": "Plan rapide",
   "divePlanner_action_renamePlan": "Renommer le plan",

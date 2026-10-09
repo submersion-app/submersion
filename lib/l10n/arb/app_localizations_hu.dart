@@ -9965,6 +9965,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_action_editTank => 'Palack szerkesztése';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'Legjobb keverék $depth mélységre: $mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => 'További lehetőségek';
 
   @override

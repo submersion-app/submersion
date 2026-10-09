@@ -9499,6 +9499,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_action_editTank => '编辑气瓶';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return '$depth 的最佳混合气：$mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => '更多选项';
 
   @override

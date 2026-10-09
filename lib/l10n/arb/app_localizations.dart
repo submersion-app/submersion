@@ -16009,6 +16009,12 @@ abstract class AppLocalizations {
   /// **'Edit Tank'**
   String get divePlanner_action_editTank;
 
+  /// No description provided for @divePlanner_action_fillBestMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Best mix for {depth}: {mix}'**
+  String divePlanner_action_fillBestMix(String depth, String mix);
+
   /// No description provided for @divePlanner_action_moreOptions.
   ///
   /// In en, this message translates to:

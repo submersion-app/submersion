@@ -2966,6 +2966,7 @@
   "divePlanner_action_convertToDive": "Átalakítás merüléssé",
   "divePlanner_action_deletePlan": "Terv törlése",
   "divePlanner_action_editTank": "Palack szerkesztése",
+  "divePlanner_action_fillBestMix": "Legjobb keverék {depth} mélységre: {mix}",
   "divePlanner_action_moreOptions": "További lehetőségek",
   "divePlanner_action_quickPlan": "Gyors tervezés",
   "divePlanner_action_renamePlan": "Terv átnevezése",

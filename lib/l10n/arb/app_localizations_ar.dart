@@ -10099,6 +10099,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_action_editTank => 'تعديل الأسطوانة';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'أفضل خليط لعمق $depth: $mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => 'المزيد من الخيارات';
 
   @override
