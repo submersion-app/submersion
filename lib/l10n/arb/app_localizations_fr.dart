@@ -19268,9 +19268,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_appBar_title => 'Réglages';
 
   @override
-  String get settings_appearance_appLanguage => 'Langue de l\'application';
-
-  @override
   String get settings_appearance_displaySize => 'Taille d\'affichage';
 
   @override

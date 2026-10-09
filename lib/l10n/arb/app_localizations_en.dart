@@ -18922,9 +18922,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_appBar_title => 'Settings';
 
   @override
-  String get settings_appearance_appLanguage => 'App Language';
-
-  @override
   String get settings_appearance_displaySize => 'Display size';
 
   @override

@@ -27,6 +27,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
+import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
@@ -1538,6 +1539,65 @@ void main() {
 
       expect(find.byType(NavCustomizationTile), findsOneWidget);
       expect(find.text('Insights · Tracks · Planning'), findsOneWidget);
+    });
+
+    // Settings > Appearance has two surfaces: AppearancePage on a phone and
+    // this inline pane on a tablet or desktop. Comparing their tile titles in
+    // order catches a tile added to, renamed in, or left out of either one,
+    // which is how the language label and Gear arrangement drifted (#3095).
+    testWidgets('hub offers the same tiles as the phone page', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      List<String> tileTitles() => [
+        for (final tile in tester.widgetList<ListTile>(find.byType(ListTile)))
+          if (tile.title case final Text text) text.data!,
+      ];
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+      final hubTitles = tileTitles();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: getOverrides(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AppearancePage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final phoneTitles = tileTitles();
+
+      expect(hubTitles, phoneTitles);
+      expect(
+        hubTitles,
+        containsAll(['Language', 'Display size', 'Gear arrangement']),
+      );
+      expect(hubTitles, isNot(contains('App Language')));
+    });
+
+    testWidgets('hub opens the gear arrangement sheet', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        buildAppearanceWidget([
+          ...getOverrides(),
+          appSettingsRepositoryProvider.overrideWithValue(
+            FakeAppSettingsRepository(),
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Gear arrangement'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Order types by'), findsOneWidget);
     });
 
     // The desktop master-detail pane renders _AppearanceSectionContent, a

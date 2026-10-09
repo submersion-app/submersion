@@ -5596,7 +5596,6 @@
   "settings_about_reportIssue_snackbar": "Ga naar github.com/submersion-app/submersion/issues",
   "settings_about_version": "Versie {version}",
   "settings_appBar_title": "Instellingen",
-  "settings_appearance_appLanguage": "App-taal",
   "settings_appearance_displaySize": "Weergavegrootte",
   "settings_appearance_displaySize_value": "{percent}%",
   "settings_appearance_displaySize_reset": "Herstellen",

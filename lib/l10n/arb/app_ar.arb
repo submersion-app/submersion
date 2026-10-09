@@ -5596,7 +5596,6 @@
   "settings_about_reportIssue_snackbar": "قم بزيارة github.com/submersion-app/submersion/issues",
   "settings_about_version": "الإصدار {version}",
   "settings_appBar_title": "الإعدادات",
-  "settings_appearance_appLanguage": "لغة التطبيق",
   "settings_appearance_displaySize": "حجم العرض",
   "settings_appearance_displaySize_value": "{percent}%",
   "settings_appearance_displaySize_reset": "إعادة تعيين",

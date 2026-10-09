@@ -19214,9 +19214,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_appBar_title => 'Configurações';
 
   @override
-  String get settings_appearance_appLanguage => 'Idioma do Aplicativo';
-
-  @override
   String get settings_appearance_displaySize => 'Tamanho de exibição';
 
   @override

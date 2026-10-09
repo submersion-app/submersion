@@ -12033,7 +12033,6 @@
     }
   },
   "settings_appBar_title": "Settings",
-  "settings_appearance_appLanguage": "App Language",
   "settings_appearance_displaySize": "Display size",
   "@settings_appearance_displaySize": {
     "description": "Title of the app-wide display zoom control in Appearance settings"

@@ -19148,9 +19148,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appBar_title => 'Beállítások';
 
   @override
-  String get settings_appearance_appLanguage => 'Alkalmazás nyelve';
-
-  @override
   String get settings_appearance_displaySize => 'Megjelenítési méret';
 
   @override

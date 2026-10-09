@@ -19458,9 +19458,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appBar_title => 'الإعدادات';
 
   @override
-  String get settings_appearance_appLanguage => 'لغة التطبيق';
-
-  @override
   String get settings_appearance_displaySize => 'حجم العرض';
 
   @override

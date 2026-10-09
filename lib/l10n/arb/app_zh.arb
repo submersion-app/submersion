@@ -5747,7 +5747,6 @@
   "settings_about_reportIssue_snackbar": "请访问 github.com/submersion-app/submersion/issues",
   "settings_about_version": "版本 {version}",
   "settings_appBar_title": "设置",
-  "settings_appearance_appLanguage": "应用语言",
   "settings_appearance_displaySize": "显示大小",
   "settings_appearance_displaySize_value": "{percent}%",
   "settings_appearance_displaySize_reset": "重置",

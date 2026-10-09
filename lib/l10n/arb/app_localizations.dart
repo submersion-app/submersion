@@ -30787,12 +30787,6 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settings_appBar_title;
 
-  /// No description provided for @settings_appearance_appLanguage.
-  ///
-  /// In en, this message translates to:
-  /// **'App Language'**
-  String get settings_appearance_appLanguage;
-
   /// Title of the app-wide display zoom control in Appearance settings
   ///
   /// In en, this message translates to:

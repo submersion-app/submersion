@@ -5494,7 +5494,6 @@
   "settings_about_reportIssue_snackbar": "בקר ב-github.com/submersion-app/submersion/issues",
   "settings_about_version": "גרסה {version}",
   "settings_appBar_title": "הגדרות",
-  "settings_appearance_appLanguage": "שפת האפליקציה",
   "settings_appearance_displaySize": "גודל התצוגה",
   "settings_appearance_displaySize_value": "{percent}%",
   "settings_appearance_displaySize_reset": "איפוס",

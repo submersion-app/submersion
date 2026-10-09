@@ -18295,9 +18295,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appBar_title => '设置';
 
   @override
-  String get settings_appearance_appLanguage => '应用语言';
-
-  @override
   String get settings_appearance_displaySize => '显示大小';
 
   @override
