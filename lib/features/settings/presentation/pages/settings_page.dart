@@ -1900,7 +1900,7 @@ class _AppearanceSectionContentState
 
     // Priority 2: Language sub-page
     if (_showLanguageList) {
-      return _buildLanguageSubPage(context, ref.watch(localeProvider));
+      return _buildLanguageSubPage(context);
     }
 
     // Priority 3: Section appearance sub-page
@@ -1977,7 +1977,7 @@ class _AppearanceSectionContentState
     );
   }
 
-  Widget _buildLanguageSubPage(BuildContext context, String currentLocale) {
+  Widget _buildLanguageSubPage(BuildContext context) {
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
@@ -2004,42 +2004,7 @@ class _AppearanceSectionContentState
             ],
           ),
           const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: LanguageSettingsPage.supportedLocales.map((option) {
-                final isSelected = option.code == currentLocale;
-                return Semantics(
-                  selected: isSelected,
-                  child: ListTile(
-                    leading: option.code == 'system'
-                        ? const Icon(Icons.phone_android)
-                        : null,
-                    title: Text(
-                      option.code == 'system'
-                          ? context.l10n.settings_language_systemDefault
-                          : option.nativeName,
-                    ),
-                    subtitle: option.englishName.isNotEmpty
-                        ? Text(option.englishName)
-                        : null,
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check,
-                            color: theme.colorScheme.primary,
-                            semanticLabel:
-                                context.l10n.settings_language_selected,
-                          )
-                        : null,
-                    onTap: () {
-                      ref
-                          .read(settingsProvider.notifier)
-                          .setLocale(option.code);
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
+          const Card(child: LanguageOptionTiles()),
         ],
       ),
     );

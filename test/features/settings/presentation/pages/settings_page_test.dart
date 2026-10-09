@@ -29,6 +29,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
+import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
@@ -1598,6 +1599,48 @@ void main() {
 
       expect(find.text('Deutsch'), findsOneWidget);
       expect(find.text('Gear arrangement'), findsNothing);
+    });
+
+    // The pane opens languages inline while a phone pushes
+    // LanguageSettingsPage; both lists come from one widget so they cannot
+    // drift the way the Appearance tiles did (#3095).
+    testWidgets('inline language list matches the language page', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      List<String> tileTitles() => [
+        for (final tile in tester.widgetList<ListTile>(find.byType(ListTile)))
+          if (tile.title case final Text text)
+            text.data ?? text.textSpan!.toPlainText(),
+      ];
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Language'));
+      await tester.pumpAndSettle();
+      final inlineTitles = tileTitles();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: getOverrides(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: LanguageSettingsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(inlineTitles, tileTitles());
+      expect(
+        inlineTitles,
+        hasLength(LanguageSettingsPage.supportedLocales.length),
+      );
+      expect(inlineTitles.first, 'System Default');
     });
 
     testWidgets('hub opens the gear arrangement sheet', (tester) async {
