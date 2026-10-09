@@ -4770,7 +4770,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ für die MOD des Diluentgases (Spülen)",
   "gasCalculators_mod_minPpO2": "Minimaler ppO₂ (hypoxische Gemische)",
   "gasCalculators_mod_fromProfile": "Aus deinem Taucherprofil",
-  "gasCalculators_mod_differsFromProfile": "Abweichend vom Profil ({value} bar)",
+  "gasCalculators_differsFromProfile": "Abweichend vom Profil ({value})",
   "gasCalculators_mod_useProfileValue": "Profilwert übernehmen",
   "gasCalculators_mod_checkTargetDepth": "Zusätzlich eine Zieltiefe prüfen",
   "gasCalculators_mod_targetDepth": "Zieltiefe",

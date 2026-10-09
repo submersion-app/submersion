@@ -15369,8 +15369,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => '来自你的潜水员档案';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return '与档案不同（$value bar）';
+  String gasCalculators_differsFromProfile(String value) {
+    return '与档案不同（$value）';
   }
 
   @override

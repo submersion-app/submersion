@@ -4781,7 +4781,7 @@
   "gasCalculators_mod_flushPpO2": "稀释气 MOD 的 ppO₂（冲洗）",
   "gasCalculators_mod_minPpO2": "最小 ppO₂（低氧混合气）",
   "gasCalculators_mod_fromProfile": "来自你的潜水员档案",
-  "gasCalculators_mod_differsFromProfile": "与档案不同（{value} bar）",
+  "gasCalculators_differsFromProfile": "与档案不同（{value}）",
   "gasCalculators_mod_useProfileValue": "使用档案值",
   "gasCalculators_mod_checkTargetDepth": "同时检查目标深度",
   "gasCalculators_mod_targetDepth": "目标深度",

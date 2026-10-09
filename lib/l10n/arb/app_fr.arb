@@ -4552,7 +4552,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ pour la MOD du diluant (rinçage)",
   "gasCalculators_mod_minPpO2": "ppO₂ minimale (mélanges hypoxiques)",
   "gasCalculators_mod_fromProfile": "Depuis ton profil de plongeur",
-  "gasCalculators_mod_differsFromProfile": "Différent de ton profil ({value} bar)",
+  "gasCalculators_differsFromProfile": "Différent de ton profil ({value})",
   "gasCalculators_mod_useProfileValue": "Utiliser la valeur du profil",
   "gasCalculators_mod_checkTargetDepth": "Vérifier aussi une profondeur cible",
   "gasCalculators_mod_targetDepth": "Profondeur cible",

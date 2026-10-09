@@ -168,6 +168,18 @@ class BestMixCalculatorNotifier
   void resetFlushPpO2() =>
       _updateOverrides(_overrides.withFlushPpO2(null, _profile()));
 
+  void setEndLimit(double meters) =>
+      _updateOverrides(_overrides.withEndLimit(meters, _profile()));
+
+  void resetEndLimit() =>
+      _updateOverrides(_overrides.withEndLimit(null, _profile()));
+
+  void setO2Narcotic(bool value) =>
+      _updateOverrides(_overrides.withO2Narcotic(value, _profile()));
+
+  void resetO2Narcotic() =>
+      _updateOverrides(_overrides.withO2Narcotic(null, _profile()));
+
   void reset() => _update(BestMixCalculatorPreferences.defaults);
 
   /// A pending save still goes out when the notifier goes away.
@@ -234,8 +246,14 @@ final bestMixCalculatorInputsProvider = Provider<BestMixInputs>((ref) {
     ppO2Limit: prefs.mode == BestMixMode.rec
         ? mode.recPpO2
         : limits.workingPpO2,
-    endLimitMeters: settings.endLimit,
-    o2Narcotic: settings.o2Narcotic,
+    // Rec keeps reading the profile's narcosis settings live; only the
+    // Tec modes expose an override (the UI has no control for Rec).
+    endLimitMeters: prefs.mode == BestMixMode.rec
+        ? settings.endLimit
+        : limits.endLimitMeters,
+    o2Narcotic: prefs.mode == BestMixMode.rec
+        ? settings.o2Narcotic
+        : limits.o2Narcotic,
     mode: prefs.mode,
     ccrSource: prefs.ccrSource,
     flushPpO2: limits.flushPpO2,

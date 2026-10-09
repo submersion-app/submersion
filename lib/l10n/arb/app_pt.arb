@@ -4654,7 +4654,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ para a MOD do diluente (purga)",
   "gasCalculators_mod_minPpO2": "ppO₂ mínima (misturas hipóxicas)",
   "gasCalculators_mod_fromProfile": "Do teu perfil de mergulhador",
-  "gasCalculators_mod_differsFromProfile": "Diferente do teu perfil ({value} bar)",
+  "gasCalculators_differsFromProfile": "Diferente do teu perfil ({value})",
   "gasCalculators_mod_useProfileValue": "Usar valor do perfil",
   "gasCalculators_mod_checkTargetDepth": "Verificar também uma profundidade alvo",
   "gasCalculators_mod_targetDepth": "Profundidade alvo",

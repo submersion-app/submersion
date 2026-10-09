@@ -21,20 +21,31 @@ WaterType resolveWaterType(
       PlannerWaterType.salt || PlannerWaterType.custom => WaterType.salt,
     };
 
+/// The range the END limit override offers, matching the settings page's
+/// own END limit dialog (`settings_page.dart`).
+const double endLimitOverrideMinMeters = 20;
+const double endLimitOverrideMaxMeters = 50;
+
 /// The ppO2 limits of the active diver's profile, as the MOD calculator
 /// reads them (issue #2342): the OC limits for Rec and OC Tec, the CCR
-/// limits for CCR Tec.
+/// limits for CCR Tec. [endLimitMeters] and [o2Narcotic] are the diver's
+/// narcosis settings, shared by both calculators the same way the ppO2
+/// limits are.
 class ModProfileLimits {
   final double workingPpO2;
   final double decoPpO2;
   final double flushPpO2;
   final double setpointBar;
+  final double endLimitMeters;
+  final bool o2Narcotic;
 
   const ModProfileLimits({
     required this.workingPpO2,
     required this.decoPpO2,
     required this.flushPpO2,
     required this.setpointBar,
+    required this.endLimitMeters,
+    required this.o2Narcotic,
   });
 }
 
@@ -50,11 +61,17 @@ class ModLimitOverrides extends Equatable {
   /// CCR setpoint; null follows the profile's high setpoint.
   final double? setpointBar;
 
+  /// Null follows the profile's END limit / O2-narcotic setting.
+  final double? endLimitMeters;
+  final bool? o2Narcotic;
+
   const ModLimitOverrides({
     this.workingPpO2,
     this.decoPpO2,
     this.flushPpO2,
     this.setpointBar,
+    this.endLimitMeters,
+    this.o2Narcotic,
   });
 
   static const none = ModLimitOverrides();
@@ -63,7 +80,9 @@ class ModLimitOverrides extends Equatable {
       workingPpO2 == null &&
       decoPpO2 == null &&
       flushPpO2 == null &&
-      setpointBar == null;
+      setpointBar == null &&
+      endLimitMeters == null &&
+      o2Narcotic == null;
 
   /// The working and deco limits set together, each stored as "follow the
   /// profile" when it equals the profile value, so the calculator follows
@@ -77,6 +96,8 @@ class ModLimitOverrides extends Equatable {
     decoPpO2: _unlessProfile(decoPpO2, profile.decoPpO2),
     flushPpO2: flushPpO2,
     setpointBar: setpointBar,
+    endLimitMeters: endLimitMeters,
+    o2Narcotic: o2Narcotic,
   );
 
   ModLimitOverrides withFlushPpO2(double? value, ModProfileLimits profile) =>
@@ -87,6 +108,8 @@ class ModLimitOverrides extends Equatable {
             ? null
             : _unlessProfile(value, profile.flushPpO2),
         setpointBar: setpointBar,
+        endLimitMeters: endLimitMeters,
+        o2Narcotic: o2Narcotic,
       );
 
   ModLimitOverrides withSetpoint(double? value, ModProfileLimits profile) =>
@@ -97,6 +120,30 @@ class ModLimitOverrides extends Equatable {
         setpointBar: value == null
             ? null
             : _unlessProfile(value, profile.setpointBar),
+        endLimitMeters: endLimitMeters,
+        o2Narcotic: o2Narcotic,
+      );
+
+  ModLimitOverrides withEndLimit(double? value, ModProfileLimits profile) =>
+      ModLimitOverrides(
+        workingPpO2: workingPpO2,
+        decoPpO2: decoPpO2,
+        flushPpO2: flushPpO2,
+        setpointBar: setpointBar,
+        endLimitMeters: value == null
+            ? null
+            : _unlessProfile(value, profile.endLimitMeters),
+        o2Narcotic: o2Narcotic,
+      );
+
+  ModLimitOverrides withO2Narcotic(bool? value, ModProfileLimits profile) =>
+      ModLimitOverrides(
+        workingPpO2: workingPpO2,
+        decoPpO2: decoPpO2,
+        flushPpO2: flushPpO2,
+        setpointBar: setpointBar,
+        endLimitMeters: endLimitMeters,
+        o2Narcotic: value == profile.o2Narcotic ? null : value,
       );
 
   Map<String, dynamic> toJson() => {
@@ -104,12 +151,15 @@ class ModLimitOverrides extends Equatable {
     'decoPpO2': decoPpO2,
     'flushPpO2': flushPpO2,
     'setpointBar': setpointBar,
+    'endLimitMeters': endLimitMeters,
+    'o2Narcotic': o2Narcotic,
   };
 
   /// Each override is put back on its slider's grid, so a value saved on an
   /// older grid (a 1.45 flush ppO2) cannot sit between two stops.
   static ModLimitOverrides fromJson(Object? json) {
     if (json is! Map) return none;
+    final o2Narcotic = json['o2Narcotic'];
     return ModLimitOverrides(
       workingPpO2: modSnapToGrid(_limit(json['workingPpO2']), 0.05),
       decoPpO2: modSnapToGrid(_limit(json['decoPpO2']), 0.05),
@@ -125,11 +175,24 @@ class ModLimitOverrides extends Equatable {
         ),
         0.1,
       ),
+      endLimitMeters: modNumberInRange(
+        json['endLimitMeters'],
+        endLimitOverrideMinMeters,
+        endLimitOverrideMaxMeters,
+      ),
+      o2Narcotic: o2Narcotic is bool ? o2Narcotic : null,
     );
   }
 
   @override
-  List<Object?> get props => [workingPpO2, decoPpO2, flushPpO2, setpointBar];
+  List<Object?> get props => [
+    workingPpO2,
+    decoPpO2,
+    flushPpO2,
+    setpointBar,
+    endLimitMeters,
+    o2Narcotic,
+  ];
 }
 
 /// The limits in effect, and whether each differs from the profile.
@@ -138,20 +201,28 @@ class ModResolvedLimits {
   final double decoPpO2;
   final double flushPpO2;
   final double setpointBar;
+  final double endLimitMeters;
+  final bool o2Narcotic;
   final bool workingOverridden;
   final bool decoOverridden;
   final bool flushOverridden;
   final bool setpointOverridden;
+  final bool endLimitOverridden;
+  final bool o2NarcoticOverridden;
 
   const ModResolvedLimits({
     required this.workingPpO2,
     required this.decoPpO2,
     required this.flushPpO2,
     required this.setpointBar,
+    required this.endLimitMeters,
+    required this.o2Narcotic,
     required this.workingOverridden,
     required this.decoOverridden,
     required this.flushOverridden,
     required this.setpointOverridden,
+    required this.endLimitOverridden,
+    required this.o2NarcoticOverridden,
   });
 }
 
@@ -169,15 +240,21 @@ ModResolvedLimits resolveModLimits(
   final deco = math.max(overrides.decoPpO2 ?? profile.decoPpO2, working);
   final flush = overrides.flushPpO2 ?? profile.flushPpO2;
   final setpoint = overrides.setpointBar ?? profile.setpointBar;
+  final endLimit = overrides.endLimitMeters ?? profile.endLimitMeters;
+  final o2Narcotic = overrides.o2Narcotic ?? profile.o2Narcotic;
   return ModResolvedLimits(
     workingPpO2: working,
     decoPpO2: deco,
     flushPpO2: flush,
     setpointBar: setpoint,
+    endLimitMeters: endLimit,
+    o2Narcotic: o2Narcotic,
     workingOverridden: !modSameValue(working, profile.workingPpO2),
     decoOverridden: !modSameValue(deco, profile.decoPpO2),
     flushOverridden: !modSameValue(flush, profile.flushPpO2),
     setpointOverridden: !modSameValue(setpoint, profile.setpointBar),
+    endLimitOverridden: !modSameValue(endLimit, profile.endLimitMeters),
+    o2NarcoticOverridden: o2Narcotic != profile.o2Narcotic,
   );
 }
 

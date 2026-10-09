@@ -4552,7 +4552,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ a hígítógáz MOD-jához (öblítés)",
   "gasCalculators_mod_minPpO2": "Minimális ppO₂ (hipoxiás keverékek)",
   "gasCalculators_mod_fromProfile": "A búvárprofilodból",
-  "gasCalculators_mod_differsFromProfile": "Eltér a profiltól ({value} bar)",
+  "gasCalculators_differsFromProfile": "Eltér a profiltól ({value})",
   "gasCalculators_mod_useProfileValue": "Profilérték használata",
   "gasCalculators_mod_checkTargetDepth": "Célmélység ellenőrzése is",
   "gasCalculators_mod_targetDepth": "Célmélység",

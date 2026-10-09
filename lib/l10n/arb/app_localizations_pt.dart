@@ -16135,8 +16135,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'Do teu perfil de mergulhador';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'Diferente do teu perfil ($value bar)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'Diferente do teu perfil ($value)';
   }
 
   @override

@@ -194,6 +194,16 @@ void main() {
         ..setFlushPpO2(1.5)
         ..resetFlushPpO2();
       expect(overrides().flushPpO2, isNull);
+
+      notifier
+        ..setEndLimit(24)
+        ..resetEndLimit();
+      expect(overrides().endLimitMeters, isNull);
+
+      notifier
+        ..setO2Narcotic(false)
+        ..resetO2Narcotic();
+      expect(overrides().o2Narcotic, isNull);
     });
 
     test(
@@ -357,6 +367,45 @@ void main() {
         final inputs = container.read(bestMixCalculatorInputsProvider);
         expect(inputs.densityAware, isTrue);
         expect(inputs.temperature, GasDensityTemperature.twentyC);
+      },
+    );
+
+    test('Rec reads END limit and O2-narcotic live, ignoring any override', () {
+      const settings = AppSettings(endLimit: 32, o2Narcotic: false);
+      final container = _container(_FakeRepository(), settings: settings);
+      // An override set while in a Tec mode must never leak into Rec, which
+      // has no control for it and always follows the live profile setting.
+      container.read(bestMixCalculatorNotifierProvider.notifier)
+        ..setMode(BestMixMode.ocTec)
+        ..setEndLimit(24)
+        ..setO2Narcotic(true)
+        ..setMode(BestMixMode.rec);
+      final inputs = container.read(bestMixCalculatorInputsProvider);
+      expect(inputs.endLimitMeters, 32);
+      expect(inputs.o2Narcotic, isFalse);
+    });
+
+    test(
+      'OC-Tec and CCR-Tec resolve the overridden END limit and O2-narcotic',
+      () {
+        const settings = AppSettings(endLimit: 30, o2Narcotic: true);
+        final container = _container(_FakeRepository(), settings: settings);
+        container.read(bestMixCalculatorNotifierProvider.notifier)
+          ..setMode(BestMixMode.ocTec)
+          ..setEndLimit(24)
+          ..setO2Narcotic(false);
+        var inputs = container.read(bestMixCalculatorInputsProvider);
+        expect(inputs.endLimitMeters, 24);
+        expect(inputs.o2Narcotic, isFalse);
+
+        // The same per-diver override follows into CCR-Tec: it is a profile
+        // override, not a per-mode setting.
+        container
+            .read(bestMixCalculatorNotifierProvider.notifier)
+            .setMode(BestMixMode.ccrTec);
+        inputs = container.read(bestMixCalculatorInputsProvider);
+        expect(inputs.endLimitMeters, 24);
+        expect(inputs.o2Narcotic, isFalse);
       },
     );
   });

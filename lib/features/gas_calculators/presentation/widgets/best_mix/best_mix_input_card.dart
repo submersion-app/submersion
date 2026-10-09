@@ -7,8 +7,10 @@ import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart'
     show modFlushPpO2Max, modFlushPpO2Min, tecTargetMaxMeters;
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix/best_mix_end_limit_slider.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix/best_mix_formatting.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod_ppo2_limit_slider.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/profile_override_caption.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
@@ -163,6 +165,33 @@ class BestMixInputCard extends ConsumerWidget {
                 onChanged: notifier.setWorkingPpO2,
                 onReset: notifier.resetWorkingPpO2,
               ),
+            if (!isRec) ...[
+              const SizedBox(height: 24),
+              BestMixEndLimitSlider(
+                label: l10n.settings_decompression_endLimit,
+                value: limits.endLimitMeters,
+                profileValueMeters: settings.endLimit,
+                isOverridden: limits.endLimitOverridden,
+                units: units,
+                onChanged: notifier.setEndLimit,
+                onReset: notifier.resetEndLimit,
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.settings_decompression_o2Narcotic),
+                subtitle: Text(l10n.settings_decompression_o2Narcotic_subtitle),
+                value: limits.o2Narcotic,
+                onChanged: notifier.setO2Narcotic,
+              ),
+              ProfileOverrideCaption(
+                isOverridden: limits.o2NarcoticOverridden,
+                profileValueText: settings.o2Narcotic
+                    ? l10n.common_action_yes
+                    : l10n.common_action_no,
+                onReset: notifier.resetO2Narcotic,
+              ),
+            ],
           ],
         ),
       ),

@@ -4654,7 +4654,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ voor de MOD van het diluent (flush)",
   "gasCalculators_mod_minPpO2": "Minimale ppO₂ (hypoxische mengsels)",
   "gasCalculators_mod_fromProfile": "Uit je duikersprofiel",
-  "gasCalculators_mod_differsFromProfile": "Wijkt af van je profiel ({value} bar)",
+  "gasCalculators_differsFromProfile": "Wijkt af van je profiel ({value})",
   "gasCalculators_mod_useProfileValue": "Profielwaarde gebruiken",
   "gasCalculators_mod_checkTargetDepth": "Ook een doeldiepte controleren",
   "gasCalculators_mod_targetDepth": "Doeldiepte",

@@ -195,13 +195,49 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Working ppO₂'), findsOneWidget);
-    expect(find.text('From your diver profile'), findsOneWidget);
+    // Three profile-backed controls in OC-Tec: working ppO2, END limit, and
+    // O2-narcotic, all unmoved from the profile at this point.
+    expect(find.text('From your diver profile'), findsNWidgets(3));
 
     notifier.setWorkingPpO2(1.2);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Differs from your profile'), findsOneWidget);
     expect(find.text('Use profile value'), findsOneWidget);
+    await _settle(tester);
+  });
+
+  testWidgets('OC-Tec offers an END limit slider, overridable per diver', (
+    tester,
+  ) async {
+    final ref = await _pump(tester);
+    final notifier = ref.read(bestMixCalculatorNotifierProvider.notifier)
+      ..setMode(BestMixMode.ocTec);
+    await tester.pumpAndSettle();
+
+    expect(find.text('END Limit'), findsOneWidget);
+
+    notifier.setEndLimit(25);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Differs from your profile'), findsOneWidget);
+    await _settle(tester);
+  });
+
+  testWidgets('OC-Tec lets the diver override whether O2 counts as narcotic', (
+    tester,
+  ) async {
+    final ref = await _pump(tester);
+    final notifier = ref.read(bestMixCalculatorNotifierProvider.notifier)
+      ..setMode(BestMixMode.ocTec);
+    await tester.pumpAndSettle();
+
+    expect(find.text('O2 is narcotic'), findsOneWidget);
+
+    notifier.setO2Narcotic(false);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Differs from your profile'), findsOneWidget);
     await _settle(tester);
   });
 

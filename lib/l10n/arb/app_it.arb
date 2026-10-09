@@ -4552,7 +4552,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ per la MOD del diluente (flush)",
   "gasCalculators_mod_minPpO2": "ppO₂ minima (miscele ipossiche)",
   "gasCalculators_mod_fromProfile": "Dal tuo profilo subacqueo",
-  "gasCalculators_mod_differsFromProfile": "Diverso dal profilo ({value} bar)",
+  "gasCalculators_differsFromProfile": "Diverso dal profilo ({value})",
   "gasCalculators_mod_useProfileValue": "Usa il valore del profilo",
   "gasCalculators_mod_checkTargetDepth": "Controlla anche una profondità obiettivo",
   "gasCalculators_mod_targetDepth": "Profondità obiettivo",

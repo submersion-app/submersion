@@ -243,6 +243,8 @@ ModProfileLimits modProfileLimits(AppSettings settings) => ModProfileLimits(
   decoPpO2: settings.ppO2MaxDeco,
   flushPpO2: modProfileFlushPpO2(settings),
   setpointBar: modProfileSetpoint(settings),
+  endLimitMeters: settings.endLimit,
+  o2Narcotic: settings.o2Narcotic,
 );
 
 /// The ppO2 limits in effect for the active diver, and which of them differ

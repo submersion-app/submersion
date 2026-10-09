@@ -4552,7 +4552,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ ל-MOD של המדלל (שטיפה)",
   "gasCalculators_mod_minPpO2": "ppO₂ מינימלי (תערובות היפוקסיות)",
   "gasCalculators_mod_fromProfile": "מפרופיל הצולל שלך",
-  "gasCalculators_mod_differsFromProfile": "שונה מהפרופיל ({value} בר)",
+  "gasCalculators_differsFromProfile": "שונה מהפרופיל ({value})",
   "gasCalculators_mod_useProfileValue": "השתמש בערך הפרופיל",
   "gasCalculators_mod_checkTargetDepth": "בדוק גם עומק יעד",
   "gasCalculators_mod_targetDepth": "עומק יעד",

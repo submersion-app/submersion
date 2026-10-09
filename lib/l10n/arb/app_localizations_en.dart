@@ -15888,8 +15888,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'From your diver profile';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'Differs from your profile ($value bar)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'Differs from your profile ($value)';
   }
 
   @override

@@ -15778,8 +15778,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'מפרופיל הצולל שלך';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'שונה מהפרופיל ($value בר)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'שונה מהפרופיל ($value)';
   }
 
   @override

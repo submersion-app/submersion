@@ -9584,8 +9584,8 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ for the diluent MOD (flush)",
   "gasCalculators_mod_minPpO2": "Minimum ppO₂ (hypoxic mixes)",
   "gasCalculators_mod_fromProfile": "From your diver profile",
-  "gasCalculators_mod_differsFromProfile": "Differs from your profile ({value} bar)",
-  "@gasCalculators_mod_differsFromProfile": {
+  "gasCalculators_differsFromProfile": "Differs from your profile ({value})",
+  "@gasCalculators_differsFromProfile": {
     "placeholders": {
       "value": {
         "type": "String"

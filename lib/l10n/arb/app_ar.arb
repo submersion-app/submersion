@@ -4654,7 +4654,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ لـ MOD غاز التخفيف (الشطف)",
   "gasCalculators_mod_minPpO2": "الحد الأدنى لـ ppO₂ (الخلائط ناقصة الأكسجين)",
   "gasCalculators_mod_fromProfile": "من ملف الغواص الخاص بك",
-  "gasCalculators_mod_differsFromProfile": "يختلف عن ملفك ({value} بار)",
+  "gasCalculators_differsFromProfile": "يختلف عن ملفك ({value})",
   "gasCalculators_mod_useProfileValue": "استخدام قيمة الملف",
   "gasCalculators_mod_checkTargetDepth": "فحص عمق مستهدف أيضًا",
   "gasCalculators_mod_targetDepth": "العمق المستهدف",
