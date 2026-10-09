@@ -5481,7 +5481,7 @@
   "planning_card_weightCalculator_title": "Súly kalkulátor",
   "planning_info_disclaimer": "Ezek az eszközök kizárólag tervezési célokat szolgálnak. Mindig ellenőrizze a számításokat és kövesse merülési képzésének irányelveit.",
   "planning_disclaimer_dialog_title": "Tervezőeszközök figyelmeztetése",
-  "planning_disclaimer_dialog_body": "A tervezési és gázszámító eszközök (MOD, legjobb keverék, dekompressziós idők) kizárólag tervezési célokat szolgálnak. Nem helyettesítik a merülési képzést vagy a merülőkomputert. Mindig ellenőrizze saját maga az összes számítást, mielőtt biztonsági döntéshez használná.",
+  "planning_disclaimer_dialog_body": "Az ebben a részben található eszközök kizárólag tervezési célokat szolgálnak. Nem helyettesítik a merülési képzést vagy a merülőkomputert. Mindig ellenőrizze saját maga az összes számítást, mielőtt biztonsági döntéshez használná.",
   "planning_disclaimer_dialog_confirm": "Megértettem",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Tervezési figyelmeztetés elfogadva",
   "planning_section_tools": "Eszközök",

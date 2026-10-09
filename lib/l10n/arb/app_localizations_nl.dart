@@ -19044,7 +19044,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get planning_disclaimer_dialog_body =>
-      'De Planning- en Gascalculator-tools (MOD, beste mix, decompressietijden) zijn alleen voor planningsdoeleinden. Ze vervangen niet je duikopleiding of je duikcomputer. Controleer altijd elke berekening zelf voordat je deze gebruikt voor een veiligheidsbeslissing.';
+      'De tools in dit gedeelte zijn alleen voor planningsdoeleinden. Ze vervangen niet je duikopleiding of je duikcomputer. Controleer altijd elke berekening zelf voordat je deze gebruikt voor een veiligheidsbeslissing.';
 
   @override
   String get planning_disclaimer_dialog_confirm => 'Begrepen';

@@ -18881,7 +18881,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planning_disclaimer_dialog_body =>
-      'The Planning and Gas Calculator tools (MOD, best mix, decompression times) are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.';
+      'The tools in this section are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.';
 
   @override
   String get planning_disclaimer_dialog_confirm => 'I Understand';

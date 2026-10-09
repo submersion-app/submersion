@@ -5583,7 +5583,7 @@
   "planning_card_weightCalculator_title": "Calculadora de Peso",
   "planning_info_disclaimer": "Estas ferramentas são apenas para fins de planejamento. Sempre verifique os cálculos e siga seu treinamento de mergulho.",
   "planning_disclaimer_dialog_title": "Aviso das ferramentas de planejamento",
-  "planning_disclaimer_dialog_body": "As ferramentas de Planejamento e Calculadoras de Gás (MOD, melhor mistura, tempos de descompressão) são apenas para fins de planejamento. Elas não substituem seu treinamento de mergulho ou seu computador de mergulho. Sempre verifique cada cálculo você mesmo antes de usá-lo para uma decisão de segurança.",
+  "planning_disclaimer_dialog_body": "As ferramentas desta seção são apenas para fins de planejamento. Elas não substituem seu treinamento de mergulho ou seu computador de mergulho. Sempre verifique cada cálculo você mesmo antes de usá-lo para uma decisão de segurança.",
   "planning_disclaimer_dialog_confirm": "Entendi",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Aviso de planejamento aceito",
   "planning_section_tools": "Ferramentas",

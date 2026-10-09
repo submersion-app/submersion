@@ -19153,7 +19153,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get planning_disclaimer_dialog_body =>
-      'Die Planungs- und Gasrechner-Werkzeuge (MOD, Best Mix, Dekompressionszeiten) dienen ausschließlich der Planung. Sie ersetzen weder Ihre Tauchausbildung noch Ihren Tauchcomputer. Überprüfen Sie jede Berechnung selbst, bevor Sie sie für eine Sicherheitsentscheidung verwenden.';
+      'Die Werkzeuge in diesem Bereich dienen ausschließlich der Planung. Sie ersetzen weder Ihre Tauchausbildung noch Ihren Tauchcomputer. Überprüfen Sie jede Berechnung selbst, bevor Sie sie für eine Sicherheitsentscheidung verwenden.';
 
   @override
   String get planning_disclaimer_dialog_confirm => 'Verstanden';

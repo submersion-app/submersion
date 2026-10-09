@@ -19171,7 +19171,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get planning_disclaimer_dialog_body =>
-      'Gli strumenti di pianificazione e dei calcolatori di gas (MOD, miscela migliore, tempi di decompressione) sono solo per la pianificazione. Non sostituiscono la tua formazione subacquea o il tuo computer da immersione. Verifica sempre ogni calcolo da solo prima di usarlo per una decisione di sicurezza.';
+      'Gli strumenti di questa sezione sono solo per la pianificazione. Non sostituiscono la tua formazione subacquea o il tuo computer da immersione. Verifica sempre ogni calcolo da solo prima di usarlo per una decisione di sicurezza.';
 
   @override
   String get planning_disclaimer_dialog_confirm => 'Ho capito';

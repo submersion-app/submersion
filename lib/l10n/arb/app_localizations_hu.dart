@@ -19107,7 +19107,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get planning_disclaimer_dialog_body =>
-      'A tervezési és gázszámító eszközök (MOD, legjobb keverék, dekompressziós idők) kizárólag tervezési célokat szolgálnak. Nem helyettesítik a merülési képzést vagy a merülőkomputert. Mindig ellenőrizze saját maga az összes számítást, mielőtt biztonsági döntéshez használná.';
+      'Az ebben a részben található eszközök kizárólag tervezési célokat szolgálnak. Nem helyettesítik a merülési képzést vagy a merülőkomputert. Mindig ellenőrizze saját maga az összes számítást, mielőtt biztonsági döntéshez használná.';
 
   @override
   String get planning_disclaimer_dialog_confirm => 'Megértettem';

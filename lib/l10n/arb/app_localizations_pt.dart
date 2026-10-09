@@ -19173,7 +19173,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get planning_disclaimer_dialog_body =>
-      'As ferramentas de Planejamento e Calculadoras de Gás (MOD, melhor mistura, tempos de descompressão) são apenas para fins de planejamento. Elas não substituem seu treinamento de mergulho ou seu computador de mergulho. Sempre verifique cada cálculo você mesmo antes de usá-lo para uma decisão de segurança.';
+      'As ferramentas desta seção são apenas para fins de planejamento. Elas não substituem seu treinamento de mergulho ou seu computador de mergulho. Sempre verifique cada cálculo você mesmo antes de usá-lo para uma decisão de segurança.';
 
   @override
   String get planning_disclaimer_dialog_confirm => 'Entendi';

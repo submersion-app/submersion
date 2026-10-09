@@ -5583,7 +5583,7 @@
   "planning_card_weightCalculator_title": "Gewichtscalculator",
   "planning_info_disclaimer": "Deze tools zijn alleen voor planningsdoeleinden. Controleer berekeningen altijd en volg je duikopleiding.",
   "planning_disclaimer_dialog_title": "Waarschuwing planningstools",
-  "planning_disclaimer_dialog_body": "De Planning- en Gascalculator-tools (MOD, beste mix, decompressietijden) zijn alleen voor planningsdoeleinden. Ze vervangen niet je duikopleiding of je duikcomputer. Controleer altijd elke berekening zelf voordat je deze gebruikt voor een veiligheidsbeslissing.",
+  "planning_disclaimer_dialog_body": "De tools in dit gedeelte zijn alleen voor planningsdoeleinden. Ze vervangen niet je duikopleiding of je duikcomputer. Controleer altijd elke berekening zelf voordat je deze gebruikt voor een veiligheidsbeslissing.",
   "planning_disclaimer_dialog_confirm": "Begrepen",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Planningswaarschuwing geaccepteerd",
   "planning_section_tools": "Gereedschappen",
