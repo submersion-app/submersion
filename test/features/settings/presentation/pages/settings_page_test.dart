@@ -1463,6 +1463,14 @@ void main() {
   });
 
   group('AppearanceSectionContent navigation', () {
+    /// Titles of every ListTile on screen, in order, for comparing the
+    /// tablet/desktop pane against its phone counterpart.
+    List<String> tileTitles(WidgetTester tester) => [
+      for (final tile in tester.widgetList<ListTile>(find.byType(ListTile)))
+        if (tile.title case final Text text)
+          text.data ?? text.textSpan!.toPlainText(),
+    ];
+
     /// Build a widget that renders the SettingsPage via GoRouter with
     /// ?selected=appearance, which renders the _SettingsSectionDetailPage
     /// containing _AppearanceSectionContent (mobile detail page path).
@@ -1550,15 +1558,9 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(500, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      List<String> tileTitles() => [
-        for (final tile in tester.widgetList<ListTile>(find.byType(ListTile)))
-          if (tile.title case final Text text)
-            text.data ?? text.textSpan!.toPlainText(),
-      ];
-
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
-      final hubTitles = tileTitles();
+      final hubTitles = tileTitles(tester);
 
       await tester.pumpWidget(
         ProviderScope(
@@ -1572,7 +1574,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      final phoneTitles = tileTitles();
+      final phoneTitles = tileTitles(tester);
 
       expect(hubTitles, phoneTitles);
       expect(
@@ -1610,17 +1612,11 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(500, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      List<String> tileTitles() => [
-        for (final tile in tester.widgetList<ListTile>(find.byType(ListTile)))
-          if (tile.title case final Text text)
-            text.data ?? text.textSpan!.toPlainText(),
-      ];
-
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Language'));
       await tester.pumpAndSettle();
-      final inlineTitles = tileTitles();
+      final inlineTitles = tileTitles(tester);
 
       await tester.pumpWidget(
         ProviderScope(
@@ -1635,7 +1631,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(inlineTitles, tileTitles());
+      expect(inlineTitles, tileTitles(tester));
       expect(
         inlineTitles,
         hasLength(LanguageSettingsPage.supportedLocales.length),

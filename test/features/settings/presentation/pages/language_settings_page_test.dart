@@ -50,7 +50,10 @@ void main() {
   ) async {
     await _pumpPage(tester);
 
-    expect(find.byType(ListTile), findsNWidgets(12));
+    expect(
+      find.byType(ListTile),
+      findsNWidgets(LanguageSettingsPage.supportedLocales.length),
+    );
     expect(find.text('System Default'), findsOneWidget);
     expect(find.text('Deutsch'), findsOneWidget);
     expect(find.text('German'), findsOneWidget);

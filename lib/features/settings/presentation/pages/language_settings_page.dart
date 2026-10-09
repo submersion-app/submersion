@@ -5,7 +5,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-class LanguageSettingsPage extends ConsumerWidget {
+class LanguageSettingsPage extends StatelessWidget {
   const LanguageSettingsPage({super.key});
 
   static const supportedLocales = [
@@ -40,7 +40,7 @@ class LanguageSettingsPage extends ConsumerWidget {
   ];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.settings_language_appBar_title)),
       body: ListView(children: const [LanguageOptionTiles()]),
