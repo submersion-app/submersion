@@ -321,7 +321,7 @@ git commit -m "i18n(equipment): strings for cloning equipment"
   - `Future<List<String>> EquipmentSetRepository.getSetIdsContaining(String equipmentId, {String? diverId})`
   - `enum CloneExtrasStep { serviceClocks, sets, documents }`
   - `EquipmentCloneService({ServiceScheduleRepository? schedules, ServiceKindRepository? kinds, EquipmentSetRepository? sets, MediaRepository? media})`
-  - `Future<Set<CloneExtrasStep>> copyExtras({required String sourceId, required String cloneId, required String? diverId})`
+  - `Future<Set<CloneExtrasStep>> copyExtras({required String sourceId, required String cloneId, required EquipmentType cloneType, required String? diverId})` (`cloneType` added in code review: clocks whose kind does not apply to the clone's saved type are not copied; the test snippets below predate it)
   - `final equipmentCloneServiceProvider = Provider<EquipmentCloneService>`
 
 - [ ] **Step 1: Write the failing tests**

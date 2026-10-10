@@ -75,7 +75,9 @@ copies three kinds of extras from source to clone:
 - **Service clocks.** For each of the source's schedules: kind, enabled flag,
   day, dive and hour intervals, other exposure intervals, and per-item price
   and currency. The baseline (`anchorDate`, `anchorSetAt`) is never copied, so
-  the clone's clocks count from its own purchase or creation. `addEquipment`
+  the clone's clocks count from its own purchase or creation, and a clock
+  whose kind does not apply to the clone's saved type is not copied (the
+  diver may change Type on the form). `addEquipment`
   already auto-attaches default clocks for the type (`auto-<kind>-<id>`); when
   the clone already has a clock of a source schedule's kind, that clock is
   updated with the source's settings instead of a second one being created.
@@ -120,15 +122,18 @@ clone follows the same rule:
   `cloneFormSeed(source, copySuffix)` through the same initializer edit mode
   uses, loads the source's tags as the selection (with no stored baseline,
   as a new item), seeds `_initialLocation` from the source's current location,
-  and shows the clone title. On save it calls the clone service after
+  and shows the clone title. On save it first waits for that tags-and-place
+  read, so a quick Save still writes them, then calls the clone service after
   `addEquipment` and navigates to the clone.
 - **`cloneFormSeed`** (pure, in `lib/features/equipment/domain/services/`):
   returns the `EquipmentItem` the form starts from: the source with a blank
   id, the suffixed name, no serial, no legacy service fields, and the cell slot
   and install date attributes removed.
 - **`EquipmentCloneService`** (`lib/features/equipment/data/services/`): one
-  method, `copyExtras({sourceId, cloneId, diverId})`, returning the failed
-  steps. It
+  method, `copyExtras({sourceId, cloneId, cloneType, diverId})`, returning
+  the failed steps. `cloneType` is the type the clone was saved as (the form
+  may have changed it); a source clock whose kind does not apply to it is not
+  copied. It
   depends on the service schedule, equipment set and media repositories.
 - **Detail page.** A `clone` entry in `_buildMenuItems`, shown to every
   viewer, and its case in the menu handler.

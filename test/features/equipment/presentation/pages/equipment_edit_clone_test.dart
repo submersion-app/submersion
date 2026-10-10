@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -17,7 +19,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_location
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_field.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -289,6 +293,34 @@ void main() {
     // The original is untouched.
     final kept = await repository.getEquipmentById(source.id);
     expect((kept!.name, kept.serialNumber), ('Reg A', 'SN-1'));
+  });
+
+  testWidgets('a quick Save waits for the source\'s tags', (tester) async {
+    // Made in the test body: a completer from setUp lives outside the test's
+    // fake-async zone, so pumping never delivers it.
+    final pending = Completer<List<Tag>>();
+    await pumpClone(
+      tester,
+      extraOverrides: [
+        tagsForEquipmentProvider(
+          source.id,
+        ).overrideWith((ref) => pending.future),
+      ],
+    );
+
+    // Saved before the source's tags arrive.
+    await tester.tap(find.text('Save').first);
+    await tester.pump();
+    pending.complete(await tagRepository.getTagsForEquipment(source.id));
+    await tester.pumpAndSettle();
+
+    final clone = (await repository.getAllEquipment()).singleWhere(
+      (e) => e.id != source.id,
+    );
+    expect(
+      {for (final t in await tagRepository.getTagsForEquipment(clone.id)) t.id},
+      {'t1', 't2'},
+    );
   });
 
   testWidgets('a step that could not be copied is reported', (tester) async {

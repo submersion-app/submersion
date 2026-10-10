@@ -101,6 +101,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
   /// A new item's first place (v268); null leaves it with no location.
   EquipmentLocation? _initialLocation;
+
+  /// A clone's read of its source's tags and place. Save waits for it, so a
+  /// quick Save still writes them; it never overrides a pick the diver made.
+  Future<void>? _cloneSelectionsLoad;
   Set<String> _originalTagIds = {};
 
   /// Set once an edit's stored tags are read. Until then (and for good, if
@@ -176,7 +180,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _seedForm(
       cloneFormSeed(source, copyName: context.l10n.equipment_clone_nameCopy),
     );
-    _loadCloneSelections(source.id);
+    _cloneSelectionsLoad = _loadCloneSelections(source.id);
   }
 
   /// Fills every form field from [equipment].
@@ -1140,6 +1144,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     setState(() => _isLoading = true);
 
     try {
+      // A clone saved before its source's tags and place arrived would
+      // otherwise go without them (the load never throws).
+      await _cloneSelectionsLoad;
+      if (!mounted) return;
       // Get the current diver ID - preserve existing for edits, get fresh for new items
       final diverId =
           existingEquipment?.diverId ??
