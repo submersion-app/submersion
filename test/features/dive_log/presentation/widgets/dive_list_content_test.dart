@@ -22,6 +22,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -1781,6 +1782,47 @@ void main() {
       await enterSelectionViaMenu(tester);
 
       expect(find.text('3 dives'), findsNothing);
+    });
+  });
+
+  group('empty state beside an open form (issue #3192)', () {
+    Future<void> pumpEmpty(
+      WidgetTester tester, {
+      required bool isFormOpen,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        dives: [],
+        viewMode: ListViewMode.detailed,
+        highlightedDiveId: null,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: MasterDetailFormScope(
+            isFormOpen: isFormOpen,
+            child: const DiveListContent(showAppBar: false),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('offers the create button when no form is open', (
+      tester,
+    ) async {
+      await pumpEmpty(tester, isFormOpen: false);
+
+      expect(find.text('Log Your First Dive'), findsOneWidget);
+    });
+
+    testWidgets('hides the create button while a form is open beside it', (
+      tester,
+    ) async {
+      await pumpEmpty(tester, isFormOpen: true);
+
+      // Beside an open form it reads as the form's submit button, but it only
+      // reopens the create form, so nothing gets saved (issue #3192).
+      expect(find.text('Log Your First Dive'), findsNothing);
     });
   });
 }

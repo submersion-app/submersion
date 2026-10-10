@@ -711,4 +711,52 @@ void main() {
       expect(find.byType(DiveCenterEditPage), findsOneWidget);
     });
   });
+
+  group('empty list beside the create form (issue #3192)', () {
+    Future<void> pumpWideEmptyList(
+      WidgetTester tester, {
+      required String location,
+    }) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1400, 900);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await _buildOverrides();
+      await tester.pumpWidget(
+        _buildTestWidget(
+          child: const DiveCenterListPage(),
+          overrides: overrides,
+          initialLocation: location,
+        ),
+      );
+      await tester.pump();
+      tester.takeException();
+      await tester.pump();
+      tester.takeException();
+    }
+
+    testWidgets('offers the first-center button beside the summary', (
+      tester,
+    ) async {
+      await pumpWideEmptyList(tester, location: '/dive-centers');
+
+      expect(find.byType(DiveCenterEditPage), findsNothing);
+      expect(find.text('Add Your First Dive Center'), findsOneWidget);
+    });
+
+    testWidgets('hides the first-center button while the form is open', (
+      tester,
+    ) async {
+      await pumpWideEmptyList(tester, location: '/dive-centers?mode=new');
+
+      // Below the empty list, beside the form, it read as the form's Save:
+      // pressing it only reopened the create form and saved nothing.
+      expect(find.byType(DiveCenterEditPage), findsOneWidget);
+      expect(find.text('Add Your First Dive Center'), findsNothing);
+      expect(find.text('Import'), findsOneWidget);
+    });
+  });
 }

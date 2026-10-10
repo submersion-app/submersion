@@ -47,6 +47,7 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_transfer_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 
 import '../../../../helpers/equipment_query_fakes.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -3203,6 +3204,43 @@ void main() {
         find.byKey(const ValueKey('equipment-owner-chip-wife')),
         findsNothing,
       );
+    });
+  });
+
+  group('empty state beside an open form (issue #3192)', () {
+    Future<void> pumpEmpty(
+      WidgetTester tester, {
+      required bool isFormOpen,
+    }) async {
+      final overrides = await _buildOverrides(equipment: []);
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: MasterDetailFormScope(
+            isFormOpen: isFormOpen,
+            child: const EquipmentListContent(showAppBar: true),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('offers the create button when no form is open', (
+      tester,
+    ) async {
+      await pumpEmpty(tester, isFormOpen: false);
+
+      expect(find.text('Add Your First Equipment'), findsOneWidget);
+    });
+
+    testWidgets('hides the create button while a form is open beside it', (
+      tester,
+    ) async {
+      await pumpEmpty(tester, isFormOpen: true);
+
+      // Beside an open form it reads as the form's submit button, but it only
+      // reopens the create form, so nothing gets saved (issue #3192).
+      expect(find.text('Add Your First Equipment'), findsNothing);
     });
   });
 }

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Width of the master (list) pane in a split view.
@@ -364,10 +365,15 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
                         widget.floatingActionButton != null && !isEditingDetail
                         ? _wrapFabForCreate(widget.floatingActionButton!)
                         : null,
-                    child: widget.masterBuilder(
-                      context,
-                      _onItemSelected,
-                      selectedId,
+                    // The list's own create buttons hide for the same span
+                    // (issue #3192).
+                    child: MasterDetailFormScope(
+                      isFormOpen: isEditingDetail,
+                      child: widget.masterBuilder(
+                        context,
+                        _onItemSelected,
+                        selectedId,
+                      ),
                     ),
                   ),
                 ),
