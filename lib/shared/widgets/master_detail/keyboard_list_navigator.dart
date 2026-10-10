@@ -69,9 +69,8 @@ class KeyboardListNavigator extends StatefulWidget {
   /// Enter was pressed on the cursor's row.
   final ValueChanged<String>? onActivate;
 
-  /// Right was pressed on the cursor's row. Returns whether it expanded
-  /// anything; Right does nothing either way.
-  final bool Function(String key)? onExpand;
+  /// Right was pressed on the cursor's row.
+  final ValueChanged<String>? onExpand;
 
   /// Left was pressed on the cursor's row. Returns the row the cursor moves to
   /// afterwards, typically the group header the row folded into, or null to
@@ -93,6 +92,12 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   final Map<String, BuildContext> _rows = {};
 
   late String? _cursor = widget.currentKey;
+
+  /// Keys reported through [KeyboardListNavigator.onMove], oldest first, that
+  /// have not come back as the current key yet. A split view's selection
+  /// travels through the router and lands a frame or two after the move, so
+  /// fast presses can be ahead of it.
+  final List<String> _unconfirmedMoves = [];
   bool _hasFocus = false;
   FocusHighlightMode _highlightMode = FocusManager.instance.highlightMode;
 
@@ -105,9 +110,19 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   @override
   void didUpdateWidget(KeyboardListNavigator oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.currentKey != oldWidget.currentKey) {
-      _cursor = widget.currentKey;
+    final current = widget.currentKey;
+    if (current == oldWidget.currentKey) return;
+    final confirmed = current == null ? -1 : _unconfirmedMoves.indexOf(current);
+    if (confirmed < 0) {
+      // A change from outside the keyboard: a click, or the app opening a row.
+      _unconfirmedMoves.clear();
+      _cursor = current;
+      return;
     }
+    // An earlier move catching up. Only once the latest one has landed is the
+    // current key the cursor again; until then it would pull the cursor back.
+    _unconfirmedMoves.removeRange(0, confirmed + 1);
+    if (_unconfirmedMoves.isEmpty) _cursor = current;
   }
 
   @override
@@ -198,6 +213,7 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
 
   void _moveTo(String key, {required bool forward}) {
     setState(() => _cursor = key);
+    _unconfirmedMoves.add(key);
     widget.onMove(key);
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _reveal(key, forward: forward),
@@ -249,6 +265,7 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   /// which matters for rows a tap does not make current, like group headers.
   void _pointerDownOn(String key) {
     _focusNode.requestFocus();
+    _unconfirmedMoves.clear();
     if (_cursor != key) setState(() => _cursor = key);
   }
 
@@ -275,7 +292,10 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   }
 }
 
-class _KeyboardListScope extends InheritedWidget {
+/// Tells rows which of them draws the focus ring. An [InheritedModel] keyed by
+/// row, so a cursor move rebuilds the row losing the ring and the row gaining
+/// it rather than every built row in the list.
+class _KeyboardListScope extends InheritedModel<String> {
   const _KeyboardListScope({
     required this.state,
     required this.ringKey,
@@ -291,6 +311,16 @@ class _KeyboardListScope extends InheritedWidget {
   @override
   bool updateShouldNotify(_KeyboardListScope oldWidget) =>
       ringKey != oldWidget.ringKey || !identical(state, oldWidget.state);
+
+  @override
+  bool updateShouldNotifyDependent(
+    _KeyboardListScope oldWidget,
+    Set<String> dependencies,
+  ) {
+    if (!identical(state, oldWidget.state)) return true;
+    return dependencies.contains(ringKey) ||
+        dependencies.contains(oldWidget.ringKey);
+  }
 }
 
 /// One row of a [KeyboardListNavigator].
@@ -357,8 +387,10 @@ class _KeyboardListItemState extends State<KeyboardListItem> {
 
   @override
   Widget build(BuildContext context) {
-    final scope = context
-        .dependOnInheritedWidgetOfExactType<_KeyboardListScope>();
+    final scope = InheritedModel.inheritFrom<_KeyboardListScope>(
+      context,
+      aspect: widget.navigationKey,
+    );
     if (scope == null) return widget.child;
     final hasRing = scope.ringKey == widget.navigationKey;
     return Listener(

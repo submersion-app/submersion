@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planning/presentation/planning_tools.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -81,7 +82,7 @@ class PlanningListContent extends ConsumerWidget {
       child: ListView(
         children: [
           const SizedBox(height: 8),
-          _PlannerSection(onToolSelected: onToolSelected),
+          _PlannerSection(recentPlans: recentPlans),
           const SizedBox(height: 8),
           _SectionLabel(context.l10n.planning_section_tools),
           ...List.generate(tools.length * 2 - 1, (index) {
@@ -186,15 +187,15 @@ class _SectionLabel extends StatelessWidget {
 /// row opens the planner), with the three most recently touched saved plans
 /// beneath it.
 class _PlannerSection extends ConsumerWidget {
-  const _PlannerSection({this.onToolSelected});
+  const _PlannerSection({required this.recentPlans});
 
-  final void Function(String?)? onToolSelected;
+  /// The plans to list, the same ones the list's keyboard cursor walks.
+  final List<DivePlanSummary> recentPlans;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final summaries = ref.watch(divePlanSummariesProvider).valueOrNull;
     final units = UnitFormatter(ref.watch(settingsProvider));
-    final recent = summaries?.take(3).toList() ?? const [];
+    final recent = recentPlans;
 
     return Column(
       children: [

@@ -1950,18 +1950,19 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               },
               onExpand: (key) {
                 final tripId = navStops.groupOfHeader(key);
-                if (tripId == null || !collapsedTripIds.contains(tripId)) {
-                  return false;
+                if (tripId != null && collapsedTripIds.contains(tripId)) {
+                  ref.read(collapsedTripIdsProvider.notifier).expand(tripId);
                 }
-                ref.read(collapsedTripIdsProvider.notifier).expand(tripId);
-                return true;
               },
               onCollapse: (key) {
                 final header = navStops.headerFor(key);
                 if (header == null) return null;
-                ref.read(collapsedTripIdsProvider.notifier).collapseAll([
-                  navStops.groupOfHeader(header)!,
-                ]);
+                final tripId = navStops.groupOfHeader(header)!;
+                if (!collapsedTripIds.contains(tripId)) {
+                  ref.read(collapsedTripIdsProvider.notifier).collapseAll([
+                    tripId,
+                  ]);
+                }
                 return header;
               },
               child: CustomScrollView(

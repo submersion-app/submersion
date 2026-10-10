@@ -14,6 +14,7 @@ class _Host extends StatefulWidget {
     this.onExpand,
     this.onCollapse,
     this.tapSelects = true,
+    this.moveLag,
   });
 
   final List<String> keys;
@@ -21,9 +22,14 @@ class _Host extends StatefulWidget {
   /// False for a row whose tap does not make it current, like a group header
   /// or a list with no highlight of its own.
   final bool tapSelects;
+
+  /// When set, a keyboard move only comes back as the current key after this
+  /// delay, the way a split view's URL selection catches up a frame or two
+  /// later.
+  final Duration? moveLag;
   final String? initial;
   final List<String>? log;
-  final bool Function(String key)? onExpand;
+  final ValueChanged<String>? onExpand;
   final String? Function(String key)? onCollapse;
 
   @override
@@ -46,7 +52,14 @@ class _HostState extends State<_Host> {
                 currentKey: current,
                 onMove: (key) {
                   widget.log?.add('move:$key');
-                  setState(() => current = key);
+                  final lag = widget.moveLag;
+                  if (lag == null) {
+                    setState(() => current = key);
+                  } else {
+                    Future<void>.delayed(lag, () {
+                      if (mounted) setState(() => current = key);
+                    });
+                  }
                 },
                 onActivate: (key) => widget.log?.add('activate:$key'),
                 onExpand: widget.onExpand,
@@ -145,6 +158,32 @@ void main() {
     expect(log, ['move:c']);
   });
 
+  testWidgets('a selection lagging behind fast moves does not pull back', (
+    tester,
+  ) async {
+    final log = <String>[];
+    await tester.pumpWidget(
+      _Host(
+        keys: const ['a', 'b', 'c', 'd', 'e'],
+        initial: 'a',
+        log: log,
+        moveLag: const Duration(milliseconds: 20),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('row-a')));
+    await tester.pumpAndSettle();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump(const Duration(milliseconds: 10));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    // The first move's selection lands now, the second's not yet.
+    await tester.pump(const Duration(milliseconds: 15));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+
+    expect(log, ['move:b', 'move:c', 'move:d']);
+  });
+
   testWidgets('the ends of the list hold the cursor and keep focus', (
     tester,
   ) async {
@@ -212,10 +251,7 @@ void main() {
         keys: const ['group', 'a', 'b'],
         initial: 'a',
         log: log,
-        onExpand: (key) {
-          log.add('expand:$key');
-          return true;
-        },
+        onExpand: (key) => log.add('expand:$key'),
         onCollapse: (key) {
           log.add('collapse:$key');
           return 'group';

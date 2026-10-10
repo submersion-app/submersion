@@ -1304,9 +1304,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         },
         onExpand: (key) {
           final country = navStops.groupOfHeader(key);
-          if (country == null || expanded.contains(country)) return false;
-          _toggleCountry(country, expanded);
-          return true;
+          if (country != null && !expanded.contains(country)) {
+            _toggleCountry(country, expanded);
+          }
         },
         onCollapse: (key) {
           final header = navStops.headerFor(key);
