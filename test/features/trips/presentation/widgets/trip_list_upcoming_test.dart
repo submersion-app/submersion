@@ -92,6 +92,19 @@ DateTime _dayOffset(int days) {
 }
 
 void main() {
+  // The fixtures below count calendar days from today, the way the countdown
+  // does (Trip.daysUntilStart). Adding a Duration to local midnight instead
+  // lands an hour short of the target day across a DST fall-back, so the
+  // trip started a day early and the countdown read 23 (#3152). Pinned to a
+  // date whose +24 days crosses the US and EU fall-back; CI runs in UTC, so
+  // this only bites in a DST zone, where the suite is run locally.
+  test('_dayOffset counts calendar days across a DST change', () {
+    withClock(Clock.fixed(DateTime(2026, 10, 9, 12)), () {
+      expect(_dayOffset(24), DateTime(2026, 11, 2));
+      expect(calendarDaysBetween(clock.now(), _dayOffset(24)), 24);
+    });
+  });
+
   group('TripListContent upcoming section', () {
     late SharedPreferences prefs;
     late Trip upcomingTrip;
@@ -102,7 +115,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       prefs = await SharedPreferences.getInstance();
 
-      final now = DateTime.now();
+      final now = clock.now();
       upcomingTrip = Trip(
         id: 'trip-upcoming',
         name: 'Cozumel',
