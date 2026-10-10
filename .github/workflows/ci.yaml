@@ -535,6 +535,7 @@ jobs:
             test/features/trips/presentation/widgets/trip_summary_widget_test.dart
             test/features/trips/presentation/widgets/story/trip_story_hero_test.dart
             test/features/trips/domain/entities/trip_upcoming_test.dart
+            test/features/trips/presentation/widgets/trip_list_upcoming_test.dart
             test/features/equipment/presentation/widgets/children_card_test.dart
             test/features/notifications/service_ledger_scheduler_test.dart
             test/features/tides/presentation/widgets/tide_date_format_test.dart

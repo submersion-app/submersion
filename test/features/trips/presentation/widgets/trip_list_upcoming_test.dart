@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -78,9 +79,14 @@ Widget _buildTestWidget({required List<Override> overrides}) {
 // Fixtures
 // ---------------------------------------------------------------------------
 
+/// Local midnight [days] calendar days from today, read from `clock` so a
+/// test can pin "today". Built with calendar arithmetic, not by adding a
+/// `Duration`: a `Duration` is elapsed time, so a window that crosses a
+/// daylight-saving fall-back lands at 23:00 on the previous calendar day and
+/// the countdown (which counts calendar days, correctly) reads one short.
 DateTime _dayOffset(int days) {
-  final now = DateTime.now();
-  return DateTime(now.year, now.month, now.day).add(Duration(days: days));
+  final now = clock.now();
+  return DateTime(now.year, now.month, now.day + days);
 }
 
 void main() {
@@ -214,6 +220,37 @@ void main() {
       expect(find.text('In 24 days'), findsOneWidget);
       expect(find.text('In progress'), findsOneWidget);
       expect(find.text('3 of 12 to-dos done'), findsOneWidget);
+    });
+
+    // Pinned, so this does not quietly depend on the date the suite runs.
+    // 2026-10-09 is 24 days before the US fall-back on 2026-11-01, so a
+    // fixture built from elapsed time starts the trip on 2026-11-01 23:00
+    // and the tile reads "In 23 days". Green on a UTC runner either way,
+    // which is why this file is on the CI Timezone Tests list.
+    testWidgets('countdown keeps its count when the window crosses a '
+        'daylight-saving change (regression #3152)', (tester) async {
+      await setMobileSize(tester);
+
+      await withClock(Clock.fixed(DateTime(2026, 10, 9, 12)), () async {
+        final now = clock.now();
+        final trip = Trip(
+          id: 'trip-dst',
+          name: 'Cozumel',
+          startDate: _dayOffset(24),
+          endDate: _dayOffset(31),
+          createdAt: now,
+          updatedAt: now,
+        );
+
+        await tester.pumpWidget(
+          _buildTestWidget(
+            overrides: baseOverrides([TripWithStats(trip: trip)]),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('In 24 days'), findsOneWidget);
+      });
     });
 
     testWidgets('past-only list renders without an Upcoming header', (
