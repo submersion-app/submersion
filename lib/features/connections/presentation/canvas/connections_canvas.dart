@@ -7,6 +7,7 @@ import 'package:submersion/features/connections/domain/entities/connection_graph
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/layout/layout_guide.dart';
 import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
@@ -116,6 +117,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
   final Map<NodeRef, TextPainter> _labelCache = {};
   final Map<NodeRef, TextPainter> _dimLabelCache = {};
   final Map<(NodeRef, int), TextPainter> _initialsCache = {};
+  final Map<LayoutGuide, TextPainter> _guideCache = {};
   TextStyle? _cachedLabelStyle;
 
   late final AnimationController _glide = AnimationController(
@@ -219,6 +221,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
     _labelCache.clear();
     _dimLabelCache.clear();
     _initialsCache.clear();
+    _guideCache.clear();
   }
 
   double _radiusOf(NodeRef ref) {
@@ -345,6 +348,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
           labelCache: _labelCache,
           dimLabelCache: _dimLabelCache,
           initialsCache: _initialsCache,
+          guideCache: _guideCache,
           haloColor: theme.colorScheme.surface,
           highlight: widget.highlight,
           groupOf: widget.groupOf,

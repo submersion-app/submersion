@@ -25,6 +25,8 @@ import 'package:submersion/features/connections/presentation/widgets/year_play_p
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
+import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 
 NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
 
@@ -193,5 +195,34 @@ void main() {
     expect(find.byType(YearPlayPill), findsOneWidget);
     expect(find.byType(TableHeaderBar), findsOneWidget);
     expect(find.byKey(const ValueKey('connections-display')), findsNothing);
+  });
+
+  testWidgets('a static map layout with nothing pinned offers no relayout', (
+    tester,
+  ) async {
+    final c = await _pump(tester);
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Lay out again'), findsOneWidget);
+    await c
+        .read(connectionsDisplayProvider.notifier)
+        .update((d) => d.withLayout(ConnectionsLayout.columns, around: false));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Lay out again'), findsNothing);
+  });
+
+  testWidgets('a hidden selected node does not dim the canvas', (tester) async {
+    final c = await _pump(tester);
+    await tester.pumpAndSettle();
+    c.read(connectionsSelectionProvider.notifier).state = NodeSelection(
+      _b('lone'),
+    );
+    await c
+        .read(connectionsDisplayProvider.notifier)
+        .update((d) => d.copyWith(hideUnconnected: true));
+    await tester.pumpAndSettle();
+    final canvas = tester.widget<ConnectionsCanvas>(
+      find.byType(ConnectionsCanvas),
+    );
+    expect(canvas.selection, isNull);
   });
 }

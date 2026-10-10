@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
-import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/insights/graph_insights.dart';
@@ -263,9 +262,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     final fontFamily = Theme.of(context).textTheme.bodyMedium?.fontFamily;
     final direction = Directionality.of(context);
     final l10n = context.l10n;
-    final kindNames = {
-      for (final k in ConnectionKind.values) k: kindLabel(l10n, k),
-    };
+    final names = kindNames(l10n);
     return shareConnectionsImage(
       context,
       anchorContext: button,
@@ -281,7 +278,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         labels: display.labels,
         nodeSize: display.nodeSize,
         edges: display.edges,
-        kindNames: kindNames,
+        kindNames: names,
       ),
     );
   }
@@ -563,8 +560,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
             ),
           if (display.view == ConnectionsViewKind.graph)
             ListenableBuilder(
-              listenable: _layout,
-              builder: (context, _) => focus == null || _layout.hasPins
+              listenable: _layout.canRelayout,
+              builder: (context, _) => _layout.canRelayout.value
                   ? IconButton(
                       icon: const Icon(Icons.refresh),
                       tooltip: l10n.connections_tooltip_relayout,

@@ -174,4 +174,24 @@ void main() {
     ).paint(Canvas(recorder), const Size(400, 400));
     recorder.endRecording().dispose();
   });
+
+  test('a lane label never starts left of the canvas', () {
+    final rec = _Recording();
+    ConnectionsPainter(
+      graph: graph,
+      frame: frame(
+        guides: const [LaneGuide(ConnectionKind.buddy, GraphPoint(-170, 0))],
+      ),
+      // Nodes sit at 100 px and more; only the lane label nears the edge.
+      viewport: const GraphViewport(offset: Offset(100, 100)),
+      colors: const ConnectionKindColors({}, Colors.grey),
+      labelStyle: const TextStyle(fontSize: 12),
+      labels: LabelMode.off,
+      kindNames: const {ConnectionKind.buddy: 'A very long kind name'},
+    ).paint(rec, const Size(400, 400));
+    final offsets = rec.calls
+        .where((c) => c.memberName == #drawParagraph)
+        .map((c) => c.positionalArguments[1] as Offset);
+    expect(offsets.every((o) => o.dx >= 0), isTrue);
+  });
 }

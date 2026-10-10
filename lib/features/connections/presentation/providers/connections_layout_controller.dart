@@ -55,6 +55,18 @@ class ConnectionsLayoutController extends ChangeNotifier {
   /// True while any node sits where the diver dropped it.
   bool get hasPins => _web?.hasPins ?? _pins.isNotEmpty;
 
+  /// Whether [relayout] would change anything: a live layout can always be
+  /// laid out again; a computed one only while something is pinned. A
+  /// separate listenable, so the button listening to it does not rebuild on
+  /// every simulation tick.
+  final ValueNotifier<bool> canRelayout = ValueNotifier(false);
+
+  @override
+  void notifyListeners() {
+    canRelayout.value = _web != null || _pins.isNotEmpty;
+    super.notifyListeners();
+  }
+
   /// Replaces the graph, the layout or the spacing, releasing every pin.
   /// The web layout warm-starts from the previous frame when [warmStart]
   /// is true, so existing nodes barely move. Any other layout morphs from
@@ -245,6 +257,7 @@ class ConnectionsLayoutController extends ChangeNotifier {
   @override
   void dispose() {
     _ticker.dispose();
+    canRelayout.dispose();
     super.dispose();
   }
 

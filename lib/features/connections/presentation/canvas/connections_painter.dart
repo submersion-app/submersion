@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show mapEquals;
@@ -42,7 +43,9 @@ class ConnectionsPainter extends CustomPainter {
     Map<NodeRef, TextPainter>? labelCache,
     Map<NodeRef, TextPainter>? dimLabelCache,
     Map<(NodeRef, int), TextPainter>? initialsCache,
+    Map<LayoutGuide, TextPainter>? guideCache,
   }) : labelCache = labelCache ?? {},
+       guideCache = guideCache ?? {},
        dimLabelCache = dimLabelCache ?? {},
        initialsCache = initialsCache ?? {};
 
@@ -89,6 +92,10 @@ class ConnectionsPainter extends CustomPainter {
   final Map<NodeRef, TextPainter> labelCache;
   final Map<NodeRef, TextPainter> dimLabelCache;
   final Map<(NodeRef, int), TextPainter> initialsCache;
+
+  /// Laid-out timeline guide text, owned by the canvas like the label
+  /// caches, so panning a timeline never re-lays it out.
+  final Map<LayoutGuide, TextPainter> guideCache;
 
   /// The nodes lit up by [selection]: a node's far ends, or both ends of an
   /// edge. Empty without a selection.
@@ -353,28 +360,33 @@ class ConnectionsPainter extends CustomPainter {
   /// Timeline years and kind lanes, drawn under the edges.
   void _paintGuides(Canvas canvas, Color ink) {
     for (final g in frame.guides) {
-      final text = switch (g) {
-        YearGuide(:final year) => '$year',
-        LaneGuide(:final kind) => kindNames[kind] ?? kind.name,
-      };
-      final tp = TextPainter(
-        text: TextSpan(
-          text: text,
-          style: labelStyle.copyWith(
-            color: ink.withValues(alpha: 0.6),
-            fontWeight: FontWeight.w600,
+      final tp = guideCache.putIfAbsent(
+        g,
+        () => TextPainter(
+          text: TextSpan(
+            text: switch (g) {
+              YearGuide(:final year) => '$year',
+              LaneGuide(:final kind) => kindNames[kind] ?? kind.name,
+            },
+            style: labelStyle.copyWith(
+              color: ink.withValues(alpha: 0.6),
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        ),
-        textDirection: TextDirection.ltr,
-        maxLines: 1,
-      )..layout();
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout(),
+      );
       final at = viewport.toScreen(g.at);
       final topLeft = switch (g) {
         YearGuide() => at - Offset(tp.width / 2, tp.height / 2),
-        LaneGuide() => at - Offset(tp.width, tp.height / 2),
+        // Lane names end at the anchor, but never start off the canvas.
+        LaneGuide() => Offset(
+          math.max(4, at.dx - tp.width),
+          at.dy - tp.height / 2,
+        ),
       };
       tp.paint(canvas, topLeft);
-      tp.dispose();
     }
   }
 

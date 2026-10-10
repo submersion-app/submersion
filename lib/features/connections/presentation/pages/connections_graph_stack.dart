@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
-import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/insights/graph_insights.dart';
@@ -70,6 +69,13 @@ class ConnectionsGraphStack extends StatelessWidget {
   final Widget playPill;
   final bool loading;
 
+  /// [selection], unless it names a node the canvas does not draw (one
+  /// hidden as unconnected); the canvas would dim everything around it.
+  GraphSelection? get _drawnSelection => switch (selection) {
+    NodeSelection(:final ref) when canvasGraph.nodeFor(ref) == null => null,
+    final s => s,
+  };
+
   /// The canvas's accessible summary: counts, then the selection by name.
   String _semanticsLabel(BuildContext context) {
     final l10n = context.l10n;
@@ -98,7 +104,7 @@ class ConnectionsGraphStack extends StatelessWidget {
             graph: canvasGraph,
             controller: controller,
             colors: colors,
-            selection: selection,
+            selection: _drawnSelection,
             semanticsLabel: _semanticsLabel(context),
             animate: animate,
             bottomInset: bottomInset,
@@ -108,9 +114,7 @@ class ConnectionsGraphStack extends StatelessWidget {
             labels: display.labels,
             nodeSize: display.nodeSize,
             edges: display.edges,
-            kindNames: {
-              for (final k in ConnectionKind.values) k: kindLabel(l10n, k),
-            },
+            kindNames: kindNames(l10n),
             layoutToken: (controller.layout, display.spacing),
             onSelect: onSelect,
             onFocus: onFocus,
