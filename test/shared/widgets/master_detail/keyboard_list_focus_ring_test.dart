@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_focus_ring.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
 import '../../../helpers/keyboard_navigation_contract.dart';
@@ -252,6 +253,76 @@ void main() {
           const Radius.circular(12),
         ),
       ),
+    );
+  });
+
+  testWidgets('the ring repaints in a new colour while it shows', (
+    tester,
+  ) async {
+    const card = Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Card(margin: EdgeInsets.zero, child: SizedBox(height: 40)),
+    );
+    await _pumpRingedRow(
+      tester,
+      card,
+      theme: ThemeData(
+        colorScheme: const ColorScheme.light(primary: Colors.red),
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          colorScheme: const ColorScheme.light(primary: Colors.green),
+        ),
+        home: Scaffold(
+          body: KeyboardListNavigator(
+            keys: const ['a'],
+            currentKey: null,
+            onMove: (_) {},
+            child: ListView(
+              children: [
+                const KeyboardListItem(
+                  navigationKey: 'a',
+                  child: KeyedSubtree(key: ValueKey('row-a'), child: card),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      _ringedRow(tester),
+      paints..something(
+        (method, arguments) =>
+            method == #drawDRRect &&
+            (arguments[2] as Paint).color.toARGB32() == Colors.green.toARGB32(),
+      ),
+    );
+  });
+
+  testWidgets('outside a navigator a row shows its header and contents', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: KeyboardListItem(
+            navigationKey: 'a',
+            header: Text('banner'),
+            child: Text('card'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byType(KeyboardListFocusRing), findsNothing);
+    expect(
+      tester.getTopLeft(find.text('banner')).dy,
+      lessThan(tester.getTopLeft(find.text('card')).dy),
     );
   });
 }
