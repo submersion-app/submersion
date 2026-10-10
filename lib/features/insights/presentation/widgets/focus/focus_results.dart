@@ -97,8 +97,9 @@ class FocusResults extends ConsumerWidget {
                               color: theme.colorScheme.primary,
                             ),
                           ],
-                          // Muted enough that the group, in the accent, reads at a
-                          // glance among a long logbook's other dives.
+                          // Muted enough that the group, in the accent,
+                          // reads at a glance among a long logbook's other
+                          // dives.
                           pointColor: theme.colorScheme.outlineVariant,
                           dateFormat: ref.watch(dateFormatProvider),
                           valueFormatter: (v) => metricUnits.format(v, l10n),

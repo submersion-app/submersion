@@ -125,7 +125,7 @@ class SliverStatSectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cardTheme = CardTheme.of(context);
-    final elevation = (cardTheme.elevation ?? 1).round();
+    final shadowColor = cardTheme.shadowColor ?? theme.colorScheme.shadow;
     return SliverPadding(
       padding: cardTheme.margin ?? const EdgeInsets.all(4),
       sliver: DecoratedSliver(
@@ -134,7 +134,7 @@ class SliverStatSectionCard extends StatelessWidget {
           shape:
               cardTheme.shape ??
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          shadows: kElevationToShadow[elevation] ?? const [],
+          shadows: _cardShadows(cardTheme.elevation ?? 1, shadowColor),
         ),
         sliver: SliverPadding(
           padding: const EdgeInsets.all(16),
@@ -149,6 +149,23 @@ class SliverStatSectionCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The Material shadow for the highest standard elevation at or below
+/// [elevation], in [color] at each layer's own opacity.
+List<BoxShadow> _cardShadows(double elevation, Color color) {
+  final key = kElevationToShadow.keys
+      .where((k) => k <= elevation)
+      .fold<int>(0, (best, k) => k > best ? k : best);
+  return [
+    for (final shadow in kElevationToShadow[key]!)
+      BoxShadow(
+        color: color.withValues(alpha: shadow.color.a),
+        offset: shadow.offset,
+        blurRadius: shadow.blurRadius,
+        spreadRadius: shadow.spreadRadius,
+      ),
+  ];
 }
 
 /// A compact stat card showing a single value with label
