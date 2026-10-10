@@ -5954,6 +5954,7 @@
   "settings_conflict_same": "Gleich",
   "settings_conflict_finerThanShown": "Der Unterschied ist feiner, als diese Anzeige zeigt.",
   "settings_conflict_moreFields": "{fields} und {count, plural, one{{count} weiteres} other{{count} weitere}}",
+  "settings_conflict_fieldListSeparator": ", ",
   "enum_eventSeverity_info": "Info",
   "settings_conflict_changed": "Geändert",
   "settings_conflict_chooseVersion": "Wähle, welche Version behalten werden soll.",

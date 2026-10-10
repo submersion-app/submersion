@@ -36626,6 +36626,12 @@ abstract class AppLocalizations {
   /// **'{fields} and {count, plural, one{{count} more} other{{count} more}}'**
   String settings_conflict_moreFields(String fields, int count);
 
+  /// Separator between field names in the conflict consequence line, such as ", " in English or "、" in Chinese.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get settings_conflict_fieldListSeparator;
+
   /// No description provided for @settings_conflict_next_tooltip.
   ///
   /// In en, this message translates to:

@@ -5735,6 +5735,7 @@
   "settings_conflict_same": "Egyező",
   "settings_conflict_finerThanShown": "Az eltérés kisebb annál, amit ez a nézet mutat.",
   "settings_conflict_moreFields": "{fields} és még {count, plural, one{{count}} other{{count}}}",
+  "settings_conflict_fieldListSeparator": ", ",
   "enum_eventSeverity_info": "Információ",
   "settings_conflict_changed": "Módosult",
   "settings_conflict_chooseVersion": "Válaszd ki, melyik verziót tartod meg.",

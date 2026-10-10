@@ -5735,6 +5735,7 @@
   "settings_conflict_same": "Uguale",
   "settings_conflict_finerThanShown": "La differenza è più fine di quanto mostri questa visualizzazione.",
   "settings_conflict_moreFields": "{fields} e {count, plural, one{{count} altro} other{{count} altri}}",
+  "settings_conflict_fieldListSeparator": ", ",
   "enum_eventSeverity_info": "Informazione",
   "settings_conflict_changed": "Modificato",
   "settings_conflict_chooseVersion": "Scegli quale versione mantenere.",

@@ -13360,6 +13360,8 @@
   "@settings_conflict_modifiedBy": {"placeholders": {"device": {"type": "String"}, "time": {"type": "String"}}},
   "settings_conflict_moreFields": "{fields} and {count, plural, one{{count} more} other{{count} more}}",
   "@settings_conflict_moreFields": {"placeholders": {"fields": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_conflict_fieldListSeparator": ", ",
+  "@settings_conflict_fieldListSeparator": {"description": "Separator between field names in the conflict consequence line, such as \", \" in English or \"\u3001\" in Chinese."},
   "settings_conflict_next_tooltip": "Next conflict",
   "settings_conflict_noConflicts_message": "All sync conflicts have been resolved.",
   "settings_conflict_noConflicts_title": "No Conflicts",

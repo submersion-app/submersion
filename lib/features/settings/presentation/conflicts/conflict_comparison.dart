@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/conflict_field_catalogue.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
@@ -290,10 +291,13 @@ List<T> _sorted<T>(
     return i < 0 ? _preferredOrder.length : i;
   }
 
+  // Labels are compared case- and accent-folded, so "Épaisseur" sorts with
+  // the E's rather than after "Zeta".
+  final collator = TextCollator();
   return List.unmodifiable(
     [...items]..sort((a, b) {
       final byRank = rank(a).compareTo(rank(b));
-      return byRank != 0 ? byRank : label(a).compareTo(label(b));
+      return byRank != 0 ? byRank : collator.compare(label(a), label(b));
     }),
   );
 }

@@ -22823,6 +22823,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_fieldListSeparator => ', ';
+
+  @override
   String get settings_conflict_next_tooltip => 'Conflit suivant';
 
   @override

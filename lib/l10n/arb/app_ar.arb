@@ -5837,6 +5837,7 @@
   "settings_conflict_same": "متطابق",
   "settings_conflict_finerThanShown": "الفرق أدق مما يعرضه هذا العرض.",
   "settings_conflict_moreFields": "{fields} و{count, plural, zero{لا شيء آخر} one{حقل آخر} two{حقلان آخران} few{{count} حقول أخرى} many{{count} حقلًا آخر} other{{count} حقل آخر}}",
+  "settings_conflict_fieldListSeparator": "، ",
   "enum_eventSeverity_info": "معلومة",
   "settings_conflict_changed": "تغيّر",
   "settings_conflict_chooseVersion": "اختر النسخة التي تريد الاحتفاظ بها.",

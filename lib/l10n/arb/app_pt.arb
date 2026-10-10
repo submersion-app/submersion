@@ -5837,6 +5837,7 @@
   "settings_conflict_same": "Igual",
   "settings_conflict_finerThanShown": "A diferença é menor do que esta tela mostra.",
   "settings_conflict_moreFields": "{fields} e mais {count, plural, one{{count}} other{{count}}}",
+  "settings_conflict_fieldListSeparator": ", ",
   "enum_eventSeverity_info": "Informação",
   "settings_conflict_changed": "Alterado",
   "settings_conflict_chooseVersion": "Escolha qual versão manter.",

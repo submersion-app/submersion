@@ -63,6 +63,24 @@ void main() {
     );
   });
 
+  test('the field list uses the locale list separator', () async {
+    for (final (code, separator) in [('zh', '\u3001'), ('ar', '\u060C ')]) {
+      final localized = await AppLocalizations.delegate.load(Locale(code));
+      final consequence = conflictConsequence(
+        l10n: localized,
+        comparison: differing,
+        devices: devices,
+        choice: ConflictResolution.keepLocal,
+      );
+      expect(
+        consequence,
+        contains('Water temp${separator}Notes'),
+        reason: code,
+      );
+      expect(consequence, isNot(contains('Water temp, Notes')), reason: code);
+    }
+  });
+
   test('keep remote is the mirror', () {
     expect(
       text(differing, ConflictResolution.keepRemote),

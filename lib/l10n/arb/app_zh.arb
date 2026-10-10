@@ -5989,6 +5989,7 @@
   "settings_conflict_same": "相同",
   "settings_conflict_finerThanShown": "差异比此处显示的精度更细。",
   "settings_conflict_moreFields": "{fields}等另外 {count, plural, other{{count} 项}}",
+  "settings_conflict_fieldListSeparator": "、",
   "enum_eventSeverity_info": "信息",
   "settings_conflict_changed": "已更改",
   "settings_conflict_chooseVersion": "选择要保留的版本。",
