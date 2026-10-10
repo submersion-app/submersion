@@ -79,8 +79,7 @@ int _totalStopSeconds(ProviderContainer container) => container
     .stops
     .fold(0, (sum, stop) => sum + stop.durationSeconds);
 
-/// [outcome] with its issues replaced, so a test can pin what the engine
-/// reports independently of the plan the legacy calculator sees.
+/// [outcome] with its issues replaced.
 PlanOutcome _withIssues(PlanOutcome outcome, List<PlanIssue> issues) {
   return PlanOutcome(
     runtimeSeconds: outcome.runtimeSeconds,
@@ -99,6 +98,26 @@ PlanOutcome _withIssues(PlanOutcome outcome, List<PlanIssue> issues) {
     ceilingTrace: outcome.ceilingTrace,
     authoredDecoSeconds: outcome.authoredDecoSeconds,
   );
+}
+
+/// A container whose engine outcome is computed for real but reports exactly
+/// [issues], so a test can pin what the engine says independently of the
+/// plan the legacy calculator sees.
+ProviderContainer _containerWithEngineIssues(List<PlanIssue> issues) {
+  final container = ProviderContainer(
+    overrides: [
+      settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      planOutcomeProvider.overrideWith((ref) {
+        final real = computeOutcomeForState(
+          ref.watch(divePlanNotifierProvider),
+          config: ref.watch(planEngineConfigProvider),
+        );
+        return _withIssues(real, issues);
+      }),
+    ],
+  );
+  addTearDown(container.dispose);
+  return container;
 }
 
 void main() {
@@ -391,20 +410,7 @@ void main() {
       () {
         // Air at 70 m breaks the legacy calculator's ppO2 limit; with the
         // engine reporting nothing critical, the gate follows the engine.
-        final container = ProviderContainer(
-          overrides: [
-            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-            planOutcomeProvider.overrideWith((ref) {
-              final state = ref.watch(divePlanNotifierProvider);
-              final real = computeOutcomeForState(
-                state,
-                config: ref.watch(planEngineConfigProvider),
-              );
-              return _withIssues(real, const []);
-            }),
-          ],
-        );
-        addTearDown(container.dispose);
+        final container = _containerWithEngineIssues(const []);
         container
             .read(divePlanNotifierProvider.notifier)
             .addSimplePlan(maxDepth: 70.0, bottomTimeMinutes: 10);
@@ -414,26 +420,13 @@ void main() {
     );
 
     test('a critical engine issue blocks conversion of any plan', () {
-      final container = ProviderContainer(
-        overrides: [
-          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
-          planOutcomeProvider.overrideWith((ref) {
-            final state = ref.watch(divePlanNotifierProvider);
-            final real = computeOutcomeForState(
-              state,
-              config: ref.watch(planEngineConfigProvider),
-            );
-            return _withIssues(real, const [
-              PlanIssue(
-                type: PlanIssueType.hypoxicGas,
-                severity: PlanIssueSeverity.critical,
-                message: 'hypoxic',
-              ),
-            ]);
-          }),
-        ],
-      );
-      addTearDown(container.dispose);
+      final container = _containerWithEngineIssues(const [
+        PlanIssue(
+          type: PlanIssueType.hypoxicGas,
+          severity: PlanIssueSeverity.critical,
+          message: 'hypoxic',
+        ),
+      ]);
       container
           .read(divePlanNotifierProvider.notifier)
           .addSimplePlan(maxDepth: 18.0, bottomTimeMinutes: 20);
