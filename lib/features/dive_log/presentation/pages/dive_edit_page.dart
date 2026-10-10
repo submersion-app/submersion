@@ -357,6 +357,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // fields but must never trigger mirroring.
   bool _exitMethodLinked = true;
   WaterType? _waterType;
+
+  /// True while [_waterType] is the loaded site's water type standing in for
+  /// a dive that has none of its own (issue #3196). A site change then starts
+  /// from no water type, so the old site's value is never saved as the dive's.
+  bool _waterTypeFromSite = false;
   final _swellHeightController = TextEditingController();
 
   /// Measured visibility, entered in the diver's depth unit and converted to
@@ -986,7 +991,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _exitMethod = dive.exitMethod;
           _exitMethodLinked =
               _exitMethod == null || _exitMethod == _entryMethod;
-          _waterType = dive.waterType;
+          // A dive with no water type of its own shows its site's, as the
+          // detail page does; saving then stores it (issue #3196).
+          _waterType = dive.effectiveWaterType;
+          _waterTypeFromSite = dive.waterType == null && _waterType != null;
           _swellHeightController.text = dive.swellHeight != null
               ? _seedDecimal(units.convertDepth(dive.swellHeight!), 1)
               : '';
@@ -2017,7 +2025,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               value: _waterType,
               options: WaterType.values,
               label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() => _waterType = v),
+              onChanged: (v) => setState(() {
+                _waterType = v;
+                _waterTypeFromSite = false;
+              }),
             ),
           ),
         ),
@@ -2778,7 +2789,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// saved values.
   void _assignSite(DiveSite? site) {
     _selectedSite = site;
-    _waterType = waterTypeAfterSiteAssign(_waterType, site);
+    _waterType = waterTypeAfterSiteAssign(
+      _waterTypeFromSite ? null : _waterType,
+      site,
+    );
+    _waterTypeFromSite = false;
     final entryExit = entryExitAfterSiteAssign(
       currentEntry: _entryMethod,
       currentExit: _exitMethod,
@@ -4871,7 +4886,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         value: _waterType,
         values: WaterType.values,
         displayName: (v) => v.localizedName(l10n),
-        onChanged: (v) => setState(() => _waterType = v),
+        onChanged: (v) => setState(() {
+          _waterType = v;
+          _waterTypeFromSite = false;
+        }),
       ),
       EnumPickerRow<CurrentDirection>(
         label: l10n.diveLog_edit_label_currentDirection,

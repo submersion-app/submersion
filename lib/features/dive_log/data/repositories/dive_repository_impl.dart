@@ -15,8 +15,10 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/core/utils/stream_value_changes.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -400,6 +402,36 @@ class DiveRepository {
       )
       .debounce(changeTickDebounce);
 
+  /// Emits when the water type of [diveId]'s site changes, the deco fallback
+  /// [getDiveForAnalysis] reads for a dive with none of its own (issue
+  /// #3196). Deliberately not part of [watchAnalysisInputChanges]: that tick
+  /// fans out to every analysis input provider, and `dive_sites` is written
+  /// in bulk (a sync, the altitude backfill after site matching). This query
+  /// re-reads one value on such a write and emits only when it changed.
+  ///
+  /// Built on table updates, not a query stream, which would emit on
+  /// subscribe (see test/architecture/query_stream_tick_test.dart). A change
+  /// of the dive's own site link already ticks through `dives`.
+  Stream<void> watchSiteWaterTypeChanges(String diveId) => whenValueChanges(
+    _db
+        .tableUpdates(TableUpdateQuery.onTable(_db.diveSites))
+        .debounce(changeTickDebounce),
+    () => _siteWaterTypeOf(diveId),
+  );
+
+  // stats-scope-exempt: reads one dive's site water type for its analysis
+  Future<String?> _siteWaterTypeOf(String diveId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT s.water_type AS water_type FROM dives d '
+          'JOIN dive_sites s ON s.id = d.site_id WHERE d.id = ?',
+          variables: [Variable.withString(diveId)],
+          readsFrom: {_db.dives, _db.diveSites},
+        )
+        .getSingleOrNull();
+    return row?.readNullable<String>('water_type');
+  }
+
   /// Get all dives, ordered by date (newest first)
   /// This method is optimized to avoid N+1 queries by batch loading related data
   /// Optionally filter by [diverId] for multi-diver support
@@ -632,14 +664,35 @@ class DiveRepository {
     }
   }
 
-  /// Sets (or clears, when [siteId] is null) only the site association of a
-  /// dive. Single-column update — does not rewrite the whole row.
+  /// Sets (or clears, when [siteId] is null) the site association of a dive,
+  /// and snaps the site's water type, entry/exit methods and dive types onto
+  /// it as the dive form's site picker does (issue #3196). A partial update:
+  /// only the site link and the columns the snap changes are written.
+  ///
+  /// Dive types are only added here. The form can take back what the previous
+  /// site added in the same edit; a link made outside the form has no record
+  /// of that, so it never removes a type.
   Future<void> setSite(String diveId, String? siteId) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-        DivesCompanion(siteId: Value(siteId), updatedAt: Value(now)),
-      );
+      await _db.transaction(() async {
+        final dive = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+        if (dive == null) return;
+        final siteRow = siteId == null
+            ? null
+            : await (_db.select(
+                _db.diveSites,
+              )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+          siteSnapColumns(
+            dive,
+            siteRow == null ? null : mapDiveSiteRow(siteRow),
+          ).copyWith(siteId: Value(siteId), updatedAt: Value(now)),
+        );
+        if (siteRow != null) await _addSiteDiveTypes(dive, siteRow.id, now);
+      });
       await _syncRepository.markRecordPending(
         entityType: 'dives',
         recordId: diveId,
@@ -5875,11 +5928,20 @@ class DiveRepository {
                 ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
               .get();
       final profile = await getMergedProfile(diveId);
+      // The site rides along so `effectiveWaterType` can fall back to its
+      // water type for the deco environment (issue #3196).
+      final siteId = row.siteId;
+      final site = siteId == null
+          ? null
+          : await (_db.select(
+              _db.diveSites,
+            )..where((t) => t.id.equals(siteId))).getSingleOrNull();
 
       return _mapRowToDiveWithPreloadedData(
         row,
         tanks: tankRows,
         gear: const [],
+        site: site,
       ).copyWith(profile: profile);
     } catch (e, stackTrace) {
       _log.error(
@@ -6473,6 +6535,18 @@ class DiveRepository {
       await _replaceDiveTypeRows(diveId, merged, now);
     }
     await _bumpDives(diveIds, now);
+  }
+
+  /// Adds the dive types [siteId]'s site types stand for to [dive]'s set, for
+  /// [setSite]. Rewrites the junction only when a type is actually new.
+  Future<void> _addSiteDiveTypes(Dive dive, String siteId, int now) async {
+    final siteTypeIds = await diveTypeIdsForSite(siteId, dive.diverId);
+    if (siteTypeIds.isEmpty) return;
+    final current =
+        (await _diveTypesForDives([dive.id]))[dive.id] ?? [dive.diveType];
+    final added = siteTypeIds.where((t) => !current.contains(t)).toList();
+    if (added.isEmpty) return;
+    await _replaceDiveTypeRows(dive.id, [...current, ...added], now);
   }
 
   /// Remove [typeIds] from each dive's set. Never empties a dive: a removal

@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/core/utils/stream_value_changes.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
@@ -12,9 +13,10 @@ import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 
 /// Assembles weight-prediction training rows from the dive log.
 ///
-/// Six batch queries (dives, dive_weights, dive_equipment, dive_tanks, and
-/// equipment + equipment_attributes for gear-carried lead) -- no per-dive
-/// N+1. Only dives that recorded any weight qualify.
+/// Seven batch queries (dives, dive_weights, dive_equipment, dive_tanks,
+/// dive_sites for water type, and equipment + equipment_attributes for
+/// gear-carried lead) -- no per-dive N+1. Only dives that recorded any
+/// weight qualify.
 class WeightHistoryRepository {
   WeightHistoryRepository([AppDatabase? db]) : _dbOverride = db;
 
@@ -31,6 +33,29 @@ class WeightHistoryRepository {
   Stream<void> watchGearLeadChanges() => _db.tableUpdates(
     TableUpdateQuery.onAllTables([_db.equipment, _db.equipmentAttributes]),
   );
+
+  /// Emits when any site's water type changes, the fallback an observation
+  /// takes for a dive with none of its own (issue #3196). Other site writes
+  /// (notes, coordinates, the altitude backfill) leave it quiet.
+  ///
+  /// Built on table updates, not a query stream, which would emit on
+  /// subscribe (see test/architecture/query_stream_tick_test.dart).
+  Stream<void> watchSiteWaterTypeChanges() => whenValueChanges(
+    _db.tableUpdates(TableUpdateQuery.onTable(_db.diveSites)),
+    _siteWaterTypeSnapshot,
+  );
+
+  /// Every site's id and water type, as one comparable string.
+  Future<String> _siteWaterTypeSnapshot() async {
+    final rows = await (_db.selectOnly(
+      _db.diveSites,
+    )..addColumns([_db.diveSites.id, _db.diveSites.waterType])).get();
+    final pairs = [
+      for (final r in rows)
+        '${r.read(_db.diveSites.id)}=${r.read(_db.diveSites.waterType)}',
+    ]..sort();
+    return pairs.join('\n');
+  }
 
   /// All dives of [diverId] that recorded any weight, ordered oldest-first.
   Future<List<WeightObservation>> observationsForDiver(String diverId) async {
@@ -52,6 +77,7 @@ class WeightHistoryRepository {
     final tankRows = await (_db.select(
       _db.diveTanks,
     )..where((t) => t.diveId.isIn(diveIds))).get();
+    final siteWaterTypes = await _siteWaterTypes(diveRows);
 
     final weightsByDive = <String, List<DiveWeight>>{};
     for (final row in weightRows) {
@@ -143,12 +169,7 @@ class WeightHistoryRepository {
         WeightObservation(
           diveId: dive.id,
           diveDateTime: wallClockUtcFromMillis(dive.diveDateTime),
-          waterType: dive.waterType != null
-              ? WaterType.values.firstWhere(
-                  (w) => w.name == dive.waterType,
-                  orElse: () => WaterType.salt,
-                )
-              : null,
+          waterType: _waterType(dive.waterType ?? siteWaterTypes[dive.siteId]),
           carriedKg: carried,
           placement: placement,
           equipmentIds: equipmentByDive[dive.id] ?? const [],
@@ -160,6 +181,28 @@ class WeightHistoryRepository {
     }
     return observations;
   }
+
+  /// The stored water type of each site of [diveRows], keyed by site id, so a
+  /// dive with none of its own is trained in its site's water, as
+  /// `Dive.effectiveWaterType` reads it (issue #3196). One batch query.
+  Future<Map<String, String>> _siteWaterTypes(List<Dive> diveRows) async {
+    final siteIds = {
+      for (final d in diveRows)
+        if (d.waterType == null && d.siteId != null) d.siteId!,
+    };
+    if (siteIds.isEmpty) return const {};
+    final rows = await (_db.select(
+      _db.diveSites,
+    )..where((s) => s.id.isIn(siteIds) & s.waterType.isNotNull())).get();
+    return {for (final s in rows) s.id: s.waterType!};
+  }
+
+  static WaterType? _waterType(String? name) => name == null
+      ? null
+      : WaterType.values.firstWhere(
+          (w) => w.name == name,
+          orElse: () => WaterType.salt,
+        );
 
   /// Ballast and placement for every [EquipmentType.weights] item among
   /// [equipmentIds], keyed by equipment id. Items that declare no usable mass
