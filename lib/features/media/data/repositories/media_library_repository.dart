@@ -9,6 +9,7 @@ import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/media_library_sort.dart';
 import 'package:submersion/features/media/domain/entities/media_map_point.dart';
@@ -21,7 +22,7 @@ import 'package:submersion/features/media/domain/services/media_placement_resolv
 /// owns exactly one job — library queries. Pagination is keyset on the active
 /// sort key plus id, so deep scroll positions stay flat-cost on large
 /// libraries. Every sort key is coalesced to a non-null value; see
-/// [_afterCursor] for why. Signature rows are always excluded;
+/// [_afterCursor] for why. Signature and document rows are always excluded;
 /// dive-linked media is scoped to the given diver; unlinked and site-only
 /// media is diver-global (matching the orphan sweep's view of the world).
 ///
@@ -54,15 +55,28 @@ class MediaLibraryRepository {
   Expression<int> get _sizeKey =>
       coalesce<int>([_db.media.contentSizeBytes, const Constant(-1)]);
 
-  /// Signatures never appear in the library, in any spelling.
-  Expression<bool> get _notSignature =>
-      _db.media.fileType.isNotIn(kSignatureFileTypes);
+  /// The library is the photo and video gallery. Signatures never appear,
+  /// in any spelling, and neither do documents (#3052): invoices and
+  /// briefings attached through a dive's, site's or equipment's Documents
+  /// section belong to that section, and an equipment-only document showed
+  /// up in the grid as "Unlinked".
+  ///
+  /// An exclusion list rather than `IN ('photo', 'video')`: parseMediaType
+  /// reads any file_type it does not recognise as a photo, and a whitelist
+  /// would hide those rows here while every other surface shows them.
+  static final List<String> _nonGalleryFileTypes = [
+    ...kSignatureFileTypes,
+    mediaTypeToDbString(MediaType.document),
+  ];
+
+  Expression<bool> get _galleryRow =>
+      _db.media.fileType.isNotIn(_nonGalleryFileTypes);
 
   Expression<bool> _baseWhere(String? diverId, MediaLibraryFilter filter) {
     final m = _db.media;
     final d = _db.dives;
 
-    Expression<bool> where = _notSignature;
+    Expression<bool> where = _galleryRow;
     if (diverId != null) {
       where = where & (m.diveId.isNull() | d.diverId.equals(diverId));
     }
@@ -274,14 +288,15 @@ class MediaLibraryRepository {
   }
 
   /// How many library rows each source type holds (Media section Phase 5's
-  /// browse-by-source list). Signatures are excluded, as everywhere else in
-  /// the library.
+  /// browse-by-source list). Signatures and documents are excluded, as
+  /// everywhere else in the library, so each count matches the grid it
+  /// opens.
   Future<Map<MediaSourceType, int>> countBySourceType() async {
     final m = _db.media;
     final count = countAll();
     final query = _db.selectOnly(m)
       ..addColumns([m.sourceType, count])
-      ..where(_notSignature)
+      ..where(_galleryRow)
       ..groupBy([m.sourceType]);
     final rows = await query.get();
     final result = <MediaSourceType, int>{};
@@ -293,17 +308,18 @@ class MediaLibraryRepository {
     return result;
   }
 
-  /// Rows whose persisted orphan flag is set. Backs the badge on the Media
-  /// section's Library tab.
+  /// Gallery rows whose persisted orphan flag is set. Backs the badge on the
+  /// Media section's Library tab, so it counts only what the Missing filter
+  /// would show.
   Future<int> countMissing() async {
     final m = _db.media;
-    final count = countAll(filter: m.isOrphaned.equals(true) & _notSignature);
+    final count = countAll(filter: m.isOrphaned.equals(true) & _galleryRow);
     final row = await (_db.selectOnly(m)..addColumns([count])).getSingle();
     return row.read(count) ?? 0;
   }
 
   /// Photo and video rows only: documents have nothing to show on a map and
-  /// signatures are never library rows. Subsumes [_notSignature].
+  /// signatures are never library rows. Subsumes [_galleryRow].
   Expression<bool> get _mappable =>
       _db.media.fileType.isIn(const ['photo', 'video']);
 
