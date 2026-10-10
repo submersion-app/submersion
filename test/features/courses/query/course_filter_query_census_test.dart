@@ -19,7 +19,23 @@ void main() {
     ).readAsStringSync();
     final start = state.indexOf('class CourseFilterState');
     expect(start, isNonNegative);
-    final body = state.substring(start, state.indexOf('\n}\n', start));
+    final openBrace = state.indexOf('{', start);
+    expect(openBrace, isNonNegative);
+    var depth = 0;
+    var closeBrace = -1;
+    for (var i = openBrace; i < state.length; i++) {
+      final char = state[i];
+      if (char == '{') depth++;
+      if (char == '}') {
+        depth--;
+        if (depth == 0) {
+          closeBrace = i;
+          break;
+        }
+      }
+    }
+    expect(closeBrace, greaterThan(openBrace));
+    final body = state.substring(start, closeBrace);
     final fields = RegExp(
       r'^  final [\w<>?, .]+ (\w+);',
       multiLine: true,

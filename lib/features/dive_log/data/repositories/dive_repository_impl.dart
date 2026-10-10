@@ -5700,6 +5700,13 @@ class DiveRepository {
     if (diveIds.isEmpty) return {};
 
     final byDive = await _profileSeries.getSeriesForDives(diveIds);
+    final needsHistory = [
+      for (final entry in byDive.entries)
+        if (entry.value.any((s) => !s.isPrimary)) entry.key,
+    ];
+    final revisionsByDive = needsHistory.isEmpty
+        ? const <String, List<ProfileSeriesRevision>>{}
+        : await _profileSeries.getRevisionsForDives(needsHistory);
 
     // The primary-source read is the only SQL the per-dive merge performs, and
     // only for mixed-source dives. Batching it here keeps the loop below free
@@ -5712,11 +5719,19 @@ class DiveRepository {
 
     final result = <String, List<domain.DiveProfilePoint>>{};
     for (final entry in byDive.entries) {
+      final hiddenRevisionIds = {
+        for (final revision in revisionsByDive[entry.key] ?? const [])
+          if (revision.parentSeriesId != null && !revision.isActive)
+            revision.seriesId,
+      };
       // Absent for a dive that never needed the lookup, which resolves the
       // same way the single-dive path does when it skips the query.
       final primary = primaries[entry.key];
       final points = _mergePoints(
-        entry.value,
+        [
+          for (final s in entry.value)
+            if (!hiddenRevisionIds.contains(s.id)) s,
+        ],
         hasSources: primary?.hasSources ?? true,
         primaryComputerId: primary?.computerId,
       );
@@ -5736,10 +5751,21 @@ class DiveRepository {
   Future<List<domain.DiveProfilePoint>> _mergedSeriesPoints(
     String diveId,
   ) async {
-    return _pointsForSeries(
-      diveId,
-      await _profileSeries.getSeriesForDive(diveId),
-    );
+    final series = await _profileSeries.getSeriesForDive(diveId);
+    // History metadata is only needed to identify inactive child revisions,
+    // which are always represented as demoted rows.
+    final revisions = series.any((s) => !s.isPrimary)
+        ? await _profileSeries.getRevisionsForDive(diveId)
+        : const <ProfileSeriesRevision>[];
+    final hiddenRevisionIds = {
+      for (final revision in revisions)
+        if (revision.parentSeriesId != null && !revision.isActive)
+          revision.seriesId,
+    };
+    return _pointsForSeries(diveId, [
+      for (final s in series)
+        if (!hiddenRevisionIds.contains(s.id)) s,
+    ]);
   }
 
   /// [series] reduced to the points a reader should see: the superseded
@@ -5748,10 +5774,9 @@ class DiveRepository {
   ///
   /// Takes the series rather than reading them so [getMergedProfilesForDives]
   /// can batch the read and still land on the same points as the single-dive
-  /// path. The extra [_primarySourceComputer] query is skipped unless a
-  /// demoted series actually carries a computer id, which is the only case
-  /// where the primary computer decides family membership; a single-source
-  /// dive resolves with no further SQL.
+  /// path. The extra [_primarySourceComputer] query is skipped unless the
+  /// series set mixes promoted and demoted rows, which is the only state where
+  /// supersession may need the primary computer to decide family membership.
   Future<List<domain.DiveProfilePoint>> _pointsForSeries(
     String diveId,
     List<ProfileSeries> series,
@@ -5772,13 +5797,14 @@ class DiveRepository {
 
   /// Whether [series] needs the primary `dive_data_sources` row to resolve.
   ///
-  /// Only a promoted series alongside a demoted one that still names a
-  /// computer lets the primary computer decide family membership; a
-  /// single-source dive resolves with no further SQL. Shared by the
-  /// single-dive and batched paths so the condition cannot drift.
+  /// Supersession runs only when promoted and demoted rows coexist. In that
+  /// state, a demoted edited row often has no computer id while the active
+  /// original row does; resolving the primary computer is still required to
+  /// place both in one family and drop the demoted edit from merged reads.
+  /// Shared by the single-dive and batched paths so the condition cannot
+  /// drift.
   bool _needsPrimarySource(List<ProfileSeries> series) =>
-      series.any((s) => s.isPrimary) &&
-      series.any((s) => !s.isPrimary && s.computerId != null);
+      series.any((s) => s.isPrimary) && series.any((s) => !s.isPrimary);
 
   /// [series] reduced to displayable points. Pure: every read it depends on
   /// has already happened.

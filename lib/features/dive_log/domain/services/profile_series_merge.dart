@@ -269,10 +269,12 @@ bool _spansOverlap((int, int) a, (int, int) b) {
 /// family are superseded and must not render next to the edit. Family
 /// membership follows the legacy rule: with no data sources every series is
 /// family; otherwise a null-computer series or one on the primary computer
-/// is. The caller resolves the primary computer only when a demoted series
-/// carries a computer id, as `_dropSupersededOriginals` does; when it does
-/// not, only null-computer series are family. Nothing is dropped unless the
-/// family holds both a primary and a demoted member.
+/// is. The caller resolves the primary computer whenever promoted and demoted
+/// rows coexist, including the null-computer demoted-edit case; this keeps
+/// family membership aligned with `_dropSupersededOriginals` and prevents
+/// the restored original from rendering beside an inactive child edit.
+/// Nothing is dropped unless the family holds both a primary and a demoted
+/// member.
 List<ProfileSeries> dropSupersededSeries(
   List<ProfileSeries> series, {
   required bool hasSources,
@@ -285,7 +287,8 @@ List<ProfileSeries> dropSupersededSeries(
       !hasSources || s.computerId == null || s.computerId == primaryComputerId;
   final family = series.where(isFamily);
   final edited =
-      family.any((s) => s.isPrimary) && family.any((s) => !s.isPrimary);
+      family.any((s) => s.isPrimary && s.computerId == null) &&
+      family.any((s) => !s.isPrimary);
   if (!edited) return series;
   return [
     for (final s in series)

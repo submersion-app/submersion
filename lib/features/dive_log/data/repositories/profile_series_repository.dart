@@ -165,6 +165,46 @@ class ProfileSeriesRepository {
     ];
   }
 
+  /// Every revision node of [diveIds], keyed by dive id, newest first per dive.
+  ///
+  /// Dives without history rows are absent from the map.
+  Future<Map<String, List<ProfileSeriesRevision>>> getRevisionsForDives(
+    List<String> diveIds,
+  ) async {
+    if (diveIds.isEmpty) return const {};
+    final byDive = <String, List<ProfileSeriesRevision>>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final rows = await _db
+          .customSelect(
+            'SELECT '
+            'h.series_id, h.dive_id, h.parent_series_id, h.root_series_id, '
+            'h.content_hash, h.revision_kind, h.created_at, '
+            'COALESCE(s.is_primary, 0) AS is_active '
+            'FROM $_historyTable h '
+            'LEFT JOIN dive_profile_series s ON s.id = h.series_id '
+            'WHERE h.dive_id IN ($placeholders) '
+            'ORDER BY h.dive_id ASC, h.created_at DESC, h.series_id DESC',
+            variables: [for (final diveId in chunk) Variable<String>(diveId)],
+          )
+          .get();
+      for (final row in rows) {
+        final revision = ProfileSeriesRevision(
+          seriesId: row.read<String>('series_id'),
+          diveId: row.read<String>('dive_id'),
+          parentSeriesId: row.read<String?>('parent_series_id'),
+          rootSeriesId: row.read<String>('root_series_id'),
+          contentHash: row.read<String>('content_hash'),
+          revisionKind: row.read<String>('revision_kind'),
+          createdAt: row.read<int>('created_at'),
+          isActive: row.read<int>('is_active') == 1,
+        );
+        byDive.putIfAbsent(revision.diveId, () => []).add(revision);
+      }
+    }
+    return byDive;
+  }
+
   /// Makes one existing series, with its segment siblings, the active
   /// primary profile of [diveId].
   ///

@@ -4,6 +4,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
 
 import '../../../../helpers/test_database.dart';
 
@@ -116,6 +118,36 @@ void main() {
       expect(analysis!.profile, merged);
     },
   );
+
+  test('getMergedProfilesForDives hides an inactive child edit after switching '
+      'back to original', () async {
+    await source('src-1', 'comp-1', primary: true);
+    final originalId = await series.insertSeries(
+      diveId: 'dive-1',
+      computerId: 'comp-1',
+      sourceId: 'src-1',
+      samples: const [
+        ProfileSample(timestamp: 0, depth: 0.0),
+        ProfileSample(timestamp: 10, depth: 10.0),
+      ],
+      now: now,
+    );
+    await dives.saveEditedProfileWithKind(
+      diveId: 'dive-1',
+      editedPoints: const [
+        domain.DiveProfilePoint(timestamp: 0, depth: 0.0),
+        domain.DiveProfilePoint(timestamp: 10, depth: 4.0),
+      ],
+      editKind: 'profile_editor',
+    );
+    await dives.setActiveProfileSeries('dive-1', originalId);
+
+    final single = await dives.getMergedProfile('dive-1');
+    final batched = await dives.getMergedProfilesForDives(['dive-1']);
+
+    expect(single.map((p) => p.depth), [0.0, 10.0]);
+    expect(batched['dive-1'], single);
+  });
 
   test(
     'an edit supersedes the demoted original of the primary family',

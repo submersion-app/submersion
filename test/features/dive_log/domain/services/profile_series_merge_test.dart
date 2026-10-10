@@ -148,6 +148,33 @@ void main() {
       expect(kept, hasLength(2));
     });
 
+    test(
+      'a demoted null-computer series next to a computer primary is kept',
+      () {
+        final primaryComputerOwned = series(
+          'primary-computer',
+          computerId: 'c1',
+          sourceId: 's1',
+          isPrimary: true,
+          samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+        );
+        final demotedNullComputer = series(
+          'demoted-null',
+          sourceId: 's1',
+          isPrimary: false,
+          samples: const [ProfileSample(timestamp: 5, depth: 2.0)],
+        );
+
+        final kept = dropSupersededSeries(
+          [primaryComputerOwned, demotedNullComputer],
+          hasSources: true,
+          primaryComputerId: 'c1',
+        );
+
+        expect(kept.map((s) => s.id), ['primary-computer', 'demoted-null']);
+      },
+    );
+
     test('with no data sources every series is family', () {
       final demotedManual = series(
         'old',
