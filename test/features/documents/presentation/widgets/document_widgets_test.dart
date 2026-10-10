@@ -1,0 +1,129 @@
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/features/documents/domain/document_expiry.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/domain/entities/document_page.dart';
+import 'package:submersion/features/documents/presentation/widgets/document_expiry_badge.dart';
+import 'package:submersion/features/documents/presentation/widgets/document_page_viewer.dart';
+import 'package:submersion/features/documents/presentation/widgets/document_tile.dart';
+
+import '../../../../helpers/test_app.dart';
+
+DocumentPage _page({
+  String id = 'p1',
+  String fileName = 'policy.docx',
+  String mimeType =
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  List<int> bytes = const [1, 2, 3],
+}) => DocumentPage(
+  id: id,
+  documentId: 'x',
+  pageIndex: 0,
+  fileName: fileName,
+  mimeType: mimeType,
+  sizeBytes: bytes.length,
+  bytes: Uint8List.fromList(bytes),
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);
+
+void main() {
+  testWidgets('badge shows expired and due soon, nothing when ok', (t) async {
+    await t.pumpWidget(
+      testApp(
+        child: const Column(
+          children: [
+            DocumentExpiryBadge(
+              status: DocumentExpiryStatus(DocumentExpiryKind.expired, -3),
+            ),
+            DocumentExpiryBadge(
+              status: DocumentExpiryStatus(DocumentExpiryKind.dueSoon, 5),
+            ),
+            DocumentExpiryBadge(
+              status: DocumentExpiryStatus(DocumentExpiryKind.dueSoon, 0),
+            ),
+            DocumentExpiryBadge(
+              status: DocumentExpiryStatus(DocumentExpiryKind.ok, 90),
+            ),
+          ],
+        ),
+      ),
+    );
+    expect(find.text('Expired'), findsOneWidget);
+    expect(find.text('Expires in 5 days'), findsOneWidget);
+    expect(find.text('Expires today'), findsOneWidget);
+    expect(find.textContaining('90'), findsNothing);
+  });
+
+  testWidgets('tile shows the type name for an empty title, owner and issuer', (
+    t,
+  ) async {
+    var tapped = false;
+    await t.pumpWidget(
+      testApp(
+        child: DocumentTile(
+          document: Document(
+            id: 'x',
+            diverId: 'd',
+            owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+            type: DocumentType.medicalClearance,
+            issuer: 'Dr Lee',
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+          ownerLabel: 'Bonaire',
+          thumbnail: const SizedBox(),
+          onTap: () => tapped = true,
+        ),
+      ),
+    );
+    expect(find.text('Medical clearance'), findsOneWidget);
+    expect(find.textContaining('Bonaire'), findsOneWidget);
+    expect(find.textContaining('Dr Lee'), findsOneWidget);
+    await t.tap(find.byType(DocumentTile));
+    expect(tapped, isTrue);
+  });
+
+  testWidgets('viewer shows a Word page as a file tile with Open with', (
+    t,
+  ) async {
+    await t.pumpWidget(testApp(child: DocumentPageViewer(pages: [_page()])));
+    expect(find.text('policy.docx'), findsOneWidget);
+    expect(find.text('Open with...'), findsOneWidget);
+  });
+
+  testWidgets('viewer counts pages when there is more than one', (t) async {
+    await t.pumpWidget(
+      testApp(
+        child: DocumentPageViewer(
+          pages: [
+            _page(),
+            _page(id: 'p2', fileName: 'b.txt', mimeType: 'text/plain'),
+          ],
+        ),
+      ),
+    );
+    expect(find.text('1 of 2'), findsOneWidget);
+  });
+
+  testWidgets('viewer shows a placeholder for a corrupt image', (t) async {
+    await t.pumpWidget(
+      testApp(
+        child: DocumentPageViewer(
+          pages: [
+            _page(
+              fileName: 'front.jpg',
+              mimeType: 'image/jpeg',
+              bytes: const [0, 1],
+            ),
+          ],
+        ),
+      ),
+    );
+    await t.pumpAndSettle();
+    expect(find.text("Can't display this page"), findsOneWidget);
+  });
+}
