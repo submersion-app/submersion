@@ -129,6 +129,20 @@ void main() {
     expect(result.unchanged.map((f) => f.key), ['alpha', 'oak', 'ölçü']);
   });
 
+  test("a deleted record's values sort accented labels with their letter", () {
+    final result = compare(
+      conflict(
+        {'zeta': 1, 'épaisseur': 1, 'alpha': 1},
+        {'id': 'r1', '_deleted': true},
+      ),
+    );
+    expect(result.survivingValues.map((f) => f.key), [
+      'alpha',
+      'épaisseur',
+      'zeta',
+    ]);
+  });
+
   test('an unchanged opaque payload reads Same, not Changed', () {
     final result = compare(
       conflict(
