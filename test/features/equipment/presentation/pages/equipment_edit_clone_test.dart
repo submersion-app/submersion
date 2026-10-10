@@ -18,6 +18,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_field.dart';
@@ -320,6 +321,99 @@ void main() {
     expect(
       {for (final t in await tagRepository.getTagsForEquipment(clone.id)) t.id},
       {'t1', 't2'},
+    );
+  });
+
+  group('when a starting pick cannot be read', () {
+    testWidgets('a failed tag read leaves the clone form usable', (
+      tester,
+    ) async {
+      await pumpClone(
+        tester,
+        extraOverrides: [
+          tagsForEquipmentProvider(
+            source.id,
+          ).overrideWith((ref) => Future.error(StateError('tags failed'))),
+        ],
+      );
+
+      expect(find.text('Clone Equipment'), findsOneWidget);
+      expect(find.byType(TagChip), findsNothing);
+
+      await tester.tap(find.text('Save').first);
+      await tester.pumpAndSettle();
+      expect(await repository.getAllEquipment(), hasLength(2));
+    });
+
+    testWidgets('a failed place read leaves the clone form usable', (
+      tester,
+    ) async {
+      await pumpClone(
+        tester,
+        extraOverrides: [
+          currentEquipmentLocationsProvider.overrideWith(
+            (ref) => Future.error(StateError('places failed')),
+          ),
+        ],
+      );
+
+      expect(find.text('Clone Equipment'), findsOneWidget);
+      // The tags still arrive: the two reads fail independently.
+      expect(find.widgetWithText(TagChip, 'Travel kit'), findsOneWidget);
+
+      await tester.tap(find.text('Save').first);
+      await tester.pumpAndSettle();
+      expect(await repository.getAllEquipment(), hasLength(2));
+    });
+  });
+
+  testWidgets('an embedded clone reports a step that could not be copied', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    String? savedId;
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          equipmentRepositoryProvider.overrideWithValue(repository),
+          equipmentCloneServiceProvider.overrideWithValue(
+            _FailingCloneService(),
+          ),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: EquipmentEditPage(
+              cloneFromId: source.id,
+              embedded: true,
+              onSaved: (id) => savedId = id,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+
+    expect(savedId, isNotNull);
+    expect(savedId, isNot(source.id));
+    expect(
+      find.text(
+        'Cloned, but some service clocks, sets or documents could not be '
+        'copied.',
+      ),
+      findsOneWidget,
     );
   });
 
