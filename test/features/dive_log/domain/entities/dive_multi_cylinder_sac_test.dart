@@ -72,6 +72,30 @@ void main() {
       expect(dive.sac, closeTo(1.0, 1e-9));
     });
 
+    test(
+      'pairs back gas whose mixes differ within the 0.5 point tolerance',
+      () {
+        // 20.4 and 20.6 round apart but are the same air fill.
+        final dive = _dive([
+          const DiveTank(
+            id: 'a',
+            role: TankRole.backGas,
+            gasMix: GasMix(o2: 20.4),
+            startPressure: 200,
+            endPressure: 80,
+          ),
+          const DiveTank(
+            id: 'b',
+            role: TankRole.backGas,
+            gasMix: GasMix(o2: 20.6),
+            startPressure: 200,
+            endPressure: 140,
+          ),
+        ]);
+        expect(dive.sac, closeTo(1.5, 1e-9));
+      },
+    );
+
     test('does not pair an unsized back gas with an unsized stage', () {
       final dive = _dive([
         _tank('a', TankRole.backGas),

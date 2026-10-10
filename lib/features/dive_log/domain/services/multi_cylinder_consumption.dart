@@ -63,6 +63,11 @@ double? referencePressureDrop({
   return total;
 }
 
+/// Two logged mixes within this many percentage points of O2 and of He
+/// are the same gas, the tolerance consolidation and the sequential tank
+/// merge use. `multi_cylinder_sac_sql.dart` mirrors it.
+const double sameGasTolerancePct = 0.5;
+
 /// Whether [a] and [b] are a matched pair, assumed the same size when a
 /// size is missing: both sidemount cylinders, or both back gas on the same
 /// gas (doubles logged as independents). The gas matters for back gas
@@ -72,8 +77,8 @@ bool isMatchedPair(DiveTank a, DiveTank b) =>
     (sidemountRoles.contains(a.role) && sidemountRoles.contains(b.role)) ||
     (a.role == TankRole.backGas &&
         b.role == TankRole.backGas &&
-        a.gasMix.roundedO2 == b.gasMix.roundedO2 &&
-        a.gasMix.roundedHe == b.gasMix.roundedHe);
+        (a.gasMix.o2 - b.gasMix.o2).abs() <= sameGasTolerancePct &&
+        (a.gasMix.he - b.gasMix.he).abs() <= sameGasTolerancePct);
 
 double? _drop(DiveTank tank) {
   final start = tank.startPressure;

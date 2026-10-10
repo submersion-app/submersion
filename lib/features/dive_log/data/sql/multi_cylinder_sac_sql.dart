@@ -3,6 +3,8 @@
 /// statistics, the query language and the dive overview agree on one dive.
 library;
 
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+
 const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
 
 /// The consumption volume of the `dive_tanks` row aliased [tank], in
@@ -20,8 +22,10 @@ String consumptionVolumeSql(String tank) {
       'AND $partner.tank_role IN $_sidemountRolesSql) '
       "OR ($tank.tank_role = 'backGas' "
       "AND $partner.tank_role = 'backGas' "
-      'AND ROUND($partner.o2_percent) = ROUND($tank.o2_percent) '
-      'AND ROUND($partner.he_percent) = ROUND($tank.he_percent))) '
+      'AND ABS($partner.o2_percent - $tank.o2_percent) '
+      '<= $sameGasTolerancePct '
+      'AND ABS($partner.he_percent - $tank.he_percent) '
+      '<= $sameGasTolerancePct)) '
       'ORDER BY $partner.tank_order, $partner.rowid LIMIT 1) END)';
 }
 
@@ -42,7 +46,7 @@ String diveSacPressureSql(String dive) {
       '${consumptionVolumeSql('sac_t')} AS volume, '
       'sac_t.tank_role IN $_sidemountRolesSql AS sidemount, '
       "sac_t.tank_role = 'backGas' AS back_gas, "
-      'ROUND(sac_t.o2_percent) AS o2, ROUND(sac_t.he_percent) AS he '
+      'sac_t.o2_percent AS o2, sac_t.he_percent AS he '
       'FROM dive_tanks sac_t WHERE sac_t.dive_id = $dive.id '
       'AND sac_t.start_pressure > sac_t.end_pressure)';
   return '((SELECT SUM(sac_c.pressure_drop * CASE '
@@ -51,7 +55,8 @@ String diveSacPressureSql(String dive) {
       'THEN sac_c.volume / sac_r.volume '
       'WHEN sac_c.sidemount AND sac_r.sidemount THEN 1.0 '
       'WHEN sac_c.back_gas AND sac_r.back_gas '
-      'AND sac_c.o2 = sac_r.o2 AND sac_c.he = sac_r.he THEN 1.0 '
+      'AND ABS(sac_c.o2 - sac_r.o2) <= $sameGasTolerancePct '
+      'AND ABS(sac_c.he - sac_r.he) <= $sameGasTolerancePct THEN 1.0 '
       'ELSE 0.0 END) '
       'FROM $breathed sac_c JOIN $breathed sac_r '
       'ON sac_r.id = ('

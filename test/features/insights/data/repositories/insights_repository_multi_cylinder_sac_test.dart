@@ -133,6 +133,15 @@ void main() {
       expect(trend.single.value, closeTo(1.0, 1e-9));
     });
 
+    test('pairs back gas within the 0.5 point gas tolerance', () async {
+      await insertDive('tol');
+      await insertTank('tol', 0, 'backGas', o2: 20.4);
+      await insertTank('tol', 1, 'backGas', end: 137, o2: 20.6);
+
+      final trend = await repository.getSacPressurePerDive();
+      expect(trend.single.value, closeTo(1.5, 1e-9));
+    });
+
     test('a rebreather dive keeps the single reference cylinder', () async {
       await insertDive('ccr', diveMode: 'ccr');
       await insertTank('ccr', 0, 'diluent', volume: 3);
