@@ -223,11 +223,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
       onPressed: () => Navigator.of(context).pop(),
     );
     final doneAction = TextButton(
-      style: TextButton.styleFrom(
-        foregroundColor: barColors.selected,
-        // Material's disabled tint is onSurface, dark ink on a dark bar.
-        disabledForegroundColor: barColors.selected.withValues(alpha: 0.38),
-      ).copyWith(overlayColor: barColors.overlay),
+      style: barColors.textButtonStyle,
       onPressed: state.selectionCount > 0 ? _handleDone : null,
       child: Text(
         state.selectionCount > 0
@@ -262,6 +258,8 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
           unselectedLabelColor: barColors.unselected,
           indicatorColor: barColors.selected,
           overlayColor: barColors.overlay,
+          // On a coloured bar its own edge separates it from the page.
+          dividerColor: barColors.barMatchesPage ? null : Colors.transparent,
           tabs: [
             Tab(text: context.l10n.media_photoPicker_tab_gallery),
             Tab(text: context.l10n.media_photoPicker_tab_files),

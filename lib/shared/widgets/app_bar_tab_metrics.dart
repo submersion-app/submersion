@@ -141,4 +141,13 @@ class AppBarTabColors {
         }
         return null;
       });
+
+  /// Style for a [TextButton] on the app bar (a Done or Cancel action), in
+  /// the selected tab colour for the same reason the labels avoid `primary`.
+  /// Disabled, it is that colour dimmed rather than Material's onSurface tint,
+  /// which is dark ink on a dark bar.
+  ButtonStyle get textButtonStyle => TextButton.styleFrom(
+    foregroundColor: selected,
+    disabledForegroundColor: selected.withValues(alpha: 0.38),
+  ).copyWith(overlayColor: overlay);
 }

@@ -39,4 +39,34 @@ void main() {
       expect(colors.overlay.resolve(const {}), isNull);
     });
   });
+
+  // A stock TextButton paints in primary, which Tropical light also fills its
+  // app bar with, so an app-bar action vanished.
+  group('AppBarTabColors.textButtonStyle', () {
+    const selected = Color(0xFFFFFFFF);
+    const colors = AppBarTabColors(
+      selected: selected,
+      unselected: Color(0xFFCCCCCC),
+      barMatchesPage: false,
+    );
+    final style = colors.textButtonStyle;
+
+    test('labels take the selected colour', () {
+      expect(style.foregroundColor?.resolve(const {}), selected);
+    });
+
+    test('a disabled label is the selected colour dimmed', () {
+      expect(
+        style.foregroundColor?.resolve({WidgetState.disabled}),
+        selected.withValues(alpha: 0.38),
+      );
+    });
+
+    test('ink matches the tabs', () {
+      expect(
+        style.overlayColor?.resolve({WidgetState.pressed}),
+        colors.overlay.resolve({WidgetState.pressed}),
+      );
+    });
+  });
 }
