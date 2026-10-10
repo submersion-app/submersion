@@ -14,6 +14,7 @@ import 'package:submersion/features/media/presentation/widgets/media_item_view.d
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/day_format.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -259,10 +260,7 @@ class _DayStatStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final runtime = day.totalRuntime;
-    final runtimeLabel = runtime.inHours > 0
-        ? '${runtime.inHours}h ${runtime.inMinutes % 60}m'
-        : '${runtime.inMinutes}m';
+    final runtimeLabel = formatDayRuntime(day.totalRuntime);
     final stats = <(String, String)>[
       (l10n.trips_detail_stat_totalDives, '${day.diveCount}'),
       (l10n.trips_detail_stat_totalRuntime, runtimeLabel),
