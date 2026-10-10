@@ -460,6 +460,25 @@ void main() {
       );
     });
 
+    testWidgets('save-to-file carries the typed note', (tester) async {
+      mockPicker.directoryPathResult = tempDir.path;
+
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Export Backup'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'For the dive shop');
+
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Save to File'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pumpAndSettle();
+
+      expect(service.exportedNote, 'For the dive shop');
+    });
+
     testWidgets('save-to-file does nothing when the folder pick is cancelled', (
       tester,
     ) async {

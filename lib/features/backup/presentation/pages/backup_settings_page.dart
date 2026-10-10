@@ -242,7 +242,7 @@ class BackupSettingsPage extends ConsumerWidget {
     final anchor = shareAnchorFrom(context);
     ExportBottomSheet.show(
       context,
-      onSaveToFile: () async {
+      onSaveToFile: (note) async {
         // Deliberately a folder pick rather than a Save As sheet.
         // file_picker 12's saveFile requires the entire artifact up front as
         // `bytes`, and a dive library can be far too large to hold in memory,
@@ -260,6 +260,7 @@ class BackupSettingsPage extends ConsumerWidget {
           await notifier.exportToSafTree(
             treeUri: folder.uri,
             fileName: fileName,
+            note: note,
           );
           return;
           // coverage:ignore-end
@@ -269,12 +270,12 @@ class BackupSettingsPage extends ConsumerWidget {
           dialogTitle: context.l10n.backup_export_title,
         );
         if (dir == null) return;
-        await notifier.exportToPath(p.join(dir, fileName));
+        await notifier.exportToPath(p.join(dir, fileName), note: note);
       },
-      onShare: () async {
+      onShare: (note) async {
         final file = await ref
             .read(backupOperationProvider.notifier)
-            .exportForSharing();
+            .exportForSharing(note: note);
         if (file != null && context.mounted) {
           await SharePlus.instance.share(
             ShareParams(files: [XFile(file.path)], sharePositionOrigin: anchor),
