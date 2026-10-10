@@ -21,6 +21,7 @@ import 'package:submersion/features/settings/presentation/pages/column_config_pa
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/widgets/ascent_rate_thresholds_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/ccr_ppo2_limit_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
@@ -1449,6 +1450,23 @@ class _DecompressionSectionContent extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_decompression_header_ascentRate,
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              context.l10n.settings_decompression_header_ascentRate_subtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Card(child: AscentRateThresholdsTile()),
         ],
       ),
     );

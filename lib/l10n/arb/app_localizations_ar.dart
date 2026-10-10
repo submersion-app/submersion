@@ -32076,6 +32076,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'ملء بيانات الخزان المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
 
   @override
+  String get tankPresets_defaultStartPressure => 'ضغط البداية الافتراضي';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'يُملأ في الخزانات الجديدة، وفي الخزانات المستوردة التي ليس لها ضغط بداية عند تطبيق الخزان الافتراضي على الاستيراد';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'أدخل ضغطًا من $min إلى $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'إعداد أسطوانة جديد';
 
   @override
@@ -35298,6 +35310,26 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'المنطقة غير معروفة - يُستخدم الخط العالمي';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'المنطقة: $region، محددة يدويًا';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'تغيير المنطقة';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'منطقة الطوارئ';
+
+  @override
+  String get emergencyCard_regionPicker_automatic => 'تلقائي (أحدث غطسة)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'البحث عن الدول';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'لا توجد دول مطابقة';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -44400,6 +44432,30 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'أي الأسطوانات المحمولة يمكن للصعود المحاكى (TTS والسقف والمحطات) التبديل إليها عند كل عمق. تؤخذ في الاعتبار الغازات المسجَّلة في الغوصة فقط.';
+
+  @override
+  String get settings_decompression_header_ascentRate => 'سرعة الصعود';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'الحدود التي تستخدمها ألوان وأحداث سرعة الصعود في الملف. تحتفظ مراجعة السلامة بحدودها الثابتة الخاصة، لذا لا يؤدي تغيير هذه القيم أبدًا إلى تعديل الغطسات التي تمت مراجعتها.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds => 'حدود سرعة الصعود';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'تحذير $warning، حرج $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'تحذير';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'حرج';
 
   @override
   String get settings_decompression_header_dataSources =>

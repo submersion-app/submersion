@@ -50079,6 +50079,24 @@ abstract class AppLocalizations {
   /// **'Fill in missing tank data on imported dives using the default preset'**
   String get tankPresets_applyToImports_subtitle;
 
+  /// No description provided for @tankPresets_defaultStartPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Default start pressure'**
+  String get tankPresets_defaultStartPressure;
+
+  /// No description provided for @tankPresets_defaultStartPressure_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled in on new tanks, and on imported tanks with no start pressure when the default tank is applied to imports'**
+  String get tankPresets_defaultStartPressure_subtitle;
+
+  /// No description provided for @tankPresets_defaultStartPressure_range.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a pressure from {min} to {max}'**
+  String tankPresets_defaultStartPressure_range(String max, String min);
+
   /// No description provided for @tankPresets_new_title.
   ///
   /// In en, this message translates to:
@@ -55283,6 +55301,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Region unknown - using worldwide hotline'**
   String get emergencyCard_regionUnknown;
+
+  /// No description provided for @emergencyCard_regionManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Region: {region}, set manually'**
+  String emergencyCard_regionManual(String region);
+
+  /// No description provided for @emergencyCard_regionChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change region'**
+  String get emergencyCard_regionChange;
+
+  /// No description provided for @emergencyCard_regionPicker_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency region'**
+  String get emergencyCard_regionPicker_title;
+
+  /// No description provided for @emergencyCard_regionPicker_automatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic (most recent dive)'**
+  String get emergencyCard_regionPicker_automatic;
+
+  /// No description provided for @emergencyCard_regionPicker_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search countries'**
+  String get emergencyCard_regionPicker_search;
+
+  /// No description provided for @emergencyCard_regionPicker_noMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching countries'**
+  String get emergencyCard_regionPicker_noMatches;
 
   /// No description provided for @emergencyCard_noDiverData.
   ///
@@ -70107,6 +70161,45 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Which carried cylinders the simulated ascent (TTS, ceiling and stops) may switch to at each depth. Only gases recorded on the dive are considered.'**
   String get settings_decompression_header_ascent_subtitle;
+
+  /// No description provided for @settings_decompression_header_ascentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate'**
+  String get settings_decompression_header_ascentRate;
+
+  /// No description provided for @settings_decompression_header_ascentRate_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The rates the profile\'s ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.'**
+  String get settings_decompression_header_ascentRate_subtitle;
+
+  /// No description provided for @settings_decompression_ascentRateThresholds.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate thresholds'**
+  String get settings_decompression_ascentRateThresholds;
+
+  /// No description provided for @settings_decompression_ascentRateThresholds_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning {warning}, critical {critical}'**
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  );
+
+  /// No description provided for @settings_decompression_ascentRateWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning'**
+  String get settings_decompression_ascentRateWarning;
+
+  /// No description provided for @settings_decompression_ascentRateCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get settings_decompression_ascentRateCritical;
 
   /// No description provided for @settings_decompression_header_dataSources.
   ///

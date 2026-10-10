@@ -31501,6 +31501,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hiányzó palackadatok kitöltése importált merüléseknél az alapértelmezett sablon alapján';
 
   @override
+  String get tankPresets_defaultStartPressure => 'Alapértelmezett kezdőnyomás';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Új palackoknál, valamint kezdőnyomás nélküli importált palackoknál kerül kitöltésre, ha az alapértelmezett palack az importokra is vonatkozik';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Adjon meg egy nyomást $min és $max között';
+  }
+
+  @override
   String get tankPresets_new_title => 'Új palacksablon';
 
   @override
@@ -34659,6 +34671,27 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Ismeretlen régió - a világméretű segélyvonal használata';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Régió: $region, kézzel beállítva';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Régió módosítása';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Vészhelyzeti régió';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automatikus (legutóbbi merülés)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Országok keresése';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'Nincs egyező ország';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43630,6 +43663,31 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Mely magunkkal vitt palackokra válthat a szimulált emelkedés (TTS, plafon és megállók) az egyes mélységekben. Csak a merülésnél rögzített gázokat veszi figyelembe.';
+
+  @override
+  String get settings_decompression_header_ascentRate => 'Feljövetelsebesség';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'A profil feljövetelsebesség-színei és -eseményei által használt határértékek. A biztonsági áttekintés saját, rögzített határértékeket használ, így ezek módosítása soha nem változtatja meg a már áttekintett merüléseket.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Feljövetelsebesség határértékei';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Figyelmeztetés $warning, kritikus $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Figyelmeztetés';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Kritikus';
 
   @override
   String get settings_decompression_header_dataSources =>

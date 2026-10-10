@@ -31757,6 +31757,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Compléter les données de bloc manquantes des plongées importées avec le preset par défaut';
 
   @override
+  String get tankPresets_defaultStartPressure =>
+      'Pression de départ par défaut';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Appliquée aux nouveaux blocs, et aux blocs importés sans pression de départ quand le bloc par défaut est appliqué aux imports';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Saisissez une pression de $min à $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'Nouveau preset de bloc';
 
   @override
@@ -34955,6 +34968,27 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Région inconnue : ligne mondiale utilisée';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Région : $region, définie manuellement';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Changer de région';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Région d\'urgence';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automatique (plongée la plus récente)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Rechercher un pays';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'Aucun pays correspondant';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43970,6 +44004,31 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Les blocs emportés vers lesquels la remontée simulée (TTS, plafond et paliers) peut basculer à chaque profondeur. Seuls les gaz enregistrés sur la plongée sont pris en compte.';
+
+  @override
+  String get settings_decompression_header_ascentRate => 'Vitesse de remontée';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'Les seuils utilisés par les couleurs et les événements de vitesse de remontée du profil. Le bilan de sécurité garde ses propres limites fixes : les modifier ne change jamais les plongées déjà examinées.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Seuils de vitesse de remontée';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Alerte $warning, critique $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Alerte';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Critique';
 
   @override
   String get settings_decompression_header_dataSources =>

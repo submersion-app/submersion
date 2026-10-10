@@ -6,7 +6,8 @@ import 'package:flutter/material.dart'
         Locale,
         MaterialApp,
         PopupMenuButton,
-        Size;
+        Size,
+        TextField;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -79,16 +80,24 @@ void main() {
     List<ChamberListing>? listings,
     int? totalChamberCount,
     EmergencyChamberRepository? chamberRepo,
+    MockSettingsNotifier? settings,
+    String? countryCode = 'AU',
+    bool regionIsManual = false,
+    List<String> regionChoices = const ['AU', 'DE', 'JP'],
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          settingsProvider.overrideWith(
+            (ref) => settings ?? MockSettingsNotifier(),
+          ),
           if (chamberRepo != null)
             emergencyChamberRepositoryProvider.overrideWithValue(chamberRepo),
           emergencyCardDataProvider.overrideWith(
             (ref) async => EmergencyCardData(
-              countryCode: 'AU',
+              countryCode: countryCode,
+              regionIsManual: regionIsManual,
+              regionChoices: regionChoices,
               hotline: hotline,
               emsNumber: '000',
               diver: includeDiver ? (diverOverride ?? diver) : null,
@@ -537,6 +546,96 @@ void main() {
         find.textContaining('No insurer emergency number saved'),
         findsOneWidget,
       );
+    });
+  });
+
+  group('emergency region', () {
+    Future<void> openPicker(WidgetTester tester) async {
+      await tester.ensureVisible(find.text('Change region'));
+      await tester.tap(find.text('Change region'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('names the region and says it follows the last dive', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(tester);
+
+      expect(find.text('Region: Australia (AU)'), findsOneWidget);
+      expect(find.text('Change region'), findsOneWidget);
+    });
+
+    testWidgets('says when the region was set by hand', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(tester, regionIsManual: true);
+
+      expect(find.text('Region: Australia (AU), set manually'), findsOneWidget);
+    });
+
+    testWidgets('choosing a country stores it as the override', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final settings = MockSettingsNotifier();
+
+      await pump(tester, settings: settings);
+      await openPicker(tester);
+
+      expect(find.text('Automatic (most recent dive)'), findsOneWidget);
+      expect(find.text('Germany (DE)'), findsOneWidget);
+      await tester.tap(find.text('Japan (JP)'));
+      await tester.pumpAndSettle();
+
+      expect(settings.state.emergencyRegion, 'JP');
+    });
+
+    testWidgets('automatic clears the override', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final settings = MockSettingsNotifier();
+      await settings.setEmergencyRegion('JP');
+
+      await pump(tester, settings: settings, regionIsManual: true);
+      await openPicker(tester);
+      await tester.tap(find.text('Automatic (most recent dive)'));
+      await tester.pumpAndSettle();
+
+      expect(settings.state.emergencyRegion, isNull);
+    });
+
+    testWidgets('cancelling leaves the override alone', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final settings = MockSettingsNotifier();
+      await settings.setEmergencyRegion('JP');
+
+      await pump(tester, settings: settings, regionIsManual: true);
+      await openPicker(tester);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(settings.state.emergencyRegion, 'JP');
+    });
+
+    testWidgets('search narrows the list by name or code', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(tester);
+      await openPicker(tester);
+      await tester.enterText(find.byType(TextField), 'jap');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Japan (JP)'), findsOneWidget);
+      expect(find.text('Germany (DE)'), findsNothing);
+
+      await tester.enterText(find.byType(TextField), 'de');
+      await tester.pumpAndSettle();
+      expect(find.text('Germany (DE)'), findsOneWidget);
     });
   });
 }

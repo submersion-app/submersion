@@ -31662,6 +31662,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Preencher dados de cilindro ausentes em mergulhos importados usando o preset padrão';
 
   @override
+  String get tankPresets_defaultStartPressure => 'Pressão inicial padrão';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Usada em cilindros novos e em cilindros importados sem pressão inicial quando o cilindro padrão é aplicado às importações';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Digite uma pressão de $min a $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'Novo Preset de Cilindro';
 
   @override
@@ -34848,6 +34860,28 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Região desconhecida - usando a linha mundial';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Região: $region, definida manualmente';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Alterar região';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Região de emergência';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automática (mergulho mais recente)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Pesquisar países';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches =>
+      'Nenhum país correspondente';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43880,6 +43914,31 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Quais cilindros transportados a subida simulada (TTS, teto e paradas) pode usar em cada profundidade. Somente os gases registrados no mergulho são considerados.';
+
+  @override
+  String get settings_decompression_header_ascentRate => 'Velocidade de subida';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'Os limites usados pelas cores e eventos de velocidade de subida do perfil. A revisão de segurança mantém seus próprios limites fixos, então alterá-los nunca muda mergulhos já revisados.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Limites de velocidade de subida';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Aviso $warning, crítico $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Aviso';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Crítico';
 
   @override
   String get settings_decompression_header_dataSources =>

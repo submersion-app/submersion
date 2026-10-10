@@ -31602,6 +31602,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Fehlende Tankdaten bei importierten Tauchgängen mit der Standardvorlage ergänzen';
 
   @override
+  String get tankPresets_defaultStartPressure => 'Standard-Anfangsdruck';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Wird bei neuen Tanks eingetragen und bei importierten Tanks ohne Anfangsdruck, wenn der Standardtank auf Importe angewendet wird';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Gib einen Druck von $min bis $max ein';
+  }
+
+  @override
   String get tankPresets_new_title => 'Neue Flaschenvorlage';
 
   @override
@@ -34787,6 +34799,27 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Region unbekannt - weltweite Hotline wird verwendet';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Region: $region, manuell festgelegt';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Region ändern';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Notfallregion';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automatisch (letzter Tauchgang)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Länder suchen';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'Keine passenden Länder';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43777,6 +43810,32 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Auf welche mitgeführten Flaschen der simulierte Aufstieg (TTS, Ceiling und Stopps) in der jeweiligen Tiefe wechseln darf. Berücksichtigt werden nur Gase, die im Tauchgang erfasst sind.';
+
+  @override
+  String get settings_decompression_header_ascentRate =>
+      'Aufstiegsgeschwindigkeit';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'Die Grenzwerte für die Farben und Ereignisse der Aufstiegsgeschwindigkeit im Profil. Die Sicherheitsüberprüfung nutzt eigene feste Grenzwerte, daher ändern diese Werte nie bereits geprüfte Tauchgänge.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Grenzwerte der Aufstiegsgeschwindigkeit';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Warnung $warning, kritisch $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Warnung';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Kritisch';
 
   @override
   String get settings_decompression_header_dataSources =>

@@ -19411,6 +19411,19 @@
   },
   "tankPresets_applyToImports": "Also apply to imported dives",
   "tankPresets_applyToImports_subtitle": "Fill in missing tank data on imported dives using the default preset",
+  "tankPresets_defaultStartPressure": "Default start pressure",
+  "tankPresets_defaultStartPressure_subtitle": "Filled in on new tanks, and on imported tanks with no start pressure when the default tank is applied to imports",
+  "tankPresets_defaultStartPressure_range": "Enter a pressure from {min} to {max}",
+  "@tankPresets_defaultStartPressure_range": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      }
+    }
+  },
   "tankPresets_new_title": "New Tank Preset",
   "tankPresets_noPresets": "No tank presets available",
   "tankPresets_setAsDefault": "Set as default",
@@ -21493,6 +21506,19 @@
     }
   },
   "emergencyCard_regionUnknown": "Region unknown - using worldwide hotline",
+  "emergencyCard_regionManual": "Region: {region}, set manually",
+  "@emergencyCard_regionManual": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionChange": "Change region",
+  "emergencyCard_regionPicker_title": "Emergency region",
+  "emergencyCard_regionPicker_automatic": "Automatic (most recent dive)",
+  "emergencyCard_regionPicker_search": "Search countries",
+  "emergencyCard_regionPicker_noMatches": "No matching countries",
   "emergencyCard_noDiverData": "No diver profile data. Add emergency contacts, medical and insurance details in Diver Profile settings.",
   "addChamber_title": "Add chamber",
   "addChamber_name": "Name",
@@ -25558,6 +25584,22 @@
   "settings_decompression_decoStopSource": "Deco Stop Source",
   "settings_decompression_header_ascent": "Ascent planning",
   "settings_decompression_header_ascent_subtitle": "Which carried cylinders the simulated ascent (TTS, ceiling and stops) may switch to at each depth. Only gases recorded on the dive are considered.",
+  "settings_decompression_header_ascentRate": "Ascent rate",
+  "settings_decompression_header_ascentRate_subtitle": "The rates the profile's ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.",
+  "settings_decompression_ascentRateThresholds": "Ascent rate thresholds",
+  "settings_decompression_ascentRateThresholds_subtitle": "Warning {warning}, critical {critical}",
+  "@settings_decompression_ascentRateThresholds_subtitle": {
+    "placeholders": {
+      "critical": {
+        "type": "String"
+      },
+      "warning": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_decompression_ascentRateWarning": "Warning",
+  "settings_decompression_ascentRateCritical": "Critical",
   "settings_decompression_header_dataSources": "Data Source Preferences",
   "settings_decompression_header_dataSources_subtitle": "When set to Dive Computer, the app uses data reported by the dive computer when available. Falls back to calculated values when computer data is not present.",
   "settings_decompression_ndlSource": "NDL Source",

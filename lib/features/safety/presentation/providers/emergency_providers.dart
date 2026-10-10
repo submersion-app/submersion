@@ -181,6 +181,15 @@ List<ChamberListing> _selectNearby(
 /// only (bundled assets, DB, settings). No network, no location permission.
 class EmergencyCardData {
   final String? countryCode;
+
+  /// True when [countryCode] is the diver's manual override rather than the
+  /// country of their most recent dive.
+  final bool regionIsManual;
+
+  /// Every ISO code the region picker offers, sorted: the countries the
+  /// bundled hotlines, EMS numbers and chambers know, plus a manual override
+  /// outside them so the picker can still show it as selected.
+  final List<String> regionChoices;
   final EmergencyRegion hotline;
   final String emsNumber;
   final Diver? diver;
@@ -193,6 +202,8 @@ class EmergencyCardData {
 
   const EmergencyCardData({
     required this.countryCode,
+    this.regionIsManual = false,
+    this.regionChoices = const [],
     required this.hotline,
     required this.emsNumber,
     required this.diver,
@@ -205,12 +216,24 @@ final emergencyCardDataProvider = FutureProvider<EmergencyCardData>((
   ref,
 ) async {
   final numbers = await EmergencyDataService.loadNumbers();
+  final bundledChambers = await EmergencyDataService.loadBundledChambers();
+  final override = ref.watch(settingsProvider.select((s) => s.emergencyRegion));
   final countryCode = await ref.watch(emergencyRegionProvider.future);
   final diver = await ref.watch(currentDiverProvider.future);
   final listings = await ref.watch(chamberListingsProvider.future);
 
+  final regionIsManual = override != null && override.trim().isNotEmpty;
+  final regionChoices = <String>{
+    ...numbers.emsByCountry.keys,
+    for (final region in numbers.regions) ...region.countries,
+    for (final chamber in bundledChambers) chamber.country,
+    if (regionIsManual && countryCode != null) countryCode,
+  }.toList()..sort();
+
   return EmergencyCardData(
     countryCode: countryCode,
+    regionIsManual: regionIsManual,
+    regionChoices: regionChoices,
     hotline: numbers.hotlineFor(countryCode),
     emsNumber: numbers.emsFor(countryCode),
     diver: diver,

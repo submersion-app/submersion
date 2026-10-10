@@ -18,7 +18,7 @@ light or dark mode, the navigation layout, and service reminders.
 |---------|----------------|
 | **Diver Profile** | The active diver and profiles; see [Diver Profile](diver-profile.md) |
 | **Units** | Units, gas consumption, date and time formats |
-| **Decompression** | Gradient factors, oxygen limits, data sources, narcosis |
+| **Decompression** | Gradient factors, oxygen limits, data sources, narcosis, ascent-rate thresholds |
 | **Appearance** | Theme, language, maps, navigation, Home screen and section layouts |
 | **Notifications** | Service reminders; see [Equipment](equipment.md#service-reminders) |
 | **Manage** | Dive types, presets, catalogs and other reusable lists |
@@ -117,6 +117,17 @@ and stops) may switch to: **All carried cylinders**, or only
 |---------|--------------|---------|
 | **O2 is narcotic** | Counts oxygen as well as nitrogen when working out narcosis (more conservative) | On |
 | **END Limit** | The deepest equivalent narcotic depth you accept, from 20 to 50 m | 30 m |
+
+### Ascent rate
+
+**Ascent rate thresholds** set the **Warning** and **Critical** rates the
+profile's ascent-rate colours and events use, shown in your depth unit per
+minute. Warning runs from 3 to 18 m/min and critical from 6 to 20 m/min, and
+critical never sits below warning. The defaults are 9 and 12 m/min (about 30
+and 40 ft/min). See [Ascent-rate thresholds](dive-profiles.md#ascent-rate-thresholds).
+
+The [safety review](safety.md) does not use these: its rapid-ascent rule keeps
+fixed limits, so changing them never alters dives you have already reviewed.
 
 ## Appearance
 

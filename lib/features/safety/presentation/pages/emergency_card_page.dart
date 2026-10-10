@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/safety/domain/constants/emergency_country_names.dart';
 import 'package:submersion/features/safety/presentation/widgets/chamber_tile.dart';
 import 'package:submersion/features/safety/presentation/providers/emergency_providers.dart';
+import 'package:submersion/features/safety/presentation/widgets/emergency_region_picker_dialog.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -135,13 +138,20 @@ class _CardBody extends ConsumerWidget {
         ],
         const SizedBox(height: 4),
         Text(
-          data.countryCode != null
-              ? l10n.emergencyCard_regionLabel(data.countryCode!)
-              : l10n.emergencyCard_regionUnknown,
+          _regionText(l10n, data),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
+        ),
+        // Set the region ahead of travel, before any dive there is logged
+        // (issue #3091).
+        Center(
+          child: TextButton.icon(
+            icon: const Icon(Icons.edit_location_alt_outlined),
+            label: Text(l10n.emergencyCard_regionChange),
+            onPressed: () => _changeRegion(context, ref),
+          ),
         ),
         const SizedBox(height: 16),
         OutlinedButton.icon(
@@ -198,6 +208,29 @@ class _CardBody extends ConsumerWidget {
           ),
       ],
     );
+  }
+
+  String _regionText(AppLocalizations l10n, EmergencyCardData data) {
+    final code = data.countryCode;
+    if (code == null) return l10n.emergencyCard_regionUnknown;
+    final region = emergencyRegionDisplayName(code);
+    return data.regionIsManual
+        ? l10n.emergencyCard_regionManual(region)
+        : l10n.emergencyCard_regionLabel(region);
+  }
+
+  Future<void> _changeRegion(BuildContext context, WidgetRef ref) async {
+    final choice = await showDialog<EmergencyRegionChoice>(
+      context: context,
+      builder: (_) => EmergencyRegionPickerDialog(
+        choices: data.regionChoices,
+        selected: data.regionIsManual ? data.countryCode : null,
+      ),
+    );
+    if (choice == null) return;
+    await ref
+        .read(settingsProvider.notifier)
+        .setEmergencyRegion(choice.countryCode);
   }
 
   Future<void> _call(String number) async {

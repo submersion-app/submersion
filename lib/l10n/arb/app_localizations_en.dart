@@ -31122,6 +31122,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Fill in missing tank data on imported dives using the default preset';
 
   @override
+  String get tankPresets_defaultStartPressure => 'Default start pressure';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Filled in on new tanks, and on imported tanks with no start pressure when the default tank is applied to imports';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Enter a pressure from $min to $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'New Tank Preset';
 
   @override
@@ -34268,6 +34280,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Region unknown - using worldwide hotline';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Region: $region, set manually';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Change region';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Emergency region';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automatic (most recent dive)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Search countries';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'No matching countries';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43209,6 +43242,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Which carried cylinders the simulated ascent (TTS, ceiling and stops) may switch to at each depth. Only gases recorded on the dive are considered.';
+
+  @override
+  String get settings_decompression_header_ascentRate => 'Ascent rate';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'The rates the profile\'s ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Ascent rate thresholds';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Warning $warning, critical $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Warning';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Critical';
 
   @override
   String get settings_decompression_header_dataSources =>

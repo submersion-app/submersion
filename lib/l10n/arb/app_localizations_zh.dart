@@ -29863,6 +29863,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tankPresets_applyToImports_subtitle => '使用默认预设为导入的潜水填充缺失的气瓶数据';
 
   @override
+  String get tankPresets_defaultStartPressure => '默认起始压力';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      '用于新气瓶，以及在将默认气瓶应用于导入时没有起始压力的导入气瓶';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return '请输入 $min 至 $max 之间的压力';
+  }
+
+  @override
   String get tankPresets_new_title => '新建气瓶预设';
 
   @override
@@ -32877,6 +32889,26 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get emergencyCard_regionUnknown => '区域未知 - 使用全球热线';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return '区域:$region，手动设置';
+  }
+
+  @override
+  String get emergencyCard_regionChange => '更改区域';
+
+  @override
+  String get emergencyCard_regionPicker_title => '紧急救援地区';
+
+  @override
+  String get emergencyCard_regionPicker_automatic => '自动（最近一次潜水）';
+
+  @override
+  String get emergencyCard_regionPicker_search => '搜索国家/地区';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => '没有匹配的国家/地区';
 
   @override
   String get emergencyCard_noDiverData => '无潜水员资料。请在潜水员资料设置中添加紧急联系人、医疗和保险信息。';
@@ -41249,6 +41281,30 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_decompression_header_ascent_subtitle =>
       '模拟上升（TTS、天花板和停留）在各深度可切换到哪些携带的气瓶。仅考虑本次潜水中记录的气体。';
+
+  @override
+  String get settings_decompression_header_ascentRate => '上升速度';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      '剖面图中上升速度颜色和事件所用的阈值。安全回顾使用自己固定的限值，因此修改这些值不会改变已回顾的潜水。';
+
+  @override
+  String get settings_decompression_ascentRateThresholds => '上升速度阈值';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return '警告 $warning，危险 $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => '警告';
+
+  @override
+  String get settings_decompression_ascentRateCritical => '危险';
 
   @override
   String get settings_decompression_header_dataSources => '数据来源首选项';

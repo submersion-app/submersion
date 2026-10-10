@@ -30878,6 +30878,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'השלם נתוני מיכל חסרים בצלילות מיובאות באמצעות תבנית ברירת המחדל';
 
   @override
+  String get tankPresets_defaultStartPressure => 'לחץ התחלתי ברירת מחדל';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'ממולא במיכלים חדשים, ובמיכלים מיובאים ללא לחץ התחלתי כאשר מיכל ברירת המחדל מוחל על ייבוא';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'הזן לחץ בין $min ל-$max';
+  }
+
+  @override
   String get tankPresets_new_title => 'תבנית מיכל חדשה';
 
   @override
@@ -33993,6 +34005,26 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'אזור לא ידוע - נעשה שימוש בקו העולמי';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'אזור: $region, הוגדר ידנית';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'שינוי אזור';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'אזור חירום';
+
+  @override
+  String get emergencyCard_regionPicker_automatic => 'אוטומטי (הצלילה האחרונה)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'חיפוש מדינות';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'אין מדינות תואמות';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -42925,6 +42957,30 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'לאילו בלונים נישאים העלייה המדומה (TTS, תקרה ועצירות) יכולה לעבור בכל עומק. נלקחים בחשבון רק גזים שנרשמו בצלילה.';
+
+  @override
+  String get settings_decompression_header_ascentRate => 'קצב עלייה';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'הספים שבהם משתמשים הצבעים והאירועים של קצב העלייה בפרופיל. סקירת הבטיחות שומרת על מגבלות קבועות משלה, כך ששינוי ערכים אלה אינו משנה צלילות שכבר נסקרו.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds => 'ספי קצב עלייה';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'אזהרה $warning, קריטי $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'אזהרה';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'קריטי';
 
   @override
   String get settings_decompression_header_dataSources => 'העדפות מקור נתונים';

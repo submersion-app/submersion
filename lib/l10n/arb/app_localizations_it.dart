@@ -31670,6 +31670,19 @@ class AppLocalizationsIt extends AppLocalizations {
       'Completa i dati bombola mancanti nelle immersioni importate usando il preset predefinito';
 
   @override
+  String get tankPresets_defaultStartPressure =>
+      'Pressione iniziale predefinita';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Usata per le nuove bombole e per le bombole importate senza pressione iniziale quando la bombola predefinita viene applicata alle importazioni';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Inserisci una pressione da $min a $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'Nuovo preset bombola';
 
   @override
@@ -34855,6 +34868,28 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Regione sconosciuta: si usa la linea mondiale';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Regione: $region, impostata manualmente';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Cambia regione';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Regione di emergenza';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automatica (immersione più recente)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Cerca paesi';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches =>
+      'Nessun paese corrispondente';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43873,6 +43908,31 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'A quali bombole trasportate può passare la risalita simulata (TTS, ceiling e soste) a ciascuna profondità. Vengono considerati solo i gas registrati nell’immersione.';
+
+  @override
+  String get settings_decompression_header_ascentRate => 'Velocità di risalita';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'Le soglie usate dai colori e dagli eventi della velocità di risalita nel profilo. La revisione di sicurezza mantiene i propri limiti fissi, quindi modificarle non cambia mai le immersioni già revisionate.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Soglie di velocità di risalita';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Avviso $warning, critica $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Avviso';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Critica';
 
   @override
   String get settings_decompression_header_dataSources =>

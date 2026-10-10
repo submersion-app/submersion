@@ -31435,6 +31435,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ontbrekende flesgegevens bij geïmporteerde duiken aanvullen met de standaardpreset';
 
   @override
+  String get tankPresets_defaultStartPressure => 'Standaard begindruk';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Ingevuld bij nieuwe flessen, en bij geïmporteerde flessen zonder begindruk wanneer de standaardfles op imports wordt toegepast';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Voer een druk in van $min tot $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'Nieuwe flesinstelling';
 
   @override
@@ -34611,6 +34623,28 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Regio onbekend - wereldwijde noodlijn wordt gebruikt';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Regio: $region, handmatig ingesteld';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Regio wijzigen';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Noodregio';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automatisch (meest recente duik)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Landen zoeken';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches =>
+      'Geen overeenkomende landen';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43576,6 +43610,31 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_decompression_header_ascent_subtitle =>
       'Naar welke meegenomen flessen de gesimuleerde opstijging (TTS, plafond en stops) op elke diepte mag overschakelen. Alleen gassen die bij de duik zijn vastgelegd, worden meegenomen.';
+
+  @override
+  String get settings_decompression_header_ascentRate => 'Opstijgsnelheid';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'De grenzen die de kleuren en gebeurtenissen voor opstijgsnelheid in het profiel gebruiken. De veiligheidscontrole houdt haar eigen vaste grenzen aan, dus deze wijzigen verandert nooit al gecontroleerde duiken.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Grenzen voor opstijgsnelheid';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Waarschuwing $warning, kritiek $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Waarschuwing';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Kritiek';
 
   @override
   String get settings_decompression_header_dataSources =>
