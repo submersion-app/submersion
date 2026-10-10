@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
@@ -26,12 +28,16 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  ProviderContainer makeContainer({SyncRepository? repo}) {
+  ProviderContainer makeContainer({
+    SyncRepository? repo,
+    SyncService? service,
+  }) {
     final container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         cloudStorageProviderProvider.overrideWithValue(cloud),
         if (repo != null) syncRepositoryProvider.overrideWithValue(repo),
+        if (service != null) syncServiceProvider.overrideWithValue(service),
       ],
     );
     addTearDown(container.dispose);
@@ -87,6 +93,23 @@ void main() {
       expect(after.id, current);
     },
   );
+
+  test('a sync that adopts a fresh identity refreshes a listener', () async {
+    final repo = SyncRepository();
+    final container = makeContainer(service: _RotatingSyncService(repo));
+    container.read(syncStateProvider);
+    await container.read(syncStateProvider.notifier).refreshState();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    final sub = container.listen(conflictLocalDeviceProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(conflictLocalDeviceProvider.future);
+
+    await container.read(syncStateProvider.notifier).performSync();
+
+    final after = await container.read(conflictLocalDeviceProvider.future);
+    expect(after.id, 'twin-split-id');
+  });
 }
 
 class _FixedIdSyncRepository extends SyncRepository {
@@ -96,4 +119,24 @@ class _FixedIdSyncRepository extends SyncRepository {
 
   @override
   Future<String> getDeviceId() async => id;
+}
+
+/// Stands in for a sync that splits a cloned twin: it mints a new device id
+/// and succeeds, without touching any backend.
+class _RotatingSyncService extends SyncService {
+  _RotatingSyncService(SyncRepository repo)
+    : _repo = repo,
+      super(
+        syncRepository: repo,
+        serializer: SyncDataSerializer(),
+        cloudProvider: null,
+      );
+
+  final SyncRepository _repo;
+
+  @override
+  Future<SyncResult> performSync() async {
+    await _repo.setDeviceId('twin-split-id');
+    return const SyncResult(status: SyncResultStatus.success);
+  }
 }
