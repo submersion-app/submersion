@@ -119,6 +119,7 @@ class SubmersionDivesCsvParser implements ImportParser {
       );
       final time = table.time(row, 'Time');
       final visibilityMeters = table.quantity(row, CsvColumns.visibility);
+      final visibilityRange = _visibilityRange(table, row);
 
       final dive = <String, dynamic>{
         // Dive times are wall clocks stored UTC-flagged, like every other
@@ -140,12 +141,8 @@ class SubmersionDivesCsvParser implements ImportParser {
         'airTemp': table.quantity(row, CsvColumns.airTemp),
         'visibilityMeters': visibilityMeters,
         // A band-picked range (issue #3226); the importer validates it.
-        'visibilityMinMeters': _toMillimeter(
-          table.quantity(row, CsvColumns.visibilityMin),
-        ),
-        'visibilityMaxMeters': _toMillimeter(
-          table.quantity(row, CsvColumns.visibilityMax),
-        ),
+        'visibilityMinMeters': visibilityRange.min,
+        'visibilityMaxMeters': visibilityRange.max,
         // A pre-v144 dive carries only the bucket; a measured distance wins.
         'visibility': visibilityMeters == null
             ? _enumName(
@@ -362,3 +359,21 @@ class SubmersionDivesCsvParser implements ImportParser {
 /// its band; no visibility is known to better than a millimetre.
 double? _toMillimeter(double? meters) =>
     meters == null ? null : (meters * 1000).roundToDouble() / 1000;
+
+/// A row's visibility range ends in meters (issue #3226), snapped to the
+/// millimetre. A cell that is present but unreadable makes the whole range
+/// unreadable: keeping the other end would import an open range ("under
+/// 12 m") the diver never logged. The unreadable cell is still reported.
+({double? min, double? max}) _visibilityRange(
+  SubmersionCsvTable table,
+  List<String> row,
+) {
+  final min = table.quantity(row, CsvColumns.visibilityMin);
+  final max = table.quantity(row, CsvColumns.visibilityMax);
+  final minUnreadable =
+      min == null && table.text(row, CsvColumns.visibilityMin.base) != null;
+  final maxUnreadable =
+      max == null && table.text(row, CsvColumns.visibilityMax.base) != null;
+  if (minUnreadable || maxUnreadable) return (min: null, max: null);
+  return (min: _toMillimeter(min), max: _toMillimeter(max));
+}

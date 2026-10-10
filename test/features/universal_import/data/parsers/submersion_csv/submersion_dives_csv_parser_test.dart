@@ -191,6 +191,27 @@ void main() {
     expect(payload.warnings.single.severity, ImportWarningSeverity.warning);
   });
 
+  test(
+    'a half-readable visibility range imports as no range (#3226)',
+    () async {
+      final dive = Dive(
+        id: 'r',
+        diveNumber: 30,
+        dateTime: DateTime.utc(2026, 3, 1, 9),
+        visibilityMinMeters: 6,
+        visibilityMaxMeters: 12,
+      );
+      // The min cell becomes unreadable; the max cell is still 12.
+      final csv = CsvDivesWriter(
+        CsvExportUnits.metric,
+      ).write([dive]).replaceFirst(',6.0,12.0', ',oops,12.0');
+      final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
+      final parsed = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(parsed['visibilityMinMeters'], isNull);
+      expect(parsed['visibilityMaxMeters'], isNull);
+    },
+  );
+
   test('a tank carrying only a working pressure is kept', () async {
     final header = CsvDivesWriter(CsvExportUnits.metric)
         .write(goldenDives())
