@@ -1143,6 +1143,47 @@ void main() {
       expect(find.text('Depth Distribution'), findsOneWidget);
     });
 
+    // Dives exist but none carries a type: the section stays, with an
+    // explicit no-data line instead of silently vanishing (issue #3048).
+    testWidgets('shows a no-data line when no dive has a type', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 3,
+        totalTimeSeconds: 5400,
+        maxDepth: 20.0,
+        avgMaxDepth: 20.0,
+        totalSites: 1,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 30)),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: InsightsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dive Types'), findsOneWidget);
+      expect(find.text('No data available'), findsOneWidget);
+    });
+
     testWidgets('hides Distributions when totalDives is 0', (tester) async {
       final stats = DiveStatistics(
         totalDives: 0,

@@ -696,7 +696,19 @@ class _DistributionsSection extends ConsumerWidget {
       ),
       error: (_, _) =>
           _InlineError(message: context.l10n.insights_summary_diveTypes_error),
-      data: (_) => null,
+      // Dives exist (this section is hidden otherwise) but none carries a
+      // type: say so rather than dropping the section without a word.
+      data: (diveTypes) => diveTypes.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                context.l10n.insights_chart_noBarData,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            )
+          : null,
     );
 
     // Depth buckets get the same full bar list: every bucket that has a dive
