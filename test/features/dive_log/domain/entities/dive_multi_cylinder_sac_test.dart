@@ -217,4 +217,32 @@ void main() {
       );
     });
   });
+
+  // The volume that turns the profile chart's normalised SAC (in bar of the
+  // reference cylinder) into L/min (#3109).
+  group('Dive.sacReferenceVolume', () {
+    test('is the reference cylinder volume', () {
+      final dive = _dive([
+        _tank('s', TankRole.stage, volume: 7),
+        _tank('b', TankRole.backGas, volume: 12),
+      ]);
+      expect(dive.sacReferenceVolume, 12);
+    });
+
+    test('borrows a matched partner volume', () {
+      final dive = _dive([
+        _tank('l', TankRole.sidemountLeft),
+        _tank('r', TankRole.sidemountRight, volume: 11.1),
+      ]);
+      expect(dive.sacReferenceVolume, 11.1);
+    });
+
+    test('never takes a stray cylinder volume', () {
+      final dive = _dive([
+        _tank('b', TankRole.backGas),
+        _tank('d', TankRole.deco, volume: 7),
+      ]);
+      expect(dive.sacReferenceVolume, isNull);
+    });
+  });
 }

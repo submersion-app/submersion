@@ -523,6 +523,15 @@ class Dive extends Equatable {
     );
   }
 
+  /// The volume of [sacReferenceTank], its own or its matched partner's
+  /// (issue #3109): what turns a SAC in bar of that cylinder into L/min.
+  /// Never another cylinder's: a stage's size says nothing about the back
+  /// gas. Null when neither is known.
+  double? get sacReferenceVolume {
+    final reference = sacReferenceTank;
+    return reference == null ? null : consumptionVolume(reference, tanks);
+  }
+
   /// SAC: surface air consumption as a tank-pressure drop rate, in bar/min
   /// at the surface, in bar of [sacReferenceTank]. Every other breathed
   /// cylinder adds its drop converted to that cylinder's size (issue #3109,
