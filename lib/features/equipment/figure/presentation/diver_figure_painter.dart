@@ -17,8 +17,8 @@ import 'package:submersion/features/equipment/figure/presentation/figure_paths.d
 /// into the page is first stroked with the rim, then the whole piece is
 /// filled over it, so a rim shows only where that path meets the page or
 /// another piece: around a black suit, and around a black valve on a bright
-/// tank. The mannequin is never rimmed.
-/// Labels are not painted here; the widget positions them.
+/// tank. The mannequin is never rimmed. Labels are not painted here; the
+/// widget positions them.
 class DiverFigurePainter extends CustomPainter {
   DiverFigurePainter({
     required this.model,
@@ -37,7 +37,7 @@ class DiverFigurePainter extends CustomPainter {
   /// Draw just this view (the phone layout).
   final FigureView? only;
 
-  /// How far a rim reaches outside its item, in logical pixels.
+  /// How far a rim reaches outside the path it edges, in logical pixels.
   static const double rimWidth = 1.5;
 
   @override
