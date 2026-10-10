@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:submersion/core/utils/geo_math.dart';
@@ -10,6 +9,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_bu
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/nice_step.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/stroke_strip.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/terrain_ceiling.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -322,8 +322,8 @@ ContourBuildResult buildContourLayers({
 }
 
 /// A stroke along a scene-space polyline (constant y): vertex pairs on the
-/// isobath that the renderer widens on the canvas, the same pattern as
-/// SpatialPathBuilder.buildRibbon (see [MeshData.strokeHalfWidthPx]).
+/// isobath that the renderer widens on the canvas, built by the same
+/// [buildStrokeStrip] as SpatialPathBuilder.buildRibbon.
 ///
 /// Every vertex also carries a sort height: the stroke is DRAWN on the
 /// isobath but SORTED at the ceiling of the terrain cell it crosses, so the
@@ -336,77 +336,23 @@ MeshData _ribbonMesh(
   required TerrainCeiling ceiling,
   required double liftSceneUnits,
 }) {
-  final n = xyz.length ~/ 3;
-  if (n < 2) {
-    return MeshData(
-      positions: Float32List(0),
-      indices: Uint32List(0),
-      colors: Float32List(0),
-    );
-  }
-  final strokeHalfWidthPx = isMajor
-      ? _majorStrokeHalfWidthPx
-      : _minorStrokeHalfWidthPx;
   final color = colorArgb != null ? Color(colorArgb) : _contourInk;
   final opacity = colorArgb != null
       ? _majorOpacity
       : (isMajor ? _majorOpacity : _minorOpacity);
-
-  // A closed isobath (its last point back on its first) runs on through
-  // the seam to its second point, so the seam is a corner like any other
-  // rather than two butt ends.
-  final last = (n - 1) * 3;
-  final closed =
-      n > 2 &&
-      (xyz[0] - xyz[last]).abs() <= 1e-6 &&
-      (xyz[1] - xyz[last + 1]).abs() <= 1e-6 &&
-      (xyz[2] - xyz[last + 2]).abs() <= 1e-6;
-  final pts = closed ? [...xyz, xyz[3], xyz[4], xyz[5]] : xyz;
-  final count = pts.length ~/ 3;
-  // Two pairs on every interior point, one per leg meeting there (see
-  // MeshData.strokeHalfWidthPx).
-  final pairCount = 2 * count - 2;
-  final positions = Float32List(pairCount * 6);
-  final colors = Float32List(pairCount * 6);
-  final sortHeights = Float32List(pairCount * 2);
-  var pair = 0;
-  for (var i = 0; i < count; i++) {
-    final x = pts[i * 3], y = pts[i * 3 + 1], z = pts[i * 3 + 2];
+  return buildStrokeStrip(
+    xyz: xyz,
+    strokeHalfWidthPx: isMajor
+        ? _majorStrokeHalfWidthPx
+        : _minorStrokeHalfWidthPx,
+    colorAt: (_) => (color.r, color.g, color.b),
     // The same lift that keeps the stroke off the mesh keeps its sort
     // height off the ceiling.
-    final sortHeight = math.max(y, ceiling.atScene(x, z) + liftSceneUnits);
-    final copies = i == 0 || i == count - 1 ? 1 : 2;
-    for (var c = 0; c < copies; c++, pair++) {
-      for (var s = 0; s < 2; s++) {
-        final vi = pair * 6 + s * 3;
-        positions[vi] = x;
-        positions[vi + 1] = y;
-        positions[vi + 2] = z;
-        colors[vi] = color.r;
-        colors[vi + 1] = color.g;
-        colors[vi + 2] = color.b;
-        sortHeights[pair * 2 + s] = sortHeight;
-      }
-    }
-  }
-  final indices = Uint32List((pairCount - 1) * 6);
-  var q = 0;
-  for (var i = 0; i < pairCount - 1; i++) {
-    final a = i * 2, b = i * 2 + 1, c = i * 2 + 2, d = i * 2 + 3;
-    indices[q++] = a;
-    indices[q++] = b;
-    indices[q++] = c;
-    indices[q++] = b;
-    indices[q++] = d;
-    indices[q++] = c;
-  }
-  return MeshData(
-    positions: positions,
-    indices: indices,
-    colors: colors,
+    sortHeightAt: (i) => math.max(
+      xyz[i * 3 + 1],
+      ceiling.atScene(xyz[i * 3], xyz[i * 3 + 2]) + liftSceneUnits,
+    ),
     opacity: opacity,
-    sortHeights: sortHeights,
-    strokeHalfWidthPx: strokeHalfWidthPx,
   );
 }
 

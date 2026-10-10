@@ -149,11 +149,13 @@ void main() {
       expect(sx.sublist(4), [11, 9]);
     });
 
-    test('butts both legs at a doubled corner point: the bevel is the quad '
-        'between the two pairs', () {
-      // Two pairs on the corner, the way the builders emit them. The first
-      // ends the east leg at full width, the second starts the north leg
-      // at full width; the quad between them covers the outer corner.
+    test('bevels a doubled corner: inner miter shared, outer ends square', () {
+      // Two pairs on the corner, the way the builders emit them, turning
+      // left from east to north. Both pairs share the inner miter point
+      // (9, 1), where the legs' inner edges meet; the first ends the east
+      // leg square at (10, -1), the second starts the north leg square at
+      // (11, 0). The quad between them is the bevel triangle over the
+      // outer corner.
       final sx = Float32List.fromList([0, 0, 10, 10, 10, 10, 10, 10]);
       final sy = Float32List.fromList([0, 0, 0, 0, 0, 0, 10, 10]);
       Dive3dScenePainter.strokeScreenEdges(
@@ -163,11 +165,78 @@ void main() {
         pairCount: 4,
         halfWidthPx: 1,
       );
-      expect(sx.sublist(2, 4), [10, 10]);
+      expect(sx.sublist(2, 4), [10, 9]);
       expect(sy.sublist(2, 4), [-1, 1]);
       expect(sx.sublist(4, 6), [11, 9]);
-      expect(sy.sublist(4, 6), [0, 0]);
+      expect(sy.sublist(4, 6), [0, 1]);
       expect(sx.sublist(6), [11, 9]);
+    });
+
+    test('puts the inner miter on the first member when turning right', () {
+      final sx = Float32List.fromList([0, 0, 10, 10, 10, 10, 10, 10]);
+      final sy = Float32List.fromList([0, 0, 0, 0, 0, 0, -10, -10]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 4,
+        halfWidthPx: 1,
+      );
+      // Inner miter (9, -1) on the first member of both pairs; the east
+      // leg ends square at (10, 1), the south leg starts square at (11, 0).
+      expect(sx.sublist(2, 4), [9, 10]);
+      expect(sy.sublist(2, 4), [-1, 1]);
+      expect(sx.sublist(4, 6), [9, 11]);
+      expect(sy.sublist(4, 6), [-1, 0]);
+    });
+
+    test('a stationary stretch on a corner joins like the corner', () {
+      // Three pairs on the corner point: the extra one belongs to the
+      // arriving leg, so the only filler with any area is the bevel.
+      final sx = Float32List.fromList([0, 0, 10, 10, 10, 10, 10, 10, 10, 10]);
+      final sy = Float32List.fromList([0, 0, 0, 0, 0, 0, 0, 0, 10, 10]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 5,
+        halfWidthPx: 1,
+      );
+      expect(sx.sublist(2, 6), [10, 9, 10, 9]);
+      expect(sy.sublist(2, 6), [-1, 1, -1, 1]);
+      expect(sx.sublist(6, 8), [11, 9]);
+      expect(sy.sublist(6, 8), [0, 1]);
+    });
+
+    test('joins a closed line across its seam', () {
+      // A square as the builder emits it: two pairs on every corner, the
+      // closing point doubled onto the first. The seam is a left turn from
+      // south to east like the other three corners, and the first pair
+      // repeats the seam's leaving pair.
+      final sx = Float32List.fromList([
+        0, 0, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
+      ]);
+      final sy = Float32List.fromList([
+        0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0, 0, //
+      ]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 9,
+        halfWidthPx: 1,
+      );
+      // Seam: arriving leg ends square at (-1, 0), leaving leg starts
+      // square at (0, -1), inner miter shared at (1, 1).
+      expect(sx.sublist(14, 16), [-1, 1]);
+      expect(sy.sublist(14, 16), [0, 1]);
+      expect(sx.sublist(16), [0, 1]);
+      expect(sy.sublist(16), [-1, 1]);
+      expect(sx.sublist(0, 2), [0, 1]);
+      expect(sy.sublist(0, 2), [-1, 1]);
+      // An ordinary corner for comparison.
+      expect(sx.sublist(2, 6), [10, 9, 11, 9]);
+      expect(sy.sublist(2, 6), [-1, 1, 0, 1]);
     });
 
     test('a doubled hairpin keeps each leg at full width with nothing '

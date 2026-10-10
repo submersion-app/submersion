@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/stroke_strip.dart';
 
 /// Builds the swim path as a bright 3D line threading the seascape, plus
 /// entry/exit "pins" dropped from the water surface to the path ends.
@@ -22,47 +23,22 @@ class SpatialPathBuilder {
   /// width on the canvas.
   static MeshData buildRibbon(ReckonedPath path, SpatialProjection proj) {
     final pts = path.points;
-    final n = pts.length;
-    if (n < 2) {
-      return MeshData(
-        positions: Float32List(0),
-        indices: Uint32List(0),
-        colors: Float32List(0),
-      );
+    final xyz = Float32List(pts.length * 3);
+    for (final (i, p) in pts.indexed) {
+      xyz[i * 3] = proj.xOf(p.east);
+      xyz[i * 3 + 1] = proj.yOf(p.depth);
+      xyz[i * 3 + 2] = proj.zOf(p.north);
     }
-    // Two pairs on every interior point, one per leg meeting there (see
-    // MeshData.strokeHalfWidthPx).
-    final pairCount = 2 * n - 2;
-    final positions = Float32List(pairCount * 6);
-    final colors = Float32List(pairCount * 6);
-    var pair = 0;
-    for (var i = 0; i < n; i++) {
-      final p = pts[i];
-      final x = proj.xOf(p.east);
-      final y = proj.yOf(p.depth);
-      final z = proj.zOf(p.north);
-      final t = proj.maxDepth <= 0
-          ? 0.0
-          : (p.depth / proj.maxDepth).clamp(0.0, 1.0);
-      final color = Color.lerp(_shallowPath, _deepPath, t)!;
-      final copies = i == 0 || i == n - 1 ? 1 : 2;
-      for (var c = 0; c < copies; c++, pair++) {
-        for (var s = 0; s < 2; s++) {
-          final vi = pair * 6 + s * 3;
-          positions[vi] = x;
-          positions[vi + 1] = y;
-          positions[vi + 2] = z;
-          colors[vi] = color.r;
-          colors[vi + 1] = color.g;
-          colors[vi + 2] = color.b;
-        }
-      }
-    }
-    return MeshData(
-      positions: positions,
-      indices: _stripIndices(pairCount),
-      colors: colors,
+    return buildStrokeStrip(
+      xyz: xyz,
       strokeHalfWidthPx: strokeHalfWidthPx,
+      colorAt: (i) {
+        final t = proj.maxDepth <= 0
+            ? 0.0
+            : (pts[i].depth / proj.maxDepth).clamp(0.0, 1.0);
+        final color = Color.lerp(_shallowPath, _deepPath, t)!;
+        return (color.r, color.g, color.b);
+      },
     );
   }
 
@@ -102,21 +78,5 @@ class SpatialPathBuilder {
       indices: Uint32List.fromList([0, 1, 2, 1, 3, 2]),
       colors: colors,
     );
-  }
-
-  static Uint32List _stripIndices(int pairCount) {
-    if (pairCount < 2) return Uint32List(0);
-    final indices = Uint32List((pairCount - 1) * 6);
-    var j = 0;
-    for (var i = 0; i < pairCount - 1; i++) {
-      final a = i * 2, b = i * 2 + 1, c = i * 2 + 2, d = i * 2 + 3;
-      indices[j++] = a;
-      indices[j++] = b;
-      indices[j++] = c;
-      indices[j++] = b;
-      indices[j++] = d;
-      indices[j++] = c;
-    }
-    return indices;
   }
 }

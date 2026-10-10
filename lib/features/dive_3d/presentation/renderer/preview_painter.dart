@@ -377,25 +377,29 @@ class Dive3dScenePainter extends CustomPainter {
   /// Longest corner edge, in half-widths: the miter of a right angle.
   static const double _miterLimit = math.sqrt2;
 
-  /// Widens a stroke mesh on the canvas: each vertex pair moves
-  /// [halfWidthPx] to either side of its point, along the normal of the
-  /// real run on its own side of the point: the arriving run for the pair
-  /// that ends a leg, the leaving run for the pair that starts one.
-  /// Builders put two pairs on every interior point, so each leg keeps its
-  /// full width right up to the corner, and the quad between the two pairs
-  /// is the bevel that fills the corner. A pair between two zero-length
-  /// runs (a stationary stretch) keeps the side last used, and before the
-  /// first real run it faces that run, so a stop never pinches the stroke.
-  /// A run that turns back past a hairpin ([_reversalDot]) has its normal
-  /// flipped to agree with the one before, which keeps the leaving leg's
-  /// two edges on the same sides as the arriving leg's rather than
-  /// crossing into a bow-tie. A pair with a real run on both sides (a
-  /// stroke built without the doubled points) gets the miter of the two
-  /// normals, capped at [_miterLimit]. [sx]/[sy] are the projected canvas
-  /// positions of every vertex in the soup; [start] is this mesh's first
-  /// vertex. Both members of a pair sit on the same point (see
-  /// [MeshData.strokeHalfWidthPx]), so the first member is read as the
-  /// point.
+  /// Widens a stroke mesh on the canvas, [halfWidthPx] to either side of
+  /// each vertex pair's point, with a bevel join at every corner. Builders
+  /// put two pairs on each interior point (see `buildStrokeStrip`): on the
+  /// inner side of the turn both pairs share the miter point, where the
+  /// two legs' inner edges meet, so the legs neither overlap nor leave a
+  /// gap there; on the outer side each pair ends its own leg square at
+  /// full width, and the quad between the two pairs is the bevel triangle
+  /// that fills the outer corner. The miter point is capped at
+  /// [_miterLimit] half-widths, so a hairpin bevels instead of spiking.
+  /// A run that turns back past [_reversalDot] has its normal flipped to
+  /// agree with the one before, which keeps the leaving leg's two edges
+  /// on the same sides as the arriving leg's rather than crossing into a
+  /// bow-tie. A pair between two zero-length runs (a stationary stretch)
+  /// keeps the side last used, before the first real run it faces that
+  /// run, and a stationary stretch on a corner is joined like the corner.
+  /// A line whose last pair sits exactly on its first (a closed isobath,
+  /// see `buildStrokeStrip`) joins across that seam the same way. A lone
+  /// pair with a real run on both sides (a stroke built without the
+  /// doubled points) gets the capped miter on both sides. [sx]/[sy] are
+  /// the projected canvas positions of every vertex in the soup; [start]
+  /// is this mesh's first vertex. Both members of a pair sit on the same
+  /// point (see [MeshData.strokeHalfWidthPx]), so the first member is read
+  /// as the point.
   @visibleForTesting
   static void strokeScreenEdges(
     Float32List sx,
@@ -421,19 +425,21 @@ class Dive3dScenePainter extends CustomPainter {
       ny[j] = dx / len;
       if (firstReal < 0) firstReal = j;
     }
-    void offset(int k, double ex, double ey) {
+    // Pair k's first member moves against (ax, ay), its second along
+    // (bx, by).
+    void write(int k, double ax, double ay, double bx, double by) {
       final a = start + k * 2;
       final x = sx[a], y = sy[a];
-      sx[a] = x - ex * halfWidthPx;
-      sy[a] = y - ey * halfWidthPx;
-      sx[a + 1] = x + ex * halfWidthPx;
-      sy[a + 1] = y + ey * halfWidthPx;
+      sx[a] = x - ax * halfWidthPx;
+      sy[a] = y - ay * halfWidthPx;
+      sx[a + 1] = x + bx * halfWidthPx;
+      sy[a + 1] = y + by * halfWidthPx;
     }
 
     if (firstReal < 0) {
       // Never moves: any side will do.
       for (var k = 0; k < pairCount; k++) {
-        offset(k, 0, 1);
+        write(k, 0, 1, 0, 1);
       }
       return;
     }
@@ -453,28 +459,73 @@ class Dive3dScenePainter extends CustomPainter {
       px = nx[j];
       py = ny[j];
     }
+    final a0 = start, aN = start + runs * 2;
+    final closed =
+        pairCount > 2 &&
+        (sx[aN] - sx[a0]).abs() <= 1e-6 &&
+        (sy[aN] - sy[a0]).abs() <= 1e-6;
+    // The side last used, for a stationary stretch with no real run on
+    // either side of it.
     var px = nx[firstReal], py = ny[firstReal];
-    for (var k = 0; k < pairCount; k++) {
+    var k = 0;
+    while (k < pairCount) {
+      // Pairs k..e sit on one point: the runs between them have no length.
+      var e = k;
+      while (e < runs && nx[e] == 0 && ny[e] == 0) {
+        e++;
+      }
       final inReal = k > 0 && (nx[k - 1] != 0 || ny[k - 1] != 0);
-      final outReal = k < runs && (nx[k] != 0 || ny[k] != 0);
-      if (inReal && outReal) {
-        final inX = nx[k - 1], inY = ny[k - 1];
-        final outX = nx[k], outY = ny[k];
+      final inX = inReal ? nx[k - 1] : 0.0, inY = inReal ? ny[k - 1] : 0.0;
+      var hasOut = e < runs;
+      var outX = hasOut ? nx[e] : 0.0, outY = hasOut ? ny[e] : 0.0;
+      if (!hasOut && closed && e == pairCount - 1) {
+        hasOut = true;
+        outX = nx[firstReal];
+        outY = ny[firstReal];
+      }
+      if (inReal && hasOut) {
         // The orientation pass keeps the two within 150 degrees, so their
         // mean is never shorter than 2 cos 75 degrees.
         final mx = inX + outX, my = inY + outY;
         final len = math.sqrt(mx * mx + my * my);
         final scale = math.min(len / (mx * outX + my * outY), _miterLimit);
-        px = mx / len * scale;
-        py = my / len * scale;
-      } else if (outReal) {
-        px = nx[k];
-        py = ny[k];
-      } else if (inReal) {
-        px = nx[k - 1];
-        py = ny[k - 1];
+        final ex = mx / len * scale, ey = my / len * scale;
+        if (e == k) {
+          write(k, ex, ey, ex, ey);
+        } else if (inX * outY - inY * outX > 0) {
+          // Turning left: the inner side is the second member's.
+          for (var j = k; j < e; j++) {
+            write(j, inX, inY, ex, ey);
+          }
+          write(e, outX, outY, ex, ey);
+        } else {
+          for (var j = k; j < e; j++) {
+            write(j, ex, ey, inX, inY);
+          }
+          write(e, ex, ey, outX, outY);
+        }
+        px = outX;
+        py = outY;
+      } else {
+        if (hasOut) {
+          px = outX;
+          py = outY;
+        } else if (inReal) {
+          px = inX;
+          py = inY;
+        }
+        for (var j = k; j <= e; j++) {
+          write(j, px, py, px, py);
+        }
       }
-      offset(k, px, py);
+      k = e + 1;
+    }
+    if (closed) {
+      // The first pair starts the same leg the seam's last pair does.
+      sx[a0] = sx[aN];
+      sy[a0] = sy[aN];
+      sx[a0 + 1] = sx[aN + 1];
+      sy[a0 + 1] = sy[aN + 1];
     }
   }
 
