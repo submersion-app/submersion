@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_path_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
@@ -36,10 +37,41 @@ void main() {
 
   group('SpatialPathBuilder.buildRibbon', () {
     test('no wider than a major contour ribbon (issue #3215)', () {
-      // contour_builder.dart draws major isobaths at half-width 0.030 and
-      // minor ones at 0.016. The track used to be 0.08, 2.7x the major
-      // width, and read as a band rather than a line.
-      expect(SpatialPathBuilder.ribbonHalfWidth, lessThanOrEqualTo(0.03));
+      // The track used to be 0.08, 2.7x the major isobath width, and read
+      // as a band rather than a line next to the contours.
+      expect(
+        SpatialPathBuilder.ribbonHalfWidth,
+        lessThanOrEqualTo(majorContourHalfWidth),
+      );
+    });
+
+    test('keeps its width across zero-length segments (a stationary stop)', () {
+      // Three samples at the same east/north, then a move east. The stop
+      // has no tangent of its own and must borrow the side vector instead
+      // of collapsing both edges onto the centre line.
+      final mesh = SpatialPathBuilder.buildRibbon(
+        _path([(10, 10, 5), (10, 10, 5.5), (10, 10, 6), (20, 10, 6)]),
+        proj,
+      );
+      const hw = SpatialPathBuilder.ribbonHalfWidth;
+      for (var i = 0; i < 4; i++) {
+        final vi = i * 6;
+        final dx = mesh.positions[vi + 3] - mesh.positions[vi];
+        final dz = mesh.positions[vi + 5] - mesh.positions[vi + 2];
+        expect(dx, closeTo(0, 1e-6), reason: 'point $i');
+        expect(dz.abs(), closeTo(2 * hw, 1e-6), reason: 'point $i');
+      }
+    });
+
+    test('a path that never moves still has a ribbon of full width', () {
+      final mesh = SpatialPathBuilder.buildRibbon(
+        _path([(0, 0, 5), (0, 0, 6)]),
+        proj,
+      );
+      const hw = SpatialPathBuilder.ribbonHalfWidth;
+      final dx = mesh.positions[3] - mesh.positions[0];
+      final dz = mesh.positions[5] - mesh.positions[2];
+      expect(math.sqrt(dx * dx + dz * dz), closeTo(2 * hw, 1e-6));
     });
 
     test('extrudes each point by ribbonHalfWidth to either side, '

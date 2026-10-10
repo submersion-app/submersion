@@ -3,16 +3,16 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 
 /// Builds the swim path as a bright 3D ribbon threading the seascape, plus
 /// entry/exit "pins" dropped from the water surface to the path ends.
 class SpatialPathBuilder {
-  /// Scene units to either side of the path. Matches the major contour
-  /// ribbon in contour_builder.dart; at 0.08 the track read as a band
-  /// rather than a line next to the isobaths (issue #3215).
-  static const double ribbonHalfWidth = 0.03;
+  /// Scene units to either side of the path. At 0.08 the track read as a
+  /// band rather than a line next to the isobaths (issue #3215).
+  static const double ribbonHalfWidth = majorContourHalfWidth;
   static const Color _shallowPath = Color(0xFFFDE047); // yellow
   static const Color _deepPath = Color(0xFFF97316); // orange
   static const Color _entryColor = Color(0xFF22C55E); // green
@@ -36,19 +36,32 @@ class SpatialPathBuilder {
 
     final positions = Float32List(n * 6);
     final colors = Float32List(n * 6);
+    // Side vector: perpendicular in xz, rotated the way the map frame
+    // turns: scene Z runs SOUTH (see SpatialProjection), so the sense is
+    // (tz, -tx). A zero-length segment (a stationary stop) has no tangent,
+    // so it keeps the previous side vector instead of pinching the ribbon
+    // to a point; before the first real segment it faces the first one.
+    var px = 0.0, pz = -1.0;
+    for (var j = 0; j < n - 1; j++) {
+      final tx = xs[j + 1] - xs[j];
+      final tz = zs[j + 1] - zs[j];
+      final len = math.sqrt(tx * tx + tz * tz);
+      if (len > 1e-9) {
+        px = tz / len;
+        pz = -tx / len;
+        break;
+      }
+    }
     for (var i = 0; i < n; i++) {
       // Horizontal tangent (forward difference, last uses previous).
       final j = i < n - 1 ? i : i - 1;
-      var tx = xs[j + 1] - xs[j];
-      var tz = zs[j + 1] - zs[j];
+      final tx = xs[j + 1] - xs[j];
+      final tz = zs[j + 1] - zs[j];
       final len = math.sqrt(tx * tx + tz * tz);
       if (len > 1e-9) {
-        tx /= len;
-        tz /= len;
+        px = tz / len;
+        pz = -tx / len;
       }
-      // Perpendicular in xz, rotated the way the map frame turns: scene Z
-      // runs SOUTH (see SpatialProjection), so the sense is (tz, -tx).
-      final px = tz, pz = -tx;
       final t = proj.maxDepth <= 0
           ? 0.0
           : (pts[i].depth / proj.maxDepth).clamp(0.0, 1.0);

@@ -187,7 +187,10 @@ List<ContourPolyline> marchGrid({
 const double contourLiftMeters = 0.15;
 const double _labelExtraLiftMeters = 0.25;
 const double _minorHalfWidth = 0.016;
-const double _majorHalfWidth = 0.030;
+
+/// Half-width of a major isobath ribbon in scene units. Public because the
+/// swim-path ribbon (SpatialPathBuilder) is sized to match it (issue #3215).
+const double majorContourHalfWidth = 0.030;
 const Color _contourInk = Color(0xFFF8FAFC);
 const double _minorOpacity = 0.5;
 const double _majorOpacity = 0.85;
@@ -338,7 +341,7 @@ MeshData _ribbonMesh(
       colors: Float32List(0),
     );
   }
-  final halfWidth = isMajor ? _majorHalfWidth : _minorHalfWidth;
+  final halfWidth = isMajor ? majorContourHalfWidth : _minorHalfWidth;
   final color = colorArgb != null ? Color(colorArgb) : _contourInk;
   final opacity = colorArgb != null
       ? _majorOpacity
