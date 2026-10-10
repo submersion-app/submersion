@@ -186,6 +186,24 @@ void main() {
     });
   });
 
+  group('gas consumption order', () {
+    test('lists cylinders in the order the table breathes them, not the '
+        'order they were added', () {
+      // Deco cylinder authored first, back gas second: the table still
+      // breathes the back gas first (descent, bottom, travel), so the gas
+      // list reads back gas, then deco.
+      final outcome = _engine.compute(
+        _plan(bottomDepth: 50, bottomMinutes: 30, tanks: [_ean50, _airTank]),
+      );
+      expect(outcome.tankUsages.map((u) => u.tankId), ['back', 'deco']);
+      // And the table itself agrees on which comes first.
+      final firstTankInTable = outcome.schedule
+          .map((r) => r.tankId)
+          .firstWhere((id) => id != null);
+      expect(firstTankInTable, 'back');
+    });
+  });
+
   group('a no-deco dive (18 m / 20 min)', () {
     final outcome = _engine.compute(
       _plan(bottomDepth: 18, bottomMinutes: 20, tanks: const [_airTank]),

@@ -17,6 +17,7 @@ import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
+import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 
 /// The open-circuit bailout picture at one instant of a CCR plan.
 class BailoutPoint {
@@ -254,7 +255,9 @@ class BailoutSolver {
         ...ocSchedule.rows,
       ],
       bailoutTanks: bailoutTanks,
-      bailoutTankUsages: [
+      // Listed in the order the worst-case table breathes them, not the
+      // order the diver happened to add the cylinders.
+      bailoutTankUsages: orderUsagesByFirstUse([
         for (final tank in bailoutTanks)
           () {
             final used = ocSchedule.litersByTank[tank.id] ?? 0.0;
@@ -304,7 +307,7 @@ class BailoutSolver {
               reserveViolation: total != null && used > total,
             );
           }(),
-      ],
+      ], ocSchedule.rows),
     );
   }
 

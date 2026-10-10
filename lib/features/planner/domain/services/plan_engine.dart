@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
+import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -548,7 +549,9 @@ class PlanEngine {
       stops: stops,
       schedule: scheduleRows,
       segmentOutcomes: segmentOutcomes,
-      tankUsages: tankUsages,
+      // Listed in the order the table above breathes them, not the order
+      // the diver happened to add the cylinders.
+      tankUsages: orderUsagesByFirstUse(tankUsages, scheduleRows),
       cnsEnd: cns,
       otuTotal: otu,
       issues: issues,

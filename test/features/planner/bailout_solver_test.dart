@@ -284,6 +284,29 @@ void main() {
       expect(total, closeTo(outcome.worstCase.litersRequired, 0.5));
     });
 
+    test('lists cylinders in the order the worst-case table breathes them, '
+        'not the order they were added', () {
+      // Oxygen authored before the 50 % bailout: the OC tail still starts
+      // on the 50 % at depth and only reaches oxygen near the surface, so
+      // the list reads 50 % first, oxygen second.
+      final outcome = solver.solve(
+        _plan(
+          tanks: [
+            _diluentTank,
+            const DiveTank(
+              id: 'deco',
+              volume: 11.1,
+              startPressure: 207,
+              gasMix: GasMix(o2: 100),
+              role: TankRole.bailout,
+            ),
+            _bailout(),
+          ],
+        ),
+      )!;
+      expect(outcome.bailoutTankUsages.map((u) => u.tankId), ['bo', 'deco']);
+    });
+
     test(
       'flags a cylinder whose own usage exceeds its own capacity (#3190)',
       () {
