@@ -5,6 +5,41 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// The decompression settings' "Ascent rate" section: header, explanation
+/// and [AscentRateThresholdsTile].
+class AscentRateSection extends StatelessWidget {
+  const AscentRateSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.settings_decompression_header_ascentRate,
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: theme.colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            context.l10n.settings_decompression_header_ascentRate_subtitle,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Card(child: AscentRateThresholdsTile()),
+      ],
+    );
+  }
+}
+
 /// The "Ascent rate thresholds" entry of the decompression settings: the
 /// warning and critical rates the profile's ascent-rate colours and events
 /// use (issue #3091), opening [AscentRateThresholdsDialog] to edit them.
@@ -86,9 +121,11 @@ class _AscentRateThresholdsDialogState
     _criticalMax,
   );
 
-  /// A stored value snapped onto the slider's whole-number grid and range.
+  /// A stored value kept inside the slider's range. Not rounded onto the
+  /// slider's grid: a synced 9.5 must survive a save that only moved the
+  /// other slider.
   static double _snap(double value, double min, double max) =>
-      value.roundToDouble().clamp(min, max);
+      value.clamp(min, max);
 
   void _setWarning(double value) {
     setState(() {

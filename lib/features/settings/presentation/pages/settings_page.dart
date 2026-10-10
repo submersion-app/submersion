@@ -1451,22 +1451,7 @@ class _DecompressionSectionContent extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(
-            context,
-            context.l10n.settings_decompression_header_ascentRate,
-          ),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              context.l10n.settings_decompression_header_ascentRate_subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Card(child: AscentRateThresholdsTile()),
+          const AscentRateSection(),
         ],
       ),
     );

@@ -20,12 +20,10 @@ final emergencyChamberRepositoryProvider = Provider<EmergencyChamberRepository>(
 /// settings override wins, else the most recent dive's site country.
 /// Null means "unknown" (worldwide hotline + default EMS number).
 final emergencyRegionProvider = FutureProvider<String?>((ref) async {
-  final override = ref.watch(settingsProvider.select((s) => s.emergencyRegion));
-  if (override != null && override.trim().isNotEmpty) {
-    // Chamber countries and the dataset keys are upper-case ISO codes, so
-    // normalize the manual override to match same-country comparisons.
-    return override.trim().toUpperCase();
-  }
+  final override = _manualRegion(
+    ref.watch(settingsProvider.select((s) => s.emergencyRegion)),
+  );
+  if (override != null) return override;
 
   final repository = ref.watch(diveRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchDivesChanges());
@@ -41,6 +39,14 @@ final emergencyRegionProvider = FutureProvider<String?>((ref) async {
   if (country == null || country.isEmpty) return null;
   return _isoFromCountry(country);
 });
+
+/// The diver's manual region override as an upper-case ISO code, or null
+/// when none is set. Chamber countries and the dataset keys are upper-case,
+/// so the override is normalized to match same-country comparisons.
+String? _manualRegion(String? override) {
+  final code = override?.trim().toUpperCase();
+  return code == null || code.isEmpty ? null : code;
+}
 
 /// How many chambers the emergency card shows before deferring to the full
 /// directory. The card is read under stress; it is not a browsing surface.
@@ -217,12 +223,15 @@ final emergencyCardDataProvider = FutureProvider<EmergencyCardData>((
 ) async {
   final numbers = await EmergencyDataService.loadNumbers();
   final bundledChambers = await EmergencyDataService.loadBundledChambers();
-  final override = ref.watch(settingsProvider.select((s) => s.emergencyRegion));
+  final regionIsManual =
+      _manualRegion(
+        ref.watch(settingsProvider.select((s) => s.emergencyRegion)),
+      ) !=
+      null;
   final countryCode = await ref.watch(emergencyRegionProvider.future);
   final diver = await ref.watch(currentDiverProvider.future);
   final listings = await ref.watch(chamberListingsProvider.future);
 
-  final regionIsManual = override != null && override.trim().isNotEmpty;
   final regionChoices = <String>{
     ...numbers.emsByCountry.keys,
     for (final region in numbers.regions) ...region.countries,
