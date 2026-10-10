@@ -9,6 +9,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/wait_until.dart';
 
 /// The conflict dialog labels the side this device wrote by comparing a row's
 /// device id with this device's. Reset Sync State mints a new id, so the
@@ -61,8 +62,8 @@ void main() {
     final before = await container.read(conflictLocalDeviceProvider.future);
     expect(before.id, await repo.getDeviceId());
     sub.close();
-    // Let the auto-dispose run, as it does when the dialog closes.
-    await Future<void>.delayed(Duration.zero);
+    // Wait for the auto-dispose, as happens when the dialog closes.
+    await waitUntil(() async => !container.exists(conflictLocalDeviceProvider));
 
     await repo.setDeviceId('new-id-after-reset');
 
@@ -76,8 +77,8 @@ void main() {
       final container = makeContainer();
       container.read(syncStateProvider);
       await container.read(syncStateProvider.notifier).refreshState();
-      // Let the notifier's initialization settle before the reset.
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      // The notifier's initialization awaits this before reading sync state.
+      await container.read(restoreLastProviderProvider.future);
 
       final sub = container.listen(conflictLocalDeviceProvider, (_, _) {});
       addTearDown(sub.close);
@@ -99,7 +100,7 @@ void main() {
     final container = makeContainer(service: _RotatingSyncService(repo));
     container.read(syncStateProvider);
     await container.read(syncStateProvider.notifier).refreshState();
-    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await container.read(restoreLastProviderProvider.future);
 
     final sub = container.listen(conflictLocalDeviceProvider, (_, _) {});
     addTearDown(sub.close);
