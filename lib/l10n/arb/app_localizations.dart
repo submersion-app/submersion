@@ -446,6 +446,144 @@ abstract class AppLocalizations {
   /// **'Recency'**
   String get connections_highlight_recency;
 
+  /// No description provided for @connections_display_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get connections_display_title;
+
+  /// No description provided for @connections_layout_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Layout'**
+  String get connections_layout_title;
+
+  /// No description provided for @connections_layout_web.
+  ///
+  /// In en, this message translates to:
+  /// **'Web'**
+  String get connections_layout_web;
+
+  /// No description provided for @connections_layout_radial.
+  ///
+  /// In en, this message translates to:
+  /// **'Radial'**
+  String get connections_layout_radial;
+
+  /// No description provided for @connections_layout_circle.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle'**
+  String get connections_layout_circle;
+
+  /// No description provided for @connections_layout_columns.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns'**
+  String get connections_layout_columns;
+
+  /// No description provided for @connections_layout_clusters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clusters'**
+  String get connections_layout_clusters;
+
+  /// No description provided for @connections_layout_timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get connections_layout_timeline;
+
+  /// No description provided for @connections_labels_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels'**
+  String get connections_labels_title;
+
+  /// No description provided for @connections_labels_auto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get connections_labels_auto;
+
+  /// No description provided for @connections_labels_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get connections_labels_all;
+
+  /// No description provided for @connections_labels_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get connections_labels_off;
+
+  /// No description provided for @connections_nodeSize_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Node size'**
+  String get connections_nodeSize_title;
+
+  /// No description provided for @connections_nodeSize_byDives.
+  ///
+  /// In en, this message translates to:
+  /// **'By dives'**
+  String get connections_nodeSize_byDives;
+
+  /// No description provided for @connections_nodeSize_uniform.
+  ///
+  /// In en, this message translates to:
+  /// **'Uniform'**
+  String get connections_nodeSize_uniform;
+
+  /// No description provided for @connections_edges_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Lines'**
+  String get connections_edges_title;
+
+  /// No description provided for @connections_edges_weighted.
+  ///
+  /// In en, this message translates to:
+  /// **'Weighted'**
+  String get connections_edges_weighted;
+
+  /// No description provided for @connections_edges_thin.
+  ///
+  /// In en, this message translates to:
+  /// **'Thin'**
+  String get connections_edges_thin;
+
+  /// No description provided for @connections_edges_selectedOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected only'**
+  String get connections_edges_selectedOnly;
+
+  /// No description provided for @connections_hideUnconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide unconnected'**
+  String get connections_hideUnconnected;
+
+  /// No description provided for @connections_spacing_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Spacing'**
+  String get connections_spacing_title;
+
+  /// No description provided for @connections_spacing_tight.
+  ///
+  /// In en, this message translates to:
+  /// **'Tight'**
+  String get connections_spacing_tight;
+
+  /// No description provided for @connections_spacing_spread.
+  ///
+  /// In en, this message translates to:
+  /// **'Spread'**
+  String get connections_spacing_spread;
+
   /// No description provided for @connections_legend_group.
   ///
   /// In en, this message translates to:

@@ -222,6 +222,75 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_highlight_recency => 'Recency';
 
   @override
+  String get connections_display_title => 'Display';
+
+  @override
+  String get connections_layout_title => 'Layout';
+
+  @override
+  String get connections_layout_web => 'Web';
+
+  @override
+  String get connections_layout_radial => 'Radial';
+
+  @override
+  String get connections_layout_circle => 'Circle';
+
+  @override
+  String get connections_layout_columns => 'Columns';
+
+  @override
+  String get connections_layout_clusters => 'Clusters';
+
+  @override
+  String get connections_layout_timeline => 'Timeline';
+
+  @override
+  String get connections_labels_title => 'Labels';
+
+  @override
+  String get connections_labels_auto => 'Auto';
+
+  @override
+  String get connections_labels_all => 'All';
+
+  @override
+  String get connections_labels_off => 'Off';
+
+  @override
+  String get connections_nodeSize_title => 'Node size';
+
+  @override
+  String get connections_nodeSize_byDives => 'By dives';
+
+  @override
+  String get connections_nodeSize_uniform => 'Uniform';
+
+  @override
+  String get connections_edges_title => 'Lines';
+
+  @override
+  String get connections_edges_weighted => 'Weighted';
+
+  @override
+  String get connections_edges_thin => 'Thin';
+
+  @override
+  String get connections_edges_selectedOnly => 'Selected only';
+
+  @override
+  String get connections_hideUnconnected => 'Hide unconnected';
+
+  @override
+  String get connections_spacing_title => 'Spacing';
+
+  @override
+  String get connections_spacing_tight => 'Tight';
+
+  @override
+  String get connections_spacing_spread => 'Spread';
+
+  @override
   String get connections_legend_group => 'Color: group';
 
   @override
