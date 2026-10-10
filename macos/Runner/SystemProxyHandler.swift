@@ -68,7 +68,7 @@ class SystemProxyHandler: NSObject {
             guard let type = proxy[kCFProxyTypeKey as String] as? String else { continue }
             switch type {
             case typeNone:
-                return ["kind": "none"]
+                return ["kind": "none", "viaPac": viaPac]
             case typeHTTP, typeHTTPS, typeSOCKS:
                 guard let host = proxy[kCFProxyHostNameKey as String] as? String,
                       let port = (proxy[kCFProxyPortNumberKey as String] as? NSNumber)?.intValue
@@ -79,8 +79,9 @@ class SystemProxyHandler: NSObject {
                     "host": host, "port": port, "bypass": bypass, "viaPac": viaPac,
                 ]
             case typePacURL:
-                guard let pac = proxy[kCFProxyAutoConfigurationURLKey as String] else { continue }
-                let pacURL = pac as! CFURL
+                guard let pac = proxy[kCFProxyAutoConfigurationURLKey as String] as? URL
+                else { continue }
+                let pacURL = pac as CFURL
                 return runPac(url: url, bypass: bypass) { callback, context in
                     CFNetworkExecuteProxyAutoConfigurationURL(
                         pacURL, url as CFURL, callback, context
@@ -135,6 +136,9 @@ class SystemProxyHandler: NSObject {
             _ = CFRunLoopRunInMode(.defaultMode, deadline.timeIntervalSinceNow, true)
         }
         CFRunLoopRemoveSource(runLoop, source, .defaultMode)
+        // Invalidate, not just remove: a PAC fetch still in flight after the
+        // timeout must never call back into `box` once this frame is gone.
+        CFRunLoopSourceInvalidate(source)
         if !box.done {
             return ["kind": "unavailable", "reason": "pacFailed",
                     "detail": "Timed out evaluating the proxy auto-configuration script"]

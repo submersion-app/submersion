@@ -39560,6 +39560,12 @@ abstract class AppLocalizations {
   /// **'Proxy settings saved'**
   String get settings_network_manual_saved;
 
+  /// No description provided for @settings_network_manual_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the proxy settings.'**
+  String get settings_network_manual_saveFailed;
+
   /// No description provided for @settings_network_manual_nativeNote.
   ///
   /// In en, this message translates to:

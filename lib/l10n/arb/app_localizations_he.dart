@@ -23892,6 +23892,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_network_manual_saved => 'הגדרות הפרוקסי נשמרו';
 
   @override
+  String get settings_network_manual_saveFailed =>
+      'לא ניתן לשמור את הגדרות הפרוקסי.';
+
+  @override
   String get settings_network_manual_nativeNote =>
       'מסכי התחברות שמספקת מערכת ההפעלה משתמשים בפרוקסי המערכת.';
 

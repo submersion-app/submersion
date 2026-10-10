@@ -7056,6 +7056,7 @@
   "settings_network_manual_hidePassword": "隐藏密码",
   "settings_network_manual_save": "保存",
   "settings_network_manual_saved": "代理设置已保存",
+  "settings_network_manual_saveFailed": "无法保存代理设置。",
   "settings_network_manual_nativeNote": "操作系统提供的登录界面使用系统代理。",
   "settings_network_validation_hostRequired": "请输入代理主机",
   "settings_network_validation_portInvalid": "请输入 1 到 65535 之间的端口",

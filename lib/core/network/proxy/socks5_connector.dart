@@ -78,7 +78,13 @@ Future<Socks5Tunnel> connectViaSocks5({
 
   final Socket socket;
   try {
-    socket = await Socket.connect(proxyHost, proxyPort);
+    // The deadline covers the TCP connect too: an unreachable proxy host
+    // would otherwise wait for the OS connect timeout.
+    socket = await Socket.connect(
+      proxyHost,
+      proxyPort,
+      timeout: handshakeTimeout,
+    );
   } on SocketException catch (e) {
     throw Socks5Exception(
       Socks5Failure.proxyUnreachable,
@@ -188,14 +194,10 @@ Future<Socks5Tunnel> connectViaSocks5({
       default:
         throw const Socks5Exception(Socks5Failure.protocolError);
     }
-    if (pending.isNotEmpty) {
-      throw const Socks5Exception(
-        Socks5Failure.protocolError,
-        detail: 'SOCKS5 proxy sent data before the tunnel opened',
-      );
-    }
     sub.pause();
-    return Socks5Tunnel._(socket, sub);
+    // A server can send its first bytes in the same read as the reply; they
+    // belong to the tunnel's reader, not the handshake.
+    return Socks5Tunnel._(socket, sub, List<int>.unmodifiable(pending));
   } catch (_) {
     socket.destroy();
     rethrow;
@@ -209,21 +211,28 @@ Future<Socks5Tunnel> connectViaSocks5({
 /// SecureSocket.secure, which detaches the raw socket and needs the real
 /// dart:io Socket. For http, use [asPlainSocket].
 class Socks5Tunnel {
-  Socks5Tunnel._(this.socket, this._subscription);
+  Socks5Tunnel._(this.socket, this._subscription, this._earlyData);
 
   final Socket socket;
   final StreamSubscription<Uint8List> _subscription;
+  final List<int> _earlyData;
 
-  Socket asPlainSocket() => _TunnelSocket(socket, _subscription);
+  /// Whether the target sent bytes before the caller wrote anything. A TLS
+  /// server never does (the client speaks first), so https treats it as a
+  /// protocol error; http hands the bytes to the reader.
+  bool get hasEarlyData => _earlyData.isNotEmpty;
+
+  Socket asPlainSocket() => _TunnelSocket(socket, _subscription, _earlyData);
 }
 
 /// A Socket whose reads come from the handshake's paused subscription and
 /// whose writes and options go to the real socket.
 class _TunnelSocket extends Stream<Uint8List> implements Socket {
-  _TunnelSocket(this._inner, this._subscription);
+  _TunnelSocket(this._inner, this._subscription, this._earlyData);
 
   final Socket _inner;
   final StreamSubscription<Uint8List> _subscription;
+  final List<int> _earlyData;
   var _listened = false;
 
   @override
@@ -251,7 +260,15 @@ class _TunnelSocket extends Stream<Uint8List> implements Socket {
       onDone: onDone,
       cancelOnError: cancelOnError,
     );
-    _subscription.resume();
+    // Not inside listen(): a stream must not deliver before listen returns
+    // (Stream.first sets its handler afterwards and would drop the bytes).
+    // The early bytes go first, then the socket resumes behind them.
+    scheduleMicrotask(() {
+      if (_earlyData.isNotEmpty) {
+        controller.add(Uint8List.fromList(_earlyData));
+      }
+      _subscription.resume();
+    });
     return sub;
   }
 

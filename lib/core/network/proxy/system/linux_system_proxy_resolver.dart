@@ -56,7 +56,8 @@ class LinuxSystemProxyResolver implements SystemProxyResolver {
         final port = int.tryParse(
           (await _gsettings(schema, 'port'))?.trim() ?? '',
         );
-        if (host != null && host.isNotEmpty && port != null && port > 0) {
+        final validPort = port != null && port >= 1 && port <= 65535;
+        if (host != null && host.isNotEmpty && validPort) {
           return SystemProxyFixed(
             type: type,
             host: host,

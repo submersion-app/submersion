@@ -14119,6 +14119,7 @@
   "settings_network_manual_hidePassword": "Hide password",
   "settings_network_manual_save": "Save",
   "settings_network_manual_saved": "Proxy settings saved",
+  "settings_network_manual_saveFailed": "Couldn't save the proxy settings.",
   "settings_network_manual_nativeNote": "Sign-in screens provided by the operating system use the system proxy.",
   "settings_network_validation_hostRequired": "Enter the proxy host",
   "settings_network_validation_portInvalid": "Enter a port from 1 to 65535",

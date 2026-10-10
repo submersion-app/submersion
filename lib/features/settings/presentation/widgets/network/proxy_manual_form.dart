@@ -3,6 +3,7 @@ import 'package:submersion/core/network/proxy/proxy_controller.dart';
 import 'package:submersion/core/network/proxy/proxy_credentials.dart';
 import 'package:submersion/core/network/proxy/proxy_settings.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/network_proxy_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
@@ -21,6 +22,8 @@ class ProxyManualForm extends ConsumerStatefulWidget {
 }
 
 class _ProxyManualFormState extends ConsumerState<ProxyManualForm> {
+  static const _log = LoggerService('ProxySettings');
+
   late ProxyType _type;
   late final TextEditingController _host;
   late final TextEditingController _port;
@@ -108,15 +111,27 @@ class _ProxyManualFormState extends ConsumerState<ProxyManualForm> {
       port: port,
       username: username,
     );
-    await widget.controller.saveSettings(
-      settings,
-      password: username.isEmpty ? null : password,
-      updatePassword: true,
-    );
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    try {
+      await widget.controller.saveSettings(
+        settings,
+        password: username.isEmpty ? null : password,
+        updatePassword: true,
+      );
+    } catch (e, st) {
+      // A locked keychain or unwritable prefs: say so and keep the draft,
+      // so Save can be retried.
+      _log.error('Could not save the proxy settings', error: e, stackTrace: st);
+      messenger?.showSnackBar(
+        SnackBar(content: Text(l10n.settings_network_manual_saveFailed)),
+      );
+      return;
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
     if (!mounted) return;
     ref.read(networkProxyDraftProvider.notifier).clear();
-    setState(() => _saving = false);
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+    messenger?.showSnackBar(
       SnackBar(content: Text(l10n.settings_network_manual_saved)),
     );
   }

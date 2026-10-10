@@ -24511,6 +24511,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_network_manual_saved => 'Configurações de proxy salvas';
 
   @override
+  String get settings_network_manual_saveFailed =>
+      'Não foi possível salvar as configurações de proxy.';
+
+  @override
   String get settings_network_manual_nativeNote =>
       'As telas de login fornecidas pelo sistema operacional usam o proxy do sistema.';
 

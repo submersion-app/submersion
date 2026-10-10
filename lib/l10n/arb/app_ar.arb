@@ -6882,6 +6882,7 @@
   "settings_network_manual_hidePassword": "إخفاء كلمة المرور",
   "settings_network_manual_save": "حفظ",
   "settings_network_manual_saved": "تم حفظ إعدادات الوكيل",
+  "settings_network_manual_saveFailed": "تعذّر حفظ إعدادات الوكيل.",
   "settings_network_manual_nativeNote": "تستخدم شاشات تسجيل الدخول التي يوفرها نظام التشغيل وكيلَ النظام.",
   "settings_network_validation_hostRequired": "أدخل مضيف الوكيل",
   "settings_network_validation_portInvalid": "أدخل منفذاً من 1 إلى 65535",

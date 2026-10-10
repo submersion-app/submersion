@@ -15,6 +15,12 @@ void main() {
         const SystemProxyNone(),
       ),
     );
+    test('a PAC script choosing direct is marked as such', () {
+      expect(
+        parseChannelProxyResult({'kind': 'none', 'viaPac': true}),
+        const SystemProxyNone(viaPac: true),
+      );
+    });
     test('fixed with bypass and PAC flag', () {
       expect(
         parseChannelProxyResult({
@@ -55,6 +61,8 @@ void main() {
         {'kind': 'fixed', 'host': '', 'port': 1},
         {'kind': 'fixed', 'host': 'h', 'port': 0},
         {'kind': '?'},
+        {'kind': 'fixed', 'type': 'socks4', 'host': 'h', 'port': 1},
+        {'kind': 'fixed', 'host': 'h', 'port': 1},
       ]) {
         expect(
           parseChannelProxyResult(raw),

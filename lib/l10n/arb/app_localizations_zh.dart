@@ -23156,6 +23156,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_network_manual_saved => '代理设置已保存';
 
   @override
+  String get settings_network_manual_saveFailed => '无法保存代理设置。';
+
+  @override
   String get settings_network_manual_nativeNote => '操作系统提供的登录界面使用系统代理。';
 
   @override

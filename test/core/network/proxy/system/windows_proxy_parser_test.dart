@@ -116,7 +116,7 @@ void main() {
         ),
       );
     });
-    test('PAC saying direct is none', () {
+    test('PAC saying direct is none, marked as a PAC answer', () {
       expect(
         parseWindowsProxy(
           const RawWindowsProxy(
@@ -125,7 +125,7 @@ void main() {
             pacSucceeded: true,
           ),
         ),
-        const SystemProxyNone(),
+        const SystemProxyNone(viaPac: true),
       );
     });
     test('auto-detect failing with no WPAD server is none (home PCs)', () {

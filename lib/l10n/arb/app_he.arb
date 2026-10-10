@@ -6882,6 +6882,7 @@
   "settings_network_manual_hidePassword": "הסתרת סיסמה",
   "settings_network_manual_save": "שמירה",
   "settings_network_manual_saved": "הגדרות הפרוקסי נשמרו",
+  "settings_network_manual_saveFailed": "לא ניתן לשמור את הגדרות הפרוקסי.",
   "settings_network_manual_nativeNote": "מסכי התחברות שמספקת מערכת ההפעלה משתמשים בפרוקסי המערכת.",
   "settings_network_validation_hostRequired": "יש להזין את מארח הפרוקסי",
   "settings_network_validation_portInvalid": "יש להזין פורט בין 1 ל-65535",

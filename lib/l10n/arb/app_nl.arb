@@ -6882,6 +6882,7 @@
   "settings_network_manual_hidePassword": "Wachtwoord verbergen",
   "settings_network_manual_save": "Opslaan",
   "settings_network_manual_saved": "Proxy-instellingen opgeslagen",
+  "settings_network_manual_saveFailed": "De proxy-instellingen konden niet worden opgeslagen.",
   "settings_network_manual_nativeNote": "Inlogschermen van het besturingssysteem gebruiken de systeemproxy.",
   "settings_network_validation_hostRequired": "Voer de proxyhost in",
   "settings_network_validation_portInvalid": "Voer een poort van 1 tot 65535 in",

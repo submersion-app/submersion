@@ -24525,6 +24525,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_network_manual_saved => 'Impostazioni proxy salvate';
 
   @override
+  String get settings_network_manual_saveFailed =>
+      'Impossibile salvare le impostazioni proxy.';
+
+  @override
   String get settings_network_manual_nativeNote =>
       'Le schermate di accesso fornite dal sistema operativo usano il proxy di sistema.';
 

@@ -24687,6 +24687,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_network_manual_saved => 'تم حفظ إعدادات الوكيل';
 
   @override
+  String get settings_network_manual_saveFailed => 'تعذّر حفظ إعدادات الوكيل.';
+
+  @override
   String get settings_network_manual_nativeNote =>
       'تستخدم شاشات تسجيل الدخول التي يوفرها نظام التشغيل وكيلَ النظام.';
 

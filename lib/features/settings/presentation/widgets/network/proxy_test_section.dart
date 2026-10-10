@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/network/proxy/effective_proxy.dart';
+import 'package:submersion/core/network/proxy/proxy_credentials.dart';
 import 'package:submersion/core/network/proxy/proxy_connection_tester.dart';
 import 'package:submersion/core/network/proxy/proxy_controller.dart';
 import 'package:submersion/core/network/proxy/proxy_settings.dart';
@@ -25,16 +26,15 @@ class _ProxyTestSectionState extends ConsumerState<ProxyTestSection> {
   var _running = false;
   ProxyTestOutcome? _outcome;
   ProxyMode? _testedMode;
+  String? _problem;
 
-  /// The snapshot for what the page shows: the saved settings, overlaid with
-  /// the manual draft when the mode is manual.
-  EffectiveProxy _snapshotUnderTest() {
-    final state = widget.controller.state;
+  /// What the page shows: the saved settings, overlaid with the manual
+  /// draft when the mode is manual, read the way Save reads it.
+  (ProxySettings, String?) _settingsUnderTest() {
     final draft = ref.read(networkProxyDraftProvider);
-    var settings = state.settings;
+    var settings = widget.controller.state.settings;
     var password = widget.controller.manualPassword;
     if (settings.mode == ProxyMode.manual && draft != null) {
-      // Read the way Save reads it, so Test checks what Save would store.
       final parsed = parseProxyHostInput(draft.host);
       final port = readProxyPort(draft.port) ?? parsed.port;
       settings = settings.copyWith(
@@ -46,27 +46,58 @@ class _ProxyTestSectionState extends ConsumerState<ProxyTestSection> {
       );
       password = draft.password;
     }
-    return EffectiveProxy.resolve(
-      settings: settings,
-      system: state.system,
-      password: password,
+    return (settings, password);
+  }
+
+  /// Why the manual proxy on screen cannot be tested, or null. Without this
+  /// an incomplete proxy resolves to direct and "Connected directly" would
+  /// read as if the proxy worked.
+  String? _manualProblem(ProxySettings settings, String? password) {
+    if (settings.mode != ProxyMode.manual) return null;
+    final l10n = context.l10n;
+    if (settings.host.trim().isEmpty) {
+      return l10n.settings_network_validation_hostRequired;
+    }
+    if (settings.port == null) {
+      return l10n.settings_network_validation_portInvalid;
+    }
+    final problem = checkProxyCredentials(
+      settings.type,
+      settings.username,
+      password ?? '',
     );
+    return problem == null ? null : credentialsMessage(l10n, problem);
   }
 
   Future<void> _run() async {
+    final (settings, password) = _settingsUnderTest();
+    final problem = _manualProblem(settings, password);
+    if (problem != null) {
+      setState(() {
+        _outcome = null;
+        _problem = problem;
+      });
+      return;
+    }
     setState(() {
       _running = true;
       _outcome = null;
+      _problem = null;
     });
-    final mode = widget.controller.state.settings.mode;
     final outcome = await ref
         .read(proxyConnectionTesterProvider)
-        .run(_snapshotUnderTest());
+        .run(
+          EffectiveProxy.resolve(
+            settings: settings,
+            system: widget.controller.state.system,
+            password: password,
+          ),
+        );
     if (!mounted) return;
     setState(() {
       _running = false;
       _outcome = outcome;
-      _testedMode = mode;
+      _testedMode = settings.mode;
     });
   }
 
@@ -94,6 +125,10 @@ class _ProxyTestSectionState extends ConsumerState<ProxyTestSection> {
                   : l10n.settings_network_test_button,
             ),
           ),
+          if (_problem != null) ...[
+            const SizedBox(height: 12),
+            Text(_problem!, style: TextStyle(color: colorScheme.error)),
+          ],
           if (outcome != null) ...[
             const SizedBox(height: 12),
             Text(

@@ -91,6 +91,13 @@ class AppHttpOverrides extends HttpOverrides {
           throw const SocketException('Connection cancelled');
         }
         if (!secure) return tunnel.asPlainSocket();
+        if (tunnel.hasEarlyData) {
+          tunnel.socket.destroy();
+          throw const Socks5Exception(
+            Socks5Failure.protocolError,
+            detail: 'The server sent data before the TLS handshake',
+          );
+        }
         return SecureSocket.secure(
           tunnel.socket,
           host: url.host,

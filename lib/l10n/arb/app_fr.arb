@@ -6780,6 +6780,7 @@
   "settings_network_manual_hidePassword": "Masquer le mot de passe",
   "settings_network_manual_save": "Enregistrer",
   "settings_network_manual_saved": "Réglages proxy enregistrés",
+  "settings_network_manual_saveFailed": "Impossible d'enregistrer les réglages proxy.",
   "settings_network_manual_nativeNote": "Les écrans de connexion fournis par le système d'exploitation utilisent le proxy système.",
   "settings_network_validation_hostRequired": "Saisissez l'hôte du proxy",
   "settings_network_validation_portInvalid": "Saisissez un port entre 1 et 65535",

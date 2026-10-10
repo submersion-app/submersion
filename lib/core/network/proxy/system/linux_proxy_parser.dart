@@ -62,10 +62,17 @@ _parseProxyUrl(String value) {
   String? pass;
   if (uri.userInfo.isNotEmpty) {
     final i = uri.userInfo.indexOf(':');
-    user = Uri.decodeComponent(
-      i < 0 ? uri.userInfo : uri.userInfo.substring(0, i),
-    );
-    pass = i < 0 ? null : Uri.decodeComponent(uri.userInfo.substring(i + 1));
+    try {
+      user = Uri.decodeComponent(
+        i < 0 ? uri.userInfo : uri.userInfo.substring(0, i),
+      );
+      pass = i < 0 ? null : Uri.decodeComponent(uri.userInfo.substring(i + 1));
+    } on FormatException {
+      // A bad escape (%FF) makes this one value unusable, not the list.
+      return null;
+    } on ArgumentError {
+      return null;
+    }
   }
   return (
     type: type,

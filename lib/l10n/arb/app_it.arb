@@ -6776,6 +6776,7 @@
   "settings_network_manual_hidePassword": "Nascondi password",
   "settings_network_manual_save": "Salva",
   "settings_network_manual_saved": "Impostazioni proxy salvate",
+  "settings_network_manual_saveFailed": "Impossibile salvare le impostazioni proxy.",
   "settings_network_manual_nativeNote": "Le schermate di accesso fornite dal sistema operativo usano il proxy di sistema.",
   "settings_network_validation_hostRequired": "Inserisci l'host del proxy",
   "settings_network_validation_portInvalid": "Inserisci una porta da 1 a 65535",

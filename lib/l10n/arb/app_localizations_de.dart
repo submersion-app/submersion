@@ -24466,6 +24466,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_network_manual_saved => 'Proxy-Einstellungen gespeichert';
 
   @override
+  String get settings_network_manual_saveFailed =>
+      'Die Proxy-Einstellungen konnten nicht gespeichert werden.';
+
+  @override
   String get settings_network_manual_nativeNote =>
       'Vom Betriebssystem bereitgestellte Anmeldebildschirme verwenden den System-Proxy.';
 

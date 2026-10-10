@@ -44,15 +44,23 @@ SystemProxyResult parseChannelProxyResult(Object? raw) {
   if (raw is! Map) return malformed;
   switch (raw['kind']) {
     case 'none':
-      return const SystemProxyNone();
+      return SystemProxyNone(viaPac: raw['viaPac'] == true);
     case 'fixed':
       final host = raw['host'];
       final port = raw['port'];
       if (host is! String || host.isEmpty) return malformed;
       if (port is! int || port < 1 || port > 65535) return malformed;
+      final type = switch (raw['type']) {
+        'http' => ProxyType.http,
+        'socks5' => ProxyType.socks5,
+        _ => null,
+      };
+      // An unknown protocol must not be guessed at: speaking HTTP to a
+      // proxy of another kind fails every request.
+      if (type == null) return malformed;
       final bypass = raw['bypass'];
       return SystemProxyFixed(
-        type: raw['type'] == 'socks5' ? ProxyType.socks5 : ProxyType.http,
+        type: type,
         host: host,
         port: port,
         bypass: bypass is List ? bypass.whereType<String>().toList() : const [],

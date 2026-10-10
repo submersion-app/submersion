@@ -24340,6 +24340,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_network_manual_saved => 'Proxy-instellingen opgeslagen';
 
   @override
+  String get settings_network_manual_saveFailed =>
+      'De proxy-instellingen konden niet worden opgeslagen.';
+
+  @override
   String get settings_network_manual_nativeNote =>
       'Inlogschermen van het besturingssysteem gebruiken de systeemproxy.';
 

@@ -40,6 +40,18 @@ void main() {
     );
   });
 
+  test('a gnome port above 65535 is skipped', () async {
+    final r = await LinuxSystemProxyResolver(
+      environment: const {},
+      gsettings: gsettings({
+        'org.gnome.system.proxy mode': "'manual'",
+        'org.gnome.system.proxy.https host': "'h'",
+        'org.gnome.system.proxy.https port': '70000',
+      }),
+    ).resolve(probe);
+    expect(r, const SystemProxyNone());
+  });
+
   test('gnome auto is pacUnsupported', () async {
     expect(
       await LinuxSystemProxyResolver(

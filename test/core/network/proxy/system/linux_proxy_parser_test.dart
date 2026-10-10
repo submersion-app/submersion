@@ -51,6 +51,15 @@ void main() {
         const SystemProxyFixed(type: ProxyType.socks5, host: 's', port: 1080),
       );
     });
+    test('a bad percent escape skips to the next variable', () {
+      expect(
+        parseProxyEnvironment({
+          'https_proxy': 'http://ann:%FF@bad:1',
+          'http_proxy': 'http://good:2',
+        }),
+        const SystemProxyFixed(type: ProxyType.http, host: 'good', port: 2),
+      );
+    });
     test('an unusable value is ignored', () {
       expect(parseProxyEnvironment({'https_proxy': 'ftp://x:1'}), isNull);
       expect(parseProxyEnvironment({'https_proxy': '  '}), isNull);

@@ -53,6 +53,16 @@ void main() {
     );
   });
 
+  test('a PAC script that chose direct wins over the environment', () async {
+    expect(
+      await EnvFallbackSystemProxyResolver(
+        _Fixed(const SystemProxyNone(viaPac: true)),
+        environment: env,
+      ).resolve(probe),
+      const SystemProxyNone(viaPac: true),
+    );
+  });
+
   test('no OS proxy and no environment is none', () async {
     expect(
       await EnvFallbackSystemProxyResolver(

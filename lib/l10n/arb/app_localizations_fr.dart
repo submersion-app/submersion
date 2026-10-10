@@ -24588,6 +24588,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_network_manual_saved => 'Réglages proxy enregistrés';
 
   @override
+  String get settings_network_manual_saveFailed =>
+      'Impossible d\'enregistrer les réglages proxy.';
+
+  @override
   String get settings_network_manual_nativeNote =>
       'Les écrans de connexion fournis par le système d\'exploitation utilisent le proxy système.';
 

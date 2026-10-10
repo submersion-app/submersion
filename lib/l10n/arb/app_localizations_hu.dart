@@ -24412,6 +24412,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_network_manual_saved => 'Proxybeállítások mentve';
 
   @override
+  String get settings_network_manual_saveFailed =>
+      'A proxybeállítások nem menthetők.';
+
+  @override
   String get settings_network_manual_nativeNote =>
       'Az operációs rendszer által biztosított bejelentkezési képernyők a rendszerproxyt használják.';
 

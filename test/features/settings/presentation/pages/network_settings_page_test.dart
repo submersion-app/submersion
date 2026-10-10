@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,6 +33,21 @@ class _Resolver implements SystemProxyResolver {
   }
 }
 
+/// A keychain that refuses every write, as a locked keychain does.
+class _FailingKeychain extends InMemoryKeychain {
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => throw Exception('keychain locked');
+}
+
 class _Tester extends ProxyConnectionTester {
   _Tester(this.outcome);
 
@@ -54,11 +70,12 @@ void main() {
     SystemProxyResult system = const SystemProxyNone(),
     ProxySettings? saved,
     String? password,
+    InMemoryKeychain? keychain,
   }) async {
     SharedPreferences.setMockInitialValues({});
     store = ProxySettingsStore(
       await SharedPreferences.getInstance(),
-      storage: InMemoryKeychain(),
+      storage: keychain ?? InMemoryKeychain(),
     );
     if (saved != null) await store.save(saved);
     if (password != null) await store.savePassword(password);
@@ -305,6 +322,43 @@ void main() {
     expect(fake.ran!.port, 3128);
   });
 
+  testWidgets('a failed save says so and can be retried', (tester) async {
+    await setUpController(saved: manualSaved, keychain: _FailingKeychain());
+    await tester.binding.setSurfaceSize(const Size(420, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(app(const Scaffold(body: NetworkSettingsPage())));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('proxy-host')), 'p');
+    await tester.enterText(find.byKey(const ValueKey('proxy-port')), '3128');
+    await tester.enterText(find.byKey(const ValueKey('proxy-username')), 'a');
+    await tester.enterText(find.byKey(const ValueKey('proxy-password')), 'b');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text("Couldn't save the proxy settings."), findsOneWidget);
+    final save = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Save'),
+    );
+    expect(save.onPressed, isNotNull);
+    expect(find.text('p'), findsOneWidget);
+  });
+
+  testWidgets('Test refuses an incomplete manual proxy instead of going '
+      'direct', (tester) async {
+    final fake = _Tester(
+      const ProxyTestSuccess(Duration.zero, EffectiveProxy.direct()),
+    );
+    await pump(tester, saved: manualSaved, testerFake: fake);
+    await tester.tap(find.text('Test connection'));
+    await tester.pumpAndSettle();
+    expect(fake.ran, isNull);
+    expect(find.text('Enter the proxy host'), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('proxy-host')), 'p');
+    await tester.tap(find.text('Test connection'));
+    await tester.pumpAndSettle();
+    expect(fake.ran, isNull);
+    expect(find.text('Enter a port from 1 to 65535'), findsOneWidget);
+  });
+
   testWidgets('a direct success says so', (tester) async {
     await pump(
       tester,
@@ -355,7 +409,11 @@ void main() {
           'The connection failed: boom. The debug log has the full error.',
     };
     for (final entry in cases.entries) {
-      await pump(tester, saved: manualSaved, testerFake: _Tester(entry.key));
+      await pump(
+        tester,
+        saved: manualSaved.copyWith(host: 'p', port: 1),
+        testerFake: _Tester(entry.key),
+      );
       await tester.tap(find.text('Test connection'));
       await tester.pumpAndSettle();
       expect(find.text(entry.value), findsOneWidget, reason: '${entry.key}');

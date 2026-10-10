@@ -6882,6 +6882,7 @@
   "settings_network_manual_hidePassword": "Ocultar senha",
   "settings_network_manual_save": "Salvar",
   "settings_network_manual_saved": "Configurações de proxy salvas",
+  "settings_network_manual_saveFailed": "Não foi possível salvar as configurações de proxy.",
   "settings_network_manual_nativeNote": "As telas de login fornecidas pelo sistema operacional usam o proxy do sistema.",
   "settings_network_validation_hostRequired": "Insira o host do proxy",
   "settings_network_validation_portInvalid": "Insira uma porta de 1 a 65535",

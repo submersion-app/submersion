@@ -6882,6 +6882,7 @@
   "settings_network_manual_hidePassword": "Ocultar contraseña",
   "settings_network_manual_save": "Guardar",
   "settings_network_manual_saved": "Ajustes de proxy guardados",
+  "settings_network_manual_saveFailed": "No se pudieron guardar los ajustes de proxy.",
   "settings_network_manual_nativeNote": "Las pantallas de inicio de sesión del sistema operativo usan el proxy del sistema.",
   "settings_network_validation_hostRequired": "Introduce el host del proxy",
   "settings_network_validation_portInvalid": "Introduce un puerto entre 1 y 65535",

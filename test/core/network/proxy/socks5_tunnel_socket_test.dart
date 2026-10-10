@@ -17,6 +17,9 @@ Future<ServerSocket> scriptedSocks(
 }) async {
   final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
   server.listen((client) {
+    // The connector hangs up on a bad answer; a write racing that reset
+    // fails on done, which is not this test's concern.
+    unawaited(client.done.catchError((Object _) {}));
     var step = 0;
     client.listen((_) {
       if (step == 0) {
@@ -146,16 +149,17 @@ void main() {
     }
   });
 
-  test('data before the tunnel opens is a protocol error', () async {
+  test('bytes that arrive with the reply reach the tunnel\'s reader', () async {
     final server = await scriptedSocks(
       [5, 0],
-      reply: [5, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0x42],
+      reply: [5, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0x42, 0x43],
     );
     addTearDown(server.close);
-    await expectLater(
-      connect(server.port),
-      throwsSocks5(Socks5Failure.protocolError),
-    );
+    final tunnel = await connect(server.port);
+    expect(tunnel.hasEarlyData, isTrue);
+    final s = tunnel.asPlainSocket();
+    expect(await s.first, [0x42, 0x43]);
+    s.destroy();
   });
 
   test('toString names the failure', () {

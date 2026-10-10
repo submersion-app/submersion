@@ -7,18 +7,23 @@ sealed class SystemProxyResult {
   const SystemProxyResult();
 }
 
-/// The OS goes direct.
+/// The OS goes direct: nothing is configured, or a PAC script chose DIRECT
+/// for the probe URL ([viaPac]). The difference matters to the environment
+/// fallback, which must never override a PAC decision.
 class SystemProxyNone extends SystemProxyResult {
-  const SystemProxyNone();
+  const SystemProxyNone({this.viaPac = false});
+
+  final bool viaPac;
 
   @override
-  bool operator ==(Object other) => other is SystemProxyNone;
+  bool operator ==(Object other) =>
+      other is SystemProxyNone && other.viaPac == viaPac;
 
   @override
-  int get hashCode => 0;
+  int get hashCode => viaPac.hashCode;
 
   @override
-  String toString() => 'SystemProxyNone()';
+  String toString() => 'SystemProxyNone(pac: $viaPac)';
 }
 
 /// The OS names one proxy, either configured outright or chosen by a PAC

@@ -44,7 +44,7 @@ SystemProxyResult parseWindowsProxy(RawWindowsProxy raw) {
   if (raw.pacAttempted && raw.pacSucceeded) {
     final pac = raw.pacProxy;
     final picked = pac == null ? null : pickWindowsProxy(pac);
-    if (picked == null) return const SystemProxyNone();
+    if (picked == null) return const SystemProxyNone(viaPac: true);
     return SystemProxyFixed(
       type: picked.type,
       host: picked.host,
