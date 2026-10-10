@@ -50,6 +50,7 @@ void main() {
     double? volume,
     double start = 200,
     double end = 74,
+    double o2 = 21.0,
   }) async {
     await db
         .into(db.diveTanks)
@@ -61,7 +62,7 @@ void main() {
             endPressure: Value(end),
             volume: Value(volume),
             tankRole: Value(role),
-            o2Percent: const Value(21.0),
+            o2Percent: Value(o2),
             hePercent: const Value(0.0),
             tankOrder: Value(order),
           ),
@@ -121,6 +122,15 @@ void main() {
       final trend = await repository.getSacPressurePerDive();
       expect(trend.single.value, closeTo(1.5, 1e-9));
       expect(await queryLanguageSac('bb'), closeTo(1.5, 1e-9));
+    });
+
+    test('does not pair back-gas cylinders carrying different gases', () async {
+      await insertDive('bd');
+      await insertTank('bd', 0, 'backGas');
+      await insertTank('bd', 1, 'backGas', end: 137, o2: 50);
+
+      final trend = await repository.getSacPressurePerDive();
+      expect(trend.single.value, closeTo(1.0, 1e-9));
     });
 
     test('a rebreather dive keeps the single reference cylinder', () async {

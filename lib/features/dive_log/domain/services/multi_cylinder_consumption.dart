@@ -67,11 +67,16 @@ double? referencePressureDrop({
 }
 
 /// Whether [a] and [b] are a matched pair, assumed the same size when a
-/// size is missing: both sidemount cylinders, or both back gas (doubles
-/// logged as independents).
+/// size is missing: both sidemount cylinders, or both back gas on the same
+/// gas (doubles logged as independents). The gas matters for back gas
+/// because downloads default an untagged cylinder, a deco stage included,
+/// to that role.
 bool isMatchedPair(DiveTank a, DiveTank b) =>
     (sidemountRoles.contains(a.role) && sidemountRoles.contains(b.role)) ||
-    (a.role == TankRole.backGas && b.role == TankRole.backGas);
+    (a.role == TankRole.backGas &&
+        b.role == TankRole.backGas &&
+        a.gasMix.roundedO2 == b.gasMix.roundedO2 &&
+        a.gasMix.roundedHe == b.gasMix.roundedHe);
 
 double? _drop(DiveTank tank) {
   final start = tank.startPressure;

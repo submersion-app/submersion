@@ -531,7 +531,8 @@ class Dive extends Equatable {
   /// Needs no cylinder volume, so it exists for every dive-computer download
   /// that carries pressure. Not a unit conversion of [rmvFor] on multi-tank
   /// dives: bar/min from a 12 L back gas and a 7 L stage cannot be averaged,
-  /// only converted by volume, and a cylinder of unknown size is left out.
+  /// only converted by volume. A cylinder of unknown size is left out
+  /// unless it pairs with the reference (see [isMatchedPair]).
   double? get sac {
     if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
       return null;

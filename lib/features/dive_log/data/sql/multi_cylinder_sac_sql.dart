@@ -25,7 +25,7 @@ String consumptionVolumeSql(String tank) {
 /// cylinder, as `Dive.sacReferenceTank` picks it) plus every other breathed
 /// cylinder's drop converted to the reference by volume, or one to one
 /// when a size is missing and the two are a matched pair (both sidemount,
-/// or both back gas). A rebreather dive reads the
+/// or both back gas on the same gas). A rebreather dive reads the
 /// reference alone. NULL when the reference has no drop, since only
 /// breathed cylinders join; the caller guards the runtime and average
 /// depth. Mirrors `Dive.sac`.
@@ -36,7 +36,8 @@ String diveSacPressureSql(String dive) {
       'sac_t.start_pressure - sac_t.end_pressure AS pressure_drop, '
       '${consumptionVolumeSql('sac_t')} AS volume, '
       'sac_t.tank_role IN $_sidemountRolesSql AS sidemount, '
-      "sac_t.tank_role = 'backGas' AS back_gas "
+      "sac_t.tank_role = 'backGas' AS back_gas, "
+      'ROUND(sac_t.o2_percent) AS o2, ROUND(sac_t.he_percent) AS he '
       'FROM dive_tanks sac_t WHERE sac_t.dive_id = $dive.id '
       'AND sac_t.start_pressure > sac_t.end_pressure)';
   return '((SELECT SUM(sac_c.pressure_drop * CASE '
@@ -44,7 +45,8 @@ String diveSacPressureSql(String dive) {
       'WHEN sac_c.volume > 0 AND sac_r.volume > 0 '
       'THEN sac_c.volume / sac_r.volume '
       'WHEN sac_c.sidemount AND sac_r.sidemount THEN 1.0 '
-      'WHEN sac_c.back_gas AND sac_r.back_gas THEN 1.0 '
+      'WHEN sac_c.back_gas AND sac_r.back_gas '
+      'AND sac_c.o2 = sac_r.o2 AND sac_c.he = sac_r.he THEN 1.0 '
       'ELSE 0.0 END) '
       'FROM $breathed sac_c JOIN $breathed sac_r '
       'ON sac_r.id = ('

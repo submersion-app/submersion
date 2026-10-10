@@ -57,6 +57,21 @@ void main() {
       expect(dive.sac, closeTo(1.5, 1e-9));
     });
 
+    test('does not pair back-gas cylinders carrying different gases', () {
+      // Downloads default an untagged deco stage to back gas.
+      final dive = _dive([
+        _tank('a', TankRole.backGas),
+        const DiveTank(
+          id: 'deco',
+          role: TankRole.backGas,
+          gasMix: GasMix(o2: 50),
+          startPressure: 200,
+          endPressure: 140,
+        ),
+      ]);
+      expect(dive.sac, closeTo(1.0, 1e-9));
+    });
+
     test('does not pair an unsized back gas with an unsized stage', () {
       final dive = _dive([
         _tank('a', TankRole.backGas),
