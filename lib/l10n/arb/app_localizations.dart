@@ -23795,6 +23795,12 @@ abstract class AppLocalizations {
   /// **'Was installed in'**
   String get equipment_detail_wasInstalledInLabel;
 
+  /// Title of the equipment form when it is pre-filled to clone an existing item
+  ///
+  /// In en, this message translates to:
+  /// **'Clone Equipment'**
+  String get equipment_edit_appBar_cloneTitle;
+
   /// No description provided for @equipment_edit_appBar_editTitle.
   ///
   /// In en, this message translates to:
@@ -24760,6 +24766,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sort'**
   String get equipment_list_sortTooltip;
+
+  /// Name a cloned equipment item starts with; name is the original item's name
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (copy)'**
+  String equipment_clone_nameCopy(String name);
+
+  /// Shown after a clone saved but copying some of the original's service clocks, equipment sets or documents failed
+  ///
+  /// In en, this message translates to:
+  /// **'Cloned, but some service clocks, sets or documents could not be copied.'**
+  String get equipment_clone_partialCopy;
+
+  /// Shown after a cloned equipment item is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment cloned'**
+  String get equipment_clone_snackbar_cloned;
+
+  /// Equipment detail menu action that opens a new item pre-filled from this one
+  ///
+  /// In en, this message translates to:
+  /// **'Clone'**
+  String get equipment_menu_clone;
 
   /// No description provided for @equipment_menu_delete.
   ///

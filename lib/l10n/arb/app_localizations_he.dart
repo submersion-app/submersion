@@ -14411,6 +14411,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'היה מותקן ב';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'שכפול ציוד';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'ערוך ציוד';
 
   @override
@@ -14990,6 +14993,21 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'מיין';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (עותק)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'שוכפל, אך לא ניתן היה להעתיק חלק משעוני הטיפולים, הסטים או המסמכים.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'הציוד שוכפל';
+
+  @override
+  String get equipment_menu_clone => 'שכפול';
 
   @override
   String get equipment_menu_delete => 'מחק';

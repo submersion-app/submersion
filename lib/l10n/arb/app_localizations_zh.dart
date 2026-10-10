@@ -14047,6 +14047,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => '曾安装于';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => '复制装备';
+
+  @override
   String get equipment_edit_appBar_editTitle => '编辑装备';
 
   @override
@@ -14602,6 +14605,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => '排序';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name（副本）';
+  }
+
+  @override
+  String get equipment_clone_partialCopy => '已复制，但部分维护倒计时、装备套装或文档未能复制。';
+
+  @override
+  String get equipment_clone_snackbar_cloned => '装备已复制';
+
+  @override
+  String get equipment_menu_clone => '复制';
 
   @override
   String get equipment_menu_delete => '删除';

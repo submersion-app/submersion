@@ -1,0 +1,620 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/compiler/query_compiler.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_location_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
+import 'package:submersion/features/equipment/data/services/equipment_clone_service.dart';
+import 'package:submersion/features/equipment/data/services/initial_location.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_field.dart';
+import 'package:submersion/features/query/data/query_id_set_runner.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_database.dart';
+
+/// The equipment form in clone mode (issue #3184).
+void main() {
+  late EquipmentRepository repository;
+  late EquipmentTagRepository tagRepository;
+  late EquipmentItem source;
+
+  setUp(() async {
+    await setUpTestDatabase();
+    repository = EquipmentRepository();
+    tagRepository = EquipmentTagRepository();
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      'INSERT INTO divers (id, name, created_at, updated_at) VALUES '
+      "('owner', 'Owner', 0, 0), ('sharee', 'Sharee', 0, 0)",
+    );
+    await db.customStatement(
+      'INSERT INTO tags (id, name, diver_id, created_at, updated_at, '
+      'applies_to_dives, applies_to_sites, applies_to_equipment) VALUES '
+      "('t1', 'Travel kit', NULL, 0, 0, 0, 0, 1), "
+      "('t2', 'Owner only', 'owner', 0, 0, 0, 0, 1)",
+    );
+    source = await repository.createEquipment(
+      const EquipmentItem(
+        id: '',
+        diverId: 'owner',
+        name: 'Reg A',
+        type: EquipmentType.regulator,
+        brand: 'Apeks',
+        model: 'XTX50',
+        serialNumber: 'SN-1',
+      ),
+    );
+    await tagRepository.replaceTags(source.id, ['t1', 't2']);
+  });
+  tearDown(tearDownTestDatabase);
+
+  /// Shares the source with the 'sharee' profile (#2046).
+  Future<void> shareWithSharee() =>
+      DatabaseService.instance.database.customStatement(
+        'INSERT INTO equipment_shares (id, equipment_id, diver_id, created_at) '
+        "VALUES ('share-1', '${source.id}', 'sharee', 0)",
+      );
+
+  Future<void> pumpClone(
+    WidgetTester tester, {
+    List<Object> extraOverrides = const [],
+  }) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final router = GoRouter(
+      initialLocation: '/start',
+      routes: [
+        GoRoute(
+          path: '/start',
+          builder: (context, state) => Scaffold(
+            body: TextButton(
+              onPressed: () =>
+                  context.push('/equipment/new?cloneFrom=${source.id}'),
+              child: const Text('OPEN CLONE'),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/equipment/new',
+          builder: (context, state) => EquipmentEditPage(
+            cloneFromId: state.uri.queryParameters['cloneFrom'],
+          ),
+        ),
+        GoRoute(
+          path: '/equipment/:id',
+          builder: (context, state) =>
+              Scaffold(body: Text('DETAIL ${state.pathParameters['id']}')),
+        ),
+      ],
+    );
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          equipmentRepositoryProvider.overrideWithValue(repository),
+          ...extraOverrides,
+        ].cast(),
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OPEN CLONE'));
+    await tester.pumpAndSettle();
+  }
+
+  String fieldText(WidgetTester tester, String label) => tester
+      .widget<TextField>(
+        find.descendant(
+          of: find.widgetWithText(TextFormField, label),
+          matching: find.byType(TextField),
+        ),
+      )
+      .controller!
+      .text;
+
+  testWidgets('opens titled Clone Equipment and pre-filled from the source', (
+    tester,
+  ) async {
+    await pumpClone(tester);
+
+    expect(find.text('Clone Equipment'), findsOneWidget);
+    expect(fieldText(tester, 'Name *'), 'Reg A (copy)');
+    expect(fieldText(tester, 'Brand'), 'Apeks');
+    expect(fieldText(tester, 'Model'), 'XTX50');
+    expect(fieldText(tester, 'Serial Number'), isEmpty);
+  });
+
+  testWidgets('keeps the form when the source goes away mid-edit', (
+    tester,
+  ) async {
+    await pumpClone(tester);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Name *'),
+      'Reg B',
+    );
+
+    // Deleted elsewhere (another window, a sync) while the form is open.
+    await repository.deleteEquipment(source.id);
+    ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentEditPage)),
+    ).invalidate(equipmentItemProvider(source.id));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Clone Equipment'), findsOneWidget);
+    expect(fieldText(tester, 'Name *'), 'Reg B');
+  });
+
+  testWidgets('keeps the form when re-reading the source fails mid-edit', (
+    tester,
+  ) async {
+    var reads = 0;
+    await pumpClone(
+      tester,
+      extraOverrides: [
+        equipmentItemProvider(source.id).overrideWith((ref) async {
+          reads++;
+          if (reads > 1) throw StateError('source read failed');
+          return source;
+        }),
+      ],
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Name *'),
+      'Reg B',
+    );
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentEditPage)),
+    ).invalidate(equipmentItemProvider(source.id));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Clone Equipment'), findsOneWidget);
+    expect(fieldText(tester, 'Name *'), 'Reg B');
+  });
+
+  group('a source the active diver cannot see', () {
+    testWidgets('opens as not found, so nothing can be cloned', (tester) async {
+      // Owned by 'owner' and not shared: a known id in the route must not
+      // open another profile's gear for copying.
+      await pumpClone(
+        tester,
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'sharee'),
+        ],
+      );
+
+      expect(find.text('Equipment Not Found'), findsOneWidget);
+      expect(find.text('Clone Equipment'), findsNothing);
+      expect(find.text('Save'), findsNothing);
+    });
+
+    testWidgets('opens once it is shared with the diver', (tester) async {
+      await shareWithSharee();
+      await pumpClone(
+        tester,
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'sharee'),
+        ],
+      );
+
+      expect(find.text('Clone Equipment'), findsOneWidget);
+    });
+  });
+
+  testWidgets('starts with the source\'s tags', (tester) async {
+    await pumpClone(tester);
+
+    expect(find.widgetWithText(TagChip, 'Travel kit'), findsOneWidget);
+    expect(find.widgetWithText(TagChip, 'Owner only'), findsOneWidget);
+  });
+
+  testWidgets('a sharee\'s clone leaves the owner\'s own tags behind', (
+    tester,
+  ) async {
+    await shareWithSharee();
+    await pumpClone(
+      tester,
+      extraOverrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'sharee'),
+      ],
+    );
+
+    expect(find.widgetWithText(TagChip, 'Travel kit'), findsOneWidget);
+    expect(find.widgetWithText(TagChip, 'Owner only'), findsNothing);
+  });
+
+  group('first location', () {
+    Future<void> placeSource(String? owner) async {
+      final place = await EquipmentLocationRepository().createLocation(
+        diverId: owner,
+        name: 'Garage',
+        kind: EquipmentLocationKind.storage,
+      );
+      await recordInitialLocation(
+        moves: EquipmentLocationMoveRepository(),
+        equipmentId: source.id,
+        locationId: place.id,
+      );
+    }
+
+    testWidgets('starts at the source\'s place, and saving puts it there', (
+      tester,
+    ) async {
+      await placeSource(null);
+      await pumpClone(tester);
+
+      expect(
+        find.descendant(
+          of: find.byType(EquipmentLocationField),
+          matching: find.text('Garage'),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Save').first);
+      await tester.pumpAndSettle();
+
+      final clone = (await repository.getAllEquipment()).singleWhere(
+        (e) => e.id != source.id,
+      );
+      final current = await EquipmentLocationMoveRepository()
+          .getCurrentLocationIds();
+      expect(current[clone.id], current[source.id]);
+    });
+
+    testWidgets('a sharee\'s clone does not start at the owner\'s place', (
+      tester,
+    ) async {
+      await placeSource('owner');
+      await shareWithSharee();
+      await pumpClone(
+        tester,
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'sharee'),
+        ],
+      );
+      // The form opened, so the missing place below is the scoping at work.
+      expect(find.text('Clone Equipment'), findsOneWidget);
+
+      expect(
+        find.descendant(
+          of: find.byType(EquipmentLocationField),
+          matching: find.text('Garage'),
+        ),
+        findsNothing,
+      );
+    });
+  });
+
+  testWidgets('saving creates the clone and opens it', (tester) async {
+    await pumpClone(tester);
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+
+    final all = await repository.getAllEquipment();
+    expect(all, hasLength(2));
+    final clone = all.singleWhere((e) => e.id != source.id);
+    expect(
+      (clone.name, clone.brand, clone.serialNumber),
+      ('Reg A (copy)', 'Apeks', null),
+    );
+    expect(
+      {for (final t in await tagRepository.getTagsForEquipment(clone.id)) t.id},
+      {'t1', 't2'},
+    );
+    expect(find.text('DETAIL ${clone.id}'), findsOneWidget);
+    expect(find.text('Equipment cloned'), findsOneWidget);
+    // Said once: the plain new-item confirmation does not queue behind it.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Equipment added'), findsNothing);
+    // The original is untouched.
+    final kept = await repository.getEquipmentById(source.id);
+    expect((kept!.name, kept.serialNumber), ('Reg A', 'SN-1'));
+  });
+
+  testWidgets('a quick Save waits for the source\'s tags', (tester) async {
+    // Made in the test body: a completer from setUp lives outside the test's
+    // fake-async zone, so pumping never delivers it.
+    final pending = Completer<List<Tag>>();
+    await pumpClone(
+      tester,
+      extraOverrides: [
+        tagsForEquipmentProvider(
+          source.id,
+        ).overrideWith((ref) => pending.future),
+      ],
+    );
+
+    // Saved before the source's tags arrive.
+    await tester.tap(find.text('Save').first);
+    await tester.pump();
+    pending.complete(await tagRepository.getTagsForEquipment(source.id));
+    await tester.pumpAndSettle();
+
+    final clone = (await repository.getAllEquipment()).singleWhere(
+      (e) => e.id != source.id,
+    );
+    expect(
+      {for (final t in await tagRepository.getTagsForEquipment(clone.id)) t.id},
+      {'t1', 't2'},
+    );
+  });
+
+  group('when a starting pick cannot be read', () {
+    testWidgets('a failed tag read leaves the clone form usable', (
+      tester,
+    ) async {
+      await pumpClone(
+        tester,
+        extraOverrides: [
+          tagsForEquipmentProvider(
+            source.id,
+          ).overrideWith((ref) => Future.error(StateError('tags failed'))),
+        ],
+      );
+
+      expect(find.text('Clone Equipment'), findsOneWidget);
+      expect(find.byType(TagChip), findsNothing);
+
+      await tester.tap(find.text('Save').first);
+      await tester.pumpAndSettle();
+      expect(await repository.getAllEquipment(), hasLength(2));
+    });
+
+    testWidgets('a failed place read leaves the clone form usable', (
+      tester,
+    ) async {
+      await pumpClone(
+        tester,
+        extraOverrides: [
+          currentEquipmentLocationsProvider.overrideWith(
+            (ref) => Future.error(StateError('places failed')),
+          ),
+        ],
+      );
+
+      expect(find.text('Clone Equipment'), findsOneWidget);
+      // The tags still arrive: the two reads fail independently.
+      expect(find.widgetWithText(TagChip, 'Travel kit'), findsOneWidget);
+
+      await tester.tap(find.text('Save').first);
+      await tester.pumpAndSettle();
+      expect(await repository.getAllEquipment(), hasLength(2));
+    });
+  });
+
+  testWidgets('an embedded clone the list cannot vouch for says cloned', (
+    tester,
+  ) async {
+    // Master-detail confirms by selecting the item; when the visibility
+    // check fails it confirms in words too (#3150), and a clone says so as
+    // a clone.
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          equipmentRepositoryProvider.overrideWithValue(repository),
+          queryIdSetRunnerProvider.overrideWithValue(
+            _FailingRunner(DatabaseService.instance.database),
+          ),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: EquipmentEditPage(cloneFromId: source.id, embedded: true),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+
+    expect(await repository.getAllEquipment(), hasLength(2));
+    expect(find.text('Equipment cloned'), findsOneWidget);
+  });
+
+  testWidgets('an embedded clone reports a step that could not be copied', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    String? savedId;
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          equipmentRepositoryProvider.overrideWithValue(repository),
+          equipmentCloneServiceProvider.overrideWithValue(
+            _FailingCloneService(),
+          ),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: EquipmentEditPage(
+              cloneFromId: source.id,
+              embedded: true,
+              onSaved: (id) => savedId = id,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+
+    expect(savedId, isNotNull);
+    expect(savedId, isNot(source.id));
+    expect(
+      find.text(
+        'Cloned, but some service clocks, sets or documents could not be '
+        'copied.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a clone the list view hides says so, once', (tester) async {
+    // A clone keeps its source's status, and the default view hides Wanted
+    // gear (#3068): the hidden-by-view message replaces "Equipment cloned",
+    // and the plain "Equipment added" never shows.
+    source = source.copyWith(status: EquipmentStatus.wanted, isActive: false);
+    await repository.updateEquipment(source);
+    await pumpClone(tester);
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Saved, but the current list view hides it'), findsOne);
+    expect(find.text('Equipment cloned'), findsNothing);
+    expect(find.text('Equipment added'), findsNothing);
+  });
+
+  testWidgets('tags the diver cleared before the source\'s arrived stay '
+      'cleared', (tester) async {
+    final pending = Completer<List<Tag>>();
+    await pumpClone(
+      tester,
+      extraOverrides: [
+        tagsForEquipmentProvider(
+          source.id,
+        ).overrideWith((ref) => pending.future),
+      ],
+    );
+    final tagField = find.descendant(
+      of: find.byType(TagInputWidget),
+      matching: find.byType(TextField),
+    );
+
+    // The diver picks a tag, then takes it off again: a deliberate empty
+    // selection, not an untouched field.
+    await tester.enterText(tagField, 'Rental');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.widgetWithText(TagChip, 'Rental'),
+        matching: find.byIcon(Icons.close),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    pending.complete(await tagRepository.getTagsForEquipment(source.id));
+    await tester.pumpAndSettle();
+    expect(find.byType(TagChip), findsNothing);
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+    final clone = (await repository.getAllEquipment()).singleWhere(
+      (e) => e.id != source.id,
+    );
+    expect(await tagRepository.getTagsForEquipment(clone.id), isEmpty);
+  });
+
+  testWidgets('a step that could not be copied is reported', (tester) async {
+    final fake = _FailingCloneService();
+    await pumpClone(
+      tester,
+      extraOverrides: [equipmentCloneServiceProvider.overrideWithValue(fake)],
+    );
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Cloned, but some service clocks, sets or documents could not be '
+        'copied.',
+      ),
+      findsOneWidget,
+    );
+    // It replaces the plain message rather than queueing behind it.
+    expect(find.text('Equipment cloned'), findsNothing);
+    // Copied from the source onto the item just saved, as the type it was
+    // saved with, scoped to the clone's owner (the active diver, here the
+    // default profile).
+    final clone = (await repository.getAllEquipment()).singleWhere(
+      (e) => e.id != source.id,
+    );
+    expect(fake.calls, [
+      (source.id, clone.id, EquipmentType.regulator, clone.diverId),
+    ]);
+  });
+}
+
+class _FailingCloneService extends EquipmentCloneService {
+  final calls = <(String, String, EquipmentType, String?)>[];
+
+  @override
+  Future<Set<CloneExtrasStep>> copyExtras({
+    required String sourceId,
+    required String cloneId,
+    required EquipmentType cloneType,
+    required String? diverId,
+  }) async {
+    calls.add((sourceId, cloneId, cloneType, diverId));
+    return {CloneExtrasStep.documents};
+  }
+}
+
+/// A runner whose every query fails, as a locked or closed database would.
+class _FailingRunner extends QueryIdSetRunner {
+  _FailingRunner(super.db);
+
+  @override
+  Future<Set<String>> ids(CompiledQuery compiled, {QueryScope? scope}) =>
+      Future.error(StateError('query failed'));
+}
