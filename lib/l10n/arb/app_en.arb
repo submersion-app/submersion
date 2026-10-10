@@ -14427,6 +14427,7 @@
   "signatures_field_instructorName": "Instructor Name",
   "signatures_field_instructorNameHint": "Enter instructor name",
   "signatures_handoff_title": "Hand your device to",
+  "signatures_buddySignature": "Buddy Signature",
   "signatures_instructorSignature": "Instructor Signature",
   "signatures_noSignatureImage": "No signature image",
   "signatures_signHere": "{name} - Sign Here",
@@ -14516,6 +14517,9 @@
   },
   "@signatures_handoff_title": {
     "description": "Instruction text before handing device to buddy for signing"
+  },
+  "@signatures_buddySignature": {
+    "description": "Title of a saved buddy signature card and its full view"
   },
   "@signatures_instructorSignature": {
     "description": "Label for instructor signature section"

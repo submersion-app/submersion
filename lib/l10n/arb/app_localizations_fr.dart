@@ -24808,6 +24808,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get signatures_handoff_title => 'Passez votre appareil à';
 
   @override
+  String get signatures_buddySignature => 'Signature du binôme';
+
+  @override
   String get signatures_instructorSignature => 'Signature de l\'instructeur';
 
   @override

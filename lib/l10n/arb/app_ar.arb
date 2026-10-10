@@ -6996,6 +6996,7 @@
   "signatures_field_instructorName": "اسم المدرب",
   "signatures_field_instructorNameHint": "أدخل اسم المدرب",
   "signatures_handoff_title": "ناول جهازك إلى",
+  "signatures_buddySignature": "توقيع زميل الغوص",
   "signatures_instructorSignature": "توقيع المدرب",
   "signatures_noSignatureImage": "لا توجد صورة توقيع",
   "signatures_signHere": "{name} - وقع هنا",

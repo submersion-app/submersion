@@ -40048,6 +40048,12 @@ abstract class AppLocalizations {
   /// **'Hand your device to'**
   String get signatures_handoff_title;
 
+  /// Title of a saved buddy signature card and its full view
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy Signature'**
+  String get signatures_buddySignature;
+
   /// Label for instructor signature section
   ///
   /// In en, this message translates to:

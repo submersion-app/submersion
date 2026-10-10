@@ -24101,6 +24101,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get signatures_handoff_title => 'העבר את המכשיר ל';
 
   @override
+  String get signatures_buddySignature => 'חתימת שותף';
+
+  @override
   String get signatures_instructorSignature => 'חתימת מדריך';
 
   @override

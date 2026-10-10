@@ -6894,6 +6894,7 @@
   "signatures_field_instructorName": "Nom de l'instructeur",
   "signatures_field_instructorNameHint": "Entrer le nom de l'instructeur",
   "signatures_handoff_title": "Passez votre appareil à",
+  "signatures_buddySignature": "Signature du binôme",
   "signatures_instructorSignature": "Signature de l'instructeur",
   "signatures_noSignatureImage": "Aucune image de signature",
   "signatures_signHere": "{name} - Signez ici",

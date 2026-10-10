@@ -23368,6 +23368,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get signatures_handoff_title => '请将设备交给';
 
   @override
+  String get signatures_buddySignature => '潜伴签名';
+
+  @override
   String get signatures_instructorSignature => '教练签名';
 
   @override

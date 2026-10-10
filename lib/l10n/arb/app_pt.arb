@@ -6996,6 +6996,7 @@
   "signatures_field_instructorName": "Nome do Instrutor",
   "signatures_field_instructorNameHint": "Digite o nome do instrutor",
   "signatures_handoff_title": "Entregue seu dispositivo para",
+  "signatures_buddySignature": "Assinatura da Dupla",
   "signatures_instructorSignature": "Assinatura do Instrutor",
   "signatures_noSignatureImage": "Sem imagem de assinatura",
   "signatures_signHere": "{name} - Assine Aqui",

@@ -24683,6 +24683,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get signatures_handoff_title => 'Geben Sie Ihr Gerät an';
 
   @override
+  String get signatures_buddySignature => 'Tauchpartner-Signatur';
+
+  @override
   String get signatures_instructorSignature => 'Tauchlehrer-Signatur';
 
   @override

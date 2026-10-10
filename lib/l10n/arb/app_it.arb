@@ -6890,6 +6890,7 @@
   "signatures_field_instructorName": "Nome Istruttore",
   "signatures_field_instructorNameHint": "Inserisci nome istruttore",
   "signatures_handoff_title": "Passa il dispositivo a",
+  "signatures_buddySignature": "Firma compagno",
   "signatures_instructorSignature": "Firma Istruttore",
   "signatures_noSignatureImage": "Nessuna immagine firma",
   "signatures_signHere": "{name} - Firma Qui",

@@ -6996,6 +6996,7 @@
   "signatures_field_instructorName": "Naam instructeur",
   "signatures_field_instructorNameHint": "Voer naam instructeur in",
   "signatures_handoff_title": "Geef je apparaat aan",
+  "signatures_buddySignature": "Handtekening buddy",
   "signatures_instructorSignature": "Handtekening instructeur",
   "signatures_noSignatureImage": "Geen handtekeningafbeelding",
   "signatures_signHere": "{name} - Onderteken hier",

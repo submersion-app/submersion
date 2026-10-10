@@ -6996,6 +6996,7 @@
   "signatures_field_instructorName": "שם המדריך",
   "signatures_field_instructorNameHint": "הזן שם מדריך",
   "signatures_handoff_title": "העבר את המכשיר ל",
+  "signatures_buddySignature": "חתימת שותף",
   "signatures_instructorSignature": "חתימת מדריך",
   "signatures_noSignatureImage": "אין תמונת חתימה",
   "signatures_signHere": "{name} - חתום כאן",

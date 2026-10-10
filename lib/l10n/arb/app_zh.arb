@@ -7170,6 +7170,7 @@
   "signatures_field_instructorName": "教练名称",
   "signatures_field_instructorNameHint": "输入教练姓名",
   "signatures_handoff_title": "请将设备交给",
+  "signatures_buddySignature": "潜伴签名",
   "signatures_instructorSignature": "教练签名",
   "signatures_noSignatureImage": "无签名图片",
   "signatures_signHere": "{name} - 签名此处",

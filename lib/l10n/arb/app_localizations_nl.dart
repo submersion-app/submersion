@@ -24554,6 +24554,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get signatures_handoff_title => 'Geef je apparaat aan';
 
   @override
+  String get signatures_buddySignature => 'Handtekening buddy';
+
+  @override
   String get signatures_instructorSignature => 'Handtekening instructeur';
 
   @override

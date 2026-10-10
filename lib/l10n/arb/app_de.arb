@@ -7113,6 +7113,7 @@
   "signatures_field_instructorName": "Tauchlehrername",
   "signatures_field_instructorNameHint": "Tauchlehrernamen eingeben",
   "signatures_handoff_title": "Geben Sie Ihr Gerät an",
+  "signatures_buddySignature": "Tauchpartner-Signatur",
   "signatures_instructorSignature": "Tauchlehrer-Signatur",
   "signatures_noSignatureImage": "Kein Signaturbild",
   "signatures_signHere": "{name} - Hier signieren",

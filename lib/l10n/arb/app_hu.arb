@@ -6894,6 +6894,7 @@
   "signatures_field_instructorName": "Oktató neve",
   "signatures_field_instructorNameHint": "Add meg az oktató nevét",
   "signatures_handoff_title": "Add át az eszközt",
+  "signatures_buddySignature": "Búvártárs aláírása",
   "signatures_instructorSignature": "Oktató aláírása",
   "signatures_noSignatureImage": "Nincs aláírás kép",
   "signatures_signHere": "{name} - Írj alá itt",
