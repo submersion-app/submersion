@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/query/compiler/query_compiler.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/query/data/query_id_set_runner.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -28,7 +32,11 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> pumpApp(WidgetTester tester, Widget page) async {
+  Future<void> pumpApp(
+    WidgetTester tester,
+    Widget page, {
+    List<Object> extraOverrides = const [],
+  }) async {
     // Tall viewport so the whole (lazy ListView) form materializes.
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 4000);
@@ -42,6 +50,7 @@ void main() {
         overrides: [
           ...overrides,
           equipmentRepositoryProvider.overrideWithValue(repository),
+          ...extraOverrides,
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -186,4 +195,35 @@ void main() {
       findsNothing,
     );
   });
+
+  testWidgets('a failed visibility check still saves and confirms', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      const EquipmentEditPage(embedded: true),
+      extraOverrides: [
+        queryIdSetRunnerProvider.overrideWithValue(
+          _FailingRunner(DatabaseService.instance.database),
+        ),
+      ],
+    );
+    await saveNew(tester, status: 'Wanted');
+
+    expect((await repository.getAllEquipment()).single.name, 'Dream Fins');
+    expect(find.text('Equipment added'), findsOne);
+    expect(
+      find.text('Saved, but the current list view hides it'),
+      findsNothing,
+    );
+  });
+}
+
+/// A runner whose every query fails, as a locked or closed database would.
+class _FailingRunner extends QueryIdSetRunner {
+  _FailingRunner(super.db);
+
+  @override
+  Future<Set<String>> ids(CompiledQuery compiled, {QueryScope? scope}) =>
+      Future.error(StateError('query failed'));
 }

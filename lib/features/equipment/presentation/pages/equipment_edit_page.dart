@@ -1056,28 +1056,29 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     }
   }
 
-  /// The list view that shows [savedId], or null when the list's current
-  /// view already does. Null too when the check fails: the item is saved
-  /// either way, so the plain confirmation is the safe fallback.
-  Future<EquipmentFilterState?> _viewRevealing(
+  /// The list view that shows [savedId] ([view] null when the list's
+  /// current view already does), and whether the check [failed]. The item
+  /// is saved either way, so a failure falls back to the plain confirmation.
+  Future<({EquipmentFilterState? view, bool failed})> _viewRevealing(
     String savedId,
     EquipmentStatus status,
   ) async {
     try {
-      return await viewRevealingSavedEquipment(
+      final view = await viewRevealingSavedEquipment(
         runner: ref.read(queryIdSetRunnerProvider),
         filter: ref.read(effectiveEquipmentFilterProvider),
         diverId: await ref.read(validatedCurrentDiverIdProvider.future),
         equipmentId: savedId,
         status: status,
       );
+      return (view: view, failed: false);
     } catch (e, st) {
       _log.error(
         "Failed to check the saved item's visibility",
         error: e,
         stackTrace: st,
       );
-      return null;
+      return (view: null, failed: true);
     }
   }
 
@@ -1201,9 +1202,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
       // An edit outside master-detail returns to the item's own page, which
       // shows it whatever the list's view; only the list can lose it.
-      final revealView = widget.isEditing && !widget.embedded
-          ? null
+      final reveal = widget.isEditing && !widget.embedded
+          ? (view: null, failed: false)
           : await _viewRevealing(savedId, equipment.status);
+      final revealView = reveal.view;
 
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
@@ -1238,7 +1240,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               ),
             ),
           );
-        } else if (!widget.embedded) {
+        } else if (!widget.embedded || reveal.failed) {
+          // Master-detail confirms by selecting the item; a failed check
+          // cannot vouch for the list, so it confirms in words too.
           messenger.showSnackBar(SnackBar(content: Text(saved)));
         }
         // The item is saved; only its location is missing. Say so, so the
