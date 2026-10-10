@@ -11854,7 +11854,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'Dadurch werden $name und alle zugehörigen Daten dauerhaft gelöscht, einschließlich Tauchgänge, Tauchcomputer, Ausrüstung, Brevets und Tauchplätze.';
+    return 'Dadurch werden $name und alle zugehörigen Daten dauerhaft gelöscht, einschließlich der Tauchgänge, Tauchcomputer, Ausrüstung, Brevets und Tauchplätze.';
   }
 
   @override

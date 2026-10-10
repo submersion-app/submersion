@@ -12007,7 +12007,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'سيؤدي هذا إلى حذف $name نهائيًا مع جميع البيانات المرتبطة به، بما في ذلك سجلات الغوص وحواسيب الغوص والمعدات والشهادات والمواقع.';
+    return 'سيؤدي هذا إلى حذف $name نهائيًا مع جميع البيانات المرتبطة، بما في ذلك سجلات الغوص وحواسيب الغوص والمعدات والشهادات والمواقع.';
   }
 
   @override
