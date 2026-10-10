@@ -20,10 +20,12 @@ class StoredVisibility {
 
   static const none = StoredVisibility();
 
-  /// [dive]'s stored shape; [Visibility.unknown] counts as no bucket.
+  /// [dive]'s stored shape; [Visibility.unknown] counts as no bucket. A
+  /// measurement beside a range (an older device's sync) reads as measured,
+  /// as everywhere else, so the stale range is dropped.
   factory StoredVisibility.of(Dive dive) => StoredVisibility(
     meters: dive.visibilityMeters,
-    range: dive.visibilityRange,
+    range: dive.visibilityMeters == null ? dive.visibilityRange : null,
     legacy: dive.visibility == Visibility.unknown ? null : dive.visibility,
   );
 

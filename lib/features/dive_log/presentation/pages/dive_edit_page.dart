@@ -2470,15 +2470,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           ops: ops,
         ),
       );
-      if (_bulkEnabled.contains(BulkField.visibility)) {
-        if (_bulkVisibility(units).modeToRemember case final mode?) {
-          await ref.read(visibilityInputModeProvider.notifier).remember(mode);
-        }
-      }
       // Queue a data-quality rescan of the edited dives (fire-and-forget).
       scheduleQualityScan(ids);
       scheduleSensorSummaryRefresh(ids);
       scheduleDerivedMetricsRefresh(ids);
+      if (_bulkEnabled.contains(BulkField.visibility)) {
+        _rememberVisibilityMode(_bulkVisibility(units));
+      }
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       if (widget.embedded) {
@@ -4832,6 +4830,23 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   VisibilityScale get _visibilityScale =>
       ref.read(settingsProvider).visibilityScale;
 
+  /// Remembers the mode [saved] was entered in for the next new dive. A
+  /// convenience after a save that already succeeded, so a failure is
+  /// logged, never reported as a failed save.
+  void _rememberVisibilityMode(StoredVisibility saved) {
+    final mode = saved.modeToRemember;
+    if (mode == null) return;
+    unawaited(
+      ref
+          .read(visibilityInputModeProvider.notifier)
+          .remember(mode)
+          .catchError(
+            (Object e) =>
+                _log.warning('Could not remember the visibility mode: $e'),
+          ),
+    );
+  }
+
   /// What a save writes for visibility. See [resolveVisibilityEntry].
   StoredVisibility _resolvedVisibility(UnitFormatter units) =>
       resolveVisibilityEntry(
@@ -6150,11 +6165,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       }
 
       // A new visibility value sets the mode the next new dive opens in.
-      if (_activeVisibilityTouched) {
-        if (savedVisibility.modeToRemember case final mode?) {
-          await ref.read(visibilityInputModeProvider.notifier).remember(mode);
-        }
-      }
+      if (_activeVisibilityTouched) _rememberVisibilityMode(savedVisibility);
 
       // Save sightings
       if (savedDiveId != null) {

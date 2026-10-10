@@ -57,10 +57,17 @@ abstract final class UddfVisibilityRange {
     for (final dive in block.findElements('dive')) {
       final ref = dive.getAttribute('ref');
       if (ref == null || ref.isEmpty) continue;
-      final range = VisibilityRange.tryParse(
-        double.tryParse(dive.getAttribute('min') ?? ''),
-        double.tryParse(dive.getAttribute('max') ?? ''),
-      );
+      final minText = dive.getAttribute('min');
+      final maxText = dive.getAttribute('max');
+      final min = minText == null ? null : double.tryParse(minText);
+      final max = maxText == null ? null : double.tryParse(maxText);
+      // A present but unreadable end makes the whole entry unreadable,
+      // rather than an open range the diver never logged.
+      if ((minText != null && min == null) ||
+          (maxText != null && max == null)) {
+        continue;
+      }
+      final range = VisibilityRange.tryParse(min, max);
       if (range != null) byDive[ref] = range;
     }
     return byDive;

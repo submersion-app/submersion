@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -114,6 +115,17 @@ void main() {
         StoredVisibility.none,
       );
     });
+  });
+
+  test('a two-shape dive reads as measured, dropping the stale range', () {
+    final dive = Dive(
+      id: 'd',
+      dateTime: DateTime.utc(2026, 1, 1),
+      visibilityMeters: 8,
+      visibilityMinMeters: 6,
+      visibilityMaxMeters: 12,
+    );
+    expect(StoredVisibility.of(dive), const StoredVisibility(meters: 8));
   });
 
   group('StoredVisibility modes', () {

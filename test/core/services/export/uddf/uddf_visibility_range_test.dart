@@ -50,6 +50,7 @@ void main() {
       '<dive ref="dive_b" min="12.0"/>'
       '<dive ref="dive_c" min="12" max="6"/>'
       '<dive ref="dive_d" min="-1"/>'
+      '<dive ref="dive_e" min="abc" max="12"/>'
       '<dive min="1"/>'
       '</visibilityranges>',
     ).rootElement;

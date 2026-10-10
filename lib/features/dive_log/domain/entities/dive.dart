@@ -355,14 +355,14 @@ class Dive extends Equatable {
   /// only its own value.
   EntryMethod? get effectiveEntryMethod => entryMethod ?? site?.entryMethod;
 
-  /// User-defined name, normalized for display: trimmed, with empty or
-  /// whitespace-only values treated as unset (null). In-app writes never
-  /// store such values, but synced rows from other writers can; display
-  /// fallbacks and exports should use this instead of [name].
   /// The stored visibility range, or null when the dive has none.
   VisibilityRange? get visibilityRange =>
       VisibilityRange.fromColumns(visibilityMinMeters, visibilityMaxMeters);
 
+  /// User-defined name, normalized for display: trimmed, with empty or
+  /// whitespace-only values treated as unset (null). In-app writes never
+  /// store such values, but synced rows from other writers can; display
+  /// fallbacks and exports should use this instead of [name].
   String? get effectiveName {
     final trimmed = name?.trim();
     return (trimmed == null || trimmed.isEmpty) ? null : trimmed;
