@@ -131,6 +131,39 @@ void main() {
     expect(xs[1], closeTo(31 / 699, 1e-9));
   });
 
+  testWidgets('an aggregated secondary series is plotted by its buckets', (
+    tester,
+  ) async {
+    // The condition charts leave the primary empty and draw only secondaries.
+    final points = [
+      for (var m = 0; m < 24; m++)
+        for (final day in [10, 25])
+          TrendDataPoint(date: DateTime.utc(2022, 1 + m, day), value: 10.0),
+    ];
+    await tester.pumpWidget(
+      host(
+        DiveTrendChart(
+          chartId: 'c',
+          points: const [],
+          secondarySeries: [
+            TrendSeries(label: 'S', points: points, color: Colors.red),
+          ],
+          aggregation: TrendAggregation.monthly,
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('trend-c-zoom-in')));
+    await tester.pump();
+
+    final xs = tester
+        .widget<ChartOverviewStrip>(find.byType(ChartOverviewStrip))
+        .points
+        .map((p) => p.dx)
+        .toList();
+    expect(xs, hasLength(24));
+    expect(xs.where((x) => x == 1.0), hasLength(1));
+  });
+
   testWidgets('switching aggregation rebuilds the strip', (tester) async {
     // Two dives at the start of each month: raw and monthly share the same
     // x and y range, so only the aggregation tells the two strips apart.
