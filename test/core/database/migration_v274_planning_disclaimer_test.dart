@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v274: diver_settings.icd_warnings_enabled (issue #3121).
+/// Schema v274: diver_settings.has_accepted_planning_disclaimer (issue #3120).
 void main() {
   /// A v273 database whose diver_settings lacks the column.
   NativeDatabase setupDb() => NativeDatabase.memory(
@@ -32,12 +32,19 @@ void main() {
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 
-  test('upgrading from v273 defaults the warnings on', () async {
-    final db = AppDatabase(setupDb());
-    addTearDown(db.close);
-    final rows = await db
-        .customSelect('SELECT icd_warnings_enabled AS v FROM diver_settings')
-        .get();
-    expect(rows.single.read<int>('v'), 1);
-  });
+  test(
+    'upgrading from v273 adds has_accepted_planning_disclaimer defaulted off',
+    () async {
+      final db = AppDatabase(setupDb());
+      addTearDown(db.close);
+      final rows = await db
+          .customSelect(
+            'SELECT diver_id, has_accepted_planning_disclaimer AS v '
+            'FROM diver_settings',
+          )
+          .get();
+      expect(rows.single.read<String>('diver_id'), 'd1');
+      expect(rows.single.read<int>('v'), 0);
+    },
+  );
 }

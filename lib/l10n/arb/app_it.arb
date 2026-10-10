@@ -320,8 +320,25 @@
   "gasCalculators_bestMix_marginLabel": "Margine sotto la MOD",
   "gasCalculators_bestMix_modLabel": "MOD a ppO2 {ppO2}",
   "gasCalculators_bestMix_nearestStandard": "Miscela standard più vicina che copre questa quota",
-  "gasCalculators_bestMix_recommendedMix": "Miscela consigliata",
+  "gasCalculators_bestMix_recommendedMix": "Miscela calcolata",
+  "gasCalculators_bestMix_semanticsLabel": "Miscela calcolata {mix}, MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "Mostra tutto ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "Mostra meno",
   "gasCalculators_bestMix_withoutHelium": "Senza elio",
+  "gasCalculators_bestMix_ccrSource": "Fonte del gas",
+  "gasCalculators_bestMix_ccrSourceBailout": "Emergenza",
+  "gasCalculators_bestMix_ccrSourceDiluent": "Diluente",
+  "gasCalculators_bestMix_densityAware": "Mantenere la densità del gas entro i limiti",
+  "gasCalculators_bestMix_eadLabel": "EAD alla quota",
+  "gasCalculators_bestMix_heliumBoth": "Elio aggiunto per mantenere l'END e la densità del gas entro i tuoi limiti.",
+  "gasCalculators_bestMix_heliumDensity": "Elio aggiunto per mantenere la densità del gas entro i limiti.",
+  "gasCalculators_bestMix_mode": "Modalità",
+  "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
+  "gasCalculators_bestMix_modeCcrTecHint": "Circuito chiuso: Diluente verifica rispetto alla ppO₂ di flush del diluente, Bailout rispetto alla tua ppO₂ di deco (massima) in circuito aperto.",
+  "gasCalculators_bestMix_modeOcTec": "OC Tec",
+  "gasCalculators_bestMix_modeOcTecHint": "Trimix in circuito aperto, verificato rispetto al tuo limite di ppO₂ di lavoro.",
+  "gasCalculators_bestMix_modeRec": "Rec",
+  "gasCalculators_bestMix_modeRecHint": "Nitrox per l'immersione ricreativa, come oggi.",
   "gasCalculators_planningCaveat": "Stima di pianificazione. Presuppone una risalita diretta. Verifica in base al tuo addestramento e aggiungi margine per le condizioni.",
   "gasCalculators_rockBottom_solveGas": "Gas per risolvere il problema a {depth}{unit}",
   "gasCalculators_rockBottom_solveTime": "Tempo di risoluzione del problema",
@@ -2966,6 +2983,7 @@
   "divePlanner_action_convertToDive": "Converti in Immersione",
   "divePlanner_action_deletePlan": "Elimina piano",
   "divePlanner_action_editTank": "Modifica Bombola",
+  "divePlanner_action_fillBestMix": "Miscela migliore per {depth}: {mix}",
   "divePlanner_action_moreOptions": "Altre opzioni",
   "divePlanner_action_quickPlan": "Piano Rapido",
   "divePlanner_action_renamePlan": "Rinomina Piano",
@@ -3461,9 +3479,9 @@
   "divers_detail_activeDiver": "Subacqueo attivo",
   "divers_detail_cancelButton": "Annulla",
   "divers_detail_deleteButton": "Elimina",
-  "divers_detail_deleteDialogConfirmHint": "Type \"Delete {name}\" to confirm",
-  "divers_detail_deleteDialogConfirmText": "Delete {name}",
-  "divers_detail_deleteDialogContent": "This will permanently delete {name} and all associated data including dive logs, dive computers, equipment, certifications, and sites.",
+  "divers_detail_deleteDialogConfirmHint": "Digita \"Elimina {name}\" per confermare",
+  "divers_detail_deleteDialogConfirmText": "Elimina {name}",
+  "divers_detail_deleteDialogContent": "Questa operazione eliminerà definitivamente {name} e tutti i dati associati, inclusi i registri delle immersioni, i computer subacquei, l'attrezzatura, i brevetti e i siti.",
   "divers_detail_deleteDialogTitle": "Eliminare il subacqueo?",
   "divers_edit_allergiesHint": "es. Penicillina, Crostacei",
   "divers_edit_allergiesLabel": "Allergie",
@@ -4554,7 +4572,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ per la MOD del diluente (flush)",
   "gasCalculators_mod_minPpO2": "ppO₂ minima (miscele ipossiche)",
   "gasCalculators_mod_fromProfile": "Dal tuo profilo subacqueo",
-  "gasCalculators_mod_differsFromProfile": "Diverso dal profilo ({value} bar)",
+  "gasCalculators_differsFromProfile": "Diverso dal profilo ({value})",
   "gasCalculators_mod_useProfileValue": "Usa il valore del profilo",
   "gasCalculators_mod_checkTargetDepth": "Controlla anche una profondità obiettivo",
   "gasCalculators_mod_targetDepth": "Profondità obiettivo",
@@ -5491,13 +5509,17 @@
   "planning_card_decoCalculator_title": "Calcolatore deco",
   "planning_card_divePlanner_subtitle": "Crea piani di immersione multilivello",
   "planning_card_divePlanner_title": "Pianificatore immersioni",
-  "planning_card_gasCalculators_subtitle": "MOD, Best Mix, Consumo, Rock Bottom",
+  "planning_card_gasCalculators_subtitle": "Limiti di profondità, miscele, consumo di gas e ricarica",
   "planning_card_gasCalculators_title": "Calcolatori gas",
   "planning_card_surfaceInterval_subtitle": "Pianifica intervalli per immersioni ripetitive",
   "planning_card_surfaceInterval_title": "Intervallo di superficie",
   "planning_card_weightCalculator_subtitle": "Zavorra raccomandata per la tua configurazione",
   "planning_card_weightCalculator_title": "Calcolatore zavorra",
   "planning_info_disclaimer": "Questi strumenti sono solo per la pianificazione. Verifica sempre i calcoli e segui la tua formazione subacquea.",
+  "planning_disclaimer_dialog_title": "Avviso degli strumenti di pianificazione",
+  "planning_disclaimer_dialog_body": "Gli strumenti di questa sezione sono solo per la pianificazione. Non sostituiscono la tua formazione subacquea o il tuo computer da immersione. Verifica sempre ogni calcolo da solo prima di usarlo per una decisione di sicurezza.",
+  "planning_disclaimer_dialog_confirm": "Ho capito",
+  "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Avviso di pianificazione accettato",
   "planning_section_tools": "Strumenti",
   "planning_summary_prompt": "Seleziona uno strumento per iniziare",
   "planning_summary_savedPlans": "Piani salvati",
@@ -5512,7 +5534,6 @@
   "settings_about_reportIssue_snackbar": "Visita github.com/submersion-app/submersion/issues",
   "settings_about_version": "Versione {version}",
   "settings_appBar_title": "Impostazioni",
-  "settings_appearance_appLanguage": "Lingua dell'app",
   "settings_appearance_displaySize": "Dimensione di visualizzazione",
   "settings_appearance_displaySize_value": "{percent}%",
   "settings_appearance_displaySize_reset": "Reimposta",
@@ -5754,6 +5775,7 @@
   "settings_conflict_same": "Uguale",
   "settings_conflict_finerThanShown": "La differenza è più fine di quanto mostri questa visualizzazione.",
   "settings_conflict_moreFields": "{fields} e {count, plural, one{{count} altro} other{{count} altri}}",
+  "settings_conflict_fieldListSeparator": ", ",
   "enum_eventSeverity_info": "Informazione",
   "settings_conflict_changed": "Modificato",
   "settings_conflict_chooseVersion": "Scegli quale versione mantenere.",
@@ -6544,7 +6566,6 @@
   "settings_import_phase_courses": "Importing courses...",
   "settings_import_phase_applyingTags": "Applying tags...",
   "settings_language_appBar_title": "Lingua",
-  "settings_language_selected": "Selezionata",
   "settings_language_systemDefault": "Predefinito di sistema",
   "settings_lightroom_albumFilter_all": "Intero catalogo",
   "settings_lightroom_albumFilter_title": "Album da scansionare",
@@ -6914,6 +6935,7 @@
   "signatures_field_instructorName": "Nome Istruttore",
   "signatures_field_instructorNameHint": "Inserisci nome istruttore",
   "signatures_handoff_title": "Passa il dispositivo a",
+  "signatures_buddySignature": "Firma compagno",
   "signatures_instructorSignature": "Firma Istruttore",
   "signatures_noSignatureImage": "Nessuna immagine firma",
   "signatures_signHere": "{name} - Firma Qui",
@@ -11136,6 +11158,34 @@
   "settings_coordinateFormat_title": "Formato delle coordinate",
   "settings_placeNameLanguage_title": "Lingua dei nomi dei luoghi",
   "settings_placeNameLanguage_subtitle": "Usata quando paese, regione, città e specchio d'acqua vengono ricavati dalle coordinate. I siti esistenti non vengono modificati.",
+  "settings_language_placeNameOffer_title": "Salvare i nomi dei luoghi in {language}?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "I nomi di paesi e regioni cercati per i tuoi siti sono salvati in {current}. Passare a {language} per le nuove ricerche? Potrai poi cercare di nuovo i siti esistenti.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "Mantieni {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Cambia",
   "settings_coordinateFormat_decimalDegrees": "Gradi decimali",
   "settings_coordinateFormat_degreesDecimalMinutes": "Gradi e minuti decimali",
   "settings_coordinateFormat_degreesMinutesSeconds": "Gradi, minuti, secondi",
@@ -13797,6 +13847,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "Salva CSV dei controlli attrezzatura",
   "settings_export_saveFillsCsvDialogTitle": "Salva CSV delle ricariche bombola",
   "backup_operation_created": "Backup creato: {size}",
+  "backup_operation_createdLocalOnlyLocked": "Backup creato: {size}. È stato salvato solo su questo dispositivo: inserisci la passphrase di crittografia per caricare i backup nel cloud.",
   "backup_operation_backupFailed": "Backup non riuscito: {error}",
   "backup_operation_restoring": "Ripristino del backup in corso...",
   "backup_operation_restoreFailed": "Ripristino non riuscito: {error}",

@@ -1461,10 +1461,71 @@ class AppLocalizationsAr extends AppLocalizations {
       'أقرب خليط قياسي يغطي هذا العمق';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'الخليط الموصى به';
+  String get gasCalculators_bestMix_recommendedMix => 'الخليط المحسوب';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'الخليط المحسوب $mix، MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'عرض أقل';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'بدون هيليوم';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => 'مصدر الغاز';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'طوارئ';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'غاز التخفيف';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'الحفاظ على كثافة الغاز ضمن الحدود';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD عند العمق';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'تمت إضافة الهيليوم لإبقاء END وكثافة الغاز ضمن حدودك.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'تمت إضافة الهيليوم لإبقاء كثافة الغاز ضمن الحدود.';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'الوضع';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'الدائرة المغلقة: يتحقق «غاز التخفيف» مقابل ppO₂ الشطف لغاز التخفيف، و«الطوارئ» مقابل ppO₂ تخفيف الضغط (الحد الأقصى) في الدائرة المفتوحة.';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'ترايمكس في الدائرة المفتوحة، يُفحص مقابل حد ppO₂ العمل الخاص بك.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'نيتروكس للغوص الترفيهي، كما هو الحال اليوم.';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -10099,6 +10160,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_action_editTank => 'تعديل الأسطوانة';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'أفضل خليط لعمق $depth: $mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => 'المزيد من الخيارات';
 
   @override
@@ -12007,7 +12073,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return 'سيؤدي هذا إلى حذف $name نهائيًا مع جميع البيانات المرتبطة، بما في ذلك سجلات الغوص وحواسيب الغوص والمعدات والشهادات والمواقع.';
   }
 
   @override
@@ -12151,12 +12217,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return 'اكتب \"حذف $name\" للتأكيد';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return 'حذف $name';
   }
 
   @override
@@ -16280,8 +16346,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'من ملف الغواص الخاص بك';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'يختلف عن ملفك ($value بار)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'يختلف عن ملفك ($value)';
   }
 
   @override
@@ -19454,7 +19520,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD، أفضل خليط، الاستهلاك، الاحتياطي الأدنى';
+      'حدود العمق، الخلائط، استهلاك الغاز والتعبئة';
 
   @override
   String get planning_card_gasCalculators_title => 'حاسبات الغاز';
@@ -19476,6 +19542,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'هذه الأدوات لأغراض التخطيط فقط. تحقق دائمًا من الحسابات واتبع تدريبك على الغوص.';
+
+  @override
+  String get planning_disclaimer_dialog_title => 'تنبيه أدوات التخطيط';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'الأدوات في هذا القسم هي لأغراض التخطيط فقط. لا تحل محل تدريبك على الغوص أو حاسوب الغوص الخاص بك. تحقق دائمًا من كل حساب بنفسك قبل استخدامه في قرار متعلق بالسلامة.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'فهمت';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'تم قبول تنبيه التخطيط';
 
   @override
   String get planning_section_tools => 'أدوات';
@@ -19521,9 +19601,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appBar_title => 'الإعدادات';
-
-  @override
-  String get settings_appearance_appLanguage => 'لغة التطبيق';
 
   @override
   String get settings_appearance_displaySize => 'حجم العرض';
@@ -23004,6 +23081,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_fieldListSeparator => '، ';
+
+  @override
   String get settings_conflict_next_tooltip => 'التعارض التالي';
 
   @override
@@ -23812,9 +23892,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_language_appBar_title => 'اللغة';
-
-  @override
-  String get settings_language_selected => 'محدد';
 
   @override
   String get settings_language_systemDefault => 'الافتراضي للنظام';
@@ -24979,6 +25056,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signatures_handoff_title => 'ناول جهازك إلى';
+
+  @override
+  String get signatures_buddySignature => 'توقيع زميل الغوص';
 
   @override
   String get signatures_instructorSignature => 'توقيع المدرب';
@@ -37302,6 +37382,27 @@ class AppLocalizationsAr extends AppLocalizations {
       'تُستخدم عند البحث عن البلد والمنطقة والبلدة والمسطح المائي من الإحداثيات. لا يتم تغيير المواقع الحالية.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'هل تريد حفظ أسماء الأماكن باللغة $language؟';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'تُحفظ أسماء الدول والمناطق التي يُبحث عنها لمواقع الغوص الخاصة بك باللغة $current. هل تريد التبديل إلى $language لعمليات البحث الجديدة؟ يمكنك بعد ذلك البحث من جديد عن مواقعك الحالية.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'الإبقاء على $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'تبديل';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'درجات عشرية';
 
   @override
@@ -46736,6 +46837,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String backup_operation_created(String size) {
     return 'تم إنشاء نسخة احتياطية: $size';
+  }
+
+  @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'تم إنشاء نسخة احتياطية: $size. حُفظت على هذا الجهاز فقط: أدخل عبارة مرور التشفير لرفع النسخ الاحتياطية إلى السحابة.';
   }
 
   @override

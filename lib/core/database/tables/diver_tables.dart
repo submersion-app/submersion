@@ -465,6 +465,10 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get showDetailsPaneCourses =>
       boolean().withDefault(const Constant(false))();
+  // v274: one-time confirmation of the planning safety disclaimer (issue
+  // #3120). Off by default; the app never resets it back to false.
+  BoolColumn get hasAcceptedPlanningDisclaimer =>
+      boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

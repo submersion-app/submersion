@@ -320,8 +320,25 @@
   "gasCalculators_bestMix_marginLabel": "מרווח מתחת ל-MOD",
   "gasCalculators_bestMix_modLabel": "MOD ב-ppO2 {ppO2}",
   "gasCalculators_bestMix_nearestStandard": "התערובת התקנית הקרובה ביותר המכסה עומק זה",
-  "gasCalculators_bestMix_recommendedMix": "תערובת מומלצת",
+  "gasCalculators_bestMix_recommendedMix": "תערובת מחושבת",
+  "gasCalculators_bestMix_semanticsLabel": "תערובת מחושבת {mix}, MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "הצגת הכול ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "הצגת פחות",
   "gasCalculators_bestMix_withoutHelium": "ללא הליום",
+  "gasCalculators_bestMix_ccrSource": "מקור הגז",
+  "gasCalculators_bestMix_ccrSourceBailout": "חילוץ",
+  "gasCalculators_bestMix_ccrSourceDiluent": "מדלל",
+  "gasCalculators_bestMix_densityAware": "לשמור על צפיפות הגז בתוך הגבולות",
+  "gasCalculators_bestMix_eadLabel": "EAD בעומק",
+  "gasCalculators_bestMix_heliumBoth": "נוסף הליום כדי לשמור על ה-END וצפיפות הגז בתוך הגבולות שלך.",
+  "gasCalculators_bestMix_heliumDensity": "נוסף הליום כדי לשמור על צפיפות הגז בתוך הגבולות.",
+  "gasCalculators_bestMix_mode": "מצב",
+  "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
+  "gasCalculators_bestMix_modeCcrTecHint": "מעגל סגור: מדלל נבדק מול ppO₂ השטיפה של המדלל, חילוץ מול ppO₂ הדקו (המרבי) שלך במעגל פתוח.",
+  "gasCalculators_bestMix_modeOcTec": "OC Tec",
+  "gasCalculators_bestMix_modeOcTecHint": "טרימיקס במעגל פתוח, נבדק מול מגבלת ppO₂ העבודה שלך.",
+  "gasCalculators_bestMix_modeRec": "Rec",
+  "gasCalculators_bestMix_modeRecHint": "ניטרוקס לצלילת פנאי, כמו היום.",
   "gasCalculators_planningCaveat": "הערכת תכנון. מניחה עלייה ישירה. ודא מול ההכשרה שלך והוסף מרווח לתנאים.",
   "gasCalculators_rockBottom_solveGas": "גז לפתרון תקלה בעומק {depth}{unit}",
   "gasCalculators_rockBottom_solveTime": "זמן לפתרון תקלה",
@@ -2966,6 +2983,7 @@
   "divePlanner_action_convertToDive": "המר לצלילה",
   "divePlanner_action_deletePlan": "מחק תוכנית",
   "divePlanner_action_editTank": "ערוך מיכל",
+  "divePlanner_action_fillBestMix": "תערובת מיטבית ל-{depth}: {mix}",
   "divePlanner_action_moreOptions": "אפשרויות נוספות",
   "divePlanner_action_quickPlan": "תכנון מהיר",
   "divePlanner_action_renamePlan": "שנה שם תכנית",
@@ -3461,9 +3479,9 @@
   "divers_detail_activeDiver": "צולל פעיל",
   "divers_detail_cancelButton": "ביטול",
   "divers_detail_deleteButton": "מחיקה",
-  "divers_detail_deleteDialogConfirmHint": "Type \"Delete {name}\" to confirm",
-  "divers_detail_deleteDialogConfirmText": "Delete {name}",
-  "divers_detail_deleteDialogContent": "This will permanently delete {name} and all associated data including dive logs, dive computers, equipment, certifications, and sites.",
+  "divers_detail_deleteDialogConfirmHint": "הקלד \"מחיקה {name}\" לאישור",
+  "divers_detail_deleteDialogConfirmText": "מחיקה {name}",
+  "divers_detail_deleteDialogContent": "פעולה זו תמחק לצמיתות את {name} ואת כל הנתונים המשויכים, כולל יומני צלילה, מחשבי צלילה, ציוד, הסמכות ואתרים.",
   "divers_detail_deleteDialogTitle": "למחוק צולל?",
   "divers_edit_allergiesHint": "לדוגמה, פניצילין, פירות ים",
   "divers_edit_allergiesLabel": "אלרגיות",
@@ -4554,7 +4572,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ ל-MOD של המדלל (שטיפה)",
   "gasCalculators_mod_minPpO2": "ppO₂ מינימלי (תערובות היפוקסיות)",
   "gasCalculators_mod_fromProfile": "מפרופיל הצולל שלך",
-  "gasCalculators_mod_differsFromProfile": "שונה מהפרופיל ({value} בר)",
+  "gasCalculators_differsFromProfile": "שונה מהפרופיל ({value})",
   "gasCalculators_mod_useProfileValue": "השתמש בערך הפרופיל",
   "gasCalculators_mod_checkTargetDepth": "בדוק גם עומק יעד",
   "gasCalculators_mod_targetDepth": "עומק יעד",
@@ -5491,13 +5509,17 @@
   "planning_card_decoCalculator_title": "מחשבון דקו",
   "planning_card_divePlanner_subtitle": "צור תוכניות צלילה רב-שלביות",
   "planning_card_divePlanner_title": "מתכנן צלילות",
-  "planning_card_gasCalculators_subtitle": "MOD, תערובת אופטימלית, צריכה, Rock Bottom",
+  "planning_card_gasCalculators_subtitle": "מגבלות עומק, תערובות, צריכת גז ומילוי",
   "planning_card_gasCalculators_title": "מחשבוני גז",
   "planning_card_surfaceInterval_subtitle": "תכנן מרווחי צלילות חוזרות",
   "planning_card_surfaceInterval_title": "מרווח שטח",
   "planning_card_weightCalculator_subtitle": "משקל מומלץ להגדרה שלך",
   "planning_card_weightCalculator_title": "מחשבון משקל",
   "planning_info_disclaimer": "כלים אלה מיועדים למטרות תכנון בלבד. תמיד אמת חישובים ופעל לפי הכשרת הצלילה שלך.",
+  "planning_disclaimer_dialog_title": "אזהרת כלי התכנון",
+  "planning_disclaimer_dialog_body": "הכלים באזור זה מיועדים למטרות תכנון בלבד. הם אינם מחליפים את הכשרת הצלילה שלך או את מחשב הצלילה שלך. תמיד אמת כל חישוב בעצמך לפני שתשתמש בו להחלטת בטיחות.",
+  "planning_disclaimer_dialog_confirm": "הבנתי",
+  "settings_conflict_field_hasAcceptedPlanningDisclaimer": "אזהרת תכנון אושרה",
   "planning_section_tools": "כלים",
   "planning_summary_prompt": "בחר כלי כדי להתחיל",
   "planning_summary_savedPlans": "תוכניות שמורות",
@@ -5512,7 +5534,6 @@
   "settings_about_reportIssue_snackbar": "בקר ב-github.com/submersion-app/submersion/issues",
   "settings_about_version": "גרסה {version}",
   "settings_appBar_title": "הגדרות",
-  "settings_appearance_appLanguage": "שפת האפליקציה",
   "settings_appearance_displaySize": "גודל התצוגה",
   "settings_appearance_displaySize_value": "{percent}%",
   "settings_appearance_displaySize_reset": "איפוס",
@@ -5860,6 +5881,7 @@
   "settings_conflict_same": "זהה",
   "settings_conflict_finerThanShown": "ההבדל עדין יותר ממה שהתצוגה הזו מראה.",
   "settings_conflict_moreFields": "{fields} ועוד {count, plural, one{אחד} two{שניים} other{{count}}}",
+  "settings_conflict_fieldListSeparator": ", ",
   "enum_eventSeverity_info": "מידע",
   "settings_conflict_changed": "השתנה",
   "settings_conflict_chooseVersion": "בחר איזו גרסה לשמור.",
@@ -6650,7 +6672,6 @@
   "settings_import_phase_courses": "Importing courses...",
   "settings_import_phase_applyingTags": "Applying tags...",
   "settings_language_appBar_title": "שפה",
-  "settings_language_selected": "נבחר",
   "settings_language_systemDefault": "ברירת מחדל של המערכת",
   "settings_lightroom_albumFilter_all": "כל הקטלוג",
   "settings_lightroom_albumFilter_title": "אלבומים לסריקה",
@@ -7020,6 +7041,7 @@
   "signatures_field_instructorName": "שם המדריך",
   "signatures_field_instructorNameHint": "הזן שם מדריך",
   "signatures_handoff_title": "העבר את המכשיר ל",
+  "signatures_buddySignature": "חתימת שותף",
   "signatures_instructorSignature": "חתימת מדריך",
   "signatures_noSignatureImage": "אין תמונת חתימה",
   "signatures_signHere": "{name} - חתום כאן",
@@ -11136,6 +11158,34 @@
   "settings_coordinateFormat_title": "פורמט קואורדינטות",
   "settings_placeNameLanguage_title": "שפת שמות המקומות",
   "settings_placeNameLanguage_subtitle": "בשימוש כאשר מדינה, אזור, עיר וגוף מים נשלפים מהקואורדינטות. אתרים קיימים אינם משתנים.",
+  "settings_language_placeNameOffer_title": "לשמור את שמות המקומות בשפה {language}?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "שמות המדינות והאזורים שנבדקים עבור האתרים שלך נשמרים בשפה {current}. לעבור לשפה {language} בבדיקות חדשות? לאחר מכן אפשר לבדוק מחדש את האתרים הקיימים.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "להשאיר {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "מעבר",
   "settings_coordinateFormat_decimalDegrees": "מעלות עשרוניות",
   "settings_coordinateFormat_degreesDecimalMinutes": "מעלות ודקות עשרוניות",
   "settings_coordinateFormat_degreesMinutesSeconds": "מעלות, דקות, שניות",
@@ -13797,6 +13847,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "שמירת קובץ ה-CSV של בדיקות הציוד",
   "settings_export_saveFillsCsvDialogTitle": "שמירת CSV מילויי מכלים",
   "backup_operation_created": "נוצר גיבוי: {size}",
+  "backup_operation_createdLocalOnlyLocked": "נוצר גיבוי: {size}. הוא נשמר במכשיר זה בלבד: יש להזין את משפט הסיסמה של ההצפנה כדי להעלות גיבויים לענן.",
   "backup_operation_backupFailed": "הגיבוי נכשל: {error}",
   "backup_operation_restoring": "משחזר גיבוי...",
   "backup_operation_restoreFailed": "השחזור נכשל: {error}",

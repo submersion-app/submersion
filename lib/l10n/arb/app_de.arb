@@ -331,8 +331,25 @@
   "gasCalculators_bestMix_marginLabel": "Reserve bis MOD",
   "gasCalculators_bestMix_modLabel": "MOD bei ppO2 {ppO2}",
   "gasCalculators_bestMix_nearestStandard": "Nächstes Standardgemisch für diese Tiefe",
-  "gasCalculators_bestMix_recommendedMix": "Empfohlenes Gemisch",
+  "gasCalculators_bestMix_recommendedMix": "Berechnetes Gemisch",
+  "gasCalculators_bestMix_semanticsLabel": "Berechnetes Gemisch {mix}, MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "Alle anzeigen ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "Weniger anzeigen",
   "gasCalculators_bestMix_withoutHelium": "Ohne Helium",
+  "gasCalculators_bestMix_ccrSource": "Gasquelle",
+  "gasCalculators_bestMix_ccrSourceBailout": "Bailout",
+  "gasCalculators_bestMix_ccrSourceDiluent": "Diluent",
+  "gasCalculators_bestMix_densityAware": "Gasdichte innerhalb der Grenzwerte halten",
+  "gasCalculators_bestMix_eadLabel": "EAD auf Tiefe",
+  "gasCalculators_bestMix_heliumBoth": "Helium zugefügt, damit END und Gasdichte innerhalb deiner Grenzwerte bleiben.",
+  "gasCalculators_bestMix_heliumDensity": "Helium zugefügt, damit die Gasdichte innerhalb der Grenzwerte bleibt.",
+  "gasCalculators_bestMix_mode": "Modus",
+  "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
+  "gasCalculators_bestMix_modeCcrTecHint": "Kreislaufgerät: Diluent prüft gegen die Spül-ppO₂ des Diluentgases, Bailout gegen deine OC-Deko-ppO₂ (Maximum).",
+  "gasCalculators_bestMix_modeOcTec": "OC Tec",
+  "gasCalculators_bestMix_modeOcTecHint": "Trimix im offenen System, geprüft gegen deine Arbeits-ppO₂-Grenze.",
+  "gasCalculators_bestMix_modeRec": "Rec",
+  "gasCalculators_bestMix_modeRecHint": "Nitrox für das Sporttauchen, wie bisher.",
   "gasCalculators_planningCaveat": "Planungswert. Setzt einen direkten Aufstieg voraus. Prüfe ihn gegen deine Ausbildung und plane Reserve für die Bedingungen ein.",
   "gasCalculators_rockBottom_solveGas": "Gas zur Problemlösung auf {depth}{unit}",
   "gasCalculators_rockBottom_solveTime": "Zeit zur Problemlösung",
@@ -3093,6 +3110,7 @@
   "divePlanner_action_convertToDive": "In Tauchgang umwandeln",
   "divePlanner_action_deletePlan": "Plan löschen",
   "divePlanner_action_editTank": "Flasche bearbeiten",
+  "divePlanner_action_fillBestMix": "Bestes Gemisch für {depth}: {mix}",
   "divePlanner_action_moreOptions": "Weitere Optionen",
   "divePlanner_action_quickPlan": "Schnellplanung",
   "divePlanner_action_renamePlan": "Plan umbenennen",
@@ -3588,9 +3606,9 @@
   "divers_detail_activeDiver": "Aktiver Taucher",
   "divers_detail_cancelButton": "Abbrechen",
   "divers_detail_deleteButton": "Löschen",
-  "divers_detail_deleteDialogConfirmHint": "Type \"Delete {name}\" to confirm",
-  "divers_detail_deleteDialogConfirmText": "Delete {name}",
-  "divers_detail_deleteDialogContent": "This will permanently delete {name} and all associated data including dive logs, dive computers, equipment, certifications, and sites.",
+  "divers_detail_deleteDialogConfirmHint": "Geben Sie \"Löschen {name}\" zur Bestätigung ein",
+  "divers_detail_deleteDialogConfirmText": "Löschen {name}",
+  "divers_detail_deleteDialogContent": "Dadurch werden {name} und alle zugehörigen Daten dauerhaft gelöscht, einschließlich der Tauchgänge, Tauchcomputer, Ausrüstung, Brevets und Tauchplätze.",
   "divers_detail_deleteDialogTitle": "Taucher löschen?",
   "divers_edit_allergiesHint": "z.B. Penicillin, Schalentiere",
   "divers_edit_allergiesLabel": "Allergien",
@@ -4772,7 +4790,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ für die MOD des Diluentgases (Spülen)",
   "gasCalculators_mod_minPpO2": "Minimaler ppO₂ (hypoxische Gemische)",
   "gasCalculators_mod_fromProfile": "Aus deinem Taucherprofil",
-  "gasCalculators_mod_differsFromProfile": "Abweichend vom Profil ({value} bar)",
+  "gasCalculators_differsFromProfile": "Abweichend vom Profil ({value})",
   "gasCalculators_mod_useProfileValue": "Profilwert übernehmen",
   "gasCalculators_mod_checkTargetDepth": "Zusätzlich eine Zieltiefe prüfen",
   "gasCalculators_mod_targetDepth": "Zieltiefe",
@@ -5710,13 +5728,17 @@
   "planning_card_decoCalculator_title": "Deko-Rechner",
   "planning_card_divePlanner_subtitle": "Mehrstufige Tauchpläne erstellen",
   "planning_card_divePlanner_title": "Tauchplaner",
-  "planning_card_gasCalculators_subtitle": "MOD, Beste Mischung, Verbrauch, Mindestreserve",
+  "planning_card_gasCalculators_subtitle": "Tiefengrenzen, Gemische, Gasverbrauch und Füllen",
   "planning_card_gasCalculators_title": "Gasrechner",
   "planning_card_surfaceInterval_subtitle": "Wiederholungstauchgang-Intervalle planen",
   "planning_card_surfaceInterval_title": "Oberflächen-Intervall",
   "planning_card_weightCalculator_subtitle": "Empfohlenes Gewicht für Ihre Konfiguration",
   "planning_card_weightCalculator_title": "Gewichtsrechner",
   "planning_info_disclaimer": "Diese Werkzeuge dienen nur der Planung. Überprüfen Sie Berechnungen immer und befolgen Sie Ihre Tauchausbildung.",
+  "planning_disclaimer_dialog_title": "Hinweis zu den Planungswerkzeugen",
+  "planning_disclaimer_dialog_body": "Die Werkzeuge in diesem Bereich dienen ausschließlich der Planung. Sie ersetzen weder Ihre Tauchausbildung noch Ihren Tauchcomputer. Überprüfen Sie jede Berechnung selbst, bevor Sie sie für eine Sicherheitsentscheidung verwenden.",
+  "planning_disclaimer_dialog_confirm": "Verstanden",
+  "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Planungs-Hinweis bestätigt",
   "planning_section_tools": "Werkzeuge",
   "planning_summary_prompt": "Wähle ein Werkzeug zum Starten",
   "planning_summary_savedPlans": "Gespeicherte Pläne",
@@ -5731,7 +5753,6 @@
   "settings_about_reportIssue_snackbar": "Besuchen Sie github.com/submersion-app/submersion/issues",
   "settings_about_version": "Version {version}",
   "settings_appBar_title": "Einstellungen",
-  "settings_appearance_appLanguage": "App-Sprache",
   "settings_appearance_displaySize": "Anzeigegröße",
   "settings_appearance_displaySize_value": "{percent}%",
   "settings_appearance_displaySize_reset": "Zurücksetzen",
@@ -5973,6 +5994,7 @@
   "settings_conflict_same": "Gleich",
   "settings_conflict_finerThanShown": "Der Unterschied ist feiner, als diese Anzeige zeigt.",
   "settings_conflict_moreFields": "{fields} und {count, plural, one{{count} weiteres} other{{count} weitere}}",
+  "settings_conflict_fieldListSeparator": ", ",
   "enum_eventSeverity_info": "Info",
   "settings_conflict_changed": "Geändert",
   "settings_conflict_chooseVersion": "Wähle, welche Version behalten werden soll.",
@@ -6767,7 +6789,6 @@
   "settings_import_phase_courses": "Importing courses...",
   "settings_import_phase_applyingTags": "Applying tags...",
   "settings_language_appBar_title": "Sprache",
-  "settings_language_selected": "Ausgewählt",
   "settings_language_systemDefault": "Systemstandard",
   "settings_lightroom_albumFilter_all": "Gesamter Katalog",
   "settings_lightroom_albumFilter_title": "Zu durchsuchende Alben",
@@ -7137,6 +7158,7 @@
   "signatures_field_instructorName": "Tauchlehrername",
   "signatures_field_instructorNameHint": "Tauchlehrernamen eingeben",
   "signatures_handoff_title": "Geben Sie Ihr Gerät an",
+  "signatures_buddySignature": "Tauchpartner-Signatur",
   "signatures_instructorSignature": "Tauchlehrer-Signatur",
   "signatures_noSignatureImage": "Kein Signaturbild",
   "signatures_signHere": "{name} - Hier signieren",
@@ -11269,6 +11291,34 @@
   "settings_coordinateFormat_title": "Koordinatenformat",
   "settings_placeNameLanguage_title": "Sprache der Ortsnamen",
   "settings_placeNameLanguage_subtitle": "Wird verwendet, wenn Land, Region, Ort und Gewässer aus Koordinaten ermittelt werden. Bestehende Tauchplätze werden nicht geändert.",
+  "settings_language_placeNameOffer_title": "Ortsnamen auf {language} speichern?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "Länder- und Regionsnamen Ihrer Tauchplätze werden auf {current} gespeichert. Neue Abfragen auf {language} umstellen? Danach können Sie Ihre bestehenden Tauchplätze erneut abfragen.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "{current} beibehalten",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Umstellen",
   "settings_coordinateFormat_decimalDegrees": "Dezimalgrad",
   "settings_coordinateFormat_degreesDecimalMinutes": "Grad und Dezimalminuten",
   "settings_coordinateFormat_degreesMinutesSeconds": "Grad, Minuten, Sekunden",
@@ -13930,6 +13980,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "CSV der Ausrüstungs-Check-ins speichern",
   "settings_export_saveFillsCsvDialogTitle": "CSV der Flaschenfüllungen speichern",
   "backup_operation_created": "Sicherung erstellt: {size}",
+  "backup_operation_createdLocalOnlyLocked": "Sicherung erstellt: {size}. Sie wurde nur auf diesem Gerät gespeichert: Verschlüsselungs-Passphrase eingeben, um Sicherungen in die Cloud hochzuladen.",
   "backup_operation_backupFailed": "Sicherung fehlgeschlagen: {error}",
   "backup_operation_restoring": "Sicherung wird wiederhergestellt...",
   "backup_operation_restoreFailed": "Wiederherstellung fehlgeschlagen: {error}",

@@ -241,8 +241,8 @@ class _ConflictResolutionDialogState
   String _conflictTitle(SyncConflict conflict) {
     final own = _ownName(conflict.localData) ?? _ownName(conflict.remoteData);
     if (own != null) return own;
-    return conflictReferenceSummary(conflict.localReferences) ??
-        conflictReferenceSummary(conflict.remoteReferences) ??
+    return conflictReferenceSummary(context.l10n, conflict.localReferences) ??
+        conflictReferenceSummary(context.l10n, conflict.remoteReferences) ??
         conflict.displayName;
   }
 

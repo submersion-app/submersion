@@ -343,6 +343,9 @@ class DiverSettingsRepository {
                 SiteDetailSectionConfig.sectionsToJson(s.siteDetailSections),
               ),
               siteDetailLayout: Value(s.siteDetailLayout.name),
+              hasAcceptedPlanningDisclaimer: Value(
+                s.hasAcceptedPlanningDisclaimer,
+              ),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -628,6 +631,9 @@ class DiverSettingsRepository {
       SiteDetailSectionConfig.sectionsToJson(settings.siteDetailSections),
     ),
     siteDetailLayout: Value(settings.siteDetailLayout.name),
+    hasAcceptedPlanningDisclaimer: Value(
+      settings.hasAcceptedPlanningDisclaimer,
+    ),
   );
 
   /// Get or create settings for a diver (ensures settings always exist)
@@ -847,6 +853,7 @@ class DiverSettingsRepository {
         row.siteDetailSections,
       ),
       siteDetailLayout: DiveDetailLayout.fromName(row.siteDetailLayout),
+      hasAcceptedPlanningDisclaimer: row.hasAcceptedPlanningDisclaimer,
     );
   }
 

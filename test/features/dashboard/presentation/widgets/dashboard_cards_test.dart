@@ -399,7 +399,7 @@ void main() {
     for (final (label, destination) in const [
       ('Plan Dive', '/planning/dive-planner'),
       ('Insights', '/insights'),
-      ('GPS Logger', '/tracks'),
+      ('Tracks', '/tracks'),
       ('Emergency card', '/settings/diver-profile/emergency-card'),
     ]) {
       testWidgets('$label opens $destination', (tester) async {

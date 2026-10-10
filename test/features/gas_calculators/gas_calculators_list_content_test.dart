@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/gas_calculators/domain/best_mix_calculator_preferences.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_calculator_preferences.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
+import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/density_calculator_providers.dart';
-import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_calculators_list_content.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_list_content.dart';
@@ -127,7 +128,7 @@ void main() {
       tester.element(find.byType(GasCalculatorsListContent)),
     );
     container.read(modCalculatorNotifierProvider.notifier).setO2Percent(38);
-    container.read(bestMixDepthProvider.notifier).state = 90.0;
+    container.read(bestMixCalculatorNotifierProvider.notifier).setDepth(90.0);
     container.read(densityDepthProvider.notifier).state = 90.0;
     container.read(densityCcrProvider.notifier).state = true;
 
@@ -138,10 +139,14 @@ void main() {
       container.read(modCalculatorNotifierProvider),
       ModCalculatorPreferences.defaults,
     );
-    expect(container.read(bestMixDepthProvider), 30.0);
+    expect(
+      container.read(bestMixCalculatorNotifierProvider),
+      BestMixCalculatorPreferences.defaults,
+    );
     expect(container.read(densityDepthProvider), 50.0);
     expect(container.read(densityCcrProvider), isFalse);
-    // Let the MOD calculator's debounced save run out.
+    // Let the MOD and Best Mix calculators' debounced saves run out.
     await tester.pump(ModCalculatorNotifier.saveDelay);
+    await tester.pump(BestMixCalculatorNotifier.saveDelay);
   });
 }

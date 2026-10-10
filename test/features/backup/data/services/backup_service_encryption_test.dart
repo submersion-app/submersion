@@ -14,6 +14,7 @@ import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 
 import '../../../../helpers/mock_channels.dart';
@@ -259,5 +260,56 @@ void main() {
     );
     expect(remaining, hasLength(1));
     expect(remaining.single.name, endsWith('.sbe'));
+  });
+
+  group('encryption on but this device is not unlocked (issue #3089)', () {
+    Future<List<String>> cloudBackupNames() async {
+      final files = await cloud.listFiles(
+        folderId: await backupFolderId(),
+        namePattern: 'submersion_backup_',
+      );
+      return files.map((f) => f.name).toList();
+    }
+
+    test('no key: the cloud copy is skipped and the backup stays '
+        'local-only', () async {
+      await syncPreferences.setSyncEncryptionEnabled(true);
+      await preferences.setCloudBackupEnabled(true);
+
+      final record = await buildService().performBackup();
+
+      expect(await cloudBackupNames(), isEmpty);
+      expect(record.location, BackupLocation.local);
+      expect(record.cloudFileId, isNull);
+      expect(await File(record.localPath!).readAsString(), 'fake backup data');
+    });
+
+    test('key without its keyslot mirror: the cloud copy is skipped', () async {
+      await seedEncryption();
+      await keyStore.clearKeyslotMirror();
+      await preferences.setCloudBackupEnabled(true);
+
+      final record = await buildService().performBackup();
+
+      expect(await cloudBackupNames(), isEmpty);
+      expect(record.location, BackupLocation.local);
+    });
+
+    test('isCloudBackupBlockedByEncryptionLock reports the locked '
+        'state only', () async {
+      final service = buildService();
+      await syncPreferences.setSyncEncryptionEnabled(true);
+      // Cloud backup off: nothing is blocked.
+      expect(await service.isCloudBackupBlockedByEncryptionLock(), isFalse);
+
+      await preferences.setCloudBackupEnabled(true);
+      expect(await service.isCloudBackupBlockedByEncryptionLock(), isTrue);
+
+      await syncPreferences.setSyncEncryptionEnabled(false);
+      expect(await service.isCloudBackupBlockedByEncryptionLock(), isFalse);
+
+      await seedEncryption();
+      expect(await service.isCloudBackupBlockedByEncryptionLock(), isFalse);
+    });
   });
 }

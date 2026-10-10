@@ -25,6 +25,7 @@ void main() {
     bool exists = true,
     String? name,
     DateTime? timestamp,
+    ConflictBuiltInSource? builtInSource,
   }) => ConflictReference(
     field: field,
     targetType: targetType,
@@ -32,6 +33,7 @@ void main() {
     exists: exists,
     name: name,
     timestamp: timestamp,
+    builtInSource: builtInSource,
   );
 
   group('labels', () {
@@ -193,10 +195,102 @@ void main() {
     });
   });
 
+  // Built-in rows store English names; the rest of the app translates them,
+  // so the dialog must too (#3026).
+  group('built-in names', () {
+    late AppLocalizations de;
+
+    setUpAll(() async {
+      de = await AppLocalizations.delegate.load(const Locale('de'));
+    });
+
+    ConflictReference builtIn(String targetType, String id, String name) => ref(
+      targetType: targetType,
+      recordId: id,
+      name: name,
+      builtInSource: (targetType: targetType, id: id),
+    );
+
+    test('translates a built-in dive type, role, site type and species', () {
+      expect(
+        conflictReferenceValue(
+          de,
+          units,
+          builtIn('diveTypes', 'wreck', 'Wreck'),
+        ),
+        'Wracktauchen',
+      );
+      expect(
+        conflictReferenceValue(
+          de,
+          units,
+          builtIn('diveRoles', 'instructor', 'Instructor'),
+        ),
+        'Tauchlehrer',
+      );
+      expect(
+        conflictReferenceValue(de, units, builtIn('siteTypes', 'reef', 'Reef')),
+        'Riff',
+      );
+      expect(
+        conflictReferenceValue(
+          de,
+          units,
+          builtIn('species', 'sp_whale_shark', 'Whale Shark'),
+        ),
+        'Walhai',
+      );
+    });
+
+    test('translates a name borrowed from a built-in row', () {
+      expect(
+        conflictReferenceValue(
+          de,
+          units,
+          ref(
+            targetType: 'sightings',
+            name: 'Whale Shark',
+            builtInSource: (targetType: 'species', id: 'sp_whale_shark'),
+          ),
+        ),
+        'Walhai',
+      );
+    });
+
+    test("keeps a diver's own name and an unknown built-in id", () {
+      expect(
+        conflictReferenceValue(
+          de,
+          units,
+          ref(targetType: 'diveTypes', recordId: 'wreck', name: 'My Wreck'),
+        ),
+        'My Wreck',
+      );
+      expect(
+        conflictReferenceValue(
+          de,
+          units,
+          builtIn('diveTypes', 'not-a-slug', 'Legacy'),
+        ),
+        'Legacy',
+      );
+    });
+
+    test('translates built-in names in the conflict title', () {
+      expect(
+        conflictReferenceSummary(de, [
+          ref(targetType: 'dives', name: 'Blue Hole'),
+          builtIn('diveRoles', 'instructor', 'Instructor'),
+        ]),
+        'Blue Hole${kConflictSummarySeparator}Tauchlehrer',
+      );
+    });
+  });
+
   group('summary', () {
     test('joins the names of the records a row points at', () {
       expect(
-        conflictReferenceSummary([
+        conflictReferenceSummary(l10n, [
           ref(targetType: 'dives', name: 'Blue Hole'),
           ref(targetType: 'tags', name: 'Wreck'),
         ]),
@@ -206,7 +300,7 @@ void main() {
 
     test('skips references that resolved to no name', () {
       expect(
-        conflictReferenceSummary([
+        conflictReferenceSummary(l10n, [
           ref(targetType: 'dives', name: 'Blue Hole'),
           ref(targetType: 'tags', exists: false),
         ]),
@@ -216,7 +310,7 @@ void main() {
 
     test('caps the summary so a wide row does not run away', () {
       expect(
-        conflictReferenceSummary([
+        conflictReferenceSummary(l10n, [
           for (final n in ['a', 'b', 'c', 'd', 'e']) ref(name: n),
         ]),
         'a${kConflictSummarySeparator}b${kConflictSummarySeparator}c',
@@ -224,8 +318,8 @@ void main() {
     });
 
     test('is null when nothing resolved to a name', () {
-      expect(conflictReferenceSummary([ref(exists: false)]), isNull);
-      expect(conflictReferenceSummary(const []), isNull);
+      expect(conflictReferenceSummary(l10n, [ref(exists: false)]), isNull);
+      expect(conflictReferenceSummary(l10n, const []), isNull);
     });
   });
 

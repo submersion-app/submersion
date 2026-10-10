@@ -103,25 +103,80 @@ void main() {
     });
   });
 
-  // Console dark once used its app-bar navy as secondary: 1.10:1 on the
-  // surface, so every secondary-coloured icon and label vanished.
-  test('Console dark secondary and tertiary read on the surface', () {
-    final scheme = AppThemeRegistry.resolveTheme(
-      AppThemeRegistry.findById('console'),
-      Brightness.dark,
-    ).colorScheme;
-    expect(
-      contrastRatio(scheme.secondary, scheme.surface),
-      greaterThanOrEqualTo(_aaText),
-    );
-    expect(
-      contrastRatio(scheme.tertiary, scheme.surface),
-      greaterThanOrEqualTo(_aaText),
-    );
-    expect(
-      contrastRatio(scheme.onSecondary, scheme.secondary),
-      greaterThanOrEqualTo(_aaText),
-    );
+  // Accents are drawn as text and icons straight on the page (section
+  // headers, TextButton labels, links): Console dark's tertiary once fell
+  // back to its card navy at 1:1 (#2956), its app-bar navy secondary sat at
+  // 1.10:1 (#2959), and Tropical light's teal primary at 2.46:1 (#2967).
+  group('theme accent roles', () {
+    /// Runs [check] on every preset in both brightnesses and fails once with
+    /// every pair under WCAG AA, so one run lists all the offenders.
+    void expectAllReadable(
+      void Function(
+        ThemeData theme,
+        String label,
+        void Function(String what, Color fg, Color bg) pair,
+      )
+      check,
+    ) {
+      final failures = <String>[];
+      for (final preset in AppThemeRegistry.presets) {
+        for (final brightness in Brightness.values) {
+          final theme = AppThemeRegistry.resolveTheme(preset, brightness);
+          check(theme, '${preset.id} ${brightness.name}', (what, fg, bg) {
+            final ratio = contrastRatio(fg, bg);
+            if (ratio < _aaText) {
+              failures.add('$what: ${ratio.toStringAsFixed(2)}:1');
+            }
+          });
+        }
+      }
+      expect(failures, isEmpty);
+    }
+
+    test('every accent reads on the surface and on cards', () {
+      expectAllReadable((theme, label, pair) {
+        final scheme = theme.colorScheme;
+        // Deep dark's cards are translucent over the surface.
+        final card = Color.alphaBlend(
+          theme.cardTheme.color ?? scheme.surfaceContainerLow,
+          scheme.surface,
+        );
+        final accents = {
+          'primary': (scheme.primary, scheme.onPrimary),
+          'secondary': (scheme.secondary, scheme.onSecondary),
+          'tertiary': (scheme.tertiary, scheme.onTertiary),
+        };
+        for (final MapEntry(key: role, value: (accent, onAccent))
+            in accents.entries) {
+          pair('$label $role on surface', accent, scheme.surface);
+          pair('$label $role on card', accent, card);
+          pair('$label on$role on $role', onAccent, accent);
+        }
+      });
+    });
+
+    // Tropical drew a white title on its bright teal light app bar (2.61:1)
+    // and a white icon on its coral FAB (2.95:1).
+    test('app bar and FAB foregrounds read on their fills', () {
+      expectAllReadable((theme, label, pair) {
+        final scheme = theme.colorScheme;
+        // A transparent app bar (Minimalist) shows the surface through it.
+        Color overSurface(Color? fill, Color fallback) =>
+            Color.alphaBlend(fill ?? fallback, scheme.surface);
+        final appBar = theme.appBarTheme;
+        pair(
+          '$label app bar',
+          appBar.foregroundColor ?? scheme.onSurface,
+          overSurface(appBar.backgroundColor, scheme.surface),
+        );
+        final fab = theme.floatingActionButtonTheme;
+        pair(
+          '$label FAB',
+          fab.foregroundColor ?? scheme.onPrimaryContainer,
+          overSurface(fab.backgroundColor, scheme.primaryContainer),
+        );
+      });
+    });
   });
 
   group('theme error role', () {

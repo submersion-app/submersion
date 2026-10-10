@@ -2207,14 +2207,116 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_bestMix_recommendedMix.
   ///
   /// In en, this message translates to:
-  /// **'Recommended mix'**
+  /// **'Calculated mix'**
   String get gasCalculators_bestMix_recommendedMix;
+
+  /// No description provided for @gasCalculators_bestMix_semanticsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated mix {mix}, MOD {mod}'**
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod);
+
+  /// No description provided for @gasCalculators_bestMix_showAllMixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String gasCalculators_bestMix_showAllMixes(int count);
+
+  /// No description provided for @gasCalculators_bestMix_showFewerMixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get gasCalculators_bestMix_showFewerMixes;
 
   /// No description provided for @gasCalculators_bestMix_withoutHelium.
   ///
   /// In en, this message translates to:
   /// **'Without helium'**
   String get gasCalculators_bestMix_withoutHelium;
+
+  /// No description provided for @gasCalculators_bestMix_ccrSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas source'**
+  String get gasCalculators_bestMix_ccrSource;
+
+  /// No description provided for @gasCalculators_bestMix_ccrSourceBailout.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout'**
+  String get gasCalculators_bestMix_ccrSourceBailout;
+
+  /// No description provided for @gasCalculators_bestMix_ccrSourceDiluent.
+  ///
+  /// In en, this message translates to:
+  /// **'Diluent'**
+  String get gasCalculators_bestMix_ccrSourceDiluent;
+
+  /// No description provided for @gasCalculators_bestMix_densityAware.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep gas density within limits'**
+  String get gasCalculators_bestMix_densityAware;
+
+  /// No description provided for @gasCalculators_bestMix_eadLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'EAD at depth'**
+  String get gasCalculators_bestMix_eadLabel;
+
+  /// No description provided for @gasCalculators_bestMix_heliumBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Helium added to keep END and gas density within your limits.'**
+  String get gasCalculators_bestMix_heliumBoth;
+
+  /// No description provided for @gasCalculators_bestMix_heliumDensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Helium added to keep gas density within limits.'**
+  String get gasCalculators_bestMix_heliumDensity;
+
+  /// No description provided for @gasCalculators_bestMix_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get gasCalculators_bestMix_mode;
+
+  /// No description provided for @gasCalculators_bestMix_modeCcrTec.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR Tec'**
+  String get gasCalculators_bestMix_modeCcrTec;
+
+  /// No description provided for @gasCalculators_bestMix_modeCcrTecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed circuit: Diluent checks against the diluent\'s flush ppO2, Bailout against your OC deco (maximum) ppO2.'**
+  String get gasCalculators_bestMix_modeCcrTecHint;
+
+  /// No description provided for @gasCalculators_bestMix_modeOcTec.
+  ///
+  /// In en, this message translates to:
+  /// **'OC Tec'**
+  String get gasCalculators_bestMix_modeOcTec;
+
+  /// No description provided for @gasCalculators_bestMix_modeOcTecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimix on open circuit, checked against your working ppO2 limit.'**
+  String get gasCalculators_bestMix_modeOcTecHint;
+
+  /// No description provided for @gasCalculators_bestMix_modeRec.
+  ///
+  /// In en, this message translates to:
+  /// **'Rec'**
+  String get gasCalculators_bestMix_modeRec;
+
+  /// No description provided for @gasCalculators_bestMix_modeRecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nitrox for recreational diving, as today.'**
+  String get gasCalculators_bestMix_modeRecHint;
 
   /// No description provided for @gasCalculators_planningCaveat.
   ///
@@ -16009,6 +16111,12 @@ abstract class AppLocalizations {
   /// **'Edit Tank'**
   String get divePlanner_action_editTank;
 
+  /// No description provided for @divePlanner_action_fillBestMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Best mix for {depth}: {mix}'**
+  String divePlanner_action_fillBestMix(String depth, String mix);
+
   /// No description provided for @divePlanner_action_moreOptions.
   ///
   /// In en, this message translates to:
@@ -26020,11 +26128,11 @@ abstract class AppLocalizations {
   /// **'From your diver profile'**
   String get gasCalculators_mod_fromProfile;
 
-  /// No description provided for @gasCalculators_mod_differsFromProfile.
+  /// No description provided for @gasCalculators_differsFromProfile.
   ///
   /// In en, this message translates to:
-  /// **'Differs from your profile ({value} bar)'**
-  String gasCalculators_mod_differsFromProfile(String value);
+  /// **'Differs from your profile ({value})'**
+  String gasCalculators_differsFromProfile(String value);
 
   /// No description provided for @gasCalculators_mod_useProfileValue.
   ///
@@ -30772,7 +30880,7 @@ abstract class AppLocalizations {
   /// No description provided for @planning_card_gasCalculators_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'MOD, Best Mix, Consumption, Rock Bottom'**
+  /// **'Depth limits, mixes, gas use and blending'**
   String get planning_card_gasCalculators_subtitle;
 
   /// No description provided for @planning_card_gasCalculators_title.
@@ -30810,6 +30918,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These tools are for planning purposes only. Always verify calculations and follow your dive training.'**
   String get planning_info_disclaimer;
+
+  /// No description provided for @planning_disclaimer_dialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning Tools Disclaimer'**
+  String get planning_disclaimer_dialog_title;
+
+  /// No description provided for @planning_disclaimer_dialog_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The tools in this section are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.'**
+  String get planning_disclaimer_dialog_body;
+
+  /// No description provided for @planning_disclaimer_dialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I Understand'**
+  String get planning_disclaimer_dialog_confirm;
+
+  /// No description provided for @settings_conflict_field_hasAcceptedPlanningDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning disclaimer accepted'**
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer;
 
   /// No description provided for @planning_section_tools.
   ///
@@ -30894,12 +31026,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings_appBar_title;
-
-  /// No description provided for @settings_appearance_appLanguage.
-  ///
-  /// In en, this message translates to:
-  /// **'App Language'**
-  String get settings_appearance_appLanguage;
 
   /// Title of the app-wide display zoom control in Appearance settings
   ///
@@ -36746,6 +36872,12 @@ abstract class AppLocalizations {
   /// **'{fields} and {count, plural, one{{count} more} other{{count} more}}'**
   String settings_conflict_moreFields(String fields, int count);
 
+  /// Separator between field names in the conflict consequence line, such as ", " in English or "、" in Chinese.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get settings_conflict_fieldListSeparator;
+
   /// No description provided for @settings_conflict_next_tooltip.
   ///
   /// In en, this message translates to:
@@ -38177,12 +38309,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get settings_language_appBar_title;
-
-  /// No description provided for @settings_language_selected.
-  ///
-  /// In en, this message translates to:
-  /// **'Selected'**
-  String get settings_language_selected;
 
   /// No description provided for @settings_language_systemDefault.
   ///
@@ -40191,6 +40317,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hand your device to'**
   String get signatures_handoff_title;
+
+  /// Title of a saved buddy signature card and its full view
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy Signature'**
+  String get signatures_buddySignature;
 
   /// Label for instructor signature section
   ///
@@ -58132,6 +58264,30 @@ abstract class AppLocalizations {
   /// **'Used when country, region, town and body of water are looked up from coordinates. Existing sites are not changed.'**
   String get settings_placeNameLanguage_subtitle;
 
+  /// No description provided for @settings_language_placeNameOffer_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Store place names in {language}?'**
+  String settings_language_placeNameOffer_title(String language);
+
+  /// No description provided for @settings_language_placeNameOffer_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Country and region names looked up for your sites are stored in {current}. Switch to {language} for new lookups? You can then look up your existing sites again.'**
+  String settings_language_placeNameOffer_body(String current, String language);
+
+  /// No description provided for @settings_language_placeNameOffer_keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep {current}'**
+  String settings_language_placeNameOffer_keep(String current);
+
+  /// No description provided for @settings_language_placeNameOffer_switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch'**
+  String get settings_language_placeNameOffer_switch;
+
   /// No description provided for @settings_coordinateFormat_decimalDegrees.
   ///
   /// In en, this message translates to:
@@ -73302,6 +73458,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backup created: {size}'**
   String backup_operation_created(String size);
+
+  /// No description provided for @backup_operation_createdLocalOnlyLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup created: {size}. It was saved on this device only: enter your encryption passphrase to upload backups to the cloud.'**
+  String backup_operation_createdLocalOnlyLocked(String size);
 
   /// No description provided for @backup_operation_backupFailed.
   ///

@@ -18,16 +18,20 @@ import 'package:submersion/features/checklists/presentation/pages/checklist_temp
 import 'package:submersion/features/checklists/presentation/pages/checklist_templates_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_search_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
+import 'package:submersion/features/planning/presentation/widgets/planning_disclaimer_gate.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incident_edit_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
+import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
 import 'package:submersion/features/settings/presentation/pages/manage_currency_rules_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/appearance_settings_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
@@ -64,6 +68,22 @@ GoRoute? _findRouteByPath(List<RouteBase> routes, String path) {
     }
   }
   return null;
+}
+
+/// Collects every [ShellRoute] in a route tree recursively, however deeply
+/// nested (a [ShellRoute] inside another [ShellRoute]'s routes list).
+List<ShellRoute> _collectShellRoutes(List<RouteBase> routes) {
+  final shells = <ShellRoute>[];
+  for (final route in routes) {
+    if (route is ShellRoute) {
+      shells.add(route);
+      shells.addAll(_collectShellRoutes(route.routes));
+    }
+    if (route is GoRoute) {
+      shells.addAll(_collectShellRoutes(route.routes));
+    }
+  }
+  return shells;
 }
 
 /// Collects all named [GoRoute]s from a route tree recursively.
@@ -585,6 +605,18 @@ void main() {
       expect(names, contains('appearanceCourses'));
     });
 
+    // The phone Appearance page pushes these routes; the settings pane opens
+    // the same pages inline by key, so a key without a matching route would
+    // work on a tablet or desktop and fail only on a phone (#3095).
+    test('every Appearance section key resolves to its own route', () {
+      for (final key in appearanceSectionKeys) {
+        final location = appearanceSectionRoute(key);
+        final match = router.configuration.findMatch(Uri.parse(location));
+        expect(match.isError, isFalse, reason: location);
+        expect(match.fullPath, location, reason: location);
+      }
+    });
+
     test('columnConfig route exists under appearance', () {
       final names = _collectRouteNames(router.configuration.routes);
       expect(names, contains('columnConfig'));
@@ -976,6 +1008,31 @@ void main() {
       expect(nestedNames, isNot(contains('noFly')));
     });
 
+    testWidgets('surfaceInterval route builds the SurfaceIntervalToolPage', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
+
+      final surfaceInterval = _findRouteByName(
+        router.configuration.routes,
+        'surfaceInterval',
+      );
+      expect(surfaceInterval, isNotNull);
+      final state = GoRouterState(
+        router.configuration,
+        uri: Uri.parse('/planning/surface-interval'),
+        matchedLocation: '/planning/surface-interval',
+        fullPath: '/planning/surface-interval',
+        pathParameters: const {},
+        pageKey: const ValueKey('/planning/surface-interval'),
+      );
+      expect(
+        surfaceInterval!.builder!(context, state),
+        isA<SurfaceIntervalToolPage>(),
+      );
+    });
+
     testWidgets('noFly route builds the NoFlyPage', (tester) async {
       await tester.pumpWidget(const MaterialApp(home: SizedBox()));
       final context = tester.element(find.byType(SizedBox));
@@ -1044,6 +1101,118 @@ void main() {
         expect(newWidget.planId, isNull);
       },
     );
+  });
+
+  group('planning disclaimer gate (issue #3120)', () {
+    // Regression: the gate used to live inside PlanningPage's and
+    // GasCalculatorsPage's own build() methods. A plain GoRoute only renders
+    // its own exact-match page, so a deep link straight to a leaf route below
+    // them (the deco calculator, a gas calculator detail page, ...) replaced
+    // those pages outright and never reached the gate. It now lives in a
+    // ShellRoute around the whole /planning subtree, so whichever leaf route
+    // matched is still wrapped.
+
+    // The MOST SPECIFIC (innermost) shell containing [routeName]: a nested
+    // ShellRoute's ancestor shells all transitively "contain" it too, and
+    // _collectShellRoutes lists an ancestor before the descendants nested
+    // inside it, so the last match is the innermost one -- the gate actually
+    // responsible for that route, not just some outer shell it happens to
+    // live under (e.g. the app-wide MainScaffold shell).
+    ShellRoute shellContaining(String routeName) {
+      final shells = _collectShellRoutes(router.configuration.routes);
+      return shells.lastWhere(
+        (shell) => _findRouteByName(shell.routes, routeName) != null,
+        orElse: () =>
+            throw StateError('$routeName is not inside any ShellRoute'),
+      );
+    }
+
+    // The gate's own shell: the one declaring the /planning hub as a DIRECT
+    // child. Membership checks must be made against this shell, not "any
+    // shell", since the app-wide MainScaffold shell contains every route and
+    // would pass them for a route declared outside the gate.
+    ShellRoute gatedShell() =>
+        _collectShellRoutes(router.configuration.routes).singleWhere(
+          (shell) =>
+              shell.routes.any((r) => r is GoRoute && r.name == 'planning'),
+        );
+
+    test('deco-calculator and the gas calculators share one gated shell', () {
+      final decoShell = shellContaining('decoCalculator');
+      final gasShell = shellContaining('gasCalculators');
+      expect(decoShell, same(gatedShell()));
+      expect(
+        decoShell,
+        same(gasShell),
+        reason:
+            'One shell must cover the whole /planning subtree, not a '
+            'separate one per route -- otherwise a route added later could '
+            'be declared outside it by mistake.',
+      );
+    });
+
+    testWidgets('the gated shell wraps whichever child route matched in '
+        'PlanningDisclaimerGate', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      final context = tester.element(find.byType(SizedBox));
+
+      final shell = shellContaining('decoCalculator');
+      final state = GoRouterState(
+        router.configuration,
+        uri: Uri.parse('/planning/deco-calculator'),
+        matchedLocation: '/planning/deco-calculator',
+        fullPath: '/planning/deco-calculator',
+        pathParameters: const {},
+        pageKey: const ValueKey('/planning/deco-calculator'),
+      );
+      const leaf = SizedBox(key: Key('leaf'));
+      // A NoTransitionPage, like every other top-level tab: a builder-only
+      // ShellRoute gets a platform MaterialPage/CupertinoPage in the
+      // MainScaffold navigator, so switching to Planning would animate.
+      final page = shell.pageBuilder!(context, state, leaf);
+
+      expect(page, isA<NoTransitionPage<void>>());
+      final wrapped = (page as NoTransitionPage<void>).child;
+      expect(wrapped, isA<PlanningDisclaimerGate>());
+      expect((wrapped as PlanningDisclaimerGate).child, same(leaf));
+    });
+
+    test('every tool under /planning is inside the gated shell', () {
+      // Each of these is reachable by a direct deep link that bypasses
+      // PlanningPage/GasCalculatorsPage entirely, so each needs its OWN
+      // membership checked rather than trusting that one being gated implies
+      // the rest are.
+      const names = [
+        'planning',
+        'divePlanner',
+        'editPlan',
+        'decoCalculator',
+        'gasCalculators',
+        'weightCalculator',
+        'surfaceInterval',
+        'noFly',
+        'cnsOtu',
+      ];
+      final gated = gatedShell();
+      for (final name in names) {
+        expect(
+          _findRouteByName(gated.routes, name),
+          isNotNull,
+          reason: '$name is reachable directly but not inside the gated shell',
+        );
+      }
+      // Each calculator id (mod, best-mix, ...) is a path under
+      // gas-calculators, not a name of its own; check it by path within the
+      // shell that gates the hub, rather than by name.
+      final gasCalculatorPaths = _collectRoutePaths(gated.routes);
+      for (final id in kGasCalculatorIds) {
+        expect(
+          gasCalculatorPaths,
+          contains(id),
+          reason: 'gas calculator "$id" is not inside the gated shell',
+        );
+      }
+    });
   });
 
   // The GaugeStrip widget test navigates through a stub router, so a chip

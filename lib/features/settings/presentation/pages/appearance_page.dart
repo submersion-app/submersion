@@ -1,208 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/constants/map_style.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
-import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/theme/app_theme_registry.dart';
-import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
-import 'package:submersion/features/settings/presentation/widgets/display_zoom_settings_tile.dart';
+import 'package:submersion/features/settings/presentation/widgets/appearance_settings_tiles.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/feature_accent.dart';
 
-const _sectionRoutes = [
-  'dives',
-  'sites',
-  'buddies',
-  'trips',
-  'equipment',
-  'dive-centers',
-  'certifications',
-  'courses',
-];
-
-String _sectionDisplayName(BuildContext context, String routeSegment) {
-  final l10n = context.l10n;
-  return switch (routeSegment) {
-    'dives' => l10n.nav_dives,
-    'sites' => l10n.nav_sites,
-    'buddies' => l10n.nav_buddies,
-    'trips' => l10n.nav_trips,
-    'equipment' => l10n.nav_equipment,
-    'dive-centers' => l10n.nav_diveCenters,
-    'certifications' => l10n.nav_certifications,
-    'courses' => l10n.nav_courses,
-    _ => routeSegment,
-  };
-}
-
-class AppearancePage extends ConsumerStatefulWidget {
+/// Settings > Appearance on a phone. The tablet and desktop settings pane
+/// renders the same tiles from appearance_settings_tiles.dart.
+class AppearancePage extends StatelessWidget {
   const AppearancePage({super.key});
 
   @override
-  ConsumerState<AppearancePage> createState() => _AppearancePageState();
-}
-
-class _AppearancePageState extends ConsumerState<AppearancePage> {
-  @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.settings_section_appearance_title),
       ),
       body: ListView(
         children: [
-          // -- General --
           _buildSectionHeader(
             context,
             context.l10n.settings_appearance_general,
           ),
-          ListTile(
-            leading: const FeatureAccentIcon(
-              Icons.palette_outlined,
-              featureId: 'settings-appearance',
-              surface: AccentSurface.list,
-            ),
-            title: Text(context.l10n.settings_themes_current),
-            subtitle: Text(_resolveCurrentThemeName(context, ref)),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/themes'),
+          AppearanceGeneralTiles(
+            separator: const Divider(),
+            onLanguageTap: () => context.push('/settings/language'),
           ),
           const Divider(),
-          _buildThemeSelector(context, ref, settings.themeMode),
-          const Divider(),
-          const DisplayZoomSettingsTile(),
-          const Divider(),
-          ListTile(
-            leading: const FeatureAccentIcon(
-              Icons.language,
-              featureId: 'settings-appearance',
-              surface: AccentSurface.list,
-            ),
-            title: Text(context.l10n.settings_appearance_appLanguage),
-            subtitle: Text(
-              LanguageSettingsPage.getDisplayName(
-                context.l10n,
-                settings.locale,
-              ),
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/language'),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const FeatureAccentIcon(
-              Icons.map_outlined,
-              featureId: 'settings-appearance',
-              surface: AccentSurface.list,
-            ),
-            title: Text(context.l10n.settings_appearance_mapStyle),
-            subtitle: Text(_getMapStyleDisplayName(context, settings.mapStyle)),
-            trailing: DropdownButton<MapStyle>(
-              value: settings.mapStyle,
-              underline: const SizedBox.shrink(),
-              onChanged: (style) {
-                if (style != null) {
-                  ref.read(settingsProvider.notifier).setMapStyle(style);
-                }
-              },
-              items: MapStyle.values.map((style) {
-                return DropdownMenuItem(
-                  value: style,
-                  child: Text(_getMapStyleDisplayName(context, style)),
-                );
-              }).toList(),
-            ),
-          ),
-          const Divider(),
-          const NavCustomizationTile(),
-          const Divider(),
-
-          // -- Color accents --
           _buildSectionHeader(
             context,
             context.l10n.settings_appearance_colorAccents,
           ),
-          SwitchListTile(
-            secondary: const FeatureAccentIcon(
-              Icons.format_paint_outlined,
-              featureId: 'settings-appearance',
-              surface: AccentSurface.list,
-            ),
-            title: Text(context.l10n.settings_appearance_accentNavIcons),
-            subtitle: Text(
-              context.l10n.settings_appearance_accentNavIcons_subtitle,
-            ),
-            value: settings.accentNavIcons,
-            onChanged: (value) =>
-                ref.read(settingsProvider.notifier).setAccentNavIcons(value),
-          ),
-          SwitchListTile(
-            secondary: const FeatureAccentIcon(
-              Icons.title_outlined,
-              featureId: 'settings-appearance',
-              surface: AccentSurface.list,
-            ),
-            title: Text(context.l10n.settings_appearance_accentSectionHeaders),
-            subtitle: Text(
-              context.l10n.settings_appearance_accentSectionHeaders_subtitle,
-            ),
-            value: settings.accentSectionHeaders,
-            onChanged: (value) => ref
-                .read(settingsProvider.notifier)
-                .setAccentSectionHeaders(value),
-          ),
-          SwitchListTile(
-            secondary: const FeatureAccentIcon(
-              Icons.list_alt_outlined,
-              featureId: 'settings-appearance',
-              surface: AccentSurface.list,
-            ),
-            title: Text(context.l10n.settings_appearance_accentListIcons),
-            subtitle: Text(
-              context.l10n.settings_appearance_accentListIcons_subtitle,
-            ),
-            value: settings.accentListIcons,
-            onChanged: (value) =>
-                ref.read(settingsProvider.notifier).setAccentListIcons(value),
-          ),
-          // Mirrors the arrange sheet reachable from every gear list, so the
-          // choice is also findable where a diver looks for display settings
-          // rather than only where the order annoyed them (#1486, #1576).
-          ListTile(
-            leading: const FeatureAccentIcon(
-              Icons.sort,
-              featureId: 'settings-appearance',
-              surface: AccentSurface.list,
-            ),
-            title: Text(context.l10n.settings_appearance_gearArrangement),
-            subtitle: Text(
-              context.l10n.settings_appearance_gearArrangementSubtitle,
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => showEquipmentArrangeSheet(context),
-          ),
+          const AppearanceAccentTiles(),
           const Divider(),
-
-          // -- Sections --
           _buildSectionHeader(
             context,
             context.l10n.settings_appearance_sections,
           ),
-          ListTile(
-            title: Text(context.l10n.nav_home),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push('/settings/appearance/home'),
+          AppearanceSectionTiles(
+            onSectionTap: (key) => context.push(appearanceSectionRoute(key)),
           ),
-          for (final route in _sectionRoutes)
-            ListTile(
-              title: Text(_sectionDisplayName(context, route)),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/settings/appearance/$route'),
-            ),
           const SizedBox(height: 32),
         ],
       ),
@@ -220,87 +55,5 @@ class _AppearancePageState extends ConsumerState<AppearancePage> {
         ),
       ),
     );
-  }
-
-  Widget _buildThemeSelector(
-    BuildContext context,
-    WidgetRef ref,
-    ThemeMode currentMode,
-  ) {
-    return Column(
-      children: ThemeMode.values.map((mode) {
-        final isSelected = mode == currentMode;
-        return Semantics(
-          selected: isSelected,
-          child: ListTile(
-            leading: Icon(_getThemeModeIcon(mode)),
-            title: Text(_getThemeModeName(context, mode)),
-            trailing: isSelected
-                ? Icon(
-                    Icons.check,
-                    color: Theme.of(context).colorScheme.primary,
-                    semanticLabel: context.l10n.settings_language_selected,
-                  )
-                : null,
-            onTap: () {
-              ref.read(settingsProvider.notifier).setThemeMode(mode);
-            },
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  String _getThemeModeName(BuildContext context, ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return context.l10n.settings_appearance_theme_system;
-      case ThemeMode.light:
-        return context.l10n.settings_appearance_theme_light;
-      case ThemeMode.dark:
-        return context.l10n.settings_appearance_theme_dark;
-    }
-  }
-
-  IconData _getThemeModeIcon(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return Icons.brightness_auto;
-      case ThemeMode.light:
-        return Icons.light_mode;
-      case ThemeMode.dark:
-        return Icons.dark_mode;
-    }
-  }
-
-  String _getMapStyleDisplayName(BuildContext context, MapStyle style) {
-    return switch (style) {
-      MapStyle.openStreetMap =>
-        context.l10n.settings_appearance_mapStyle_openStreetMap,
-      MapStyle.openTopoMap =>
-        context.l10n.settings_appearance_mapStyle_openTopoMap,
-      MapStyle.esriSatellite =>
-        context.l10n.settings_appearance_mapStyle_esriSatellite,
-    };
-  }
-
-  String _resolveCurrentThemeName(BuildContext context, WidgetRef ref) {
-    final presetId = ref.watch(settingsProvider.select((s) => s.themePresetId));
-    final preset = AppThemeRegistry.findById(presetId);
-    final l10n = context.l10n;
-    switch (preset.nameKey) {
-      case 'theme_submersion':
-        return l10n.theme_submersion;
-      case 'theme_console':
-        return l10n.theme_console;
-      case 'theme_tropical':
-        return l10n.theme_tropical;
-      case 'theme_minimalist':
-        return l10n.theme_minimalist;
-      case 'theme_deep':
-        return l10n.theme_deep;
-      default:
-        return preset.nameKey;
-    }
   }
 }

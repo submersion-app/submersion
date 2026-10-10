@@ -1373,10 +1373,66 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_bestMix_nearestStandard => '可覆盖此深度的最接近标准混合气';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => '推荐混合气';
+  String get gasCalculators_bestMix_recommendedMix => '计算混合气';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return '计算混合气 $mix，MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return '显示全部 ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => '显示更少';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => '不含氦气';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => '气体来源';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => '备用';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => '稀释气';
+
+  @override
+  String get gasCalculators_bestMix_densityAware => '将气体密度保持在限值内';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => '深度处 EAD';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth => '已加入氦气，使 END 与气体密度都保持在你的限值内。';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity => '已加入氦气，使气体密度保持在限值内。';
+
+  @override
+  String get gasCalculators_bestMix_mode => '模式';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      '密闭式循环呼吸器：稀释气模式按稀释气的冲洗 ppO₂ 校验，备用模式按你的开放式减压（最大）ppO₂ 校验。';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint => '开放式三混气，按你的工作 ppO₂ 限值校验。';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint => '休闲潜水高氧，与现在相同。';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -9499,6 +9555,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_action_editTank => '编辑气瓶';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return '$depth 的最佳混合气：$mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => '更多选项';
 
   @override
@@ -11279,7 +11340,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return '这将永久删除 $name 及所有相关数据，包括潜水日志、潜水电脑、装备、证书和潜水点。';
   }
 
   @override
@@ -11415,12 +11476,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return '输入「删除 $name」以确认';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return '删除 $name';
   }
 
   @override
@@ -15326,8 +15387,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => '来自你的潜水员档案';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return '与档案不同（$value bar）';
+  String gasCalculators_differsFromProfile(String value) {
+    return '与档案不同（$value）';
   }
 
   @override
@@ -18290,7 +18351,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_card_divePlanner_title => '潜水计划器';
 
   @override
-  String get planning_card_gasCalculators_subtitle => '最大作业深度、最佳混合气、耗气量、底限储备';
+  String get planning_card_gasCalculators_subtitle => '深度限制、混合气、耗气量与配气';
 
   @override
   String get planning_card_gasCalculators_title => '气体计算器';
@@ -18309,6 +18370,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get planning_info_disclaimer => '这些工具仅供计划参考。请务必验证计算结果并遵循您的潜水训练。';
+
+  @override
+  String get planning_disclaimer_dialog_title => '计划工具提示';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      '此区域中的工具仅供计划参考。它们不能替代您的潜水训练或潜水电脑。在将计算结果用于安全决策之前,请务必自行验证每一项计算。';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => '我已了解';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer => '已接受计划提示';
 
   @override
   String get planning_section_tools => '工具';
@@ -18354,9 +18428,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appBar_title => '设置';
-
-  @override
-  String get settings_appearance_appLanguage => '应用语言';
 
   @override
   String get settings_appearance_displaySize => '显示大小';
@@ -21564,6 +21635,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_fieldListSeparator => '、';
+
+  @override
   String get settings_conflict_next_tooltip => '下一步冲突';
 
   @override
@@ -22338,9 +22412,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_language_appBar_title => '语言';
-
-  @override
-  String get settings_language_selected => '已选择';
 
   @override
   String get settings_language_systemDefault => '系统默认';
@@ -23446,6 +23517,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get signatures_handoff_title => '请将设备交给';
+
+  @override
+  String get signatures_buddySignature => '潜伴签名';
 
   @override
   String get signatures_instructorSignature => '教练签名';
@@ -34726,6 +34800,27 @@ class AppLocalizationsZh extends AppLocalizations {
       '根据坐标查找国家、地区、城镇和水域时使用。现有潜点不会更改。';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return '以$language保存地名？';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return '为你的潜点查询到的国家和地区名称以$current保存。新的查询改用$language吗？之后你可以重新查询已有的潜点。';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return '保留$current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => '切换';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => '十进制度';
 
   @override
@@ -43293,6 +43388,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String backup_operation_created(String size) {
     return '已创建备份：$size';
+  }
+
+  @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return '已创建备份：$size。备份仅保存在此设备上：请输入加密口令，以便将备份上传到云端。';
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -24,11 +25,24 @@ class SetupApplyService {
 
   SetupApplyService(this._ref);
 
-  Future<void> applyFirstRun(SetupWizardDraft draft) async {
+  /// [deviceLanguageCodes] are the device's preferred languages, most
+  /// preferred first. The first diver's place names start in the language
+  /// the app itself resolves to, so a German install does not store
+  /// "Germany" (issue #3111).
+  Future<void> applyFirstRun(
+    SetupWizardDraft draft, {
+    Iterable<String> deviceLanguageCodes = const [],
+  }) async {
     final name = draft.name.trim();
     if (name.isEmpty) {
       throw ArgumentError('Diver name must not be empty');
     }
+    final settings = draft.settings.copyWith(
+      placeNameLanguage: PlaceNameLanguage.forAppLocale(
+        draft.settings.locale,
+        deviceLanguageCodes,
+      ),
+    );
 
     final now = DateTime.now();
     // Created with the draft as its settings, in the same transaction as
@@ -43,7 +57,7 @@ class SetupApplyService {
             createdAt: now,
             updatedAt: now,
           ),
-          settings: draft.settings,
+          settings: settings,
         );
     await _ref.read(diverListNotifierProvider.notifier).refresh();
 

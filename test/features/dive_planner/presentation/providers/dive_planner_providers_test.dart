@@ -660,8 +660,8 @@ void main() {
         return container.read(planResultsProvider).ttsAtBottom;
       }
 
-      // planIsValidProvider gates convert-to-dive off these results, so they
-      // have to describe the plan the diver is actually looking at.
+      // These results have to describe the plan the diver is actually
+      // looking at.
       expect(ttsForPlanFactors(20, 55), greaterThan(ttsForPlanFactors(90, 95)));
     });
 

@@ -60,6 +60,21 @@ class PlanChartGeometry {
     return d.clamp(0.0, _paddedMaxDepth);
   }
 
+  /// Inverse of [xFor] for dragging a waypoint: floored at zero but not
+  /// capped, so a pointer carried past the right edge keeps extending the
+  /// segment at the same seconds-per-pixel (issue #3113).
+  double dragTimeAtDx(double dx) {
+    final t = (dx - plotRect.left) / plotRect.width * _paddedMaxTime;
+    return t < 0 ? 0 : t;
+  }
+
+  /// Inverse of [yFor] for dragging a waypoint: floored at the surface but
+  /// not capped at the axis, like [dragTimeAtDx].
+  double dragDepthAtDy(double dy) {
+    final d = (dy - plotRect.top) / plotRect.height * _paddedMaxDepth;
+    return d < 0 ? 0 : d;
+  }
+
   double get timeTickIntervalSeconds => niceInterval(_paddedMaxTime / 60) * 60;
 
   double get depthTickIntervalMeters =>

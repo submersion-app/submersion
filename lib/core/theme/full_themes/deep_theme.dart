@@ -16,8 +16,14 @@ const _surfaceDark = Color(0xFF080E18);
 const _appBarLight = Color(0xFF0A1628);
 const _appBarDark = Color(0xFF0A1428);
 
-const _primaryLight = Color(0xFF2070C0);
+// Deep enough to read as text on the light surface: the original #2070C0 sat
+// at 4.41:1, just under WCAG AA (#2967). The FAB keeps it as a fill.
+const _primaryLight = Color(0xFF1F6BB8);
 const _primaryDark = Color(0xFF40A0E8);
+
+// #3080D0 read at 4.06:1 on the dark cards and carried white text at only
+// 4.10:1 (#2967); a lighter blue with dark text clears AA on both.
+const _secondaryDark = Color(0xFF438CD4);
 
 const _cardLight = Color(0xFFF0F4F8);
 const Color _cardDark = Color.fromRGBO(15, 30, 55, 0.7);
@@ -129,8 +135,8 @@ final ThemeData deepDark = ThemeData(
       brightness: Brightness.dark,
       primary: _primaryDark,
       onPrimary: Color(0xFF0A1428),
-      secondary: Color(0xFF3080D0),
-      onSecondary: Color(0xFFFFFFFF),
+      secondary: _secondaryDark,
+      onSecondary: Color(0xFF0A1428),
       error: _errorDark,
       onError: _onErrorDark,
       surface: _surfaceDark,

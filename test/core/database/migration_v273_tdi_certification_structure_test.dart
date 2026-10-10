@@ -212,12 +212,15 @@ Future<String> applicableLevelsOf(AppDatabase db, String ruleId) async {
 
 void main() {
   test('v273 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v274 (ICD warnings, issue #3121) landed on top; the
-    // newest rung owns the exact assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(273));
     expect(AppDatabase.migrationVersions, contains(273));
-    expect(AppDatabase.migrationStepCount(272), greaterThanOrEqualTo(1));
-    expect(AppDatabase.migrationStepCount(271), greaterThanOrEqualTo(2));
+    // v274 (issue #3120) and v275 (issue #3121) shipped after this rung, so
+    // both counts below are two higher than when this test was written for
+    // v273 alone.
+    expect(AppDatabase.migrationStepCount(272), 3);
+    // The combined jump from 271: v272's relaxed assertion only pins a
+    // floor, so this is what actually pins the total at exactly four steps.
+    expect(AppDatabase.migrationStepCount(271), 4);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

@@ -327,6 +327,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_gtrReservePressure,
     FieldKind.pressure,
   ),
+  'hasAcceptedPlanningDisclaimer': ConflictField(
+    (l) => l.settings_conflict_field_hasAcceptedPlanningDisclaimer,
+    FieldKind.boolean,
+  ),
   'hiddenBuiltInIds': ConflictField(
     (l) => l.settings_conflict_field_hiddenBuiltInIds,
     FieldKind.opaque,

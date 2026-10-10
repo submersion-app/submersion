@@ -6,8 +6,9 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_sec
 ///
 /// The mannequin is a blend of `onSurface` over `surface`, walked up until
 /// it stands 1.6:1 off both the page surface and the container tint a card
-/// sits on. Gear greys are fixed. The number badge uses `primary` with whichever of
-/// `onPrimary`, black or white reads on it.
+/// sits on. Gear greys are fixed. Any painted colour that blends into those
+/// surfaces is edged with a rim (issue #3181). The number badge uses
+/// `primary` with whichever of `onPrimary`, black or white reads on it.
 FigurePalette figurePaletteFor(ColorScheme scheme) =>
     _figurePaletteForCache[scheme] ??= _figurePaletteForUncached(scheme);
 
@@ -19,6 +20,7 @@ FigurePalette _figurePaletteForUncached(ColorScheme scheme) {
   final onBadge = EquipmentSectionColors.readableOn(scheme.primary, [
     scheme.onPrimary,
   ]);
+  final backdrops = _backdropsOf(scheme);
   return FigurePalette(
     body: body.toARGB32(),
     bodyShade: shade.toARGB32(),
@@ -28,7 +30,30 @@ FigurePalette _figurePaletteForUncached(ColorScheme scheme) {
     outline: FigurePalette.light.outline,
     badge: scheme.primary.toARGB32(),
     onBadge: onBadge.toARGB32(),
+    backdrops: [for (final b in backdrops) b.toARGB32()],
+    rim: _rimTone(scheme, backdrops).toARGB32(),
   );
+}
+
+/// The page and the two container tints a card can give the figure.
+List<Color> _backdropsOf(ColorScheme scheme) => [
+  scheme.surface,
+  scheme.surfaceContainerLow,
+  scheme.surfaceContainer,
+];
+
+/// The faintest blend of `onSurface` over `surface` that clears 3:1 on every
+/// backdrop: WCAG's floor for graphical objects, since a thin edge has to
+/// work harder than a filled shape.
+Color _rimTone(ColorScheme scheme, List<Color> backdrops) {
+  for (var percent = 20; percent <= 100; percent += 2) {
+    final blend = Color.alphaBlend(
+      scheme.onSurface.withValues(alpha: percent / 100),
+      scheme.surface,
+    );
+    if (backdrops.every((b) => contrastRatio(blend, b) >= 3.0)) return blend;
+  }
+  return scheme.onSurface;
 }
 
 /// Walks the blend up until the body stands off both surfaces and the fixed

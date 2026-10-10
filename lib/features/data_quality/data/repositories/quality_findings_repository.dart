@@ -189,17 +189,42 @@ class QualityFindingsRepository {
         for (final s in QualitySeverity.values) s.name,
       ]);
 
-  Stream<int> watchOpenCount() {
+  /// Findings that name a dive of [diverId], as anchor or related dive.
+  ///
+  /// A finding has no diver of its own, so it reaches one through its dives.
+  /// Both ends count: a shared-gear pair spans two divers and is stored once,
+  /// anchored on the smaller dive id, and each diver must still see it
+  /// (issue #3049).
+  Expression<bool> _namesDiveOf(String diverId) {
+    Expression<bool> inDiverDives(Expression<String> column) {
+      final dives = _db.selectOnly(_db.dives)
+        ..addColumns([_db.dives.id])
+        ..where(_db.dives.diverId.equals(diverId));
+      return column.isInQuery(dives);
+    }
+
+    return inDiverDives(_db.qualityFindings.diveId) |
+        inDiverDives(_db.qualityFindings.relatedDiveId);
+  }
+
+  /// Open findings for [diverId]'s dives, or across every diver when null.
+  Stream<int> watchOpenCount({String? diverId}) {
     final count = _db.qualityFindings.id.count();
     final query = _db.selectOnly(_db.qualityFindings)
       ..addColumns([count])
-      ..where(_openAndReadable);
+      ..where(
+        diverId == null
+            ? _openAndReadable
+            : _openAndReadable & _namesDiveOf(diverId),
+      );
     return query.watchSingle().map((row) => row.read(count) ?? 0);
   }
 
-  Stream<List<QualityFinding>> watchFindings() {
+  /// Findings for [diverId]'s dives, or across every diver when null.
+  Stream<List<QualityFinding>> watchFindings({String? diverId}) {
     final query = _db.select(_db.qualityFindings)
       ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]);
+    if (diverId != null) query.where((_) => _namesDiveOf(diverId));
     return query.watch().map((rows) => [for (final r in rows) ?_fromRow(r)]);
   }
 

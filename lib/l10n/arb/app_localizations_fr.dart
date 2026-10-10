@@ -1429,10 +1429,71 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mélange standard le plus proche couvrant cette profondeur';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Mélange recommandé';
+  String get gasCalculators_bestMix_recommendedMix => 'Mélange calculé';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Mélange calculé $mix, MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'Tout afficher ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'Afficher moins';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Sans hélium';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => 'Source de gaz';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'Secours';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'Diluant';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'Maintenir la densité du gaz dans les limites';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD à la profondeur';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'Hélium ajouté pour maintenir l\'END et la densité du gaz dans vos limites.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'Hélium ajouté pour maintenir la densité du gaz dans les limites.';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'Mode';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'Circuit fermé : Diluant vérifie par rapport à la ppO₂ de rinçage du diluant, Bailout par rapport à votre ppO₂ de déco (maximale) en circuit ouvert.';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'Trimix en circuit ouvert, vérifié par rapport à votre limite de ppO₂ de travail.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'Nitrox pour la plongée loisir, comme aujourd\'hui.';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -10019,6 +10080,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_action_editTank => 'Modifier la bouteille';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'Meilleur mélange pour $depth : $mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => 'Plus d\'options';
 
   @override
@@ -11887,7 +11953,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return 'Cette action supprimera définitivement $name ainsi que toutes les données associées, y compris les plongées, les ordinateurs de plongée, l\'équipement, les certifications et les sites.';
   }
 
   @override
@@ -12032,12 +12098,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return 'Tapez \"Supprimer $name\" pour confirmer';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return 'Supprimer $name';
   }
 
   @override
@@ -16132,8 +16198,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'Depuis ton profil de plongeur';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'Différent de ton profil ($value bar)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'Différent de ton profil ($value)';
   }
 
   @override
@@ -19264,7 +19330,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Best Mix, Consommation, Réserve de sécurité';
+      'Limites de profondeur, mélanges, consommation de gaz et gonflage';
 
   @override
   String get planning_card_gasCalculators_title => 'Calculateurs de gaz';
@@ -19286,6 +19352,21 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'Ces outils sont destinés à la planification uniquement. Vérifiez toujours les calculs et suivez votre formation de plongée.';
+
+  @override
+  String get planning_disclaimer_dialog_title =>
+      'Avertissement des outils de planification';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'Les outils de cette section sont destinés à la planification uniquement. Ils ne remplacent ni votre formation de plongée ni votre ordinateur de plongée. Vérifiez toujours chaque calcul vous-même avant de l\'utiliser pour une décision de sécurité.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'J\'ai compris';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'Avertissement de planification accepté';
 
   @override
   String get planning_section_tools => 'Outils';
@@ -19332,9 +19413,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_appBar_title => 'Réglages';
-
-  @override
-  String get settings_appearance_appLanguage => 'Langue de l\'application';
 
   @override
   String get settings_appearance_displaySize => 'Taille d\'affichage';
@@ -22896,6 +22974,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_fieldListSeparator => ', ';
+
+  @override
   String get settings_conflict_next_tooltip => 'Conflit suivant';
 
   @override
@@ -23707,9 +23788,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_language_appBar_title => 'Langue';
-
-  @override
-  String get settings_language_selected => 'Sélectionnée';
 
   @override
   String get settings_language_systemDefault => 'Défaut du système';
@@ -24893,6 +24971,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get signatures_handoff_title => 'Passez votre appareil à';
+
+  @override
+  String get signatures_buddySignature => 'Signature du binôme';
 
   @override
   String get signatures_instructorSignature => 'Signature de l\'instructeur';
@@ -36913,6 +36994,27 @@ class AppLocalizationsFr extends AppLocalizations {
       'Utilisée lorsque le pays, la région, la ville et le plan d\'eau sont déduits des coordonnées. Les sites existants ne sont pas modifiés.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'Enregistrer les noms de lieux en $language ?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'Les noms de pays et de régions recherchés pour vos sites sont enregistrés en $current. Passer à $language pour les nouvelles recherches ? Vous pourrez ensuite rechercher à nouveau vos sites existants.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'Conserver $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Changer';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'Degrés décimaux';
 
   @override
@@ -46234,6 +46336,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String backup_operation_created(String size) {
     return 'Sauvegarde créée : $size';
+  }
+
+  @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'Sauvegarde créée : $size. Elle a été enregistrée uniquement sur cet appareil : saisissez votre phrase secrète de chiffrement pour envoyer les sauvegardes dans le cloud.';
   }
 
   @override

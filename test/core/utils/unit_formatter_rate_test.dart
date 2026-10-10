@@ -66,4 +66,31 @@ void main() {
       expect(metric.formatDepthRate(null), '--');
     });
   });
+
+  group('formatTideRate', () {
+    test('signs the rate and keeps two decimals, per hour', () {
+      expect(metric.formatTideRate(0.3), '+0.30m/hr');
+      expect(metric.formatTideRate(-0.25), '-0.25m/hr');
+      expect(metric.formatTideRate(0), '0.00m/hr');
+    });
+
+    test('a rate that rounds to zero carries no sign', () {
+      expect(metric.formatTideRate(0.001), '0.00m/hr');
+      expect(metric.formatTideRate(-0.001), '0.00m/hr');
+    });
+
+    test('converts to the diver depth unit', () {
+      // 0.3048 m/hr is 1 ft/hr.
+      expect(imperial.formatTideRate(0.3048), '+1.00ft/hr');
+    });
+
+    test('localises the digits but never the hour symbol', () {
+      Intl.defaultLocale = 'de';
+      expect(metric.formatTideRate(-0.25), '-0,25m/hr');
+    });
+
+    test('renders the neutral placeholder for a missing value', () {
+      expect(metric.formatTideRate(null), '--');
+    });
+  });
 }

@@ -1417,10 +1417,71 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dichtstbijzijnde standaardmengsel voor deze diepte';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Aanbevolen mengsel';
+  String get gasCalculators_bestMix_recommendedMix => 'Berekend mengsel';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Berekend mengsel $mix, MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'Alles tonen ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'Minder tonen';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Zonder helium';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => 'Gasbron';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'Bailout';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'Diluent';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'Gasdichtheid binnen de limieten houden';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD op diepte';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'Helium toegevoegd om END en gasdichtheid binnen je limieten te houden.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'Helium toegevoegd om de gasdichtheid binnen de limieten te houden.';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'Modus';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'Gesloten circuit: Diluent toetst aan de flush-ppO₂ van het diluent, Bailout aan je deco-ppO₂ (maximum) in open circuit.';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'Trimix in open circuit, getoetst aan je werk-ppO₂-limiet.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'Nitrox voor recreatief duiken, zoals nu.';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -9914,6 +9975,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_action_editTank => 'Fles bewerken';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'Beste mengsel voor $depth: $mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => 'Meer opties';
 
   @override
@@ -11764,7 +11830,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return 'Hiermee worden $name en alle bijbehorende gegevens permanent verwijderd, inclusief duiklogs, duikcomputers, uitrusting, brevetten en duikstekken.';
   }
 
   @override
@@ -11908,12 +11974,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return 'Typ \"Verwijderen $name\" om te bevestigen';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return 'Verwijderen $name';
   }
 
   @override
@@ -15979,8 +16045,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'Uit je duikersprofiel';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'Wijkt af van je profiel ($value bar)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'Wijkt af van je profiel ($value)';
   }
 
   @override
@@ -19081,7 +19147,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Beste mix, Verbruik, Noodreserve';
+      'Dieptelimieten, mengsels, gasverbruik en vullen';
 
   @override
   String get planning_card_gasCalculators_title => 'Gascalculators';
@@ -19103,6 +19169,20 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'Deze tools zijn alleen voor planningsdoeleinden. Controleer berekeningen altijd en volg je duikopleiding.';
+
+  @override
+  String get planning_disclaimer_dialog_title => 'Waarschuwing planningstools';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'De tools in dit gedeelte zijn alleen voor planningsdoeleinden. Ze vervangen niet je duikopleiding of je duikcomputer. Controleer altijd elke berekening zelf voordat je deze gebruikt voor een veiligheidsbeslissing.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'Begrepen';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'Planningswaarschuwing geaccepteerd';
 
   @override
   String get planning_section_tools => 'Gereedschappen';
@@ -19148,9 +19228,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_appBar_title => 'Instellingen';
-
-  @override
-  String get settings_appearance_appLanguage => 'App-taal';
 
   @override
   String get settings_appearance_displaySize => 'Weergavegrootte';
@@ -22673,6 +22750,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_fieldListSeparator => ', ';
+
+  @override
   String get settings_conflict_next_tooltip => 'Volgend conflict';
 
   @override
@@ -23469,9 +23549,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_language_appBar_title => 'Taal';
-
-  @override
-  String get settings_language_selected => 'Geselecteerd';
 
   @override
   String get settings_language_systemDefault => 'Systeemstandaard';
@@ -24637,6 +24714,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get signatures_handoff_title => 'Geef je apparaat aan';
+
+  @override
+  String get signatures_buddySignature => 'Handtekening buddy';
 
   @override
   String get signatures_instructorSignature => 'Handtekening instructeur';
@@ -36554,6 +36634,27 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gebruikt wanneer land, regio, plaats en water uit coördinaten worden opgezocht. Bestaande duikstekken worden niet gewijzigd.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'Plaatsnamen opslaan in $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'Namen van landen en regio\'s die voor je duikstekken worden opgezocht, worden opgeslagen in $current. Overschakelen naar $language voor nieuwe zoekopdrachten? Daarna kun je je bestaande duikstekken opnieuw opzoeken.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return '$current behouden';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Overschakelen';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'Decimale graden';
 
   @override
@@ -45827,6 +45928,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String backup_operation_created(String size) {
     return 'Back-up gemaakt: $size';
+  }
+
+  @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'Back-up gemaakt: $size. Deze is alleen op dit apparaat opgeslagen: voer je wachtwoordzin voor versleuteling in om back-ups naar de cloud te uploaden.';
   }
 
   @override

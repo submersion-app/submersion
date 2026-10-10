@@ -40,6 +40,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // v227 and v269 backstops: hidden tank presets and built-in entries.
     await _assertHiddenPickerEntryColumns();
 
+    // v274 backstop: the planning disclaimer confirmation column.
+    await _assertHasAcceptedPlanningDisclaimerColumn();
+
     // v222 backstop: the per-site vertical exaggeration overrides.
     await _assertSeascapeVerticalExaggerationOverridesColumn();
 
@@ -53,7 +56,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // default_show_late_gas_switches.
     await _assertAutoTagImportsColumn();
     await _assertLateGasSwitchSettingColumn();
-    // v274 backstop: diver_settings.icd_warnings_enabled.
+    // v275 backstop: diver_settings.icd_warnings_enabled.
     await _assertIcdWarningsColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.

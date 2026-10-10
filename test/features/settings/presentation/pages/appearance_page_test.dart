@@ -181,7 +181,7 @@ void main() {
       expect(pushed, '/settings/appearance/home');
     });
 
-    testWidgets('App Language tile pushes the language page', (tester) async {
+    testWidgets('Language tile pushes the language page', (tester) async {
       await tester.binding.setSurfaceSize(const Size(400, 2000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -212,7 +212,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('App Language'));
+      // The wide settings pane says Language too (#3095).
+      await tester.tap(find.text('Language'));
       await tester.pumpAndSettle();
 
       // PUSH (not go): the settings page stays underneath, so the Android

@@ -1413,10 +1413,71 @@ class AppLocalizationsEn extends AppLocalizations {
       'Nearest standard mix covering this depth';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Recommended mix';
+  String get gasCalculators_bestMix_recommendedMix => 'Calculated mix';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Calculated mix $mix, MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'Show all ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'Show fewer';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Without helium';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => 'Gas source';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'Bailout';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'Diluent';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'Keep gas density within limits';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD at depth';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'Helium added to keep END and gas density within your limits.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'Helium added to keep gas density within limits.';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'Mode';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'Closed circuit: Diluent checks against the diluent\'s flush ppO2, Bailout against your OC deco (maximum) ppO2.';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'Trimix on open circuit, checked against your working ppO2 limit.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'Nitrox for recreational diving, as today.';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -9819,6 +9880,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_action_editTank => 'Edit Tank';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'Best mix for $depth: $mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => 'More options';
 
   @override
@@ -15840,8 +15906,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'From your diver profile';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'Differs from your profile ($value bar)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'Differs from your profile ($value)';
   }
 
   @override
@@ -18917,7 +18983,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Best Mix, Consumption, Rock Bottom';
+      'Depth limits, mixes, gas use and blending';
 
   @override
   String get planning_card_gasCalculators_title => 'Gas Calculators';
@@ -18939,6 +19005,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'These tools are for planning purposes only. Always verify calculations and follow your dive training.';
+
+  @override
+  String get planning_disclaimer_dialog_title => 'Planning Tools Disclaimer';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'The tools in this section are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'I Understand';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'Planning disclaimer accepted';
 
   @override
   String get planning_section_tools => 'Tools';
@@ -18984,9 +19064,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appBar_title => 'Settings';
-
-  @override
-  String get settings_appearance_appLanguage => 'App Language';
 
   @override
   String get settings_appearance_displaySize => 'Display size';
@@ -22431,6 +22508,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_fieldListSeparator => ', ';
+
+  @override
   String get settings_conflict_next_tooltip => 'Next conflict';
 
   @override
@@ -23226,9 +23306,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_language_appBar_title => 'Language';
-
-  @override
-  String get settings_language_selected => 'Selected';
 
   @override
   String get settings_language_systemDefault => 'System Default';
@@ -24381,6 +24458,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signatures_handoff_title => 'Hand your device to';
+
+  @override
+  String get signatures_buddySignature => 'Buddy Signature';
 
   @override
   String get signatures_instructorSignature => 'Instructor Signature';
@@ -36191,6 +36271,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'Used when country, region, town and body of water are looked up from coordinates. Existing sites are not changed.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'Store place names in $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'Country and region names looked up for your sites are stored in $current. Switch to $language for new lookups? You can then look up your existing sites again.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'Keep $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Switch';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'Decimal degrees';
 
   @override
@@ -45404,6 +45505,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String backup_operation_created(String size) {
     return 'Backup created: $size';
+  }
+
+  @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'Backup created: $size. It was saved on this device only: enter your encryption passphrase to upload backups to the cloud.';
   }
 
   @override

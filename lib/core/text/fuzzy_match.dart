@@ -33,6 +33,9 @@ const Map<int, String> _diacriticMap = {
   0xFC: 'u',
   0xFD: 'y',
   0xFF: 'y',
+  // Hungarian double acute.
+  0x151: 'o',
+  0x171: 'u',
 };
 
 /// Normalizes [input] for comparison: trims, lowercases, and strips common

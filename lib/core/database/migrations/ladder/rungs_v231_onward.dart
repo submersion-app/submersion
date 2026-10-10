@@ -288,11 +288,18 @@ extension RungsFromV231 on AppDatabase {
       await _migrateTdiCertificationStructure();
     }
     if (from < 273) await reportProgress();
-    // v274: diver_settings.icd_warnings_enabled (issue #3121). Column
-    // only, defaulting on; re-asserted in beforeOpen.
+    // v274: diver_settings.has_accepted_planning_disclaimer (issue #3120).
+    // Column-only rung, no backfill: an existing diver reads false and sees
+    // the disclaimer dialog once. Re-asserted in beforeOpen.
     if (from < 274) {
-      await _assertIcdWarningsColumn();
+      await _assertHasAcceptedPlanningDisclaimerColumn();
     }
     if (from < 274) await reportProgress();
+    // v275: diver_settings.icd_warnings_enabled (issue #3121). Column
+    // only, defaulting on; re-asserted in beforeOpen.
+    if (from < 275) {
+      await _assertIcdWarningsColumn();
+    }
+    if (from < 275) await reportProgress();
   }
 }

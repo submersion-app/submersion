@@ -212,6 +212,19 @@ extension DiverMigrations on AppDatabase {
   Future<void> _assertHiddenBuiltInIdsColumn() =>
       _addColumnIfMissing('diver_settings', 'hidden_built_in_ids', 'TEXT');
 
+  /// v274: diver_settings.has_accepted_planning_disclaimer (issue #3120), the
+  /// one-time confirmation of the Planning/Gas Calculators safety disclaimer.
+  /// Defaults off, so an existing diver sees the dialog once after upgrading.
+  /// PRAGMA-guarded and idempotent so both onUpgrade and the beforeOpen
+  /// backstop can call it.
+  Future<void> _assertHasAcceptedPlanningDisclaimerColumn() =>
+      _addColumnIfMissing(
+        'diver_settings',
+        'has_accepted_planning_disclaimer',
+        'INTEGER NOT NULL DEFAULT 0 '
+            'CHECK (has_accepted_planning_disclaimer IN (0, 1))',
+      );
+
   /// v133: diver_settings deco stop band columns. PRAGMA-guarded and
   /// idempotent so it is safe to call from both onUpgrade and the beforeOpen
   /// backstop. The guard on cols.isNotEmpty keeps partial-schema migration
@@ -646,7 +659,7 @@ extension DiverMigrations on AppDatabase {
     }
   }
 
-  /// v274: diver_settings.icd_warnings_enabled (issue #3121). Column only,
+  /// v275: diver_settings.icd_warnings_enabled (issue #3121). Column only,
   /// defaulting on; re-asserted in beforeOpen.
   Future<void> _assertIcdWarningsColumn() async {
     final cols = await customSelect(
