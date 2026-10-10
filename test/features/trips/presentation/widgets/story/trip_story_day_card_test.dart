@@ -485,4 +485,117 @@ void main() {
       camera,
     );
   });
+
+  group('plan and conditions', () {
+    ItineraryDay planned(int dives, {String notes = '', String? port}) =>
+        _itin(notes: notes, port: port).copyWith(plannedDives: dives);
+
+    testWidgets('today with no dives shows its notes and plan', (tester) async {
+      final day = TripStoryDay(
+        date: DateTime(2026, 3, 8),
+        dayNumber: 2,
+        kind: TripStoryDayKind.today,
+        itineraryDay: planned(3, notes: 'Two-tank boat dive'),
+      );
+      await pumpCard(tester, day);
+      expect(find.text('Two-tank boat dive'), findsOneWidget);
+      expect(find.text('0 of 3 planned dives'), findsOneWidget);
+    });
+
+    testWidgets("today's card has a primary outline", (tester) async {
+      final day = TripStoryDay(
+        date: DateTime(2026, 3, 8),
+        dayNumber: 2,
+        kind: TripStoryDayKind.today,
+        itineraryDay: planned(2),
+      );
+      await pumpCard(tester, day);
+      final card = tester.widget<Card>(find.byType(Card).first);
+      final context = tester.element(find.byType(TripStoryDayCard));
+      final side = (card.shape! as RoundedRectangleBorder).side;
+      expect(side.color, Theme.of(context).colorScheme.primary);
+      expect(side.width, 2);
+    });
+
+    testWidgets('a past day compares logged with planned', (tester) async {
+      final day = TripStoryDay(
+        date: DateTime(2026, 3, 8),
+        dayNumber: 2,
+        kind: TripStoryDayKind.past,
+        itineraryDay: planned(3, notes: 'Reef day'),
+        dives: _pastDay(['d1', 'd2', 'd3', 'd4']).dives,
+      );
+      await pumpCard(tester, day);
+      expect(find.text('Reef day'), findsOneWidget);
+      expect(find.text('4 of 3 planned dives'), findsOneWidget);
+    });
+
+    testWidgets('a planned rest day shows no plan line', (tester) async {
+      final day = TripStoryDay(
+        date: DateTime(2026, 3, 8),
+        dayNumber: 2,
+        kind: TripStoryDayKind.today,
+        itineraryDay: planned(0, notes: 'Rest'),
+      );
+      await pumpCard(tester, day);
+      expect(find.textContaining('planned dive'), findsNothing);
+      expect(find.text('Rest'), findsOneWidget);
+    });
+
+    testWidgets('dives with conditions show the conditions line', (
+      tester,
+    ) async {
+      final base = _pastDay(['d1']);
+      final day = TripStoryDay(
+        date: base.date,
+        dayNumber: base.dayNumber,
+        kind: base.kind,
+        dives: [base.dives.single.copyWith(waterTemp: 27)],
+      );
+      await pumpCard(tester, day);
+      expect(find.byKey(const Key('day-conditions-line')), findsOneWidget);
+    });
+
+    testWidgets('a planned port with no history renders no card', (
+      tester,
+    ) async {
+      final day = TripStoryDay(
+        date: DateTime(2027, 1, 10),
+        dayNumber: 1,
+        kind: TripStoryDayKind.future,
+        itineraryDay: _itin(port: 'Kralendijk'),
+      );
+      await pumpCard(
+        tester,
+        day,
+        extra: [
+          siteHistoryByNameProvider('Kralendijk').overrideWith(
+            (ref) async => (diveCount: 0, avgWaterTemp: null, avgMaxDepth: null),
+          ),
+        ],
+      );
+      expect(find.byType(Card), findsNothing);
+    });
+
+    testWidgets('a planned port with history still shows its pills', (
+      tester,
+    ) async {
+      final day = TripStoryDay(
+        date: DateTime(2027, 1, 10),
+        dayNumber: 1,
+        kind: TripStoryDayKind.future,
+        itineraryDay: _itin(port: 'Kralendijk'),
+      );
+      await pumpCard(
+        tester,
+        day,
+        extra: [
+          siteHistoryByNameProvider('Kralendijk').overrideWith(
+            (ref) async => (diveCount: 3, avgWaterTemp: null, avgMaxDepth: null),
+          ),
+        ],
+      );
+      expect(find.textContaining('3 past dives here'), findsOneWidget);
+    });
+  });
 }
