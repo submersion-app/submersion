@@ -221,7 +221,10 @@ void main() {
         // band and loses its adjective, chip and Insights bin (review #2).
         final closed = await back(21);
         expect(closed.visibilityMeters, isNull);
-        expect(closed.visibilityRange, const VisibilityRange(minM: 6, maxM: 12));
+        expect(
+          closed.visibilityRange,
+          const VisibilityRange(minM: 6, maxM: 12),
+        );
         expect(
           VisibilityScale.coldWater.bandForRange(closed.visibilityRange!),
           VisibilityBand.good,
