@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// Service for calculating SAC (Surface Air Consumption) metrics
 /// per segment and per cylinder.
@@ -97,6 +98,7 @@ class GasAnalysisService {
       final sacRate = _calculateSegmentSac(
         profile: segmentProfile,
         tank: tank,
+        tankVolume: consumptionVolume(tank, tanks),
         tankPressures: resolvedPressures[tank.id],
         startTime: startTime,
         endTime: endTime,
@@ -225,6 +227,7 @@ class GasAnalysisService {
       final sacRate = _calculateSegmentSac(
         profile: segmentProfile,
         tank: tank,
+        tankVolume: consumptionVolume(tank, tanks),
         tankPressures: resolvedPressures[tank.id],
         startTime: seg.start,
         endTime: seg.end,
@@ -283,6 +286,8 @@ class GasAnalysisService {
     final hasGasSwitches = gasSwitches != null && gasSwitches.isNotEmpty;
 
     for (final tank in dive.tanks) {
+      // Its own size, else its matched partner's (issue #3109).
+      final volume = consumptionVolume(tank, dive.tanks);
       // How long the source log says this tank was breathed (issue #1496).
       // Gas switches say when, which is more, so they win; without them
       // this is the only thing that tells two same-role tanks apart.
@@ -340,7 +345,7 @@ class GasAnalysisService {
           startTime: usageRange.start,
           endTime: usageRange.end,
           avgDepth: avgDepthDuringUse ?? dive.avgDepth ?? 10.0,
-          tankVolume: tank.volume,
+          tankVolume: volume,
           gasMix: tank.gasMix,
           breathingSeconds: usageSeconds,
         );
@@ -360,9 +365,9 @@ class GasAnalysisService {
           final durationMin = usageSeconds / 60.0;
           if (durationMin > 0) {
             final ambientPressureBar = (effectiveAvgDepth / 10.0) + 1.0;
-            if (tank.volume != null) {
+            if (volume != null) {
               sacRate = _zCorrectedSacRate(
-                tankVolume: tank.volume!,
+                tankVolume: volume,
                 startPressureBar: tank.startPressure!,
                 endPressureBar: tank.endPressure!,
                 o2Percent: tank.gasMix.o2,
@@ -385,7 +390,7 @@ class GasAnalysisService {
           tankName: tank.name,
           gasMix: tank.gasMix,
           role: tank.role,
-          tankVolume: tank.volume,
+          tankVolume: volume,
           sacRate: sacRate,
           startPressure: tank.startPressure,
           endPressure: tank.endPressure,
@@ -702,6 +707,8 @@ class GasAnalysisService {
   double? _calculateSegmentSac({
     required List<DiveProfilePoint> profile,
     required DiveTank tank,
+    // The tank's own size, else its matched partner's (issue #3109).
+    required double? tankVolume,
     List<TankPressurePoint>? tankPressures,
     required int startTime,
     required int endTime,
@@ -762,9 +769,9 @@ class GasAnalysisService {
     final ambientPressureBar = (avgDepth / 10.0) + 1.0;
 
     // Use volume-corrected SAC when tank data available
-    if (tank.volume != null && startPressure != null && endPressure != null) {
+    if (tankVolume != null && startPressure != null && endPressure != null) {
       final result = _zCorrectedSacRate(
-        tankVolume: tank.volume!,
+        tankVolume: tankVolume,
         startPressureBar: startPressure,
         endPressureBar: endPressure,
         o2Percent: tank.gasMix.o2,

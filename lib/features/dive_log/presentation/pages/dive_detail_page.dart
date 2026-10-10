@@ -101,6 +101,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_ro
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_log/domain/services/field_attribution_service.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
@@ -2365,8 +2366,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       final tank = segmentTankId == null
           ? dive.sacReferenceTank
           : dive.tanks.where((t) => t.id == segmentTankId).firstOrNull;
-      final volume = tank?.volume;
-      return volume != null && volume > 0 ? volume : null;
+      // Its own size, else its matched partner's (issue #3109).
+      return tank == null ? null : consumptionVolume(tank, dive.tanks);
     }
 
     // Use the top-level normalization function
