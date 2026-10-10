@@ -371,18 +371,20 @@ class Dive3dScenePainter extends CustomPainter {
   }
 
   /// Widens a stroke mesh on the canvas: each vertex pair moves
-  /// [halfWidthPx] to either side of its point, along the mean of the
-  /// normals of the run arriving at it and the run leaving it, so the quads
-  /// on both sides of a turn share that edge instead of leaving a notch.
-  /// Each run's normal is flipped to agree with the previous one, which
-  /// keeps the two edges on the same sides through a reversal (an
-  /// out-and-back leg) rather than crossing into a bow-tie. A zero-length
-  /// run has no direction and keeps the previous side, so a stationary
-  /// stretch never pinches to a point; before the first real run the side
-  /// faces that run. [sx]/[sy] are the projected canvas positions of every
-  /// vertex in the soup; [start] is this mesh's first vertex. Both members
-  /// of a pair sit on the same point (see [MeshData.strokeHalfWidthPx]), so
-  /// the first member is read as the point.
+  /// [halfWidthPx] to either side of its point, along the miter between
+  /// the nearest real run arriving at it and the nearest real run leaving
+  /// it, so the quads on both sides of a turn share that edge instead of
+  /// leaving a notch, and the stroke keeps its width through the corner.
+  /// Zero-length runs (a stationary stretch) have no direction and are
+  /// looked past, so a stop at a turn joins like the turn itself. Each
+  /// run's normal is flipped to agree with the one before, which keeps the
+  /// two edges on the same sides through a reversal (an out-and-back leg)
+  /// rather than crossing into a bow-tie. A polyline whose last point lies
+  /// on its first (a closed isobath) joins across that seam too. [sx]/[sy]
+  /// are the projected canvas positions of every vertex in the soup;
+  /// [start] is this mesh's first vertex. Both members of a pair sit on the
+  /// same point (see [MeshData.strokeHalfWidthPx]), so the first member is
+  /// read as the point.
   @visibleForTesting
   static void strokeScreenEdges(
     Float32List sx,
@@ -392,49 +394,101 @@ class Dive3dScenePainter extends CustomPainter {
     required double halfWidthPx,
   }) {
     if (pairCount == 0) return;
-    // Normal of run j (pair j to pair j+1), or (0, 0) for a zero-length run.
-    (double, double) runNormal(int j) {
+    final runs = pairCount - 1;
+    // Unit normal of every run (pair j to pair j+1); (0, 0) for a
+    // zero-length one.
+    final nx = Float32List(runs);
+    final ny = Float32List(runs);
+    var firstReal = -1, lastReal = -1;
+    for (var j = 0; j < runs; j++) {
       final a = start + j * 2;
       final dx = sx[a + 2] - sx[a];
       final dy = sy[a + 2] - sy[a];
       final len = math.sqrt(dx * dx + dy * dy);
-      return len <= 1e-6 ? (0, 0) : (-dy / len, dx / len);
+      if (len <= 1e-6) continue;
+      nx[j] = -dy / len;
+      ny[j] = dx / len;
+      if (firstReal < 0) firstReal = j;
+      lastReal = j;
     }
-
-    // The side before the first pair: that of the first real run, or an
-    // arbitrary one for a stroke that never moves.
-    var px = 0.0, py = 1.0;
-    for (var j = 0; j < pairCount - 1; j++) {
-      final (nx, ny) = runNormal(j);
-      if (nx != 0 || ny != 0) {
-        px = nx;
-        py = ny;
-        break;
-      }
-    }
-    for (var k = 0; k < pairCount; k++) {
-      var (nx, ny) = k < pairCount - 1 ? runNormal(k) : (0.0, 0.0);
-      var ex = px, ey = py;
-      if (nx != 0 || ny != 0) {
-        if (nx * px + ny * py < 0) {
-          nx = -nx;
-          ny = -ny;
-        }
-        final sx0 = px + nx, sy0 = py + ny;
-        final len = math.sqrt(sx0 * sx0 + sy0 * sy0);
-        if (len > 1e-6) {
-          ex = sx0 / len;
-          ey = sy0 / len;
-        }
-        px = nx;
-        py = ny;
-      }
+    void offset(int k, double ex, double ey) {
       final a = start + k * 2;
       final x = sx[a], y = sy[a];
       sx[a] = x - ex * halfWidthPx;
       sy[a] = y - ey * halfWidthPx;
       sx[a + 1] = x + ex * halfWidthPx;
       sy[a + 1] = y + ey * halfWidthPx;
+    }
+
+    if (firstReal < 0) {
+      // Never moves: any side will do.
+      for (var k = 0; k < pairCount; k++) {
+        offset(k, 0, 1);
+      }
+      return;
+    }
+    for (
+      var j = firstReal + 1, px = nx[firstReal], py = ny[firstReal];
+      j < runs;
+      j++
+    ) {
+      if (nx[j] == 0 && ny[j] == 0) continue;
+      if (nx[j] * px + ny[j] * py < 0) {
+        nx[j] = -nx[j];
+        ny[j] = -ny[j];
+      }
+      px = nx[j];
+      py = ny[j];
+    }
+    final a0 = start, aN = start + runs * 2;
+    final closed =
+        pairCount > 2 &&
+        (sx[aN] - sx[a0]).abs() <= 1e-6 &&
+        (sy[aN] - sy[a0]).abs() <= 1e-6 &&
+        nx[lastReal] * nx[firstReal] + ny[lastReal] * ny[firstReal] >= 0;
+
+    int nextRealFrom(int j) {
+      for (var i = j; i < runs; i++) {
+        if (nx[i] != 0 || ny[i] != 0) return i;
+      }
+      return -1;
+    }
+
+    // The arriving side: the last real run before pair k (across the seam
+    // for a closed line). The leaving side: the next real run at or after
+    // pair k (across the seam again).
+    var hasIn = closed;
+    var inX = closed ? nx[lastReal] : 0.0;
+    var inY = closed ? ny[lastReal] : 0.0;
+    var next = firstReal;
+    for (var k = 0; k < pairCount; k++) {
+      if (next >= 0 && next < k) next = nextRealFrom(k);
+      final hasOut = next >= 0 || closed;
+      final outX = next >= 0 ? nx[next] : nx[firstReal];
+      final outY = next >= 0 ? ny[next] : ny[firstReal];
+      double ex, ey;
+      if (hasIn && hasOut) {
+        // The flip above keeps the angle between the two normals at or
+        // below a right angle, so their sum is never zero and the miter
+        // scale 1 / cos(half-angle) never exceeds sqrt(2).
+        final mx = inX + outX, my = inY + outY;
+        final len = math.sqrt(mx * mx + my * my);
+        final cosHalf = (mx * outX + my * outY) / len;
+        ex = mx / len / cosHalf;
+        ey = my / len / cosHalf;
+      } else if (hasOut) {
+        ex = outX;
+        ey = outY;
+      } else {
+        ex = inX;
+        ey = inY;
+      }
+      offset(k, ex, ey);
+      if (k < runs && (nx[k] != 0 || ny[k] != 0)) {
+        inX = nx[k];
+        inY = ny[k];
+        hasIn = true;
+      }
     }
   }
 

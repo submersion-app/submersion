@@ -127,10 +127,10 @@ void main() {
       expect(sx, [0, 0, 10, 10, 10, 10, 20, 20]);
     });
 
-    test('shares the edge at a turn: the mean of both runs\' normals', () {
+    test('miters the corner so both quads share the edge at full width', () {
       // East then north, a right angle. The corner pair sits on the
-      // diagonal between the two runs' normals so the quads on either
-      // side meet edge to edge.
+      // diagonal between the two runs' normals, stretched by sqrt(2) so
+      // the stroke measures a full 2 px across either run there.
       final sx = Float32List.fromList([0, 0, 10, 10, 10, 10]);
       final sy = Float32List.fromList([0, 0, 0, 0, 10, 10]);
       Dive3dScenePainter.strokeScreenEdges(
@@ -140,13 +140,68 @@ void main() {
         pairCount: 3,
         halfWidthPx: 1,
       );
-      const d = 0.7071;
       expect(sy.sublist(0, 2), [-1, 1]);
-      expect(sx[2], closeTo(10 + d, 1e-3));
-      expect(sy[2], closeTo(-d, 1e-3));
-      expect(sx[3], closeTo(10 - d, 1e-3));
-      expect(sy[3], closeTo(d, 1e-3));
+      expect(sx[2], closeTo(11, 1e-5));
+      expect(sy[2], closeTo(-1, 1e-5));
+      expect(sx[3], closeTo(9, 1e-5));
+      expect(sy[3], closeTo(1, 1e-5));
       expect(sx.sublist(4), [11, 9]);
+    });
+
+    test('a stop at a turn joins like the turn itself', () {
+      // Two copies of the corner point (a stationary sample at the turn):
+      // both look past the zero-length run to the north leg, so the quad
+      // before the stop and the quad after it meet at the same edge.
+      final sx = Float32List.fromList([0, 0, 10, 10, 10, 10, 10, 10]);
+      final sy = Float32List.fromList([0, 0, 0, 0, 0, 0, 10, 10]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 4,
+        halfWidthPx: 1,
+      );
+      for (final k in [1, 2]) {
+        expect(sx[k * 2], closeTo(11, 1e-5), reason: 'pair $k');
+        expect(sy[k * 2], closeTo(-1, 1e-5), reason: 'pair $k');
+        expect(sx[k * 2 + 1], closeTo(9, 1e-5), reason: 'pair $k');
+        expect(sy[k * 2 + 1], closeTo(1, 1e-5), reason: 'pair $k');
+      }
+      expect(sx.sublist(6), [11, 9]);
+    });
+
+    test('joins a closed line across its seam', () {
+      // A square whose last point is its first: the seam pair is a corner
+      // like any other, offset along the miter of the last and first run,
+      // identically at both ends.
+      final sx = Float32List.fromList([0, 0, 10, 10, 10, 10, 0, 0, 0, 0]);
+      final sy = Float32List.fromList([0, 0, 0, 0, 10, 10, 10, 10, 0, 0]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 5,
+        halfWidthPx: 1,
+      );
+      expect(sx[0], closeTo(-1, 1e-5));
+      expect(sy[0], closeTo(-1, 1e-5));
+      expect(sx[1], closeTo(1, 1e-5));
+      expect(sy[1], closeTo(1, 1e-5));
+      expect(sx.sublist(8), sx.sublist(0, 2));
+      expect(sy.sublist(8), sy.sublist(0, 2));
+    });
+
+    test('a stroke that never moves still gets a width', () {
+      final sx = Float32List.fromList([5, 5, 5, 5]);
+      final sy = Float32List.fromList([5, 5, 5, 5]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 2,
+        halfWidthPx: 1,
+      );
+      expect(sy, [4, 6, 4, 6]);
     });
 
     test('keeps both edges on their sides through a reversal', () {
