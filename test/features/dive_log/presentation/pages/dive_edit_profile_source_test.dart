@@ -77,13 +77,16 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  testWidgets('the chosen source reaches the editor and the form refreshes '
-      'after its edit is saved', (tester) async {
+  /// Pumps the dive edit page with [editor] standing in for the profile
+  /// editor route.
+  Future<void> pumpEditPage(
+    WidgetTester tester, {
+    required GoRouterWidgetBuilder editor,
+  }) async {
     tester.view.physicalSize = const Size(950, 4000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
-    Map<String, String>? editorQuery;
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
@@ -110,29 +113,7 @@ void main() {
               GoRoute(
                 path: '/dives/:diveId/edit-profile',
                 name: 'editProfile',
-                builder: (context, state) {
-                  editorQuery = state.uri.queryParameters;
-                  // Stands in for the editor: save an edit against the
-                  // source it was given, then report the save.
-                  return Scaffold(
-                    body: TextButton(
-                      onPressed: () async {
-                        await repository.saveEditedProfileWithKind(
-                          diveId: diveId,
-                          editedPoints: const [
-                            DiveProfilePoint(timestamp: 0, depth: 0),
-                            DiveProfilePoint(timestamp: 60, depth: 28),
-                            DiveProfilePoint(timestamp: 120, depth: 0),
-                          ],
-                          editKind: 'profile_editor',
-                          sourceId: state.uri.queryParameters['sourceId'],
-                        );
-                        if (context.mounted) context.pop(true);
-                      },
-                      child: const Text('save edit'),
-                    ),
-                  );
-                },
+                builder: editor,
               ),
             ],
           ),
@@ -140,6 +121,37 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+  }
+
+  testWidgets('the chosen source reaches the editor and the form refreshes '
+      'after its edit is saved', (tester) async {
+    Map<String, String>? editorQuery;
+    await pumpEditPage(
+      tester,
+      editor: (context, state) {
+        editorQuery = state.uri.queryParameters;
+        // Stands in for the editor: save an edit against the source it was
+        // given, then report the save.
+        return Scaffold(
+          body: TextButton(
+            onPressed: () async {
+              await repository.saveEditedProfileWithKind(
+                diveId: diveId,
+                editedPoints: const [
+                  DiveProfilePoint(timestamp: 0, depth: 0),
+                  DiveProfilePoint(timestamp: 60, depth: 28),
+                  DiveProfilePoint(timestamp: 120, depth: 0),
+                ],
+                editKind: 'profile_editor',
+                sourceId: state.uri.queryParameters['sourceId'],
+              );
+              if (context.mounted) context.pop(true);
+            },
+            child: const Text('save edit'),
+          ),
+        );
+      },
+    );
 
     await tester.tap(find.text('Dive profile'));
     await tester.pumpAndSettle();
@@ -168,48 +180,14 @@ void main() {
   });
 
   testWidgets('choosing the primary source names no source', (tester) async {
-    tester.view.physicalSize = const Size(950, 4000);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
-
     Map<String, String>? editorQuery;
-    final overrides = await getBaseOverrides();
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          ...overrides.cast<Override>(),
-          diveRepositoryProvider.overrideWithValue(repository),
-          diveListNotifierProvider.overrideWith(
-            (ref) => DiveListNotifier(repository, ref),
-          ),
-          customTankPresetsProvider.overrideWith((ref) async => []),
-          tripForDateProvider.overrideWith((ref, date) async => null),
-        ],
-        child: MaterialApp.router(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          routerConfig: GoRouter(
-            routes: [
-              GoRoute(
-                path: '/',
-                builder: (context, _) => const Scaffold(
-                  body: DiveEditPage(diveId: diveId, embedded: true),
-                ),
-              ),
-              GoRoute(
-                path: '/dives/:diveId/edit-profile',
-                name: 'editProfile',
-                builder: (context, state) {
-                  editorQuery = state.uri.queryParameters;
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+    await pumpEditPage(
+      tester,
+      editor: (context, state) {
+        editorQuery = state.uri.queryParameters;
+        return const SizedBox.shrink();
+      },
     );
-    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Dive profile'));
     await tester.pumpAndSettle();

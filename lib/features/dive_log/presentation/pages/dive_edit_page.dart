@@ -3300,13 +3300,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Opens the profile editor, first asking which source's profile to start
   /// from when more than one source has samples of its own (issue #3066).
   Future<void> _openProfileEditor(String diveId, {String? initialMode}) async {
-    final (sources, profiles) = await (
-      ref.read(diveDataSourcesProvider(diveId).future),
-      ref.read(sourceProfilesProvider(diveId).future),
-    ).wait;
+    final sources = await ref.read(diveDataSourcesProvider(diveId).future);
+    // Most dives have one source and can never offer a choice, so only a
+    // multi-source dive pays for hydrating every source's samples.
+    final startable = sources.length < 2
+        ? sources
+        : startableProfileSources(
+            sources,
+            await ref.read(sourceProfilesProvider(diveId).future),
+          );
     if (!mounted) return;
 
-    final startable = startableProfileSources(sources, profiles);
     String? sourceId;
     if (startable.length > 1) {
       final selected = await showModalBottomSheet<DiveDataSource>(
