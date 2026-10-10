@@ -494,10 +494,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           gtrCurve: analysis?.gtrCurve,
                           cnsCurve: analysis?.cnsCurve,
                           otuCurve: analysis?.otuCurve,
-                          tankVolume: dive.tanks
-                              .where((t) => t.volume != null && t.volume! > 0)
-                              .map((t) => t.volume!)
-                              .firstOrNull,
+                          // In bar of the reference cylinder (#3109).
+                          tankVolume: dive.sacReferenceVolume,
                           sacNormalizationFactor:
                               calculateSacNormalizationFactor(dive, analysis),
                           markers: _calculateMarkers(

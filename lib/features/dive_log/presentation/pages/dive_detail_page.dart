@@ -2363,9 +2363,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // nothing about the back gas the segment describes. Null means the
     // segment stays in pressure units.
     double? volumeForSegment(String? segmentTankId) {
-      final tank = segmentTankId == null
-          ? dive.sacReferenceTank
-          : dive.tanks.where((t) => t.id == segmentTankId).firstOrNull;
+      if (segmentTankId == null) return dive.sacReferenceVolume;
+      final tank = dive.tanks.where((t) => t.id == segmentTankId).firstOrNull;
       // Its own size, else its matched partner's (issue #3109).
       return tank == null ? null : consumptionVolume(tank, dive.tanks);
     }

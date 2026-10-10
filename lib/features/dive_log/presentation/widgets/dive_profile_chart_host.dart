@@ -371,10 +371,9 @@ class DiveProfileChartHost extends ConsumerWidget {
         gtrCurve: analysis?.gtrCurve,
         cnsCurve: analysis?.cnsCurve,
         otuCurve: analysis?.otuCurve,
-        tankVolume: dive.tanks
-            .where((t) => t.volume != null && t.volume! > 0)
-            .map((t) => t.volume!)
-            .firstOrNull,
+        // The curve is normalised to Dive.sac, in bar of the reference
+        // cylinder, so that cylinder's volume converts it (#3109).
+        tankVolume: dive.sacReferenceVolume,
         sacNormalizationFactor: calculateSacNormalizationFactor(dive, analysis),
         markers: markers,
         photoMarkers: photoMarkers.isEmpty ? null : photoMarkers,
