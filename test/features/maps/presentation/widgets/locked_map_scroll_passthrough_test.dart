@@ -10,6 +10,7 @@ void main() {
     WidgetTester tester, {
     Axis axis = Axis.vertical,
     VoidCallback? onPinTap,
+    ScrollPhysics? physics,
   }) async {
     final scroll = ScrollController();
     addTearDown(scroll.dispose);
@@ -50,6 +51,7 @@ void main() {
           body: SingleChildScrollView(
             controller: scroll,
             scrollDirection: axis,
+            physics: physics,
             child: axis == Axis.vertical
                 ? Column(children: [lockedMap, const SizedBox(height: 3000)])
                 : Row(children: [lockedMap, const SizedBox(width: 3000)]),
@@ -126,6 +128,111 @@ void main() {
     );
 
     expect(scroll.offset, 90);
+  });
+
+  testWidgets('a quick flick keeps the page coasting after the lift', (
+    tester,
+  ) async {
+    final (:scroll, map: _) = await pumpLockedMap(tester);
+    final at =
+        tester.getTopLeft(find.byType(FlutterMap)) + const Offset(20, 20);
+
+    final gesture = await tester.createGesture(
+      kind: PointerDeviceKind.trackpad,
+    );
+    await gesture.panZoomStart(at);
+    var pan = Offset.zero;
+    for (var i = 1; i <= 5; i++) {
+      pan += const Offset(0, -30);
+      await gesture.panZoomUpdate(
+        at,
+        pan: pan,
+        timeStamp: Duration(milliseconds: 16 * i),
+      );
+    }
+    await gesture.panZoomEnd();
+    await tester.pumpAndSettle();
+
+    // 150px of finger travel; the fling carries the page further, as it does
+    // for a trackpad scroll anywhere else on the page.
+    expect(scroll.offset, greaterThan(150));
+  });
+
+  testWidgets('a scroll view that refuses user scrolling stays put', (
+    tester,
+  ) async {
+    final (:scroll, map: _) = await pumpLockedMap(
+      tester,
+      physics: const NeverScrollableScrollPhysics(),
+    );
+
+    await trackpadScroll(
+      tester,
+      tester.getTopLeft(find.byType(FlutterMap)) + const Offset(20, 20),
+      const Offset(0, -120),
+    );
+
+    expect(scroll.offset, 0);
+  });
+
+  testWidgets('a vertical scroll skips a nearer horizontal scrollable', (
+    tester,
+  ) async {
+    final outer = ScrollController();
+    addTearDown(outer.dispose);
+    final inner = ScrollController();
+    addTearDown(inner.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            controller: outer,
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 200,
+                  child: SingleChildScrollView(
+                    controller: inner,
+                    scrollDirection: Axis.horizontal,
+                    child: const Row(
+                      children: [
+                        SizedBox(
+                          width: 300,
+                          child: LockedMapScrollPassthrough(
+                            child: FlutterMap(
+                              options: MapOptions(
+                                initialCenter: LatLng(0, 0),
+                                initialZoom: 5,
+                                interactionOptions: InteractionOptions(
+                                  flags: InteractiveFlag.none,
+                                ),
+                              ),
+                              children: [],
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 3000),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 3000),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await trackpadScroll(
+      tester,
+      tester.getTopLeft(find.byType(FlutterMap)) + const Offset(20, 20),
+      const Offset(0, -120),
+    );
+
+    expect(outer.offset, 120);
+    expect(inner.offset, 0);
   });
 
   testWidgets('taps still reach widgets inside the locked map', (tester) async {
