@@ -5,8 +5,7 @@ import 'package:submersion/core/services/window_fullscreen.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 
-import '../../../../core/services/window_fullscreen_test.dart'
-    show FakeWindowFullscreenPlatform;
+import '../../../../helpers/fake_window_fullscreen_platform.dart';
 
 void main() {
   group('ViewerFullscreenModeNotifier', () {

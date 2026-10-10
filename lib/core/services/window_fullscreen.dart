@@ -14,16 +14,35 @@ const _log = LoggerService('WindowFullscreen');
 abstract interface class WindowFullscreenPlatform {
   Future<bool> isFullScreen();
   Future<void> setFullScreen(bool value);
+
+  /// Calls [onLeave] whenever the window leaves fullscreen, whoever asked:
+  /// this app, or the user through the window itself.
+  void listenForLeave(void Function() onLeave);
 }
 
 /// Drives the real window through the window_manager plugin.
-class WindowManagerFullscreenPlatform implements WindowFullscreenPlatform {
+class WindowManagerFullscreenPlatform
+    with WindowListener
+    implements WindowFullscreenPlatform {
   /// The plugin finds the app's window only once initialized, and on
-  /// Windows every other call needs that handle.
+  /// Windows every other call needs that handle. Its window events start
+  /// then too, and a leave can only follow an enter this app asked for.
   Future<void>? _initialized;
 
-  Future<void> _ensureInitialized() =>
-      _initialized ??= windowManager.ensureInitialized();
+  void Function()? _onLeave;
+
+  Future<void> _ensureInitialized() => _initialized ??= _initialize();
+
+  Future<void> _initialize() async {
+    await windowManager.ensureInitialized();
+    windowManager.addListener(this);
+  }
+
+  @override
+  void listenForLeave(void Function() onLeave) => _onLeave = onLeave;
+
+  @override
+  void onWindowLeaveFullScreen() => _onLeave?.call();
 
   @override
   Future<bool> isFullScreen() async {
@@ -48,6 +67,9 @@ class _NoWindowFullscreenPlatform implements WindowFullscreenPlatform {
 
   @override
   Future<void> setFullScreen(bool value) async {}
+
+  @override
+  void listenForLeave(void Function() onLeave) {}
 }
 
 /// Holds the window in OS fullscreen while at least one owner wants it.
@@ -61,7 +83,11 @@ class _NoWindowFullscreenPlatform implements WindowFullscreenPlatform {
 /// cannot reach the window reversed. Each step re-checks the owners when it
 /// runs, which lets a release that overtakes its own request cancel it.
 class WindowFullscreenController {
-  WindowFullscreenController(this._platform);
+  WindowFullscreenController(this._platform) {
+    // Once the window has left fullscreen, a later fullscreen is no longer
+    // this controller's to undo: the user may have gone back in themselves.
+    _platform.listenForLeave(() => _enteredByUs = false);
+  }
 
   final WindowFullscreenPlatform _platform;
   final Set<Object> _owners = {};

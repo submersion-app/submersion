@@ -3,25 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/window_fullscreen.dart';
 
-/// Records every call and keeps the window's fullscreen state, like the real
-/// plugin does.
-class FakeWindowFullscreenPlatform implements WindowFullscreenPlatform {
-  FakeWindowFullscreenPlatform({this.fullScreen = false});
-
-  bool fullScreen;
-  final List<bool> setCalls = [];
-  bool throwOnSet = false;
-
-  @override
-  Future<bool> isFullScreen() async => fullScreen;
-
-  @override
-  Future<void> setFullScreen(bool value) async {
-    if (throwOnSet) throw StateError('plugin unavailable');
-    setCalls.add(value);
-    fullScreen = value;
-  }
-}
+import '../../helpers/fake_window_fullscreen_platform.dart';
 
 void main() {
   late FakeWindowFullscreenPlatform platform;

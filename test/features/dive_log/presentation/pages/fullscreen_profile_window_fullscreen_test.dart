@@ -11,16 +11,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-import '../../../../core/services/window_fullscreen_test.dart'
-    show FakeWindowFullscreenPlatform;
-
-class _FakeSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _FakeSettingsNotifier() : super(const AppSettings());
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+import '../../../../helpers/fake_window_fullscreen_platform.dart';
+import '../../../../helpers/mock_providers.dart';
 
 Dive _dive() => Dive(
   id: 'd1',
@@ -47,7 +39,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          settingsProvider.overrideWith((ref) => _FakeSettingsNotifier()),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           diveProvider(dive.id).overrideWith((ref) async => dive),
           profileAnalysisProvider(dive.id).overrideWith((ref) async => null),
           gasSwitchesProvider(dive.id).overrideWith((ref) async => []),
