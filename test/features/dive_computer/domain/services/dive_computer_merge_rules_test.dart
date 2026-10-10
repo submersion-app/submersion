@@ -367,4 +367,72 @@ void main() {
       );
     });
   });
+
+  group('issue #3106 duplicate cases', () {
+    test('Shearwater file (hex, no manufacturer) and BLE (decimal)', () {
+      final file = _computer(
+        id: 'file',
+        manufacturer: null,
+        model: 'Perdix 2',
+        serialNumber: 'A1B2C3D4',
+      );
+      final ble = _computer(
+        id: 'ble',
+        model: 'Perdix 2',
+        serialNumber: '2712847316',
+      );
+      expect(duplicateCandidatesFor(ble, [file, ble]).map((c) => c.id), [
+        'file',
+      ]);
+      expect(duplicateCandidatesFor(file, [file, ble]).map((c) => c.id), [
+        'ble',
+      ]);
+      expect(serialNumbersConflict([file, ble]), isFalse);
+    });
+
+    test('Garmin FIT (no manufacturer) and Garmin Connect', () {
+      final fit = _computer(
+        id: 'fit',
+        manufacturer: null,
+        model: 'Descent Mk3',
+        serialNumber: '3412345678',
+      );
+      final cloud = _computer(
+        id: 'cloud',
+        manufacturer: 'Garmin',
+        model: 'Descent Mk3',
+        serialNumber: '3412345678',
+      );
+      expect(duplicateCandidatesFor(cloud, [fit, cloud]).map((c) => c.id), [
+        'fit',
+      ]);
+    });
+
+    test('a brand folded into the model still agrees', () {
+      final file = _computer(
+        id: 'file',
+        manufacturer: null,
+        model: 'Shearwater Teric',
+        serialNumber: '0A0B0C0D',
+      );
+      final ble = _computer(
+        id: 'ble',
+        model: 'Teric',
+        serialNumber: '168496141',
+      );
+      expect(duplicateCandidatesFor(ble, [file, ble]).map((c) => c.id), [
+        'file',
+      ]);
+    });
+
+    test('two different Shearwater serials still conflict', () {
+      final a = _computer(id: 'a', model: 'Perdix 2', serialNumber: 'A1B2C3D4');
+      final b = _computer(
+        id: 'b',
+        model: 'Perdix 2',
+        serialNumber: '2712847317',
+      );
+      expect(serialNumbersConflict([a, b]), isTrue);
+    });
+  });
 }

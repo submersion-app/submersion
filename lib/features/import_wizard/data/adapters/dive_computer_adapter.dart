@@ -332,12 +332,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     final normalizedManufacturer = device.manufacturer?.trim();
     final scannedModel = device.model?.trim();
     final normalizedModel = hasReported ? reported : scannedModel;
-    if (normalizedSerial?.isNotEmpty == true &&
-        normalizedManufacturer?.isNotEmpty == true &&
-        normalizedModel?.isNotEmpty == true) {
+    // Only the serial is required (#3106): a blank manufacturer or model on
+    // either side is compatible, so a computer first registered by a file
+    // import is found here too.
+    if (normalizedSerial?.isNotEmpty == true) {
       var existing = await _computerRepository.findByHardwareIdentity(
-        manufacturer: normalizedManufacturer!,
-        model: normalizedModel!,
+        manufacturer: normalizedManufacturer,
+        model: normalizedModel,
         serialNumber: normalizedSerial!,
         diverId: _diverId,
       );

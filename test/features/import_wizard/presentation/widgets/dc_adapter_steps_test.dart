@@ -121,8 +121,8 @@ class _RecordingDiveComputerRepository extends DiveComputerRepository {
 
   @override
   Future<DiveComputer?> findByHardwareIdentity({
-    required String manufacturer,
-    required String model,
+    String? manufacturer,
+    String? model,
     required String serialNumber,
     String? diverId,
   }) async => null;
@@ -147,8 +147,8 @@ class _FailingCreateDiveComputerRepository extends DiveComputerRepository {
 
   @override
   Future<DiveComputer?> findByHardwareIdentity({
-    required String manufacturer,
-    required String model,
+    String? manufacturer,
+    String? model,
     required String serialNumber,
     String? diverId,
   }) async => null;
@@ -176,8 +176,8 @@ class _FlakyCreateDiveComputerRepository extends DiveComputerRepository {
 
   @override
   Future<DiveComputer?> findByHardwareIdentity({
-    required String manufacturer,
-    required String model,
+    String? manufacturer,
+    String? model,
     required String serialNumber,
     String? diverId,
   }) async => null;
