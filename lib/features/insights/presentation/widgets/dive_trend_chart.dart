@@ -311,6 +311,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     final overviewKey = (
       points,
       widget.secondarySeries,
+      aggregation,
       fullMin,
       fullSpan,
       yAxis.min,
@@ -319,14 +320,14 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     if ((_viewport.isZoomed || _stripActive) && overviewKey != _overviewKey) {
       _overviewKey = overviewKey;
       final ySpan = yAxis.max - yAxis.min;
+      // The strip plots the buckets the chart draws, not the raw dives: the
+      // x range runs between bucket dates, and a dive later in the last
+      // week or month would fall past it and pile up at the strip's edge.
       _overviewPoints = [
-        for (final p in [
-          ...points,
-          ...widget.secondarySeries.expand((s) => s.points),
-        ])
+        for (final b in allBuckets)
           Offset(
-            ((_x(p.date) - fullMin) / fullSpan).clamp(0.0, 1.0),
-            ySpan <= 0 ? 0.5 : ((p.value - yAxis.min) / ySpan).clamp(0.0, 1.0),
+            ((_x(b.date) - fullMin) / fullSpan).clamp(0.0, 1.0),
+            ySpan <= 0 ? 0.5 : ((b.mean - yAxis.min) / ySpan).clamp(0.0, 1.0),
           ),
       ];
     }

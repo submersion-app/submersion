@@ -96,6 +96,68 @@ void main() {
     expect(find.byType(ChartOverviewStrip), findsNothing);
   });
 
+  testWidgets('an aggregated strip plots the buckets, not clamped dives', (
+    tester,
+  ) async {
+    // Two dives a month, both after the month's first day, so every dive is
+    // later than its bucket's date. Mapped raw, the last month's dives fell
+    // past the chart's last bucket and piled up on the strip's right edge.
+    final points = [
+      for (var m = 0; m < 24; m++)
+        for (final day in [10, 20])
+          TrendDataPoint(date: DateTime.utc(2022, 1 + m, day), value: 10.0),
+    ];
+    await tester.pumpWidget(
+      host(
+        DiveTrendChart(
+          chartId: 'c',
+          points: points,
+          aggregation: TrendAggregation.monthly,
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('trend-c-zoom-in')));
+    await tester.pump();
+
+    final strip = tester.widget<ChartOverviewStrip>(
+      find.byType(ChartOverviewStrip),
+    );
+    final xs = strip.points.map((p) => p.dx).toList();
+    expect(xs, hasLength(24));
+    expect(xs.where((x) => x == 1.0), hasLength(1));
+    expect(xs.first, 0.0);
+    // The second month starts 31 days into the 699 days between the first
+    // and last month's starts.
+    expect(xs[1], closeTo(31 / 699, 1e-9));
+  });
+
+  testWidgets('switching aggregation rebuilds the strip', (tester) async {
+    // Two dives at the start of each month: raw and monthly share the same
+    // x and y range, so only the aggregation tells the two strips apart.
+    final points = [
+      for (var m = 0; m < 24; m++)
+        for (var i = 0; i < 2; i++)
+          TrendDataPoint(date: DateTime.utc(2022, 1 + m, 1), value: 10.0),
+    ];
+    Future<void> pumpWith(TrendAggregation aggregation) => tester.pumpWidget(
+      host(
+        DiveTrendChart(chartId: 'c', points: points, aggregation: aggregation),
+      ),
+    );
+    await pumpWith(TrendAggregation.none);
+    await tester.tap(find.byKey(const ValueKey('trend-c-zoom-in')));
+    await tester.pump();
+    expect(
+      tester.widget<ChartOverviewStrip>(find.byType(ChartOverviewStrip)).points,
+      hasLength(48),
+    );
+    await pumpWith(TrendAggregation.monthly);
+    expect(
+      tester.widget<ChartOverviewStrip>(find.byType(ChartOverviewStrip)).points,
+      hasLength(24),
+    );
+  });
+
   testWidgets('the strip starts where the plot starts, axis label or not', (
     tester,
   ) async {
