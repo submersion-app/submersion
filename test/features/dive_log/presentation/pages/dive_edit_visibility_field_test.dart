@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -302,6 +303,45 @@ void main() {
       final saved = (await repository.getDiveById(created.id))!;
       expect(saved.visibility, enums.Visibility.moderate);
       expect(saved.visibilityRange, isNull);
+    });
+
+    testWidgets('a range survives a detour through Precise (review #1)', (
+      tester,
+    ) async {
+      final created = await repository.createDive(buildDive(min: 15, max: 30));
+      await pumpEditPage(tester, created.id);
+      await expandConditions(tester);
+      await tester.tap(find.text('Precise'));
+      await tester.pumpAndSettle();
+      await typeVisibility(tester, '8');
+      await tester.tap(find.text('Range'));
+      await tester.pumpAndSettle();
+      final chip = tester.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, 'Good'),
+      );
+      expect(chip.selected, isTrue);
+      await tapSave(tester);
+
+      final saved = (await repository.getDiveById(created.id))!;
+      expect(saved.visibilityRange, const VisibilityRange(minM: 15, maxM: 30));
+      expect(saved.visibilityMeters, isNull);
+    });
+
+    testWidgets('picking a band arms the unsaved-changes guard (review #3)', (
+      tester,
+    ) async {
+      final created = await repository.createDive(buildDive());
+      await pumpEditPage(tester, created.id, rememberedMode: 'range');
+      await expandConditions(tester);
+      bool guarded() => tester
+          .widget<EditFormScaffold>(find.byType(EditFormScaffold))
+          .hasUnsavedChanges;
+      expect(guarded(), isFalse);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Good'));
+      await tester.pumpAndSettle();
+
+      expect(guarded(), isTrue);
     });
 
     testWidgets('a new dive opens in the last-used mode', (tester) async {

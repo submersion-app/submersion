@@ -62,51 +62,58 @@ class StoredVisibility {
 
 /// What a save writes for the visibility input.
 ///
-/// Until the diver touches the input (types a number or taps a chip) the
-/// dive keeps exactly what it had: re-saving to fix the notes must not
-/// round a measurement or rewrite a range under a changed scale. Once
-/// touched, only the active mode's value is saved, and an empty active mode
-/// saves no visibility.
+/// Only the active mode counts, and each mode tracks its own touch: until
+/// the diver edits the active mode (types a number in Precise, taps a chip
+/// in Range) the dive keeps exactly what it had. Re-saving to fix the notes
+/// must not round a measurement or rewrite a range under a changed scale,
+/// and neither must a detour through the other mode. Once the active mode
+/// is touched, its value is saved, and an empty one saves no visibility.
 StoredVisibility resolveVisibilityEntry({
   required VisibilityInputMode mode,
   required double? preciseMeters,
   required VisibilityBand? band,
-  required bool touched,
+  required bool preciseTouched,
+  required bool rangeTouched,
   required StoredVisibility original,
   required VisibilityScale scale,
 }) {
-  if (!touched) return original;
-  if (mode == VisibilityInputMode.precise && preciseMeters != null) {
-    return StoredVisibility(meters: preciseMeters);
+  switch (mode) {
+    case VisibilityInputMode.precise:
+      if (!preciseTouched) return original;
+      return preciseMeters == null
+          ? StoredVisibility.none
+          : StoredVisibility(meters: preciseMeters);
+    case VisibilityInputMode.range:
+      if (!rangeTouched) return original;
+      return band == null
+          ? StoredVisibility.none
+          : StoredVisibility(range: scale.rangeFor(band));
   }
-  if (mode == VisibilityInputMode.range && band != null) {
-    return StoredVisibility(range: scale.rangeFor(band));
-  }
-  return StoredVisibility.none;
 }
 
-/// The chip shown selected: the diver's pick once touched, else the band
-/// whose range equals the stored range on the current scale. Derived at
+/// The chip shown selected: the diver's pick once Range is touched, else the
+/// band whose range equals the stored range on the current scale. Derived at
 /// build time so it follows the scale once settings finish loading.
 VisibilityBand? effectiveVisibilityBand({
   required VisibilityBand? band,
-  required bool touched,
+  required bool rangeTouched,
   required StoredVisibility original,
   required VisibilityScale scale,
 }) {
-  if (touched) return band;
+  if (rangeTouched) return band;
   final range = original.range;
   return range == null ? null : scale.bandMatching(range);
 }
 
 /// The caption under the visibility input: the band a typed number falls
 /// in, the range a picked chip saves, or, before the diver touches the
-/// input, the stored range or legacy bucket it will keep.
+/// active mode, the stored range or legacy bucket it will keep.
 String? visibilityEntryCaption({
   required VisibilityInputMode mode,
   required double? preciseMeters,
   required VisibilityBand? band,
-  required bool touched,
+  required bool preciseTouched,
+  required bool rangeTouched,
   required StoredVisibility original,
   required VisibilityScale scale,
   required AppLocalizations l10n,
@@ -122,6 +129,10 @@ String? visibilityEntryCaption({
         return formatVisibilityRange(scale.rangeFor(band), l10n, units);
       }
   }
+  final touched = switch (mode) {
+    VisibilityInputMode.precise => preciseTouched,
+    VisibilityInputMode.range => rangeTouched,
+  };
   if (touched) return null;
   if (original.range case final range?) {
     return formatVisibilityRange(range, l10n, units);

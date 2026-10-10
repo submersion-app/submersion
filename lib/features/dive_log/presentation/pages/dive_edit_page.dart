@@ -320,7 +320,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     visibilityInputModeProvider,
   );
   VisibilityBand? _visibilityBand;
-  bool _visibilityTouched = false;
+
+  /// Whether the diver has edited each visibility mode (typed a number,
+  /// tapped a chip). Tracked per mode so a detour through the other mode
+  /// never discards or rounds the stored value.
+  bool _preciseTouched = false;
+  bool _rangeTouched = false;
+
+  bool get _activeVisibilityTouched => switch (_visibilityMode) {
+    VisibilityInputMode.precise => _preciseTouched,
+    VisibilityInputMode.range => _rangeTouched,
+  };
   int _rating = 0;
   // Statistics exclusion (#526 / #1272). Kept independent: unticking the
   // master flag must restore the diver's own gas-only choice rather than
@@ -1524,7 +1534,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         mode: _visibilityMode,
         preciseMeters: _visibilityMetersInput(units),
         band: _visibilityBand,
-        touched: true,
+        preciseTouched: true,
+        rangeTouched: true,
         original: StoredVisibility.none,
         scale: _visibilityScale,
       );
@@ -4827,7 +4838,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         mode: _visibilityMode,
         preciseMeters: _visibilityMetersInput(units),
         band: _visibilityBand,
-        touched: _visibilityTouched,
+        preciseTouched: _preciseTouched,
+        rangeTouched: _rangeTouched,
         original: _originalVisibility,
         scale: _visibilityScale,
       );
@@ -4841,27 +4853,34 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final scale = ref.watch(settingsProvider).visibilityScale;
     final band = effectiveVisibilityBand(
       band: _visibilityBand,
-      touched: _visibilityTouched,
+      rangeTouched: _rangeTouched,
       original: _originalVisibility,
       scale: scale,
     );
     return VisibilityInput(
       mode: _visibilityMode,
-      onModeChanged: (m) => setState(() => _visibilityMode = m),
+      onModeChanged: (m) {
+        setState(() => _visibilityMode = m);
+        _markDirty();
+      },
       controller: _visibilityController,
       depthSymbol: units.depthSymbol,
       inputValidator: validator ?? numberValidator(context),
-      onPreciseChanged: (_) => setState(() => _visibilityTouched = true),
+      onPreciseChanged: (_) => setState(() => _preciseTouched = true),
       band: band,
-      onBandChanged: (b) => setState(() {
-        _visibilityBand = b;
-        _visibilityTouched = true;
-      }),
+      onBandChanged: (b) {
+        setState(() {
+          _visibilityBand = b;
+          _rangeTouched = true;
+        });
+        _markDirty();
+      },
       caption: visibilityEntryCaption(
         mode: _visibilityMode,
         preciseMeters: _visibilityMetersInput(units),
         band: band,
-        touched: _visibilityTouched,
+        preciseTouched: _preciseTouched,
+        rangeTouched: _rangeTouched,
         original: _originalVisibility,
         scale: scale,
         l10n: context.l10n,
@@ -6131,7 +6150,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       }
 
       // A new visibility value sets the mode the next new dive opens in.
-      if (_visibilityTouched) {
+      if (_activeVisibilityTouched) {
         if (savedVisibility.modeToRemember case final mode?) {
           await ref.read(visibilityInputModeProvider.notifier).remember(mode);
         }

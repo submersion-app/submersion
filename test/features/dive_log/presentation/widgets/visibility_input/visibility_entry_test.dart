@@ -28,13 +28,16 @@ void main() {
     double? precise,
     VisibilityBand? band,
     bool touched = true,
+    bool? preciseTouched,
+    bool? rangeTouched,
     StoredVisibility original = StoredVisibility.none,
     VisibilityScale scale = cold,
   }) => resolveVisibilityEntry(
     mode: mode,
     preciseMeters: precise,
     band: band,
-    touched: touched,
+    preciseTouched: preciseTouched ?? touched,
+    rangeTouched: rangeTouched ?? touched,
     original: original,
     scale: scale,
   );
@@ -73,6 +76,36 @@ void main() {
           original,
         );
       }
+    });
+
+    test('a range survives a detour through Precise (review #1)', () {
+      // Range dive; the diver types 8 in Precise, then returns to Range
+      // without tapping a chip.
+      expect(
+        resolve(
+          precise: 8,
+          preciseTouched: true,
+          rangeTouched: false,
+          original: const StoredVisibility(range: coldGood),
+        ),
+        const StoredVisibility(range: coldGood),
+      );
+    });
+
+    test('a measurement survives a detour through Range unrounded', () {
+      // 6.44 m dive (field seeded "6"); the diver taps Good in Range, then
+      // returns to Precise without typing.
+      expect(
+        resolve(
+          mode: VisibilityInputMode.precise,
+          precise: 6,
+          band: VisibilityBand.good,
+          preciseTouched: false,
+          rangeTouched: true,
+          original: const StoredVisibility(meters: 6.44),
+        ),
+        const StoredVisibility(meters: 6.44),
+      );
     });
 
     test('clearing the input after touching it saves nothing', () {
@@ -121,7 +154,7 @@ void main() {
       expect(
         effectiveVisibilityBand(
           band: null,
-          touched: false,
+          rangeTouched: false,
           original: const StoredVisibility(range: coldGood),
           scale: cold,
         ),
@@ -133,7 +166,7 @@ void main() {
       expect(
         effectiveVisibilityBand(
           band: null,
-          touched: false,
+          rangeTouched: false,
           original: const StoredVisibility(range: coldGood),
           scale: tropical,
         ),
@@ -145,7 +178,7 @@ void main() {
       expect(
         effectiveVisibilityBand(
           band: null,
-          touched: true,
+          rangeTouched: true,
           original: const StoredVisibility(range: coldGood),
           scale: cold,
         ),
@@ -166,7 +199,8 @@ void main() {
       mode: mode,
       preciseMeters: precise,
       band: band,
-      touched: touched,
+      preciseTouched: touched,
+      rangeTouched: touched,
       original: original,
       scale: scale,
       l10n: en,
@@ -202,6 +236,23 @@ void main() {
       expect(
         caption(mode: VisibilityInputMode.precise, precise: 6),
         en.enum_visibilityBand_good,
+      );
+    });
+
+    test('back in Range after a Precise detour, the stored range shows', () {
+      expect(
+        visibilityEntryCaption(
+          mode: VisibilityInputMode.range,
+          preciseMeters: 8,
+          band: null,
+          preciseTouched: true,
+          rangeTouched: false,
+          original: const StoredVisibility(range: coldGood),
+          scale: tropical,
+          l10n: en,
+          units: metric,
+        ),
+        '6-12 m',
       );
     });
 
