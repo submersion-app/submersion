@@ -75,6 +75,13 @@ void main() {
         expect(bytes, isNotEmpty);
       });
 
+      test('renders a visibility range (issue #3226)', () async {
+        final bytes = await entry.value([
+          buildDive().copyWith(visibilityMinMeters: 6, visibilityMaxMeters: 12),
+        ]);
+        expect(bytes, isNotEmpty);
+      });
+
       test('renders a dive with no visibility at all', () async {
         final bytes = await entry.value([buildDive()]);
         expect(bytes, isNotEmpty);
