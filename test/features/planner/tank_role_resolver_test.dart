@@ -158,6 +158,64 @@ void main() {
     });
   });
 
+  group('SCR/PSCR (untouched by #3220)', () {
+    test('a pure-O2 cylinder is still the oxygen supply by its mix alone, '
+        'no explicit slot needed', () {
+      final plan = _plan(
+        mode: domain.PlanMode.scr,
+        tanks: [
+          _tank('o2', o2: 100),
+          _tank('dil', o2: 21, he: 35, role: TankRole.diluent),
+        ],
+        segments: [_seg('s1', 45, 25, 'dil', 0)],
+      );
+
+      final roles = _roles(plan);
+      expect(roles['o2'], TankRole.oxygenSupply);
+      expect(roles['dil'], TankRole.diluent);
+    });
+
+    test('an explicit diluent flag still wins over the pure-O2 derivation', () {
+      final plan = _plan(
+        mode: domain.PlanMode.pscr,
+        tanks: [
+          _tank('o2dil', o2: 100, role: TankRole.diluent),
+          _tank('o2supply', o2: 100),
+        ],
+        segments: const [],
+      );
+
+      final roles = _roles(plan);
+      expect(roles['o2dil'], TankRole.diluent);
+      expect(roles['o2supply'], TankRole.oxygenSupply);
+    });
+
+    test('a cylinder a segment breathes but that was never marked diluent is '
+        'bailout, not diluent (#3135, unchanged by #3220)', () {
+      final plan = _plan(
+        mode: domain.PlanMode.scr,
+        tanks: [_tank('dil', o2: 21, he: 35)],
+        segments: [_seg('s1', 45, 25, 'dil', 0)],
+      );
+
+      expect(_roles(plan)['dil'], TankRole.bailout);
+    });
+
+    test('any other open-circuit cylinder carried is bailout', () {
+      final plan = _plan(
+        mode: domain.PlanMode.pscr,
+        tanks: [
+          _tank('o2', o2: 100),
+          _tank('dil', o2: 21, he: 35, role: TankRole.diluent),
+          _tank('bo', o2: 21),
+        ],
+        segments: [_seg('s1', 45, 25, 'dil', 0)],
+      );
+
+      expect(_roles(plan)['bo'], TankRole.bailout);
+    });
+  });
+
   group('closed circuit', () {
     test('diluent is the diver\'s explicit choice, not inferred from being '
         'breathed (#3135)', () {
