@@ -57,6 +57,12 @@ class ChartViewport {
   /// Right edge of the visible x window, as a fraction of the full range.
   double get windowEnd => offsetX + visibleWidth;
 
+  /// Whether [other] shows the same window, whatever its zoom limit.
+  bool sameWindowAs(ChartViewport other) =>
+      zoom == other.zoom &&
+      offsetX == other.offsetX &&
+      offsetY == other.offsetY;
+
   /// This viewport under a different [limit], zoomed out to it if needed.
   ChartViewport withZoomLimit(double limit) => ChartViewport(
     zoom: zoom.clamp(minZoom, limit),

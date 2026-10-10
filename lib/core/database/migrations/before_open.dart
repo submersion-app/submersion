@@ -43,6 +43,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // v227 and v269 backstops: hidden tank presets and built-in entries.
     await _assertHiddenPickerEntryColumns();
 
+    // v274 backstop: the planning disclaimer confirmation column.
+    await _assertHasAcceptedPlanningDisclaimerColumn();
+
     // v222 backstop: the per-site vertical exaggeration overrides.
     await _assertSeascapeVerticalExaggerationOverridesColumn();
 

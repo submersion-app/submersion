@@ -61,9 +61,10 @@ const _namedFields = 3;
 
 String _fieldList(AppLocalizations l10n, ConflictComparison comparison) {
   final labels = [for (final d in comparison.differences) d.label];
-  if (labels.length <= _namedFields + 1) return labels.join(', ');
+  final separator = l10n.settings_conflict_fieldListSeparator;
+  if (labels.length <= _namedFields + 1) return labels.join(separator);
   return l10n.settings_conflict_moreFields(
-    labels.take(_namedFields).join(', '),
+    labels.take(_namedFields).join(separator),
     labels.length - _namedFields,
   );
 }

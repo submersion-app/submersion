@@ -4025,7 +4025,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               _buildDetailRow(
                 context,
                 context.l10n.diveLog_detail_label_rateOfChange,
-                '${record.rateOfChange! > 0 ? '+' : ''}${DepthUnit.meters.convert(record.rateOfChange!, settings.depthUnit).toStringAsFixed(2)} ${settings.depthUnit.symbol}/hr',
+                UnitFormatter(settings).formatTideRate(record.rateOfChange),
               ),
             if (record.highTideTime != null && record.highTideHeight != null)
               _buildDetailRow(

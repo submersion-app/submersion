@@ -1169,10 +1169,12 @@ class AppDatabase extends _$AppDatabase {
     // shipped those; 268 is held by an open branch (#3043).
     272,
     273,
+    // v274: diver_settings.has_accepted_planning_disclaimer (issue #3120).
+    274,
     // v275: diver_settings.default_start_pressure retyped INTEGER to REAL
     // (issue #3091), so a start pressure entered in psi is kept exactly.
     // Retyping a synced column raises the floor to 275; see
-    // minimumCompatibleSchemaVersion. 274 is held by open branches.
+    // minimumCompatibleSchemaVersion.
     275,
   ];
 

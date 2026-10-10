@@ -517,6 +517,23 @@ void main() {
       expect(container.read(settingsProvider).showDiveFigure, isTrue);
     });
 
+    test('acceptPlanningDisclaimer persists the confirmation', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(settingsProvider).hasAcceptedPlanningDisclaimer,
+        isFalse,
+      );
+      await container
+          .read(settingsProvider.notifier)
+          .acceptPlanningDisclaimer();
+      expect(
+        container.read(settingsProvider).hasAcceptedPlanningDisclaimer,
+        isTrue,
+      );
+    });
+
     test('setShowDataSourceBadges toggles value', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

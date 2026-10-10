@@ -19,6 +19,7 @@ void main() {
     WidgetTester tester,
     SyncConflict conflict, {
     Size size = const Size(600, 1200),
+    Locale locale = const Locale('en'),
   }) async {
     final base = await getBaseOverrides();
     // The view, not the surface: MediaQuery reads the view's size, and the
@@ -39,13 +40,13 @@ void main() {
             (ref) async => (id: 'local-id', name: 'Pixel 8'),
           ),
         ],
-        child: const MaterialApp(
+        child: MaterialApp(
           // Pinned so the English literals asserted below cannot depend on
           // the host's default locale.
-          locale: Locale('en'),
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: ConflictResolutionDialog()),
+          home: const Scaffold(body: ConflictResolutionDialog()),
         ),
       ),
     );
@@ -159,6 +160,54 @@ void main() {
     expect(find.textContaining('a7136f77'), findsNothing);
     expect(find.textContaining('889cb873'), findsNothing);
     expect(find.textContaining('1786556582600'), findsNothing);
+  });
+
+  // Built-in roles are stored in English; the dialog shows them the way the
+  // rest of the app does, in the diver's language (#3026).
+  testWidgets('translates built-in role names in the title and rows', (
+    tester,
+  ) async {
+    ConflictReference role(String id, String name) => ConflictReference(
+      field: 'role',
+      targetType: 'diveRoles',
+      recordId: id,
+      name: name,
+      builtInSource: (targetType: 'diveRoles', id: id),
+    );
+    const buddy = ConflictReference(
+      field: 'buddyId',
+      targetType: 'buddies',
+      recordId: 'buddy-1',
+      name: 'Anna',
+    );
+
+    await pumpDialog(
+      tester,
+      locale: const Locale('de'),
+      SyncConflict(
+        entityType: 'diveBuddies',
+        recordId: 'db-1',
+        localData: const {
+          'id': 'db-1',
+          'buddyId': 'buddy-1',
+          'role': 'instructor',
+        },
+        remoteData: const {
+          'id': 'db-1',
+          'buddyId': 'buddy-1',
+          'role': 'student',
+        },
+        localModified: DateTime(2026, 3, 28),
+        remoteModified: DateTime(2026, 3, 29),
+        localReferences: [buddy, role('instructor', 'Instructor')],
+        remoteReferences: [buddy, role('student', 'Student')],
+      ),
+    );
+
+    expect(find.textContaining('Tauchlehrer'), findsWidgets);
+    expect(find.textContaining('Tauchschüler'), findsWidgets);
+    expect(find.textContaining('Instructor'), findsNothing);
+    expect(find.textContaining('Student'), findsNothing);
   });
 
   testWidgets('says so when a referenced record is gone locally', (

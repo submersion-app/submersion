@@ -89,9 +89,9 @@ final weightCalibrationProvider = FutureProvider<FittedWeightModel>((
 /// Null while the calibration inputs are still loading, and when the
 /// prediction itself fails: the Gear & Weights card hides a null prediction,
 /// where a throw would replace the whole card with an error box (issue
-/// #2060). Water type is not part of the plan editing state, so plan
-/// predictions use the salt-water baseline; the standalone Weight Planner
-/// tool has an explicit control.
+/// #2060). The water term follows the plan's environment like the buoyancy
+/// twin does (issue #3090): a custom salinity wins over the water type, and
+/// a plan with neither stays on the salt-water baseline.
 final planWeightPredictionProvider = Provider<WeightPrediction?>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   final model = ref.watch(weightCalibrationProvider).valueOrNull;
@@ -119,7 +119,8 @@ final planWeightPredictionProvider = Provider<WeightPrediction?>((ref) {
       RigSpec(
         gear: gear,
         tanks: tanks,
-        waterType: null,
+        waterType: state.waterType,
+        salinityPpt: state.salinityPpt,
         bodyWeightKg: latestWeight?.weightKg,
       ),
     );

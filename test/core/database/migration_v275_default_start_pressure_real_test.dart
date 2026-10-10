@@ -47,10 +47,8 @@ void main() {
   test('v275 is in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(275));
     expect(AppDatabase.migrationVersions, contains(275));
-    expect(AppDatabase.migrationStepCount(274), greaterThanOrEqualTo(1));
-    // 274 is held by open branches; from 273 this is the only step today.
     expect(
-      AppDatabase.migrationStepCount(273),
+      AppDatabase.migrationStepCount(274),
       AppDatabase.migrationStepCount(275) + 1,
     );
   });

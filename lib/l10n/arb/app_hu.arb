@@ -320,8 +320,25 @@
   "gasCalculators_bestMix_marginLabel": "Tartalék a MOD alatt",
   "gasCalculators_bestMix_modLabel": "MOD ppO2 {ppO2} mellett",
   "gasCalculators_bestMix_nearestStandard": "A legközelebbi szabványkeverék erre a mélységre",
-  "gasCalculators_bestMix_recommendedMix": "Ajánlott keverék",
+  "gasCalculators_bestMix_recommendedMix": "Számított keverék",
+  "gasCalculators_bestMix_semanticsLabel": "Számított keverék {mix}, MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "Összes mutatása ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "Kevesebb mutatása",
   "gasCalculators_bestMix_withoutHelium": "Hélium nélkül",
+  "gasCalculators_bestMix_ccrSource": "Gázforrás",
+  "gasCalculators_bestMix_ccrSourceBailout": "Bailout",
+  "gasCalculators_bestMix_ccrSourceDiluent": "Hígítógáz",
+  "gasCalculators_bestMix_densityAware": "A gázsűrűség határokon belül tartása",
+  "gasCalculators_bestMix_eadLabel": "EAD a mélységben",
+  "gasCalculators_bestMix_heliumBoth": "Hélium hozzáadva, hogy az END és a gázsűrűség is a határaidon belül maradjon.",
+  "gasCalculators_bestMix_heliumDensity": "Hélium hozzáadva, hogy a gázsűrűség a határokon belül maradjon.",
+  "gasCalculators_bestMix_mode": "Mód",
+  "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
+  "gasCalculators_bestMix_modeCcrTecHint": "Zárt rendszer: Hígítógáz a hígítógáz öblítési ppO₂-jéhez, Bailout a nyitott rendszerű dekó-ppO₂-dhöz (maximum) viszonyít.",
+  "gasCalculators_bestMix_modeOcTec": "OC Tec",
+  "gasCalculators_bestMix_modeOcTecHint": "Trimix nyitott rendszerben, a munka-ppO₂ korlátodhoz viszonyítva.",
+  "gasCalculators_bestMix_modeRec": "Rec",
+  "gasCalculators_bestMix_modeRecHint": "Nitrox a szabadidős merüléshez, mint eddig.",
   "gasCalculators_planningCaveat": "Tervezési becslés. Közvetlen felmerülést feltételez. Vesd össze a képzéseddel, és számolj tartalékkal a körülményekre.",
   "gasCalculators_rockBottom_solveGas": "Problémamegoldó gáz {depth}{unit} mélységben",
   "gasCalculators_rockBottom_solveTime": "Problémamegoldási idő",
@@ -2966,6 +2983,7 @@
   "divePlanner_action_convertToDive": "Átalakítás merüléssé",
   "divePlanner_action_deletePlan": "Terv törlése",
   "divePlanner_action_editTank": "Palack szerkesztése",
+  "divePlanner_action_fillBestMix": "Legjobb keverék {depth} mélységre: {mix}",
   "divePlanner_action_moreOptions": "További lehetőségek",
   "divePlanner_action_quickPlan": "Gyors tervezés",
   "divePlanner_action_renamePlan": "Terv átnevezése",
@@ -3461,9 +3479,9 @@
   "divers_detail_activeDiver": "Aktív merülő",
   "divers_detail_cancelButton": "Mégse",
   "divers_detail_deleteButton": "Törlés",
-  "divers_detail_deleteDialogConfirmHint": "Type \"Delete {name}\" to confirm",
-  "divers_detail_deleteDialogConfirmText": "Delete {name}",
-  "divers_detail_deleteDialogContent": "This will permanently delete {name} and all associated data including dive logs, dive computers, equipment, certifications, and sites.",
+  "divers_detail_deleteDialogConfirmHint": "Írja be: \"Törlés {name}\" a megerősítéshez",
+  "divers_detail_deleteDialogConfirmText": "Törlés {name}",
+  "divers_detail_deleteDialogContent": "Ez véglegesen törli a(z) {name} merülőt és az összes kapcsolódó adatot, beleértve a merülési naplókat, a merülési számítógépeket, a felszerelést, a képesítéseket és a merülőhelyeket.",
   "divers_detail_deleteDialogTitle": "Merülő törlése?",
   "divers_edit_allergiesHint": "pl. Penicillin, kagylóféle",
   "divers_edit_allergiesLabel": "Allergiák",
@@ -4538,7 +4556,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ a hígítógáz MOD-jához (öblítés)",
   "gasCalculators_mod_minPpO2": "Minimális ppO₂ (hipoxiás keverékek)",
   "gasCalculators_mod_fromProfile": "A búvárprofilodból",
-  "gasCalculators_mod_differsFromProfile": "Eltér a profiltól ({value} bar)",
+  "gasCalculators_differsFromProfile": "Eltér a profiltól ({value})",
   "gasCalculators_mod_useProfileValue": "Profilérték használata",
   "gasCalculators_mod_checkTargetDepth": "Célmélység ellenőrzése is",
   "gasCalculators_mod_targetDepth": "Célmélység",
@@ -5473,13 +5491,17 @@
   "planning_card_decoCalculator_title": "Dekó kalkulátor",
   "planning_card_divePlanner_subtitle": "Többszintű merülési tervek készítése",
   "planning_card_divePlanner_title": "Merülés tervező",
-  "planning_card_gasCalculators_subtitle": "MOD, Legjobb keverék, Fogyasztás, Rock Bottom",
+  "planning_card_gasCalculators_subtitle": "Mélységhatárok, keverékek, gázfogyasztás és töltés",
   "planning_card_gasCalculators_title": "Gáz kalkulátorok",
   "planning_card_surfaceInterval_subtitle": "Ismételt merülések időintervallumainak tervezése",
   "planning_card_surfaceInterval_title": "Felszíni időköz",
   "planning_card_weightCalculator_subtitle": "Ajánlott súly az adott felszereléshez",
   "planning_card_weightCalculator_title": "Súly kalkulátor",
   "planning_info_disclaimer": "Ezek az eszközök kizárólag tervezési célokat szolgálnak. Mindig ellenőrizze a számításokat és kövesse merülési képzésének irányelveit.",
+  "planning_disclaimer_dialog_title": "Tervezőeszközök figyelmeztetése",
+  "planning_disclaimer_dialog_body": "Az ebben a részben található eszközök kizárólag tervezési célokat szolgálnak. Nem helyettesítik a merülési képzést vagy a merülőkomputert. Mindig ellenőrizze saját maga az összes számítást, mielőtt biztonsági döntéshez használná.",
+  "planning_disclaimer_dialog_confirm": "Megértettem",
+  "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Tervezési figyelmeztetés elfogadva",
   "planning_section_tools": "Eszközök",
   "planning_summary_prompt": "Válassz egy eszközt a kezdéshez",
   "planning_summary_savedPlans": "Mentett tervek",
@@ -5735,6 +5757,7 @@
   "settings_conflict_same": "Egyező",
   "settings_conflict_finerThanShown": "Az eltérés kisebb annál, amit ez a nézet mutat.",
   "settings_conflict_moreFields": "{fields} és még {count, plural, one{{count}} other{{count}}}",
+  "settings_conflict_fieldListSeparator": ", ",
   "enum_eventSeverity_info": "Információ",
   "settings_conflict_changed": "Módosult",
   "settings_conflict_chooseVersion": "Válaszd ki, melyik verziót tartod meg.",
@@ -6894,6 +6917,7 @@
   "signatures_field_instructorName": "Oktató neve",
   "signatures_field_instructorNameHint": "Add meg az oktató nevét",
   "signatures_handoff_title": "Add át az eszközt",
+  "signatures_buddySignature": "Búvártárs aláírása",
   "signatures_instructorSignature": "Oktató aláírása",
   "signatures_noSignatureImage": "Nincs aláírás kép",
   "signatures_signHere": "{name} - Írj alá itt",
@@ -11121,6 +11145,34 @@
   "settings_coordinateFormat_title": "Koordináta-formátum",
   "settings_placeNameLanguage_title": "Helynevek nyelve",
   "settings_placeNameLanguage_subtitle": "Akkor használjuk, amikor az ország, régió, település és víztest a koordinátákból kerül lekérdezésre. A meglévő merülőhelyek nem változnak.",
+  "settings_language_placeNameOffer_title": "Helynevek mentése ezen a nyelven: {language}?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "A merülőhelyekhez lekérdezett ország- és régiónevek mentési nyelve: {current}. Átvált erre: {language} az új lekérdezéseknél? Ezután a meglévő merülőhelyeket újra lekérdezheti.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "Marad: {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Átváltás",
   "settings_coordinateFormat_decimalDegrees": "Tizedes fok",
   "settings_coordinateFormat_degreesDecimalMinutes": "Fok és tizedes perc",
   "settings_coordinateFormat_degreesMinutesSeconds": "Fok, perc, másodperc",

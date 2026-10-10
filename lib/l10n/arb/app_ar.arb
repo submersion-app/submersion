@@ -320,8 +320,25 @@
   "gasCalculators_bestMix_marginLabel": "الهامش تحت MOD",
   "gasCalculators_bestMix_modLabel": "MOD عند ppO2 {ppO2}",
   "gasCalculators_bestMix_nearestStandard": "أقرب خليط قياسي يغطي هذا العمق",
-  "gasCalculators_bestMix_recommendedMix": "الخليط الموصى به",
+  "gasCalculators_bestMix_recommendedMix": "الخليط المحسوب",
+  "gasCalculators_bestMix_semanticsLabel": "الخليط المحسوب {mix}، MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "عرض الكل ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "عرض أقل",
   "gasCalculators_bestMix_withoutHelium": "بدون هيليوم",
+  "gasCalculators_bestMix_ccrSource": "مصدر الغاز",
+  "gasCalculators_bestMix_ccrSourceBailout": "طوارئ",
+  "gasCalculators_bestMix_ccrSourceDiluent": "غاز التخفيف",
+  "gasCalculators_bestMix_densityAware": "الحفاظ على كثافة الغاز ضمن الحدود",
+  "gasCalculators_bestMix_eadLabel": "EAD عند العمق",
+  "gasCalculators_bestMix_heliumBoth": "تمت إضافة الهيليوم لإبقاء END وكثافة الغاز ضمن حدودك.",
+  "gasCalculators_bestMix_heliumDensity": "تمت إضافة الهيليوم لإبقاء كثافة الغاز ضمن الحدود.",
+  "gasCalculators_bestMix_mode": "الوضع",
+  "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
+  "gasCalculators_bestMix_modeCcrTecHint": "الدائرة المغلقة: يتحقق «غاز التخفيف» مقابل ppO₂ الشطف لغاز التخفيف، و«الطوارئ» مقابل ppO₂ تخفيف الضغط (الحد الأقصى) في الدائرة المفتوحة.",
+  "gasCalculators_bestMix_modeOcTec": "OC Tec",
+  "gasCalculators_bestMix_modeOcTecHint": "ترايمكس في الدائرة المفتوحة، يُفحص مقابل حد ppO₂ العمل الخاص بك.",
+  "gasCalculators_bestMix_modeRec": "Rec",
+  "gasCalculators_bestMix_modeRecHint": "نيتروكس للغوص الترفيهي، كما هو الحال اليوم.",
   "gasCalculators_planningCaveat": "تقدير تخطيطي. يفترض صعودًا مباشرًا. تحقق منه وفق تدريبك وأضف هامشًا للظروف.",
   "gasCalculators_rockBottom_solveGas": "غاز حل المشكلة عند {depth}{unit}",
   "gasCalculators_rockBottom_solveTime": "زمن حل المشكلة",
@@ -3068,6 +3085,7 @@
   "divePlanner_action_convertToDive": "تحويل إلى غطسة",
   "divePlanner_action_deletePlan": "حذف الخطة",
   "divePlanner_action_editTank": "تعديل الأسطوانة",
+  "divePlanner_action_fillBestMix": "أفضل خليط لعمق {depth}: {mix}",
   "divePlanner_action_moreOptions": "المزيد من الخيارات",
   "divePlanner_action_quickPlan": "خطة سريعة",
   "divePlanner_action_renamePlan": "إعادة تسمية الخطة",
@@ -3563,9 +3581,9 @@
   "divers_detail_activeDiver": "الغواص النشط",
   "divers_detail_cancelButton": "إلغاء",
   "divers_detail_deleteButton": "حذف",
-  "divers_detail_deleteDialogConfirmHint": "Type \"Delete {name}\" to confirm",
-  "divers_detail_deleteDialogConfirmText": "Delete {name}",
-  "divers_detail_deleteDialogContent": "This will permanently delete {name} and all associated data including dive logs, dive computers, equipment, certifications, and sites.",
+  "divers_detail_deleteDialogConfirmHint": "اكتب \"حذف {name}\" للتأكيد",
+  "divers_detail_deleteDialogConfirmText": "حذف {name}",
+  "divers_detail_deleteDialogContent": "سيؤدي هذا إلى حذف {name} نهائيًا مع جميع البيانات المرتبطة، بما في ذلك سجلات الغوص وحواسيب الغوص والمعدات والشهادات والمواقع.",
   "divers_detail_deleteDialogTitle": "حذف الغواص؟",
   "divers_edit_allergiesHint": "مثال: بنسلين، محار",
   "divers_edit_allergiesLabel": "الحساسية",
@@ -4640,7 +4658,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ لـ MOD غاز التخفيف (الشطف)",
   "gasCalculators_mod_minPpO2": "الحد الأدنى لـ ppO₂ (الخلائط ناقصة الأكسجين)",
   "gasCalculators_mod_fromProfile": "من ملف الغواص الخاص بك",
-  "gasCalculators_mod_differsFromProfile": "يختلف عن ملفك ({value} بار)",
+  "gasCalculators_differsFromProfile": "يختلف عن ملفك ({value})",
   "gasCalculators_mod_useProfileValue": "استخدام قيمة الملف",
   "gasCalculators_mod_checkTargetDepth": "فحص عمق مستهدف أيضًا",
   "gasCalculators_mod_targetDepth": "العمق المستهدف",
@@ -5575,13 +5593,17 @@
   "planning_card_decoCalculator_title": "حاسبة تخفيف الضغط",
   "planning_card_divePlanner_subtitle": "إنشاء خطط غوص متعددة المستويات",
   "planning_card_divePlanner_title": "مخطط الغوص",
-  "planning_card_gasCalculators_subtitle": "MOD، أفضل خليط، الاستهلاك، الاحتياطي الأدنى",
+  "planning_card_gasCalculators_subtitle": "حدود العمق، الخلائط، استهلاك الغاز والتعبئة",
   "planning_card_gasCalculators_title": "حاسبات الغاز",
   "planning_card_surfaceInterval_subtitle": "تخطيط فترات الغوص المتكرر",
   "planning_card_surfaceInterval_title": "الفاصل الزمني على السطح",
   "planning_card_weightCalculator_subtitle": "الوزن الموصى به لإعدادك",
   "planning_card_weightCalculator_title": "حاسبة الأوزان",
   "planning_info_disclaimer": "هذه الأدوات لأغراض التخطيط فقط. تحقق دائمًا من الحسابات واتبع تدريبك على الغوص.",
+  "planning_disclaimer_dialog_title": "تنبيه أدوات التخطيط",
+  "planning_disclaimer_dialog_body": "الأدوات في هذا القسم هي لأغراض التخطيط فقط. لا تحل محل تدريبك على الغوص أو حاسوب الغوص الخاص بك. تحقق دائمًا من كل حساب بنفسك قبل استخدامه في قرار متعلق بالسلامة.",
+  "planning_disclaimer_dialog_confirm": "فهمت",
+  "settings_conflict_field_hasAcceptedPlanningDisclaimer": "تم قبول تنبيه التخطيط",
   "planning_section_tools": "أدوات",
   "planning_summary_prompt": "اختر أداة للبدء",
   "planning_summary_savedPlans": "الخطط المحفوظة",
@@ -5837,6 +5859,7 @@
   "settings_conflict_same": "متطابق",
   "settings_conflict_finerThanShown": "الفرق أدق مما يعرضه هذا العرض.",
   "settings_conflict_moreFields": "{fields} و{count, plural, zero{لا شيء آخر} one{حقل آخر} two{حقلان آخران} few{{count} حقول أخرى} many{{count} حقلًا آخر} other{{count} حقل آخر}}",
+  "settings_conflict_fieldListSeparator": "، ",
   "enum_eventSeverity_info": "معلومة",
   "settings_conflict_changed": "تغيّر",
   "settings_conflict_chooseVersion": "اختر النسخة التي تريد الاحتفاظ بها.",
@@ -6996,6 +7019,7 @@
   "signatures_field_instructorName": "اسم المدرب",
   "signatures_field_instructorNameHint": "أدخل اسم المدرب",
   "signatures_handoff_title": "ناول جهازك إلى",
+  "signatures_buddySignature": "توقيع زميل الغوص",
   "signatures_instructorSignature": "توقيع المدرب",
   "signatures_noSignatureImage": "لا توجد صورة توقيع",
   "signatures_signHere": "{name} - وقع هنا",
@@ -11121,6 +11145,34 @@
   "settings_coordinateFormat_title": "تنسيق الإحداثيات",
   "settings_placeNameLanguage_title": "لغة أسماء الأماكن",
   "settings_placeNameLanguage_subtitle": "تُستخدم عند البحث عن البلد والمنطقة والبلدة والمسطح المائي من الإحداثيات. لا يتم تغيير المواقع الحالية.",
+  "settings_language_placeNameOffer_title": "هل تريد حفظ أسماء الأماكن باللغة {language}؟",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "تُحفظ أسماء الدول والمناطق التي يُبحث عنها لمواقع الغوص الخاصة بك باللغة {current}. هل تريد التبديل إلى {language} لعمليات البحث الجديدة؟ يمكنك بعد ذلك البحث من جديد عن مواقعك الحالية.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "الإبقاء على {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "تبديل",
   "settings_coordinateFormat_decimalDegrees": "درجات عشرية",
   "settings_coordinateFormat_degreesDecimalMinutes": "درجات ودقائق عشرية",
   "settings_coordinateFormat_degreesMinutesSeconds": "درجات ودقائق وثوانٍ",

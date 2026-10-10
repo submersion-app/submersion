@@ -648,6 +648,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowDiveFigure(bool value) async =>
       state = state.copyWith(showDiveFigure: value);
   @override
+  Future<void> acceptPlanningDisclaimer() async =>
+      state = state.copyWith(hasAcceptedPlanningDisclaimer: true);
+  @override
   Future<void> setShowProfilePanelInTableView(bool value) async =>
       state = state.copyWith(showProfilePanelInTableView: value);
   @override
@@ -757,7 +760,16 @@ Future<List<Override>> getBaseOverrides({
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith(
-      (ref) => settingsNotifier ?? MockSettingsNotifier(),
+      (ref) =>
+          settingsNotifier ??
+          // Pre-accepted by default: most widget tests have nothing to do
+          // with the planning disclaimer (issue #3120), and its modal
+          // dialog would otherwise pop up unasked and block taps on
+          // whatever the test is actually exercising. A test for the
+          // disclaimer itself passes its own [settingsNotifier].
+          MockSettingsNotifier(
+            const AppSettings(hasAcceptedPlanningDisclaimer: true),
+          ),
     ),
     // Widget tests of the app root must never reach the app_links channel.
     incomingLinkSourceProvider.overrideWithValue(

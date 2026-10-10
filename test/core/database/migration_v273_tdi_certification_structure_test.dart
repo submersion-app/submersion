@@ -214,7 +214,7 @@ void main() {
   test('v273 is at or below the current schema version and in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(273));
     expect(AppDatabase.migrationVersions, contains(273));
-    // Relaxed once v275 landed on top; the newest rung owns the exact
+    // Relaxed once v274 and v275 landed on top; the newest rung owns the exact
     // count. Relative to 273, so 272 and 273 still read one step each.
     expect(
       AppDatabase.migrationStepCount(272),

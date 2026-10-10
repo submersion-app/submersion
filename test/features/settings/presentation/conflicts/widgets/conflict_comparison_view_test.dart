@@ -6,6 +6,7 @@ import 'package:submersion/features/settings/presentation/conflicts/conflict_fie
 import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_comparison_view.dart';
 import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_difference_list.dart';
 import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_text_diff.dart';
+import 'package:submersion/features/settings/presentation/conflicts/word_diff.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 const _devices = ConflictDeviceLabels(local: 'Pixel 8', remote: 'Windows PC');
@@ -165,6 +166,60 @@ void main() {
       ),
     );
     expect(find.text('Only spacing or line breaks differ.'), findsOneWidget);
+  });
+
+  testWidgets('the word diff is computed once, not on every rebuild', (
+    tester,
+  ) async {
+    // Issue #3031: a chip tap rebuilds the dialog, which builds fresh
+    // FieldDifference objects for the same conflict.
+    var calls = 0;
+    WordDiff? counting(String local, String remote) {
+      calls++;
+      return diffWords(local, remote);
+    }
+
+    var remoteNotes = 'Saw two turtles.';
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) {
+              rebuild = setState;
+              return ConflictDifferenceList(
+                differences: [
+                  _diff('Water temp', '26 C', '27 C'),
+                  _diff(
+                    'Notes',
+                    'Saw a turtle.',
+                    remoteNotes,
+                    kind: FieldKind.longText,
+                  ),
+                ],
+                devices: _devices,
+                diff: counting,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    expect(calls, 1);
+
+    rebuild(() {});
+    await tester.pump();
+    rebuild(() {});
+    await tester.pump();
+    expect(calls, 1);
+
+    rebuild(() => remoteNotes = 'Saw three turtles.');
+    await tester.pump();
+    expect(calls, 2);
+    expect(find.byType(ConflictTextDiff), findsNWidgets(2));
   });
 
   testWidgets('a long device name wraps in the narrow layout', (tester) async {

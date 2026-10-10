@@ -1408,10 +1408,71 @@ class AppLocalizationsHe extends AppLocalizations {
       'התערובת התקנית הקרובה ביותר המכסה עומק זה';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'תערובת מומלצת';
+  String get gasCalculators_bestMix_recommendedMix => 'תערובת מחושבת';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'תערובת מחושבת $mix, MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'הצגת הכול ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'הצגת פחות';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'ללא הליום';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => 'מקור הגז';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'חילוץ';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'מדלל';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'לשמור על צפיפות הגז בתוך הגבולות';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD בעומק';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'נוסף הליום כדי לשמור על ה-END וצפיפות הגז בתוך הגבולות שלך.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'נוסף הליום כדי לשמור על צפיפות הגז בתוך הגבולות.';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'מצב';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'מעגל סגור: מדלל נבדק מול ppO₂ השטיפה של המדלל, חילוץ מול ppO₂ הדקו (המרבי) שלך במעגל פתוח.';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'טרימיקס במעגל פתוח, נבדק מול מגבלת ppO₂ העבודה שלך.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'ניטרוקס לצלילת פנאי, כמו היום.';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -9758,6 +9819,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_action_editTank => 'ערוך מיכל';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'תערובת מיטבית ל-$depth: $mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => 'אפשרויות נוספות';
 
   @override
@@ -11586,7 +11652,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return 'פעולה זו תמחק לצמיתות את $name ואת כל הנתונים המשויכים, כולל יומני צלילה, מחשבי צלילה, ציוד, הסמכות ואתרים.';
   }
 
   @override
@@ -11729,12 +11795,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return 'הקלד \"מחיקה $name\" לאישור';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return 'מחיקה $name';
   }
 
   @override
@@ -15730,8 +15796,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'מפרופיל הצולל שלך';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'שונה מהפרופיל ($value בר)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'שונה מהפרופיל ($value)';
   }
 
   @override
@@ -18716,7 +18782,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, תערובת אופטימלית, צריכה, Rock Bottom';
+      'מגבלות עומק, תערובות, צריכת גז ומילוי';
 
   @override
   String get planning_card_gasCalculators_title => 'מחשבוני גז';
@@ -18737,6 +18803,20 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'כלים אלה מיועדים למטרות תכנון בלבד. תמיד אמת חישובים ופעל לפי הכשרת הצלילה שלך.';
+
+  @override
+  String get planning_disclaimer_dialog_title => 'אזהרת כלי התכנון';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'הכלים באזור זה מיועדים למטרות תכנון בלבד. הם אינם מחליפים את הכשרת הצלילה שלך או את מחשב הצלילה שלך. תמיד אמת כל חישוב בעצמך לפני שתשתמש בו להחלטת בטיחות.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'הבנתי';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'אזהרת תכנון אושרה';
 
   @override
   String get planning_section_tools => 'כלים';
@@ -22171,6 +22251,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_fieldListSeparator => ', ';
+
+  @override
   String get settings_conflict_next_tooltip => 'ההתנגשות הבאה';
 
   @override
@@ -24099,6 +24182,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get signatures_handoff_title => 'העבר את המכשיר ל';
+
+  @override
+  String get signatures_buddySignature => 'חתימת שותף';
 
   @override
   String get signatures_instructorSignature => 'חתימת מדריך';
@@ -35841,6 +35927,27 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_placeNameLanguage_subtitle =>
       'בשימוש כאשר מדינה, אזור, עיר וגוף מים נשלפים מהקואורדינטות. אתרים קיימים אינם משתנים.';
+
+  @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'לשמור את שמות המקומות בשפה $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'שמות המדינות והאזורים שנבדקים עבור האתרים שלך נשמרים בשפה $current. לעבור לשפה $language בבדיקות חדשות? לאחר מכן אפשר לבדוק מחדש את האתרים הקיימים.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'להשאיר $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'מעבר';
 
   @override
   String get settings_coordinateFormat_decimalDegrees => 'מעלות עשרוניות';

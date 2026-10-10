@@ -1426,10 +1426,71 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mezcla estándar más cercana que cubre esta profundidad';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Mezcla recomendada';
+  String get gasCalculators_bestMix_recommendedMix => 'Mezcla calculada';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Mezcla calculada $mix, MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'Mostrar todo ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'Mostrar menos';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Sin helio';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => 'Fuente de gas';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'Escape';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'Diluyente';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'Mantener la densidad del gas dentro de los límites';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD a profundidad';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'Helio añadido para mantener la END y la densidad del gas dentro de tus límites.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'Helio añadido para mantener la densidad del gas dentro de los límites.';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'Modo';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'Circuito cerrado: Diluyente comprueba frente a la ppO₂ de purga del diluyente, Bailout frente a tu ppO₂ de descompresión (máxima) en circuito abierto.';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'Trimix en circuito abierto, comprobado frente a tu límite de ppO₂ de trabajo.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'Nitrox para buceo recreativo, como hasta ahora.';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -9979,6 +10040,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_action_editTank => 'Editar Botella';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'Mejor mezcla para $depth: $mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => 'Más opciones';
 
   @override
@@ -11845,7 +11911,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return 'Esto eliminará permanentemente a $name y todos los datos asociados, incluidos los registros de inmersiones, ordenadores de buceo, equipo, certificaciones y puntos de buceo.';
   }
 
   @override
@@ -11990,12 +12056,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return 'Escribe \"Eliminar $name\" para confirmar';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return 'Eliminar $name';
   }
 
   @override
@@ -16075,8 +16141,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'De tu perfil de buceador';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'Distinto de tu perfil ($value bar)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'Distinto de tu perfil ($value)';
   }
 
   @override
@@ -19134,7 +19200,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Mejor mezcla, Consumo, Reserva mínima';
+      'Límites de profundidad, mezclas, consumo de gas y llenado';
 
   @override
   String get planning_card_gasCalculators_title => 'Calculadoras de gas';
@@ -19156,6 +19222,21 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'Estas herramientas son solo para fines de planificación. Siempre verifica los cálculos y sigue tu formación de buceo.';
+
+  @override
+  String get planning_disclaimer_dialog_title =>
+      'Aviso de las herramientas de planificación';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'Las herramientas de esta sección son solo para fines de planificación. No sustituyen tu formación de buceo ni tu computadora de buceo. Verifica siempre cada cálculo por tu cuenta antes de usarlo para una decisión de seguridad.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'Entendido';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'Aviso de planificación aceptado';
 
   @override
   String get planning_section_tools => 'Herramientas';
@@ -22764,6 +22845,9 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get settings_conflict_fieldListSeparator => ', ';
+
+  @override
   String get settings_conflict_next_tooltip => 'Siguiente conflicto';
 
   @override
@@ -24738,6 +24822,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get signatures_handoff_title => 'Entrega tu dispositivo a';
+
+  @override
+  String get signatures_buddySignature => 'Firma del compañero';
 
   @override
   String get signatures_instructorSignature => 'Firma del Instructor';
@@ -36777,6 +36864,27 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_placeNameLanguage_subtitle =>
       'Se usa al obtener país, región, localidad y masa de agua a partir de las coordenadas. Los puntos de buceo existentes no cambian.';
+
+  @override
+  String settings_language_placeNameOffer_title(String language) {
+    return '¿Guardar los nombres de lugares en $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'Los nombres de países y regiones que se consultan para tus puntos de buceo se guardan en $current. ¿Cambiar a $language para las nuevas consultas? Después podrás volver a consultar tus puntos de buceo existentes.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'Mantener $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Cambiar';
 
   @override
   String get settings_coordinateFormat_decimalDegrees => 'Grados decimales';

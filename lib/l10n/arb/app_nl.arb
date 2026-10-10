@@ -320,8 +320,25 @@
   "gasCalculators_bestMix_marginLabel": "Marge onder MOD",
   "gasCalculators_bestMix_modLabel": "MOD bij ppO2 {ppO2}",
   "gasCalculators_bestMix_nearestStandard": "Dichtstbijzijnde standaardmengsel voor deze diepte",
-  "gasCalculators_bestMix_recommendedMix": "Aanbevolen mengsel",
+  "gasCalculators_bestMix_recommendedMix": "Berekend mengsel",
+  "gasCalculators_bestMix_semanticsLabel": "Berekend mengsel {mix}, MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "Alles tonen ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "Minder tonen",
   "gasCalculators_bestMix_withoutHelium": "Zonder helium",
+  "gasCalculators_bestMix_ccrSource": "Gasbron",
+  "gasCalculators_bestMix_ccrSourceBailout": "Bailout",
+  "gasCalculators_bestMix_ccrSourceDiluent": "Diluent",
+  "gasCalculators_bestMix_densityAware": "Gasdichtheid binnen de limieten houden",
+  "gasCalculators_bestMix_eadLabel": "EAD op diepte",
+  "gasCalculators_bestMix_heliumBoth": "Helium toegevoegd om END en gasdichtheid binnen je limieten te houden.",
+  "gasCalculators_bestMix_heliumDensity": "Helium toegevoegd om de gasdichtheid binnen de limieten te houden.",
+  "gasCalculators_bestMix_mode": "Modus",
+  "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
+  "gasCalculators_bestMix_modeCcrTecHint": "Gesloten circuit: Diluent toetst aan de flush-ppO₂ van het diluent, Bailout aan je deco-ppO₂ (maximum) in open circuit.",
+  "gasCalculators_bestMix_modeOcTec": "OC Tec",
+  "gasCalculators_bestMix_modeOcTecHint": "Trimix in open circuit, getoetst aan je werk-ppO₂-limiet.",
+  "gasCalculators_bestMix_modeRec": "Rec",
+  "gasCalculators_bestMix_modeRecHint": "Nitrox voor recreatief duiken, zoals nu.",
   "gasCalculators_planningCaveat": "Planningsschatting. Gaat uit van een directe opstijging. Toets aan je opleiding en neem marge voor de omstandigheden.",
   "gasCalculators_rockBottom_solveGas": "Gas voor probleemoplossing op {depth}{unit}",
   "gasCalculators_rockBottom_solveTime": "Tijd voor probleemoplossing",
@@ -3068,6 +3085,7 @@
   "divePlanner_action_convertToDive": "Omzetten naar duik",
   "divePlanner_action_deletePlan": "Plan verwijderen",
   "divePlanner_action_editTank": "Fles bewerken",
+  "divePlanner_action_fillBestMix": "Beste mengsel voor {depth}: {mix}",
   "divePlanner_action_moreOptions": "Meer opties",
   "divePlanner_action_quickPlan": "Snel plan",
   "divePlanner_action_renamePlan": "Plan hernoemen",
@@ -3563,9 +3581,9 @@
   "divers_detail_activeDiver": "Actieve duiker",
   "divers_detail_cancelButton": "Annuleren",
   "divers_detail_deleteButton": "Verwijderen",
-  "divers_detail_deleteDialogConfirmHint": "Type \"Delete {name}\" to confirm",
-  "divers_detail_deleteDialogConfirmText": "Delete {name}",
-  "divers_detail_deleteDialogContent": "This will permanently delete {name} and all associated data including dive logs, dive computers, equipment, certifications, and sites.",
+  "divers_detail_deleteDialogConfirmHint": "Typ \"Verwijderen {name}\" om te bevestigen",
+  "divers_detail_deleteDialogConfirmText": "Verwijderen {name}",
+  "divers_detail_deleteDialogContent": "Hiermee worden {name} en alle bijbehorende gegevens permanent verwijderd, inclusief duiklogs, duikcomputers, uitrusting, brevetten en duikstekken.",
   "divers_detail_deleteDialogTitle": "Duiker verwijderen?",
   "divers_edit_allergiesHint": "bijv. Penicilline, Schaaldieren",
   "divers_edit_allergiesLabel": "Allergieën",
@@ -4640,7 +4658,7 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ voor de MOD van het diluent (flush)",
   "gasCalculators_mod_minPpO2": "Minimale ppO₂ (hypoxische mengsels)",
   "gasCalculators_mod_fromProfile": "Uit je duikersprofiel",
-  "gasCalculators_mod_differsFromProfile": "Wijkt af van je profiel ({value} bar)",
+  "gasCalculators_differsFromProfile": "Wijkt af van je profiel ({value})",
   "gasCalculators_mod_useProfileValue": "Profielwaarde gebruiken",
   "gasCalculators_mod_checkTargetDepth": "Ook een doeldiepte controleren",
   "gasCalculators_mod_targetDepth": "Doeldiepte",
@@ -5575,13 +5593,17 @@
   "planning_card_decoCalculator_title": "Decocalculator",
   "planning_card_divePlanner_subtitle": "Maak duikplannen met meerdere niveaus",
   "planning_card_divePlanner_title": "Duikplanner",
-  "planning_card_gasCalculators_subtitle": "MOD, Beste mix, Verbruik, Noodreserve",
+  "planning_card_gasCalculators_subtitle": "Dieptelimieten, mengsels, gasverbruik en vullen",
   "planning_card_gasCalculators_title": "Gascalculators",
   "planning_card_surfaceInterval_subtitle": "Plan herhalingsduikintervallen",
   "planning_card_surfaceInterval_title": "Oppervlakte-interval",
   "planning_card_weightCalculator_subtitle": "Aanbevolen gewicht voor je uitrusting",
   "planning_card_weightCalculator_title": "Gewichtscalculator",
   "planning_info_disclaimer": "Deze tools zijn alleen voor planningsdoeleinden. Controleer berekeningen altijd en volg je duikopleiding.",
+  "planning_disclaimer_dialog_title": "Waarschuwing planningstools",
+  "planning_disclaimer_dialog_body": "De tools in dit gedeelte zijn alleen voor planningsdoeleinden. Ze vervangen niet je duikopleiding of je duikcomputer. Controleer altijd elke berekening zelf voordat je deze gebruikt voor een veiligheidsbeslissing.",
+  "planning_disclaimer_dialog_confirm": "Begrepen",
+  "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Planningswaarschuwing geaccepteerd",
   "planning_section_tools": "Gereedschappen",
   "planning_summary_prompt": "Kies een hulpmiddel om te beginnen",
   "planning_summary_savedPlans": "Opgeslagen plannen",
@@ -5837,6 +5859,7 @@
   "settings_conflict_same": "Gelijk",
   "settings_conflict_finerThanShown": "Het verschil is kleiner dan deze weergave laat zien.",
   "settings_conflict_moreFields": "{fields} en {count, plural, one{{count} andere} other{{count} andere}}",
+  "settings_conflict_fieldListSeparator": ", ",
   "enum_eventSeverity_info": "Info",
   "settings_conflict_changed": "Gewijzigd",
   "settings_conflict_chooseVersion": "Kies welke versie je wilt bewaren.",
@@ -6996,6 +7019,7 @@
   "signatures_field_instructorName": "Naam instructeur",
   "signatures_field_instructorNameHint": "Voer naam instructeur in",
   "signatures_handoff_title": "Geef je apparaat aan",
+  "signatures_buddySignature": "Handtekening buddy",
   "signatures_instructorSignature": "Handtekening instructeur",
   "signatures_noSignatureImage": "Geen handtekeningafbeelding",
   "signatures_signHere": "{name} - Onderteken hier",
@@ -11121,6 +11145,34 @@
   "settings_coordinateFormat_title": "Coördinaatformaat",
   "settings_placeNameLanguage_title": "Taal van plaatsnamen",
   "settings_placeNameLanguage_subtitle": "Gebruikt wanneer land, regio, plaats en water uit coördinaten worden opgezocht. Bestaande duikstekken worden niet gewijzigd.",
+  "settings_language_placeNameOffer_title": "Plaatsnamen opslaan in {language}?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "Namen van landen en regio's die voor je duikstekken worden opgezocht, worden opgeslagen in {current}. Overschakelen naar {language} voor nieuwe zoekopdrachten? Daarna kun je je bestaande duikstekken opnieuw opzoeken.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "{current} behouden",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Overschakelen",
   "settings_coordinateFormat_decimalDegrees": "Decimale graden",
   "settings_coordinateFormat_degreesDecimalMinutes": "Graden en decimale minuten",
   "settings_coordinateFormat_degreesMinutesSeconds": "Graden, minuten, seconden",

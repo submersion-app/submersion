@@ -320,8 +320,25 @@
   "gasCalculators_bestMix_marginLabel": "MOD 余量",
   "gasCalculators_bestMix_modLabel": "ppO2 {ppO2} 时的 MOD",
   "gasCalculators_bestMix_nearestStandard": "可覆盖此深度的最接近标准混合气",
-  "gasCalculators_bestMix_recommendedMix": "推荐混合气",
+  "gasCalculators_bestMix_recommendedMix": "计算混合气",
+  "gasCalculators_bestMix_semanticsLabel": "计算混合气 {mix}，MOD {mod}",
+  "gasCalculators_bestMix_showAllMixes": "显示全部 ({count})",
+  "gasCalculators_bestMix_showFewerMixes": "显示更少",
   "gasCalculators_bestMix_withoutHelium": "不含氦气",
+  "gasCalculators_bestMix_ccrSource": "气体来源",
+  "gasCalculators_bestMix_ccrSourceBailout": "备用",
+  "gasCalculators_bestMix_ccrSourceDiluent": "稀释气",
+  "gasCalculators_bestMix_densityAware": "将气体密度保持在限值内",
+  "gasCalculators_bestMix_eadLabel": "深度处 EAD",
+  "gasCalculators_bestMix_heliumBoth": "已加入氦气，使 END 与气体密度都保持在你的限值内。",
+  "gasCalculators_bestMix_heliumDensity": "已加入氦气，使气体密度保持在限值内。",
+  "gasCalculators_bestMix_mode": "模式",
+  "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
+  "gasCalculators_bestMix_modeCcrTecHint": "密闭式循环呼吸器：稀释气模式按稀释气的冲洗 ppO₂ 校验，备用模式按你的开放式减压（最大）ppO₂ 校验。",
+  "gasCalculators_bestMix_modeOcTec": "OC Tec",
+  "gasCalculators_bestMix_modeOcTecHint": "开放式三混气，按你的工作 ppO₂ 限值校验。",
+  "gasCalculators_bestMix_modeRec": "Rec",
+  "gasCalculators_bestMix_modeRecHint": "休闲潜水高氧，与现在相同。",
   "gasCalculators_planningCaveat": "规划估算值。假设直接上升。请结合你的训练核实，并为实际条件预留余量。",
   "gasCalculators_rockBottom_solveGas": "在 {depth}{unit} 处解决问题所需气量",
   "gasCalculators_rockBottom_solveTime": "问题处理时间",
@@ -3183,6 +3200,7 @@
   "divePlanner_action_convertToDive": "转换为潜水",
   "divePlanner_action_deletePlan": "删除计划",
   "divePlanner_action_editTank": "编辑气瓶",
+  "divePlanner_action_fillBestMix": "{depth} 的最佳混合气：{mix}",
   "divePlanner_action_moreOptions": "更多选项",
   "divePlanner_action_quickPlan": "快捷计划",
   "divePlanner_action_renamePlan": "重命名计划",
@@ -3678,9 +3696,9 @@
   "divers_detail_activeDiver": "当前潜水员",
   "divers_detail_cancelButton": "取消",
   "divers_detail_deleteButton": "删除",
-  "divers_detail_deleteDialogConfirmHint": "Type \"Delete {name}\" to confirm",
-  "divers_detail_deleteDialogConfirmText": "Delete {name}",
-  "divers_detail_deleteDialogContent": "This will permanently delete {name} and all associated data including dive logs, dive computers, equipment, certifications, and sites.",
+  "divers_detail_deleteDialogConfirmHint": "输入「删除 {name}」以确认",
+  "divers_detail_deleteDialogConfirmText": "删除 {name}",
+  "divers_detail_deleteDialogContent": "这将永久删除 {name} 及所有相关数据，包括潜水日志、潜水电脑、装备、证书和潜水点。",
   "divers_detail_deleteDialogTitle": "删除潜水员？",
   "divers_edit_allergiesHint": "例如，青霉素、贝类",
   "divers_edit_allergiesLabel": "过敏",
@@ -4767,7 +4785,7 @@
   "gasCalculators_mod_flushPpO2": "稀释气 MOD 的 ppO₂（冲洗）",
   "gasCalculators_mod_minPpO2": "最小 ppO₂（低氧混合气）",
   "gasCalculators_mod_fromProfile": "来自你的潜水员档案",
-  "gasCalculators_mod_differsFromProfile": "与档案不同（{value} bar）",
+  "gasCalculators_differsFromProfile": "与档案不同（{value}）",
   "gasCalculators_mod_useProfileValue": "使用档案值",
   "gasCalculators_mod_checkTargetDepth": "同时检查目标深度",
   "gasCalculators_mod_targetDepth": "目标深度",
@@ -5726,13 +5744,17 @@
   "planning_card_decoCalculator_title": "减压计算器",
   "planning_card_divePlanner_subtitle": "创建多层潜水计划",
   "planning_card_divePlanner_title": "潜水计划器",
-  "planning_card_gasCalculators_subtitle": "最大作业深度、最佳混合气、耗气量、底限储备",
+  "planning_card_gasCalculators_subtitle": "深度限制、混合气、耗气量与配气",
   "planning_card_gasCalculators_title": "气体计算器",
   "planning_card_surfaceInterval_subtitle": "规划重复潜水间隔",
   "planning_card_surfaceInterval_title": "水面间隔",
   "planning_card_weightCalculator_subtitle": "适合您装备配置的推荐配重",
   "planning_card_weightCalculator_title": "配重计算器",
   "planning_info_disclaimer": "这些工具仅供计划参考。请务必验证计算结果并遵循您的潜水训练。",
+  "planning_disclaimer_dialog_title": "计划工具提示",
+  "planning_disclaimer_dialog_body": "此区域中的工具仅供计划参考。它们不能替代您的潜水训练或潜水电脑。在将计算结果用于安全决策之前,请务必自行验证每一项计算。",
+  "planning_disclaimer_dialog_confirm": "我已了解",
+  "settings_conflict_field_hasAcceptedPlanningDisclaimer": "已接受计划提示",
   "planning_section_tools": "工具",
   "planning_summary_prompt": "选择一个工具开始",
   "planning_summary_savedPlans": "已保存的计划",
@@ -5989,6 +6011,7 @@
   "settings_conflict_same": "相同",
   "settings_conflict_finerThanShown": "差异比此处显示的精度更细。",
   "settings_conflict_moreFields": "{fields}等另外 {count, plural, other{{count} 项}}",
+  "settings_conflict_fieldListSeparator": "、",
   "enum_eventSeverity_info": "信息",
   "settings_conflict_changed": "已更改",
   "settings_conflict_chooseVersion": "选择要保留的版本。",
@@ -7170,6 +7193,7 @@
   "signatures_field_instructorName": "教练名称",
   "signatures_field_instructorNameHint": "输入教练姓名",
   "signatures_handoff_title": "请将设备交给",
+  "signatures_buddySignature": "潜伴签名",
   "signatures_instructorSignature": "教练签名",
   "signatures_noSignatureImage": "无签名图片",
   "signatures_signHere": "{name} - 签名此处",
@@ -11121,6 +11145,34 @@
   "settings_coordinateFormat_title": "坐标格式",
   "settings_placeNameLanguage_title": "地名语言",
   "settings_placeNameLanguage_subtitle": "根据坐标查找国家、地区、城镇和水域时使用。现有潜点不会更改。",
+  "settings_language_placeNameOffer_title": "以{language}保存地名？",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "为你的潜点查询到的国家和地区名称以{current}保存。新的查询改用{language}吗？之后你可以重新查询已有的潜点。",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "保留{current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "切换",
   "settings_coordinateFormat_decimalDegrees": "十进制度",
   "settings_coordinateFormat_degreesDecimalMinutes": "度和十进制分",
   "settings_coordinateFormat_degreesMinutesSeconds": "度分秒",

@@ -95,6 +95,7 @@ String _format(
     FieldKind.altitude => units.formatAltitude(number),
     FieldKind.heightCm => units.formatHeight(number),
     FieldKind.ascentRate => units.formatDepthRate(number),
+    FieldKind.tideRate => units.formatTideRate(number),
     FieldKind.rmv => units.formatRmv(number),
     FieldKind.latitude => units.formatLatitude(number),
     FieldKind.longitude => units.formatLongitude(number),

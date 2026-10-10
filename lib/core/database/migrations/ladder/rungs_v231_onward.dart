@@ -288,9 +288,15 @@ extension RungsFromV231 on AppDatabase {
       await _migrateTdiCertificationStructure();
     }
     if (from < 273) await reportProgress();
+    // v274: diver_settings.has_accepted_planning_disclaimer (issue #3120).
+    // Column-only rung, no backfill: an existing diver reads false and sees
+    // the disclaimer dialog once. Re-asserted in beforeOpen.
+    if (from < 274) {
+      await _assertHasAcceptedPlanningDisclaimerColumn();
+    }
+    if (from < 274) await reportProgress();
     // v275: diver_settings.default_start_pressure retyped INTEGER to REAL
-    // (issue #3091). Re-asserted in beforeOpen. 274 is held by open
-    // branches (#3125, #3126).
+    // (issue #3091). Re-asserted in beforeOpen.
     if (from < 275) {
       await _retypeDefaultStartPressureColumn();
     }
