@@ -1,0 +1,380 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+
+/// The move policy every master list shares (#3065).
+///
+/// Beside a detail pane an Up or Down press opens the row it lands on, the
+/// way a click does, so the pane follows the cursor. At phone width there is
+/// no pane to follow, and while rows are being checked a move must not open
+/// anything, so the press only [highlight]s and Enter opens. [canOpen] is
+/// false while checking rows, or when the list has nowhere to open into.
+void moveListCursor(
+  BuildContext context, {
+  required bool canOpen,
+  required VoidCallback open,
+  required VoidCallback highlight,
+}) {
+  if (canOpen && ResponsiveBreakpoints.isMasterDetail(context)) {
+    open();
+  } else {
+    highlight();
+  }
+}
+
+/// Gives a master list one keyboard cursor, shared with the mouse (#3065).
+///
+/// Without this the rows' own focus nodes were the only keyboard model: the
+/// arrow keys walked focus from card to card through Flutter's directional
+/// traversal, a cursor of their own that a click never moved; Enter tapped
+/// whichever card held focus; Right walked focus out into the detail pane;
+/// and Tab stopped on every card in turn.
+///
+/// Here the list is a single focus stop. Up and Down move one cursor through
+/// [keys], starting from [currentKey] (the row a click opened or highlighted)
+/// and reporting each move through [onMove]. Enter calls [onActivate]. Right
+/// and Left go to [onExpand] and [onCollapse] for lists with collapsible
+/// groups, and do nothing otherwise rather than letting focus wander off.
+///
+/// Rows go inside a [KeyboardListItem], which takes them out of the focus
+/// order, gives the list focus and the cursor when one is clicked, scrolls a
+/// newly reached row into view and draws the focus ring on the cursor's row.
+class KeyboardListNavigator extends StatefulWidget {
+  const KeyboardListNavigator({
+    super.key,
+    required this.keys,
+    required this.currentKey,
+    required this.onMove,
+    required this.child,
+    this.onActivate,
+    this.onExpand,
+    this.onCollapse,
+  });
+
+  /// The debug label of the list's focus node, for tests.
+  static const focusDebugLabel = 'KeyboardListNavigator';
+
+  /// Every row the cursor can rest on, in display order. Rows the diver cannot
+  /// see (folded into a collapsed group) are left out.
+  final List<String> keys;
+
+  /// The row the list itself considers current: the open or highlighted one.
+  /// A change here, from a click or from outside the list, moves the cursor.
+  final String? currentKey;
+
+  /// The cursor moved to a row by keyboard.
+  final ValueChanged<String> onMove;
+
+  /// Enter was pressed on the cursor's row.
+  final ValueChanged<String>? onActivate;
+
+  /// Right was pressed on the cursor's row. Returns whether it expanded
+  /// anything; Right does nothing either way.
+  final bool Function(String key)? onExpand;
+
+  /// Left was pressed on the cursor's row. Returns the row the cursor moves to
+  /// afterwards, typically the group header the row folded into, or null to
+  /// leave it where it is.
+  final String? Function(String key)? onCollapse;
+
+  final Widget child;
+
+  @override
+  State<KeyboardListNavigator> createState() => _KeyboardListNavigatorState();
+}
+
+class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
+  final FocusNode _focusNode = FocusNode(
+    debugLabel: KeyboardListNavigator.focusDebugLabel,
+  );
+
+  /// Built rows by key, registered by their [KeyboardListItem]s.
+  final Map<String, BuildContext> _rows = {};
+
+  late String? _cursor = widget.currentKey;
+  bool _hasFocus = false;
+  FocusHighlightMode _highlightMode = FocusManager.instance.highlightMode;
+
+  @override
+  void initState() {
+    super.initState();
+    FocusManager.instance.addHighlightModeListener(_onHighlightModeChanged);
+  }
+
+  @override
+  void didUpdateWidget(KeyboardListNavigator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.currentKey != oldWidget.currentKey) {
+      _cursor = widget.currentKey;
+    }
+  }
+
+  @override
+  void dispose() {
+    FocusManager.instance.removeHighlightModeListener(_onHighlightModeChanged);
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _onHighlightModeChanged(FocusHighlightMode mode) {
+    if (mounted) setState(() => _highlightMode = mode);
+  }
+
+  /// The cursor, or [KeyboardListNavigator.currentKey] when the cursor's row
+  /// has gone (its group collapsed under it, or the list reloaded without it).
+  String? get _effectiveCursor {
+    final keys = widget.keys;
+    if (_cursor != null && keys.contains(_cursor)) return _cursor;
+    final current = widget.currentKey;
+    if (current != null && keys.contains(current)) return current;
+    return null;
+  }
+
+  static bool _anyModifierPressed() {
+    final keyboard = HardwareKeyboard.instance;
+    return keyboard.isShiftPressed ||
+        keyboard.isControlPressed ||
+        keyboard.isAltPressed ||
+        keyboard.isMetaPressed;
+  }
+
+  KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyUpEvent) return KeyEventResult.ignored;
+    if (_anyModifierPressed()) return KeyEventResult.ignored;
+    final key = event.logicalKey;
+
+    if (key == LogicalKeyboardKey.arrowDown) {
+      _step(1);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowUp) {
+      _step(-1);
+      return KeyEventResult.handled;
+    }
+    // Left and Right are always swallowed: left to the default directional
+    // traversal they move focus out of the list, into the detail pane.
+    if (key == LogicalKeyboardKey.arrowRight) {
+      if (event is KeyDownEvent) {
+        final cursor = _effectiveCursor;
+        if (cursor != null) widget.onExpand?.call(cursor);
+      }
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.arrowLeft) {
+      if (event is KeyDownEvent) {
+        final cursor = _effectiveCursor;
+        final next = cursor == null ? null : widget.onCollapse?.call(cursor);
+        if (next != null && next != cursor) _moveTo(next, forward: false);
+      }
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.numpadEnter) {
+      final cursor = _effectiveCursor;
+      if (cursor == null || widget.onActivate == null) {
+        return KeyEventResult.ignored;
+      }
+      if (event is KeyDownEvent) widget.onActivate!(cursor);
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  void _step(int delta) {
+    final keys = widget.keys;
+    if (keys.isEmpty) return;
+    final cursor = _effectiveCursor;
+    final String next;
+    if (cursor == null) {
+      next = delta > 0 ? keys.first : keys.last;
+    } else {
+      final index = keys.indexOf(cursor) + delta;
+      if (index < 0 || index >= keys.length) return;
+      next = keys[index];
+    }
+    _moveTo(next, forward: delta > 0);
+  }
+
+  void _moveTo(String key, {required bool forward}) {
+    setState(() => _cursor = key);
+    widget.onMove(key);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _reveal(key, forward: forward),
+    );
+  }
+
+  /// Scrolls the cursor's row into view once it has settled.
+  ///
+  /// A neighbouring row is nearly always built already, inside the list's
+  /// cache extent. One that is not (the cursor started from nothing and went
+  /// to the far end) has no context to scroll to, so the list jumps to where
+  /// the row's share of the keys puts it and tries once more a frame later.
+  void _reveal(String key, {required bool forward, bool estimated = false}) {
+    if (!mounted || _cursor != key) return;
+    final row = _rows[key];
+    if (row != null && row.mounted) {
+      Scrollable.ensureVisible(
+        row,
+        duration: const Duration(milliseconds: 120),
+        alignmentPolicy: forward
+            ? ScrollPositionAlignmentPolicy.keepVisibleAtEnd
+            : ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      );
+      return;
+    }
+    if (estimated) return;
+    final builtRow = _rows.values.where((r) => r.mounted).firstOrNull;
+    final index = widget.keys.indexOf(key);
+    if (builtRow == null || index < 0) return;
+    final position = Scrollable.of(builtRow).position;
+    final share = widget.keys.length <= 1
+        ? 0.0
+        : index / (widget.keys.length - 1);
+    position.jumpTo(
+      (share * position.maxScrollExtent).clamp(
+        position.minScrollExtent,
+        position.maxScrollExtent,
+      ),
+    );
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _reveal(key, forward: forward, estimated: true),
+    );
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  /// A pointer went down on [key]'s row: the list takes focus and the cursor
+  /// moves there, so the arrows carry on from the click. The row's own tap
+  /// does whatever opening or selecting it does; this only moves the cursor,
+  /// which matters for rows a tap does not make current, like group headers.
+  void _pointerDownOn(String key) {
+    _focusNode.requestFocus();
+    if (_cursor != key) setState(() => _cursor = key);
+  }
+
+  void _register(String key, BuildContext row) => _rows[key] = row;
+
+  void _unregister(String key, BuildContext row) {
+    if (identical(_rows[key], row)) _rows.remove(key);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showsRing =
+        _hasFocus && _highlightMode == FocusHighlightMode.traditional;
+    return Focus(
+      focusNode: _focusNode,
+      onKeyEvent: _onKeyEvent,
+      onFocusChange: (focused) => setState(() => _hasFocus = focused),
+      child: _KeyboardListScope(
+        state: this,
+        ringKey: showsRing ? _effectiveCursor : null,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+class _KeyboardListScope extends InheritedWidget {
+  const _KeyboardListScope({
+    required this.state,
+    required this.ringKey,
+    required super.child,
+  });
+
+  final _KeyboardListNavigatorState state;
+
+  /// The row drawing the focus ring, or null while the list is not focused
+  /// from the keyboard.
+  final String? ringKey;
+
+  @override
+  bool updateShouldNotify(_KeyboardListScope oldWidget) =>
+      ringKey != oldWidget.ringKey || !identical(state, oldWidget.state);
+}
+
+/// One row of a [KeyboardListNavigator].
+///
+/// Its contents keep their taps but lose their focus stops, and a pointer
+/// down anywhere on the row hands focus to the list, so the arrow keys carry
+/// on from a click. Outside a navigator it is a plain pass-through.
+class KeyboardListItem extends StatefulWidget {
+  const KeyboardListItem({
+    super.key,
+    required this.navigationKey,
+    required this.child,
+  });
+
+  /// The row's entry in [KeyboardListNavigator.keys].
+  final String navigationKey;
+
+  final Widget child;
+
+  @override
+  State<KeyboardListItem> createState() => _KeyboardListItemState();
+}
+
+class _KeyboardListItemState extends State<KeyboardListItem> {
+  _KeyboardListNavigatorState? _navigator;
+  String? _registeredKey;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncRegistration();
+  }
+
+  @override
+  void didUpdateWidget(KeyboardListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncRegistration();
+  }
+
+  void _syncRegistration() {
+    final navigator = context
+        .getInheritedWidgetOfExactType<_KeyboardListScope>()
+        ?.state;
+    if (identical(navigator, _navigator) &&
+        _registeredKey == widget.navigationKey) {
+      return;
+    }
+    _unregister();
+    _navigator = navigator;
+    _registeredKey = widget.navigationKey;
+    navigator?._register(widget.navigationKey, context);
+  }
+
+  void _unregister() {
+    final key = _registeredKey;
+    if (key != null) _navigator?._unregister(key, context);
+  }
+
+  @override
+  void dispose() {
+    _unregister();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<_KeyboardListScope>();
+    if (scope == null) return widget.child;
+    final hasRing = scope.ringKey == widget.navigationKey;
+    return Listener(
+      onPointerDown: (_) => scope.state._pointerDownOn(widget.navigationKey),
+      child: Container(
+        foregroundDecoration: hasRing
+            ? BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              )
+            : null,
+        child: ExcludeFocus(child: widget.child),
+      ),
+    );
+  }
+}

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -630,69 +631,97 @@ class _CertificationListContentState
       }
     }
 
+    // Display order, which is the order the keyboard cursor walks.
+    final ordered = [...expired, ...expiringSoon, ...valid];
+
     return RefreshIndicator(
       onRefresh: () async {
         await ref.read(certificationListNotifierProvider.notifier).refresh();
       },
-      child: ListView(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(bottom: 80),
-        children: [
-          if (expired.isNotEmpty) ...[
-            _buildSectionHeader(
-              context,
-              context.l10n.certifications_list_section_expired,
-              Colors.red,
-            ),
-            ...expired.map(
-              (cert) => CertificationListTile(
-                certification: cert,
-                isSelected:
-                    widget.selectedId == cert.id || highlightedId == cert.id,
-                onTap: () => _handleRowTap(cert),
-                isSelectionMode: _isSelectionMode,
-                isChecked: _selectedIds.contains(cert.id),
-                onCheckChanged: (_) => _selection.toggle(cert.id),
+      child: KeyboardListNavigator(
+        keys: [for (final c in ordered) c.id],
+        currentKey: widget.selectedId ?? highlightedId,
+        onMove: (id) => moveListCursor(
+          context,
+          canOpen: !_isSelectionMode && widget.onItemSelected != null,
+          open: () => _handleRowTap(ordered.firstWhere((c) => c.id == id)),
+          highlight: () =>
+              ref.read(highlightedCertificationIdProvider.notifier).state = id,
+        ),
+        onActivate: (id) =>
+            _handleRowTap(ordered.firstWhere((c) => c.id == id)),
+        child: ListView(
+          controller: _scrollController,
+          padding: const EdgeInsets.only(bottom: 80),
+          children: [
+            if (expired.isNotEmpty) ...[
+              _buildSectionHeader(
+                context,
+                context.l10n.certifications_list_section_expired,
+                Colors.red,
               ),
-            ),
-          ],
-          if (expiringSoon.isNotEmpty) ...[
-            _buildSectionHeader(
-              context,
-              context.l10n.certifications_list_section_expiringSoon,
-              Colors.orange,
-            ),
-            ...expiringSoon.map(
-              (cert) => CertificationListTile(
-                certification: cert,
-                isSelected:
-                    widget.selectedId == cert.id || highlightedId == cert.id,
-                onTap: () => _handleRowTap(cert),
-                isSelectionMode: _isSelectionMode,
-                isChecked: _selectedIds.contains(cert.id),
-                onCheckChanged: (_) => _selection.toggle(cert.id),
+              ...expired.map(
+                (cert) => KeyboardListItem(
+                  navigationKey: cert.id,
+                  child: CertificationListTile(
+                    certification: cert,
+                    isSelected:
+                        widget.selectedId == cert.id ||
+                        highlightedId == cert.id,
+                    onTap: () => _handleRowTap(cert),
+                    isSelectionMode: _isSelectionMode,
+                    isChecked: _selectedIds.contains(cert.id),
+                    onCheckChanged: (_) => _selection.toggle(cert.id),
+                  ),
+                ),
               ),
-            ),
-          ],
-          if (valid.isNotEmpty) ...[
-            _buildSectionHeader(
-              context,
-              context.l10n.certifications_list_section_valid,
-              Colors.green,
-            ),
-            ...valid.map(
-              (cert) => CertificationListTile(
-                certification: cert,
-                isSelected:
-                    widget.selectedId == cert.id || highlightedId == cert.id,
-                onTap: () => _handleRowTap(cert),
-                isSelectionMode: _isSelectionMode,
-                isChecked: _selectedIds.contains(cert.id),
-                onCheckChanged: (_) => _selection.toggle(cert.id),
+            ],
+            if (expiringSoon.isNotEmpty) ...[
+              _buildSectionHeader(
+                context,
+                context.l10n.certifications_list_section_expiringSoon,
+                Colors.orange,
               ),
-            ),
+              ...expiringSoon.map(
+                (cert) => KeyboardListItem(
+                  navigationKey: cert.id,
+                  child: CertificationListTile(
+                    certification: cert,
+                    isSelected:
+                        widget.selectedId == cert.id ||
+                        highlightedId == cert.id,
+                    onTap: () => _handleRowTap(cert),
+                    isSelectionMode: _isSelectionMode,
+                    isChecked: _selectedIds.contains(cert.id),
+                    onCheckChanged: (_) => _selection.toggle(cert.id),
+                  ),
+                ),
+              ),
+            ],
+            if (valid.isNotEmpty) ...[
+              _buildSectionHeader(
+                context,
+                context.l10n.certifications_list_section_valid,
+                Colors.green,
+              ),
+              ...valid.map(
+                (cert) => KeyboardListItem(
+                  navigationKey: cert.id,
+                  child: CertificationListTile(
+                    certification: cert,
+                    isSelected:
+                        widget.selectedId == cert.id ||
+                        highlightedId == cert.id,
+                    onTap: () => _handleRowTap(cert),
+                    isSelectionMode: _isSelectionMode,
+                    isChecked: _selectedIds.contains(cert.id),
+                    onCheckChanged: (_) => _selection.toggle(cert.id),
+                  ),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
