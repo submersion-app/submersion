@@ -191,6 +191,43 @@ void main() {
       expect(sy.sublist(8), sy.sublist(0, 2));
     });
 
+    test('folds an obtuse corner instead of spiking: the flip is the '
+        'miter limit', () {
+      // East, then a 135 degree turn back up-left. A true miter here would
+      // reach 1 / cos(67.5) = 2.6 widths out of the corner. The folded
+      // corner stays within sqrt(2) of the width, keeps both legs at full
+      // width, and its edges stay on the same side of each leg as that
+      // leg's own edges, so nothing crosses or detaches.
+      const s = 7.0710678;
+      final sx = Float32List.fromList([0, 0, 10, 10, 10 - s, 10 - s]);
+      final sy = Float32List.fromList([0, 0, 0, 0, s, s]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 3,
+        halfWidthPx: 1,
+      );
+      // Full width across the east leg: the corner edge ends exactly on
+      // that leg's two edge lines (y = -1 and y = 1).
+      expect(sy[2], closeTo(-1, 1e-5));
+      expect(sy[3], closeTo(1, 1e-5));
+      // Bounded corner: within sqrt(2) of the point.
+      final reach = (sx[2] - 10) * (sx[2] - 10) + sy[2] * sy[2];
+      expect(reach, lessThanOrEqualTo(2 + 1e-5));
+      // Full width across the second leg, and on consistent sides: the
+      // signed distance of each corner edge to that leg's centerline
+      // matches the far pair's edge on the same index.
+      const dx = -s / 10, dy = s / 10;
+      double side(double x, double y) => dx * (y - 0) - dy * (x - 10);
+      for (final v in [0, 1]) {
+        final atCorner = side(sx[2 + v], sy[2 + v]);
+        final atEnd = side(sx[4 + v], sy[4 + v]);
+        expect(atCorner, closeTo(atEnd, 1e-5), reason: 'edge $v');
+        expect(atCorner.abs(), closeTo(1, 1e-5), reason: 'edge $v');
+      }
+    });
+
     test('a stroke that never moves still gets a width', () {
       final sx = Float32List.fromList([5, 5, 5, 5]);
       final sy = Float32List.fromList([5, 5, 5, 5]);

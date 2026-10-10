@@ -379,7 +379,13 @@ class Dive3dScenePainter extends CustomPainter {
   /// looked past, so a stop at a turn joins like the turn itself. Each
   /// run's normal is flipped to agree with the one before, which keeps the
   /// two edges on the same sides through a reversal (an out-and-back leg)
-  /// rather than crossing into a bow-tie. A polyline whose last point lies
+  /// rather than crossing into a bow-tie. The flip fires for every turn
+  /// past a right angle, on purpose: it doubles as the miter limit. A true
+  /// miter grows as 1 / cos(turn / 2), so a 150 degree hairpin would spike
+  /// to almost four widths; folding the corner instead keeps every corner
+  /// edge within sqrt(2) of the width, and the strip stays continuous
+  /// because the folded edge lies within 45 degrees of both runs'
+  /// normals, never crossing either leg. A polyline whose last point lies
   /// on its first (a closed isobath) joins across that seam too. [sx]/[sy]
   /// are the projected canvas positions of every vertex in the soup;
   /// [start] is this mesh's first vertex. Both members of a pair sit on the
