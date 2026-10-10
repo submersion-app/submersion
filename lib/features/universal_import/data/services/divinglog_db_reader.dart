@@ -230,9 +230,10 @@ class DivingLogDbReader {
 
         final dives = <DivingLogRawDive>[];
         var discarded = 0;
-        // `Status` is only read as DiveMate's discard flag in a DiveMate
-        // file, told apart by its `TypeOfDive` column, so a column of the
-        // same name in another Diving Log flavour cannot drop dives.
+        // `Status` as a discard flag and `Profile3` as transmitter pressures
+        // are DiveMate's meanings, so they are read only in a DiveMate file,
+        // told apart by its `TypeOfDive` column. Another Diving Log flavour
+        // with columns of those names keeps its dives and its cylinders.
         final isDiveMate = caps.hasColumn('Logbook', 'TypeOfDive');
         for (final row in rows) {
           final uuid = rowString(row, 'UUID');
@@ -284,6 +285,7 @@ class DivingLogDbReader {
                 profile3: rowString(row, 'Profile3'),
                 profile4: rowString(row, 'Profile4'),
                 profile5: rowString(row, 'Profile5'),
+                diveMateTransmitters: isDiveMate,
               ),
             ),
           );

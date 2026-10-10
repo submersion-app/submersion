@@ -15,9 +15,13 @@ import 'package:submersion/features/universal_import/data/services/divinglog_raw
 /// - [profile2], stride 11, `TTTFFFFIRRR`: temperature in tenths of a
 ///   degree Celsius (3), tank pressure in tenths of a bar (4), tank id (1),
 ///   remaining bottom time in minutes (3).
-/// - [profile3], stride 14: tank 1 and tank 2 transmitter pressures in
-///   tenths of a bar (4 each), then heart rate (3). DiveMate fills the two
-///   transmitters while [profile2] holds only the cylinder in use (#3110).
+/// - [profile3], stride 14: heart rate at offset 8, width 3. In a DiveMate
+///   file the first eight characters are the tank 1 and tank 2 transmitter
+///   pressures in tenths of a bar, while [profile2] holds only the cylinder
+///   in use (#3110). They are read only when [diveMateTransmitters] says the
+///   file is DiveMate's: Diving Log's own layout for that span is not
+///   confirmed, and reading it as DiveMate's could put readings on the wrong
+///   cylinders.
 /// - [profile4], stride 9: no-decompression limit in minutes, or time to
 ///   surface when in deco (3), stop time in minutes (3), stop depth in
 ///   metres (3).
@@ -42,6 +46,7 @@ class DivingLogProfileCodec {
     String? profile3,
     String? profile4,
     String? profile5,
+    bool diveMateTransmitters = false,
   }) {
     final p1 = profile ?? '';
     if (p1.length < _strideProfile) return const [];
@@ -67,6 +72,7 @@ class DivingLogProfileCodec {
 
       final hasP2 = o2 + _strideProfile2 <= p2.length;
       final hasP3 = o3 + _strideProfile3 <= p3.length;
+      final hasTransmitters = diveMateTransmitters && hasP3;
       final hasP4 = o4 + _strideProfile4 <= p4.length;
       final hasP5 = o5 + _strideProfile5 <= p5.length;
 
@@ -95,8 +101,12 @@ class DivingLogProfileCodec {
           // a sample at 0 bar would draw the cylinder empty mid-dive.
           pressureBar: hasP2 ? _scaledNonZero(p2, o2 + 3, 4, 10.0) : null,
           tankId: hasP2 ? _int(p2, o2 + 7, 1) : null,
-          tank1PressureBar: hasP3 ? _scaledNonZero(p3, o3, 4, 10.0) : null,
-          tank2PressureBar: hasP3 ? _scaledNonZero(p3, o3 + 4, 4, 10.0) : null,
+          tank1PressureBar: hasTransmitters
+              ? _scaledNonZero(p3, o3, 4, 10.0)
+              : null,
+          tank2PressureBar: hasTransmitters
+              ? _scaledNonZero(p3, o3 + 4, 4, 10.0)
+              : null,
           rbtSeconds: hasP2 ? _minutes(_int(p2, o2 + 8, 3)) : null,
           heartRate: hasP3 ? _int(p3, o3 + 8, 3) : null,
           ndlSeconds: inDeco ? null : _minutes(ndlOrTts),
