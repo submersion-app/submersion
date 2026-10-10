@@ -39,6 +39,7 @@ class _NoopAdapter implements BackupDatabaseAdapter {
 /// because the device is not unlocked for sync encryption.
 class _FakeBackupService extends BackupService {
   bool blockedByEncryptionLock = false;
+  bool lockCheckThrows = false;
   BackupLocation location = BackupLocation.local;
 
   _FakeBackupService(BackupPreferences prefs)
@@ -58,8 +59,10 @@ class _FakeBackupService extends BackupService {
       );
 
   @override
-  Future<bool> isCloudBackupBlockedByEncryptionLock() async =>
-      blockedByEncryptionLock;
+  Future<bool> isCloudBackupBlockedByEncryptionLock() async {
+    if (lockCheckThrows) throw StateError('keychain unavailable');
+    return blockedByEncryptionLock;
+  }
 }
 
 void main() {
@@ -118,6 +121,18 @@ void main() {
         container.read(backupOperationProvider).message,
         l10n.backup_operation_created('2.0 KB'),
       );
+    });
+
+    test('a failing lock check does not fail a backup that was '
+        'written', () async {
+      service.lockCheckThrows = true;
+      final container = makeContainer();
+
+      await container.read(backupOperationProvider.notifier).performBackup();
+
+      final state = container.read(backupOperationProvider);
+      expect(state.status, BackupOperationStatus.success);
+      expect(state.message, l10n.backup_operation_created('2.0 KB'));
     });
 
     test('keeps the plain message when the cloud copy was made', () async {
