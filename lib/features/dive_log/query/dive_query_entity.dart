@@ -3,6 +3,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
 import 'package:submersion/features/dive_types/query/dive_type_text_search.dart';
@@ -147,23 +148,13 @@ String _derived(String column) =>
     'WHERE m.dive_id = {r}.id)';
 
 /// SAC in bar per minute at the surface, by the formula the Insights SAC
-/// chart plots (`InsightsRepository.getSacPressurePerDive`): the back-gas
-/// tank's pressure drop over the runtime, normalised by the average depth,
-/// so a search and the chart agree. Empty with no such tank, no runtime or
-/// no average depth.
-const kDiveSacSql =
-    '(SELECT (t.start_pressure - t.end_pressure) '
-    '/ (COALESCE({r}.runtime, {r}.bottom_time) / 60.0) '
-    '/ (({r}.avg_depth / 10.0) + 1) '
-    'FROM dive_tanks t WHERE t.id = ('
-    'SELECT t2.id FROM dive_tanks t2 WHERE t2.dive_id = {r}.id '
-    'AND t2.start_pressure > t2.end_pressure '
-    "AND (t2.tank_role = 'backGas' OR NOT EXISTS ("
-    'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = {r}.id '
-    "AND t3.tank_role = 'backGas')) "
-    'ORDER BY t2.tank_order, t2.rowid LIMIT 1) '
-    'AND COALESCE({r}.runtime, {r}.bottom_time) > 0 '
-    'AND {r}.avg_depth > 0)';
+/// chart plots (`InsightsRepository.getSacPressurePerDive`): every breathed
+/// cylinder's drop in bar of the back gas (issue #3109) over the runtime,
+/// normalised by the average depth, so a search and the chart agree. Empty
+/// with no back-gas drop, no runtime or no average depth.
+final String kDiveSacSql =
+    '(CASE WHEN COALESCE({r}.runtime, {r}.bottom_time) > 0 '
+    'AND {r}.avg_depth > 0 THEN ${diveSacPressureSql('{r}')} END)';
 
 final QueryEntity diveQueryEntity = QueryEntity(
   subject: QuerySubject.dives,

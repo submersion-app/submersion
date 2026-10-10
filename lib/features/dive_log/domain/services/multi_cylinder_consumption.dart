@@ -1,0 +1,75 @@
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+
+/// Gas consumption arithmetic over every cylinder a diver breathed from
+/// (issue #3109): a sidemount pair, doubles logged as independents, stages.
+///
+/// The SQL statistics mirror these rules in `multi_cylinder_sac_sql.dart`,
+/// so a chart and the dive overview agree on one dive.
+
+/// The two roles of a sidemount pair.
+const Set<TankRole> sidemountRoles = {
+  TankRole.sidemountLeft,
+  TankRole.sidemountRight,
+};
+
+/// The volume of [tank] for consumption math, in liters: its own, else for
+/// a sidemount cylinder the volume of another sidemount cylinder of the
+/// dive, since a pair is matched and downloads often size only one of them.
+/// Null when neither is known.
+double? consumptionVolume(DiveTank tank, List<DiveTank> tanks) {
+  final own = tank.volume;
+  if (own != null && own > 0) return own;
+  if (!sidemountRoles.contains(tank.role)) return null;
+  for (final other in tanks) {
+    if (identical(other, tank) || !sidemountRoles.contains(other.role)) {
+      continue;
+    }
+    final volume = other.volume;
+    if (volume != null && volume > 0) return volume;
+  }
+  return null;
+}
+
+/// The pressure drop of [reference] plus that of every other breathed
+/// cylinder of [tanks], each converted into bar of [reference] by volume
+/// (`drop * V / Vref`). Two sidemount cylinders whose sizes are both
+/// unknown count one to one. A cylinder whose size cannot be related to
+/// the reference, or that was carried but not breathed, adds nothing.
+///
+/// With [referenceOnly] (a rebreather dive, where diluent and oxygen
+/// drops are not breathing gas in one unit) only [reference] counts.
+/// Null when [reference] has no positive drop.
+double? referencePressureDrop({
+  required DiveTank reference,
+  required List<DiveTank> tanks,
+  bool referenceOnly = false,
+}) {
+  final referenceDrop = _drop(reference);
+  if (referenceDrop == null) return null;
+  if (referenceOnly) return referenceDrop;
+
+  final referenceVolume = consumptionVolume(reference, tanks);
+  var total = referenceDrop;
+  for (final tank in tanks) {
+    if (identical(tank, reference)) continue;
+    final drop = _drop(tank);
+    if (drop == null) continue;
+    final volume = consumptionVolume(tank, tanks);
+    if (volume != null && referenceVolume != null) {
+      total += drop * volume / referenceVolume;
+    } else if (sidemountRoles.contains(tank.role) &&
+        sidemountRoles.contains(reference.role)) {
+      total += drop;
+    }
+  }
+  return total;
+}
+
+double? _drop(DiveTank tank) {
+  final start = tank.startPressure;
+  final end = tank.endPressure;
+  if (start == null || end == null) return null;
+  final drop = start - end;
+  return drop > 0 ? drop : null;
+}
