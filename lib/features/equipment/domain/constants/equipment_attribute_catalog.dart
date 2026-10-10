@@ -344,7 +344,7 @@ abstract final class EquipmentAttributeCatalog {
         choiceKeys: ['over_suit', 'under_suit'],
       ),
       EquipmentAttributeDef(
-        key: 'closure',
+        key: 'vest_closure',
         kind: AttributeKind.choice,
         choiceKeys: ['front_zip', 'side_zip', 'pullover'],
       ),

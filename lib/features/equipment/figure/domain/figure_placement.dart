@@ -289,10 +289,17 @@ abstract final class FigurePlacement {
           ],
         ];
         return FigurePlacementSpec(
-          zones: const [FigureZone.underlayer, FigureZone.suit],
+          // The front torso is the last resort, for a drysuit diver whose
+          // undersuit and base layer already fill the underlayer anchor.
+          zones: const [
+            FigureZone.underlayer,
+            FigureZone.suit,
+            FigureZone.torsoFront,
+          ],
           piecesByZone: {
             FigureZone.underlayer: pieces,
             FigureZone.suit: pieces,
+            FigureZone.torsoFront: pieces,
           },
           defaultColor: FigureColors.black,
         );

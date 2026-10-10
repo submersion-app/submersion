@@ -128,7 +128,9 @@ class MacDiveValueMapper {
   static final vestGarment = RegExp(
     r'\b(?:ice|hooded|hood|neoprene)[\s-]*vests?\b'
     r'|\bcore[\s-]*warmers?\b'
-    r'|\b(?:eis|hauben)westen?\b',
+    // German compounds end on the garment word, so they match inside a
+    // longer word ("Kopfhaubenweste"); none of these is a "Tarierweste".
+    r'|(?:eis|hauben|neopren)westen?\b',
   );
 
   /// Maps MacDive's free-text equipment type onto [EquipmentType].

@@ -32319,7 +32319,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_vest_layer => '穿着方式';
 
   @override
-  String get attrLabel_closure => '闭合方式';
+  String get attrLabel_vest_closure => '闭合方式';
 
   @override
   String get attrLabel_snorkel_type => '类型';
@@ -32754,13 +32754,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrChoice_vest_layer_under_suit => '穿在潜水服内';
 
   @override
-  String get attrChoice_closure_front_zip => '前拉链';
+  String get attrChoice_vest_closure_front_zip => '前拉链';
 
   @override
-  String get attrChoice_closure_side_zip => '侧拉链';
+  String get attrChoice_vest_closure_side_zip => '侧拉链';
 
   @override
-  String get attrChoice_closure_pullover => '套头式';
+  String get attrChoice_vest_closure_pullover => '套头式';
 
   @override
   String get attrChoice_snorkel_type_classic => '经典式';

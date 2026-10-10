@@ -64,7 +64,7 @@ void main() {
         EquipmentAttrKeys.thicknessMm,
         EquipmentAttrKeys.hooded,
         'vest_layer',
-        'closure',
+        'vest_closure',
       ]);
     });
 
@@ -83,7 +83,7 @@ void main() {
       final layer = EquipmentAttributeCatalog.defFor('vest_layer')!;
       expect(layer.kind, AttributeKind.choice);
       expect(layer.choiceKeys, ['over_suit', 'under_suit']);
-      final closure = EquipmentAttributeCatalog.defFor('closure')!;
+      final closure = EquipmentAttributeCatalog.defFor('vest_closure')!;
       expect(closure.kind, AttributeKind.choice);
       expect(closure.choiceKeys, ['front_zip', 'side_zip', 'pullover']);
     });
@@ -169,6 +169,19 @@ void main() {
       expect(model.tray, isEmpty);
     });
 
+    test('with both underlayer slots taken it still finds the body', () {
+      final model = composeFigure(const [
+        FigureItemInput(id: 'd', type: EquipmentType.drysuit, name: 'Dry'),
+        FigureItemInput(id: 'u', type: EquipmentType.undersuit, name: 'U'),
+        FigureItemInput(id: 'b', type: EquipmentType.baselayer, name: 'B'),
+        FigureItemInput(id: 'v', type: EquipmentType.vest, name: 'Vest'),
+      ]);
+      expect(model.tray, isEmpty);
+      final vest = model.placed.singleWhere((p) => p.item.id == 'v');
+      expect(vest.zone, FigureZone.torsoFront);
+      expect(vest.pieceIds, ['vest_front', 'vest_back']);
+    });
+
     test('a hooded vest draws its hood in the vest colour', () {
       final spec = FigurePlacement.forType(
         EquipmentType.vest,
@@ -222,6 +235,17 @@ void main() {
     test('without a thickness it falls back to its own default', () {
       expect(vest().priorKg, 1.0);
       expect(vest().dryMassKg, 0.8);
+    });
+
+    test('a thickness stated only in the name still counts', () {
+      // Imports leave a vest's thickness in its name ("7mm ice vest"), as
+      // they did for wetsuits before the thickness attribute existed.
+      final named = GearFeature.fromEquipment(
+        id: 'v',
+        type: EquipmentType.vest,
+        name: '7mm ice vest',
+      );
+      expect(named.priorKg, closeTo(2.45, 1e-9));
     });
 
     test('an implausible thickness is clamped', () {

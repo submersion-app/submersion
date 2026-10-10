@@ -54148,11 +54148,11 @@ abstract class AppLocalizations {
   /// **'Worn'**
   String get attrLabel_vest_layer;
 
-  /// No description provided for @attrLabel_closure.
+  /// No description provided for @attrLabel_vest_closure.
   ///
   /// In en, this message translates to:
   /// **'Closure'**
-  String get attrLabel_closure;
+  String get attrLabel_vest_closure;
 
   /// No description provided for @attrLabel_snorkel_type.
   ///
@@ -55018,23 +55018,23 @@ abstract class AppLocalizations {
   /// **'Under the suit'**
   String get attrChoice_vest_layer_under_suit;
 
-  /// No description provided for @attrChoice_closure_front_zip.
+  /// No description provided for @attrChoice_vest_closure_front_zip.
   ///
   /// In en, this message translates to:
   /// **'Front zip'**
-  String get attrChoice_closure_front_zip;
+  String get attrChoice_vest_closure_front_zip;
 
-  /// No description provided for @attrChoice_closure_side_zip.
+  /// No description provided for @attrChoice_vest_closure_side_zip.
   ///
   /// In en, this message translates to:
   /// **'Side zip'**
-  String get attrChoice_closure_side_zip;
+  String get attrChoice_vest_closure_side_zip;
 
-  /// No description provided for @attrChoice_closure_pullover.
+  /// No description provided for @attrChoice_vest_closure_pullover.
   ///
   /// In en, this message translates to:
   /// **'Pullover'**
-  String get attrChoice_closure_pullover;
+  String get attrChoice_vest_closure_pullover;
 
   /// No description provided for @attrChoice_snorkel_type_classic.
   ///

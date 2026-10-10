@@ -428,6 +428,8 @@ void main() {
         'Wetsuit hooded vest': EquipmentType.vest,
         'Eisweste': EquipmentType.vest,
         'Haubenweste 7mm': EquipmentType.vest,
+        'Kopfhaubenweste': EquipmentType.vest,
+        'Neoprenweste': EquipmentType.vest,
       };
       for (final MapEntry(key: input, value: expected) in cases.entries) {
         expect(

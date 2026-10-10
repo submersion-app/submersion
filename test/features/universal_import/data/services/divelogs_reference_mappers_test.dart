@@ -87,6 +87,8 @@ void main() {
         'Haubenweste': EquipmentType.vest,
         'Ice vest': EquipmentType.vest,
         'Hooded vest': EquipmentType.vest,
+        'Kopfhaubenweste': EquipmentType.vest,
+        'Neoprenweste': EquipmentType.vest,
         'Tarierweste': EquipmentType.bcd,
         'Weste': EquipmentType.other,
         'Haube': EquipmentType.hood,

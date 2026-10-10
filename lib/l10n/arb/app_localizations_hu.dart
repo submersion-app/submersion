@@ -34091,7 +34091,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_vest_layer => 'Viselet';
 
   @override
-  String get attrLabel_closure => 'Záródás';
+  String get attrLabel_vest_closure => 'Záródás';
 
   @override
   String get attrLabel_snorkel_type => 'Típus';
@@ -34528,13 +34528,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrChoice_vest_layer_under_suit => 'A ruha alatt';
 
   @override
-  String get attrChoice_closure_front_zip => 'Elöl cipzáras';
+  String get attrChoice_vest_closure_front_zip => 'Elöl cipzáras';
 
   @override
-  String get attrChoice_closure_side_zip => 'Oldalt cipzáras';
+  String get attrChoice_vest_closure_side_zip => 'Oldalt cipzáras';
 
   @override
-  String get attrChoice_closure_pullover => 'Belebújós';
+  String get attrChoice_vest_closure_pullover => 'Belebújós';
 
   @override
   String get attrChoice_snorkel_type_classic => 'Klasszikus';

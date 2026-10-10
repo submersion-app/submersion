@@ -34312,7 +34312,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_vest_layer => 'Uso';
 
   @override
-  String get attrLabel_closure => 'Cierre';
+  String get attrLabel_vest_closure => 'Cierre';
 
   @override
   String get attrLabel_snorkel_type => 'Tipo';
@@ -34751,13 +34751,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrChoice_vest_layer_under_suit => 'Bajo el traje';
 
   @override
-  String get attrChoice_closure_front_zip => 'Cremallera frontal';
+  String get attrChoice_vest_closure_front_zip => 'Cremallera frontal';
 
   @override
-  String get attrChoice_closure_side_zip => 'Cremallera lateral';
+  String get attrChoice_vest_closure_side_zip => 'Cremallera lateral';
 
   @override
-  String get attrChoice_closure_pullover => 'Sin cremallera';
+  String get attrChoice_vest_closure_pullover => 'Sin cremallera';
 
   @override
   String get attrChoice_snorkel_type_classic => 'Clásico';

@@ -34045,7 +34045,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_vest_layer => 'Gedragen';
 
   @override
-  String get attrLabel_closure => 'Sluiting';
+  String get attrLabel_vest_closure => 'Sluiting';
 
   @override
   String get attrLabel_snorkel_type => 'Type';
@@ -34482,13 +34482,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrChoice_vest_layer_under_suit => 'Onder het pak';
 
   @override
-  String get attrChoice_closure_front_zip => 'Rits voor';
+  String get attrChoice_vest_closure_front_zip => 'Rits voor';
 
   @override
-  String get attrChoice_closure_side_zip => 'Rits opzij';
+  String get attrChoice_vest_closure_side_zip => 'Rits opzij';
 
   @override
-  String get attrChoice_closure_pullover => 'Zonder rits';
+  String get attrChoice_vest_closure_pullover => 'Zonder rits';
 
   @override
   String get attrChoice_snorkel_type_classic => 'Klassiek';

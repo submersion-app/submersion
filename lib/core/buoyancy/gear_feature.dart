@@ -83,13 +83,18 @@ class GearFeature extends Equatable {
         prior = attributed;
         strength = _attributeStrength;
       } else {
-        final legacyMm = type == EquipmentType.wetsuit
+        final legacyMm =
+            type == EquipmentType.wetsuit || type == EquipmentType.vest
             ? _legacyWetsuitThicknessMm(name, size, thickness)
             : null;
         if (legacyMm != null) {
           // A thickness parsed from free text carries real information, so
           // it gets the same intermediate trust as attribute-derived priors.
-          prior = legacyMm.clamp(0.0, 10.0);
+          // A vest (#3108) imported as "7mm ice vest" reads the same way, at
+          // its torso-only rate.
+          prior = type == EquipmentType.vest
+              ? (_vestKgPerMm * legacyMm).clamp(0.0, 5.0)
+              : legacyMm.clamp(0.0, 10.0);
           strength = _attributeStrength;
         } else {
           prior = _typeDefault(type);

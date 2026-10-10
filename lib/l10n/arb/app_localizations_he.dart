@@ -33433,7 +33433,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_vest_layer => 'אופן לבישה';
 
   @override
-  String get attrLabel_closure => 'סגירה';
+  String get attrLabel_vest_closure => 'סגירה';
 
   @override
   String get attrLabel_snorkel_type => 'סוג';
@@ -33868,13 +33868,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrChoice_vest_layer_under_suit => 'מתחת לחליפה';
 
   @override
-  String get attrChoice_closure_front_zip => 'רוכסן קדמי';
+  String get attrChoice_vest_closure_front_zip => 'רוכסן קדמי';
 
   @override
-  String get attrChoice_closure_side_zip => 'רוכסן צדדי';
+  String get attrChoice_vest_closure_side_zip => 'רוכסן צדדי';
 
   @override
-  String get attrChoice_closure_pullover => 'ללא רוכסן';
+  String get attrChoice_vest_closure_pullover => 'ללא רוכסן';
 
   @override
   String get attrChoice_snorkel_type_classic => 'קלאסי';
