@@ -27,7 +27,8 @@ import '../../../../helpers/test_app.dart';
 void main() {
   const diveId = 'panel-dive-1';
 
-  // A sidemount pair where only the left cylinder carries a size.
+  // A sidemount pair where only the right cylinder carries a size, so the
+  // left one, the reference, must borrow it.
   Dive sidemountDive() => createTestDiveWithBottomTime(id: diveId).copyWith(
     profile: List.generate(
       6,
@@ -40,13 +41,13 @@ void main() {
       DiveTank(
         id: 'left',
         role: TankRole.sidemountLeft,
-        volume: 11.1,
         startPressure: 200,
         endPressure: 100,
       ),
       DiveTank(
         id: 'right',
         role: TankRole.sidemountRight,
+        volume: 11.1,
         startPressure: 200,
         endPressure: 100,
       ),
@@ -68,7 +69,7 @@ void main() {
     ],
   );
 
-  Future<ProviderContainer> pumpPanel(
+  Future<void> pumpPanel(
     WidgetTester tester, {
     required Override diveOverride,
     required Override analysisOverride,
@@ -88,12 +89,11 @@ void main() {
           ),
           diveOverride,
           analysisOverride,
-          // The panel's analysis now comes from sourceProfileAnalysisProvider,
+          // The panel's analysis comes from sourceProfileAnalysisProvider,
           // which awaits the dive's data sources and delegates to the
           // overridden profileAnalysisProvider when there are fewer than two.
-          // Without these two overrides the analysis would never resolve, and
-          // the overlay assertions below would be measuring an unresolved
-          // dependency rather than the reload window they are about.
+          // Without these two overrides the analysis never resolves, and the
+          // chart would get no normalisation factor to assert on.
           diveDataSourcesProvider(
             diveId,
           ).overrideWith((ref) async => <DiveDataSource>[]),
@@ -103,8 +103,8 @@ void main() {
           gasSwitchesProvider(
             diveId,
           ).overrideWith((ref) async => <GasSwitchWithTank>[]),
-          // No real samples, so estimatedTankPressuresProvider (deliberately
-          // NOT overridden) synthesizes a series for tank-1.
+          // No recorded series; estimatedTankPressuresProvider (not
+          // overridden) synthesizes one from the cylinders' pressures.
           tankPressuresProvider(
             diveId,
           ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
@@ -118,9 +118,6 @@ void main() {
     );
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    return ProviderScope.containerOf(
-      tester.element(find.byType(DiveProfilePanel)),
-    );
   }
 
   testWidgets('passes the reference volume and SAC normalisation', (
