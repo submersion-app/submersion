@@ -14,7 +14,7 @@ import '../../../../helpers/mock_channels.dart';
 
 class _NoopAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {}
+  Future<void> backup(String destinationPath, {String? note}) async {}
 
   @override
   Future<void> restore(

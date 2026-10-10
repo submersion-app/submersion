@@ -2250,6 +2250,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_backupNow => 'גבה עכשיו';
 
   @override
+  String get backup_note_dialog_title => 'גבה עכשיו';
+
+  @override
+  String get backup_note_label => 'הערה (לא חובה)';
+
+  @override
+  String get backup_note_hint => 'לדוגמה: לפני הטיול לקוזומל';
+
+  @override
+  String get backup_note_dialog_confirm => 'גבה';
+
+  @override
   String get backup_cloud_enabled => 'גיבוי ענן';
 
   @override

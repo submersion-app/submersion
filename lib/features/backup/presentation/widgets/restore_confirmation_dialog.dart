@@ -88,6 +88,10 @@ class _RestoreConfirmationDialogState
                     units.formatDateTime(record.timestamp, l10n: context.l10n),
                     style: theme.textTheme.titleSmall,
                   ),
+                  if (record.note != null) ...[
+                    const SizedBox(height: 4),
+                    Text(record.note!, style: theme.textTheme.bodyMedium),
+                  ],
                   const SizedBox(height: 4),
                   if ((record.diveCount ?? 0) > 0 ||
                       (record.siteCount ?? 0) > 0)

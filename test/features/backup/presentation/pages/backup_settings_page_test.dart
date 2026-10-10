@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
@@ -23,6 +26,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_file_picker_platform.dart';
+import '../../../../helpers/pump_until.dart';
 
 void main() {
   // ---------------------------------------------------------------------------
@@ -371,16 +375,64 @@ void main() {
       );
     }
 
-    /// Taps the import card inside a [WidgetTester.runAsync] window:
-    /// `_handleImport` awaits real file IO (length/lastModified), which only
-    /// completes while real async is enabled.
+    /// Taps the import card and waits for the confirmation dialog:
+    /// `_handleImport` awaits real file IO (length, lastModified and the
+    /// embedded note's SQLite read), which only completes while real async is
+    /// enabled, and the first SQLite open in a cold isolate can outlast a
+    /// fixed short window.
     Future<void> tapImportCard(WidgetTester tester) async {
       await tester.runAsync(() async {
         await tester.tap(find.text('Restore from File'));
-        await Future<void>.delayed(const Duration(milliseconds: 100));
       });
+      await pumpUntilRealAsync(
+        tester,
+        () => find.text('Restore Backup').evaluate().isNotEmpty,
+        reason: 'the import reads the file before the dialog opens',
+      );
       await tester.pumpAndSettle();
     }
+
+    /// Gives the page room so Backup Now is on screen without scrolling.
+    void useTallView(WidgetTester tester) {
+      tester.view.physicalSize = const Size(1200, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+    }
+
+    testWidgets('Backup Now asks for a note and backs up with it', (
+      tester,
+    ) async {
+      useTallView(tester);
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Backup Now'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Before the trip');
+      await tester.tap(find.text('Back Up'));
+      await tester.pumpAndSettle();
+
+      expect(service.calls, contains('performBackup'));
+      expect(service.backedUpNote, 'Before the trip');
+    });
+
+    testWidgets('cancelling the Backup Now dialog backs nothing up', (
+      tester,
+    ) async {
+      useTallView(tester);
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Backup Now'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(service.calls, isNot(contains('performBackup')));
+    });
 
     testWidgets('save-to-file picks a folder and streams into it', (
       tester,
@@ -416,6 +468,25 @@ void main() {
             'the default filename is composed by the page, since a folder '
             'pick cannot supply one',
       );
+    });
+
+    testWidgets('save-to-file carries the typed note', (tester) async {
+      mockPicker.directoryPathResult = tempDir.path;
+
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Export Backup'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'For the dive shop');
+
+      await tester.runAsync(() async {
+        await tester.tap(find.text('Save to File'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      });
+      await tester.pumpAndSettle();
+
+      expect(service.exportedNote, 'For the dive shop');
     });
 
     testWidgets('save-to-file does nothing when the folder pick is cancelled', (
@@ -463,6 +534,26 @@ void main() {
         expect(service.lastMode, RestoreMode.merge);
       },
     );
+
+    testWidgets('restore-from-file shows the note inside the picked file', (
+      tester,
+    ) async {
+      // Built synchronously: real file IO in a testWidgets body never
+      // completes (fake-async zone).
+      final noted = p.join(tempDir.path, 'noted.db');
+      final db = sqlite3.sqlite3.open(noted);
+      db.execute('CREATE TABLE dives (id TEXT)');
+      db.close();
+      stampBackupNote(noted, 'Before the Cozumel trip');
+      mockPicker.pickFilesResult = [FakePlatformFile(noted, name: 'noted.db')];
+
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+      await tapImportCard(tester);
+
+      expect(find.text('Restore Backup'), findsOneWidget);
+      expect(find.text('Before the Cozumel trip'), findsOneWidget);
+    });
 
     testWidgets('cancelling the file-restore dialog restores nothing', (
       tester,
@@ -701,7 +792,7 @@ final _kNow = DateTime(2024, 6, 1, 12, 0, 0);
 /// Minimal BackupDatabaseAdapter fake — unused methods throw loud errors.
 class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async =>
+  Future<void> backup(String destinationPath, {String? note}) async =>
       throw UnimplementedError('not used');
 
   @override
@@ -761,12 +852,41 @@ class _RecordingRestoreService extends BackupService {
     lastMode = mode;
   }
 
-  /// Destination the manual export was pointed at.
-  String? exportedTo;
+  /// Note the Backup Now flow handed over, once it ran.
+  String? backedUpNote;
 
   @override
-  Future<BackupRecord> exportBackupToPath(String destinationPath) async {
+  Future<BackupRecord> performBackup({
+    bool isAutomatic = false,
+    String? note,
+  }) async {
+    calls.add('performBackup');
+    backedUpNote = note;
+    return BackupRecord(
+      id: 'now',
+      filename: 'now.db',
+      timestamp: DateTime(2026, 10, 10),
+      sizeBytes: 1,
+      location: BackupLocation.local,
+      diveCount: 0,
+      siteCount: 0,
+    );
+  }
+
+  @override
+  Future<bool> isCloudBackupBlockedByEncryptionLock() async => false;
+
+  /// Destination the manual export was pointed at.
+  String? exportedTo;
+  String? exportedNote;
+
+  @override
+  Future<BackupRecord> exportBackupToPath(
+    String destinationPath, {
+    String? note,
+  }) async {
     calls.add('exportBackupToPath');
+    exportedNote = note;
     exportedTo = destinationPath;
     return BackupRecord(
       id: 'exported',

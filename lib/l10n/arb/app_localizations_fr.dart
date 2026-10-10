@@ -2290,6 +2290,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backup_backupNow => 'Sauvegarder Maintenant';
 
   @override
+  String get backup_note_dialog_title => 'Sauvegarder maintenant';
+
+  @override
+  String get backup_note_label => 'Note (facultative)';
+
+  @override
+  String get backup_note_hint => 'p. ex. Avant le voyage à Cozumel';
+
+  @override
+  String get backup_note_dialog_confirm => 'Sauvegarder';
+
+  @override
   String get backup_cloud_enabled => 'Sauvegarde cloud';
 
   @override

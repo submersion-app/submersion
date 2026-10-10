@@ -2330,6 +2330,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_backupNow => 'نسخ احتياطي الآن';
 
   @override
+  String get backup_note_dialog_title => 'نسخ احتياطي الآن';
+
+  @override
+  String get backup_note_label => 'ملاحظة (اختيارية)';
+
+  @override
+  String get backup_note_hint => 'مثال: قبل رحلة كوزوميل';
+
+  @override
+  String get backup_note_dialog_confirm => 'نسخ احتياطي';
+
+  @override
   String get backup_cloud_enabled => 'نسخ احتياطي سحابي';
 
   @override

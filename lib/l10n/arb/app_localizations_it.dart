@@ -2287,6 +2287,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get backup_backupNow => 'Esegui Backup Ora';
 
   @override
+  String get backup_note_dialog_title => 'Esegui backup ora';
+
+  @override
+  String get backup_note_label => 'Nota (facoltativa)';
+
+  @override
+  String get backup_note_hint => 'es. Prima del viaggio a Cozumel';
+
+  @override
+  String get backup_note_dialog_confirm => 'Esegui backup';
+
+  @override
   String get backup_cloud_enabled => 'Backup cloud';
 
   @override

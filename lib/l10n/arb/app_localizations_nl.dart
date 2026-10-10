@@ -2272,6 +2272,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_backupNow => 'Nu Back-up Maken';
 
   @override
+  String get backup_note_dialog_title => 'Nu back-up maken';
+
+  @override
+  String get backup_note_label => 'Notitie (optioneel)';
+
+  @override
+  String get backup_note_hint => 'bijv. Voor de reis naar Cozumel';
+
+  @override
+  String get backup_note_dialog_confirm => 'Back-up maken';
+
+  @override
   String get backup_cloud_enabled => 'Cloud back-up';
 
   @override

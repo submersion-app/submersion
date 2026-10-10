@@ -50,11 +50,13 @@ void main() {
     required String name,
     int bytes = 1024,
     BackupOwnership ownership = BackupOwnership.thisDevice,
+    String? note,
   }) => UnrecognizedBackup(
     path: '/backups/$name',
     sizeBytes: bytes,
     modified: DateTime(2026, 9, 1, 12),
     ownership: ownership,
+    note: note,
   );
 
   Widget harness({
@@ -78,6 +80,16 @@ void main() {
       home: UnrecognizedBackupsPage(),
     ),
   );
+
+  testWidgets('a file with a note shows it', (tester) async {
+    await tester.pumpWidget(
+      harness(
+        entries: () async => [entry(name: 'a.db', note: 'Old laptop backup')],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Old laptop backup'), findsOneWidget);
+  });
 
   testWidgets('lists every unrecognized file with its size', (tester) async {
     await tester.pumpWidget(

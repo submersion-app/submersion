@@ -12,12 +12,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/backup_bookmark_service.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/utils/byte_format.dart';
+import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_encryption_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_note_dialog.dart';
 import 'package:submersion/features/backup/presentation/widgets/export_bottom_sheet.dart';
 import 'package:submersion/features/backup/presentation/widgets/quarantined_databases_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
@@ -225,6 +227,15 @@ class BackupSettingsPage extends ConsumerWidget {
     }
   }
 
+  /// Backup Now asks for an optional note first; cancelling backs nothing up.
+  Future<void> _handleBackupNow(BuildContext context, WidgetRef ref) async {
+    final result = await BackupNoteDialog.show(context);
+    if (result == null) return;
+    await ref
+        .read(backupOperationProvider.notifier)
+        .performBackup(note: result.note);
+  }
+
   void _handleExport(BuildContext context, WidgetRef ref) {
     final encrypted = ref.read(backupSettingsProvider).backupEncryptionEnabled;
     // Captured now: the export sheet is dismissed before onShare runs, so the
@@ -232,7 +243,7 @@ class BackupSettingsPage extends ConsumerWidget {
     final anchor = shareAnchorFrom(context);
     ExportBottomSheet.show(
       context,
-      onSaveToFile: () async {
+      onSaveToFile: (note) async {
         // Deliberately a folder pick rather than a Save As sheet.
         // file_picker 12's saveFile requires the entire artifact up front as
         // `bytes`, and a dive library can be far too large to hold in memory,
@@ -250,6 +261,7 @@ class BackupSettingsPage extends ConsumerWidget {
           await notifier.exportToSafTree(
             treeUri: folder.uri,
             fileName: fileName,
+            note: note,
           );
           return;
           // coverage:ignore-end
@@ -259,12 +271,12 @@ class BackupSettingsPage extends ConsumerWidget {
           dialogTitle: context.l10n.backup_export_title,
         );
         if (dir == null) return;
-        await notifier.exportToPath(p.join(dir, fileName));
+        await notifier.exportToPath(p.join(dir, fileName), note: note);
       },
-      onShare: () async {
+      onShare: (note) async {
         final file = await ref
             .read(backupOperationProvider.notifier)
-            .exportForSharing();
+            .exportForSharing(note: note);
         if (file != null && context.mounted) {
           await SharePlus.instance.share(
             ShareParams(files: [XFile(file.path)], sharePositionOrigin: anchor),
@@ -308,6 +320,9 @@ class BackupSettingsPage extends ConsumerWidget {
     // Show confirmation dialog with file info
     final file = File(filePath);
     final sizeBytes = await file.length();
+    // A plaintext backup carries its note inside; an encrypted one cannot
+    // be read before decryption and shows none.
+    final note = await readBackupNote(filePath);
     final record = BackupRecord(
       id: 'temp',
       filename: picked.name,
@@ -316,6 +331,7 @@ class BackupSettingsPage extends ConsumerWidget {
       location: BackupLocation.local,
       diveCount: 0,
       siteCount: 0,
+      note: note,
     );
 
     if (!context.mounted) return;
@@ -633,9 +649,7 @@ class BackupSettingsPage extends ConsumerWidget {
                   ref.watch(backupOperationProvider).status ==
                       BackupOperationStatus.inProgress
                   ? null
-                  : () => ref
-                        .read(backupOperationProvider.notifier)
-                        .performBackup(),
+                  : () => _handleBackupNow(context, ref),
               icon: const Icon(Icons.backup),
               label: Text(context.l10n.backup_backupNow),
             ),

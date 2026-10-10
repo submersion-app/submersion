@@ -16,10 +16,12 @@ class _FakeAdapter implements BackupDatabaseAdapter {
   /// real one always does: it is compacted and it folds in the WAL.
   final String? exportBytes;
   String? copiedTo;
+  String? lastNote;
 
   @override
-  Future<void> backup(String destinationPath) async {
+  Future<void> backup(String destinationPath, {String? note}) async {
     copiedTo = destinationPath;
+    lastNote = note;
     final bytes = exportBytes;
     if (bytes != null) {
       await File(destinationPath).writeAsString(bytes);
@@ -227,4 +229,32 @@ void main() {
       expect(port.wroteName, 'backup.sbe');
     },
   );
+
+  test('filesystem target hands the note to the copy', () async {
+    final dir = Directory.systemTemp.createTempSync('target_note');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final db = p.join(dir.path, 'live.db');
+    File(db).writeAsStringSync('live');
+    final adapter = _FakeAdapter(db);
+
+    await FilesystemBackupTarget(dir.path).write(adapter, 'b.db', note: 'n');
+
+    expect(adapter.lastNote, 'n');
+  });
+
+  test('SAF target hands the note to the staged copy', () async {
+    final dir = Directory.systemTemp.createTempSync('target_note_saf');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final db = p.join(dir.path, 'live.db');
+    File(db).writeAsStringSync('live');
+    final adapter = _FakeAdapter(db);
+
+    await SafBackupTarget(
+      'content://tree/x',
+      _FakeSafPort(),
+      tempDir: () async => dir,
+    ).write(adapter, 'b.db', note: 'n');
+
+    expect(adapter.lastNote, 'n');
+  });
 }

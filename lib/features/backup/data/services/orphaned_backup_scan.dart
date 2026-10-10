@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
+import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 
 /// A backup file on disk with no record in this device's history.
 class UnrecognizedBackup {
@@ -13,12 +14,16 @@ class UnrecognizedBackup {
     required this.sizeBytes,
     required this.modified,
     required this.ownership,
+    this.note,
   });
 
   final String path;
   final int sizeBytes;
   final DateTime modified;
   final BackupOwnership ownership;
+
+  /// The note stamped into the file, when it is a readable plaintext backup.
+  final String? note;
 
   String get filename => p.basename(path);
 
@@ -50,15 +55,20 @@ class OrphanedBackupScan {
     required Future<String?> Function() backupsDirectory,
     required Future<Set<String>> Function() knownPaths,
     required Future<String> Function() thisDeviceId,
+    Future<String?> Function(String path) readNote = readBackupNote,
   }) : _backupsDirectory = backupsDirectory,
        _knownPaths = knownPaths,
-       _thisDeviceId = thisDeviceId;
+       _thisDeviceId = thisDeviceId,
+       _readNote = readNote;
 
   /// Null when the location cannot be enumerated: an Android SAF location is a
   /// content:// tree URI with no Directory behind it.
   final Future<String?> Function() _backupsDirectory;
   final Future<Set<String>> Function() _knownPaths;
   final Future<String> Function() _thisDeviceId;
+
+  /// Reads a file's embedded note; never throws (see [readBackupNote]).
+  final Future<String?> Function(String path) _readNote;
   final _log = LoggerService.forClass(OrphanedBackupScan);
 
   static const String _prefix = 'submersion_backup_';
@@ -91,6 +101,7 @@ class OrphanedBackupScan {
               filename: name,
               thisDeviceId: deviceId,
             ),
+            note: await _readNote(entity.path),
           ),
         );
       } on FileSystemException {

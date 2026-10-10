@@ -57,7 +57,7 @@ class _FakeBackupEncryptionService extends BackupEncryptionService {
 
 class _FakeDbAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {}
+  Future<void> backup(String destinationPath, {String? note}) async {}
   @override
   Future<void> restore(
     String backupPath, {

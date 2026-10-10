@@ -2283,6 +2283,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get backup_backupNow => 'Jetzt Sichern';
 
   @override
+  String get backup_note_dialog_title => 'Jetzt sichern';
+
+  @override
+  String get backup_note_label => 'Notiz (optional)';
+
+  @override
+  String get backup_note_hint => 'z. B. Vor der Cozumel-Reise';
+
+  @override
+  String get backup_note_dialog_confirm => 'Sichern';
+
+  @override
   String get backup_cloud_enabled => 'Cloud-Sicherung';
 
   @override

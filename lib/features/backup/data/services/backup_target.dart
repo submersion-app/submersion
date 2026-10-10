@@ -29,11 +29,13 @@ class BackupWriteResult {
 /// Where a backup is written. Two implementations: a filesystem directory
 /// (default sandbox, desktop, Apple bookmarked dirs) and an Android SAF tree.
 abstract class BackupTarget {
-  /// Writes a backup named [fileName] using [adapter] to produce the bytes.
+  /// Writes a backup named [fileName] using [adapter] to produce the bytes,
+  /// with [note] stamped into the copy.
   Future<BackupWriteResult> write(
     BackupDatabaseAdapter adapter,
-    String fileName,
-  );
+    String fileName, {
+    String? note,
+  });
 
   /// Writes an already-materialized file at [sourcePath] into the target as
   /// [fileName] (e.g. an encrypted `.sbe` produced off to the side). Returns
@@ -51,10 +53,11 @@ class FilesystemBackupTarget implements BackupTarget {
   @override
   Future<BackupWriteResult> write(
     BackupDatabaseAdapter adapter,
-    String fileName,
-  ) async {
+    String fileName, {
+    String? note,
+  }) async {
     final dest = p.join(dir, fileName);
-    await adapter.backup(dest);
+    await adapter.backup(dest, note: note);
     return BackupWriteResult(dest, await File(dest).length());
   }
 
@@ -89,14 +92,15 @@ class SafBackupTarget implements BackupTarget {
   @override
   Future<BackupWriteResult> write(
     BackupDatabaseAdapter adapter,
-    String fileName,
-  ) async {
+    String fileName, {
+    String? note,
+  }) async {
     final dir = await (tempDir?.call() ?? resolveSyncTempDir());
     // Per-invocation prefix so a foreground backup and the scheduled
     // background one cannot collide on the shared temp dir.
     final staged = p.join(dir.path, '${const Uuid().v4()}-$fileName');
     try {
-      await adapter.backup(staged);
+      await adapter.backup(staged, note: note);
       final sizeBytes = await File(staged).length();
       final ref = await port.writeBackup(
         treeUri: treeUri,

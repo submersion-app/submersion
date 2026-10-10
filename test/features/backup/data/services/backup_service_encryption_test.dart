@@ -26,7 +26,7 @@ const _passphrase = 'correct horse battery staple';
 
 class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {
+  Future<void> backup(String destinationPath, {String? note}) async {
     final file = File(destinationPath);
     await file.parent.create(recursive: true);
     await file.writeAsString('fake backup data');

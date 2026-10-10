@@ -18,7 +18,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _NoopAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {}
+  Future<void> backup(String destinationPath, {String? note}) async {}
 
   @override
   Future<void> restore(

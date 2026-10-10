@@ -18,7 +18,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 
 class _NoopAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {}
+  Future<void> backup(String destinationPath, {String? note}) async {}
 
   @override
   Future<void> restore(
@@ -45,9 +45,11 @@ class _TempExportingBackupService extends BackupService {
   final Directory _dir;
   Object? throwOnExport;
   File? lastTemp;
+  String? lastNote;
 
   @override
-  Future<File> exportBackupToTemp() async {
+  Future<File> exportBackupToTemp({String? note}) async {
+    lastNote = note;
     final error = throwOnExport;
     if (error != null) throw error;
     final f = File('${_dir.path}/submersion_backup_2026-08-16.db');
@@ -102,6 +104,27 @@ void main() {
     addTearDown(container.dispose);
     return container;
   }
+
+  test('Share hands the note to the artifact it prepares', () async {
+    final container = makeContainer();
+    final file = await container
+        .read(backupOperationProvider.notifier)
+        .exportForSharing(note: 'For my buddy');
+    expect(file, isNotNull);
+    expect(service.lastNote, 'For my buddy');
+  });
+
+  test('hands the note to the exported artifact', () async {
+    final container = makeContainer();
+    await container
+        .read(backupOperationProvider.notifier)
+        .exportToSafTree(
+          treeUri: 'content://tree/primary%3ABackups',
+          fileName: 'submersion_backup_2026-08-16.db',
+          note: 'For the dive shop',
+        );
+    expect(service.lastNote, 'For the dive shop');
+  });
 
   test('streams the artifact into the SAF tree and reports success', () async {
     final container = makeContainer();
