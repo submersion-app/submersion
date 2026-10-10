@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_dropdown_label.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
@@ -210,6 +214,71 @@ void main() {
 
     expect(find.text('Backup computer'), findsWidgets);
     expect(find.text('Dream computer'), findsNothing);
+  });
+
+  testWidgets('devices with the same name are told apart by their ID '
+      '(#3191)', (tester) async {
+    EquipmentItem perdix(String id, String identifier) => EquipmentItem(
+      id: id,
+      name: 'Perdix',
+      type: EquipmentType.computer,
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: id,
+          key: EquipmentAttrKeys.identifier,
+          valueText: identifier,
+        ),
+      ],
+    );
+    // The template remembers g1.
+    await pumpSheet(tester, gear: [perdix('g1', 'Blue'), perdix('g2', 'Red')]);
+    await chooseComputerCheck(tester);
+
+    expect(find.textContaining('ID Blue', findRichText: true), findsOneWidget);
+    expect(find.textContaining('ID Red', findRichText: true), findsNothing);
+
+    await tester.tap(find.textContaining('ID Blue', findRichText: true));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.textContaining('ID Red', findRichText: true).hitTestable(),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a long device label ellipsizes rather than overflowing '
+      '(#3191)', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final long = primaryComputer.copyWith(
+      brand: 'Shearwater Research Incorporated',
+      model: 'Perdix 2 Titanium Limited Edition',
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: primaryComputer.id,
+          key: EquipmentAttrKeys.identifier,
+          valueText: 'Blue left wrist primary',
+        ),
+      ],
+    );
+    await pumpSheet(tester, gear: [long, backupComputer]);
+    await chooseComputerCheck(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('ID Blue', findRichText: true), findsOneWidget);
+    // Cut short on one line, not wrapped onto a second.
+    final paragraph = tester.renderObject<RenderParagraph>(
+      find.descendant(
+        of: find.byType(EquipmentDropdownLabel),
+        matching: find.byType(RichText),
+      ),
+    );
+    expect(paragraph.didExceedMaxLines, isTrue);
+    expect(
+      paragraph.size.height,
+      paragraph.getFullHeightForCaret(const TextPosition(offset: 0)),
+    );
   });
 
   testWidgets('a remembered device now on the wishlist is not pre-filled '
