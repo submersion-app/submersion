@@ -14535,6 +14535,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'Was geplaatst in';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'Uitrusting dupliceren';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'Uitrusting bewerken';
 
   @override
@@ -15131,6 +15134,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'Sorteren';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (kopie)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'Gedupliceerd, maar sommige serviceintervallen, sets of documenten konden niet worden gekopieerd.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'Uitrusting gedupliceerd';
+
+  @override
+  String get equipment_menu_clone => 'Dupliceren';
 
   @override
   String get equipment_menu_delete => 'Verwijderen';

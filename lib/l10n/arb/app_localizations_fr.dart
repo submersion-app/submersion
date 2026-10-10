@@ -14675,6 +14675,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'Était installé dans';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'Dupliquer l\'équipement';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'Modifier l\'équipement';
 
   @override
@@ -15272,6 +15275,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'Trier';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (copie)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'Dupliqué, mais certains compteurs d\'entretien, ensembles ou documents n\'ont pas pu être copiés.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'Équipement dupliqué';
+
+  @override
+  String get equipment_menu_clone => 'Dupliquer';
 
   @override
   String get equipment_menu_delete => 'Supprimer';

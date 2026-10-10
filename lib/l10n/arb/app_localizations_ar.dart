@@ -14820,6 +14820,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'كان مركّبًا في';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'استنساخ المعدات';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'تعديل المعدات';
 
   @override
@@ -15433,6 +15436,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'ترتيب';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (نسخة)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'تم الاستنساخ، لكن تعذّر نسخ بعض عدادات الصيانة أو المجموعات أو المستندات.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'تم استنساخ المعدات';
+
+  @override
+  String get equipment_menu_clone => 'استنساخ';
 
   @override
   String get equipment_menu_delete => 'حذف';

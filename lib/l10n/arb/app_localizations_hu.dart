@@ -14586,6 +14586,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'Korábban beszerelve ebbe';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'Felszerelés duplikálása';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'Felszerelés szerkesztése';
 
   @override
@@ -15184,6 +15187,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'Rendezés';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (másolat)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'Duplikálva, de néhány szervizintervallumot, csoportot vagy dokumentumot nem sikerült átmásolni.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'Felszerelés duplikálva';
+
+  @override
+  String get equipment_menu_clone => 'Duplikálás';
 
   @override
   String get equipment_menu_delete => 'Törlés';

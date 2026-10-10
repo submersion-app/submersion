@@ -14632,6 +14632,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'Estuvo instalado en';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'Duplicar equipo';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'Editar equipo';
 
   @override
@@ -15225,6 +15228,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'Ordenar';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (copia)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'Duplicado, pero no se pudieron copiar algunos intervalos de mantenimiento, conjuntos o documentos.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'Equipo duplicado';
+
+  @override
+  String get equipment_menu_clone => 'Duplicar';
 
   @override
   String get equipment_menu_delete => 'Eliminar';
