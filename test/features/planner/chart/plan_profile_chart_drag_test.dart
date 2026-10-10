@@ -98,6 +98,21 @@ void main() {
       expect(paintedGeometry(tester).maxTimeSeconds, startMaxTime);
     }
 
+    // Handles dragged past the frozen axes stay off the axis labels.
+    final overlayClip = tester.widget<ClipRect>(
+      find
+          .ancestor(
+            of: find.byKey(const Key('planChartOverlay')),
+            matching: find.byType(ClipRect),
+          )
+          .first,
+    );
+    expect(overlayClip.clipBehavior, Clip.hardEdge);
+    expect(
+      overlayClip.clipper!.getClip(s.rect.size),
+      s.geometry.plotRect.inflate(8),
+    );
+
     final ordered = List<PlanSegment>.from(
       s.container.read(divePlanNotifierProvider).segments,
     )..sort((a, b) => a.order.compareTo(b.order));

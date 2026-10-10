@@ -505,8 +505,14 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                             children: [
                               Positioned.fill(
                                 // A handle dragged past the frozen axes
-                                // must not paint over neighbouring panels.
+                                // must not paint over the axis labels or
+                                // neighbouring panels. The margin keeps a
+                                // handle on the plot edge (a surface
+                                // waypoint) whole.
                                 child: ClipRect(
+                                  clipper: _PlotClipper(
+                                    geometry.plotRect.inflate(8),
+                                  ),
                                   clipBehavior: frozen == null
                                       ? Clip.none
                                       : Clip.hardEdge,
