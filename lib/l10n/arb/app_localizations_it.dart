@@ -3354,7 +3354,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'Data di rilascio';
 
   @override
-  String get certifications_detail_label_type => 'Tipo';
+  String get certifications_detail_label_title => 'Titolo';
 
   @override
   String get certifications_detail_label_validity => 'Validità';
@@ -3690,7 +3690,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Lascia vuoto per certificazioni senza scadenza';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'Facoltativo';
+  String get certifications_edit_helper_title =>
+      'Facoltativo. Lascia vuoto per usare la certificazione';
 
   @override
   String get certifications_edit_hint_cardNumber =>
@@ -3851,10 +3852,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'Data di rilascio';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'Nome sulla tessera';
+  String get certifications_edit_label_notes => 'Note';
 
   @override
-  String get certifications_edit_label_notes => 'Note';
+  String get certifications_edit_label_title => 'Titolo della certificazione';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3915,8 +3916,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Certificazione aggiornata con successo';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'Scegli una certificazione o inserisci un nome';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'Scegli una certificazione o inserisci un titolo';
 
   @override
   String get certifications_list_button_retry => 'Riprova';
@@ -12917,6 +12918,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_sortField_status => 'Stato';
+
+  @override
+  String get enum_sortField_title => 'Titolo';
 
   @override
   String get enum_sortField_type => 'Tipo';
@@ -38032,7 +38036,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'Note';
 
   @override
-  String get enum_certificationField_certName => 'Nome';
+  String get enum_certificationField_certName => 'Titolo';
 
   @override
   String get enum_certificationField_agency => 'Agenzia';
@@ -38062,7 +38066,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_certificationField_notes => 'Note';
 
   @override
-  String get enum_certificationField_certName_short => 'Nome';
+  String get enum_certificationField_certName_short => 'Titolo';
 
   @override
   String get enum_certificationField_agency_short => 'Agenzia';

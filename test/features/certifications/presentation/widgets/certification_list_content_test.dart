@@ -402,8 +402,10 @@ void main() {
       );
       await tester.pump();
 
-      // Verify column headers appear (displayName values)
-      expect(find.text('Name'), findsWidgets);
+      // Verify column headers appear (localized labels). The title column
+      // says Title, not Name, so it cannot read as the diver's name (#3195).
+      expect(find.text('Title'), findsWidgets);
+      expect(find.text('Name'), findsNothing);
       expect(find.text('Agency'), findsOneWidget);
       expect(find.text('Certification'), findsOneWidget);
       expect(find.text('Issue Date'), findsOneWidget);

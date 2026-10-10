@@ -3184,7 +3184,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_detail_label_issueDate => '签发日期';
 
   @override
-  String get certifications_detail_label_type => '类型';
+  String get certifications_detail_label_title => '标题';
 
   @override
   String get certifications_detail_label_validity => '有效期';
@@ -3496,7 +3496,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_help_expiryDate => '不会过期的证书请留空';
 
   @override
-  String get certifications_edit_helper_nameOnCard => '可选';
+  String get certifications_edit_helper_title => '可选。留空则使用所选证书';
 
   @override
   String get certifications_edit_hint_cardNumber => '输入证书卡号';
@@ -3641,10 +3641,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_label_issueDate => '签发日期';
 
   @override
-  String get certifications_edit_label_nameOnCard => '卡片上的名称';
+  String get certifications_edit_label_notes => '备注';
 
   @override
-  String get certifications_edit_label_notes => '备注';
+  String get certifications_edit_label_title => '证书标题';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3701,8 +3701,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_edit_snackBar_updated => '证书更新成功';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      '请选择证书或输入名称';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      '请选择证书或输入标题';
 
   @override
   String get certifications_list_button_retry => '重试';
@@ -12312,6 +12312,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_sortField_status => '状态';
+
+  @override
+  String get enum_sortField_title => '标题';
 
   @override
   String get enum_sortField_type => '类型';
@@ -35925,7 +35928,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_diveCenterField_notes_short => '备注';
 
   @override
-  String get enum_certificationField_certName => '名称';
+  String get enum_certificationField_certName => '标题';
 
   @override
   String get enum_certificationField_agency => '机构';
@@ -35955,7 +35958,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_certificationField_notes => '备注';
 
   @override
-  String get enum_certificationField_certName_short => '名称';
+  String get enum_certificationField_certName_short => '标题';
 
   @override
   String get enum_certificationField_agency_short => '机构';

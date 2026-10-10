@@ -3347,7 +3347,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'Kiadás dátuma';
 
   @override
-  String get certifications_detail_label_type => 'Típus';
+  String get certifications_detail_label_title => 'Cím';
 
   @override
   String get certifications_detail_label_validity => 'Érvényesség';
@@ -3677,7 +3677,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hagyja üresen a le nem járó képesítéseknél';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'Nem kötelező';
+  String get certifications_edit_helper_title =>
+      'Nem kötelező. Hagyja üresen a képesítés használatához';
 
   @override
   String get certifications_edit_hint_cardNumber =>
@@ -3837,10 +3838,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'Kiadás dátuma';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'Név a kártyán';
+  String get certifications_edit_label_notes => 'Megjegyzések';
 
   @override
-  String get certifications_edit_label_notes => 'Megjegyzések';
+  String get certifications_edit_label_title => 'Képesítés címe';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3901,8 +3902,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Tanúsítvány sikeresen frissítve';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'Válasszon képesítést, vagy adjon meg egy nevet';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'Válasszon képesítést, vagy adjon meg egy címet';
 
   @override
   String get certifications_list_button_retry => 'Újrapróba';
@@ -12883,6 +12884,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_sortField_status => 'Állapot';
+
+  @override
+  String get enum_sortField_title => 'Cím';
 
   @override
   String get enum_sortField_type => 'Típus';
@@ -37824,7 +37828,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'Jegyz.';
 
   @override
-  String get enum_certificationField_certName => 'Név';
+  String get enum_certificationField_certName => 'Cím';
 
   @override
   String get enum_certificationField_agency => 'Szervezet';
@@ -37854,7 +37858,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_certificationField_notes => 'Jegyzetek';
 
   @override
-  String get enum_certificationField_certName_short => 'Név';
+  String get enum_certificationField_certName_short => 'Cím';
 
   @override
   String get enum_certificationField_agency_short => 'Szerv.';

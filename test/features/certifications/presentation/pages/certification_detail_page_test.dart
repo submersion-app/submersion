@@ -365,20 +365,21 @@ void main() {
     ) async {
       await pumpCert(tester, make('d1', 'PADI : Open Water'));
 
-      // The Certification row is present, the redundant Type row is not, and
+      // The Certification row is present, the redundant Title row is not, and
       // the legacy stored string is never shown verbatim.
       expect(find.text('Certification'), findsOneWidget);
-      expect(find.text('Type'), findsNothing);
+      expect(find.text('Title'), findsNothing);
       expect(find.text('PADI : Open Water'), findsNothing);
     });
 
     testWidgets('a custom name renders both rows', (tester) async {
       await pumpCert(tester, make('d2', 'Bali OW w/ Made'));
 
-      // The custom name is the page's title as well as its Type row, so it
+      // The custom name is the page's title as well as its Title row, so it
       // appears more than once; what matters is that the Certification row
       // still carries the level separately.
       expect(find.text('Bali OW w/ Made'), findsWidgets);
+      expect(find.text('Title'), findsOneWidget);
       expect(find.text('Open Water'), findsOneWidget);
     });
   });
@@ -466,7 +467,7 @@ void main() {
 
   group('detail rows on a phone-width screen', () {
     // Issue #2695: a long certification name took the row's width and
-    // squeezed the Type label onto several lines (or overflowed the row).
+    // squeezed its label onto several lines (or overflowed the row).
     const longName = 'CCR Normoxic Plus 70m MOD2';
 
     Future<void> pumpOnPhone(WidgetTester tester, Certification cert) async {
@@ -508,7 +509,7 @@ void main() {
           matching: matching,
         );
 
-    testWidgets('a long name wraps while the Type label stays on one line', (
+    testWidgets('a long name wraps while the Title label stays on one line', (
       tester,
     ) async {
       await pumpOnPhone(
@@ -526,8 +527,8 @@ void main() {
 
       // A single-line label in the same card is the height to match.
       final oneLine = tester.getSize(find.text('Agency')).height;
-      final label = inRow('Type', longName, find.text('Type'));
-      final value = inRow('Type', longName, find.text(longName));
+      final label = inRow('Title', longName, find.text('Title'));
+      final value = inRow('Title', longName, find.text(longName));
 
       expect(tester.getSize(label).height, oneLine);
       expect(tester.getSize(value).height, greaterThan(oneLine));

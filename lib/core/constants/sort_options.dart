@@ -108,7 +108,7 @@ enum DiveCenterSortField {
 
 /// Sort fields for Certifications
 enum CertificationSortField {
-  name('Name', Icons.sort_by_alpha),
+  name('Title', Icons.sort_by_alpha),
   dateIssued('Date Issued', Icons.calendar_today),
   agency('Agency', Icons.business);
 

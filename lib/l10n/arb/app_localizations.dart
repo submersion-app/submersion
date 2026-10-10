@@ -5195,11 +5195,11 @@ abstract class AppLocalizations {
   /// **'Issue Date'**
   String get certifications_detail_label_issueDate;
 
-  /// No description provided for @certifications_detail_label_type.
+  /// No description provided for @certifications_detail_label_title.
   ///
   /// In en, this message translates to:
-  /// **'Type'**
-  String get certifications_detail_label_type;
+  /// **'Title'**
+  String get certifications_detail_label_title;
 
   /// No description provided for @certifications_detail_label_validity.
   ///
@@ -5732,11 +5732,11 @@ abstract class AppLocalizations {
   /// **'Leave empty for certifications that don\'t expire'**
   String get certifications_edit_help_expiryDate;
 
-  /// No description provided for @certifications_edit_helper_nameOnCard.
+  /// No description provided for @certifications_edit_helper_title.
   ///
   /// In en, this message translates to:
-  /// **'Optional'**
-  String get certifications_edit_helper_nameOnCard;
+  /// **'Optional. Leave blank to use the certification'**
+  String get certifications_edit_helper_title;
 
   /// No description provided for @certifications_edit_hint_cardNumber.
   ///
@@ -5978,17 +5978,17 @@ abstract class AppLocalizations {
   /// **'Issue Date'**
   String get certifications_edit_label_issueDate;
 
-  /// No description provided for @certifications_edit_label_nameOnCard.
-  ///
-  /// In en, this message translates to:
-  /// **'Name on card'**
-  String get certifications_edit_label_nameOnCard;
-
   /// No description provided for @certifications_edit_label_notes.
   ///
   /// In en, this message translates to:
   /// **'Notes'**
   String get certifications_edit_label_notes;
+
+  /// No description provided for @certifications_edit_label_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification title'**
+  String get certifications_edit_label_title;
 
   /// No description provided for @certifications_edit_photo_addSemanticLabel.
   ///
@@ -6074,11 +6074,11 @@ abstract class AppLocalizations {
   /// **'Certification updated successfully'**
   String get certifications_edit_snackBar_updated;
 
-  /// No description provided for @certifications_edit_validation_certificationOrNameRequired.
+  /// No description provided for @certifications_edit_validation_certificationOrTitleRequired.
   ///
   /// In en, this message translates to:
-  /// **'Choose a certification or enter a name'**
-  String get certifications_edit_validation_certificationOrNameRequired;
+  /// **'Choose a certification or enter a title'**
+  String get certifications_edit_validation_certificationOrTitleRequired;
 
   /// No description provided for @certifications_list_button_retry.
   ///
@@ -20976,6 +20976,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get enum_sortField_status;
+
+  /// No description provided for @enum_sortField_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get enum_sortField_title;
 
   /// No description provided for @enum_sortField_type.
   ///
@@ -60341,7 +60347,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_certificationField_certName.
   ///
   /// In en, this message translates to:
-  /// **'Name'**
+  /// **'Title'**
   String get enum_certificationField_certName;
 
   /// No description provided for @enum_certificationField_agency.
@@ -60401,7 +60407,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_certificationField_certName_short.
   ///
   /// In en, this message translates to:
-  /// **'Name'**
+  /// **'Title'**
   String get enum_certificationField_certName_short;
 
   /// No description provided for @enum_certificationField_agency_short.

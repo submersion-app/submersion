@@ -3357,7 +3357,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'Ausstellungsdatum';
 
   @override
-  String get certifications_detail_label_type => 'Typ';
+  String get certifications_detail_label_title => 'Titel';
 
   @override
   String get certifications_detail_label_validity => 'Gültigkeit';
@@ -3691,7 +3691,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Leer lassen für Zertifizierungen ohne Ablaufdatum';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'Optional';
+  String get certifications_edit_helper_title =>
+      'Optional. Leer lassen, um die Zertifizierung zu verwenden';
 
   @override
   String get certifications_edit_hint_cardNumber =>
@@ -3853,10 +3854,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'Ausstellungsdatum';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'Name auf der Karte';
+  String get certifications_edit_label_notes => 'Notizen';
 
   @override
-  String get certifications_edit_label_notes => 'Notizen';
+  String get certifications_edit_label_title => 'Titel der Zertifizierung';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3917,8 +3918,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zertifizierung erfolgreich aktualisiert';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'Wählen Sie eine Zertifizierung oder geben Sie einen Namen ein';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'Wählen Sie eine Zertifizierung oder geben Sie einen Titel ein';
 
   @override
   String get certifications_list_button_retry => 'Erneut versuchen';
@@ -12913,6 +12914,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_sortField_status => 'Status';
+
+  @override
+  String get enum_sortField_title => 'Titel';
 
   @override
   String get enum_sortField_type => 'Typ';
@@ -37957,7 +37961,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'Notizen';
 
   @override
-  String get enum_certificationField_certName => 'Name';
+  String get enum_certificationField_certName => 'Titel';
 
   @override
   String get enum_certificationField_agency => 'Verband';
@@ -37987,7 +37991,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_certificationField_notes => 'Notizen';
 
   @override
-  String get enum_certificationField_certName_short => 'Name';
+  String get enum_certificationField_certName_short => 'Titel';
 
   @override
   String get enum_certificationField_agency_short => 'Verband';

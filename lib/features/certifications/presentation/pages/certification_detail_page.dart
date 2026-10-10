@@ -523,7 +523,7 @@ class _CertificationDetailContent extends ConsumerWidget {
                 null)
               IconDetailRow(
                 icon: Icons.card_membership,
-                label: context.l10n.certifications_detail_label_type,
+                label: context.l10n.certifications_detail_label_title,
                 value: customNameOrNull(
                   certification,
                   catalog: context.certificationCatalog,

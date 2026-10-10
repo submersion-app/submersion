@@ -983,8 +983,10 @@ void main() {
           await tester.pumpAndSettle();
 
           expect(find.text('VISIBLE COLUMNS'), findsOneWidget);
-          // CertificationField.certName displayName is 'Name'
-          expect(find.text('Name'), findsAtLeastNWidgets(1));
+          // CertificationField.certName holds the certification's title, so
+          // its column is labelled Title, not Name (#3195).
+          expect(find.text('Title'), findsAtLeastNWidgets(1));
+          expect(find.text('Name'), findsNothing);
         },
       );
 

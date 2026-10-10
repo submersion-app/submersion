@@ -70,7 +70,7 @@ void main() {
   Finder levelDropdown() =>
       find.byType(DropdownButtonFormField<CertificationOption>);
 
-  // The "Name on card" hint renders the derived title, so a bare find.text
+  // The "Certification title" hint renders the derived title, so a bare find.text
   // for a certification matches both the dropdown and the hint. Scope to the
   // dropdown when asserting what is selected.
   Finder selectedCertification(String label) =>

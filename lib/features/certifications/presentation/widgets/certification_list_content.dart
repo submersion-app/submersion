@@ -203,6 +203,7 @@ class _CertificationListContentState
     final visibleCerts = applyCertificationSorting(
       certificationsAsync.value ?? const [],
       sort,
+      l10n: context.l10n,
       catalog: context.certificationCatalog,
     );
     final visibleIds = visibleCerts.map((c) => c.id).toList();
@@ -222,6 +223,7 @@ class _CertificationListContentState
             final sorted = applyCertificationSorting(
               certifications,
               sort,
+              l10n: context.l10n,
               catalog: context.certificationCatalog,
             );
             return sorted.isEmpty

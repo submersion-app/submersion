@@ -290,7 +290,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // The sort bottom sheet should appear with sort field options
-      expect(find.text('Name'), findsOneWidget);
+      expect(find.text('Title'), findsOneWidget);
       expect(find.text('Date Issued'), findsOneWidget);
       expect(find.text('Agency'), findsOneWidget);
     });
