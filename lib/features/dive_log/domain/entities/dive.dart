@@ -443,7 +443,8 @@ class Dive extends Equatable {
 
   /// RMV: respiratory minute volume in L/min at the surface under [model],
   /// summing gas consumed across every tank that has pressures and a volume.
-  /// A sidemount cylinder with no volume borrows its partner's (#3109).
+  /// A cylinder with no volume borrows its matched partner's, a sidemount
+  /// pair or back-gas doubles on one gas (#3109).
   ///
   /// This is the diver's property (how much gas their lungs move), so every
   /// cylinder counts. Its pressure-lane sibling [sac] is expressed in bar of

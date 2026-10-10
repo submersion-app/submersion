@@ -154,11 +154,16 @@ void main() {
     });
   });
 
-  group('RMV borrows a sidemount partner volume', () {
-    Future<double> rmvOfPair({required double? rightVolume}) async {
+  group('RMV borrows a matched partner volume', () {
+    Future<double> rmvOfPair({
+      required double? rightVolume,
+      String leftRole = 'sidemountLeft',
+      String rightRole = 'sidemountRight',
+      double rightO2 = 21.0,
+    }) async {
       await insertDive('rmv');
-      await insertTank('rmv', 0, 'sidemountLeft', volume: 11.1);
-      await insertTank('rmv', 1, 'sidemountRight', volume: rightVolume);
+      await insertTank('rmv', 0, leftRole, volume: 11.1);
+      await insertTank('rmv', 1, rightRole, volume: rightVolume, o2: rightO2);
       final value = (await repository.getSacVolumePerDive()).single.value;
       final records = await repository.getSacVolumeRecords();
       expect(records.best!.value, closeTo(value, 1e-9));
@@ -171,6 +176,34 @@ void main() {
       final borrowed = await rmvOfPair(rightVolume: null);
       final sized = await rmvOfPair(rightVolume: 11.1);
       expect(borrowed, closeTo(sized, 1e-9));
+    });
+
+    test('back-gas doubles on one gas borrow like a sidemount pair', () async {
+      final borrowed = await rmvOfPair(
+        rightVolume: null,
+        leftRole: 'backGas',
+        rightRole: 'backGas',
+      );
+      final sized = await rmvOfPair(
+        rightVolume: 11.1,
+        leftRole: 'backGas',
+        rightRole: 'backGas',
+      );
+      expect(borrowed, closeTo(sized, 1e-9));
+    });
+
+    test('back gas on a different gas does not borrow', () async {
+      await insertDive('mix');
+      await insertTank('mix', 0, 'backGas', volume: 12);
+      await insertTank('mix', 1, 'backGas', o2: 50);
+
+      final byRole = await repository.getSacVolumeByTankRole();
+      final alone = byRole['backGas']!;
+      await db.customStatement("DELETE FROM dive_tanks WHERE id = 'mix-1'");
+      expect(
+        (await repository.getSacVolumeByTankRole())['backGas'],
+        closeTo(alone, 1e-9),
+      );
     });
 
     test('the by-role average includes the unsized cylinder', () async {

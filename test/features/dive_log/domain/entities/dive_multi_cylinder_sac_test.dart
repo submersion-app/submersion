@@ -132,7 +132,7 @@ void main() {
     });
   });
 
-  group('Dive.rmvFor borrows a sidemount partner volume (#3109)', () {
+  group('Dive.rmvFor borrows a matched partner volume (#3109)', () {
     test('counts the partner that has no volume of its own', () {
       final partial = _dive([
         _tank('l', TankRole.sidemountLeft, volume: 11.1),
@@ -145,6 +145,39 @@ void main() {
       expect(
         partial.rmvFor(GasModel.real),
         closeTo(complete.rmvFor(GasModel.real)!, 1e-9),
+      );
+    });
+
+    test('back-gas doubles on one gas borrow the partner volume', () {
+      final partial = _dive([
+        _tank('a', TankRole.backGas, volume: 12),
+        _tank('b', TankRole.backGas, end: 140),
+      ]);
+      final complete = _dive([
+        _tank('a', TankRole.backGas, volume: 12),
+        _tank('b', TankRole.backGas, volume: 12, end: 140),
+      ]);
+      expect(
+        partial.rmvFor(GasModel.real),
+        closeTo(complete.rmvFor(GasModel.real)!, 1e-9),
+      );
+    });
+
+    test('back gas on a different gas does not borrow', () {
+      final withDeco = _dive([
+        _tank('a', TankRole.backGas, volume: 12),
+        const DiveTank(
+          id: 'deco',
+          role: TankRole.backGas,
+          gasMix: GasMix(o2: 50),
+          startPressure: 200,
+          endPressure: 140,
+        ),
+      ]);
+      final alone = _dive([_tank('a', TankRole.backGas, volume: 12)]);
+      expect(
+        withDeco.rmvFor(GasModel.real),
+        closeTo(alone.rmvFor(GasModel.real)!, 1e-9),
       );
     });
 

@@ -6,17 +6,22 @@ library;
 const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
 
 /// The consumption volume of the `dive_tanks` row aliased [tank], in
-/// liters: its own volume, else for a sidemount cylinder the volume of the
-/// first other sidemount cylinder of the dive that has one. NULL when
-/// neither is known. Mirrors `consumptionVolume`.
+/// liters: its own volume, else the volume of the first other cylinder of
+/// the dive that forms a matched pair with it (both sidemount, or both
+/// back gas on the same gas). NULL when neither is known. Mirrors
+/// `consumptionVolume`.
 String consumptionVolumeSql(String tank) {
   final partner = '${tank}_partner';
-  return '(CASE WHEN $tank.volume > 0 THEN $tank.volume '
-      'WHEN $tank.tank_role IN $_sidemountRolesSql THEN ('
+  return '(CASE WHEN $tank.volume > 0 THEN $tank.volume ELSE ('
       'SELECT $partner.volume FROM dive_tanks $partner '
       'WHERE $partner.dive_id = $tank.dive_id AND $partner.id <> $tank.id '
-      'AND $partner.tank_role IN $_sidemountRolesSql '
       'AND $partner.volume > 0 '
+      'AND (($tank.tank_role IN $_sidemountRolesSql '
+      'AND $partner.tank_role IN $_sidemountRolesSql) '
+      "OR ($tank.tank_role = 'backGas' "
+      "AND $partner.tank_role = 'backGas' "
+      'AND ROUND($partner.o2_percent) = ROUND($tank.o2_percent) '
+      'AND ROUND($partner.he_percent) = ROUND($tank.he_percent))) '
       'ORDER BY $partner.tank_order, $partner.rowid LIMIT 1) END)';
 }
 

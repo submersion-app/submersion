@@ -13,18 +13,15 @@ const Set<TankRole> sidemountRoles = {
   TankRole.sidemountRight,
 };
 
-/// The volume of [tank] for consumption math, in liters: its own, else for
-/// a sidemount cylinder the volume of another sidemount cylinder of the
-/// dive, since a pair is matched and downloads often size only one of them.
-/// Null when neither is known.
+/// The volume of [tank] for consumption math, in liters: its own, else the
+/// volume of the first other cylinder of the dive that forms a matched pair
+/// with it (see [isMatchedPair]), since a pair is the same size and
+/// downloads often size only one of them. Null when neither is known.
 double? consumptionVolume(DiveTank tank, List<DiveTank> tanks) {
   final own = tank.volume;
   if (own != null && own > 0) return own;
-  if (!sidemountRoles.contains(tank.role)) return null;
   for (final other in tanks) {
-    if (identical(other, tank) || !sidemountRoles.contains(other.role)) {
-      continue;
-    }
+    if (identical(other, tank) || !isMatchedPair(tank, other)) continue;
     final volume = other.volume;
     if (volume != null && volume > 0) return volume;
   }
