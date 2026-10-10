@@ -510,5 +510,35 @@ void main() {
       final counts = await repo.countBySourceType();
       expect(counts[MediaSourceType.localFile], 7);
     });
+
+    test('getMissingRows still hands missing documents to repair', () async {
+      // The repair wizard and the watched-folder scanner relink every broken
+      // row, documents included. They must not inherit the gallery's
+      // exclusion, or a moved invoice could never be repaired.
+      await insertMedia(
+        'sig-missing',
+        DateTime(2026, 6, 12, 11, 30),
+        diveId: 'dive-1',
+        mediaType: MediaType.instructorSignature,
+        sourceType: MediaSourceType.signature,
+        isOrphaned: true,
+      );
+      await insertMedia(
+        'other-diver-missing',
+        DateTime(2026, 7, 2),
+        diveId: 'dive-other',
+        isOrphaned: true,
+      );
+
+      final rows = await repo.getMissingRows(diverId: 'd1');
+      expect(rows.map((r) => r.id).toSet(), {'orphaned-1', 'doc-missing'});
+
+      final everyone = await repo.getMissingRows(diverId: null);
+      expect(everyone.map((r) => r.id).toSet(), {
+        'orphaned-1',
+        'doc-missing',
+        'other-diver-missing',
+      });
+    });
   });
 }

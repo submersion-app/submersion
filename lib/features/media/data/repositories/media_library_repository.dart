@@ -72,14 +72,17 @@ class MediaLibraryRepository {
   Expression<bool> get _galleryRow =>
       _db.media.fileType.isNotIn(_nonGalleryFileTypes);
 
+  /// Dive-linked rows belong to their dive's diver; unlinked and site-only
+  /// rows are diver-global. Needs `dives` joined on `media.dive_id`.
+  Expression<bool> _diverScope(String? diverId) => diverId == null
+      ? const Constant(true)
+      : _db.media.diveId.isNull() | _db.dives.diverId.equals(diverId);
+
   Expression<bool> _baseWhere(String? diverId, MediaLibraryFilter filter) {
     final m = _db.media;
     final d = _db.dives;
 
-    Expression<bool> where = _galleryRow;
-    if (diverId != null) {
-      where = where & (m.diveId.isNull() | d.diverId.equals(diverId));
-    }
+    Expression<bool> where = _galleryRow & _diverScope(diverId);
     final type = filter.mediaType;
     if (type != null) {
       where = where & m.fileType.equals(mediaTypeToDbString(type));
@@ -316,6 +319,39 @@ class MediaLibraryRepository {
     final count = countAll(filter: m.isOrphaned.equals(true) & _galleryRow);
     final row = await (_db.selectOnly(m)..addColumns([count])).getSingle();
     return row.read(count) ?? 0;
+  }
+
+  /// Every missing row in [diverId]'s scope, documents included, for the
+  /// repair wizard and the watched-folder scanner.
+  ///
+  /// Not [getPage] with the missing filter: that is the gallery's view and
+  /// leaves documents out (#3052), but a moved invoice needs relinking just
+  /// as much as a moved photo. Signatures stay out, as they do everywhere.
+  /// Unpaged because both callers want the whole backlog at once.
+  Future<List<MediaItem>> getMissingRows({required String? diverId}) async {
+    try {
+      final m = _db.media;
+      final d = _db.dives;
+      final query =
+          _db.select(m).join([
+              leftOuterJoin(d, d.id.equalsExp(m.diveId), useColumns: false),
+            ])
+            ..where(
+              m.fileType.isNotIn(kSignatureFileTypes) &
+                  m.isOrphaned.equals(true) &
+                  _diverScope(diverId),
+            )
+            ..orderBy([OrderingTerm.desc(_dateKey), OrderingTerm.desc(m.id)]);
+      final rows = await query.get();
+      return rows.map((row) => mediaItemFromRow(row.readTable(m))).toList();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get missing media rows',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   /// Photo and video rows only: documents have nothing to show on a map and
