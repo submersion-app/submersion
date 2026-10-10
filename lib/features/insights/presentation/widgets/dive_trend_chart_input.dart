@@ -78,16 +78,13 @@ class _TrendChartInputLayerState extends State<TrendChartInputLayer> {
 
   /// Emits [next] unless it shows the same window as the current viewport,
   /// so a step clamped to a no-op (a wheel out at zoom 1, a pan past an
-  /// edge) neither rebuilds the chart nor reports a new range.
+  /// edge) does not rebuild the chart.
   void _emit(ChartViewport next) {
-    if (_sameWindow(next, _current)) return;
+    if (next.sameWindowAs(_current)) return;
     _current = next;
     _navigated = true;
     widget.onViewportChanged(next);
   }
-
-  static bool _sameWindow(ChartViewport a, ChartViewport b) =>
-      a.zoom == b.zoom && a.offsetX == b.offsetX && a.offsetY == b.offsetY;
 
   void _settle() {
     if (!_navigated) return;

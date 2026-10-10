@@ -63,6 +63,27 @@ void main() {
     expect(reported?.preset, TrendRangePreset.custom);
   });
 
+  testWidgets('a strip drag past the latest dive reports nothing', (
+    tester,
+  ) async {
+    TrendRange? reported;
+    await tester.pumpWidget(
+      host(
+        DiveTrendChart(
+          points: weekly(209),
+          range: year1,
+          onRangeChanged: (r) => reported = r,
+        ),
+      ),
+    );
+    final before = tester.widget<LineChart>(find.byType(LineChart)).data.minX;
+    await tester.dragFrom(stripAt(tester, 0.875), const Offset(60, 0));
+    await tester.pump();
+    final after = tester.widget<LineChart>(find.byType(LineChart)).data.minX;
+    expect(after, before);
+    expect(reported, isNull);
+  });
+
   testWidgets('widening the window to everything reports All and hides it', (
     tester,
   ) async {
