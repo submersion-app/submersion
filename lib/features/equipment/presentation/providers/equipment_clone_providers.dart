@@ -4,6 +4,7 @@ import 'package:submersion/features/equipment/data/services/equipment_clone_serv
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 
 /// Copies a clone's clocks, sets and documents (issue #3184).
@@ -24,12 +25,16 @@ final cloneSourceProvider = FutureProvider.family<EquipmentItem?, String>((
   ref,
   id,
 ) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  // Visibility reads the item's owner and its shares: a share granted or
+  // revoked while the form is open must re-decide it.
+  ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  ref.invalidateSelfWhen(
+    ref.watch(equipmentShareRepositoryProvider).watchChanges(),
+  );
   final item = await ref.watch(equipmentItemProvider(id).future);
   if (item == null) return null;
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   if (diverId == null) return item;
-  final visible = await ref
-      .watch(equipmentRepositoryProvider)
-      .isVisibleTo(id, diverId);
-  return visible ? item : null;
+  return await repository.isVisibleTo(id, diverId) ? item : null;
 });
