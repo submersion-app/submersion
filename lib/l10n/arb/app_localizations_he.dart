@@ -12624,6 +12624,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_sortField_status => 'סטטוס';
 
   @override
+  String get enum_sortField_title => 'כותרת';
+
+  @override
   String get enum_sortField_type => 'סוג';
 
   @override

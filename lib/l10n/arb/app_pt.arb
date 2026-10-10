@@ -3900,6 +3900,7 @@
   "enum_sortField_site": "Ponto de Mergulho",
   "enum_sortField_startDate": "Data Inicial",
   "enum_sortField_status": "Status",
+  "enum_sortField_title": "Título",
   "enum_sortField_type": "Tipo",
   "enum_speciesCategory_coral": "Coral",
   "enum_speciesCategory_fish": "Peixe",

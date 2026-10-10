@@ -3798,6 +3798,7 @@
   "enum_sortField_site": "Sito",
   "enum_sortField_startDate": "Data di inizio",
   "enum_sortField_status": "Stato",
+  "enum_sortField_title": "Titolo",
   "enum_sortField_type": "Tipo",
   "enum_speciesCategory_coral": "Corallo",
   "enum_speciesCategory_fish": "Pesce",

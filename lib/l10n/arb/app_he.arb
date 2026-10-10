@@ -3798,6 +3798,7 @@
   "enum_sortField_site": "אתר",
   "enum_sortField_startDate": "תאריך התחלה",
   "enum_sortField_status": "סטטוס",
+  "enum_sortField_title": "כותרת",
   "enum_sortField_type": "סוג",
   "enum_speciesCategory_coral": "אלמוג",
   "enum_speciesCategory_fish": "דג",

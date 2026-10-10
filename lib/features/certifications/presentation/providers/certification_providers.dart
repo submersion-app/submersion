@@ -7,6 +7,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -79,6 +80,16 @@ List<Certification> applyCertificationSorting(
 }) {
   final cat = catalog ?? CertificationCatalog.builtInOnly;
   final sorted = List<Certification>.from(certifications);
+  // The title sort orders by what the list shows (certificationTitle), not
+  // the raw stored name, which is blank for a certification saved without a
+  // custom title and "PADI : ..." for legacy rows. Computed once per
+  // certification rather than on every comparison.
+  final titles = sort.field == CertificationSortField.name
+      ? {
+          for (final c in certifications)
+            c.id: certificationTitle(c, catalog: cat).toLowerCase(),
+        }
+      : const <String, String>{};
 
   sorted.sort((a, b) {
     int comparison;
@@ -89,7 +100,7 @@ List<Certification> applyCertificationSorting(
 
     switch (sort.field) {
       case CertificationSortField.name:
-        comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        comparison = titles[a.id]!.compareTo(titles[b.id]!);
       case CertificationSortField.dateIssued:
         comparison = (a.issueDate ?? DateTime(1900)).compareTo(
           b.issueDate ?? DateTime(1900),

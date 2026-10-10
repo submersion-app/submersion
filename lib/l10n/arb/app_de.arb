@@ -3925,6 +3925,7 @@
   "enum_sortField_site": "Tauchplatz",
   "enum_sortField_startDate": "Startdatum",
   "enum_sortField_status": "Status",
+  "enum_sortField_title": "Titel",
   "enum_sortField_type": "Typ",
   "enum_speciesCategory_coral": "Koralle",
   "enum_speciesCategory_fish": "Fisch",

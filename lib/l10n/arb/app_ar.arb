@@ -3900,6 +3900,7 @@
   "enum_sortField_site": "الموقع",
   "enum_sortField_startDate": "تاريخ البدء",
   "enum_sortField_status": "الحالة",
+  "enum_sortField_title": "العنوان",
   "enum_sortField_type": "النوع",
   "enum_speciesCategory_coral": "مرجان",
   "enum_speciesCategory_fish": "سمك",

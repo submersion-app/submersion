@@ -12875,6 +12875,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_sortField_status => 'Állapot';
 
   @override
+  String get enum_sortField_title => 'Cím';
+
+  @override
   String get enum_sortField_type => 'Típus';
 
   @override

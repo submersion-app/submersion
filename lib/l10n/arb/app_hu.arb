@@ -3798,6 +3798,7 @@
   "enum_sortField_site": "Merülőhely",
   "enum_sortField_startDate": "Kezdés dátuma",
   "enum_sortField_status": "Állapot",
+  "enum_sortField_title": "Cím",
   "enum_sortField_type": "Típus",
   "enum_speciesCategory_coral": "Korall",
   "enum_speciesCategory_fish": "Hal",

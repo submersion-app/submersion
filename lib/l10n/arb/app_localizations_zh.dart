@@ -12303,6 +12303,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_sortField_status => '状态';
 
   @override
+  String get enum_sortField_title => '标题';
+
+  @override
   String get enum_sortField_type => '类型';
 
   @override

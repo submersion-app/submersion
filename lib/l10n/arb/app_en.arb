@@ -7616,6 +7616,7 @@
   "enum_sortField_site": "Site",
   "enum_sortField_startDate": "Start Date",
   "enum_sortField_status": "Status",
+  "enum_sortField_title": "Title",
   "enum_sortField_type": "Type",
   "enum_speciesCategory_coral": "Coral",
   "enum_speciesCategory_fish": "Fish",

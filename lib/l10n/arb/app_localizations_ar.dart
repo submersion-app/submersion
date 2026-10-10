@@ -13053,6 +13053,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_sortField_status => 'الحالة';
 
   @override
+  String get enum_sortField_title => 'العنوان';
+
+  @override
   String get enum_sortField_type => 'النوع';
 
   @override

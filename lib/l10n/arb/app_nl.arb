@@ -3900,6 +3900,7 @@
   "enum_sortField_site": "Duikstek",
   "enum_sortField_startDate": "Startdatum",
   "enum_sortField_status": "Status",
+  "enum_sortField_title": "Titel",
   "enum_sortField_type": "Type",
   "enum_speciesCategory_coral": "Koraal",
   "enum_speciesCategory_fish": "Vis",

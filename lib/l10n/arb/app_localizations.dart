@@ -20959,6 +20959,12 @@ abstract class AppLocalizations {
   /// **'Status'**
   String get enum_sortField_status;
 
+  /// No description provided for @enum_sortField_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get enum_sortField_title;
+
   /// No description provided for @enum_sortField_type.
   ///
   /// In en, this message translates to:

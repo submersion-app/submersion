@@ -12904,6 +12904,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_sortField_status => 'Status';
 
   @override
+  String get enum_sortField_title => 'Titel';
+
+  @override
   String get enum_sortField_type => 'Typ';
 
   @override
