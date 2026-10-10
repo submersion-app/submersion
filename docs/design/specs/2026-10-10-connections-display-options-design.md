@@ -1,6 +1,6 @@
 # Connections: display options, alternative views and node dragging
 
-Part of #2321. Builds on the shipped Connections explorer (PRs #2454, #3006),
+Issue: #3223 (part of #2321). Builds on the shipped Connections explorer (PRs #2454, #3006),
 specified in `2026-09-25-connections-explorer-design.md` and
 `2026-10-05-connections-explorer-story-design.md`.
 
@@ -293,7 +293,7 @@ Pins live only in `ConnectionsLayoutController`, in memory.
   `views/view_mode_button.dart`, `views/table_header_bar.dart`.
 - `connections_page.dart` (601 lines) has its graph-area builder split into
   its own file so the page stays well under the 800-line cap.
-- ARB: new `connections_*` strings in English and all eleven other locales.
+- ARB: new `connections_*` strings in English and all ten other locales (ar, de, es, fr, he, hu, it, nl, pt, zh).
 - User docs: a Connections section in `docs/user/statistics.md` covering the
   views, layouts, display options and dragging.
 
