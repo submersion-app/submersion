@@ -41,6 +41,17 @@ final planOutcomeProvider = Provider<PlanOutcome>((ref) {
   );
 });
 
+/// Whether the plan can be converted to a dive: it has segments and the
+/// engine reports no critical issue. This reads the same [planOutcomeProvider]
+/// issues the results pane and status chips show, so the gate never disagrees
+/// with what the diver sees (issue #3094).
+final planIsValidProvider = Provider<bool>((ref) {
+  final hasSegments = ref.watch(
+    divePlanNotifierProvider.select((s) => s.segments.isNotEmpty),
+  );
+  return hasSegments && ref.watch(planOutcomeProvider).isDiveable;
+});
+
 /// The diver's logged average back-gas SAC in L/min ("from your log");
 /// null when no logged dive carries enough tank data to compute one.
 final loggedAverageSacProvider = FutureProvider<double?>((ref) async {
