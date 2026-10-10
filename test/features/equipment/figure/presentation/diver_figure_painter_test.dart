@@ -20,11 +20,14 @@ void main() {
   const size = Size(424, 400);
   final layout = FigureLayout.forSize(size);
 
-  Future<int Function(Offset)> paint(FigureModel model) async {
+  Future<int Function(Offset)> paint(
+    FigureModel model, {
+    FigurePalette palette = FigurePalette.light,
+  }) async {
     final recorder = PictureRecorder();
     DiverFigurePainter(
       model: model,
-      palette: FigurePalette.light,
+      palette: palette,
     ).paint(Canvas(recorder), size);
     final image = await recorder.endRecording().toImage(424, 400);
     final bytes = (await image.toByteData())!;
@@ -141,6 +144,69 @@ void main() {
       });
     },
   );
+
+  group('rim (issue #3181)', () {
+    const black = 0xFF1C1C1E;
+    const rim = 0xFF938F99;
+    const l = FigurePalette.light;
+    // The light palette's colours on a dark page, so a black item needs a rim.
+    const darkPage = FigurePalette(
+      body: 0xFF6B6B70,
+      bodyShade: 0xFF55555A,
+      gearDark: 0xFF2A2A2E,
+      gearLight: 0xFF8FD3FF,
+      metal: 0xFF9AA3AD,
+      outline: 0xFF1B1B1F,
+      badge: 0xFF0B57D0,
+      onBadge: 0xFFFFFFFF,
+      backdrops: [0xFF1C1B1F],
+      rim: rim,
+    );
+    final blackSuit = composeFigure(const [
+      FigureItemInput(
+        id: 'suit',
+        type: EquipmentType.wetsuit,
+        name: 'suit',
+        attributes: {'color': '#1C1C1E'},
+      ),
+    ]);
+
+    /// The first fully opaque pixel scanning in from the left of the front
+    /// view along figure row [y]: the outer edge of whatever is drawn there.
+    int firstOpaque(int Function(Offset) pixel, double y) {
+      for (var x = 0.0; x < 100; x++) {
+        final c = pixel(layout.toBox(FigureView.front, x, y));
+        if (c >> 24 == 0xFF) return c;
+      }
+      fail('nothing opaque on row $y');
+    }
+
+    testWidgets('a black suit on a dark page is edged with the rim', (
+      tester,
+    ) async {
+      await tester.runAsync(() async {
+        final pixel = await paint(blackSuit, palette: darkPage);
+        // Row 260 crosses the thigh, well below the hands.
+        expect(firstOpaque(pixel, 260), rim);
+        // The suit itself keeps its own colour inside the rim.
+        expect(pixel(layout.toBox(FigureView.front, 92, 130)), black);
+      });
+    });
+
+    testWidgets('the same suit on a light page has no rim', (tester) async {
+      await tester.runAsync(() async {
+        final pixel = await paint(blackSuit, palette: l);
+        expect(firstOpaque(pixel, 260), isNot(rim));
+      });
+    });
+
+    testWidgets('the mannequin is never rimmed', (tester) async {
+      await tester.runAsync(() async {
+        final pixel = await paint(composeFigure(const []), palette: darkPage);
+        expect(firstOpaque(pixel, 260), darkPage.body);
+      });
+    });
+  });
 
   testWidgets(
     'with only one view, the painter draws that view in the single layout',

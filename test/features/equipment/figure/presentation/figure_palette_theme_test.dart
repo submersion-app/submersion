@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
 
 /// The mannequin and the number badges have to read on every theme the app ships.
@@ -43,6 +44,34 @@ void main() {
           greaterThanOrEqualTo(2.0),
         );
       });
+
+      // Issue #3181: a black wetsuit vanished on dark schemes, and white gear
+      // does the same on light ones.
+      final surfaces = [
+        scheme.surface,
+        scheme.surfaceContainerLow,
+        scheme.surfaceContainer,
+      ];
+
+      test('$name: the rim reads on every surface the figure sits on', () {
+        for (final surface in surfaces) {
+          expect(
+            contrastRatio(Color(palette.rim), surface),
+            greaterThanOrEqualTo(3.0),
+          );
+        }
+      });
+
+      test('$name: gear that blends into the page gets a rim', () {
+        final lost = brightness == Brightness.dark
+            ? equipmentColorBlack
+            : equipmentColorWhite;
+        expect(palette.needsRim(_argb(lost)), isTrue);
+      });
+
+      test('$name: gear that reads on the page gets none', () {
+        expect(palette.needsRim(0xFFEF4444), isFalse);
+      });
     }
   }
 
@@ -75,3 +104,5 @@ void main() {
     );
   });
 }
+
+int _argb(String hex) => 0xFF000000 | int.parse(hex.substring(1), radix: 16);
