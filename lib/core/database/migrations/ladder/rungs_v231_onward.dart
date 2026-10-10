@@ -307,5 +307,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertIcdWarningsColumn();
     }
     if (from < 276) await reportProgress();
+    // v277: dives.visibility_min_meters / visibility_max_meters (issue
+    // #3226). Columns only; re-asserted in beforeOpen.
+    if (from < 277) {
+      await _assertVisibilityRangeColumns();
+    }
+    if (from < 277) await reportProgress();
   }
 }
