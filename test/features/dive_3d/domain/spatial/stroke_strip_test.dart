@@ -52,7 +52,10 @@ void main() {
         colorAt: _red,
       );
       expect(mesh.vertexCount, 2 * 6);
-      expect(_pointOf(mesh.positions, 5), [0.01, 0, 0]);
+      final p = _pointOf(mesh.positions, 5);
+      expect(p[0], closeTo(0.01, 1e-6));
+      expect(p[1], 0);
+      expect(p[2], 0);
     });
 
     test('colors come per point and sort heights per vertex', () {

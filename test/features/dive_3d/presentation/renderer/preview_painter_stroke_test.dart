@@ -208,11 +208,16 @@ void main() {
       expect(sy.sublist(6, 8), [0, 1]);
     });
 
-    test('joins a closed line across its seam', () {
-      // A square as the builder emits it: two pairs on every corner, the
-      // closing point doubled onto the first. The seam is a left turn from
-      // south to east like the other three corners, and the first pair
-      // repeats the seam's leaving pair.
+    test('joins a closed line across its seam: the lone opening pair wraps '
+        'around to the last real run', () {
+      // A square: a single pair at the opening point (0, 0), two pairs on
+      // the (10, 0) and (0, 10) corners, a single pair again at (10, 10)
+      // -- exercising both the doubled and the lone-pair corner style in
+      // one polyline -- and the closing point (0, 0) doubled, the way
+      // buildStrokeStrip emits a closed line. Since the opening pair is
+      // not doubled, both its members take the one miter point of the 90
+      // degree seam turn; member 1 of the opening pair and member 1 of the
+      // closing pair's second copy both land on that same point (1, 1).
       final sx = Float32List.fromList([
         0, 0, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
       ]);
@@ -226,17 +231,47 @@ void main() {
         pairCount: 9,
         halfWidthPx: 1,
       );
-      // Seam: arriving leg ends square at (-1, 0), leaving leg starts
-      // square at (0, -1), inner miter shared at (1, 1).
-      expect(sx.sublist(14, 16), [-1, 1]);
-      expect(sy.sublist(14, 16), [0, 1]);
-      expect(sx.sublist(16), [0, 1]);
-      expect(sy.sublist(16), [-1, 1]);
-      expect(sx.sublist(0, 2), [0, 1]);
-      expect(sy.sublist(0, 2), [-1, 1]);
-      // An ordinary corner for comparison.
-      expect(sx.sublist(2, 6), [10, 9, 11, 9]);
-      expect(sy.sublist(2, 6), [-1, 1, 0, 1]);
+      // Verified by running strokeScreenEdges on this exact input.
+      expect(sx, [-1, 1, 10, 9, 11, 9, 11, 9, 0, 1, -1, 1, -1, 1, -1, 1, 0, 1]);
+      expect(sy, [-1, 1, -1, 1, 0, 1, 11, 9, 11, 9, 10, 9, 0, 1, 0, 1, -1, 1]);
+      // The opening pair's inner member and the closing pair's inner
+      // member agree: both are (1, 1).
+      expect(sx[1], sx[17]);
+      expect(sy[1], sy[17]);
+    });
+
+    test('joins a closed line whose opening point is doubled', () {
+      // Same square, but the very first point is sampled twice before the
+      // east leg starts (a stationary sample right at the seam). Pairs 0
+      // and 1 then form one group that wraps the seam like any other
+      // doubled corner: an asymmetric leg-end member each, and the same
+      // shared inner miter point on their other member.
+      final sx = Float32List.fromList([
+        0, 0, 0, 0, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, //
+      ]);
+      final sy = Float32List.fromList([
+        0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 10, 10, 10, 0, 0, 0, 0, 0, 0, //
+      ]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 10,
+        halfWidthPx: 1,
+      );
+      // Verified by running strokeScreenEdges on this exact input.
+      expect(sx, [
+        -1, 1, 0, 1, 10, 9, 11, 9, 11, 9, 0, 1, -1, 1, -1, 1, -1, 1, 0, 1, //
+      ]);
+      expect(sy, [
+        0, 1, -1, 1, -1, 1, 0, 1, 11, 9, 11, 9, 10, 9, 0, 1, 0, 1, -1, 1, //
+      ]);
+      // The shared inner miter (member 1) agrees across the leading
+      // group's two pairs and the closing pair.
+      expect(sx[1], sx[3]);
+      expect(sy[1], sy[3]);
+      expect(sx[3], sx[19]);
+      expect(sy[3], sy[19]);
     });
 
     test('a doubled hairpin keeps each leg at full width with nothing '

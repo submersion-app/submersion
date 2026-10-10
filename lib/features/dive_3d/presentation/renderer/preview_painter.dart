@@ -414,7 +414,7 @@ class Dive3dScenePainter extends CustomPainter {
     // zero-length one.
     final nx = Float32List(runs);
     final ny = Float32List(runs);
-    var firstReal = -1;
+    var firstReal = -1, lastReal = -1;
     for (var j = 0; j < runs; j++) {
       final a = start + j * 2;
       final dx = sx[a + 2] - sx[a];
@@ -424,6 +424,7 @@ class Dive3dScenePainter extends CustomPainter {
       nx[j] = -dy / len;
       ny[j] = dx / len;
       if (firstReal < 0) firstReal = j;
+      lastReal = j;
     }
     // Pair k's first member moves against (ax, ay), its second along
     // (bx, by).
@@ -464,9 +465,6 @@ class Dive3dScenePainter extends CustomPainter {
         pairCount > 2 &&
         (sx[aN] - sx[a0]).abs() <= 1e-6 &&
         (sy[aN] - sy[a0]).abs() <= 1e-6;
-    // The side last used, for a stationary stretch with no real run on
-    // either side of it.
-    var px = nx[firstReal], py = ny[firstReal];
     var k = 0;
     while (k < pairCount) {
       // Pairs k..e sit on one point: the runs between them have no length.
@@ -474,8 +472,17 @@ class Dive3dScenePainter extends CustomPainter {
       while (e < runs && nx[e] == 0 && ny[e] == 0) {
         e++;
       }
-      final inReal = k > 0 && (nx[k - 1] != 0 || ny[k - 1] != 0);
-      final inX = inReal ? nx[k - 1] : 0.0, inY = inReal ? ny[k - 1] : 0.0;
+      // The arriving side: the previous run, or, for the group that opens
+      // the line, the last run wrapping across a closed line's seam.
+      var inReal = k > 0 && (nx[k - 1] != 0 || ny[k - 1] != 0);
+      var inX = inReal ? nx[k - 1] : 0.0, inY = inReal ? ny[k - 1] : 0.0;
+      if (k == 0 && closed) {
+        inReal = true;
+        inX = nx[lastReal];
+        inY = ny[lastReal];
+      }
+      // The leaving side: this run, or, for the group that closes the
+      // line, the first run wrapping across the seam.
       var hasOut = e < runs;
       var outX = hasOut ? nx[e] : 0.0, outY = hasOut ? ny[e] : 0.0;
       if (!hasOut && closed && e == pairCount - 1) {
@@ -504,28 +511,22 @@ class Dive3dScenePainter extends CustomPainter {
           }
           write(e, ex, ey, outX, outY);
         }
-        px = outX;
-        py = outY;
       } else {
-        if (hasOut) {
-          px = outX;
-          py = outY;
-        } else if (inReal) {
-          px = inX;
-          py = inY;
-        }
+        final px = hasOut
+            ? outX
+            : inReal
+            ? inX
+            : 0.0;
+        final py = hasOut
+            ? outY
+            : inReal
+            ? inY
+            : 1.0;
         for (var j = k; j <= e; j++) {
           write(j, px, py, px, py);
         }
       }
       k = e + 1;
-    }
-    if (closed) {
-      // The first pair starts the same leg the seam's last pair does.
-      sx[a0] = sx[aN];
-      sy[a0] = sy[aN];
-      sx[a0 + 1] = sx[aN + 1];
-      sy[a0 + 1] = sy[aN + 1];
     }
   }
 
