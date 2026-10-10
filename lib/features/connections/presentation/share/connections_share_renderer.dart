@@ -146,7 +146,8 @@ abstract final class ConnectionsShareRenderer {
       groupOf: groups.groupOf,
       labels: labels,
       nodeSize: nodeSize,
-      edges: edges,
+      // The image has no selection, so selected-only would draw no lines.
+      edges: edges == EdgeMode.selectedOnly ? EdgeMode.thin : edges,
       kindNames: kindNames,
     ).paint(canvas, mapSize);
     canvas.restore();

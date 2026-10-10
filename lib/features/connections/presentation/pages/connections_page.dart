@@ -240,6 +240,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   /// current highlight mode, captioned with the map's name and range.
   Future<void> _share(
     ConnectionGraph graph,
+    ConnectionGraph drawn,
     ConnectionsViewState view,
     ConnectionsDisplay display,
     BuildContext button,
@@ -268,8 +269,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     return shareConnectionsImage(
       context,
       anchorContext: button,
+      // The image draws what the canvas draws, so node sizes match it.
       render: () => ConnectionsShareRenderer.renderWithAssets(
-        graph: graph,
+        graph: drawn,
         frame: frame,
         highlight: view.highlight,
         groups: groups,
@@ -555,7 +557,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
                 icon: const Icon(Icons.ios_share),
                 tooltip: l10n.connections_share_tooltip,
                 onPressed: showCanvas
-                    ? () => _share(graph, view, display, button)
+                    ? () => _share(graph, canvasGraph, view, display, button)
                     : null,
               ),
             ),
