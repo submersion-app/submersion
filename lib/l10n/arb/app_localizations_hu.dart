@@ -46791,6 +46791,139 @@ class AppLocalizationsHu extends AppLocalizations {
       'A hőmérséklet alakulása nem tölthető be';
 
   @override
+  String get insights_conditions_group_water => 'Víz';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => 'Felszín és időjárás';
+
+  @override
+  String get insights_conditions_group_waterMovement => 'Vízmozgás';
+
+  @override
+  String get insights_conditions_group_siteAccess =>
+      'Merülőhely és megközelítés';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$recorded / $total merülés alapján',
+      one: '$recorded / $total merülés alapján',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error =>
+      'Nem sikerült betölteni az időjárási és körülményadatokat';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title =>
+      'Levegőhőmérséklet alakulása';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle =>
+      'Levegőhőmérséklet minden merülésnél';
+
+  @override
+  String get insights_conditions_airTempTrend_error =>
+      'Nem sikerült betölteni a levegőhőmérsékletet';
+
+  @override
+  String get insights_conditions_airTempBands_title =>
+      'Merülések levegőhőmérséklet szerint';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle =>
+      'Merüléseid megoszlása levegőhőmérséklet-tartományok szerint';
+
+  @override
+  String get insights_conditions_cloudCover_title => 'Felhőzet';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle =>
+      'Az égbolt állapota merüléseid során';
+
+  @override
+  String get insights_conditions_precipitation_title => 'Csapadék';
+
+  @override
+  String get insights_conditions_precipitation_subtitle =>
+      'Eső, hó és egyéb csapadék merüléseid során';
+
+  @override
+  String get insights_conditions_windSpeed_title => 'Szélsebesség';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle =>
+      'Merüléseid megoszlása szélsebesség-tartományok szerint';
+
+  @override
+  String get insights_conditions_windDirection_title => 'Szélirány';
+
+  @override
+  String get insights_conditions_windDirection_subtitle =>
+      'Rögzített szélirány merüléseid során';
+
+  @override
+  String get insights_conditions_humidity_title => 'Páratartalom';
+
+  @override
+  String get insights_conditions_humidity_subtitle =>
+      'Relatív páratartalom merüléseid során';
+
+  @override
+  String get insights_conditions_surfacePressure_title => 'Felszíni nyomás';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle =>
+      'Légnyomás a felszínen merüléseid során';
+
+  @override
+  String get insights_conditions_currentStrength_title => 'Áramlat erőssége';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle =>
+      'Milyen erős volt az áramlat merüléseid során';
+
+  @override
+  String get insights_conditions_currentDirection_title => 'Áramlat iránya';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle =>
+      'Rögzített áramlatirány merüléseid során';
+
+  @override
+  String get insights_conditions_swellHeight_title => 'Hullámmagasság';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle =>
+      'Merüléseid megoszlása hullámmagasság szerint';
+
+  @override
+  String get insights_conditions_altitude_title => 'Magasság';
+
+  @override
+  String get insights_conditions_altitude_subtitle =>
+      'Merülések magassági csoport szerint';
+
+  @override
+  String get insights_conditions_exitMethod_title => 'Kiszállási mód';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle =>
+      'Hogyan hagytad el a vizet';
+
+  @override
   String get insights_conditions_waterTempBands_title =>
       'Merülések vízhőmérséklet szerint';
 

@@ -46739,6 +46739,137 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan het temperatuurverloop niet laden';
 
   @override
+  String get insights_conditions_group_water => 'Water';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => 'Oppervlakte & weer';
+
+  @override
+  String get insights_conditions_group_waterMovement => 'Waterbeweging';
+
+  @override
+  String get insights_conditions_group_siteAccess => 'Stek & toegang';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Gebaseerd op $recorded van $total duiken',
+      one: 'Gebaseerd op $recorded van $total duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error =>
+      'Kan weer- en omstandighedengegevens niet laden';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title =>
+      'Verloop van de luchttemperatuur';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle =>
+      'Luchttemperatuur bij elke duik';
+
+  @override
+  String get insights_conditions_airTempTrend_error =>
+      'Kan luchttemperatuur niet laden';
+
+  @override
+  String get insights_conditions_airTempBands_title =>
+      'Duiken per luchttemperatuur';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle =>
+      'Hoe je duiken verdeeld zijn over luchttemperatuurbereiken';
+
+  @override
+  String get insights_conditions_cloudCover_title => 'Bewolking';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle =>
+      'Hemelomstandigheden tijdens je duiken';
+
+  @override
+  String get insights_conditions_precipitation_title => 'Neerslag';
+
+  @override
+  String get insights_conditions_precipitation_subtitle =>
+      'Regen, sneeuw en andere neerslag tijdens je duiken';
+
+  @override
+  String get insights_conditions_windSpeed_title => 'Windsnelheid';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle =>
+      'Hoe je duiken verdeeld zijn over windsnelheidsbereiken';
+
+  @override
+  String get insights_conditions_windDirection_title => 'Windrichting';
+
+  @override
+  String get insights_conditions_windDirection_subtitle =>
+      'Vastgelegde windrichting tijdens je duiken';
+
+  @override
+  String get insights_conditions_humidity_title => 'Luchtvochtigheid';
+
+  @override
+  String get insights_conditions_humidity_subtitle =>
+      'Relatieve luchtvochtigheid tijdens je duiken';
+
+  @override
+  String get insights_conditions_surfacePressure_title => 'Oppervlaktedruk';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle =>
+      'Luchtdruk aan het oppervlak tijdens je duiken';
+
+  @override
+  String get insights_conditions_currentStrength_title => 'Stromingssterkte';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle =>
+      'Hoe sterk de stroming was tijdens je duiken';
+
+  @override
+  String get insights_conditions_currentDirection_title => 'Stromingsrichting';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle =>
+      'Vastgelegde stromingsrichting tijdens je duiken';
+
+  @override
+  String get insights_conditions_swellHeight_title => 'Deiningshoogte';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle =>
+      'Hoe je duiken verdeeld zijn over deiningshoogtes';
+
+  @override
+  String get insights_conditions_altitude_title => 'Hoogte';
+
+  @override
+  String get insights_conditions_altitude_subtitle => 'Duiken per hoogtegroep';
+
+  @override
+  String get insights_conditions_exitMethod_title => 'Uitstapmethode';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle =>
+      'Hoe je het water verliet';
+
+  @override
   String get insights_conditions_waterTempBands_title =>
       'Duiken per watertemperatuur';
 

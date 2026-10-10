@@ -47052,6 +47052,140 @@ class AppLocalizationsPt extends AppLocalizations {
       'Falha ao carregar a evolução da temperatura';
 
   @override
+  String get insights_conditions_group_water => 'Água';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => 'Superfície e clima';
+
+  @override
+  String get insights_conditions_group_waterMovement => 'Movimento da água';
+
+  @override
+  String get insights_conditions_group_siteAccess => 'Ponto e acesso';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Com base em $recorded de $total mergulhos',
+      one: 'Com base em $recorded de $total mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error =>
+      'Não foi possível carregar os dados de clima e condições';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title =>
+      'Evolução da temperatura do ar';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle =>
+      'Temperatura do ar em cada mergulho';
+
+  @override
+  String get insights_conditions_airTempTrend_error =>
+      'Não foi possível carregar a temperatura do ar';
+
+  @override
+  String get insights_conditions_airTempBands_title =>
+      'Mergulhos por temperatura do ar';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle =>
+      'Como seus mergulhos se distribuem entre faixas de temperatura do ar';
+
+  @override
+  String get insights_conditions_cloudCover_title => 'Cobertura de nuvens';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle =>
+      'Condições do céu nos seus mergulhos';
+
+  @override
+  String get insights_conditions_precipitation_title => 'Precipitação';
+
+  @override
+  String get insights_conditions_precipitation_subtitle =>
+      'Chuva, neve e outras precipitações nos seus mergulhos';
+
+  @override
+  String get insights_conditions_windSpeed_title => 'Velocidade do vento';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle =>
+      'Como seus mergulhos se distribuem entre faixas de velocidade do vento';
+
+  @override
+  String get insights_conditions_windDirection_title => 'Direção do vento';
+
+  @override
+  String get insights_conditions_windDirection_subtitle =>
+      'Direção do vento registrada nos seus mergulhos';
+
+  @override
+  String get insights_conditions_humidity_title => 'Umidade';
+
+  @override
+  String get insights_conditions_humidity_subtitle =>
+      'Umidade relativa nos seus mergulhos';
+
+  @override
+  String get insights_conditions_surfacePressure_title =>
+      'Pressão de superfície';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle =>
+      'Pressão barométrica na superfície nos seus mergulhos';
+
+  @override
+  String get insights_conditions_currentStrength_title => 'Força da corrente';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle =>
+      'Quão forte estava a corrente nos seus mergulhos';
+
+  @override
+  String get insights_conditions_currentDirection_title =>
+      'Direção da corrente';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle =>
+      'Direção da corrente registrada nos seus mergulhos';
+
+  @override
+  String get insights_conditions_swellHeight_title => 'Altura da ondulação';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle =>
+      'Como seus mergulhos se distribuem entre alturas de ondulação';
+
+  @override
+  String get insights_conditions_altitude_title => 'Altitude';
+
+  @override
+  String get insights_conditions_altitude_subtitle =>
+      'Mergulhos por grupo de altitude';
+
+  @override
+  String get insights_conditions_exitMethod_title => 'Método de saída';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle =>
+      'Como você saiu da água';
+
+  @override
   String get insights_conditions_waterTempBands_title =>
       'Mergulhos por temperatura da água';
 

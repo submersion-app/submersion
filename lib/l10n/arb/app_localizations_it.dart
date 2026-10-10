@@ -47044,6 +47044,139 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile caricare l\'andamento della temperatura';
 
   @override
+  String get insights_conditions_group_water => 'Acqua';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => 'Superficie e meteo';
+
+  @override
+  String get insights_conditions_group_waterMovement => 'Movimento dell\'acqua';
+
+  @override
+  String get insights_conditions_group_siteAccess => 'Sito e accesso';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Basato su $recorded di $total immersioni',
+      one: 'Basato su $recorded di $total immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error =>
+      'Impossibile caricare i dati meteo e delle condizioni';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title =>
+      'Andamento della temperatura dell\'aria';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle =>
+      'Temperatura dell\'aria in ogni immersione';
+
+  @override
+  String get insights_conditions_airTempTrend_error =>
+      'Impossibile caricare la temperatura dell\'aria';
+
+  @override
+  String get insights_conditions_airTempBands_title =>
+      'Immersioni per temperatura dell\'aria';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle =>
+      'Come si distribuiscono le tue immersioni tra le fasce di temperatura dell\'aria';
+
+  @override
+  String get insights_conditions_cloudCover_title => 'Copertura nuvolosa';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle =>
+      'Condizioni del cielo nelle tue immersioni';
+
+  @override
+  String get insights_conditions_precipitation_title => 'Precipitazioni';
+
+  @override
+  String get insights_conditions_precipitation_subtitle =>
+      'Pioggia, neve e altre precipitazioni nelle tue immersioni';
+
+  @override
+  String get insights_conditions_windSpeed_title => 'Velocità del vento';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle =>
+      'Come si distribuiscono le tue immersioni tra le fasce di velocità del vento';
+
+  @override
+  String get insights_conditions_windDirection_title => 'Direzione del vento';
+
+  @override
+  String get insights_conditions_windDirection_subtitle =>
+      'Direzione del vento registrata nelle tue immersioni';
+
+  @override
+  String get insights_conditions_humidity_title => 'Umidità';
+
+  @override
+  String get insights_conditions_humidity_subtitle =>
+      'Umidità relativa nelle tue immersioni';
+
+  @override
+  String get insights_conditions_surfacePressure_title =>
+      'Pressione di superficie';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle =>
+      'Pressione barometrica in superficie nelle tue immersioni';
+
+  @override
+  String get insights_conditions_currentStrength_title => 'Intensità corrente';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle =>
+      'Quanto era forte la corrente nelle tue immersioni';
+
+  @override
+  String get insights_conditions_currentDirection_title => 'Direzione corrente';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle =>
+      'Direzione della corrente registrata nelle tue immersioni';
+
+  @override
+  String get insights_conditions_swellHeight_title => 'Altezza onde';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle =>
+      'Come si distribuiscono le tue immersioni tra le altezze delle onde';
+
+  @override
+  String get insights_conditions_altitude_title => 'Altitudine';
+
+  @override
+  String get insights_conditions_altitude_subtitle =>
+      'Immersioni per gruppo di altitudine';
+
+  @override
+  String get insights_conditions_exitMethod_title => 'Metodo di uscita';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle =>
+      'Come sei uscito dall\'acqua';
+
+  @override
   String get insights_conditions_waterTempBands_title =>
       'Immersioni per temperatura dell\'acqua';
 

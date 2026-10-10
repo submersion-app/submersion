@@ -46942,6 +46942,137 @@ class AppLocalizationsDe extends AppLocalizations {
       'Temperaturverlauf konnte nicht geladen werden';
 
   @override
+  String get insights_conditions_group_water => 'Wasser';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => 'Oberfläche & Wetter';
+
+  @override
+  String get insights_conditions_group_waterMovement => 'Wasserbewegung';
+
+  @override
+  String get insights_conditions_group_siteAccess => 'Tauchplatz & Zugang';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Basierend auf $recorded von $total Tauchgängen',
+      one: 'Basierend auf $recorded von $total Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error =>
+      'Wetter- und Bedingungsdaten konnten nicht geladen werden';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title => 'Lufttemperatur-Verlauf';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle =>
+      'Lufttemperatur bei jedem Tauchgang';
+
+  @override
+  String get insights_conditions_airTempTrend_error =>
+      'Lufttemperatur konnte nicht geladen werden';
+
+  @override
+  String get insights_conditions_airTempBands_title =>
+      'Tauchgänge nach Lufttemperatur';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle =>
+      'Verteilung deiner Tauchgänge auf Lufttemperaturbereiche';
+
+  @override
+  String get insights_conditions_cloudCover_title => 'Bewölkung';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle =>
+      'Himmelsbedingungen bei deinen Tauchgängen';
+
+  @override
+  String get insights_conditions_precipitation_title => 'Niederschlag';
+
+  @override
+  String get insights_conditions_precipitation_subtitle =>
+      'Regen, Schnee und anderer Niederschlag bei deinen Tauchgängen';
+
+  @override
+  String get insights_conditions_windSpeed_title => 'Windgeschwindigkeit';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle =>
+      'Verteilung deiner Tauchgänge auf Windgeschwindigkeitsbereiche';
+
+  @override
+  String get insights_conditions_windDirection_title => 'Windrichtung';
+
+  @override
+  String get insights_conditions_windDirection_subtitle =>
+      'Erfasste Windrichtung bei deinen Tauchgängen';
+
+  @override
+  String get insights_conditions_humidity_title => 'Luftfeuchtigkeit';
+
+  @override
+  String get insights_conditions_humidity_subtitle =>
+      'Relative Luftfeuchtigkeit bei deinen Tauchgängen';
+
+  @override
+  String get insights_conditions_surfacePressure_title => 'Oberflächendruck';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle =>
+      'Luftdruck an der Oberfläche bei deinen Tauchgängen';
+
+  @override
+  String get insights_conditions_currentStrength_title => 'Strömungsstärke';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle =>
+      'Wie stark die Strömung bei deinen Tauchgängen war';
+
+  @override
+  String get insights_conditions_currentDirection_title => 'Strömungsrichtung';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle =>
+      'Erfasste Strömungsrichtung bei deinen Tauchgängen';
+
+  @override
+  String get insights_conditions_swellHeight_title => 'Wellenhöhe';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle =>
+      'Verteilung deiner Tauchgänge auf Wellenhöhen';
+
+  @override
+  String get insights_conditions_altitude_title => 'Höhe';
+
+  @override
+  String get insights_conditions_altitude_subtitle =>
+      'Tauchgänge nach Höhengruppe';
+
+  @override
+  String get insights_conditions_exitMethod_title => 'Ausstiegsmethode';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle =>
+      'Wie du das Wasser verlassen hast';
+
+  @override
   String get insights_conditions_waterTempBands_title =>
       'Tauchgänge nach Wassertemperatur';
 

@@ -44159,6 +44159,120 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_conditions_tempTrend_error => '无法加载水温趋势';
 
   @override
+  String get insights_conditions_group_water => '水';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => '水面与天气';
+
+  @override
+  String get insights_conditions_group_waterMovement => '水体运动';
+
+  @override
+  String get insights_conditions_group_siteAccess => '潜点与出入水';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '基于 $total 次潜水中的 $recorded 次',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error => '无法加载天气和环境数据';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title => '气温趋势';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle => '每次潜水的气温';
+
+  @override
+  String get insights_conditions_airTempTrend_error => '无法加载气温数据';
+
+  @override
+  String get insights_conditions_airTempBands_title => '按气温统计的潜水次数';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle => '您的潜水在各气温区间的分布';
+
+  @override
+  String get insights_conditions_cloudCover_title => '云量';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle => '您潜水时的天空状况';
+
+  @override
+  String get insights_conditions_precipitation_title => '降水';
+
+  @override
+  String get insights_conditions_precipitation_subtitle => '您潜水时的降雨、降雪等降水情况';
+
+  @override
+  String get insights_conditions_windSpeed_title => '风速';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle => '您的潜水在各风速区间的分布';
+
+  @override
+  String get insights_conditions_windDirection_title => '风向';
+
+  @override
+  String get insights_conditions_windDirection_subtitle => '您潜水时记录的风向';
+
+  @override
+  String get insights_conditions_humidity_title => '湿度';
+
+  @override
+  String get insights_conditions_humidity_subtitle => '您潜水时的相对湿度';
+
+  @override
+  String get insights_conditions_surfacePressure_title => '水面压力';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle => '您潜水时水面的大气压';
+
+  @override
+  String get insights_conditions_currentStrength_title => '水流强度';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle => '您潜水时的水流强度';
+
+  @override
+  String get insights_conditions_currentDirection_title => '水流方向';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle => '您潜水时记录的水流方向';
+
+  @override
+  String get insights_conditions_swellHeight_title => '涌浪高度';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle => '您的潜水在各涌浪高度区间的分布';
+
+  @override
+  String get insights_conditions_altitude_title => '海拔';
+
+  @override
+  String get insights_conditions_altitude_subtitle => '按海拔组统计的潜水次数';
+
+  @override
+  String get insights_conditions_exitMethod_title => '出水方式';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle => '您离开水面的方式';
+
+  @override
   String get insights_conditions_waterTempBands_title => '按水温统计的潜水次数';
 
   @override

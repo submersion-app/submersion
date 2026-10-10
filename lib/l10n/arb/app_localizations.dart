@@ -74669,6 +74669,213 @@ abstract class AppLocalizations {
   /// **'Failed to load temperature trend'**
   String get insights_conditions_tempTrend_error;
 
+  /// Heading of the Conditions statistics group for water temperature, visibility and water type
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get insights_conditions_group_water;
+
+  /// Heading of the Conditions statistics group for air temperature, cloud, precipitation, wind, humidity and surface pressure
+  ///
+  /// In en, this message translates to:
+  /// **'Surface & Weather'**
+  String get insights_conditions_group_surfaceWeather;
+
+  /// Heading of the Conditions statistics group for current and swell
+  ///
+  /// In en, this message translates to:
+  /// **'Water Movement'**
+  String get insights_conditions_group_waterMovement;
+
+  /// Heading of the Conditions statistics group for site type, altitude, entry method and exit method
+  ///
+  /// In en, this message translates to:
+  /// **'Site & Access'**
+  String get insights_conditions_group_siteAccess;
+
+  /// Line under a Conditions chart: how many dives in the current filter have this field recorded, out of all dives in the filter
+  ///
+  /// In en, this message translates to:
+  /// **'{total, plural, one{Based on {recorded} of {total} dive} other{Based on {recorded} of {total} dives}}'**
+  String insights_conditions_coverage(int recorded, int total);
+
+  /// Error shown in a Conditions statistics group when the weather and conditions data could not be loaded
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load weather and conditions data'**
+  String get insights_conditions_weather_error;
+
+  /// Screen-reader summary of a Conditions chart: its title followed by each category or band with its dive count
+  ///
+  /// In en, this message translates to:
+  /// **'{chartTitle}. {description}'**
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  );
+
+  /// Title of the chart of air temperature on each dive over time
+  ///
+  /// In en, this message translates to:
+  /// **'Air Temperature Over Time'**
+  String get insights_conditions_airTempTrend_title;
+
+  /// Subtitle of the air temperature over time chart
+  ///
+  /// In en, this message translates to:
+  /// **'Air temperature on each dive'**
+  String get insights_conditions_airTempTrend_subtitle;
+
+  /// Error state of the air temperature over time chart
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load air temperature'**
+  String get insights_conditions_airTempTrend_error;
+
+  /// Title of the card counting dives per air-temperature band
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by Air Temperature'**
+  String get insights_conditions_airTempBands_title;
+
+  /// Subtitle of the dives-by-air-temperature card
+  ///
+  /// In en, this message translates to:
+  /// **'How your dives split across air temperature bands'**
+  String get insights_conditions_airTempBands_subtitle;
+
+  /// Title of the card showing the share of dives per cloud cover (clear to overcast)
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Cover'**
+  String get insights_conditions_cloudCover_title;
+
+  /// Subtitle of the cloud cover card
+  ///
+  /// In en, this message translates to:
+  /// **'Sky conditions on your dives'**
+  String get insights_conditions_cloudCover_subtitle;
+
+  /// Title of the card counting dives per precipitation type (none, drizzle, rain, snow and so on)
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation'**
+  String get insights_conditions_precipitation_title;
+
+  /// Subtitle of the precipitation card
+  ///
+  /// In en, this message translates to:
+  /// **'Rain, snow and other precipitation on your dives'**
+  String get insights_conditions_precipitation_subtitle;
+
+  /// Title of the card counting dives per wind-speed band
+  ///
+  /// In en, this message translates to:
+  /// **'Wind Speed'**
+  String get insights_conditions_windSpeed_title;
+
+  /// Subtitle of the wind speed card
+  ///
+  /// In en, this message translates to:
+  /// **'How your dives split across wind speed bands'**
+  String get insights_conditions_windSpeed_subtitle;
+
+  /// Title of the card counting dives per recorded wind direction (compass point)
+  ///
+  /// In en, this message translates to:
+  /// **'Wind Direction'**
+  String get insights_conditions_windDirection_title;
+
+  /// Subtitle of the wind direction card
+  ///
+  /// In en, this message translates to:
+  /// **'Wind direction recorded on your dives'**
+  String get insights_conditions_windDirection_subtitle;
+
+  /// Title of the card counting dives per relative-humidity band
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get insights_conditions_humidity_title;
+
+  /// Subtitle of the humidity card
+  ///
+  /// In en, this message translates to:
+  /// **'Relative humidity on your dives'**
+  String get insights_conditions_humidity_subtitle;
+
+  /// Title of the card counting dives per barometric surface-pressure band
+  ///
+  /// In en, this message translates to:
+  /// **'Surface Pressure'**
+  String get insights_conditions_surfacePressure_title;
+
+  /// Subtitle of the surface pressure card
+  ///
+  /// In en, this message translates to:
+  /// **'Barometric pressure at the surface on your dives'**
+  String get insights_conditions_surfacePressure_subtitle;
+
+  /// Title of the card showing the share of dives per current strength (none to strong)
+  ///
+  /// In en, this message translates to:
+  /// **'Current Strength'**
+  String get insights_conditions_currentStrength_title;
+
+  /// Subtitle of the current strength card
+  ///
+  /// In en, this message translates to:
+  /// **'How strong the current was on your dives'**
+  String get insights_conditions_currentStrength_subtitle;
+
+  /// Title of the card counting dives per recorded current direction (compass point)
+  ///
+  /// In en, this message translates to:
+  /// **'Current Direction'**
+  String get insights_conditions_currentDirection_title;
+
+  /// Subtitle of the current direction card
+  ///
+  /// In en, this message translates to:
+  /// **'Current direction recorded on your dives'**
+  String get insights_conditions_currentDirection_subtitle;
+
+  /// Title of the card counting dives per swell-height band
+  ///
+  /// In en, this message translates to:
+  /// **'Swell Height'**
+  String get insights_conditions_swellHeight_title;
+
+  /// Subtitle of the swell height card
+  ///
+  /// In en, this message translates to:
+  /// **'How your dives split across swell heights'**
+  String get insights_conditions_swellHeight_subtitle;
+
+  /// Title of the card counting dives per altitude group (sea level, altitude group 1 and so on)
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get insights_conditions_altitude_title;
+
+  /// Subtitle of the altitude card
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by altitude group'**
+  String get insights_conditions_altitude_subtitle;
+
+  /// Title of the card counting dives per exit method (ladder, shore and so on)
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Method'**
+  String get insights_conditions_exitMethod_title;
+
+  /// Subtitle of the exit method card
+  ///
+  /// In en, this message translates to:
+  /// **'How you left the water'**
+  String get insights_conditions_exitMethod_subtitle;
+
   /// Title of the Conditions statistics card that counts dives per water-temperature band (for example below 10, 10-18, 18-24 and 24+ degrees)
   ///
   /// In en, this message translates to:

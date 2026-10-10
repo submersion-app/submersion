@@ -46058,6 +46058,134 @@ class AppLocalizationsHe extends AppLocalizations {
       'טעינת מגמת הטמפרטורה נכשלה';
 
   @override
+  String get insights_conditions_group_water => 'מים';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => 'פני השטח ומזג האוויר';
+
+  @override
+  String get insights_conditions_group_waterMovement => 'תנועת מים';
+
+  @override
+  String get insights_conditions_group_siteAccess => 'אתר וגישה';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'על סמך $recorded מתוך $total צלילות',
+      one: 'על סמך $recorded מתוך $total צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error =>
+      'לא ניתן לטעון את נתוני מזג האוויר והתנאים';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title => 'מגמת טמפרטורת האוויר';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle =>
+      'טמפרטורת האוויר בכל צלילה';
+
+  @override
+  String get insights_conditions_airTempTrend_error =>
+      'לא ניתן לטעון את טמפרטורת האוויר';
+
+  @override
+  String get insights_conditions_airTempBands_title =>
+      'צלילות לפי טמפרטורת אוויר';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle =>
+      'חלוקת הצלילות שלך לפי טווחי טמפרטורת אוויר';
+
+  @override
+  String get insights_conditions_cloudCover_title => 'כיסוי עננים';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle =>
+      'מצב השמיים בצלילות שלך';
+
+  @override
+  String get insights_conditions_precipitation_title => 'משקעים';
+
+  @override
+  String get insights_conditions_precipitation_subtitle =>
+      'גשם, שלג ומשקעים אחרים בצלילות שלך';
+
+  @override
+  String get insights_conditions_windSpeed_title => 'מהירות רוח';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle =>
+      'חלוקת הצלילות שלך לפי טווחי מהירות רוח';
+
+  @override
+  String get insights_conditions_windDirection_title => 'כיוון רוח';
+
+  @override
+  String get insights_conditions_windDirection_subtitle =>
+      'כיוון הרוח שתועד בצלילות שלך';
+
+  @override
+  String get insights_conditions_humidity_title => 'לחות';
+
+  @override
+  String get insights_conditions_humidity_subtitle => 'לחות יחסית בצלילות שלך';
+
+  @override
+  String get insights_conditions_surfacePressure_title => 'לחץ פני שטח';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle =>
+      'לחץ ברומטרי בפני השטח בצלילות שלך';
+
+  @override
+  String get insights_conditions_currentStrength_title => 'עוצמת זרם';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle =>
+      'עד כמה חזק היה הזרם בצלילות שלך';
+
+  @override
+  String get insights_conditions_currentDirection_title => 'כיוון זרם';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle =>
+      'כיוון הזרם שתועד בצלילות שלך';
+
+  @override
+  String get insights_conditions_swellHeight_title => 'גובה גלים';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle =>
+      'חלוקת הצלילות שלך לפי גובה גלים';
+
+  @override
+  String get insights_conditions_altitude_title => 'גובה';
+
+  @override
+  String get insights_conditions_altitude_subtitle => 'צלילות לפי קבוצת גובה';
+
+  @override
+  String get insights_conditions_exitMethod_title => 'שיטת יציאה';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle => 'איך יצאת מהמים';
+
+  @override
   String get insights_conditions_waterTempBands_title =>
       'צלילות לפי טמפרטורת מים';
 

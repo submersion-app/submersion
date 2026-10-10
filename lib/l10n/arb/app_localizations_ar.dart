@@ -47649,6 +47649,141 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر تحميل اتجاه درجة الحرارة';
 
   @override
+  String get insights_conditions_group_water => 'الماء';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => 'السطح والطقس';
+
+  @override
+  String get insights_conditions_group_waterMovement => 'حركة الماء';
+
+  @override
+  String get insights_conditions_group_siteAccess => 'الموقع والوصول';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'بناءً على $recorded من أصل $total غوصة',
+      many: 'بناءً على $recorded من أصل $total غوصة',
+      few: 'بناءً على $recorded من أصل $total غوصات',
+      two: 'بناءً على $recorded من أصل $total غوصتين',
+      one: 'بناءً على $recorded من أصل $total غوصة',
+      zero: 'بناءً على $recorded من أصل $total غوصة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error =>
+      'تعذر تحميل بيانات الطقس والظروف';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title =>
+      'اتجاه درجة حرارة الهواء';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle =>
+      'درجة حرارة الهواء في كل غطسة';
+
+  @override
+  String get insights_conditions_airTempTrend_error =>
+      'تعذر تحميل درجة حرارة الهواء';
+
+  @override
+  String get insights_conditions_airTempBands_title =>
+      'الغطسات حسب درجة حرارة الهواء';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle =>
+      'توزيع غطساتك على نطاقات درجة حرارة الهواء';
+
+  @override
+  String get insights_conditions_cloudCover_title => 'الغطاء السحابي';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle =>
+      'حالة السماء خلال غطساتك';
+
+  @override
+  String get insights_conditions_precipitation_title => 'هطول الأمطار';
+
+  @override
+  String get insights_conditions_precipitation_subtitle =>
+      'المطر والثلج وغيرها من الهطول خلال غطساتك';
+
+  @override
+  String get insights_conditions_windSpeed_title => 'سرعة الرياح';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle =>
+      'توزيع غطساتك على نطاقات سرعة الرياح';
+
+  @override
+  String get insights_conditions_windDirection_title => 'اتجاه الرياح';
+
+  @override
+  String get insights_conditions_windDirection_subtitle =>
+      'اتجاه الرياح المسجل خلال غطساتك';
+
+  @override
+  String get insights_conditions_humidity_title => 'الرطوبة';
+
+  @override
+  String get insights_conditions_humidity_subtitle =>
+      'الرطوبة النسبية خلال غطساتك';
+
+  @override
+  String get insights_conditions_surfacePressure_title => 'ضغط السطح';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle =>
+      'الضغط الجوي عند السطح خلال غطساتك';
+
+  @override
+  String get insights_conditions_currentStrength_title => 'قوة التيار';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle =>
+      'مدى قوة التيار خلال غطساتك';
+
+  @override
+  String get insights_conditions_currentDirection_title => 'اتجاه التيار';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle =>
+      'اتجاه التيار المسجل خلال غطساتك';
+
+  @override
+  String get insights_conditions_swellHeight_title => 'ارتفاع الموج';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle =>
+      'توزيع غطساتك على ارتفاعات الموج';
+
+  @override
+  String get insights_conditions_altitude_title => 'الارتفاع';
+
+  @override
+  String get insights_conditions_altitude_subtitle =>
+      'الغطسات حسب مجموعة الارتفاع';
+
+  @override
+  String get insights_conditions_exitMethod_title => 'طريقة الخروج';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle => 'كيف خرجت من الماء';
+
+  @override
   String get insights_conditions_waterTempBands_title =>
       'الغطسات حسب درجة حرارة الماء';
 

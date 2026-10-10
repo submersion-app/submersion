@@ -28104,6 +28104,158 @@
   "insights_conditions_tempTrend_title": "Water Temperature Trend",
   "insights_conditions_tempTrend_subtitle": "Every dive in range",
   "insights_conditions_tempTrend_error": "Failed to load temperature trend",
+  "insights_conditions_group_water": "Water",
+  "@insights_conditions_group_water": {
+    "description": "Heading of the Conditions statistics group for water temperature, visibility and water type"
+  },
+  "insights_conditions_group_surfaceWeather": "Surface & Weather",
+  "@insights_conditions_group_surfaceWeather": {
+    "description": "Heading of the Conditions statistics group for air temperature, cloud, precipitation, wind, humidity and surface pressure"
+  },
+  "insights_conditions_group_waterMovement": "Water Movement",
+  "@insights_conditions_group_waterMovement": {
+    "description": "Heading of the Conditions statistics group for current and swell"
+  },
+  "insights_conditions_group_siteAccess": "Site & Access",
+  "@insights_conditions_group_siteAccess": {
+    "description": "Heading of the Conditions statistics group for site type, altitude, entry method and exit method"
+  },
+  "insights_conditions_coverage": "{total, plural, one{Based on {recorded} of {total} dive} other{Based on {recorded} of {total} dives}}",
+  "@insights_conditions_coverage": {
+    "description": "Line under a Conditions chart: how many dives in the current filter have this field recorded, out of all dives in the filter",
+    "placeholders": {
+      "recorded": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "insights_conditions_weather_error": "Failed to load weather and conditions data",
+  "@insights_conditions_weather_error": {
+    "description": "Error shown in a Conditions statistics group when the weather and conditions data could not be loaded"
+  },
+  "insights_conditions_chart_semanticLabel": "{chartTitle}. {description}",
+  "@insights_conditions_chart_semanticLabel": {
+    "description": "Screen-reader summary of a Conditions chart: its title followed by each category or band with its dive count",
+    "placeholders": {
+      "chartTitle": {
+        "type": "String"
+      },
+      "description": {
+        "type": "String"
+      }
+    }
+  },
+  "insights_conditions_airTempTrend_title": "Air Temperature Over Time",
+  "@insights_conditions_airTempTrend_title": {
+    "description": "Title of the chart of air temperature on each dive over time"
+  },
+  "insights_conditions_airTempTrend_subtitle": "Air temperature on each dive",
+  "@insights_conditions_airTempTrend_subtitle": {
+    "description": "Subtitle of the air temperature over time chart"
+  },
+  "insights_conditions_airTempTrend_error": "Failed to load air temperature",
+  "@insights_conditions_airTempTrend_error": {
+    "description": "Error state of the air temperature over time chart"
+  },
+  "insights_conditions_airTempBands_title": "Dives by Air Temperature",
+  "@insights_conditions_airTempBands_title": {
+    "description": "Title of the card counting dives per air-temperature band"
+  },
+  "insights_conditions_airTempBands_subtitle": "How your dives split across air temperature bands",
+  "@insights_conditions_airTempBands_subtitle": {
+    "description": "Subtitle of the dives-by-air-temperature card"
+  },
+  "insights_conditions_cloudCover_title": "Cloud Cover",
+  "@insights_conditions_cloudCover_title": {
+    "description": "Title of the card showing the share of dives per cloud cover (clear to overcast)"
+  },
+  "insights_conditions_cloudCover_subtitle": "Sky conditions on your dives",
+  "@insights_conditions_cloudCover_subtitle": {
+    "description": "Subtitle of the cloud cover card"
+  },
+  "insights_conditions_precipitation_title": "Precipitation",
+  "@insights_conditions_precipitation_title": {
+    "description": "Title of the card counting dives per precipitation type (none, drizzle, rain, snow and so on)"
+  },
+  "insights_conditions_precipitation_subtitle": "Rain, snow and other precipitation on your dives",
+  "@insights_conditions_precipitation_subtitle": {
+    "description": "Subtitle of the precipitation card"
+  },
+  "insights_conditions_windSpeed_title": "Wind Speed",
+  "@insights_conditions_windSpeed_title": {
+    "description": "Title of the card counting dives per wind-speed band"
+  },
+  "insights_conditions_windSpeed_subtitle": "How your dives split across wind speed bands",
+  "@insights_conditions_windSpeed_subtitle": {
+    "description": "Subtitle of the wind speed card"
+  },
+  "insights_conditions_windDirection_title": "Wind Direction",
+  "@insights_conditions_windDirection_title": {
+    "description": "Title of the card counting dives per recorded wind direction (compass point)"
+  },
+  "insights_conditions_windDirection_subtitle": "Wind direction recorded on your dives",
+  "@insights_conditions_windDirection_subtitle": {
+    "description": "Subtitle of the wind direction card"
+  },
+  "insights_conditions_humidity_title": "Humidity",
+  "@insights_conditions_humidity_title": {
+    "description": "Title of the card counting dives per relative-humidity band"
+  },
+  "insights_conditions_humidity_subtitle": "Relative humidity on your dives",
+  "@insights_conditions_humidity_subtitle": {
+    "description": "Subtitle of the humidity card"
+  },
+  "insights_conditions_surfacePressure_title": "Surface Pressure",
+  "@insights_conditions_surfacePressure_title": {
+    "description": "Title of the card counting dives per barometric surface-pressure band"
+  },
+  "insights_conditions_surfacePressure_subtitle": "Barometric pressure at the surface on your dives",
+  "@insights_conditions_surfacePressure_subtitle": {
+    "description": "Subtitle of the surface pressure card"
+  },
+  "insights_conditions_currentStrength_title": "Current Strength",
+  "@insights_conditions_currentStrength_title": {
+    "description": "Title of the card showing the share of dives per current strength (none to strong)"
+  },
+  "insights_conditions_currentStrength_subtitle": "How strong the current was on your dives",
+  "@insights_conditions_currentStrength_subtitle": {
+    "description": "Subtitle of the current strength card"
+  },
+  "insights_conditions_currentDirection_title": "Current Direction",
+  "@insights_conditions_currentDirection_title": {
+    "description": "Title of the card counting dives per recorded current direction (compass point)"
+  },
+  "insights_conditions_currentDirection_subtitle": "Current direction recorded on your dives",
+  "@insights_conditions_currentDirection_subtitle": {
+    "description": "Subtitle of the current direction card"
+  },
+  "insights_conditions_swellHeight_title": "Swell Height",
+  "@insights_conditions_swellHeight_title": {
+    "description": "Title of the card counting dives per swell-height band"
+  },
+  "insights_conditions_swellHeight_subtitle": "How your dives split across swell heights",
+  "@insights_conditions_swellHeight_subtitle": {
+    "description": "Subtitle of the swell height card"
+  },
+  "insights_conditions_altitude_title": "Altitude",
+  "@insights_conditions_altitude_title": {
+    "description": "Title of the card counting dives per altitude group (sea level, altitude group 1 and so on)"
+  },
+  "insights_conditions_altitude_subtitle": "Dives by altitude group",
+  "@insights_conditions_altitude_subtitle": {
+    "description": "Subtitle of the altitude card"
+  },
+  "insights_conditions_exitMethod_title": "Exit Method",
+  "@insights_conditions_exitMethod_title": {
+    "description": "Title of the card counting dives per exit method (ladder, shore and so on)"
+  },
+  "insights_conditions_exitMethod_subtitle": "How you left the water",
+  "@insights_conditions_exitMethod_subtitle": {
+    "description": "Subtitle of the exit method card"
+  },
   "insights_conditions_waterTempBands_title": "Dives by Water Temperature",
   "@insights_conditions_waterTempBands_title": {
     "description": "Title of the Conditions statistics card that counts dives per water-temperature band (for example below 10, 10-18, 18-24 and 24+ degrees)"

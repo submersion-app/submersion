@@ -46306,6 +46306,137 @@ class AppLocalizationsEn extends AppLocalizations {
       'Failed to load temperature trend';
 
   @override
+  String get insights_conditions_group_water => 'Water';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => 'Surface & Weather';
+
+  @override
+  String get insights_conditions_group_waterMovement => 'Water Movement';
+
+  @override
+  String get insights_conditions_group_siteAccess => 'Site & Access';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Based on $recorded of $total dives',
+      one: 'Based on $recorded of $total dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error =>
+      'Failed to load weather and conditions data';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title =>
+      'Air Temperature Over Time';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle =>
+      'Air temperature on each dive';
+
+  @override
+  String get insights_conditions_airTempTrend_error =>
+      'Failed to load air temperature';
+
+  @override
+  String get insights_conditions_airTempBands_title =>
+      'Dives by Air Temperature';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle =>
+      'How your dives split across air temperature bands';
+
+  @override
+  String get insights_conditions_cloudCover_title => 'Cloud Cover';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle =>
+      'Sky conditions on your dives';
+
+  @override
+  String get insights_conditions_precipitation_title => 'Precipitation';
+
+  @override
+  String get insights_conditions_precipitation_subtitle =>
+      'Rain, snow and other precipitation on your dives';
+
+  @override
+  String get insights_conditions_windSpeed_title => 'Wind Speed';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle =>
+      'How your dives split across wind speed bands';
+
+  @override
+  String get insights_conditions_windDirection_title => 'Wind Direction';
+
+  @override
+  String get insights_conditions_windDirection_subtitle =>
+      'Wind direction recorded on your dives';
+
+  @override
+  String get insights_conditions_humidity_title => 'Humidity';
+
+  @override
+  String get insights_conditions_humidity_subtitle =>
+      'Relative humidity on your dives';
+
+  @override
+  String get insights_conditions_surfacePressure_title => 'Surface Pressure';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle =>
+      'Barometric pressure at the surface on your dives';
+
+  @override
+  String get insights_conditions_currentStrength_title => 'Current Strength';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle =>
+      'How strong the current was on your dives';
+
+  @override
+  String get insights_conditions_currentDirection_title => 'Current Direction';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle =>
+      'Current direction recorded on your dives';
+
+  @override
+  String get insights_conditions_swellHeight_title => 'Swell Height';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle =>
+      'How your dives split across swell heights';
+
+  @override
+  String get insights_conditions_altitude_title => 'Altitude';
+
+  @override
+  String get insights_conditions_altitude_subtitle => 'Dives by altitude group';
+
+  @override
+  String get insights_conditions_exitMethod_title => 'Exit Method';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle =>
+      'How you left the water';
+
+  @override
   String get insights_conditions_waterTempBands_title =>
       'Dives by Water Temperature';
 
