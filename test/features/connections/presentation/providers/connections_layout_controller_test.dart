@@ -6,6 +6,7 @@ import 'package:submersion/features/connections/domain/entities/connection_node.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/layout/graph_point.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
+import 'package:submersion/features/connections/domain/layout/connections_layout.dart';
 
 NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
 ConnectionNode _n(String id) =>
@@ -31,7 +32,7 @@ void main() {
     addTearDown(c.dispose);
     var notified = 0;
     c.addListener(() => notified++);
-    c.setGraph(_graph, mode: GraphLayoutMode.web);
+    c.setGraph(_graph, layout: ConnectionsLayout.web);
     expect(c.frame.positions.length, 3);
     expect(c.settled, isFalse);
     while (!c.settled) {
@@ -43,16 +44,16 @@ void main() {
   test('ego mode is settled immediately with the focus at the origin', () {
     final c = ConnectionsLayoutController(vsync: const TestVSync());
     addTearDown(c.dispose);
-    c.setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('b'));
+    c.setGraph(_graph, layout: ConnectionsLayout.radial, focus: _b('b'));
     expect(c.settled, isTrue);
     expect(c.frame.positions[_b('b')], GraphPoint.zero);
-    expect(c.mode, GraphLayoutMode.ego);
+    expect(c.layout, ConnectionsLayout.radial);
   });
 
   test('moveNode pins and relayout releases', () {
     final c = ConnectionsLayoutController(vsync: const TestVSync());
     addTearDown(c.dispose);
-    c.setGraph(_graph, mode: GraphLayoutMode.web);
+    c.setGraph(_graph, layout: ConnectionsLayout.web);
     while (!c.settled) {
       c.stepForTest();
     }
@@ -75,7 +76,7 @@ void main() {
   test('a warm start keeps a node near its previous place', () {
     final c = ConnectionsLayoutController(vsync: const TestVSync());
     addTearDown(c.dispose);
-    c.setGraph(_graph, mode: GraphLayoutMode.web);
+    c.setGraph(_graph, layout: ConnectionsLayout.web);
     while (!c.settled) {
       c.stepForTest();
     }
@@ -85,7 +86,7 @@ void main() {
         nodes: [..._graph.nodes, _n('d')],
         edges: [..._graph.edges, _e('c', 'd')],
       ),
-      mode: GraphLayoutMode.web,
+      layout: ConnectionsLayout.web,
     );
     c.stepForTest(3);
     expect(c.frame.positions[_b('a')]!.distanceTo(before), lessThan(80));
@@ -94,7 +95,7 @@ void main() {
   test('an empty graph yields an empty settled frame', () {
     final c = ConnectionsLayoutController(vsync: const TestVSync());
     addTearDown(c.dispose);
-    c.setGraph(ConnectionGraph.empty, mode: GraphLayoutMode.web);
+    c.setGraph(ConnectionGraph.empty, layout: ConnectionsLayout.web);
     expect(c.settled, isTrue);
     expect(c.frame.positions, isEmpty);
   });
@@ -102,14 +103,14 @@ void main() {
   test('an animated refocus morphs over 450 ms, then settles', () {
     final c = ConnectionsLayoutController(vsync: const TestVSync());
     addTearDown(c.dispose);
-    c.setGraph(_graph, mode: GraphLayoutMode.web);
+    c.setGraph(_graph, layout: ConnectionsLayout.web);
     while (!c.settled) {
       c.stepForTest();
     }
     final before = c.frame.positions[_b('a')]!;
     c.setGraph(
       _graph,
-      mode: GraphLayoutMode.ego,
+      layout: ConnectionsLayout.radial,
       focus: _b('b'),
       animate: true,
     );
@@ -127,15 +128,15 @@ void main() {
   test('without animate the ego layout is immediate', () {
     final c = ConnectionsLayoutController(vsync: const TestVSync());
     addTearDown(c.dispose);
-    c.setGraph(_graph, mode: GraphLayoutMode.web);
-    c.setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('b'));
+    c.setGraph(_graph, layout: ConnectionsLayout.web);
+    c.setGraph(_graph, layout: ConnectionsLayout.radial, focus: _b('b'));
     expect(c.settled, isTrue);
   });
   group('settleNow', () {
     test('finishes a running force layout and notifies', () {
       final c = ConnectionsLayoutController(vsync: const TestVSync());
       addTearDown(c.dispose);
-      c.setGraph(_graph, mode: GraphLayoutMode.web);
+      c.setGraph(_graph, layout: ConnectionsLayout.web);
       expect(c.settled, isFalse);
       var notified = 0;
       c.addListener(() => notified++);
@@ -149,10 +150,10 @@ void main() {
     test('jumps a refocus morph to its target, every node fully grown', () {
       final c = ConnectionsLayoutController(vsync: const TestVSync());
       addTearDown(c.dispose);
-      c.setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('a'));
+      c.setGraph(_graph, layout: ConnectionsLayout.radial, focus: _b('a'));
       c.setGraph(
         _graph,
-        mode: GraphLayoutMode.ego,
+        layout: ConnectionsLayout.radial,
         focus: _b('c'),
         animate: true,
       );
@@ -168,7 +169,7 @@ void main() {
     test('returns the frame as is when already settled', () {
       final c = ConnectionsLayoutController(vsync: const TestVSync());
       addTearDown(c.dispose);
-      c.setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('b'));
+      c.setGraph(_graph, layout: ConnectionsLayout.radial, focus: _b('b'));
       final before = c.frame;
       expect(identical(c.settleNow(), before), isTrue);
     });

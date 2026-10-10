@@ -34,6 +34,7 @@ import 'package:submersion/features/connections/presentation/widgets/year_play_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
+import 'package:submersion/features/connections/domain/layout/connections_layout.dart';
 
 class ConnectionsPage extends ConsumerStatefulWidget {
   const ConnectionsPage({super.key, this.args = const ConnectionsRouteArgs()});
@@ -174,7 +175,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     _laidOutFocus = focus;
     _layout.setGraph(
       graph,
-      mode: focus == null ? GraphLayoutMode.web : GraphLayoutMode.ego,
+      layout: focus == null ? ConnectionsLayout.web : ConnectionsLayout.radial,
       focus: focus,
       animate: animate,
     );
