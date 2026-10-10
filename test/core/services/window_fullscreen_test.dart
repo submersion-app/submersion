@@ -175,15 +175,62 @@ void main() {
   group('WindowManagerFullscreenPlatform', () {
     const channel = MethodChannel('window_manager');
 
+    /// The native window's state, as the mocked plugin reports it.
+    late bool windowFullScreen;
+    late List<bool> nativeSetCalls;
+
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized();
+      windowFullScreen = false;
+      nativeSetCalls = [];
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
-            return switch (call.method) {
-              'isFullScreen' => false,
-              _ => true,
-            };
+            switch (call.method) {
+              case 'isFullScreen':
+                return windowFullScreen;
+              case 'setFullScreen':
+                final value =
+                    (call.arguments as Map<Object?, Object?>)['isFullScreen']
+                        as bool;
+                nativeSetCalls.add(value);
+                windowFullScreen = value;
+                return null;
+              default:
+                return true;
+            }
           });
+    });
+
+    /// The plugin reporting a window event from the native side.
+    Future<void> sendWindowEvent(String eventName) async {
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+            channel.name,
+            channel.codec.encodeMethodCall(
+              MethodCall('onEvent', {'eventName': eventName}),
+            ),
+            (_) {},
+          );
+    }
+
+    test('drives the native window and hears the user leave it', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final controller = container.read(windowFullscreenControllerProvider);
+
+      final owner = Object();
+      await controller.request(owner);
+      expect(nativeSetCalls, [true]);
+
+      // The user leaves with the green button, then goes back in.
+      windowFullScreen = false;
+      await sendWindowEvent('leave-full-screen');
+      windowFullScreen = true;
+      await controller.release(owner);
+
+      expect(nativeSetCalls, [true], reason: 'their fullscreen is kept');
     });
 
     tearDown(() {
@@ -221,6 +268,21 @@ void main() {
 
       expect(windowManager.listeners.length, before);
     });
+  });
+
+  test('without a desktop window, requests change nothing', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final controller = container.read(windowFullscreenControllerProvider);
+    final platform = container.read(windowFullscreenPlatformProvider);
+
+    final owner = Object();
+    await controller.request(owner);
+    await controller.release(owner);
+
+    expect(await platform.isFullScreen(), isFalse);
   });
 
   group('windowFullscreenPlatformProvider', () {
