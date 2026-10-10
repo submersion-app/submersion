@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/network/proxy/proxy_connection_tester.dart';
@@ -12,10 +14,21 @@ final proxyControllerProvider = Provider<ProxyController>(
 );
 
 /// The controller's state, starting with its current value.
-final proxyStateProvider = StreamProvider<ProxyControllerState>((ref) async* {
+///
+/// Subscribes to the broadcast changes before reading the current state, so
+/// no change can land between the two and be lost (an `async*` generator
+/// leaves that gap: a detection that finished in it left the page showing a
+/// spinner for good).
+final proxyStateProvider = StreamProvider<ProxyControllerState>((ref) {
   final controller = ref.watch(proxyControllerProvider);
-  yield controller.state;
-  yield* controller.changes;
+  final out = StreamController<ProxyControllerState>();
+  final sub = controller.changes.listen(out.add);
+  out.add(controller.state);
+  ref.onDispose(() {
+    unawaited(sub.cancel());
+    unawaited(out.close());
+  });
+  return out.stream;
 });
 
 final proxyConnectionTesterProvider = Provider<ProxyConnectionTester>(

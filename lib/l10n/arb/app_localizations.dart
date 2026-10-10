@@ -39404,6 +39404,274 @@ abstract class AppLocalizations {
   /// **'Manage'**
   String get settings_section_manage_title;
 
+  /// No description provided for @settings_network_mode_header.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy'**
+  String get settings_network_mode_header;
+
+  /// No description provided for @settings_network_mode_system.
+  ///
+  /// In en, this message translates to:
+  /// **'System proxy'**
+  String get settings_network_mode_system;
+
+  /// No description provided for @settings_network_mode_system_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the proxy configured in your device\'s network settings'**
+  String get settings_network_mode_system_subtitle;
+
+  /// No description provided for @settings_network_mode_manual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get settings_network_mode_manual;
+
+  /// No description provided for @settings_network_mode_manual_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a proxy server'**
+  String get settings_network_mode_manual_subtitle;
+
+  /// No description provided for @settings_network_mode_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No proxy'**
+  String get settings_network_mode_none;
+
+  /// No description provided for @settings_network_mode_none_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Always connect directly'**
+  String get settings_network_mode_none_subtitle;
+
+  /// No description provided for @settings_network_status_detecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking this device\'s proxy settings'**
+  String get settings_network_status_detecting;
+
+  /// No description provided for @settings_network_status_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No proxy configured on this device'**
+  String get settings_network_status_none;
+
+  /// No description provided for @settings_network_status_fixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {endpoint}'**
+  String settings_network_status_fixed(String endpoint);
+
+  /// No description provided for @settings_network_status_fixedPac.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {endpoint} (from automatic configuration)'**
+  String settings_network_status_fixedPac(String endpoint);
+
+  /// No description provided for @settings_network_status_fixedSocks.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {endpoint} (SOCKS5)'**
+  String settings_network_status_fixedSocks(String endpoint);
+
+  /// No description provided for @settings_network_status_pacUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic proxy configuration isn\'t supported on this device. Choose Manual and enter the proxy.'**
+  String get settings_network_status_pacUnsupported;
+
+  /// No description provided for @settings_network_status_pacFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The automatic proxy configuration couldn\'t be read. Choose Manual and enter the proxy.'**
+  String get settings_network_status_pacFailed;
+
+  /// No description provided for @settings_network_status_error.
+  ///
+  /// In en, this message translates to:
+  /// **'This device\'s proxy settings couldn\'t be read.'**
+  String get settings_network_status_error;
+
+  /// No description provided for @settings_network_status_refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get settings_network_status_refresh;
+
+  /// No description provided for @settings_network_manual_typeHttp.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP'**
+  String get settings_network_manual_typeHttp;
+
+  /// No description provided for @settings_network_manual_typeSocks.
+  ///
+  /// In en, this message translates to:
+  /// **'SOCKS5'**
+  String get settings_network_manual_typeSocks;
+
+  /// No description provided for @settings_network_manual_host.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get settings_network_manual_host;
+
+  /// No description provided for @settings_network_manual_port.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get settings_network_manual_port;
+
+  /// No description provided for @settings_network_manual_username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username (optional)'**
+  String get settings_network_manual_username;
+
+  /// No description provided for @settings_network_manual_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password (optional)'**
+  String get settings_network_manual_password;
+
+  /// No description provided for @settings_network_manual_showPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get settings_network_manual_showPassword;
+
+  /// No description provided for @settings_network_manual_hidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get settings_network_manual_hidePassword;
+
+  /// No description provided for @settings_network_manual_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get settings_network_manual_save;
+
+  /// No description provided for @settings_network_manual_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy settings saved'**
+  String get settings_network_manual_saved;
+
+  /// No description provided for @settings_network_manual_nativeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in screens provided by the operating system use the system proxy.'**
+  String get settings_network_manual_nativeNote;
+
+  /// No description provided for @settings_network_validation_hostRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the proxy host'**
+  String get settings_network_validation_hostRequired;
+
+  /// No description provided for @settings_network_validation_portInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a port from 1 to 65535'**
+  String get settings_network_validation_portInvalid;
+
+  /// No description provided for @settings_network_validation_passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the password for this username'**
+  String get settings_network_validation_passwordRequired;
+
+  /// No description provided for @settings_network_validation_usernameColon.
+  ///
+  /// In en, this message translates to:
+  /// **'The username can\'t contain a colon'**
+  String get settings_network_validation_usernameColon;
+
+  /// No description provided for @settings_network_validation_passwordSemicolon.
+  ///
+  /// In en, this message translates to:
+  /// **'The password can\'t contain a semicolon'**
+  String get settings_network_validation_passwordSemicolon;
+
+  /// No description provided for @settings_network_validation_passwordWhitespace.
+  ///
+  /// In en, this message translates to:
+  /// **'The password can\'t start or end with a space'**
+  String get settings_network_validation_passwordWhitespace;
+
+  /// No description provided for @settings_network_validation_tooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be 255 bytes or fewer'**
+  String get settings_network_validation_tooLong;
+
+  /// No description provided for @settings_network_test_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Test connection'**
+  String get settings_network_test_button;
+
+  /// No description provided for @settings_network_test_running.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing'**
+  String get settings_network_test_running;
+
+  /// No description provided for @settings_network_test_successProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected through {endpoint} ({type}) in {ms} ms'**
+  String settings_network_test_successProxy(
+    String endpoint,
+    String type,
+    int ms,
+  );
+
+  /// No description provided for @settings_network_test_successDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected directly in {ms} ms'**
+  String settings_network_test_successDirect(int ms);
+
+  /// No description provided for @settings_network_test_unreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach {endpoint}. Check the host and port.'**
+  String settings_network_test_unreachable(String endpoint);
+
+  /// No description provided for @settings_network_test_authRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The proxy rejected the username or password.'**
+  String get settings_network_test_authRejected;
+
+  /// No description provided for @settings_network_test_authRequiredSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'This proxy requires a username and password. Choose Manual and enter them.'**
+  String get settings_network_test_authRequiredSystem;
+
+  /// No description provided for @settings_network_test_tls.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure connection failed. Your network may inspect HTTPS traffic; its certificate must be trusted by this device.'**
+  String get settings_network_test_tls;
+
+  /// No description provided for @settings_network_test_timeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection timed out.'**
+  String get settings_network_test_timeout;
+
+  /// No description provided for @settings_network_test_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection failed: {detail}. The debug log has the full error.'**
+  String settings_network_test_failed(String detail);
+
   /// No description provided for @settings_section_network_subtitle.
   ///
   /// In en, this message translates to:
