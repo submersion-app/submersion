@@ -17,16 +17,15 @@ class TableHeaderBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Row(
         children: [
           Expanded(
             child: Text(
-              context.l10n.connections_semantics_summary(
-                graph.nodes.length,
-                graph.edges.length,
-              ),
+              '${l10n.connections_summary_entitiesAround(graph.nodes.length)}'
+              ' • ${l10n.connections_filterBar_edges(graph.edges.length)}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),

@@ -7,6 +7,7 @@ import 'package:submersion/features/connections/presentation/views/connections_m
 import 'package:submersion/features/connections/presentation/views/entities_table.dart';
 import 'package:submersion/features/connections/presentation/views/pairs_table.dart';
 import 'package:submersion/features/connections/presentation/views/table_header_bar.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Pairs, Entities and Matrix views: a count line, the chosen view, the
 /// year play pill and the loading bar. The graph-only overlays stay away.
@@ -82,11 +83,14 @@ class ConnectionsTableArea extends StatelessWidget {
         ),
         playPill,
         if (loading)
-          const Positioned(
+          Positioned(
             left: 0,
             right: 0,
             top: 0,
-            child: LinearProgressIndicator(minHeight: 2),
+            child: Semantics(
+              label: context.l10n.connections_loading,
+              child: const LinearProgressIndicator(minHeight: 2),
+            ),
           ),
       ],
     );
