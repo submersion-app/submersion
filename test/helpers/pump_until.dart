@@ -40,3 +40,29 @@ Future<void> pumpUntil(
     );
   }
 }
+
+/// [pumpUntil] for work that does real IO, such as a file read or the first
+/// native SQLite open in the isolate: fake-clock frames never let that IO
+/// finish, and a single fixed `runAsync` delay guesses at how long it takes
+/// (the first SQLite open can outlast 50 ms on a cold isolate). Each round
+/// yields [interval] of real time inside `runAsync`, then pumps a frame.
+///
+/// Fails the test if [condition] is still false after [maxRounds].
+Future<void> pumpUntilRealAsync(
+  WidgetTester tester,
+  bool Function() condition, {
+  int maxRounds = 100,
+  Duration interval = const Duration(milliseconds: 20),
+  String? reason,
+}) async {
+  for (var round = 0; round < maxRounds && !condition(); round++) {
+    await tester.runAsync(() => Future<void>.delayed(interval));
+    await tester.pump();
+  }
+  if (!condition()) {
+    fail(
+      'pumpUntilRealAsync: condition not met within $maxRounds rounds'
+      '${reason == null ? '' : ' ($reason)'}',
+    );
+  }
+}

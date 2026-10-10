@@ -26,6 +26,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_file_picker_platform.dart';
+import '../../../../helpers/pump_until.dart';
 
 void main() {
   // ---------------------------------------------------------------------------
@@ -374,14 +375,20 @@ void main() {
       );
     }
 
-    /// Taps the import card inside a [WidgetTester.runAsync] window:
-    /// `_handleImport` awaits real file IO (length/lastModified), which only
-    /// completes while real async is enabled.
+    /// Taps the import card and waits for the confirmation dialog:
+    /// `_handleImport` awaits real file IO (length, lastModified and the
+    /// embedded note's SQLite read), which only completes while real async is
+    /// enabled, and the first SQLite open in a cold isolate can outlast a
+    /// fixed short window.
     Future<void> tapImportCard(WidgetTester tester) async {
       await tester.runAsync(() async {
         await tester.tap(find.text('Restore from File'));
-        await Future<void>.delayed(const Duration(milliseconds: 100));
       });
+      await pumpUntilRealAsync(
+        tester,
+        () => find.text('Restore Backup').evaluate().isNotEmpty,
+        reason: 'the import reads the file before the dialog opens',
+      );
       await tester.pumpAndSettle();
     }
 
