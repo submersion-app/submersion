@@ -307,9 +307,11 @@ class ConnectionsPainter extends CustomPainter {
 
     final forced = {?selectedNode, ...lit, ?hovered};
     final allowed = switch (labels) {
+      // Off keeps only what the diver is pointing at, so a picked node can
+      // still be named; its neighbours stay unlabelled.
       LabelMode.off => [
         for (final c in labelCandidates)
-          if (forced.contains(c.ref)) c,
+          if (c.ref == selectedNode || c.ref == hovered) c,
       ],
       LabelMode.all => labelCandidates,
       LabelMode.auto =>

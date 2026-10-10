@@ -83,14 +83,15 @@ void main() {
     return rec;
   }
 
-  test('labels off draws none but the selection and its neighbours', () {
+  test('labels off draws none but the selected node', () {
     expect(paint(labels: LabelMode.off).count(#drawRRect), 0);
+    // Ann is linked to Bob; with Ann selected only Ann keeps a label.
     expect(
       paint(
         labels: LabelMode.off,
         selection: NodeSelection(_b('a')),
       ).count(#drawRRect),
-      2,
+      1,
     );
   });
 
