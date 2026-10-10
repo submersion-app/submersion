@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
+import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/conflict_field_catalogue.dart';
@@ -118,7 +119,7 @@ bool _same(Object? a, Object? b) {
 /// keeps its local value under every choice ("Keep remote" overlays the
 /// remote map onto the local row), so it is not something the diver can
 /// lose; a key only the remote has belongs to a newer schema this build does
-/// not store.
+/// not store. A legacy key is read under the name this build stores it as.
 ConflictComparison buildConflictComparison({
   required AppLocalizations l10n,
   required UnitFormatter units,
@@ -126,7 +127,9 @@ ConflictComparison buildConflictComparison({
 }) {
   final entity = conflict.entityType;
   final local = conflict.localData;
-  final remote = conflict.remoteData;
+  // An older peer may spell a field the old way; "Keep remote" writes it
+  // under the current name, so it is compared under that name (#3025).
+  final remote = withCurrentWireSpelling(entity, conflict.remoteData);
   final localRefs = {for (final r in conflict.localReferences) r.field: r};
   final remoteRefs = {for (final r in conflict.remoteReferences) r.field: r};
 
