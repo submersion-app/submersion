@@ -108,7 +108,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       prefs = await SharedPreferences.getInstance();
 
-      final now = DateTime.now();
+      final now = clock.now();
       upcomingTrip = Trip(
         id: 'trip-upcoming',
         name: 'Cozumel',
