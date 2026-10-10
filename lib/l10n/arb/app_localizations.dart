@@ -15499,6 +15499,24 @@ abstract class AppLocalizations {
   /// **'Gas Mix'**
   String get diveLog_tank_section_gasMix;
 
+  /// No description provided for @diveLog_tank_computerMix_matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded by your dive computer'**
+  String get diveLog_tank_computerMix_matches;
+
+  /// No description provided for @diveLog_tank_computerMix_differs.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive computer recorded {mix}'**
+  String diveLog_tank_computerMix_differs(String mix);
+
+  /// No description provided for @diveLog_tank_computerMix_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get diveLog_tank_computerMix_restore;
+
   /// No description provided for @diveLog_tank_selectPreset.
   ///
   /// In en, this message translates to:

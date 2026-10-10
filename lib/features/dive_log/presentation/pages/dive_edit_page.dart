@@ -3474,6 +3474,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               primarySourceId: primarySourceId,
             ),
             suggested: _suggestedTankIds.contains(_tanks[i].id),
+            // A saved dive's tanks can show the mix their computer logged.
+            diveId: _existingDive?.id,
             onChanged: (updatedTank) {
               final before = _tanks[i];
               setState(() {
