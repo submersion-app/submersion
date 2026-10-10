@@ -98,7 +98,14 @@ class DocumentRepository {
   }
 
   /// Every document of [diverId], with a display label for its owner.
-  Future<List<DocumentListEntry>> getAllForDiver(String diverId) async {
+  Future<List<DocumentListEntry>> getAllForDiver(String diverId) =>
+      _entries('d.diver_id = ?', diverId);
+
+  /// One document with its owner label, for the detail page.
+  Future<DocumentListEntry?> getEntryById(String id) async =>
+      (await _entries('d.id = ?', id)).firstOrNull;
+
+  Future<List<DocumentListEntry>> _entries(String where, String arg) async {
     final rows = await _db
         .customSelect(
           'SELECT d.*, '
@@ -115,9 +122,9 @@ class DocumentRepository {
           'LEFT JOIN buddies b ON b.id = d.buddy_id '
           'LEFT JOIN dive_centers dc ON dc.id = d.dive_center_id '
           'LEFT JOIN dives dv ON dv.id = d.dive_id '
-          'WHERE d.diver_id = ? '
+          'WHERE $where '
           'ORDER BY d.type, d.title, d.created_at',
-          variables: [Variable.withString(diverId)],
+          variables: [Variable.withString(arg)],
           readsFrom: {_db.documents, _db.documentPages},
         )
         .get();

@@ -28,7 +28,9 @@ class DocumentEditPage extends ConsumerStatefulWidget {
   final DocumentOwner owner;
   final DocumentType? initialType;
   final bool embedded;
-  final VoidCallback? onSaved;
+
+  /// Called with the saved document's id; null pops the route instead.
+  final ValueChanged<String>? onSaved;
   final VoidCallback? onCancel;
 
   /// Test seam for the platform pickers.
@@ -245,12 +247,12 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
         createdAt: _original?.createdAt ?? now,
         updatedAt: now,
       );
-      await ref.read(documentMutationsProvider).save(doc, _pages);
+      final saved = await ref.read(documentMutationsProvider).save(doc, _pages);
       if (!mounted) return;
       _hasChanges = false;
       messenger.showSnackBar(SnackBar(content: Text(l10n.documents_saved)));
       if (widget.onSaved != null) {
-        widget.onSaved!();
+        widget.onSaved!(saved.id);
       } else {
         context.pop();
       }

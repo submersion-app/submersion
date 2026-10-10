@@ -25,6 +25,10 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_list_page.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
+import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
@@ -803,6 +807,56 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editCertification',
                     builder: (context, state) => CertificationEditPage(
                       certificationId: state.pathParameters['certificationId'],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Documents (issue #2613)
+          GoRoute(
+            path: '/documents',
+            name: 'documents',
+            pageBuilder: (context, state) {
+              final q = state.uri.queryParameters;
+              return NoTransitionPage(
+                key: state.pageKey,
+                child: DocumentsPage(
+                  initialType: DocumentType.values.asNameMap()[q['type']],
+                  initialExpiringOnly: q['filter'] == 'expiring',
+                  initialPersonalOnly: q['owner'] == 'personal',
+                ),
+              );
+            },
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newDocument',
+                builder: (context, state) {
+                  final q = state.uri.queryParameters;
+                  final kind = DocumentOwnerKind.fromStorage(q['ownerKind']);
+                  final ownerId = q['ownerId'];
+                  return DocumentEditPage(
+                    owner: kind == DocumentOwnerKind.personal || ownerId == null
+                        ? const DocumentOwner.personal()
+                        : DocumentOwner(kind, ownerId),
+                    initialType: DocumentType.values.asNameMap()[q['type']],
+                  );
+                },
+              ),
+              GoRoute(
+                path: ':documentId',
+                name: 'documentDetail',
+                builder: (context, state) => DocumentDetailPage(
+                  documentId: state.pathParameters['documentId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'editDocument',
+                    builder: (context, state) => DocumentEditPage(
+                      documentId: state.pathParameters['documentId'],
                     ),
                   ),
                 ],

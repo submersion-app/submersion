@@ -38,6 +38,15 @@ final documentByIdProvider = FutureProvider.family<Document?, String>((
   return repo.getById(id);
 });
 
+/// One document with the name of what it is filed under.
+final documentEntryProvider = FutureProvider.family<DocumentListEntry?, String>(
+  (ref, id) async {
+    final repo = ref.watch(documentRepositoryProvider);
+    ref.invalidateSelfWhen(repo.watchChanges());
+    return repo.getEntryById(id);
+  },
+);
+
 final documentPagesProvider = FutureProvider.family<List<DocumentPage>, String>(
   (ref, id) async {
     final repo = ref.watch(documentRepositoryProvider);

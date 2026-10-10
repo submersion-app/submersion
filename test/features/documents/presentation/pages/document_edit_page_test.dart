@@ -57,7 +57,7 @@ void main() {
           initialType: initialType,
           owner: owner,
           embedded: true,
-          onSaved: () {},
+          onSaved: (_) {},
           onCancel: () {},
           capture: capture,
         ),

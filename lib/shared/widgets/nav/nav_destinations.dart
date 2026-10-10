@@ -109,6 +109,13 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     label: (l10n) => l10n.nav_certifications,
   ),
   NavDestination(
+    id: 'documents',
+    route: '/documents',
+    icon: Icons.folder_copy_outlined,
+    selectedIcon: Icons.folder_copy,
+    label: (l10n) => l10n.nav_documents,
+  ),
+  NavDestination(
     id: 'courses',
     route: '/courses',
     icon: Icons.school_outlined,
