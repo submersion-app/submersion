@@ -222,125 +222,125 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_highlight_recency => 'Frissesség';
 
   @override
-  String get connections_display_title => 'Display';
+  String get connections_display_title => 'Megjelenítés';
 
   @override
-  String get connections_layout_title => 'Layout';
+  String get connections_layout_title => 'Elrendezés';
 
   @override
-  String get connections_layout_web => 'Web';
+  String get connections_layout_web => 'Háló';
 
   @override
-  String get connections_layout_radial => 'Radial';
+  String get connections_layout_radial => 'Sugaras';
 
   @override
-  String get connections_layout_circle => 'Circle';
+  String get connections_layout_circle => 'Kör';
 
   @override
-  String get connections_layout_columns => 'Columns';
+  String get connections_layout_columns => 'Oszlopok';
 
   @override
-  String get connections_layout_clusters => 'Clusters';
+  String get connections_layout_clusters => 'Fürtök';
 
   @override
-  String get connections_layout_timeline => 'Timeline';
+  String get connections_layout_timeline => 'Idővonal';
 
   @override
-  String get connections_labels_title => 'Labels';
+  String get connections_labels_title => 'Feliratok';
 
   @override
   String get connections_labels_auto => 'Auto';
 
   @override
-  String get connections_labels_all => 'All';
+  String get connections_labels_all => 'Mind';
 
   @override
-  String get connections_labels_off => 'Off';
+  String get connections_labels_off => 'Ki';
 
   @override
-  String get connections_nodeSize_title => 'Node size';
+  String get connections_nodeSize_title => 'Csomópontméret';
 
   @override
-  String get connections_nodeSize_byDives => 'By dives';
+  String get connections_nodeSize_byDives => 'Merülések szerint';
 
   @override
-  String get connections_nodeSize_uniform => 'Uniform';
+  String get connections_nodeSize_uniform => 'Egyforma';
 
   @override
-  String get connections_edges_title => 'Lines';
+  String get connections_edges_title => 'Vonalak';
 
   @override
-  String get connections_edges_weighted => 'Weighted';
+  String get connections_edges_weighted => 'Súlyozott';
 
   @override
-  String get connections_edges_thin => 'Thin';
+  String get connections_edges_thin => 'Vékony';
 
   @override
-  String get connections_edges_selectedOnly => 'Selected only';
+  String get connections_edges_selectedOnly => 'Csak a kijelölt';
 
   @override
-  String get connections_hideUnconnected => 'Hide unconnected';
+  String get connections_hideUnconnected => 'Kapcsolat nélküliek elrejtése';
 
   @override
-  String get connections_spacing_title => 'Spacing';
+  String get connections_spacing_title => 'Térköz';
 
   @override
-  String get connections_spacing_tight => 'Tight';
+  String get connections_spacing_tight => 'Szoros';
 
   @override
-  String get connections_spacing_spread => 'Spread';
+  String get connections_spacing_spread => 'Tág';
 
   @override
-  String get connections_view_tooltip => 'Change view';
+  String get connections_view_tooltip => 'Nézet váltása';
 
   @override
-  String get connections_view_graph => 'Graph';
+  String get connections_view_graph => 'Gráf';
 
   @override
-  String get connections_view_pairs => 'Pairs';
+  String get connections_view_pairs => 'Párok';
 
   @override
-  String get connections_view_entities => 'Entities';
+  String get connections_view_entities => 'Elemek';
 
   @override
-  String get connections_view_matrix => 'Matrix';
+  String get connections_view_matrix => 'Mátrix';
 
   @override
-  String get connections_table_entity => 'Entity';
+  String get connections_table_entity => 'Elem';
 
   @override
-  String get connections_table_linkedWith => 'Linked with';
+  String get connections_table_linkedWith => 'Kapcsolódik';
 
   @override
-  String get connections_table_sharedDives => 'Shared dives';
+  String get connections_table_sharedDives => 'Közös merülések';
 
   @override
-  String get connections_table_lastShared => 'Last shared';
+  String get connections_table_lastShared => 'Utolsó közös';
 
   @override
-  String get connections_table_firstShared => 'First shared';
+  String get connections_table_firstShared => 'Első közös';
 
   @override
-  String get connections_table_name => 'Name';
+  String get connections_table_name => 'Név';
 
   @override
-  String get connections_table_kind => 'Kind';
+  String get connections_table_kind => 'Típus';
 
   @override
-  String get connections_table_dives => 'Dives';
+  String get connections_table_dives => 'Merülések';
 
   @override
-  String get connections_table_links => 'Connections';
+  String get connections_table_links => 'Kapcsolatok';
 
   @override
-  String get connections_table_strongest => 'Strongest connection';
+  String get connections_table_strongest => 'Legerősebb kapcsolat';
 
   @override
-  String get connections_table_firstDive => 'First dive';
+  String get connections_table_firstDive => 'Első merülés';
 
   @override
   String connections_matrix_semantics(int rows, int columns, int links) {
-    return 'Matrix of $rows rows and $columns columns, $links connections';
+    return 'Mátrix, sorok: $rows, oszlopok: $columns, kapcsolatok: $links';
   }
 
   @override

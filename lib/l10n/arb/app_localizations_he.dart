@@ -222,125 +222,125 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_highlight_recency => 'עדכניות';
 
   @override
-  String get connections_display_title => 'Display';
+  String get connections_display_title => 'תצוגה';
 
   @override
-  String get connections_layout_title => 'Layout';
+  String get connections_layout_title => 'פריסה';
 
   @override
-  String get connections_layout_web => 'Web';
+  String get connections_layout_web => 'רשת';
 
   @override
-  String get connections_layout_radial => 'Radial';
+  String get connections_layout_radial => 'רדיאלית';
 
   @override
-  String get connections_layout_circle => 'Circle';
+  String get connections_layout_circle => 'מעגל';
 
   @override
-  String get connections_layout_columns => 'Columns';
+  String get connections_layout_columns => 'עמודות';
 
   @override
-  String get connections_layout_clusters => 'Clusters';
+  String get connections_layout_clusters => 'אשכולות';
 
   @override
-  String get connections_layout_timeline => 'Timeline';
+  String get connections_layout_timeline => 'ציר זמן';
 
   @override
-  String get connections_labels_title => 'Labels';
+  String get connections_labels_title => 'תוויות';
 
   @override
-  String get connections_labels_auto => 'Auto';
+  String get connections_labels_auto => 'אוטומטי';
 
   @override
-  String get connections_labels_all => 'All';
+  String get connections_labels_all => 'הכול';
 
   @override
-  String get connections_labels_off => 'Off';
+  String get connections_labels_off => 'כבוי';
 
   @override
-  String get connections_nodeSize_title => 'Node size';
+  String get connections_nodeSize_title => 'גודל צומת';
 
   @override
-  String get connections_nodeSize_byDives => 'By dives';
+  String get connections_nodeSize_byDives => 'לפי צלילות';
 
   @override
-  String get connections_nodeSize_uniform => 'Uniform';
+  String get connections_nodeSize_uniform => 'אחיד';
 
   @override
-  String get connections_edges_title => 'Lines';
+  String get connections_edges_title => 'קווים';
 
   @override
-  String get connections_edges_weighted => 'Weighted';
+  String get connections_edges_weighted => 'משוקללים';
 
   @override
-  String get connections_edges_thin => 'Thin';
+  String get connections_edges_thin => 'דקים';
 
   @override
-  String get connections_edges_selectedOnly => 'Selected only';
+  String get connections_edges_selectedOnly => 'רק הנבחר';
 
   @override
-  String get connections_hideUnconnected => 'Hide unconnected';
+  String get connections_hideUnconnected => 'הסתרת פריטים ללא קשרים';
 
   @override
-  String get connections_spacing_title => 'Spacing';
+  String get connections_spacing_title => 'ריווח';
 
   @override
-  String get connections_spacing_tight => 'Tight';
+  String get connections_spacing_tight => 'צפוף';
 
   @override
-  String get connections_spacing_spread => 'Spread';
+  String get connections_spacing_spread => 'מרווח';
 
   @override
-  String get connections_view_tooltip => 'Change view';
+  String get connections_view_tooltip => 'החלפת תצוגה';
 
   @override
-  String get connections_view_graph => 'Graph';
+  String get connections_view_graph => 'גרף';
 
   @override
-  String get connections_view_pairs => 'Pairs';
+  String get connections_view_pairs => 'זוגות';
 
   @override
-  String get connections_view_entities => 'Entities';
+  String get connections_view_entities => 'פריטים';
 
   @override
-  String get connections_view_matrix => 'Matrix';
+  String get connections_view_matrix => 'מטריצה';
 
   @override
-  String get connections_table_entity => 'Entity';
+  String get connections_table_entity => 'פריט';
 
   @override
-  String get connections_table_linkedWith => 'Linked with';
+  String get connections_table_linkedWith => 'מקושר אל';
 
   @override
-  String get connections_table_sharedDives => 'Shared dives';
+  String get connections_table_sharedDives => 'צלילות משותפות';
 
   @override
-  String get connections_table_lastShared => 'Last shared';
+  String get connections_table_lastShared => 'משותפת אחרונה';
 
   @override
-  String get connections_table_firstShared => 'First shared';
+  String get connections_table_firstShared => 'משותפת ראשונה';
 
   @override
-  String get connections_table_name => 'Name';
+  String get connections_table_name => 'שם';
 
   @override
-  String get connections_table_kind => 'Kind';
+  String get connections_table_kind => 'סוג';
 
   @override
-  String get connections_table_dives => 'Dives';
+  String get connections_table_dives => 'צלילות';
 
   @override
-  String get connections_table_links => 'Connections';
+  String get connections_table_links => 'קשרים';
 
   @override
-  String get connections_table_strongest => 'Strongest connection';
+  String get connections_table_strongest => 'הקשר החזק ביותר';
 
   @override
-  String get connections_table_firstDive => 'First dive';
+  String get connections_table_firstDive => 'צלילה ראשונה';
 
   @override
   String connections_matrix_semantics(int rows, int columns, int links) {
-    return 'Matrix of $rows rows and $columns columns, $links connections';
+    return 'מטריצה, שורות: $rows, עמודות: $columns, קשרים: $links';
   }
 
   @override

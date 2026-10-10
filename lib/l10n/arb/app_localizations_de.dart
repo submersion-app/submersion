@@ -223,125 +223,125 @@ class AppLocalizationsDe extends AppLocalizations {
   String get connections_highlight_recency => 'Aktualität';
 
   @override
-  String get connections_display_title => 'Display';
+  String get connections_display_title => 'Darstellung';
 
   @override
-  String get connections_layout_title => 'Layout';
+  String get connections_layout_title => 'Anordnung';
 
   @override
-  String get connections_layout_web => 'Web';
+  String get connections_layout_web => 'Netz';
 
   @override
   String get connections_layout_radial => 'Radial';
 
   @override
-  String get connections_layout_circle => 'Circle';
+  String get connections_layout_circle => 'Kreis';
 
   @override
-  String get connections_layout_columns => 'Columns';
+  String get connections_layout_columns => 'Spalten';
 
   @override
-  String get connections_layout_clusters => 'Clusters';
+  String get connections_layout_clusters => 'Cluster';
 
   @override
-  String get connections_layout_timeline => 'Timeline';
+  String get connections_layout_timeline => 'Zeitachse';
 
   @override
-  String get connections_labels_title => 'Labels';
+  String get connections_labels_title => 'Beschriftungen';
 
   @override
   String get connections_labels_auto => 'Auto';
 
   @override
-  String get connections_labels_all => 'All';
+  String get connections_labels_all => 'Alle';
 
   @override
-  String get connections_labels_off => 'Off';
+  String get connections_labels_off => 'Aus';
 
   @override
-  String get connections_nodeSize_title => 'Node size';
+  String get connections_nodeSize_title => 'Knotengröße';
 
   @override
-  String get connections_nodeSize_byDives => 'By dives';
+  String get connections_nodeSize_byDives => 'Nach Tauchgängen';
 
   @override
-  String get connections_nodeSize_uniform => 'Uniform';
+  String get connections_nodeSize_uniform => 'Einheitlich';
 
   @override
-  String get connections_edges_title => 'Lines';
+  String get connections_edges_title => 'Linien';
 
   @override
-  String get connections_edges_weighted => 'Weighted';
+  String get connections_edges_weighted => 'Gewichtet';
 
   @override
-  String get connections_edges_thin => 'Thin';
+  String get connections_edges_thin => 'Dünn';
 
   @override
-  String get connections_edges_selectedOnly => 'Selected only';
+  String get connections_edges_selectedOnly => 'Nur Auswahl';
 
   @override
-  String get connections_hideUnconnected => 'Hide unconnected';
+  String get connections_hideUnconnected => 'Unverbundene ausblenden';
 
   @override
-  String get connections_spacing_title => 'Spacing';
+  String get connections_spacing_title => 'Abstand';
 
   @override
-  String get connections_spacing_tight => 'Tight';
+  String get connections_spacing_tight => 'Eng';
 
   @override
-  String get connections_spacing_spread => 'Spread';
+  String get connections_spacing_spread => 'Weit';
 
   @override
-  String get connections_view_tooltip => 'Change view';
+  String get connections_view_tooltip => 'Ansicht wechseln';
 
   @override
   String get connections_view_graph => 'Graph';
 
   @override
-  String get connections_view_pairs => 'Pairs';
+  String get connections_view_pairs => 'Paare';
 
   @override
-  String get connections_view_entities => 'Entities';
+  String get connections_view_entities => 'Einträge';
 
   @override
   String get connections_view_matrix => 'Matrix';
 
   @override
-  String get connections_table_entity => 'Entity';
+  String get connections_table_entity => 'Eintrag';
 
   @override
-  String get connections_table_linkedWith => 'Linked with';
+  String get connections_table_linkedWith => 'Verbunden mit';
 
   @override
-  String get connections_table_sharedDives => 'Shared dives';
+  String get connections_table_sharedDives => 'Gemeinsame Tauchgänge';
 
   @override
-  String get connections_table_lastShared => 'Last shared';
+  String get connections_table_lastShared => 'Zuletzt gemeinsam';
 
   @override
-  String get connections_table_firstShared => 'First shared';
+  String get connections_table_firstShared => 'Zuerst gemeinsam';
 
   @override
   String get connections_table_name => 'Name';
 
   @override
-  String get connections_table_kind => 'Kind';
+  String get connections_table_kind => 'Art';
 
   @override
-  String get connections_table_dives => 'Dives';
+  String get connections_table_dives => 'Tauchgänge';
 
   @override
-  String get connections_table_links => 'Connections';
+  String get connections_table_links => 'Verbindungen';
 
   @override
-  String get connections_table_strongest => 'Strongest connection';
+  String get connections_table_strongest => 'Stärkste Verbindung';
 
   @override
-  String get connections_table_firstDive => 'First dive';
+  String get connections_table_firstDive => 'Erster Tauchgang';
 
   @override
   String connections_matrix_semantics(int rows, int columns, int links) {
-    return 'Matrix of $rows rows and $columns columns, $links connections';
+    return 'Matrix, Zeilen: $rows, Spalten: $columns, Verbindungen: $links';
   }
 
   @override

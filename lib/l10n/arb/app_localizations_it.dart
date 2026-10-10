@@ -222,125 +222,125 @@ class AppLocalizationsIt extends AppLocalizations {
   String get connections_highlight_recency => 'Attualità';
 
   @override
-  String get connections_display_title => 'Display';
+  String get connections_display_title => 'Visualizzazione';
 
   @override
-  String get connections_layout_title => 'Layout';
+  String get connections_layout_title => 'Disposizione';
 
   @override
-  String get connections_layout_web => 'Web';
+  String get connections_layout_web => 'Rete';
 
   @override
-  String get connections_layout_radial => 'Radial';
+  String get connections_layout_radial => 'Radiale';
 
   @override
-  String get connections_layout_circle => 'Circle';
+  String get connections_layout_circle => 'Cerchio';
 
   @override
-  String get connections_layout_columns => 'Columns';
+  String get connections_layout_columns => 'Colonne';
 
   @override
-  String get connections_layout_clusters => 'Clusters';
+  String get connections_layout_clusters => 'Raggruppamenti';
 
   @override
-  String get connections_layout_timeline => 'Timeline';
+  String get connections_layout_timeline => 'Cronologia';
 
   @override
-  String get connections_labels_title => 'Labels';
+  String get connections_labels_title => 'Etichette';
 
   @override
   String get connections_labels_auto => 'Auto';
 
   @override
-  String get connections_labels_all => 'All';
+  String get connections_labels_all => 'Tutte';
 
   @override
-  String get connections_labels_off => 'Off';
+  String get connections_labels_off => 'Nessuna';
 
   @override
-  String get connections_nodeSize_title => 'Node size';
+  String get connections_nodeSize_title => 'Dimensione nodi';
 
   @override
-  String get connections_nodeSize_byDives => 'By dives';
+  String get connections_nodeSize_byDives => 'Per immersioni';
 
   @override
-  String get connections_nodeSize_uniform => 'Uniform';
+  String get connections_nodeSize_uniform => 'Uniforme';
 
   @override
-  String get connections_edges_title => 'Lines';
+  String get connections_edges_title => 'Linee';
 
   @override
-  String get connections_edges_weighted => 'Weighted';
+  String get connections_edges_weighted => 'Ponderate';
 
   @override
-  String get connections_edges_thin => 'Thin';
+  String get connections_edges_thin => 'Sottili';
 
   @override
-  String get connections_edges_selectedOnly => 'Selected only';
+  String get connections_edges_selectedOnly => 'Solo selezione';
 
   @override
-  String get connections_hideUnconnected => 'Hide unconnected';
+  String get connections_hideUnconnected => 'Nascondi non collegati';
 
   @override
-  String get connections_spacing_title => 'Spacing';
+  String get connections_spacing_title => 'Spaziatura';
 
   @override
-  String get connections_spacing_tight => 'Tight';
+  String get connections_spacing_tight => 'Stretta';
 
   @override
-  String get connections_spacing_spread => 'Spread';
+  String get connections_spacing_spread => 'Ampia';
 
   @override
-  String get connections_view_tooltip => 'Change view';
+  String get connections_view_tooltip => 'Cambia vista';
 
   @override
-  String get connections_view_graph => 'Graph';
+  String get connections_view_graph => 'Grafo';
 
   @override
-  String get connections_view_pairs => 'Pairs';
+  String get connections_view_pairs => 'Coppie';
 
   @override
-  String get connections_view_entities => 'Entities';
+  String get connections_view_entities => 'Elementi';
 
   @override
-  String get connections_view_matrix => 'Matrix';
+  String get connections_view_matrix => 'Matrice';
 
   @override
-  String get connections_table_entity => 'Entity';
+  String get connections_table_entity => 'Elemento';
 
   @override
-  String get connections_table_linkedWith => 'Linked with';
+  String get connections_table_linkedWith => 'Collegato con';
 
   @override
-  String get connections_table_sharedDives => 'Shared dives';
+  String get connections_table_sharedDives => 'Immersioni condivise';
 
   @override
-  String get connections_table_lastShared => 'Last shared';
+  String get connections_table_lastShared => 'Ultima condivisa';
 
   @override
-  String get connections_table_firstShared => 'First shared';
+  String get connections_table_firstShared => 'Prima condivisa';
 
   @override
-  String get connections_table_name => 'Name';
+  String get connections_table_name => 'Nome';
 
   @override
-  String get connections_table_kind => 'Kind';
+  String get connections_table_kind => 'Tipo';
 
   @override
-  String get connections_table_dives => 'Dives';
+  String get connections_table_dives => 'Immersioni';
 
   @override
-  String get connections_table_links => 'Connections';
+  String get connections_table_links => 'Connessioni';
 
   @override
-  String get connections_table_strongest => 'Strongest connection';
+  String get connections_table_strongest => 'Connessione più forte';
 
   @override
-  String get connections_table_firstDive => 'First dive';
+  String get connections_table_firstDive => 'Prima immersione';
 
   @override
   String connections_matrix_semantics(int rows, int columns, int links) {
-    return 'Matrix of $rows rows and $columns columns, $links connections';
+    return 'Matrice, righe: $rows, colonne: $columns, connessioni: $links';
   }
 
   @override
