@@ -499,6 +499,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       return ProfileEditorPage(
                         diveId: state.pathParameters['diveId']!,
                         initialMode: initialMode,
+                        sourceId: state.uri.queryParameters['sourceId'],
                       );
                     },
                   ),

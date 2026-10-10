@@ -1098,10 +1098,15 @@ class DiveRepository {
   ///
   /// Revision kind is persisted as `Edit: <editKind>` (for example
   /// `Edit: profile_editor` or `Edit: data_quality_repair`).
+  ///
+  /// [sourceId] names the data source the edit started from. When it is not
+  /// the dive's primary source, that source is promoted first, in the same
+  /// transaction, so the edit still belongs to the primary (issue #3066).
   Future<void> saveEditedProfileWithKind({
     required String diveId,
     required List<domain.DiveProfilePoint> editedPoints,
     required String editKind,
+    String? sourceId,
   }) async {
     try {
       _log.info('Saving edited profile for dive: $diveId');
@@ -1109,6 +1114,20 @@ class DiveRepository {
       final revisionKind = _composeEditRevisionKind(editKind);
 
       await _db.transaction(() async {
+        if (sourceId != null) {
+          final chosen =
+              await (_db.select(_db.diveDataSources)..where(
+                    (t) => t.id.equals(sourceId) & t.diveId.equals(diveId),
+                  ))
+                  .getSingleOrNull();
+          if (chosen != null && !chosen.isPrimary) {
+            await setPrimaryDataSource(
+              diveId: diveId,
+              computerReadingId: sourceId,
+            );
+          }
+        }
+
         // The edit belongs to whichever source is primary right now: it is a
         // correction of that source's samples, not a new source. Read the id
         // before the demote so setPrimaryDataSource can later promote the

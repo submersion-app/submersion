@@ -23,7 +23,17 @@ class ProfileEditorPage extends ConsumerStatefulWidget {
   final String diveId;
   final EditorMode? initialMode;
 
-  const ProfileEditorPage({super.key, required this.diveId, this.initialMode});
+  /// The data source whose samples the editor starts from, chosen in the
+  /// "Choose starting profile" sheet. Null edits the primary profile. Saving
+  /// an edit of a non-primary source makes that source primary (#3066).
+  final String? sourceId;
+
+  const ProfileEditorPage({
+    super.key,
+    required this.diveId,
+    this.initialMode,
+    this.sourceId,
+  });
 
   @override
   ConsumerState<ProfileEditorPage> createState() => _ProfileEditorPageState();
@@ -117,9 +127,14 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         diveId: widget.diveId,
         editedPoints: state.editedProfile,
         editKind: state.revisionEditKindToken,
+        sourceId: widget.sourceId,
       );
       ref.invalidate(diveProvider(widget.diveId));
       ref.invalidate(diveProfileProvider(widget.diveId));
+      if (widget.sourceId != null) {
+        ref.invalidate(sourceProfilesProvider(widget.diveId));
+        ref.invalidate(diveDataSourcesProvider(widget.diveId));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -132,12 +147,15 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     }
 
     if (mounted) {
-      context.pop();
+      context.pop(true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final sourceId = widget.sourceId;
+    if (sourceId != null) return _buildFromSource(sourceId);
+
     final diveAsync = ref.watch(diveProvider(widget.diveId));
 
     return diveAsync.when(
@@ -172,6 +190,44 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     );
   }
 
+  /// Starts the editor from one data source's own samples rather than the
+  /// dive's primary profile.
+  Widget _buildFromSource(String sourceId) {
+    final profilesAsync = ref.watch(sourceProfilesProvider(widget.diveId));
+
+    return profilesAsync.when(
+      loading: () => Scaffold(
+        appBar: AppBar(title: Text(context.l10n.diveLog_profileEditor_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Scaffold(
+        appBar: AppBar(title: Text(context.l10n.diveLog_profileEditor_title)),
+        body: Center(
+          child: Text(
+            context.l10n.diveLog_profileEditor_errorLoadingDive('$error'),
+          ),
+        ),
+      ),
+      data: (profiles) {
+        final points = profiles[sourceId]?.points ?? const [];
+        if (points.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(context.l10n.diveLog_profileEditor_title),
+            ),
+            body: Center(
+              child: Text(context.l10n.diveLog_profileEditor_noProfileData),
+            ),
+          );
+        }
+
+        _initializeProvider(points);
+
+        return _buildEditor();
+      },
+    );
+  }
+
   Widget _buildEditor() {
     final state = ref.watch(_editorProvider);
     final notifier = ref.read(_editorProvider.notifier);
@@ -190,15 +246,20 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
           title: Row(
             children: [
               Text(context.l10n.diveLog_profileEditor_title),
-              const SizedBox(width: 12),
-              Flexible(
-                child: _buildProfileRevisionControl(
-                  context,
-                  ref,
-                  widget.diveId,
-                  enabled: !state.hasChanges,
+              // The revision history is the primary profile's lineage, so
+              // switching it would reload a profile other than the source
+              // being edited.
+              if (widget.sourceId == null) ...[
+                const SizedBox(width: 12),
+                Flexible(
+                  child: _buildProfileRevisionControl(
+                    context,
+                    ref,
+                    widget.diveId,
+                    enabled: !state.hasChanges,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
           actions: [
