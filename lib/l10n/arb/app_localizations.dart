@@ -2515,6 +2515,48 @@ abstract class AppLocalizations {
   /// **'Rest'**
   String get trips_dayType_rest;
 
+  /// No description provided for @trips_day_conditionCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current {value}'**
+  String trips_day_conditionCurrent(String value);
+
+  /// No description provided for @trips_day_conditionVisibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Vis {value}'**
+  String trips_day_conditionVisibility(String value);
+
+  /// No description provided for @trips_day_conditionWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Water {value}'**
+  String trips_day_conditionWater(String value);
+
+  /// No description provided for @trips_day_photoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo} other{{count} photos}}'**
+  String trips_day_photoCount(int count);
+
+  /// No description provided for @trips_day_planProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{planned, plural, one{{logged} of {planned} planned dive} other{{logged} of {planned} planned dives}}'**
+  String trips_day_planProgress(int logged, int planned);
+
+  /// No description provided for @trips_day_speciesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} species} other{{count} species}}'**
+  String trips_day_speciesCount(int count);
+
+  /// No description provided for @trips_day_valueRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String trips_day_valueRange(String from, String to);
+
   /// No description provided for @trips_story_planned.
   ///
   /// In en, this message translates to:

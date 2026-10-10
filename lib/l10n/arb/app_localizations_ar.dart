@@ -1667,6 +1667,68 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_dayType_rest => 'راحة';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'التيار $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'الرؤية $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'الماء $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة',
+      many: '$count صورة',
+      few: '$count صور',
+      two: 'صورتان',
+      one: 'صورة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged من $planned غوصة مخططة',
+      many: '$logged من $planned غوصة مخططة',
+      few: '$logged من $planned غوصات مخططة',
+      two: '$logged من غوصتين مخططتين',
+      one: '$logged من غوصة واحدة مخططة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع',
+      many: '$count نوعًا',
+      few: '$count أنواع',
+      two: 'نوعان',
+      one: 'نوع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from إلى $to';
+  }
+
+  @override
   String get trips_story_planned => 'مخطط';
 
   @override

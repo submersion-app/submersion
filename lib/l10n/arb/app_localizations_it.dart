@@ -1633,6 +1633,57 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_dayType_rest => 'Riposo';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'Corrente $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'Visibilità $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'Acqua $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged di $planned immersioni pianificate',
+      one: '$logged di $planned immersione pianificata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count specie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return 'da $from a $to';
+  }
+
+  @override
   String get trips_story_planned => 'Pianificato';
 
   @override

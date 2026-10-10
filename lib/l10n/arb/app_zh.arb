@@ -8613,6 +8613,13 @@
   "trips_itinerary_empty": "还没有行程。根据旅行日期生成一个。",
   "trips_itinerary_fillMissing": "补全缺少的天数",
   "trips_itinerary_plannedDives": "{count, plural, =1{计划 1 次潜水} other{计划 {count} 次潜水}}",
+  "trips_day_conditionCurrent": "水流 {value}",
+  "trips_day_conditionVisibility": "能见度 {value}",
+  "trips_day_conditionWater": "水温 {value}",
+  "trips_day_photoCount": "{count, plural, other{{count} 张照片}}",
+  "trips_day_planProgress": "{planned, plural, other{已完成 {logged} 次，计划 {planned} 次潜水}}",
+  "trips_day_speciesCount": "{count, plural, other{{count} 个物种}}",
+  "trips_day_valueRange": "{from} 至 {to}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {

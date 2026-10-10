@@ -8347,6 +8347,13 @@
   "trips_itinerary_empty": "Még nincs útiterv. Készíts egyet az utazás dátumaiból.",
   "trips_itinerary_fillMissing": "Hiányzó napok kitöltése",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 tervezett merülés} other{{count} tervezett merülés}}",
+  "trips_day_conditionCurrent": "Áramlás {value}",
+  "trips_day_conditionVisibility": "Látótáv {value}",
+  "trips_day_conditionWater": "Víz {value}",
+  "trips_day_photoCount": "{count, plural, other{{count} fotó}}",
+  "trips_day_planProgress": "{planned, plural, other{{logged} / {planned} tervezett merülés}}",
+  "trips_day_speciesCount": "{count, plural, other{{count} faj}}",
+  "trips_day_valueRange": "{from}–{to}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {

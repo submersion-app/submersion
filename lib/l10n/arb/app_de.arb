@@ -8566,6 +8566,13 @@
   "trips_itinerary_empty": "Noch keine Reiseroute. Erstelle eine aus den Reisedaten.",
   "trips_itinerary_fillMissing": "Fehlende Tage ergänzen",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 Tauchgang geplant} other{{count} Tauchgänge geplant}}",
+  "trips_day_conditionCurrent": "Strömung {value}",
+  "trips_day_conditionVisibility": "Sicht {value}",
+  "trips_day_conditionWater": "Wasser {value}",
+  "trips_day_photoCount": "{count, plural, one{{count} Foto} other{{count} Fotos}}",
+  "trips_day_planProgress": "{planned, plural, one{{logged} von {planned} geplanten Tauchgang} other{{logged} von {planned} geplanten Tauchgängen}}",
+  "trips_day_speciesCount": "{count, plural, one{{count} Art} other{{count} Arten}}",
+  "trips_day_valueRange": "{from} bis {to}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {

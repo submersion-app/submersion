@@ -1621,6 +1621,59 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_dayType_rest => 'Rustdag';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'Stroming $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'Zicht $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'Water $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s',
+      one: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged van $planned geplande duiken',
+      one: '$logged van $planned geplande duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count soorten',
+      one: '$count soort',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from tot $to';
+  }
+
+  @override
   String get trips_story_planned => 'Gepland';
 
   @override

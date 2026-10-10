@@ -8449,6 +8449,13 @@
   "trips_itinerary_empty": "Ainda sem itinerário. Gere um a partir das datas da viagem.",
   "trips_itinerary_fillMissing": "Preencher dias em falta",
   "trips_itinerary_plannedDives": "{count, plural, =1{{count} mergulho planeado} other{{count} mergulhos planeados}}",
+  "trips_day_conditionCurrent": "Corrente {value}",
+  "trips_day_conditionVisibility": "Visibilidade {value}",
+  "trips_day_conditionWater": "Água {value}",
+  "trips_day_photoCount": "{count, plural, one{{count} foto} other{{count} fotos}}",
+  "trips_day_planProgress": "{planned, plural, one{{logged} de {planned} mergulho planeado} other{{logged} de {planned} mergulhos planeados}}",
+  "trips_day_speciesCount": "{count, plural, one{{count} espécie} other{{count} espécies}}",
+  "trips_day_valueRange": "{from} a {to}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {

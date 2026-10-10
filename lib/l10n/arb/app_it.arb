@@ -8343,6 +8343,13 @@
   "trips_itinerary_empty": "Nessun itinerario ancora. Generane uno dalle date del viaggio.",
   "trips_itinerary_fillMissing": "Completa i giorni mancanti",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 immersione pianificata} other{{count} immersioni pianificate}}",
+  "trips_day_conditionCurrent": "Corrente {value}",
+  "trips_day_conditionVisibility": "Visibilità {value}",
+  "trips_day_conditionWater": "Acqua {value}",
+  "trips_day_photoCount": "{count, plural, other{{count} foto}}",
+  "trips_day_planProgress": "{planned, plural, one{{logged} di {planned} immersione pianificata} other{{logged} di {planned} immersioni pianificate}}",
+  "trips_day_speciesCount": "{count, plural, other{{count} specie}}",
+  "trips_day_valueRange": "da {from} a {to}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {

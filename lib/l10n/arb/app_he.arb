@@ -8449,6 +8449,13 @@
   "trips_itinerary_empty": "אין עדיין מסלול. צרו אחד מתאריכי הטיול.",
   "trips_itinerary_fillMissing": "השלמת ימים חסרים",
   "trips_itinerary_plannedDives": "{count, plural, =1{צלילה אחת מתוכננת} other{{count} צלילות מתוכננות}}",
+  "trips_day_conditionCurrent": "זרם {value}",
+  "trips_day_conditionVisibility": "ראות {value}",
+  "trips_day_conditionWater": "מים {value}",
+  "trips_day_photoCount": "{count, plural, one{{count} תמונה} other{{count} תמונות}}",
+  "trips_day_planProgress": "{planned, plural, other{{logged} מתוך {planned} צלילות מתוכננות}}",
+  "trips_day_speciesCount": "{count, plural, one{{count} מין} other{{count} מינים}}",
+  "trips_day_valueRange": "{from} עד {to}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {
