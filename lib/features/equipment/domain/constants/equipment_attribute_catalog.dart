@@ -160,6 +160,13 @@ abstract final class EquipmentAttributeCatalog {
       key: EquipmentAttrKeys.identifier,
       kind: AttributeKind.text,
     ),
+    // The item's tag identity (issues #2334, #2652). System: never rendered
+    // by a form, exported or imported.
+    EquipmentAttributeDef(
+      key: EquipmentAttrKeys.passportId,
+      kind: AttributeKind.text,
+      group: AttributeGroup.system,
+    ),
   ];
 
   /// The purchase record, present for every equipment type (issue #1517).
@@ -350,11 +357,6 @@ abstract final class EquipmentAttributeCatalog {
         kind: AttributeKind.date,
       ),
       EquipmentAttributeDef(key: 'last_hydro_test', kind: AttributeKind.date),
-      EquipmentAttributeDef(
-        key: EquipmentAttrKeys.passportId,
-        kind: AttributeKind.text,
-        group: AttributeGroup.system,
-      ),
     ],
     EquipmentType.rebreather: [
       EquipmentAttributeDef(
