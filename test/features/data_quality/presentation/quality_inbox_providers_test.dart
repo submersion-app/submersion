@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' show DiversCompanion;
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
@@ -11,6 +13,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/test_database.dart';
@@ -215,5 +218,67 @@ void main() {
       importedDivesOpenFindingsCountProvider('').future,
     );
     expect(count, 0);
+  });
+  // A second profile must not see the first one's findings on the Home
+  // badge, the Dives badge or the inbox (issue #3049).
+  group('scoped to the active diver', () {
+    setUp(() async {
+      final db = DatabaseService.instance.database;
+      for (final id in ['alice', 'bob']) {
+        await db
+            .into(db.divers)
+            .insert(
+              DiversCompanion.insert(
+                id: id,
+                name: id,
+                createdAt: 1,
+                updatedAt: 1,
+              ),
+            );
+      }
+      await diveRepo.createDive(
+        domain.Dive(
+          id: 'a1',
+          diverId: 'alice',
+          dateTime: DateTime.utc(2026, 7, 1),
+        ),
+      );
+      await seedOpenFinding('a1');
+    });
+
+    Future<int> openCountFor(String diverId) async {
+      final container = ProviderContainer(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => diverId),
+        ],
+      );
+      addTearDown(container.dispose);
+      // Keep the autoDispose stream alive across the await.
+      final sub = container.listen(openQualityFindingsCountProvider, (_, _) {});
+      addTearDown(sub.close);
+      return container.read(openQualityFindingsCountProvider.future);
+    }
+
+    Future<List<QualityFinding>> inboxFor(String diverId) async {
+      final container = ProviderContainer(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => diverId),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(qualityFindingsStreamProvider, (_, _) {});
+      addTearDown(sub.close);
+      return container.read(qualityFindingsStreamProvider.future);
+    }
+
+    test('the open count is the active diver\'s', () async {
+      expect(await openCountFor('alice'), 1);
+      expect(await openCountFor('bob'), 0);
+    });
+
+    test('the inbox lists the active diver\'s findings', () async {
+      expect(await inboxFor('alice'), hasLength(1));
+      expect(await inboxFor('bob'), isEmpty);
+    });
   });
 }

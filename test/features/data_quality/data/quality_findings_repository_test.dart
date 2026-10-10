@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/data_quality/data/repositories/quality_findings_repository.dart';
@@ -253,6 +254,81 @@ void main() {
       expect(await repo.watchOpenCountForDives({'d1', 'dP'}).first, 1);
     },
   );
+
+  // Findings carry no diver of their own; the badge and the inbox reach the
+  // active diver through the dive a finding names (issue #3049).
+  group('scoped to a diver', () {
+    Future<void> addDive(String id, String? diverId) => db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: id,
+            diverId: Value(diverId),
+            diveDateTime: 1,
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+
+    QualityFinding pairFinding(String a, String b) {
+      final pid = qualityPairIdentity(detectorId: 'duplicate', a: a, b: b);
+      return QualityFinding(
+        id: pid.id,
+        diveId: pid.diveId,
+        relatedDiveId: pid.relatedDiveId,
+        detectorId: 'duplicate',
+        detectorVersion: 1,
+        category: QualityCategory.duplicate,
+        severity: QualitySeverity.warning,
+        status: QualityStatus.open,
+        createdAt: DateTime.utc(2026, 7, 17),
+        updatedAt: DateTime.utc(2026, 7, 17),
+      );
+    }
+
+    late QualityFinding crossDiver;
+
+    setUp(() async {
+      await addDive('a1', 'alice');
+      await addDive('b1', 'bob');
+      await addDive('b2', 'bob');
+      // a1 < b1, so the cross-diver pair is anchored on Alice's dive and
+      // reaches Bob only through its related dive.
+      crossDiver = pairFinding('a1', 'b1');
+      await repo.applyScanResults(
+        scopeDiveIds: {'a1', 'b1', 'b2'},
+        ranDetectorIds: {'sample_gap', 'duplicate'},
+        produced: [
+          finding(diveId: 'a1'),
+          finding(diveId: 'b2'),
+          crossDiver,
+        ],
+      );
+    });
+
+    test('watchOpenCount counts only that diver\'s dives', () async {
+      expect(await repo.watchOpenCount(diverId: 'alice').first, 2);
+      expect(await repo.watchOpenCount(diverId: 'bob').first, 2);
+      expect(await repo.watchOpenCount(diverId: 'carol').first, 0);
+      expect(await repo.watchOpenCount().first, 3);
+    });
+
+    test('watchFindings lists only that diver\'s dives', () async {
+      Future<Set<String>> anchors(String? diverId) async => {
+        for (final f in await repo.watchFindings(diverId: diverId).first)
+          f.diveId,
+      };
+      expect(await anchors('alice'), {'a1'});
+      expect((await repo.watchFindings(diverId: 'alice').first).length, 2);
+      // Bob sees his own finding and the pair through its related dive.
+      expect(
+        (await repo.watchFindings(diverId: 'bob').first).map((f) => f.id),
+        unorderedEquals([finding(diveId: 'b2').id, crossDiver.id]),
+      );
+      expect(await repo.watchFindings(diverId: 'carol').first, isEmpty);
+      expect(await repo.watchFindings().first, hasLength(3));
+    });
+  });
 
   // A newer build can sync a finding whose category, severity or status this
   // build does not know; the inbox must still load the rest (issue #2853).
