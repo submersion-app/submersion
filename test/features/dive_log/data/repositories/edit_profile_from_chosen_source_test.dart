@@ -31,16 +31,30 @@ void main() {
             updatedAt: Value(now),
           ),
         );
+    // Downloaded from registered computers: the originals name their
+    // computer and an edit names none, which is what ranks the edit first.
     for (final (id, isPrimary, maxDepth) in [
       ('src-a', true, 20.0),
       ('src-b', false, 30.0),
     ]) {
+      final computerId = 'dc-$id';
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion(
+              id: Value(computerId),
+              name: Value('Computer $id'),
+              createdAt: const Value(now),
+              updatedAt: const Value(now),
+            ),
+          );
       await db
           .into(db.diveDataSources)
           .insert(
             DiveDataSourcesCompanion(
               id: Value(id),
               diveId: const Value('dive-1'),
+              computerId: Value(computerId),
               isPrimary: Value(isPrimary),
               maxDepth: Value(maxDepth),
               importedAt: Value(DateTime(2026, 1, 1)),
@@ -49,6 +63,7 @@ void main() {
           );
       await ProfileSeriesRepository().insertSeries(
         diveId: 'dive-1',
+        computerId: computerId,
         sourceId: id,
         isPrimary: isPrimary,
         samples: [
@@ -151,27 +166,20 @@ void main() {
     );
   });
 
-  test('promoting an edited file import back restores its edit', () async {
-    // Neither series of src-a names a computer, so the edit cannot win on
-    // the null-computer rank; it has to win as the newer generation.
-    await repository.saveEditedProfileWithKind(
-      diveId: 'dive-1',
-      editedPoints: edited,
-      editKind: 'profile_editor',
-    );
-    await repository.setPrimaryDataSource(
-      diveId: 'dive-1',
-      computerReadingId: 'src-b',
-    );
-    await repository.setPrimaryDataSource(
-      diveId: 'dive-1',
-      computerReadingId: 'src-a',
+  test('a source that is not on the dive throws before writing', () async {
+    await expectLater(
+      repository.saveEditedProfileWithKind(
+        diveId: 'dive-1',
+        editedPoints: edited,
+        editKind: 'profile_editor',
+        sourceId: 'src-gone',
+      ),
+      throwsStateError,
     );
 
-    final profile = await repository.getDiveProfile('dive-1');
-    expect(
-      [for (final p in profile) (p.timestamp, p.depth)],
-      [(0, 0.0), (60, 28.0), (120, 0.0)],
-    );
+    expect(await isPrimarySource('src-a'), isTrue);
+    final profiles = await repository.getProfilesByDataSource('dive-1');
+    expect(profiles['src-a']!.isEdited, isFalse);
+    expect([for (final p in profiles['src-a']!.points) p.depth], [0, 20, 0]);
   });
 }

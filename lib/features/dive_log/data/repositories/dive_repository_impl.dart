@@ -1102,6 +1102,9 @@ class DiveRepository {
   /// [sourceId] names the data source the edit started from. When it is not
   /// the dive's primary source, that source is promoted first, in the same
   /// transaction, so the edit still belongs to the primary (issue #3066).
+  /// A [sourceId] that names no source of this dive (deleted since the
+  /// editor opened, or a stale deep link) throws [StateError] before
+  /// anything is written, rather than saving the edit to another source.
   Future<void> saveEditedProfileWithKind({
     required String diveId,
     required List<domain.DiveProfilePoint> editedPoints,
@@ -1120,7 +1123,10 @@ class DiveRepository {
                     (t) => t.id.equals(sourceId) & t.diveId.equals(diveId),
                   ))
                   .getSingleOrNull();
-          if (chosen != null && !chosen.isPrimary) {
+          if (chosen == null) {
+            throw StateError('Dive $diveId has no data source $sourceId');
+          }
+          if (!chosen.isPrimary) {
             await setPrimaryDataSource(
               diveId: diveId,
               computerReadingId: sourceId,

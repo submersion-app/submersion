@@ -24,7 +24,8 @@ class ProfileEditorPage extends ConsumerStatefulWidget {
   final EditorMode? initialMode;
 
   /// The data source whose samples the editor starts from, chosen in the
-  /// "Choose starting profile" sheet. Null edits the primary profile. Saving
+  /// "Choose starting profile" sheet. Null edits the dive's profile, which
+  /// is that one source's on a dive with a single source of samples. Saving
   /// an edit of a non-primary source makes that source primary (#3066).
   final String? sourceId;
 
@@ -43,6 +44,10 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   late StateNotifierProvider<ProfileEditorNotifier, ProfileEditorState>
   _editorProvider;
   List<DiveProfilePoint>? _lastProfile;
+
+  /// Whether [ProfileEditorPage.sourceId] names a source other than the
+  /// primary, whose revision history the app bar selector shows.
+  bool _editsOtherSource = false;
 
   void _initializeProvider(List<DiveProfilePoint> profile) {
     final previous = _lastProfile;
@@ -210,6 +215,8 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
       ),
       data: (profiles) {
         final points = profiles[sourceId]?.points ?? const [];
+        // Sources are keyed primary first.
+        _editsOtherSource = profiles.keys.firstOrNull != sourceId;
         if (points.isEmpty) {
           return Scaffold(
             appBar: AppBar(
@@ -249,7 +256,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
               // The revision history is the primary profile's lineage, so
               // switching it would reload a profile other than the source
               // being edited.
-              if (widget.sourceId == null) ...[
+              if (!_editsOtherSource) ...[
                 const SizedBox(width: 12),
                 Flexible(
                   child: _buildProfileRevisionControl(

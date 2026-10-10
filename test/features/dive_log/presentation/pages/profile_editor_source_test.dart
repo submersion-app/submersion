@@ -38,7 +38,11 @@ void main() {
   setUp(() {
     mockRepo = MockDiveRepository();
     popResult = null;
-    dive = createTestDiveWithBottomTime().copyWith(profile: primaryPoints);
+    // A dive's profile interleaves every source, so it matches neither.
+    dive = createTestDiveWithBottomTime().copyWith(
+      profile: [...primaryPoints, ...secondPoints]
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp)),
+    );
     when(
       mockRepo.saveEditedProfileWithKind(
         diveId: anyNamed('diveId'),
@@ -136,11 +140,21 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('starts from the primary profile without a source', (
+  testWidgets('starts from the dive profile without a source', (tester) async {
+    await pumpEditor(tester);
+    expect(chartOriginal(tester), dive.profile);
+  });
+
+  testWidgets('starts from the primary source alone when it is chosen', (
     tester,
   ) async {
-    await pumpEditor(tester);
+    await pumpEditor(tester, sourceId: 'src-a');
     expect(chartOriginal(tester), primaryPoints);
+    // Editing the primary keeps its revision selector, once the history
+    // the route push started reading has loaded.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byIcon(Icons.history), findsOneWidget);
   });
 
   testWidgets('starts from the chosen source profile', (tester) async {
@@ -170,6 +184,10 @@ void main() {
     // The revision history is the primary's lineage; switching it would
     // reload a profile other than the one being edited.
     await pumpEditor(tester, sourceId: 'src-b');
+    // Let the history load, so its absence is the hiding and not loading.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.byIcon(Icons.history), findsNothing);
   });
 }

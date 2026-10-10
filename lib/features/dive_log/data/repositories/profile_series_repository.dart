@@ -424,11 +424,9 @@ class ProfileSeriesRepository {
   ///
   /// Ranking: the null-computer series first (a manual edit is the live
   /// version of its source's samples, the rule `restoreOriginalProfile`
-  /// encodes), then the newest, then the greatest id. A file import's
-  /// original names no computer either, so only its age tells it from its
-  /// edit; the random id alone resurrected the original about half the time
-  /// (issue #3066). Every key is a synced value, so every device resolves
-  /// the same winners. `liveSeriesOf` applies the same ranking on read.
+  /// encodes), then the greatest id. Both halves are derived from synced
+  /// values, so every device resolves the same winners. `liveSeriesOf`
+  /// applies the same ranking on read.
   ///
   /// A lower-ranked series is superseded only where it overlaps a winner in
   /// time. `saveEditedProfile` does not replace what it supersedes: it
@@ -461,7 +459,6 @@ class ProfileSeriesRepository {
               )
               ..orderBy([
                 (t) => OrderingTerm.desc(t.computerId.isNull()),
-                (t) => OrderingTerm.desc(t.createdAt),
                 (t) => OrderingTerm.desc(t.id),
               ]))
             .get();

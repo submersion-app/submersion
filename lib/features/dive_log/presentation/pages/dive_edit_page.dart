@@ -861,6 +861,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Seeds the fields a dive takes from its primary data source: entry and
   /// exit, bottom time, runtime and water temperature. Call inside setState.
   void _seedSourceFields(Dive dive, UnitFormatter units) {
+    // A refresh reseeds a form that already holds the previous primary's
+    // values, so clear what the branches below may leave unset.
+    _exitDate = null;
+    _exitTime = null;
+    _durationController.text = '';
+    _runtimeController.text = '';
     // Use entryTime if available, otherwise fall back to dateTime
     final entryDateTime = dive.entryTime ?? dive.dateTime;
     _entryDate = entryDateTime;
@@ -3312,15 +3318,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (!mounted) return;
 
     String? sourceId;
+    var promotes = false;
     if (startable.length > 1) {
       final selected = await showModalBottomSheet<DiveDataSource>(
         context: context,
         builder: (context) => ComputerSourceSelectionSheet(readings: startable),
       );
       if (selected == null || !mounted) return;
-      // The editor starts from the primary profile by default; only another
-      // source needs naming, and saving its edit makes it primary.
-      if (!selected.isPrimary) sourceId = selected.id;
+      // Name the choice even when it is the primary: without a source the
+      // editor starts from the dive's profile, which interleaves every
+      // source. Saving an edit of another source makes it primary.
+      sourceId = selected.id;
+      promotes = !selected.isPrimary;
     }
 
     final saved = await context.pushNamed<bool>(
@@ -3329,7 +3338,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       queryParameters: {'mode': ?initialMode, 'sourceId': ?sourceId},
     );
     if (saved == true && mounted) {
-      await _refreshAfterProfileSave(diveId, promoted: sourceId != null);
+      await _refreshAfterProfileSave(diveId, promoted: promotes);
     }
   }
 

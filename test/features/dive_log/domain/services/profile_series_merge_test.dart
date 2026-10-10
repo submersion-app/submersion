@@ -27,7 +27,6 @@ ProfileSeries series(
   String? computerId,
   String? sourceId,
   bool isPrimary = true,
-  int createdAt = 0,
   required List<ProfileSample> samples,
 }) => ProfileSeries(
   id: id,
@@ -38,7 +37,7 @@ ProfileSeries series(
   summary: ProfileSeriesSummary.of(samples),
   samples: samples,
   codecVersion: 1,
-  createdAt: createdAt,
+  createdAt: 0,
   updatedAt: 0,
 );
 
@@ -500,13 +499,6 @@ void main() {
     test('an edit supersedes the computer original it overlaps', () {
       final original = series('z', computerId: 'c1', samples: span);
       final edit = series('a', samples: span);
-      expect(ids(liveSeriesOf([original, edit])), ['a']);
-    });
-
-    test('the newer of two computer-less series wins over a greater id', () {
-      // A file import's original names no computer either.
-      final original = series('z', createdAt: 1, samples: span);
-      final edit = series('a', createdAt: 2, samples: span);
       expect(ids(liveSeriesOf([original, edit])), ['a']);
     });
 

@@ -100,6 +100,7 @@ void main() {
           tripForDateProvider.overrideWith((ref, date) async => null),
         ],
         child: MaterialApp.router(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: GoRouter(
@@ -179,7 +180,9 @@ void main() {
     expect(find.text('20.0 m'), findsNothing);
   });
 
-  testWidgets('choosing the primary source names no source', (tester) async {
+  testWidgets('choosing the primary source names it without promoting', (
+    tester,
+  ) async {
     Map<String, String>? editorQuery;
     await pumpEditPage(
       tester,
@@ -194,7 +197,8 @@ void main() {
     await tester.tap(find.text('Perdix'));
     await tester.pumpAndSettle();
 
-    expect(editorQuery, isNotNull);
-    expect(editorQuery!.containsKey('sourceId'), isFalse);
+    // Named even though it is primary: without a source the editor starts
+    // from the dive's profile, which interleaves both computers.
+    expect(editorQuery?['sourceId'], 'src-a');
   });
 }
