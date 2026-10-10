@@ -699,11 +699,11 @@ class _DistributionsSection extends ConsumerWidget {
       data: (_) => null,
     );
 
-    // Same for depth buckets: every bucket that has a dive in it, with its
-    // count and summed dive time, regardless of how many the pie's own
-    // legend can fit (issue #641 follow-up). The original index into the
-    // (always 14-entry) depthDistribution list is kept so each bar can reuse
-    // the same _depthColors entry as its pie slice.
+    // Depth buckets get the same full bar list: every bucket that has a dive
+    // in it, with its count and summed dive time, regardless of how many the
+    // pie's own legend can fit (issue #641 follow-up). The original index into
+    // the (always 14-entry) depthDistribution list is kept so each bar can
+    // reuse the same _depthColors entry as its pie slice.
     final depthEntries = [
       for (final (index, segment) in stats.depthDistribution.indexed)
         if (segment.count > 0) (index, segment),

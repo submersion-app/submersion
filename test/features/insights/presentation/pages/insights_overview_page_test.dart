@@ -1098,6 +1098,51 @@ void main() {
       expect(find.text('Dpv'), findsNothing);
     });
 
+    // Issue #3048: with no type pie, the dive-type bar section is where a
+    // failed load surfaces, under its own heading, beside the depth chart.
+    testWidgets('shows the dive-type error under its heading', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 3,
+        totalTimeSeconds: 5400,
+        maxDepth: 20.0,
+        avgMaxDepth: 20.0,
+        totalSites: 1,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 30)),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
+            diveTypeDistributionProvider.overrideWith(
+              (ref) async => throw StateError('boom'),
+            ),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: InsightsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dive Types'), findsOneWidget);
+      expect(find.text('Unable to load dive type data'), findsOneWidget);
+      // The depth chart is fed by a different provider and still renders.
+      expect(find.text('Depth Distribution'), findsOneWidget);
+    });
+
     testWidgets('hides Distributions when totalDives is 0', (tester) async {
       final stats = DiveStatistics(
         totalDives: 0,
