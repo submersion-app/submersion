@@ -27,6 +27,7 @@ ProfileSeries series(
   String? computerId,
   String? sourceId,
   bool isPrimary = true,
+  int createdAt = 0,
   required List<ProfileSample> samples,
 }) => ProfileSeries(
   id: id,
@@ -37,7 +38,7 @@ ProfileSeries series(
   summary: ProfileSeriesSummary.of(samples),
   samples: samples,
   codecVersion: 1,
-  createdAt: 0,
+  createdAt: createdAt,
   updatedAt: 0,
 );
 
@@ -485,6 +486,41 @@ void main() {
         selectTankSeriesPerSource(const [], preferredSourceId: 'x'),
         isEmpty,
       );
+    });
+  });
+
+  group('liveSeriesOf (#3066)', () {
+    const span = [
+      ProfileSample(timestamp: 0, depth: 0.0),
+      ProfileSample(timestamp: 60, depth: 10.0),
+    ];
+
+    List<String> ids(List<ProfileSeries> s) => [for (final x in s) x.id];
+
+    test('an edit supersedes the computer original it overlaps', () {
+      final original = series('z', computerId: 'c1', samples: span);
+      final edit = series('a', samples: span);
+      expect(ids(liveSeriesOf([original, edit])), ['a']);
+    });
+
+    test('the newer of two computer-less series wins over a greater id', () {
+      // A file import's original names no computer either.
+      final original = series('z', createdAt: 1, samples: span);
+      final edit = series('a', createdAt: 2, samples: span);
+      expect(ids(liveSeriesOf([original, edit])), ['a']);
+    });
+
+    test('series over disjoint ranges are all kept, in input order', () {
+      final first = series('b', computerId: 'c1', samples: span);
+      final second = series(
+        'a',
+        computerId: 'c1',
+        samples: const [
+          ProfileSample(timestamp: 120, depth: 0.0),
+          ProfileSample(timestamp: 180, depth: 8.0),
+        ],
+      );
+      expect(ids(liveSeriesOf([first, second])), ['b', 'a']);
     });
   });
 }

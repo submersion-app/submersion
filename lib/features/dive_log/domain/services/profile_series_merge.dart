@@ -9,10 +9,10 @@ import 'package:submersion/features/dive_log/domain/entities/profile_series.dart
 /// The same ranking `ProfileSeriesRepository.promoteWinnerOwnedBy` applies
 /// when a source becomes primary: the null-computer series (a manual edit)
 /// first, then the newest, then the greatest id, and a lower-ranked series
-/// is dropped only
-/// where it overlaps a winner in time. A demoted source that was edited
-/// owns its original and its edit over the same timestamps; reading both
-/// would interleave two generations of one profile (issue #3066).
+/// is dropped only where it overlaps a winner in time. A demoted source
+/// that was edited owns its original and its edit over the same timestamps;
+/// reading both would interleave two generations of one profile (issue
+/// #3066).
 List<ProfileSeries> liveSeriesOf(List<ProfileSeries> owned) {
   if (owned.length < 2) return owned;
   final ranked = [...owned]
@@ -33,9 +33,11 @@ List<ProfileSeries> liveSeriesOf(List<ProfileSeries> owned) {
     );
     if (!superseded) winners.add(candidate);
   }
+  // By id: ProfileSeries equality compares every sample.
+  final winnerIds = {for (final w in winners) w.id};
   return [
     for (final s in owned)
-      if (winners.contains(s)) s,
+      if (winnerIds.contains(s.id)) s,
   ];
 }
 
