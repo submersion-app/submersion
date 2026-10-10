@@ -339,6 +339,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get connections_table_firstDive => 'First dive';
 
   @override
+  String connections_matrix_semantics(int rows, int columns, int links) {
+    return 'Matrix of $rows rows and $columns columns, $links connections';
+  }
+
+  @override
   String get connections_legend_group => 'Color: grupo';
 
   @override

@@ -680,6 +680,12 @@ abstract class AppLocalizations {
   /// **'First dive'**
   String get connections_table_firstDive;
 
+  /// No description provided for @connections_matrix_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Matrix of {rows} rows and {columns} columns, {links} connections'**
+  String connections_matrix_semantics(int rows, int columns, int links);
+
   /// No description provided for @connections_legend_group.
   ///
   /// In en, this message translates to:

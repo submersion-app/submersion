@@ -3,6 +3,7 @@ import 'package:submersion/features/connections/domain/entities/connection_graph
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
+import 'package:submersion/features/connections/presentation/views/connections_matrix.dart';
 import 'package:submersion/features/connections/presentation/views/entities_table.dart';
 import 'package:submersion/features/connections/presentation/views/pairs_table.dart';
 import 'package:submersion/features/connections/presentation/views/table_header_bar.dart';
@@ -52,8 +53,12 @@ class ConnectionsTableArea extends StatelessWidget {
       selection: selection,
       onSelect: onSelect,
     ),
-    ConnectionsViewKind.matrix => const SizedBox.shrink(
-      key: ValueKey('connections-view-matrix'),
+    ConnectionsViewKind.matrix => ConnectionsMatrix(
+      key: const ValueKey('connections-view-matrix'),
+      graph: graph,
+      colors: colors,
+      selection: selection,
+      onSelect: onSelect,
     ),
     ConnectionsViewKind.graph => const SizedBox.shrink(),
   };
