@@ -89,10 +89,12 @@ unchanged) and `props`.
 
 ### Restore hygiene
 
-After a successful swap, `_replaceDatabaseAndRebaselineSync` drops
-`backup_info` from the live database (best effort, logged on failure), so a raw
-pre-migration byte copy or the next `VACUUM INTO` cannot carry an old note
-forward.
+The database's `beforeOpen` drops `backup_info` on every open
+(`lib/core/database/migrations/before_open_backup_note.dart`). Every restore
+path, including the startup-page restore that bypasses `BackupService`, reopens
+the database, so the live database never keeps the table and a raw
+pre-migration or pre-downgrade byte copy (which bypasses the stamp) cannot
+carry an old note forward. A failure is logged and never blocks opening.
 
 ### Records per route
 

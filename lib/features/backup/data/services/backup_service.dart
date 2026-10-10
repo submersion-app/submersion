@@ -1018,7 +1018,6 @@ class BackupService {
       sourcePath,
       onMigrationProgress: onMigrationProgress,
     );
-    await _dropBackupNoteFromLiveDatabase();
 
     // The restored file carries whatever built-in species rows its backup
     // had; forgetting the applied catalog version makes the next launch run
@@ -1044,24 +1043,6 @@ class BackupService {
       // the user can recover by running "Reset Sync State" manually.
       _log.error(
         'Failed to re-baseline sync after restore',
-        error: e,
-        stackTrace: st,
-      );
-    }
-  }
-
-  /// A restored backup brings its `backup_info` table into the live database.
-  /// Left there, a raw byte copy (the pre-migration backup) would carry that
-  /// old note forward. Best effort: every new backup copy drops the table
-  /// anyway, so a failure here is logged rather than failing the restore.
-  Future<void> _dropBackupNoteFromLiveDatabase() async {
-    try {
-      await _dbAdapter.database.customStatement(
-        'DROP TABLE IF EXISTS $backupInfoTable',
-      );
-    } catch (e, st) {
-      _log.warning(
-        'Could not drop the backup note table after restore',
         error: e,
         stackTrace: st,
       );

@@ -25,7 +25,6 @@ import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
 import '../../../../helpers/mock_channels.dart';
-import '../../../../helpers/test_database.dart';
 
 // =============================================================================
 // Test Doubles
@@ -75,17 +74,6 @@ class FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
 
   @override
   String? get databaseKeyHex => null;
-}
-
-/// A fake whose live database is real, for checks on what a restore leaves in
-/// it.
-class _LiveDatabaseAdapter extends FakeBackupDatabaseAdapter {
-  _LiveDatabaseAdapter(this.live);
-
-  final AppDatabase live;
-
-  @override
-  AppDatabase get database => live;
 }
 
 /// Sync repository whose device id is fixed by the test, including the empty
@@ -523,42 +511,6 @@ void main() {
         expect(fakeDb.backupCallCount, 1);
         expect(fakeDb.lastBackupNote, isNull);
         expect(record.note, isNull);
-      });
-
-      test('a restore drops the note table from the live database', () async {
-        final live = createTestDatabase();
-        addTearDown(live.close);
-        await live.customStatement(
-          'CREATE TABLE backup_info (key TEXT PRIMARY KEY NOT NULL, '
-          'value TEXT NOT NULL)',
-        );
-        final adapter = _LiveDatabaseAdapter(live);
-        final service = BackupService(
-          dbAdapter: adapter,
-          preferences: preferences,
-          syncRepository: _SpySyncRepository(),
-        );
-        final src = File(
-          p.join(
-            _isolatedTempDir.path,
-            'note_restore_${DateTime.now().microsecondsSinceEpoch}.db',
-          ),
-        );
-        await src.writeAsString('db');
-        addTearDown(() async {
-          if (await src.exists()) await src.delete();
-        });
-
-        await service.restoreFromFile(src.path);
-
-        expect(adapter.restoreCallCount, 1);
-        final rows = await live
-            .customSelect(
-              "SELECT 1 FROM sqlite_master WHERE type = 'table' "
-              "AND name = 'backup_info'",
-            )
-            .get();
-        expect(rows, isEmpty);
       });
     });
 
