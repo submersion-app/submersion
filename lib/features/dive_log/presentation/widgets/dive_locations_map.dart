@@ -10,6 +10,7 @@ import 'package:submersion/features/maps/presentation/widgets/map_attribution.da
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 
 /// Marker colors for the GPS entry/exit fixes, matching the values the dive
@@ -19,8 +20,8 @@ const Color kGpsExitColor = Color(0xFFFF9F0A);
 
 /// Renders a map of a dive's surface locations: the GPS entry fix, the GPS exit
 /// fix, and the associated dive site. Reused by the dive detail header
-/// (decorative, non-interactive), the Surface GPS section (inline, interactive),
-/// and the fullscreen locations page.
+/// (decorative), the Surface GPS section (inline, locked so the detail pane
+/// scrolls over it), and the fullscreen locations page (interactive).
 ///
 /// This widget only draws a map. Clipboard, navigation, and row logic live in
 /// the callers.
@@ -47,7 +48,9 @@ class DiveLocationsMap extends ConsumerStatefulWidget {
   /// Associated dive site location.
   final GeoPoint? site;
 
-  /// Whether the user can pan/zoom. False renders a static, decorative map.
+  /// Whether the user can pan/zoom. False renders a static map that takes no
+  /// gestures at all, so a wheel, trackpad or drag over it scrolls whatever
+  /// encloses it (issue #3156). A controller can still move its camera.
   final bool interactive;
 
   /// Optional controller for programmatic recentering (tap-to-focus).
@@ -223,62 +226,68 @@ class _DiveLocationsMapState extends ConsumerState<DiveLocationsMap> {
       }
     }
 
-    return Stack(
+    final map = FlutterMap(
+      mapController: _effectiveController,
+      options: MapOptions(
+        initialCenter: center,
+        initialZoom: zoom,
+        onMapReady: () {
+          _mapReady = true;
+          _framedOn = trackRuns;
+        },
+        initialCameraFit: fit,
+        interactionOptions: interactive
+            ? rotatableMapInteraction
+            : const InteractionOptions(flags: InteractiveFlag.none),
+      ),
       children: [
-        TrackpadZoomMap(
-          controller: _effectiveController,
-          child: FlutterMap(
-            mapController: _effectiveController,
-            options: MapOptions(
-              initialCenter: center,
-              initialZoom: zoom,
-              onMapReady: () {
-                _mapReady = true;
-                _framedOn = trackRuns;
-              },
-              initialCameraFit: fit,
-              interactionOptions: interactive
-                  ? rotatableMapInteraction
-                  : const InteractionOptions(flags: InteractiveFlag.none),
-            ),
-            children: [
-              // The decorative header remounts on every dive selected in the
-              // master-detail pane, and the default fade restarts each tile at
-              // opacity 0 even when it is already in memory, which blinked
-              // the header's map background on every selection.
-              submersionTileLayer(
-                ref,
-                tileDisplay: interactive
-                    ? const TileDisplay.fadeIn()
-                    : const TileDisplay.instantaneous(),
+        // The decorative header remounts on every dive selected in the
+        // master-detail pane, and the default fade restarts each tile at
+        // opacity 0 even when it is already in memory, which blinked
+        // the header's map background on every selection.
+        submersionTileLayer(
+          ref,
+          tileDisplay: interactive
+              ? const TileDisplay.fadeIn()
+              : const TileDisplay.instantaneous(),
+        ),
+        // Drawn before the drift line and markers so the surface track
+        // sits underneath both.
+        if (hasTrack)
+          GpsTrackPolylineLayer(
+            runs: trackRuns,
+            mode: TrackColorMode.uniform,
+            strokeWidth: 3.0,
+          ),
+        if (entry != null && exit != null)
+          PolylineLayer(
+            polylines: [
+              Polyline(
+                points: [
+                  LatLng(entry.latitude, entry.longitude),
+                  LatLng(exit.latitude, exit.longitude),
+                ],
+                strokeWidth: 3.0,
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
+                pattern: const StrokePattern.dotted(),
               ),
-              // Drawn before the drift line and markers so the surface track
-              // sits underneath both.
-              if (hasTrack)
-                GpsTrackPolylineLayer(
-                  runs: trackRuns,
-                  mode: TrackColorMode.uniform,
-                  strokeWidth: 3.0,
-                ),
-              if (entry != null && exit != null)
-                PolylineLayer(
-                  polylines: [
-                    Polyline(
-                      points: [
-                        LatLng(entry.latitude, entry.longitude),
-                        LatLng(exit.latitude, exit.longitude),
-                      ],
-                      strokeWidth: 3.0,
-                      color: colorScheme.onSurface.withValues(alpha: 0.7),
-                      pattern: const StrokePattern.dotted(),
-                    ),
-                  ],
-                ),
-              MarkerLayer(markers: markers),
-              const MapAttribution(),
             ],
           ),
-        ),
+        MarkerLayer(markers: markers),
+        const MapAttribution(),
+      ],
+    );
+
+    return Stack(
+      children: [
+        // The trackpad zoom wraps only an interactive map: it wins the gesture
+        // arena against any enclosing scrollable, so around a locked map it
+        // would still turn a trackpad scroll over the map into a zoom. A
+        // locked map forwards the trackpad scroll to the page instead.
+        if (interactive)
+          TrackpadZoomMap(controller: _effectiveController, child: map)
+        else
+          LockedMapScrollPassthrough(child: map),
         // Reset-to-north compass (only when the map accepts rotation gestures)
         if (interactive)
           Positioned(

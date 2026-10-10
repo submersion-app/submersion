@@ -14,19 +14,24 @@ import 'package:submersion/core/theme/tinted_containers.dart';
 const _surfaceLight = Color(0xFFF0FAF8);
 const _surfaceDark = Color(0xFF101A18);
 
-const _appBarLight = Color(0xFF00B4A0);
+// The light app bar shares the primary teal, deep enough for its white title.
+const _appBarLight = _primaryLight;
 const _appBarDark = Color(0xFF152824);
 
-const _primaryLight = Color(0xFF00B4A0);
+// Accents are drawn as text and icons on the surface and white cards, so the
+// light ones are deep enough for WCAG AA there (#2967): the original bright
+// teal #00B4A0 and coral #E07A5F read at under 3:1.
+const _primaryLight = Color(0xFF007D6F);
 const _primaryDark = Color(0xFF40D0BE);
 
-const _secondaryLight = Color(0xFFE07A5F);
+const _secondaryLight = Color(0xFFC24626);
 const _secondaryDark = Color(0xFFE8957E);
 
 const _cardLight = Color(0xFFFFFFFF);
 const _cardDark = Color(0xFF1A2A26);
 
-const _fabColor = Color(0xFFE07A5F);
+// The deep coral carries the FAB's white icon in both modes.
+const _fabColor = _secondaryLight;
 
 const _errorColor = Color(0xFFB00020);
 const _onErrorColor = Color(0xFFFFFFFF);

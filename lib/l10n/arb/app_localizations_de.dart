@@ -1425,10 +1425,71 @@ class AppLocalizationsDe extends AppLocalizations {
       'Nächstes Standardgemisch für diese Tiefe';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Empfohlenes Gemisch';
+  String get gasCalculators_bestMix_recommendedMix => 'Berechnetes Gemisch';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Berechnetes Gemisch $mix, MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'Alle anzeigen ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'Weniger anzeigen';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Ohne Helium';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => 'Gasquelle';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'Bailout';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'Diluent';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'Gasdichte innerhalb der Grenzwerte halten';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD auf Tiefe';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'Helium zugefügt, damit END und Gasdichte innerhalb deiner Grenzwerte bleiben.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'Helium zugefügt, damit die Gasdichte innerhalb der Grenzwerte bleibt.';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'Modus';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'Kreislaufgerät: Diluent prüft gegen die Spül-ppO₂ des Diluentgases, Bailout gegen deine OC-Deko-ppO₂ (Maximum).';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'Trimix im offenen System, geprüft gegen deine Arbeits-ppO₂-Grenze.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'Nitrox für das Sporttauchen, wie bisher.';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -9979,6 +10040,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_action_editTank => 'Flasche bearbeiten';
 
   @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'Bestes Gemisch für $depth: $mix';
+  }
+
+  @override
   String get divePlanner_action_moreOptions => 'Weitere Optionen';
 
   @override
@@ -11854,7 +11920,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return 'Dadurch werden $name und alle zugehörigen Daten dauerhaft gelöscht, einschließlich der Tauchgänge, Tauchcomputer, Ausrüstung, Brevets und Tauchplätze.';
   }
 
   @override
@@ -12000,12 +12066,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return 'Geben Sie \"Löschen $name\" zur Bestätigung ein';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return 'Löschen $name';
   }
 
   @override
@@ -14758,20 +14824,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'Änderungen speichern';
-
-  @override
-  String get equipment_edit_saveButton_new => 'Ausrüstung hinzufügen';
-
-  @override
-  String get equipment_edit_saveTooltip_edit =>
-      'Ausrüstungsänderungen speichern';
-
-  @override
-  String get equipment_edit_saveTooltip_new =>
-      'Neuen Ausrüstungsgegenstand hinzufügen';
-
-  @override
   String get equipment_edit_selectDate => 'Datum auswählen';
 
   @override
@@ -14784,6 +14836,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return 'Fehler beim Speichern der Ausrüstung: $error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Gespeichert, aber die aktuelle Listenansicht blendet es aus';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Anzeigen';
 
   @override
   String get equipment_edit_snackbar_updated => 'Ausrüstung aktualisiert';
@@ -15731,12 +15790,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_setEdit_notFoundTitle => 'Set nicht gefunden';
 
   @override
-  String get equipment_setEdit_saveButton_edit => 'Änderungen speichern';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'Set erstellen';
-
-  @override
   String get equipment_setEdit_saveTooltip_edit =>
       'Ausrüstungsset-Änderungen speichern';
 
@@ -16092,8 +16145,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'Aus deinem Taucherprofil';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'Abweichend vom Profil ($value bar)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'Abweichend vom Profil ($value)';
   }
 
   @override
@@ -19142,7 +19195,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Beste Mischung, Verbrauch, Mindestreserve';
+      'Tiefengrenzen, Gemische, Gasverbrauch und Füllen';
 
   @override
   String get planning_card_gasCalculators_title => 'Gasrechner';
@@ -19164,6 +19217,21 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'Diese Werkzeuge dienen nur der Planung. Überprüfen Sie Berechnungen immer und befolgen Sie Ihre Tauchausbildung.';
+
+  @override
+  String get planning_disclaimer_dialog_title =>
+      'Hinweis zu den Planungswerkzeugen';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'Die Werkzeuge in diesem Bereich dienen ausschließlich der Planung. Sie ersetzen weder Ihre Tauchausbildung noch Ihren Tauchcomputer. Überprüfen Sie jede Berechnung selbst, bevor Sie sie für eine Sicherheitsentscheidung verwenden.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'Verstanden';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'Planungs-Hinweis bestätigt';
 
   @override
   String get planning_section_tools => 'Werkzeuge';
@@ -20692,20 +20760,55 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Behält die Version von $kept. Die Werte von $discarded für $fields werden verworfen.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'dieses Geräts',
+      'otherDevice': 'des anderen Geräts',
+      'other': 'von $kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'dieses Geräts',
+      'otherDevice': 'des anderen Geräts',
+      'other': 'von $discarded',
+    });
+    return 'Behält die Version $_temp0. Die Werte $_temp1 für $fields werden verworfen.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Behält die Version von $local und fügt die Version von $remote als separate Kopie hinzu.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'dieses Geräts',
+      'otherDevice': 'des anderen Geräts',
+      'other': 'von $local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'dieses Geräts',
+      'otherDevice': 'des anderen Geräts',
+      'other': 'von $remote',
+    });
+    return 'Behält die Version $_temp0 und fügt die Version $_temp1 als separate Kopie hinzu.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Behält den Eintrag mit den Werten von $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'dieses Geräts',
+      'otherDevice': 'des anderen Geräts',
+      'other': 'von $device',
+    });
+    return 'Behält den Eintrag mit den Werten $_temp0.';
   }
 
   @override
@@ -20722,8 +20825,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'Der Eintrag, wie $device ihn hat:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'dieses Gerät',
+      'otherDevice': 'das andere Gerät',
+      'other': '$device',
+    });
+    return 'Der Eintrag, wie $_temp0 ihn hat:';
   }
 
   @override
@@ -22707,8 +22815,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Beide behalten';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return '$device behalten';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Version dieses Geräts behalten',
+      'otherDevice': 'Version des anderen Geräts behalten',
+      'other': '$device behalten',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -22731,6 +22844,9 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$fields und $_temp0';
   }
+
+  @override
+  String get settings_conflict_fieldListSeparator => ', ';
 
   @override
   String get settings_conflict_next_tooltip => 'Nächster Konflikt';
@@ -24701,6 +24817,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get signatures_handoff_title => 'Geben Sie Ihr Gerät an';
 
   @override
+  String get signatures_buddySignature => 'Tauchpartner-Signatur';
+
+  @override
   String get signatures_instructorSignature => 'Tauchlehrer-Signatur';
 
   @override
@@ -26124,10 +26243,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_summary_depthDistribution_title => 'Tiefenverteilung';
-
-  @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'Kreisdiagramm der Tauchgangarten-Verteilung';
 
   @override
   String get insights_summary_diveTypes_title => 'Tauchgangarten';
@@ -28090,16 +28205,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_edit_appBar_edit => 'Reise bearbeiten';
 
   @override
-  String get trips_edit_button_add => 'Reise hinzufügen';
-
-  @override
   String get trips_edit_button_cancel => 'Abbrechen';
 
   @override
   String get trips_edit_button_save => 'Speichern';
-
-  @override
-  String get trips_edit_button_update => 'Reise aktualisieren';
 
   @override
   String get trips_edit_dialog_discard => 'Verwerfen';
@@ -36671,6 +36780,27 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_placeNameLanguage_subtitle =>
       'Wird verwendet, wenn Land, Region, Ort und Gewässer aus Koordinaten ermittelt werden. Bestehende Tauchplätze werden nicht geändert.';
+
+  @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'Ortsnamen auf $language speichern?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'Länder- und Regionsnamen Ihrer Tauchplätze werden auf $current gespeichert. Neue Abfragen auf $language umstellen? Danach können Sie Ihre bestehenden Tauchplätze erneut abfragen.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return '$current beibehalten';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Umstellen';
 
   @override
   String get settings_coordinateFormat_decimalDegrees => 'Dezimalgrad';
@@ -45632,6 +45762,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Profilrevision konnte nicht gewechselt werden.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Vor der Revisionshistorie gespeichert; mit keinem Tauchcomputer verknüpft';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -45958,6 +46092,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String backup_operation_created(String size) {
     return 'Sicherung erstellt: $size';
+  }
+
+  @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'Sicherung erstellt: $size. Sie wurde nur auf diesem Gerät gespeichert: Verschlüsselungs-Passphrase eingeben, um Sicherungen in die Cloud hochzuladen.';
   }
 
   @override

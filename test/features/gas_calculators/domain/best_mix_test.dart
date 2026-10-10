@@ -1,6 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
+import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart'
+    show maxOperatingDepthMeters;
 import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
 
 /// Vectors computed with python3 and reproduced in the spec. If one does not
 /// match, report BLOCKED. Do not edit the constant.
@@ -50,18 +56,26 @@ void main() {
       expect(nitrox.exceedsWarnDensity, isTrue);
     });
 
-    test('adding 10 percent helium fixes both narcosis and density', () {
-      expect(r.recommended.mix.name, 'Tx 31/10');
-      expect(r.recommended.endMeters, closeTo(29.45, 0.05));
+    test('adding 9 percent helium fixes both narcosis and density', () {
+      // Helium rounds up to a whole percent (issue #3112: was a 5% step).
+      // The raw requirement is ~8.75% (hand-derived from the same formula
+      // GasMix.heForMnd uses, closed form, no search); END/density below
+      // are read off computeBestMix's own output at that rounded 9%, not
+      // independently re-verified against a second implementation.
+      expect(r.recommended.mix.name, 'Tx 31/9');
+      expect(r.recommended.endMeters, closeTo(29.8878, 0.05));
       expect(r.recommended.exceedsEndLimit, isFalse);
-      expect(r.recommended.densityGPerL, closeTo(4.894, 0.02));
+      expect(r.recommended.densityGPerL, closeTo(4.9376, 0.02));
       expect(r.recommended.exceedsWarnDensity, isFalse);
     });
 
     test('the advisory standard mix also covers the depth', () {
       expect(r.nearestStandardMix, isNotNull);
-      expect(r.nearestStandardMix!.roundedO2, 30);
-      expect(r.nearestStandardMix!.mod(ppO2: 1.4), greaterThanOrEqualTo(depth));
+      final mod = maxOperatingDepthMeters(
+        r.nearestStandardMix!.o2Percent / 100,
+        maxPpO2: 1.4,
+      );
+      expect(mod, greaterThanOrEqualTo(depth));
     });
   });
 
@@ -88,8 +102,12 @@ void main() {
         final depth = ft / _feetPerMeter;
         final r = _at(depth);
         if (r.nearestStandardMix != null) {
+          final mod = maxOperatingDepthMeters(
+            r.nearestStandardMix!.o2Percent / 100,
+            maxPpO2: 1.4,
+          );
           expect(
-            r.nearestStandardMix!.mod(ppO2: 1.4),
+            mod,
             greaterThanOrEqualTo(depth - 1e-6),
             reason: 'advisory mix must cover $ft ft',
           );
@@ -119,10 +137,15 @@ void main() {
       expect(r.recommended.exceedsEndLimit, isFalse);
     });
 
-    test('adds helium when END would be exceeded, rounded up to 5 percent', () {
+    test('adds helium when END would be exceeded, rounded up to 1 percent', () {
       final r = _at(50);
       expect(r.recommended.mix.he, greaterThan(0));
-      expect(r.recommended.mix.he % 5, closeTo(0, 1e-9));
+      // A whole percent (the rounding step), not necessarily a multiple of
+      // 5: the diver asked for the finer step (issue #3112).
+      expect(
+        r.recommended.mix.he,
+        closeTo(r.recommended.mix.he.roundToDouble(), 1e-9),
+      );
       expect(r.recommended.mix.isTrimix, isTrue);
       expect(r.recommended.endMeters, lessThanOrEqualTo(30 + 1e-6));
     });
@@ -165,6 +188,292 @@ void main() {
       final r = _at(18);
       expect(r.recommended.exceedsWarnDensity, isFalse);
       expect(r.recommended.exceedsCriticalDensity, isFalse);
+    });
+  });
+
+  group('Tec ambient model (OC-Tec, salt water, 0 C)', () {
+    // DiveEnvironment's salt water (1025 kg/m3) is close to but not
+    // identical to the flat 1 bar/10 m model (barPerMeter is about 0.10052,
+    // not 0.1), so this is a same-mode sanity check, not a cross-check
+    // against the Rec path.
+    final r = computeBestMix(
+      const BestMixInputs(
+        depthMeters: 30,
+        ppO2Limit: 1.4,
+        endLimitMeters: 30,
+        o2Narcotic: true,
+        mode: BestMixMode.ocTec,
+        waterType: WaterType.salt,
+        temperature: GasDensityTemperature.zeroC,
+      ),
+    );
+
+    test('EAD is populated outside Rec', () {
+      expect(r.recommended.eadMeters, isNotNull);
+    });
+
+    test('END equals the actual depth for a helium-free mix', () {
+      // No helium, O2 counted as narcotic: the narcotic fraction is the
+      // whole ambient pressure, so the equivalent narcotic depth is the
+      // real depth exactly, regardless of the O2 percentage.
+      expect(r.recommended.endMeters, closeTo(30, 0.01));
+    });
+
+    test('EAD is shallower than END for a nitrox richer than air', () {
+      // EAD counts N2 only, so a mix richer than air's 21% carries less of
+      // it than air does at the same depth and reads shallower.
+      expect(r.recommended.eadMeters, lessThan(r.recommended.endMeters));
+    });
+
+    test('Rec stays null for EAD (unchanged field, no regression)', () {
+      final rec = _at(30);
+      expect(rec.recommended.eadMeters, isNull);
+    });
+
+    test(
+      'nearestStandardMix uses the same environment, not the flat model',
+      () {
+        // Fresh water sits further from the flat 1 bar/10 m model than
+        // salt water does, so a target depth right at a standard mix's
+        // flat-model MOD exposes a stale flat-model check in the search.
+        const freshDepth = 40.0;
+        final fresh = computeBestMix(
+          const BestMixInputs(
+            depthMeters: freshDepth,
+            ppO2Limit: 1.4,
+            endLimitMeters: 45,
+            o2Narcotic: true,
+            mode: BestMixMode.ocTec,
+            waterType: WaterType.fresh,
+          ),
+        );
+        final freshEnvironment = DiveEnvironment.forConditions(
+          waterType: WaterType.fresh,
+        );
+        if (fresh.nearestStandardMix != null) {
+          final mod = freshEnvironment.depthAtPressure(
+            1.4 / (fresh.nearestStandardMix!.o2Percent / 100),
+          );
+          expect(mod, greaterThanOrEqualTo(freshDepth - 1e-6));
+        }
+      },
+    );
+
+    test(
+      'MOD uses the same environment as END/density, not the flat model',
+      () {
+        // Salt water barPerMeter (~0.10052) differs from the flat 0.1, so the
+        // Tec MOD for the same mix differs very slightly from the Rec MOD at
+        // the same ppO2. This pins that MOD and END share one ambient model
+        // rather than MOD silently staying flat.
+        final flatMod = _at(30).recommended.mix.mod(ppO2: 1.4);
+        expect(r.recommended.modMeters, isNot(closeTo(flatMod, 1e-9)));
+        final environment = DiveEnvironment.forConditions(
+          waterType: WaterType.salt,
+        );
+        final expectedMod = environment.depthAtPressure(
+          1.4 / (r.recommended.mix.o2 / 100),
+        );
+        expect(r.recommended.modMeters, closeTo(expectedMod, 1e-6));
+      },
+    );
+  });
+
+  group('density-aware helium', () {
+    BestMixResult tec(
+      double depth, {
+      // High enough that END (which equals the actual depth for a
+      // helium-free, O2-narcotic mix) never binds at the depths tested
+      // below, so these tests isolate the density path.
+      double endLimit = 200,
+      bool densityAware = false,
+    }) => computeBestMix(
+      BestMixInputs(
+        depthMeters: depth,
+        ppO2Limit: 1.4,
+        endLimitMeters: endLimit,
+        o2Narcotic: true,
+        mode: BestMixMode.ocTec,
+        waterType: WaterType.salt,
+        densityAware: densityAware,
+      ),
+    );
+
+    test('off by default: unaffected by density even when it is critical', () {
+      final r = tec(60, endLimit: 60);
+      expect(r.recommended.mix.he, 0);
+      expect(r.recommended.exceedsCriticalDensity, isTrue);
+      expect(r.heliumDriver, HeliumDriver.none);
+    });
+
+    test('switched on: adds helium a loose END limit alone would not add', () {
+      const depth = 70.0;
+      // o2Narcotic defaults to true, under which a helium-free mix's END
+      // equals the actual depth exactly, so the limit must be at least the
+      // depth itself to stay END-compliant without helium.
+      final withoutDensity = tec(depth, endLimit: depth, densityAware: false);
+      final withDensity = tec(depth, endLimit: depth, densityAware: true);
+      expect(
+        withDensity.recommended.mix.he,
+        greaterThan(withoutDensity.recommended.mix.he),
+      );
+      expect(withDensity.heliumDriver, HeliumDriver.density);
+      expect(withDensity.recommended.exceedsCriticalDensity, isFalse);
+    });
+
+    test('density-driven helium rounds up to 1 percent, not 5', () {
+      final r = tec(70, densityAware: true);
+      final raw = heForDensityLimit(
+        70,
+        r.recommended.mix.o2,
+        temperature: GasDensityTemperature.zeroC,
+        waterType: WaterType.salt,
+      );
+      expect(r.recommended.mix.he - raw, lessThan(1.0));
+      expect(r.recommended.mix.he, greaterThanOrEqualTo(raw - 1e-9));
+    });
+
+    test('both reasons active report HeliumDriver.both', () {
+      final r = tec(90, endLimit: 30, densityAware: true);
+      expect(r.recommended.mix.isTrimix, isTrue);
+      expect(r.heliumDriver, HeliumDriver.both);
+    });
+
+    test('Rec never applies density regardless of the stored flag', () {
+      // densityAware has no field on the Rec path's call site; this proves
+      // a Tec-only gate rather than relying on the default being false.
+      final r = _at(60, endLimit: 60);
+      expect(r.recommended.mix.he, 0);
+    });
+  });
+
+  group('heForDensityLimit', () {
+    test('zero when the nitrox mix is already compliant', () {
+      expect(
+        heForDensityLimit(
+          20,
+          32,
+          temperature: GasDensityTemperature.zeroC,
+          waterType: WaterType.salt,
+        ),
+        0,
+      );
+    });
+
+    test('closed form lands exactly on the critical density', () {
+      const depth = 60.0;
+      const o2 = 18.0;
+      final he = heForDensityLimit(
+        depth,
+        o2,
+        temperature: GasDensityTemperature.zeroC,
+        waterType: WaterType.salt,
+      );
+      final ambient = DiveEnvironment.forConditions(
+        waterType: WaterType.salt,
+      ).pressureAtDepth(depth);
+      const fO2 = o2 / 100;
+      final fHe = he / 100;
+      final fN2 = 1 - fO2 - fHe;
+      final density = gasDensityFromPartialPressures(
+        pO2Bar: fO2 * ambient,
+        pN2Bar: fN2 * ambient,
+        pHeBar: fHe * ambient,
+        temperatureC: 0,
+      );
+      expect(density, closeTo(gasDensityCriticalGPerL, 0.01));
+    });
+
+    test('a richer nitrox needs at least as much helium at the same depth', () {
+      // O2's molar mass (32) is above N2's (28.014), so replacing N2 with
+      // O2 makes the helium-free gas itself slightly denser, not lighter.
+      final at32 = heForDensityLimit(
+        70,
+        32,
+        temperature: GasDensityTemperature.zeroC,
+        waterType: WaterType.salt,
+      );
+      final at21 = heForDensityLimit(
+        70,
+        21,
+        temperature: GasDensityTemperature.zeroC,
+        waterType: WaterType.salt,
+      );
+      expect(at32, greaterThanOrEqualTo(at21));
+    });
+
+    test('warmer gas is less dense and needs no more helium', () {
+      final cold = heForDensityLimit(
+        70,
+        21,
+        temperature: GasDensityTemperature.zeroC,
+        waterType: WaterType.salt,
+      );
+      final warm = heForDensityLimit(
+        70,
+        21,
+        temperature: GasDensityTemperature.twentyC,
+        waterType: WaterType.salt,
+      );
+      expect(warm, lessThanOrEqualTo(cold));
+    });
+
+    test('clamps to zero rather than going negative for a shallow mix', () {
+      expect(
+        heForDensityLimit(
+          5,
+          21,
+          temperature: GasDensityTemperature.zeroC,
+          waterType: WaterType.salt,
+        ),
+        0,
+      );
+    });
+  });
+
+  group('review fixes', () {
+    BestMixInputs tec(double depth, {bool o2Narcotic = true}) => BestMixInputs(
+      depthMeters: depth,
+      ppO2Limit: 1.4,
+      endLimitMeters: 30,
+      o2Narcotic: o2Narcotic,
+      mode: BestMixMode.ocTec,
+      waterType: WaterType.salt,
+    );
+
+    test('Tec keeps a real END beside the EAD when O2 is not narcotic', () {
+      final r = computeBestMix(tec(30, o2Narcotic: false));
+      final mix = r.recommended;
+      // The checked value is the EAD, but the END row must not repeat it.
+      expect(mix.endMeters, closeTo(mix.eadMeters!, 1e-9));
+      expect(mix.o2NarcoticEndMeters, closeTo(30, 0.01));
+      expect(mix.o2NarcoticEndMeters, greaterThan(mix.eadMeters!));
+    });
+
+    test('Rec leaves the O2-narcotic END null', () {
+      expect(_at(30).recommended.o2NarcoticEndMeters, isNull);
+    });
+
+    test('a hypoxic catalog entry does not cover a shallow target', () {
+      // Trimix 10/70 at 6 m is about 0.16 bar ppO2, below the 0.18 floor.
+      final names = coveringStandardMixes(tec(6)).map((m) => m.name).toList();
+      expect(names, isNot(contains('Trimix 10/70')));
+      expect(names, contains('Trimix 12/65'));
+    });
+
+    test('every listed entry clears the hypoxic floor at the target', () {
+      for (final depth in [6.0, 10.0, 20.0, 40.0]) {
+        final ambient = DiveEnvironment.forConditions(
+          waterType: WaterType.salt,
+        ).pressureAtDepth(depth);
+        for (final mix in coveringStandardMixes(tec(depth))) {
+          expect(
+            mix.o2Percent / 100 * ambient,
+            greaterThanOrEqualTo(standardMixMinPpO2 - 1e-9),
+            reason: '${mix.name} at $depth m',
+          );
+        }
+      }
     });
   });
 }

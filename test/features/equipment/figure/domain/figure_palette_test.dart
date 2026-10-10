@@ -43,4 +43,64 @@ void main() {
     expect(copy, FigurePalette.light);
     expect(copy.hashCode, FigurePalette.light.hashCode);
   });
+
+  group('rim (issue #3181)', () {
+    // A dark page and a card on it, as Material's dark baseline has them.
+    const page = 0xFF1C1B1F;
+    const card = 0xFF2B2930;
+    const rim = 0xFF938F99;
+    const black = 0xFF1C1C1E;
+    const red = 0xFFEF4444;
+    final dark = _withBackdrops(const [page, card], rim);
+
+    test('without backdrops no item needs a rim', () {
+      expect(FigurePalette.light.needsRim(black), isFalse);
+      expect(FigurePalette.light.needsRim(0xFFFFFFFF), isFalse);
+    });
+
+    test('an item lost in the page needs a rim', () {
+      expect(dark.needsRim(black), isTrue);
+    });
+
+    test('an item close to any one backdrop needs a rim', () {
+      // 0xFF424242 stands off the page (1.71:1) but not the card (1.43:1).
+      expect(_withBackdrops(const [page], rim).needsRim(0xFF424242), isFalse);
+      expect(dark.needsRim(0xFF424242), isTrue);
+    });
+
+    test('an item that stands off every backdrop needs none', () {
+      expect(dark.needsRim(red), isFalse);
+    });
+
+    test('the item keeps its own colour either way', () {
+      expect(dark.colorFor(FigureRole.itemColor, black), black);
+      expect(
+        dark.colorFor(FigureRole.itemShade, black),
+        FigurePalette.darken(black, 0.25),
+      );
+    });
+
+    test('palettes with different backdrops or rims are not equal', () {
+      expect(dark, isNot(_withBackdrops(const [page], rim)));
+      expect(dark, isNot(_withBackdrops(const [page, card], 0xFFFFFFFF)));
+      expect(dark, _withBackdrops(const [page, card], rim));
+      expect(dark.hashCode, _withBackdrops(const [page, card], rim).hashCode);
+    });
+  });
+}
+
+FigurePalette _withBackdrops(List<int> backdrops, int rim) {
+  const l = FigurePalette.light;
+  return FigurePalette(
+    body: l.body,
+    bodyShade: l.bodyShade,
+    gearDark: l.gearDark,
+    gearLight: l.gearLight,
+    metal: l.metal,
+    outline: l.outline,
+    badge: l.badge,
+    onBadge: l.onBadge,
+    backdrops: [...backdrops],
+    rim: rim,
+  );
 }

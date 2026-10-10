@@ -1,7 +1,7 @@
+import 'package:submersion/features/equipment/figure/domain/figure_contrast.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_role.dart';
 
-/// Colours for every role, as ARGB ints so the PDF code can use the same
-/// palette without Flutter.
+/// Colours for every role, as ARGB ints so the palette stays pure Dart.
 class FigurePalette {
   const FigurePalette({
     required this.body,
@@ -12,9 +12,12 @@ class FigurePalette {
     required this.outline,
     required this.badge,
     required this.onBadge,
+    this.backdrops = const [],
+    this.rim = 0xFF000000,
   });
 
-  /// The share image and the PDFs draw with this whatever the app theme.
+  /// The fixed greys every themed palette takes its gear colours from. It has
+  /// no backdrops, so no item is ever rimmed with it.
   static const FigurePalette light = FigurePalette(
     body: 0xFFCBD3DB,
     bodyShade: 0xFFB2BCC6,
@@ -36,6 +39,24 @@ class FigurePalette {
   /// The number badge's fill and its digit.
   final int badge;
   final int onBadge;
+
+  /// The surfaces the figure can sit on, as ARGB. Empty means no item is
+  /// rimmed.
+  final List<int> backdrops;
+
+  /// The edge drawn around any painted colour that [needsRim]. Items keep
+  /// their own colour; the rim is what makes black gear show on a dark page
+  /// and white gear on a light one (issue #3181).
+  final int rim;
+
+  /// The contrast a painted colour needs against every backdrop to go
+  /// without a rim, the same floor the themed mannequin keeps.
+  static const double rimFloor = 1.6;
+
+  /// Whether [color] (an item's colour, its shade or a fixed gear grey)
+  /// blends into any backdrop.
+  bool needsRim(int color) =>
+      backdrops.any((b) => figureContrast(color, b) < rimFloor);
 
   /// The colour for [role] on an item whose own colour is [itemColor].
   int colorFor(FigureRole role, int itemColor) => switch (role) {
@@ -59,7 +80,9 @@ class FigurePalette {
       other.metal == metal &&
       other.outline == outline &&
       other.badge == badge &&
-      other.onBadge == onBadge;
+      other.onBadge == onBadge &&
+      other.rim == rim &&
+      _sameInts(other.backdrops, backdrops);
 
   @override
   int get hashCode => Object.hash(
@@ -71,7 +94,17 @@ class FigurePalette {
     outline,
     badge,
     onBadge,
+    rim,
+    Object.hashAll(backdrops),
   );
+
+  static bool _sameInts(List<int> a, List<int> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 
   /// Scales the RGB channels of [argb] down by [fraction], keeping alpha.
   static int darken(int argb, double fraction) {

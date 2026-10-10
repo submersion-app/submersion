@@ -262,6 +262,34 @@ void main() {
     expect(prediction.supportingDives, 12);
   });
 
+  test('planWeightPredictionProvider follows the plan water type and '
+      'custom salinity (issue #3090)', () async {
+    final c = await container();
+    await c.read(weightCalibrationProvider.future);
+    await c.read(allEquipmentProvider.future);
+    await c.read(latestDiverWeightProvider.future);
+
+    final notifier = c.read(divePlanNotifierProvider.notifier);
+    notifier.setEquipmentIds(['suit']);
+
+    notifier.updateWaterType(WaterType.salt);
+    final salt = c.read(planWeightPredictionProvider)!.totalKg;
+
+    notifier.updateWaterType(WaterType.fresh);
+    final fresh = c.read(planWeightPredictionProvider)!.totalKg;
+    // Fresh water is less dense: roughly 2.5% of the displaced mass less lead.
+    expect(salt - fresh, greaterThan(1.5));
+
+    notifier.updateSalinityPpt(0);
+    final zeroPpt = c.read(planWeightPredictionProvider)!.totalKg;
+    expect(zeroPpt, closeTo(fresh, 0.05));
+
+    notifier.updateSalinityPpt(15);
+    final brackish = c.read(planWeightPredictionProvider)!.totalKg;
+    expect(brackish, lessThan(salt));
+    expect(brackish, greaterThan(fresh));
+  });
+
   test('weightCalibrationProvider carries the profile height into the '
       'model', () async {
     final base = await getBaseOverrides();

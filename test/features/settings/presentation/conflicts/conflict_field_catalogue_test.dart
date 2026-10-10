@@ -114,6 +114,10 @@ void main() {
       conflictFieldFor('tideRecords', 'tideState').kind,
       FieldKind.enumValue,
     );
+    expect(
+      conflictFieldFor('tideRecords', 'rateOfChange').kind,
+      FieldKind.tideRate,
+    );
     expect(conflictFieldFor('trips', 'tripType').kind, FieldKind.enumValue);
     expect(
       conflictFieldFor('navTracks', 'totalDistance').kind,

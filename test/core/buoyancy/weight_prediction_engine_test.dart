@@ -111,6 +111,35 @@ void main() {
     expect(salt - fresh, lessThan(3.5));
   });
 
+  test('a custom salinity shifts the water term by its own density', () {
+    final model = fit([for (var i = 0; i < 20; i++) obs(index: i)]);
+    RigSpec custom(double ppt) => RigSpec(
+      gear: const [suit, bcd],
+      tanks: const [al80Spec],
+      salinityPpt: ppt,
+      bodyWeightKg: 80,
+    );
+    final salt = model.predict(rig()).totalKg;
+    final fresh = model.predict(rig(waterType: WaterType.fresh)).totalKg;
+    final zeroPpt = model.predict(custom(0)).totalKg;
+    final brackish = model.predict(custom(15)).totalKg;
+    // 0 ppt is fresh water; a brackish salinity lands between the two.
+    expect(zeroPpt, closeTo(fresh, 0.05));
+    expect(brackish, lessThan(salt));
+    expect(brackish, greaterThan(fresh));
+    // The salinity wins over a named type, like DiveEnvironment.
+    final both = model.predict(
+      const RigSpec(
+        gear: [suit, bcd],
+        tanks: [al80Spec],
+        waterType: WaterType.salt,
+        salinityPpt: 0,
+        bodyWeightKg: 80,
+      ),
+    );
+    expect(both.totalKg, closeTo(fresh, 0.05));
+  });
+
   test('unseen drysuit swap increases the prediction by roughly the prior '
       'difference', () {
     final model = fit([for (var i = 0; i < 20; i++) obs(index: i)]);

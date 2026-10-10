@@ -291,6 +291,10 @@ void main() {
     );
     expect(find.text('DETAIL ${clone.id}'), findsOneWidget);
     expect(find.text('Equipment cloned'), findsOneWidget);
+    // Said once: the plain new-item confirmation does not queue behind it.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Equipment added'), findsNothing);
     // The original is untouched.
     final kept = await repository.getEquipmentById(source.id);
     expect((kept!.name, kept.serialNumber), ('Reg A', 'SN-1'));
@@ -415,6 +419,22 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a clone the list view hides says so, once', (tester) async {
+    // A clone keeps its source's status, and the default view hides Wanted
+    // gear (#3068): the hidden-by-view message replaces "Equipment cloned",
+    // and the plain "Equipment added" never shows.
+    source = source.copyWith(status: EquipmentStatus.wanted, isActive: false);
+    await repository.updateEquipment(source);
+    await pumpClone(tester);
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Saved, but the current list view hides it'), findsOne);
+    expect(find.text('Equipment cloned'), findsNothing);
+    expect(find.text('Equipment added'), findsNothing);
   });
 
   testWidgets('a step that could not be copied is reported', (tester) async {

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/providers/setup_wizard_providers.dart';
@@ -93,6 +94,54 @@ void main() {
     );
     expect(divers, hasLength(1));
     expect(divers!.single.name, 'Eric');
+  });
+
+  // Issue #3111: the first diver's place names follow the device language,
+  // as the app language itself does, instead of always starting in English.
+  testWidgets('a first run stores place names in the device language', (
+    tester,
+  ) async {
+    tester.binding.platformDispatcher.localesTestValue = const [
+      Locale('de', 'DE'),
+    ];
+    addTearDown(tester.binding.platformDispatcher.clearLocalesTestValue);
+
+    var seeded = false;
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        child: Consumer(
+          builder: (context, ref, _) {
+            ref.watch(setupWizardProvider(SetupWizardMode.firstRun));
+            if (!seeded) {
+              seeded = true;
+              Future.microtask(() {
+                final notifier = ref.read(
+                  setupWizardProvider(SetupWizardMode.firstRun).notifier,
+                );
+                notifier.choosePath(SetupPath.fresh);
+                notifier.setName('Eric');
+              });
+            }
+            return const FinishStep(mode: SetupWizardMode.firstRun);
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Get started'));
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    });
+    await tester.pumpAndSettle();
+
+    final stored = await tester.runAsync(() async {
+      final diver = (await DiverRepository().getAllDivers()).single;
+      return DiverSettingsRepository().getSettingsForDiver(diver.id);
+    });
+    expect(stored!.placeNameLanguage, 'de');
   });
 
   testWidgets('the Insights tile uses the section glyph', (tester) async {

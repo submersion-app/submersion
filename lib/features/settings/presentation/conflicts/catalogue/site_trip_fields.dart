@@ -331,7 +331,7 @@ final Map<String, ConflictField> siteTripFields = {
   ),
   'rateOfChange': ConflictField(
     (l) => l.settings_conflict_field_rateOfChange,
-    FieldKind.number,
+    FieldKind.tideRate,
   ),
   'region': ConflictField(
     (l) => SiteField.region.localizedDisplayName(l),
