@@ -109,6 +109,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   /// A clone's read of its source's tags and place. Save waits for it, so a
   /// quick Save still writes them; it never overrides a pick the diver made.
   Future<void>? _cloneSelectionsLoad;
+
+  /// Whether the diver has changed Tags or Location on this form. A change,
+  /// clearing the field included, makes it theirs: an empty field the diver
+  /// emptied must not be refilled by the clone's late-arriving picks.
+  bool _tagsTouched = false;
+  bool _locationTouched = false;
   Set<String> _originalTagIds = {};
 
   /// Set once an edit's stored tags are read. Until then (and for good, if
@@ -252,7 +258,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         for (final t in tags)
           if (diverId == null || t.diverId == null || t.diverId == diverId) t,
       ];
-      if (mounted && _selectedTags.isEmpty && own.isNotEmpty) {
+      if (mounted && !_tagsTouched && own.isNotEmpty) {
         setState(() => _selectedTags = own);
       }
     } catch (e, stackTrace) {
@@ -268,9 +274,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       ))[sourceId];
       if (place == null) return;
       final mine = await ref.read(equipmentLocationsProvider.future);
-      if (mounted &&
-          _initialLocation == null &&
-          mine.any((l) => l.id == place.id)) {
+      if (mounted && !_locationTouched && mine.any((l) => l.id == place.id)) {
         setState(() => _initialLocation = place);
       }
     } catch (e, stackTrace) {
@@ -660,6 +664,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             enabled: !widget.isEditing || _tagsLoaded,
             onTagsChanged: (tags) => setState(() {
               _selectedTags = tags;
+              _tagsTouched = true;
               _hasChanges = true;
             }),
           ),
@@ -671,6 +676,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               value: _initialLocation,
               onChanged: (loc) => setState(() {
                 _initialLocation = loc;
+                _locationTouched = true;
                 _hasChanges = true;
               }),
             ),

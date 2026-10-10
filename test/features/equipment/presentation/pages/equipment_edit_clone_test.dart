@@ -27,6 +27,7 @@ import 'package:submersion/features/query/data/query_id_set_runner.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -479,6 +480,47 @@ void main() {
     expect(find.text('Saved, but the current list view hides it'), findsOne);
     expect(find.text('Equipment cloned'), findsNothing);
     expect(find.text('Equipment added'), findsNothing);
+  });
+
+  testWidgets('tags the diver cleared before the source\'s arrived stay '
+      'cleared', (tester) async {
+    final pending = Completer<List<Tag>>();
+    await pumpClone(
+      tester,
+      extraOverrides: [
+        tagsForEquipmentProvider(
+          source.id,
+        ).overrideWith((ref) => pending.future),
+      ],
+    );
+    final tagField = find.descendant(
+      of: find.byType(TagInputWidget),
+      matching: find.byType(TextField),
+    );
+
+    // The diver picks a tag, then takes it off again: a deliberate empty
+    // selection, not an untouched field.
+    await tester.enterText(tagField, 'Rental');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.descendant(
+        of: find.widgetWithText(TagChip, 'Rental'),
+        matching: find.byIcon(Icons.close),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    pending.complete(await tagRepository.getTagsForEquipment(source.id));
+    await tester.pumpAndSettle();
+    expect(find.byType(TagChip), findsNothing);
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+    final clone = (await repository.getAllEquipment()).singleWhere(
+      (e) => e.id != source.id,
+    );
+    expect(await tagRepository.getTagsForEquipment(clone.id), isEmpty);
   });
 
   testWidgets('a step that could not be copied is reported', (tester) async {
