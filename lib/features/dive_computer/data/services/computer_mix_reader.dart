@@ -43,16 +43,16 @@ class ComputerMixReader {
   }) async {
     final index = computerTankIndex(tank);
     if (index == null) return null;
-    final sources = await (db.select(
-      db.diveDataSources,
-    )..where((t) => t.diveId.equals(diveId) & t.rawData.isNotNull())).get();
-    final source = _sourceFor(sources, tank);
-    if (source == null) return null;
-    final vendor = source.descriptorVendor;
-    final product = source.descriptorProduct;
-    final model = source.descriptorModel;
-    if (vendor == null || product == null || model == null) return null;
     try {
+      final sources = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId) & t.rawData.isNotNull())).get();
+      final source = _sourceFor(sources, tank);
+      if (source == null) return null;
+      final vendor = source.descriptorVendor;
+      final product = source.descriptorProduct;
+      final model = source.descriptorModel;
+      if (vendor == null || product == null || model == null) return null;
       final parsed = await parseFn(vendor, product, model, source.rawData!);
       final cylinder = resolveParsedTanks(
         parsed,
@@ -61,8 +61,10 @@ class ComputerMixReader {
       if (cylinder == null) return null;
       return domain.GasMix(o2: cylinder.o2Percent, he: cylinder.hePercent);
     } catch (e, stackTrace) {
+      // A read or parse that fails means the mix cannot be known: the note
+      // shows nothing rather than an error under the gas fields.
       _log.error(
-        'Failed to read the recorded mix from source ${source.id}',
+        'Failed to read the recorded mix for tank ${tank.id} on dive $diveId',
         error: e,
         stackTrace: stackTrace,
       );
