@@ -158,6 +158,34 @@ void main() {
     expect(fieldText(tester, 'Name *'), 'Reg B');
   });
 
+  testWidgets('keeps the form when re-reading the source fails mid-edit', (
+    tester,
+  ) async {
+    var reads = 0;
+    await pumpClone(
+      tester,
+      extraOverrides: [
+        equipmentItemProvider(source.id).overrideWith((ref) async {
+          reads++;
+          if (reads > 1) throw StateError('source read failed');
+          return source;
+        }),
+      ],
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Name *'),
+      'Reg B',
+    );
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentEditPage)),
+    ).invalidate(equipmentItemProvider(source.id));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Clone Equipment'), findsOneWidget);
+    expect(fieldText(tester, 'Name *'), 'Reg B');
+  });
+
   testWidgets('starts with the source\'s tags', (tester) async {
     await pumpClone(tester);
 
@@ -264,11 +292,10 @@ void main() {
   });
 
   testWidgets('a step that could not be copied is reported', (tester) async {
+    final fake = _FailingCloneService();
     await pumpClone(
       tester,
-      extraOverrides: [
-        equipmentCloneServiceProvider.overrideWithValue(_FailingCloneService()),
-      ],
+      extraOverrides: [equipmentCloneServiceProvider.overrideWithValue(fake)],
     );
 
     await tester.tap(find.text('Save').first);
@@ -283,15 +310,29 @@ void main() {
     );
     // It replaces the plain message rather than queueing behind it.
     expect(find.text('Equipment cloned'), findsNothing);
+    // Copied from the source onto the item just saved, as the type it was
+    // saved with, scoped to the clone's owner (the active diver, here the
+    // default profile).
+    final clone = (await repository.getAllEquipment()).singleWhere(
+      (e) => e.id != source.id,
+    );
+    expect(fake.calls, [
+      (source.id, clone.id, EquipmentType.regulator, clone.diverId),
+    ]);
   });
 }
 
 class _FailingCloneService extends EquipmentCloneService {
+  final calls = <(String, String, EquipmentType, String?)>[];
+
   @override
   Future<Set<CloneExtrasStep>> copyExtras({
     required String sourceId,
     required String cloneId,
     required EquipmentType cloneType,
     required String? diverId,
-  }) async => {CloneExtrasStep.documents};
+  }) async {
+    calls.add((sourceId, cloneId, cloneType, diverId));
+    return {CloneExtrasStep.documents};
+  }
 }

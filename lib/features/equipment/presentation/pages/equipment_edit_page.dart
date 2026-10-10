@@ -356,17 +356,17 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    // A seeded clone form no longer needs its source, so it stops watching
+    // it: deleting, transferring or failing to re-read the original mid-edit
+    // must not discard the clone.
+    if (widget.isCloning && _isInitialized) return _buildForm(context, null);
+
     // The item to edit, or the one a clone starts from.
     final loadId = widget.equipmentId ?? widget.cloneFromId;
     if (loadId != null) {
       final equipmentAsync = ref.watch(equipmentItemProvider(loadId));
       return equipmentAsync.when(
         data: (equipment) {
-          // A seeded clone form no longer needs its source: deleting or
-          // transferring the original mid-edit must not discard the clone.
-          if (widget.isCloning && _isInitialized) {
-            return _buildForm(context, null);
-          }
           if (equipment == null) {
             if (widget.embedded) {
               return Center(
@@ -1272,7 +1272,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           widget.onSaved?.call(savedId);
         } else if (widget.isCloning) {
           // The clone, not the original, is what the diver goes on to
-          // rename and adjust; Back still returns to the original. When some
+          // rename and adjust. On a phone Back still returns to the original;
+          // on desktop the detail route redirects into the master-detail
+          // list, which selects the clone. When some
           // clocks, sets or documents did not copy, that message ("Cloned,
           // but ...") replaces the plain one rather than queueing behind it.
           final cloned = failedCloneSteps.isEmpty
