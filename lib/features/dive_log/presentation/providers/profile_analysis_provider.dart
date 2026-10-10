@@ -977,6 +977,9 @@ final analysisDiveProvider = FutureProvider.family<Dive?, String>((
   // so invalidating it on the broad detail tick (which includes media)
   // re-ran the full analysis cascade after merely viewing a photo.
   ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
+  // The site's water type is the deco fallback (issue #3196), watched on its
+  // own so a bulk site write never re-runs every analysis.
+  ref.invalidateSelfWhen(repository.watchSiteWaterTypeChanges(diveId));
   return repository.getDiveForAnalysis(diveId);
 });
 
@@ -1418,7 +1421,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         cnsCalculationMethod: inputs.cnsCalculationMethod,
         environment: DiveEnvironment.forConditions(
           altitudeMeters: dive.altitude,
-          waterType: dive.waterType,
+          waterType: dive.effectiveWaterType,
           surfacePressureBar: dive.surfacePressure,
         ),
         ascentMaxPpO2: ascentMaxPpO2,
@@ -1943,7 +1946,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       dive.gradientFactorHigh,
       environment: DiveEnvironment.forConditions(
         altitudeMeters: dive.altitude,
-        waterType: dive.waterType,
+        waterType: dive.effectiveWaterType,
         surfacePressureBar: dive.surfacePressure,
       ),
       recordedAlgorithm: dive.decoAlgorithm,
