@@ -278,8 +278,7 @@ class _TunnelSocket extends Stream<Uint8List> implements Socket {
   bool setOption(SocketOption option, bool enabled) =>
       _inner.setOption(option, enabled);
   @override
-  Uint8List getRawOption(RawSocketOption option) =>
-      _inner.getRawOption(option);
+  Uint8List getRawOption(RawSocketOption option) => _inner.getRawOption(option);
   @override
   void setRawOption(RawSocketOption option) => _inner.setRawOption(option);
   @override

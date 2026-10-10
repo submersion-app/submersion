@@ -4,7 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/network/trusted_http_overrides.dart';
+import 'package:submersion/core/network/proxy/app_http_overrides.dart';
+import 'package:submersion/core/network/proxy/effective_proxy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/geocoding/sea_area_service.dart';
@@ -61,7 +62,9 @@ Future<void> _bootstrap() async {
   // (Windows-only and inside main(), so not reachable from the test host.)
   // coverage:ignore-start
   if (Platform.isWindows) {
-    HttpOverrides.global = TrustedHttpOverrides();
+    HttpOverrides.global = AppHttpOverrides(
+      currentProxy: () => const EffectiveProxy.direct(),
+    );
   }
   // coverage:ignore-end
 

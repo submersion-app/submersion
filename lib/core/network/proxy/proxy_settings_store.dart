@@ -12,9 +12,7 @@ import 'package:submersion/core/services/secure_storage/fallback_secure_storage.
 /// rather than failing startup.
 class ProxySettingsStore {
   ProxySettingsStore(this._prefs, {FlutterSecureStorage? storage})
-    : _storage = FallbackSecureStorage(
-        storage ?? const FlutterSecureStorage(),
-      );
+    : _storage = FallbackSecureStorage(storage ?? const FlutterSecureStorage());
 
   final SharedPreferences _prefs;
   final FallbackSecureStorage _storage;

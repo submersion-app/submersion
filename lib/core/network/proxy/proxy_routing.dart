@@ -103,10 +103,7 @@ class _Cidr {
       // macOS writes `203.0.113/24`; pad the missing octets with zeros.
       final parts = addressText.split('.');
       if (parts.length > 4) return null;
-      addressText = [
-        ...parts,
-        ...List.filled(4 - parts.length, '0'),
-      ].join('.');
+      addressText = [...parts, ...List.filled(4 - parts.length, '0')].join('.');
     }
     final address = InternetAddress.tryParse(addressText);
     if (address == null) return null;
