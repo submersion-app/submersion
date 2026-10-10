@@ -196,6 +196,24 @@ void main() {
     );
   });
 
+  testWidgets('a new item under a Service Due view offers the default view', (
+    tester,
+  ) async {
+    await pumpCreator(tester);
+    containerOf(tester).read(equipmentFilterProvider.notifier).state =
+        const EquipmentFilterState(serviceDue: ServiceDueFilter.any);
+    await tester.pumpAndSettle();
+    await saveNew(tester);
+
+    expect(find.text('Saved, but the current list view hides it'), findsOne);
+    await tester.tap(find.text('Show'));
+    await tester.pumpAndSettle();
+    expect(
+      containerOf(tester).read(equipmentFilterProvider),
+      const EquipmentFilterState(),
+    );
+  });
+
   testWidgets('a failed visibility check still saves and confirms', (
     tester,
   ) async {

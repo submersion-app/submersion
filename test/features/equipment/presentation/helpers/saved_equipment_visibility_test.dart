@@ -131,4 +131,19 @@ void main() {
       );
     },
   );
+
+  test('each view waits for the caches its query reads first', () async {
+    final synced = <Set<String>>[];
+    await viewRevealingSavedEquipment(
+      runner: runner,
+      filter: const EquipmentFilterState(serviceDue: ServiceDueFilter.any),
+      diverId: 'me',
+      equipmentId: 'fins',
+      status: EquipmentStatus.active,
+      beforeQuery: (tables) async => synced.add(tables),
+    );
+    // The service-due view, then the default view it falls back to.
+    expect(synced, hasLength(2));
+    expect(synced.first, contains('equipment_service_status'));
+  });
 }
