@@ -382,6 +382,48 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    /// Gives the page room so Backup Now is on screen without scrolling.
+    void useTallView(WidgetTester tester) {
+      tester.view.physicalSize = const Size(1200, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+    }
+
+    testWidgets('Backup Now asks for a note and backs up with it', (
+      tester,
+    ) async {
+      useTallView(tester);
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Backup Now'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'Before the trip');
+      await tester.tap(find.text('Back Up'));
+      await tester.pumpAndSettle();
+
+      expect(service.calls, contains('performBackup'));
+      expect(service.backedUpNote, 'Before the trip');
+    });
+
+    testWidgets('cancelling the Backup Now dialog backs nothing up', (
+      tester,
+    ) async {
+      useTallView(tester);
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Backup Now'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(service.calls, isNot(contains('performBackup')));
+    });
+
     testWidgets('save-to-file picks a folder and streams into it', (
       tester,
     ) async {
@@ -760,6 +802,30 @@ class _RecordingRestoreService extends BackupService {
     calls.add('restoreFromFile');
     lastMode = mode;
   }
+
+  /// Note the Backup Now flow handed over, once it ran.
+  String? backedUpNote;
+
+  @override
+  Future<BackupRecord> performBackup({
+    bool isAutomatic = false,
+    String? note,
+  }) async {
+    calls.add('performBackup');
+    backedUpNote = note;
+    return BackupRecord(
+      id: 'now',
+      filename: 'now.db',
+      timestamp: DateTime(2026, 10, 10),
+      sizeBytes: 1,
+      location: BackupLocation.local,
+      diveCount: 0,
+      siteCount: 0,
+    );
+  }
+
+  @override
+  Future<bool> isCloudBackupBlockedByEncryptionLock() async => false;
 
   /// Destination the manual export was pointed at.
   String? exportedTo;

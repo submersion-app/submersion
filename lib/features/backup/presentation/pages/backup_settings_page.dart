@@ -18,6 +18,7 @@ import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_ex
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_encryption_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_history_tile.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_note_dialog.dart';
 import 'package:submersion/features/backup/presentation/widgets/export_bottom_sheet.dart';
 import 'package:submersion/features/backup/presentation/widgets/quarantined_databases_section.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_confirmation_dialog.dart';
@@ -223,6 +224,15 @@ class BackupSettingsPage extends ConsumerWidget {
           .read(backupSettingsProvider.notifier)
           .setBackupLocationWithBookmark(picked.path, picked.bookmark);
     }
+  }
+
+  /// Backup Now asks for an optional note first; cancelling backs nothing up.
+  Future<void> _handleBackupNow(BuildContext context, WidgetRef ref) async {
+    final result = await BackupNoteDialog.show(context);
+    if (result == null) return;
+    await ref
+        .read(backupOperationProvider.notifier)
+        .performBackup(note: result.note);
   }
 
   void _handleExport(BuildContext context, WidgetRef ref) {
@@ -633,9 +643,7 @@ class BackupSettingsPage extends ConsumerWidget {
                   ref.watch(backupOperationProvider).status ==
                       BackupOperationStatus.inProgress
                   ? null
-                  : () => ref
-                        .read(backupOperationProvider.notifier)
-                        .performBackup(),
+                  : () => _handleBackupNow(context, ref),
               icon: const Icon(Icons.backup),
               label: Text(context.l10n.backup_backupNow),
             ),
