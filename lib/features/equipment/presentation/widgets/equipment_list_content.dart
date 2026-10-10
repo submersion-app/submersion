@@ -472,7 +472,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                       icon: const Icon(Icons.more_vert),
                       onSelected: (value) {
                         if (value == scanTagMenuValue) {
-                          unawaited(scanAndOpenCylinderTag(context, ref));
+                          unawaited(scanAndOpenTag(context, ref));
                           return;
                         }
                         if (value.startsWith('view_')) {
@@ -927,7 +927,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           padding: dense ? EdgeInsets.zero : const EdgeInsets.all(8),
           onSelected: (value) {
             if (value == scanTagMenuValue) {
-              unawaited(scanAndOpenCylinderTag(context, ref));
+              unawaited(scanAndOpenTag(context, ref));
               return;
             }
             if (value.startsWith('view_')) {

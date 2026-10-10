@@ -16,6 +16,7 @@ import 'package:submersion/features/cylinder_passports/presentation/utils/scan_c
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payload.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -26,10 +27,14 @@ void main() {
   const tag = 'https://submersion.app/c#f=1&p=$id&v=10';
   late AppDatabase db;
   Object? passportExtra;
+  Object? gearExtra;
+  String? lastLocation;
 
   setUp(() async {
     db = await setUpTestDatabase();
     passportExtra = null;
+    gearExtra = null;
+    lastLocation = null;
     final t = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.equipment)
@@ -67,6 +72,22 @@ void main() {
         GoRoute(
           path: '/equipment/tag',
           builder: (context, state) => const Text('foreign page'),
+        ),
+        GoRoute(
+          path: '/equipment/gear-tag',
+          builder: (context, state) {
+            lastLocation = state.uri.toString();
+            return const Text('foreign gear page');
+          },
+        ),
+        GoRoute(
+          path: '/equipment/:id/gear-passport',
+          builder: (context, state) {
+            gearExtra = state.extra;
+            return Scaffold(
+              body: Text('gear passport ${state.pathParameters['id']}'),
+            );
+          },
         ),
         GoRoute(
           path: '/equipment/:id/passport',
@@ -215,6 +236,52 @@ void main() {
       expect(resolution, isA<ForeignCylinder>());
     },
   );
+
+  testWidgets('an own gear tag opens its gear passport (issue #2652)', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => (db.update(db.equipment)..where((t) => t.id.equals('eq-1'))).write(
+        const EquipmentCompanion(type: Value('regulator')),
+      ),
+    );
+    await tester.runAsync(
+      () => CylinderPassportRepository().assignPassportId(
+        equipmentId: 'eq-1',
+        passportId: id,
+      ),
+    );
+    await pump(tester, text: 'https://submersion.app/g#f=1&p=$id&t=regulator');
+    expect(find.text('gear passport eq-1'), findsOneWidget);
+    expect(gearExtra, isA<GearTagPayload>());
+  });
+
+  testWidgets('a gear tag nobody holds opens the foreign gear page', (
+    tester,
+  ) async {
+    await pump(tester, text: 'https://submersion.app/g#f=1&p=$id&t=bcd');
+    expect(find.text('foreign gear page'), findsOneWidget);
+    expect(lastLocation, startsWith('/equipment/gear-tag?t='));
+  });
+
+  testWidgets('a cylinder tag on an item now a regulator opens the gear page', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => CylinderPassportRepository().assignPassportId(
+        equipmentId: 'eq-1',
+        passportId: id,
+      ),
+    );
+    await tester.runAsync(
+      () => (db.update(db.equipment)..where((t) => t.id.equals('eq-1'))).write(
+        const EquipmentCompanion(type: Value('regulator')),
+      ),
+    );
+    await pump(tester, text: tag);
+    expect(find.text('gear passport eq-1'), findsOneWidget);
+    expect(gearExtra, isNull);
+  });
 
   testWidgets('a tag nobody holds opens the foreign passport', (tester) async {
     await pump(tester, text: tag);
@@ -376,7 +443,7 @@ void main() {
 
 class _BrokenRepo extends CylinderPassportRepository {
   @override
-  Future<String?> findEquipmentIdByPassportId(
+  Future<PassportHolder?> findHolderByPassportId(
     String passportId, {
     String? diverId,
     EquipmentType? type,
@@ -399,12 +466,12 @@ class _GatedRepo extends CylinderPassportRepository {
   final Future<void> gate;
 
   @override
-  Future<String?> findEquipmentIdByPassportId(
+  Future<PassportHolder?> findHolderByPassportId(
     String passportId, {
     String? diverId,
     EquipmentType? type,
   }) async {
     await gate;
-    return 'eq-1';
+    return (equipmentId: 'eq-1', type: EquipmentType.tank);
   }
 }
