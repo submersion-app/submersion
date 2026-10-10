@@ -1,8 +1,19 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
+import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 
 /// Local midnight of [date]'s calendar day.
 DateTime tripDay(DateTime date) => DateTime(date.year, date.month, date.day);
+
+/// Where the calendar day of [date] sits relative to the calendar day of
+/// [now]. Both are compared date-only, so a dive at 23:59 yesterday is past.
+TripStoryDayKind tripDayKind(DateTime date, DateTime now) {
+  final day = tripDay(date);
+  final today = tripDay(now);
+  if (day.isBefore(today)) return TripStoryDayKind.past;
+  if (day.isAfter(today)) return TripStoryDayKind.future;
+  return TripStoryDayKind.today;
+}
 
 /// Every calendar day from [from] to [to], inclusive, by calendar arithmetic
 /// so a daylight-saving change never drops or repeats a day. Empty when
