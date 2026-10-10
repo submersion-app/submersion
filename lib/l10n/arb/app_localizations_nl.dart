@@ -22860,6 +22860,315 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'Buddy';
 
   @override
+  String get nav_documents => 'Documenten';
+
+  @override
+  String get documents_title => 'Documenten';
+
+  @override
+  String get documents_type_insurance => 'Verzekering';
+
+  @override
+  String get documents_type_medicalClearance => 'Medische keuring';
+
+  @override
+  String get documents_type_certificationCard => 'Brevetkaart';
+
+  @override
+  String get documents_type_permit => 'Vergunning';
+
+  @override
+  String get documents_type_booking => 'Boeking';
+
+  @override
+  String get documents_type_receipt => 'Bon';
+
+  @override
+  String get documents_type_manual => 'Handleiding';
+
+  @override
+  String get documents_type_map => 'Kaart';
+
+  @override
+  String get documents_type_other => 'Document';
+
+  @override
+  String get documents_owner_personal => 'Persoonlijk';
+
+  @override
+  String get documents_owner_dive => 'Duiken';
+
+  @override
+  String get documents_owner_site => 'Duikstekken';
+
+  @override
+  String get documents_owner_trip => 'Reizen';
+
+  @override
+  String get documents_owner_equipment => 'Uitrusting';
+
+  @override
+  String get documents_owner_course => 'Cursussen';
+
+  @override
+  String get documents_owner_certification => 'Brevetten';
+
+  @override
+  String get documents_owner_buddy => 'Buddy\'s';
+
+  @override
+  String get documents_owner_diveCenter => 'Duikcentra';
+
+  @override
+  String get documents_expiring_title => 'Vraagt aandacht';
+
+  @override
+  String get documents_badge_expired => 'Verlopen';
+
+  @override
+  String documents_badge_expiresInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Verloopt over $count dagen',
+      one: 'Verloopt morgen',
+      zero: 'Verloopt vandaag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_empty => 'Nog geen documenten';
+
+  @override
+  String get documents_search_hint => 'Documenten zoeken';
+
+  @override
+  String get documents_add => 'Document toevoegen';
+
+  @override
+  String get documents_section_title => 'Documenten';
+
+  @override
+  String get documents_section_empty => 'Geen documenten toegevoegd';
+
+  @override
+  String get documents_edit_newTitle => 'Nieuw document';
+
+  @override
+  String get documents_edit_editTitle => 'Document bewerken';
+
+  @override
+  String get documents_field_type => 'Soort';
+
+  @override
+  String get documents_field_title => 'Titel';
+
+  @override
+  String get documents_field_issuer => 'Uitgegeven door';
+
+  @override
+  String get documents_field_issuerInsurance => 'Verzekeraar';
+
+  @override
+  String get documents_field_referenceNumber => 'Nummer';
+
+  @override
+  String get documents_field_referenceNumberInsurance => 'Polisnummer';
+
+  @override
+  String get documents_field_issueDate => 'Uitgegeven op';
+
+  @override
+  String get documents_field_expiryDate => 'Verloopt op';
+
+  @override
+  String get documents_field_reminderLead => 'Herinner mij';
+
+  @override
+  String documents_field_reminderLeadDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dagen van tevoren',
+      one: '$count dag van tevoren',
+      zero: 'Uit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_field_emergencyPhone => '24-uurs noodnummer';
+
+  @override
+  String get documents_field_phone => 'Telefoon kantoor';
+
+  @override
+  String get documents_field_isPrimary => 'Hoofdverzekering';
+
+  @override
+  String get documents_field_isPrimary_subtitle =>
+      'Getoond op de noodkaart en het startscherm';
+
+  @override
+  String get documents_field_notes => 'Notities';
+
+  @override
+  String get documents_pages_title => 'Pagina\'s';
+
+  @override
+  String get documents_pages_front => 'Voorkant';
+
+  @override
+  String get documents_pages_back => 'Achterkant';
+
+  @override
+  String get documents_pages_add => 'Pagina toevoegen';
+
+  @override
+  String get documents_pages_addCamera => 'Foto maken';
+
+  @override
+  String get documents_pages_addGallery => 'Foto kiezen';
+
+  @override
+  String get documents_pages_addFile => 'Bestand kiezen';
+
+  @override
+  String get documents_pages_remove => 'Pagina verwijderen';
+
+  @override
+  String documents_pages_tooLarge(String size) {
+    return 'Dit bestand is $size. De limiet is 10 MB.';
+  }
+
+  @override
+  String documents_pages_unsupported(String extension) {
+    return '$extension-bestanden worden niet ondersteund. Gebruik een foto of een PDF-, Word- of tekstbestand.';
+  }
+
+  @override
+  String get documents_page_cannotDisplay =>
+      'Deze pagina kan niet worden weergegeven';
+
+  @override
+  String get documents_page_openWith => 'Openen met...';
+
+  @override
+  String documents_page_counter(int current, int total) {
+    return '$current van $total';
+  }
+
+  @override
+  String get documents_delete_title => 'Document verwijderen?';
+
+  @override
+  String get documents_delete_content =>
+      'Hiermee worden het document en alle pagina\'s op elk gesynchroniseerd apparaat verwijderd.';
+
+  @override
+  String get documents_deleted => 'Document verwijderd';
+
+  @override
+  String get documents_saved => 'Document opgeslagen';
+
+  @override
+  String documents_error_save(String error) {
+    return 'Het document kon niet worden opgeslagen: $error';
+  }
+
+  @override
+  String documents_error_load(String error) {
+    return 'Documenten konden niet worden geladen: $error';
+  }
+
+  @override
+  String get documents_filter_all => 'Alle';
+
+  @override
+  String get documents_detail_owner => 'Opgeslagen bij';
+
+  @override
+  String get documents_profileHub_documents => 'Documenten';
+
+  @override
+  String documents_profileHub_documents_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documenten',
+      one: '$count document',
+      zero: 'Nog geen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_medical_clearances => 'Medische keuringen';
+
+  @override
+  String get documents_medical_addClearance => 'Keuring toevoegen';
+
+  @override
+  String get documents_medical_clearancesEmpty =>
+      'Geen medische keuring vastgelegd';
+
+  @override
+  String dashboard_gauges_documentExpires(String title, String date) {
+    return '$title verloopt op $date';
+  }
+
+  @override
+  String dashboard_gauges_documentExpired(String title) {
+    return '$title verlopen';
+  }
+
+  @override
+  String dashboard_gauges_documentsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documenten vragen aandacht',
+      one: '$count document vraagt aandacht',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_homeChips_documents => 'Documenten';
+
+  @override
+  String notifications_document_expiresSoon_title(String title) {
+    return '$title verloopt binnenkort';
+  }
+
+  @override
+  String notifications_document_expiresSoon_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Verloopt over $count dagen.',
+      one: 'Verloopt morgen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notifications_document_expiresToday_title(String title) {
+    return '$title verloopt vandaag';
+  }
+
+  @override
+  String get notifications_document_expiresToday_body =>
+      'Vernieuw het vóór je volgende duik.';
+
+  @override
+  String get settings_conflict_field_pageOrder => 'Paginavolgorde';
+
+  @override
+  String get settings_conflict_field_cardSide => 'Kaartzijde';
+
+  @override
   String get settings_conflict_ref_document => 'Document';
 
   @override

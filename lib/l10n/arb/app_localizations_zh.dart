@@ -21742,6 +21742,310 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_buddy => '潜伴';
 
   @override
+  String get nav_documents => '文档';
+
+  @override
+  String get documents_title => '文档';
+
+  @override
+  String get documents_type_insurance => '保险';
+
+  @override
+  String get documents_type_medicalClearance => '体检证明';
+
+  @override
+  String get documents_type_certificationCard => '证书卡';
+
+  @override
+  String get documents_type_permit => '许可证';
+
+  @override
+  String get documents_type_booking => '预订';
+
+  @override
+  String get documents_type_receipt => '收据';
+
+  @override
+  String get documents_type_manual => '手册';
+
+  @override
+  String get documents_type_map => '地图';
+
+  @override
+  String get documents_type_other => '文档';
+
+  @override
+  String get documents_owner_personal => '个人';
+
+  @override
+  String get documents_owner_dive => '潜水';
+
+  @override
+  String get documents_owner_site => '潜点';
+
+  @override
+  String get documents_owner_trip => '旅行';
+
+  @override
+  String get documents_owner_equipment => '装备';
+
+  @override
+  String get documents_owner_course => '课程';
+
+  @override
+  String get documents_owner_certification => '证书';
+
+  @override
+  String get documents_owner_buddy => '潜伴';
+
+  @override
+  String get documents_owner_diveCenter => '潜水中心';
+
+  @override
+  String get documents_expiring_title => '需要关注';
+
+  @override
+  String get documents_badge_expired => '已过期';
+
+  @override
+  String documents_badge_expiresInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天后到期',
+      one: '明天到期',
+      zero: '今天到期',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_empty => '暂无文档';
+
+  @override
+  String get documents_search_hint => '搜索文档';
+
+  @override
+  String get documents_add => '添加文档';
+
+  @override
+  String get documents_section_title => '文档';
+
+  @override
+  String get documents_section_empty => '没有附加文档';
+
+  @override
+  String get documents_edit_newTitle => '新建文档';
+
+  @override
+  String get documents_edit_editTitle => '编辑文档';
+
+  @override
+  String get documents_field_type => '类型';
+
+  @override
+  String get documents_field_title => '标题';
+
+  @override
+  String get documents_field_issuer => '签发方';
+
+  @override
+  String get documents_field_issuerInsurance => '保险公司';
+
+  @override
+  String get documents_field_referenceNumber => '编号';
+
+  @override
+  String get documents_field_referenceNumberInsurance => '保单号';
+
+  @override
+  String get documents_field_issueDate => '签发日期';
+
+  @override
+  String get documents_field_expiryDate => '到期日期';
+
+  @override
+  String get documents_field_reminderLead => '提醒我';
+
+  @override
+  String documents_field_reminderLeadDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '提前 $count 天',
+      one: '提前 $count 天',
+      zero: '关闭',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_field_emergencyPhone => '24 小时紧急热线';
+
+  @override
+  String get documents_field_phone => '办公电话';
+
+  @override
+  String get documents_field_isPrimary => '主要保险';
+
+  @override
+  String get documents_field_isPrimary_subtitle => '显示在紧急卡和主屏幕上';
+
+  @override
+  String get documents_field_notes => '备注';
+
+  @override
+  String get documents_pages_title => '页面';
+
+  @override
+  String get documents_pages_front => '正面';
+
+  @override
+  String get documents_pages_back => '背面';
+
+  @override
+  String get documents_pages_add => '添加页面';
+
+  @override
+  String get documents_pages_addCamera => '拍照';
+
+  @override
+  String get documents_pages_addGallery => '选择照片';
+
+  @override
+  String get documents_pages_addFile => '选择文件';
+
+  @override
+  String get documents_pages_remove => '移除页面';
+
+  @override
+  String documents_pages_tooLarge(String size) {
+    return '此文件大小为 $size，上限为 10 MB。';
+  }
+
+  @override
+  String documents_pages_unsupported(String extension) {
+    return '不支持 $extension 文件。请使用照片、PDF、Word 或文本文件。';
+  }
+
+  @override
+  String get documents_page_cannotDisplay => '无法显示此页面';
+
+  @override
+  String get documents_page_openWith => '打开方式...';
+
+  @override
+  String documents_page_counter(int current, int total) {
+    return '第 $current 页，共 $total 页';
+  }
+
+  @override
+  String get documents_delete_title => '删除文档？';
+
+  @override
+  String get documents_delete_content => '这将在所有同步设备上删除该文档及其所有页面。';
+
+  @override
+  String get documents_deleted => '文档已删除';
+
+  @override
+  String get documents_saved => '文档已保存';
+
+  @override
+  String documents_error_save(String error) {
+    return '无法保存文档：$error';
+  }
+
+  @override
+  String documents_error_load(String error) {
+    return '无法加载文档：$error';
+  }
+
+  @override
+  String get documents_filter_all => '全部';
+
+  @override
+  String get documents_detail_owner => '归档于';
+
+  @override
+  String get documents_profileHub_documents => '文档';
+
+  @override
+  String documents_profileHub_documents_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文档',
+      one: '$count 个文档',
+      zero: '暂无',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_medical_clearances => '体检证明';
+
+  @override
+  String get documents_medical_addClearance => '添加证明';
+
+  @override
+  String get documents_medical_clearancesEmpty => '没有记录体检证明';
+
+  @override
+  String dashboard_gauges_documentExpires(String title, String date) {
+    return '$title 将于 $date 到期';
+  }
+
+  @override
+  String dashboard_gauges_documentExpired(String title) {
+    return '$title 已过期';
+  }
+
+  @override
+  String dashboard_gauges_documentsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文档需要关注',
+      one: '$count 个文档需要关注',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_homeChips_documents => '文档';
+
+  @override
+  String notifications_document_expiresSoon_title(String title) {
+    return '$title 即将到期';
+  }
+
+  @override
+  String notifications_document_expiresSoon_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天后到期。',
+      one: '明天到期。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notifications_document_expiresToday_title(String title) {
+    return '$title 今天到期';
+  }
+
+  @override
+  String get notifications_document_expiresToday_body => '请在下次潜水前续期。';
+
+  @override
+  String get settings_conflict_field_pageOrder => '页面顺序';
+
+  @override
+  String get settings_conflict_field_cardSide => '卡片面';
+
+  @override
   String get settings_conflict_ref_document => '文档';
 
   @override

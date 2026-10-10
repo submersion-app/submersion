@@ -23192,6 +23192,329 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'رفيق الغوص';
 
   @override
+  String get nav_documents => 'المستندات';
+
+  @override
+  String get documents_title => 'المستندات';
+
+  @override
+  String get documents_type_insurance => 'التأمين';
+
+  @override
+  String get documents_type_medicalClearance => 'شهادة اللياقة الطبية';
+
+  @override
+  String get documents_type_certificationCard => 'بطاقة الشهادة';
+
+  @override
+  String get documents_type_permit => 'تصريح';
+
+  @override
+  String get documents_type_booking => 'حجز';
+
+  @override
+  String get documents_type_receipt => 'إيصال';
+
+  @override
+  String get documents_type_manual => 'دليل';
+
+  @override
+  String get documents_type_map => 'خريطة';
+
+  @override
+  String get documents_type_other => 'مستند';
+
+  @override
+  String get documents_owner_personal => 'شخصي';
+
+  @override
+  String get documents_owner_dive => 'الغطسات';
+
+  @override
+  String get documents_owner_site => 'المواقع';
+
+  @override
+  String get documents_owner_trip => 'الرحلات';
+
+  @override
+  String get documents_owner_equipment => 'المعدات';
+
+  @override
+  String get documents_owner_course => 'الدورات';
+
+  @override
+  String get documents_owner_certification => 'الشهادات';
+
+  @override
+  String get documents_owner_buddy => 'الرفاق';
+
+  @override
+  String get documents_owner_diveCenter => 'مراكز الغوص';
+
+  @override
+  String get documents_expiring_title => 'يحتاج إلى انتباه';
+
+  @override
+  String get documents_badge_expired => 'منتهي الصلاحية';
+
+  @override
+  String documents_badge_expiresInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ينتهي خلال $count يوم',
+      many: 'ينتهي خلال $count يومًا',
+      few: 'ينتهي خلال $count أيام',
+      two: 'ينتهي خلال يومين',
+      one: 'ينتهي غدًا',
+      zero: 'ينتهي اليوم',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_empty => 'لا توجد مستندات بعد';
+
+  @override
+  String get documents_search_hint => 'البحث في المستندات';
+
+  @override
+  String get documents_add => 'إضافة مستند';
+
+  @override
+  String get documents_section_title => 'المستندات';
+
+  @override
+  String get documents_section_empty => 'لا توجد مستندات مرفقة';
+
+  @override
+  String get documents_edit_newTitle => 'مستند جديد';
+
+  @override
+  String get documents_edit_editTitle => 'تعديل المستند';
+
+  @override
+  String get documents_field_type => 'النوع';
+
+  @override
+  String get documents_field_title => 'العنوان';
+
+  @override
+  String get documents_field_issuer => 'جهة الإصدار';
+
+  @override
+  String get documents_field_issuerInsurance => 'شركة التأمين';
+
+  @override
+  String get documents_field_referenceNumber => 'الرقم';
+
+  @override
+  String get documents_field_referenceNumberInsurance => 'رقم الوثيقة';
+
+  @override
+  String get documents_field_issueDate => 'تاريخ الإصدار';
+
+  @override
+  String get documents_field_expiryDate => 'تاريخ الانتهاء';
+
+  @override
+  String get documents_field_reminderLead => 'ذكّرني';
+
+  @override
+  String documents_field_reminderLeadDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قبل $count يوم',
+      many: 'قبل $count يومًا',
+      few: 'قبل $count أيام',
+      two: 'قبل يومين',
+      one: 'قبل يوم واحد',
+      zero: 'إيقاف',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_field_emergencyPhone => 'خط الطوارئ على مدار الساعة';
+
+  @override
+  String get documents_field_phone => 'هاتف المكتب';
+
+  @override
+  String get documents_field_isPrimary => 'التأمين الأساسي';
+
+  @override
+  String get documents_field_isPrimary_subtitle =>
+      'يظهر على بطاقة الطوارئ والشاشة الرئيسية';
+
+  @override
+  String get documents_field_notes => 'ملاحظات';
+
+  @override
+  String get documents_pages_title => 'الصفحات';
+
+  @override
+  String get documents_pages_front => 'الوجه الأمامي';
+
+  @override
+  String get documents_pages_back => 'الوجه الخلفي';
+
+  @override
+  String get documents_pages_add => 'إضافة صفحة';
+
+  @override
+  String get documents_pages_addCamera => 'التقاط صورة';
+
+  @override
+  String get documents_pages_addGallery => 'اختيار صورة';
+
+  @override
+  String get documents_pages_addFile => 'اختيار ملف';
+
+  @override
+  String get documents_pages_remove => 'إزالة الصفحة';
+
+  @override
+  String documents_pages_tooLarge(String size) {
+    return 'حجم هذا الملف $size. الحد الأقصى 10 ميغابايت.';
+  }
+
+  @override
+  String documents_pages_unsupported(String extension) {
+    return 'ملفات $extension غير مدعومة. استخدم صورة أو ملف PDF أو Word أو نصيًا.';
+  }
+
+  @override
+  String get documents_page_cannotDisplay => 'تعذّر عرض هذه الصفحة';
+
+  @override
+  String get documents_page_openWith => 'فتح باستخدام...';
+
+  @override
+  String documents_page_counter(int current, int total) {
+    return '$current من $total';
+  }
+
+  @override
+  String get documents_delete_title => 'حذف المستند؟';
+
+  @override
+  String get documents_delete_content =>
+      'سيؤدي هذا إلى حذف المستند وجميع صفحاته على كل الأجهزة المتزامنة.';
+
+  @override
+  String get documents_deleted => 'تم حذف المستند';
+
+  @override
+  String get documents_saved => 'تم حفظ المستند';
+
+  @override
+  String documents_error_save(String error) {
+    return 'تعذّر حفظ المستند: $error';
+  }
+
+  @override
+  String documents_error_load(String error) {
+    return 'تعذّر تحميل المستندات: $error';
+  }
+
+  @override
+  String get documents_filter_all => 'الكل';
+
+  @override
+  String get documents_detail_owner => 'مُصنّف ضمن';
+
+  @override
+  String get documents_profileHub_documents => 'المستندات';
+
+  @override
+  String documents_profileHub_documents_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مستند',
+      many: '$count مستندًا',
+      few: '$count مستندات',
+      two: 'مستندان',
+      one: 'مستند واحد',
+      zero: 'لا يوجد بعد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_medical_clearances => 'شهادات اللياقة الطبية';
+
+  @override
+  String get documents_medical_addClearance => 'إضافة شهادة';
+
+  @override
+  String get documents_medical_clearancesEmpty =>
+      'لم تُسجَّل أي شهادة لياقة طبية';
+
+  @override
+  String dashboard_gauges_documentExpires(String title, String date) {
+    return 'تنتهي صلاحية $title في $date';
+  }
+
+  @override
+  String dashboard_gauges_documentExpired(String title) {
+    return 'انتهت صلاحية $title';
+  }
+
+  @override
+  String dashboard_gauges_documentsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مستند يحتاج إلى انتباه',
+      many: '$count مستندًا يحتاج إلى انتباه',
+      few: '$count مستندات تحتاج إلى انتباه',
+      two: 'مستندان يحتاجان إلى انتباه',
+      one: 'مستند واحد يحتاج إلى انتباه',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_homeChips_documents => 'المستندات';
+
+  @override
+  String notifications_document_expiresSoon_title(String title) {
+    return 'تقترب صلاحية $title من الانتهاء';
+  }
+
+  @override
+  String notifications_document_expiresSoon_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ينتهي خلال $count يوم.',
+      many: 'ينتهي خلال $count يومًا.',
+      few: 'ينتهي خلال $count أيام.',
+      two: 'ينتهي خلال يومين.',
+      one: 'ينتهي غدًا.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notifications_document_expiresToday_title(String title) {
+    return 'تنتهي صلاحية $title اليوم';
+  }
+
+  @override
+  String get notifications_document_expiresToday_body =>
+      'جدّده قبل غطستك القادمة.';
+
+  @override
+  String get settings_conflict_field_pageOrder => 'ترتيب الصفحة';
+
+  @override
+  String get settings_conflict_field_cardSide => 'وجه البطاقة';
+
+  @override
   String get settings_conflict_ref_document => 'مستند';
 
   @override

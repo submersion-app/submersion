@@ -13484,6 +13484,191 @@
   "settings_conflict_ref_appliedSet": "Applied from set",
   "settings_conflict_ref_attachedThrough": "Attached through",
   "settings_conflict_ref_buddy": "Buddy",
+  "nav_documents": "Documents",
+  "documents_title": "Documents",
+  "documents_type_insurance": "Insurance",
+  "documents_type_medicalClearance": "Medical clearance",
+  "documents_type_certificationCard": "Certification card",
+  "documents_type_permit": "Permit",
+  "documents_type_booking": "Booking",
+  "documents_type_receipt": "Receipt",
+  "documents_type_manual": "Manual",
+  "documents_type_map": "Map",
+  "documents_type_other": "Document",
+  "documents_owner_personal": "Personal",
+  "documents_owner_dive": "Dives",
+  "documents_owner_site": "Sites",
+  "documents_owner_trip": "Trips",
+  "documents_owner_equipment": "Equipment",
+  "documents_owner_course": "Courses",
+  "documents_owner_certification": "Certifications",
+  "documents_owner_buddy": "Buddies",
+  "documents_owner_diveCenter": "Dive centers",
+  "documents_expiring_title": "Needs attention",
+  "documents_badge_expired": "Expired",
+  "documents_badge_expiresInDays": "{count, plural, =0{Expires today} =1{Expires tomorrow} other{Expires in {count} days}}",
+  "@documents_badge_expiresInDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "documents_empty": "No documents yet",
+  "documents_search_hint": "Search documents",
+  "documents_add": "Add document",
+  "documents_section_title": "Documents",
+  "documents_section_empty": "No documents attached",
+  "documents_edit_newTitle": "New document",
+  "documents_edit_editTitle": "Edit document",
+  "documents_field_type": "Type",
+  "documents_field_title": "Title",
+  "documents_field_issuer": "Issued by",
+  "documents_field_issuerInsurance": "Insurer",
+  "documents_field_referenceNumber": "Number",
+  "documents_field_referenceNumberInsurance": "Policy number",
+  "documents_field_issueDate": "Issued",
+  "documents_field_expiryDate": "Expires",
+  "documents_field_reminderLead": "Remind me",
+  "documents_field_reminderLeadDays": "{count, plural, =0{Off} =1{{count} day before} other{{count} days before}}",
+  "@documents_field_reminderLeadDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "documents_field_emergencyPhone": "24-hour emergency line",
+  "documents_field_phone": "Office phone",
+  "documents_field_isPrimary": "Primary insurance",
+  "documents_field_isPrimary_subtitle": "Shown on the emergency card and the home screen",
+  "documents_field_notes": "Notes",
+  "documents_pages_title": "Pages",
+  "documents_pages_front": "Front",
+  "documents_pages_back": "Back",
+  "documents_pages_add": "Add page",
+  "documents_pages_addCamera": "Take photo",
+  "documents_pages_addGallery": "Choose photo",
+  "documents_pages_addFile": "Choose file",
+  "documents_pages_remove": "Remove page",
+  "documents_pages_tooLarge": "This file is {size}. The limit is 10 MB.",
+  "@documents_pages_tooLarge": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "documents_pages_unsupported": "{extension} files are not supported. Use a photo, PDF, Word or text file.",
+  "@documents_pages_unsupported": {
+    "placeholders": {
+      "extension": {
+        "type": "String"
+      }
+    }
+  },
+  "documents_page_cannotDisplay": "Can't display this page",
+  "documents_page_openWith": "Open with...",
+  "documents_page_counter": "{current} of {total}",
+  "@documents_page_counter": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "documents_delete_title": "Delete document?",
+  "documents_delete_content": "This deletes the document and all its pages on every synced device.",
+  "documents_deleted": "Document deleted",
+  "documents_saved": "Document saved",
+  "documents_error_save": "Couldn't save the document: {error}",
+  "@documents_error_save": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "documents_error_load": "Couldn't load documents: {error}",
+  "@documents_error_load": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "documents_filter_all": "All",
+  "documents_detail_owner": "Filed under",
+  "documents_profileHub_documents": "Documents",
+  "documents_profileHub_documents_count": "{count, plural, =0{None yet} =1{{count} document} other{{count} documents}}",
+  "@documents_profileHub_documents_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "documents_medical_clearances": "Medical clearances",
+  "documents_medical_addClearance": "Add clearance",
+  "documents_medical_clearancesEmpty": "No medical clearance recorded",
+  "dashboard_gauges_documentExpires": "{title} expires {date}",
+  "@dashboard_gauges_documentExpires": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_documentExpired": "{title} expired",
+  "@dashboard_gauges_documentExpired": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboard_gauges_documentsNeedAttention": "{count, plural, =1{{count} document needs attention} other{{count} documents need attention}}",
+  "@dashboard_gauges_documentsNeedAttention": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_homeChips_documents": "Documents",
+  "notifications_document_expiresSoon_title": "{title} expires soon",
+  "@notifications_document_expiresSoon_title": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "notifications_document_expiresSoon_body": "{count, plural, =1{Expires tomorrow.} other{Expires in {count} days.}}",
+  "@notifications_document_expiresSoon_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifications_document_expiresToday_title": "{title} expires today",
+  "@notifications_document_expiresToday_title": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "notifications_document_expiresToday_body": "Renew it before your next dive.",
+  "settings_conflict_field_pageOrder": "Page order",
+  "settings_conflict_field_cardSide": "Card side",
   "settings_conflict_ref_document": "Document",
   "settings_conflict_ref_certification": "Certification",
   "settings_conflict_ref_checklistTemplate": "Checklist template",

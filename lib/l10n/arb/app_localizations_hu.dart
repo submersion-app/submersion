@@ -22915,6 +22915,314 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'Búvártárs';
 
   @override
+  String get nav_documents => 'Dokumentumok';
+
+  @override
+  String get documents_title => 'Dokumentumok';
+
+  @override
+  String get documents_type_insurance => 'Biztosítás';
+
+  @override
+  String get documents_type_medicalClearance => 'Orvosi alkalmassági';
+
+  @override
+  String get documents_type_certificationCard => 'Képesítési kártya';
+
+  @override
+  String get documents_type_permit => 'Engedély';
+
+  @override
+  String get documents_type_booking => 'Foglalás';
+
+  @override
+  String get documents_type_receipt => 'Nyugta';
+
+  @override
+  String get documents_type_manual => 'Kézikönyv';
+
+  @override
+  String get documents_type_map => 'Térkép';
+
+  @override
+  String get documents_type_other => 'Dokumentum';
+
+  @override
+  String get documents_owner_personal => 'Személyes';
+
+  @override
+  String get documents_owner_dive => 'Merülések';
+
+  @override
+  String get documents_owner_site => 'Merülőhelyek';
+
+  @override
+  String get documents_owner_trip => 'Utak';
+
+  @override
+  String get documents_owner_equipment => 'Felszerelés';
+
+  @override
+  String get documents_owner_course => 'Tanfolyamok';
+
+  @override
+  String get documents_owner_certification => 'Képesítések';
+
+  @override
+  String get documents_owner_buddy => 'Társak';
+
+  @override
+  String get documents_owner_diveCenter => 'Búvárközpontok';
+
+  @override
+  String get documents_expiring_title => 'Figyelmet igényel';
+
+  @override
+  String get documents_badge_expired => 'Lejárt';
+
+  @override
+  String documents_badge_expiresInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nap múlva lejár',
+      one: 'Holnap lejár',
+      zero: 'Ma lejár',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_empty => 'Még nincsenek dokumentumok';
+
+  @override
+  String get documents_search_hint => 'Dokumentumok keresése';
+
+  @override
+  String get documents_add => 'Dokumentum hozzáadása';
+
+  @override
+  String get documents_section_title => 'Dokumentumok';
+
+  @override
+  String get documents_section_empty => 'Nincs csatolt dokumentum';
+
+  @override
+  String get documents_edit_newTitle => 'Új dokumentum';
+
+  @override
+  String get documents_edit_editTitle => 'Dokumentum szerkesztése';
+
+  @override
+  String get documents_field_type => 'Típus';
+
+  @override
+  String get documents_field_title => 'Cím';
+
+  @override
+  String get documents_field_issuer => 'Kiállító';
+
+  @override
+  String get documents_field_issuerInsurance => 'Biztosító';
+
+  @override
+  String get documents_field_referenceNumber => 'Szám';
+
+  @override
+  String get documents_field_referenceNumberInsurance => 'Kötvényszám';
+
+  @override
+  String get documents_field_issueDate => 'Kiállítva';
+
+  @override
+  String get documents_field_expiryDate => 'Lejárat';
+
+  @override
+  String get documents_field_reminderLead => 'Emlékeztető';
+
+  @override
+  String documents_field_reminderLeadDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nappal előtte',
+      one: '$count nappal előtte',
+      zero: 'Ki',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_field_emergencyPhone => '24 órás segélyvonal';
+
+  @override
+  String get documents_field_phone => 'Irodai telefon';
+
+  @override
+  String get documents_field_isPrimary => 'Elsődleges biztosítás';
+
+  @override
+  String get documents_field_isPrimary_subtitle =>
+      'Megjelenik a vészhelyzeti kártyán és a kezdőképernyőn';
+
+  @override
+  String get documents_field_notes => 'Jegyzetek';
+
+  @override
+  String get documents_pages_title => 'Oldalak';
+
+  @override
+  String get documents_pages_front => 'Előlap';
+
+  @override
+  String get documents_pages_back => 'Hátlap';
+
+  @override
+  String get documents_pages_add => 'Oldal hozzáadása';
+
+  @override
+  String get documents_pages_addCamera => 'Fénykép készítése';
+
+  @override
+  String get documents_pages_addGallery => 'Fénykép kiválasztása';
+
+  @override
+  String get documents_pages_addFile => 'Fájl kiválasztása';
+
+  @override
+  String get documents_pages_remove => 'Oldal eltávolítása';
+
+  @override
+  String documents_pages_tooLarge(String size) {
+    return 'Ez a fájl $size. A korlát 10 MB.';
+  }
+
+  @override
+  String documents_pages_unsupported(String extension) {
+    return 'A(z) $extension fájlok nem támogatottak. Használj fényképet vagy PDF-, Word- vagy szövegfájlt.';
+  }
+
+  @override
+  String get documents_page_cannotDisplay => 'Ez az oldal nem jeleníthető meg';
+
+  @override
+  String get documents_page_openWith => 'Megnyitás ezzel...';
+
+  @override
+  String documents_page_counter(int current, int total) {
+    return '$current/$total';
+  }
+
+  @override
+  String get documents_delete_title => 'Törlöd a dokumentumot?';
+
+  @override
+  String get documents_delete_content =>
+      'Ez minden szinkronizált eszközön törli a dokumentumot és minden oldalát.';
+
+  @override
+  String get documents_deleted => 'Dokumentum törölve';
+
+  @override
+  String get documents_saved => 'Dokumentum mentve';
+
+  @override
+  String documents_error_save(String error) {
+    return 'A dokumentum mentése nem sikerült: $error';
+  }
+
+  @override
+  String documents_error_load(String error) {
+    return 'A dokumentumok betöltése nem sikerült: $error';
+  }
+
+  @override
+  String get documents_filter_all => 'Mind';
+
+  @override
+  String get documents_detail_owner => 'Ide sorolva';
+
+  @override
+  String get documents_profileHub_documents => 'Dokumentumok';
+
+  @override
+  String documents_profileHub_documents_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dokumentum',
+      one: '$count dokumentum',
+      zero: 'Még nincs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_medical_clearances => 'Orvosi alkalmassági igazolások';
+
+  @override
+  String get documents_medical_addClearance => 'Igazolás hozzáadása';
+
+  @override
+  String get documents_medical_clearancesEmpty =>
+      'Nincs rögzített orvosi alkalmassági';
+
+  @override
+  String dashboard_gauges_documentExpires(String title, String date) {
+    return '$title lejár: $date';
+  }
+
+  @override
+  String dashboard_gauges_documentExpired(String title) {
+    return '$title lejárt';
+  }
+
+  @override
+  String dashboard_gauges_documentsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dokumentum figyelmet igényel',
+      one: '$count dokumentum figyelmet igényel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_homeChips_documents => 'Dokumentumok';
+
+  @override
+  String notifications_document_expiresSoon_title(String title) {
+    return '$title hamarosan lejár';
+  }
+
+  @override
+  String notifications_document_expiresSoon_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nap múlva lejár.',
+      one: 'Holnap lejár.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notifications_document_expiresToday_title(String title) {
+    return '$title ma lejár';
+  }
+
+  @override
+  String get notifications_document_expiresToday_body =>
+      'Újítsd meg a következő merülés előtt.';
+
+  @override
+  String get settings_conflict_field_pageOrder => 'Oldalsorrend';
+
+  @override
+  String get settings_conflict_field_cardSide => 'Kártya oldala';
+
+  @override
   String get settings_conflict_ref_document => 'Dokumentum';
 
   @override

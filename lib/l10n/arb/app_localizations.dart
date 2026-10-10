@@ -36996,6 +36996,492 @@ abstract class AppLocalizations {
   /// **'Buddy'**
   String get settings_conflict_ref_buddy;
 
+  /// No description provided for @nav_documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get nav_documents;
+
+  /// No description provided for @documents_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documents_title;
+
+  /// No description provided for @documents_type_insurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get documents_type_insurance;
+
+  /// No description provided for @documents_type_medicalClearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical clearance'**
+  String get documents_type_medicalClearance;
+
+  /// No description provided for @documents_type_certificationCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification card'**
+  String get documents_type_certificationCard;
+
+  /// No description provided for @documents_type_permit.
+  ///
+  /// In en, this message translates to:
+  /// **'Permit'**
+  String get documents_type_permit;
+
+  /// No description provided for @documents_type_booking.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking'**
+  String get documents_type_booking;
+
+  /// No description provided for @documents_type_receipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get documents_type_receipt;
+
+  /// No description provided for @documents_type_manual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get documents_type_manual;
+
+  /// No description provided for @documents_type_map.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get documents_type_map;
+
+  /// No description provided for @documents_type_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get documents_type_other;
+
+  /// No description provided for @documents_owner_personal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get documents_owner_personal;
+
+  /// No description provided for @documents_owner_dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get documents_owner_dive;
+
+  /// No description provided for @documents_owner_site.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get documents_owner_site;
+
+  /// No description provided for @documents_owner_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get documents_owner_trip;
+
+  /// No description provided for @documents_owner_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get documents_owner_equipment;
+
+  /// No description provided for @documents_owner_course.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get documents_owner_course;
+
+  /// No description provided for @documents_owner_certification.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get documents_owner_certification;
+
+  /// No description provided for @documents_owner_buddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get documents_owner_buddy;
+
+  /// No description provided for @documents_owner_diveCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive centers'**
+  String get documents_owner_diveCenter;
+
+  /// No description provided for @documents_expiring_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get documents_expiring_title;
+
+  /// No description provided for @documents_badge_expired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get documents_badge_expired;
+
+  /// No description provided for @documents_badge_expiresInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Expires today} =1{Expires tomorrow} other{Expires in {count} days}}'**
+  String documents_badge_expiresInDays(int count);
+
+  /// No description provided for @documents_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents yet'**
+  String get documents_empty;
+
+  /// No description provided for @documents_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search documents'**
+  String get documents_search_hint;
+
+  /// No description provided for @documents_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add document'**
+  String get documents_add;
+
+  /// No description provided for @documents_section_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documents_section_title;
+
+  /// No description provided for @documents_section_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents attached'**
+  String get documents_section_empty;
+
+  /// No description provided for @documents_edit_newTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New document'**
+  String get documents_edit_newTitle;
+
+  /// No description provided for @documents_edit_editTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit document'**
+  String get documents_edit_editTitle;
+
+  /// No description provided for @documents_field_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get documents_field_type;
+
+  /// No description provided for @documents_field_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get documents_field_title;
+
+  /// No description provided for @documents_field_issuer.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued by'**
+  String get documents_field_issuer;
+
+  /// No description provided for @documents_field_issuerInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurer'**
+  String get documents_field_issuerInsurance;
+
+  /// No description provided for @documents_field_referenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get documents_field_referenceNumber;
+
+  /// No description provided for @documents_field_referenceNumberInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Policy number'**
+  String get documents_field_referenceNumberInsurance;
+
+  /// No description provided for @documents_field_issueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get documents_field_issueDate;
+
+  /// No description provided for @documents_field_expiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires'**
+  String get documents_field_expiryDate;
+
+  /// No description provided for @documents_field_reminderLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me'**
+  String get documents_field_reminderLead;
+
+  /// No description provided for @documents_field_reminderLeadDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Off} =1{{count} day before} other{{count} days before}}'**
+  String documents_field_reminderLeadDays(int count);
+
+  /// No description provided for @documents_field_emergencyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'24-hour emergency line'**
+  String get documents_field_emergencyPhone;
+
+  /// No description provided for @documents_field_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Office phone'**
+  String get documents_field_phone;
+
+  /// No description provided for @documents_field_isPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary insurance'**
+  String get documents_field_isPrimary;
+
+  /// No description provided for @documents_field_isPrimary_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown on the emergency card and the home screen'**
+  String get documents_field_isPrimary_subtitle;
+
+  /// No description provided for @documents_field_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get documents_field_notes;
+
+  /// No description provided for @documents_pages_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get documents_pages_title;
+
+  /// No description provided for @documents_pages_front.
+  ///
+  /// In en, this message translates to:
+  /// **'Front'**
+  String get documents_pages_front;
+
+  /// No description provided for @documents_pages_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get documents_pages_back;
+
+  /// No description provided for @documents_pages_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add page'**
+  String get documents_pages_add;
+
+  /// No description provided for @documents_pages_addCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get documents_pages_addCamera;
+
+  /// No description provided for @documents_pages_addGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose photo'**
+  String get documents_pages_addGallery;
+
+  /// No description provided for @documents_pages_addFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file'**
+  String get documents_pages_addFile;
+
+  /// No description provided for @documents_pages_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove page'**
+  String get documents_pages_remove;
+
+  /// No description provided for @documents_pages_tooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is {size}. The limit is 10 MB.'**
+  String documents_pages_tooLarge(String size);
+
+  /// No description provided for @documents_pages_unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'{extension} files are not supported. Use a photo, PDF, Word or text file.'**
+  String documents_pages_unsupported(String extension);
+
+  /// No description provided for @documents_page_cannotDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t display this page'**
+  String get documents_page_cannotDisplay;
+
+  /// No description provided for @documents_page_openWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Open with...'**
+  String get documents_page_openWith;
+
+  /// No description provided for @documents_page_counter.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String documents_page_counter(int current, int total);
+
+  /// No description provided for @documents_delete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete document?'**
+  String get documents_delete_title;
+
+  /// No description provided for @documents_delete_content.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes the document and all its pages on every synced device.'**
+  String get documents_delete_content;
+
+  /// No description provided for @documents_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Document deleted'**
+  String get documents_deleted;
+
+  /// No description provided for @documents_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Document saved'**
+  String get documents_saved;
+
+  /// No description provided for @documents_error_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the document: {error}'**
+  String documents_error_save(String error);
+
+  /// No description provided for @documents_error_load.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load documents: {error}'**
+  String documents_error_load(String error);
+
+  /// No description provided for @documents_filter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get documents_filter_all;
+
+  /// No description provided for @documents_detail_owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Filed under'**
+  String get documents_detail_owner;
+
+  /// No description provided for @documents_profileHub_documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documents_profileHub_documents;
+
+  /// No description provided for @documents_profileHub_documents_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None yet} =1{{count} document} other{{count} documents}}'**
+  String documents_profileHub_documents_count(int count);
+
+  /// No description provided for @documents_medical_clearances.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical clearances'**
+  String get documents_medical_clearances;
+
+  /// No description provided for @documents_medical_addClearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Add clearance'**
+  String get documents_medical_addClearance;
+
+  /// No description provided for @documents_medical_clearancesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No medical clearance recorded'**
+  String get documents_medical_clearancesEmpty;
+
+  /// No description provided for @dashboard_gauges_documentExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} expires {date}'**
+  String dashboard_gauges_documentExpires(String title, String date);
+
+  /// No description provided for @dashboard_gauges_documentExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} expired'**
+  String dashboard_gauges_documentExpired(String title);
+
+  /// No description provided for @dashboard_gauges_documentsNeedAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} document needs attention} other{{count} documents need attention}}'**
+  String dashboard_gauges_documentsNeedAttention(int count);
+
+  /// No description provided for @settings_homeChips_documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get settings_homeChips_documents;
+
+  /// No description provided for @notifications_document_expiresSoon_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} expires soon'**
+  String notifications_document_expiresSoon_title(String title);
+
+  /// No description provided for @notifications_document_expiresSoon_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Expires tomorrow.} other{Expires in {count} days.}}'**
+  String notifications_document_expiresSoon_body(int count);
+
+  /// No description provided for @notifications_document_expiresToday_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} expires today'**
+  String notifications_document_expiresToday_title(String title);
+
+  /// No description provided for @notifications_document_expiresToday_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Renew it before your next dive.'**
+  String get notifications_document_expiresToday_body;
+
+  /// No description provided for @settings_conflict_field_pageOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Page order'**
+  String get settings_conflict_field_pageOrder;
+
+  /// No description provided for @settings_conflict_field_cardSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Card side'**
+  String get settings_conflict_field_cardSide;
+
   /// No description provided for @settings_conflict_ref_document.
   ///
   /// In en, this message translates to:

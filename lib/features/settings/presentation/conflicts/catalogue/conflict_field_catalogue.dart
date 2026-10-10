@@ -2,6 +2,7 @@ import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/certification_currency_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/dive_log_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/diver_settings_fields.dart';
+import 'package:submersion/features/settings/presentation/conflicts/catalogue/document_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/equipment_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/media_library_fields.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/people_planning_fields.dart';
@@ -31,6 +32,7 @@ final Map<String, ConflictField> conflictFieldCatalogue = _merge([
   diverSettingsFields,
   mediaLibraryFields,
   certificationCurrencyFields,
+  documentFields,
 ]);
 
 /// Entity-specific meanings, keyed `'<entityType>.<column>'`. Checked before
@@ -43,6 +45,7 @@ final Map<String, ConflictField> conflictFieldOverrides = _merge([
   diverSettingsOverrides,
   mediaLibraryOverrides,
   certificationCurrencyOverrides,
+  documentOverrides,
 ]);
 
 Map<String, ConflictField> _merge(List<Map<String, ConflictField>> maps) {

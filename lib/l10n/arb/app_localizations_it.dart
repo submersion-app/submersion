@@ -23033,6 +23033,315 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'Compagno';
 
   @override
+  String get nav_documents => 'Documenti';
+
+  @override
+  String get documents_title => 'Documenti';
+
+  @override
+  String get documents_type_insurance => 'Assicurazione';
+
+  @override
+  String get documents_type_medicalClearance => 'Certificato medico';
+
+  @override
+  String get documents_type_certificationCard => 'Tessera di brevetto';
+
+  @override
+  String get documents_type_permit => 'Permesso';
+
+  @override
+  String get documents_type_booking => 'Prenotazione';
+
+  @override
+  String get documents_type_receipt => 'Ricevuta';
+
+  @override
+  String get documents_type_manual => 'Manuale';
+
+  @override
+  String get documents_type_map => 'Mappa';
+
+  @override
+  String get documents_type_other => 'Documento';
+
+  @override
+  String get documents_owner_personal => 'Personali';
+
+  @override
+  String get documents_owner_dive => 'Immersioni';
+
+  @override
+  String get documents_owner_site => 'Siti';
+
+  @override
+  String get documents_owner_trip => 'Viaggi';
+
+  @override
+  String get documents_owner_equipment => 'Attrezzatura';
+
+  @override
+  String get documents_owner_course => 'Corsi';
+
+  @override
+  String get documents_owner_certification => 'Brevetti';
+
+  @override
+  String get documents_owner_buddy => 'Compagni';
+
+  @override
+  String get documents_owner_diveCenter => 'Centri immersioni';
+
+  @override
+  String get documents_expiring_title => 'Richiede attenzione';
+
+  @override
+  String get documents_badge_expired => 'Scaduto';
+
+  @override
+  String documents_badge_expiresInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Scade tra $count giorni',
+      one: 'Scade domani',
+      zero: 'Scade oggi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_empty => 'Nessun documento';
+
+  @override
+  String get documents_search_hint => 'Cerca documenti';
+
+  @override
+  String get documents_add => 'Aggiungi documento';
+
+  @override
+  String get documents_section_title => 'Documenti';
+
+  @override
+  String get documents_section_empty => 'Nessun documento allegato';
+
+  @override
+  String get documents_edit_newTitle => 'Nuovo documento';
+
+  @override
+  String get documents_edit_editTitle => 'Modifica documento';
+
+  @override
+  String get documents_field_type => 'Tipo';
+
+  @override
+  String get documents_field_title => 'Titolo';
+
+  @override
+  String get documents_field_issuer => 'Rilasciato da';
+
+  @override
+  String get documents_field_issuerInsurance => 'Assicuratore';
+
+  @override
+  String get documents_field_referenceNumber => 'Numero';
+
+  @override
+  String get documents_field_referenceNumberInsurance => 'Numero di polizza';
+
+  @override
+  String get documents_field_issueDate => 'Rilasciato il';
+
+  @override
+  String get documents_field_expiryDate => 'Scadenza';
+
+  @override
+  String get documents_field_reminderLead => 'Promemoria';
+
+  @override
+  String documents_field_reminderLeadDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giorni prima',
+      one: '$count giorno prima',
+      zero: 'Disattivato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_field_emergencyPhone => 'Numero di emergenza 24 ore';
+
+  @override
+  String get documents_field_phone => 'Telefono ufficio';
+
+  @override
+  String get documents_field_isPrimary => 'Assicurazione principale';
+
+  @override
+  String get documents_field_isPrimary_subtitle =>
+      'Mostrata sulla scheda di emergenza e nella schermata iniziale';
+
+  @override
+  String get documents_field_notes => 'Note';
+
+  @override
+  String get documents_pages_title => 'Pagine';
+
+  @override
+  String get documents_pages_front => 'Fronte';
+
+  @override
+  String get documents_pages_back => 'Retro';
+
+  @override
+  String get documents_pages_add => 'Aggiungi pagina';
+
+  @override
+  String get documents_pages_addCamera => 'Scatta foto';
+
+  @override
+  String get documents_pages_addGallery => 'Scegli foto';
+
+  @override
+  String get documents_pages_addFile => 'Scegli file';
+
+  @override
+  String get documents_pages_remove => 'Rimuovi pagina';
+
+  @override
+  String documents_pages_tooLarge(String size) {
+    return 'Questo file è di $size. Il limite è 10 MB.';
+  }
+
+  @override
+  String documents_pages_unsupported(String extension) {
+    return 'I file $extension non sono supportati. Usa una foto o un file PDF, Word o di testo.';
+  }
+
+  @override
+  String get documents_page_cannotDisplay =>
+      'Impossibile mostrare questa pagina';
+
+  @override
+  String get documents_page_openWith => 'Apri con...';
+
+  @override
+  String documents_page_counter(int current, int total) {
+    return '$current di $total';
+  }
+
+  @override
+  String get documents_delete_title => 'Eliminare il documento?';
+
+  @override
+  String get documents_delete_content =>
+      'Il documento e tutte le sue pagine verranno eliminati su ogni dispositivo sincronizzato.';
+
+  @override
+  String get documents_deleted => 'Documento eliminato';
+
+  @override
+  String get documents_saved => 'Documento salvato';
+
+  @override
+  String documents_error_save(String error) {
+    return 'Impossibile salvare il documento: $error';
+  }
+
+  @override
+  String documents_error_load(String error) {
+    return 'Impossibile caricare i documenti: $error';
+  }
+
+  @override
+  String get documents_filter_all => 'Tutti';
+
+  @override
+  String get documents_detail_owner => 'Archiviato in';
+
+  @override
+  String get documents_profileHub_documents => 'Documenti';
+
+  @override
+  String documents_profileHub_documents_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documenti',
+      one: '$count documento',
+      zero: 'Nessuno',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_medical_clearances => 'Certificati medici';
+
+  @override
+  String get documents_medical_addClearance => 'Aggiungi certificato';
+
+  @override
+  String get documents_medical_clearancesEmpty =>
+      'Nessun certificato medico registrato';
+
+  @override
+  String dashboard_gauges_documentExpires(String title, String date) {
+    return '$title scade il $date';
+  }
+
+  @override
+  String dashboard_gauges_documentExpired(String title) {
+    return '$title scaduto';
+  }
+
+  @override
+  String dashboard_gauges_documentsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documenti richiedono attenzione',
+      one: '$count documento richiede attenzione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_homeChips_documents => 'Documenti';
+
+  @override
+  String notifications_document_expiresSoon_title(String title) {
+    return '$title scade a breve';
+  }
+
+  @override
+  String notifications_document_expiresSoon_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Scade tra $count giorni.',
+      one: 'Scade domani.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notifications_document_expiresToday_title(String title) {
+    return '$title scade oggi';
+  }
+
+  @override
+  String get notifications_document_expiresToday_body =>
+      'Rinnovalo prima della prossima immersione.';
+
+  @override
+  String get settings_conflict_field_pageOrder => 'Ordine delle pagine';
+
+  @override
+  String get settings_conflict_field_cardSide => 'Lato della tessera';
+
+  @override
   String get settings_conflict_ref_document => 'Documento';
 
   @override
