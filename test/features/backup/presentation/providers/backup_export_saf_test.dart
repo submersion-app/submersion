@@ -105,6 +105,18 @@ void main() {
     return container;
   }
 
+  test('hands the note to the exported artifact', () async {
+    final container = makeContainer();
+    await container
+        .read(backupOperationProvider.notifier)
+        .exportToSafTree(
+          treeUri: 'content://tree/primary%3ABackups',
+          fileName: 'submersion_backup_2026-08-16.db',
+          note: 'For the dive shop',
+        );
+    expect(service.lastNote, 'For the dive shop');
+  });
+
   test('streams the artifact into the SAF tree and reports success', () async {
     final container = makeContainer();
     final notifier = container.read(backupOperationProvider.notifier);

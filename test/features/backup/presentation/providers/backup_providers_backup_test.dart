@@ -102,6 +102,14 @@ void main() {
     return container;
   }
 
+  test('Backup Now hands the note to the service', () async {
+    final container = makeContainer();
+    await container
+        .read(backupOperationProvider.notifier)
+        .performBackup(note: 'Before the trip');
+    expect(service.lastNote, 'Before the trip');
+  });
+
   group('manual backup message (issue #3089)', () {
     test('says the backup stayed on the device when encryption is '
         'locked', () async {
