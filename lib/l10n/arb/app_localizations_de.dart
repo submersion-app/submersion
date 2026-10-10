@@ -23486,14 +23486,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Standardwerte für Tauchgänge mit Kreislaufgerät. Der CCR-Modus des MOD-Rechners startet mit diesen Werten.';
 
   @override
-  String get settings_decompression_ccrDialog_setpointLow => 'Setpoint Low';
+  String get settings_decompression_ccrDialog_setpointLow => 'Sollwert niedrig';
 
   @override
   String get settings_decompression_ccrDialog_setpointLowHint =>
       'Nahe der Oberfläche, beim Ab- und Aufstieg';
 
   @override
-  String get settings_decompression_ccrDialog_setpointHigh => 'Setpoint High';
+  String get settings_decompression_ccrDialog_setpointHigh => 'Sollwert hoch';
 
   @override
   String get settings_decompression_ccrDialog_setpointHighHint =>

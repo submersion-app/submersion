@@ -4272,7 +4272,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_template_addItem => 'Item toevoegen';
 
   @override
-  String get preDive_templates_title => 'Pre-dive checklists';
+  String get preDive_templates_title => 'Checklists voor de duik';
 
   @override
   String get preDive_templates_empty => 'Nog geen pre-dive checklists';
@@ -4462,7 +4462,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get preDive_runner_locked => 'Deze checklist is vergrendeld';
 
   @override
-  String get preDive_sessions_title => 'Pre-dive checklists';
+  String get preDive_sessions_title => 'Checklists voor de duik';
 
   @override
   String get preDive_sessions_empty => 'Nog geen uitgevoerde checklists';
@@ -4667,7 +4667,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_detail_preDive_action => 'Checklist voor de duik';
 
   @override
-  String get settings_manage_preDiveChecklists => 'Pre-dive checklists';
+  String get settings_manage_preDiveChecklists => 'Checklists voor de duik';
 
   @override
   String get settings_manage_preDiveChecklists_subtitle =>
@@ -5769,7 +5769,7 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get decoCalculator_title => 'Deco calculator';
+  String get decoCalculator_title => 'Decocalculator';
 
   @override
   String get decoCalculator_waterType => 'Watertype';
@@ -6417,7 +6417,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_ccr_label_type => 'Type';
 
   @override
-  String get diveLog_ccr_sectionDiluentGas => 'Diluent gas';
+  String get diveLog_ccr_sectionDiluentGas => 'Diluentgas';
 
   @override
   String get diveLog_ccr_sectionScrubber => 'Scrubber';
@@ -8353,7 +8353,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_edit_group_location => 'Locatie';
 
   @override
-  String get diveSites_edit_group_typeTags => 'Type & tags';
+  String get diveSites_edit_group_typeTags => 'Type & labels';
 
   @override
   String get diveSites_edit_typeTags_manageTypes => 'Types beheren';
@@ -36992,7 +36992,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_diveField_primaryGas => 'Hoofdgas';
 
   @override
-  String get enum_diveField_diluentGas => 'Diluent gas';
+  String get enum_diveField_diluentGas => 'Diluentgas';
 
   @override
   String get enum_diveField_tankCount => 'Aantal flessen';

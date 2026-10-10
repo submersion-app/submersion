@@ -14,7 +14,8 @@ import 'kept_english_values.dart';
 /// ships English to that locale. Widget tests pin `Locale('en')`, so nothing
 /// else notices either. Issue #2481 found 215 such keys after #2283's pass.
 ///
-/// A value counts when it matches English exactly and still holds at least two
+/// A value counts when it matches English ignoring case (so "Open circuit" for
+/// "Open Circuit" is still English) and still holds at least two
 /// words once ICU placeholders are removed, which leaves out single words such
 /// as "OK" and bare unit symbols. Some values are correct as English (brand
 /// and course names, unit abbreviations, loanwords a locale already uses);
@@ -53,8 +54,12 @@ void main() {
     english.forEach((key, value) {
       if (key.startsWith('@') || value is! String) return;
       if (wordCount(value) < 2) return;
+      final lower = value.toLowerCase();
       for (final locale in locales) {
-        if (translated[locale]![key] == value) pairs.add('$key@$locale');
+        final local = translated[locale]![key];
+        if (local is String && local.toLowerCase() == lower) {
+          pairs.add('$key@$locale');
+        }
       }
     });
     return pairs;
