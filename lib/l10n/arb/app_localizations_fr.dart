@@ -23084,6 +23084,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'Binôme';
 
   @override
+  String get settings_conflict_ref_document => 'Document';
+
+  @override
   String get settings_conflict_ref_certification => 'Certification';
 
   @override

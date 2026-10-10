@@ -5842,6 +5842,7 @@
   "settings_conflict_noConflicts_title": "Sin conflictos",
   "settings_conflict_previous_tooltip": "Conflicto anterior",
   "settings_conflict_ref_buddy": "Compañero",
+  "settings_conflict_ref_document": "Documento",
   "settings_conflict_ref_certification": "Certificación",
   "settings_conflict_ref_checklistTemplate": "Plantilla de lista de verificación",
   "settings_conflict_ref_connectedAccount": "Cuenta conectada",

@@ -22974,6 +22974,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'Tauchpartner';
 
   @override
+  String get settings_conflict_ref_document => 'Dokument';
+
+  @override
   String get settings_conflict_ref_certification => 'Zertifizierung';
 
   @override

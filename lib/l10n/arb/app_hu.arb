@@ -5740,6 +5740,7 @@
   "settings_conflict_noConflicts_title": "Nincsenek ütközések",
   "settings_conflict_previous_tooltip": "Előző ütközés",
   "settings_conflict_ref_buddy": "Búvártárs",
+  "settings_conflict_ref_document": "Dokumentum",
   "settings_conflict_ref_certification": "Képesítés",
   "settings_conflict_ref_checklistTemplate": "Ellenőrzőlista sablon",
   "settings_conflict_ref_connectedAccount": "Csatlakoztatott fiók",

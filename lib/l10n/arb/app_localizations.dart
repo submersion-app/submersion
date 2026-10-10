@@ -36996,6 +36996,12 @@ abstract class AppLocalizations {
   /// **'Buddy'**
   String get settings_conflict_ref_buddy;
 
+  /// No description provided for @settings_conflict_ref_document.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get settings_conflict_ref_document;
+
   /// No description provided for @settings_conflict_ref_certification.
   ///
   /// In en, this message translates to:

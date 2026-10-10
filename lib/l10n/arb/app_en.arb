@@ -13484,6 +13484,7 @@
   "settings_conflict_ref_appliedSet": "Applied from set",
   "settings_conflict_ref_attachedThrough": "Attached through",
   "settings_conflict_ref_buddy": "Buddy",
+  "settings_conflict_ref_document": "Document",
   "settings_conflict_ref_certification": "Certification",
   "settings_conflict_ref_checklistTemplate": "Checklist template",
   "settings_conflict_ref_component": "Component",

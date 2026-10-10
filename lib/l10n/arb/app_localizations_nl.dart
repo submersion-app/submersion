@@ -22860,6 +22860,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'Buddy';
 
   @override
+  String get settings_conflict_ref_document => 'Document';
+
+  @override
   String get settings_conflict_ref_certification => 'Certificering';
 
   @override

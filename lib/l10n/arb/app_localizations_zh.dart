@@ -21742,6 +21742,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_buddy => '潜伴';
 
   @override
+  String get settings_conflict_ref_document => '文档';
+
+  @override
   String get settings_conflict_ref_certification => '证书';
 
   @override

@@ -23033,6 +23033,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'Compagno';
 
   @override
+  String get settings_conflict_ref_document => 'Documento';
+
+  @override
   String get settings_conflict_ref_certification => 'Certificazione';
 
   @override

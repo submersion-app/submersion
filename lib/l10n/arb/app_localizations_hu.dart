@@ -22915,6 +22915,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'Búvártárs';
 
   @override
+  String get settings_conflict_ref_document => 'Dokumentum';
+
+  @override
   String get settings_conflict_ref_certification => 'Képesítés';
 
   @override

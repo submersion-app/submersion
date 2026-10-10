@@ -5994,6 +5994,7 @@
   "settings_conflict_noConflicts_title": "无冲突",
   "settings_conflict_previous_tooltip": "上一个冲突",
   "settings_conflict_ref_buddy": "潜伴",
+  "settings_conflict_ref_document": "文档",
   "settings_conflict_ref_certification": "证书",
   "settings_conflict_ref_checklistTemplate": "清单模板",
   "settings_conflict_ref_connectedAccount": "已连接账户",

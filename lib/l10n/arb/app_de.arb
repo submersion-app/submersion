@@ -5959,6 +5959,7 @@
   "settings_conflict_noConflicts_title": "Keine Konflikte",
   "settings_conflict_previous_tooltip": "Vorheriger Konflikt",
   "settings_conflict_ref_buddy": "Tauchpartner",
+  "settings_conflict_ref_document": "Dokument",
   "settings_conflict_ref_certification": "Zertifizierung",
   "settings_conflict_ref_checklistTemplate": "Checklisten-Vorlage",
   "settings_conflict_ref_connectedAccount": "Verbundenes Konto",

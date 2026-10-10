@@ -5842,6 +5842,7 @@
   "settings_conflict_noConflicts_title": "لا توجد تعارضات",
   "settings_conflict_previous_tooltip": "التعارض السابق",
   "settings_conflict_ref_buddy": "رفيق الغوص",
+  "settings_conflict_ref_document": "مستند",
   "settings_conflict_ref_certification": "الشهادة",
   "settings_conflict_ref_checklistTemplate": "قالب قائمة التحقق",
   "settings_conflict_ref_connectedAccount": "الحساب المتصل",

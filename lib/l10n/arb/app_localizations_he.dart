@@ -22429,6 +22429,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'שותף';
 
   @override
+  String get settings_conflict_ref_document => 'מסמך';
+
+  @override
   String get settings_conflict_ref_certification => 'הסמכה';
 
   @override

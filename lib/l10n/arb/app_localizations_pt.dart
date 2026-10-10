@@ -23014,6 +23014,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'Companheiro';
 
   @override
+  String get settings_conflict_ref_document => 'Documento';
+
+  @override
   String get settings_conflict_ref_certification => 'Certificação';
 
   @override

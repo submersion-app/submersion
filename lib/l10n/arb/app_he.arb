@@ -5846,6 +5846,7 @@
   "settings_conflict_noConflicts_title": "אין התנגשויות",
   "settings_conflict_previous_tooltip": "ההתנגשות הקודמת",
   "settings_conflict_ref_buddy": "שותף",
+  "settings_conflict_ref_document": "מסמך",
   "settings_conflict_ref_certification": "הסמכה",
   "settings_conflict_ref_checklistTemplate": "תבנית רשימת משימות",
   "settings_conflict_ref_connectedAccount": "חשבון מחובר",

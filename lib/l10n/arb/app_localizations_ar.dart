@@ -23192,6 +23192,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'رفيق الغوص';
 
   @override
+  String get settings_conflict_ref_document => 'مستند';
+
+  @override
   String get settings_conflict_ref_certification => 'الشهادة';
 
   @override
