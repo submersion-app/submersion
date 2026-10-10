@@ -79,6 +79,25 @@ class UnitFormatter {
     return '${formatFixedForDisplay(converted, decimals)}$depthRateSymbol';
   }
 
+  /// Tide rate unit: "m/hr" or "ft/hr".
+  String get tideRateSymbol => '$depthSymbol/hr';
+
+  /// Format a tide's rate of change given in m/hr, signed so a rising tide
+  /// reads "+0.30m/hr" and a falling one "-0.25m/hr". The sign follows the
+  /// rounded figure, so a rate too small to show reads "0.00m/hr" rather
+  /// than "+0.00" or "-0.00".
+  String formatTideRate(double? metersPerHour, {int decimals = 2}) {
+    if (metersPerHour == null) return '--';
+    final converted = DepthUnit.meters.convert(
+      metersPerHour,
+      settings.depthUnit,
+    );
+    final magnitude = converted.abs().toStringAsFixed(decimals);
+    final shown = double.parse(magnitude);
+    final sign = shown == 0 ? '' : (converted > 0 ? '+' : '-');
+    return '$sign${localiseDecimalText(magnitude)}$tideRateSymbol';
+  }
+
   // ============================================================================
   // Coordinates
   // ============================================================================

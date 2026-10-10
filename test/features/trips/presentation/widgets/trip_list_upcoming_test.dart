@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -68,6 +69,8 @@ Widget _buildTestWidget({required List<Override> overrides}) {
     overrides: overrides,
     child: MaterialApp.router(
       routerConfig: router,
+      // The assertions read English labels, so do not follow the host locale.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
     ),
@@ -78,12 +81,30 @@ Widget _buildTestWidget({required List<Override> overrides}) {
 // Fixtures
 // ---------------------------------------------------------------------------
 
+/// Local midnight [days] calendar days from today, read from `clock` so a
+/// test can pin "today". Built with calendar arithmetic, not by adding a
+/// `Duration`: a `Duration` is elapsed time, so a window that crosses a
+/// daylight-saving fall-back lands at 23:00 on the previous calendar day and
+/// the countdown (which counts calendar days, correctly) reads one short.
 DateTime _dayOffset(int days) {
-  final now = DateTime.now();
-  return DateTime(now.year, now.month, now.day).add(Duration(days: days));
+  final now = clock.now();
+  return DateTime(now.year, now.month, now.day + days);
 }
 
 void main() {
+  // The fixtures below count calendar days from today, the way the countdown
+  // does (Trip.daysUntilStart). Adding a Duration to local midnight instead
+  // lands an hour short of the target day across a DST fall-back, so the
+  // trip started a day early and the countdown read 23 (#3152). Pinned to a
+  // date whose +24 days crosses the US and EU fall-back; CI runs in UTC, so
+  // this only bites in a DST zone, where the suite is run locally.
+  test('_dayOffset counts calendar days across a DST change', () {
+    withClock(Clock.fixed(DateTime(2026, 10, 9, 12)), () {
+      expect(_dayOffset(24), DateTime(2026, 11, 2));
+      expect(calendarDaysBetween(clock.now(), _dayOffset(24)), 24);
+    });
+  });
+
   group('TripListContent upcoming section', () {
     late SharedPreferences prefs;
     late Trip upcomingTrip;
@@ -94,7 +115,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       prefs = await SharedPreferences.getInstance();
 
-      final now = DateTime.now();
+      final now = clock.now();
       upcomingTrip = Trip(
         id: 'trip-upcoming',
         name: 'Cozumel',
@@ -214,6 +235,40 @@ void main() {
       expect(find.text('In 24 days'), findsOneWidget);
       expect(find.text('In progress'), findsOneWidget);
       expect(find.text('3 of 12 to-dos done'), findsOneWidget);
+    });
+
+    // Pinned, so this does not quietly depend on the date the suite runs.
+    // 2026-10-09 is 24 days before the US fall-back on 2026-11-01, so a
+    // fixture built from elapsed time starts the trip on 2026-11-01 23:00
+    // and the tile reads "In 23 days". Green on a UTC runner either way,
+    // which is why this file is on the CI Timezone Tests list.
+    testWidgets('countdown keeps its count when the window crosses a '
+        'daylight-saving change (regression #3152)', (tester) async {
+      await setMobileSize(tester);
+
+      await withClock(Clock.fixed(DateTime(2026, 10, 9, 12)), () async {
+        final now = clock.now();
+        final trip = Trip(
+          id: 'trip-dst',
+          name: 'Cozumel',
+          startDate: _dayOffset(24),
+          endDate: _dayOffset(31),
+          createdAt: now,
+          updatedAt: now,
+        );
+        // Ties the fixture to the pinned day: a helper that ignored `clock`
+        // could otherwise still yield "In 24 days" by coincidence.
+        expect(trip.startDate, DateTime(2026, 11, 2));
+
+        await tester.pumpWidget(
+          _buildTestWidget(
+            overrides: baseOverrides([TripWithStats(trip: trip)]),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('In 24 days'), findsOneWidget);
+      });
     });
 
     testWidgets('past-only list renders without an Upcoming header', (

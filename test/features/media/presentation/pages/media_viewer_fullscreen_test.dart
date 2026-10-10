@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/window_fullscreen.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -13,8 +14,10 @@ import 'package:submersion/features/media/presentation/pages/media_viewer_page.d
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fake_window_fullscreen_platform.dart';
 import '../../../../helpers/test_database.dart';
 
 class _UnavailableResolver implements MediaSourceResolver {
@@ -46,8 +49,10 @@ MediaItem item(String id) => MediaItem(
 
 void main() {
   late SharedPreferences prefs;
+  late FakeWindowFullscreenPlatform platform;
 
   setUp(() async {
+    platform = FakeWindowFullscreenPlatform();
     await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
@@ -57,7 +62,11 @@ void main() {
 
   /// The viewer pushed over a host page, so Back and Esc have somewhere to
   /// go. No runAsync: pumpAndSettle drives the fake clock the 3 s fade uses.
-  Future<void> pumpViewer(WidgetTester tester, {List<MediaItem>? media}) async {
+  Future<void> pumpViewer(
+    WidgetTester tester, {
+    List<MediaItem>? media,
+    ViewerFullscreenMode mode = ViewerFullscreenMode.fullWindow,
+  }) async {
     tester.view.physicalSize = const Size(1024, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -65,6 +74,10 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          windowFullscreenPlatformProvider.overrideWithValue(platform),
+          viewerFullscreenModeProvider.overrideWith(
+            (ref) => ViewerFullscreenModeNotifier.unstored(mode),
+          ),
           mediaSourceResolverRegistryProvider.overrideWithValue(
             MediaSourceResolverRegistry({
               MediaSourceType.platformGallery: _UnavailableResolver(),
@@ -252,6 +265,49 @@ void main() {
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
     expect(find.byType(MediaViewerPage), findsNothing);
+  });
+
+  group('the OS window (#3178)', () {
+    testWidgets('Full screen setting: the window goes fullscreen and back', (
+      tester,
+    ) async {
+      await pumpViewer(tester, mode: ViewerFullscreenMode.fullscreen);
+      expect(platform.setCalls, isEmpty, reason: 'opening is not fullscreen');
+
+      await enterFullscreen(tester);
+      expect(platform.fullScreen, isTrue);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(find.byType(MediaViewerPage), findsOneWidget);
+      expect(platform.setCalls, [true, false]);
+    });
+
+    testWidgets('Full window setting: the OS window is never touched', (
+      tester,
+    ) async {
+      await pumpViewer(tester);
+      await enterFullscreen(tester);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+
+      expect(platform.setCalls, isEmpty);
+    });
+
+    testWidgets('closing the viewer while fullscreen restores the window', (
+      tester,
+    ) async {
+      await pumpViewer(tester, mode: ViewerFullscreenMode.fullscreen);
+      await enterFullscreen(tester);
+      expect(platform.fullScreen, isTrue);
+
+      // Navigator.pop skips the PopScope, as the swipe-down close does.
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MediaViewerPage), findsNothing);
+      expect(platform.setCalls, [true, false]);
+    });
   });
 
   testWidgets('a Lightroom-linked video hides its badge and reveals the '

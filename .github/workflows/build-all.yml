@@ -711,15 +711,42 @@ jobs:
       - name: Install and run in clean containers
         run: |
           set -euo pipefail
+          # Images come from ECR Public's mirror of the Docker Official
+          # Images (same digests as Docker Hub), not from Docker Hub itself.
+          # Docker Hub limits anonymous pulls per IP, GitHub-hosted runners
+          # share IPs, and the limit failed this step before any package was
+          # tested (issue #3139). The repository has no Docker Hub token, and
+          # fork PRs could not read one anyway. ECR Public's own anonymous
+          # limit is per second, which the retry below absorbs.
+          MIRROR=public.ecr.aws/docker/library
           UBUNTU_TAG="ubuntu:$(. /etc/os-release && echo "$VERSION_ID")"
           echo "runner is $UBUNTU_TAG"
+          # Retries with backoff (10s, 20s, 40s) so a transient registry
+          # error does not fail the step.
+          pull() {
+            local attempt
+            for attempt in 1 2 3 4; do
+              docker pull --quiet "$1" && return 0
+              if [ "$attempt" -lt 4 ]; then
+                echo "pull of $1 failed (attempt $attempt), retrying in $((10 << (attempt - 1)))s"
+                sleep $((10 << (attempt - 1)))
+              fi
+            done
+            return 1
+          }
           # Every image runs even when an earlier one fails, so one run says
           # whether the .deb, the .rpm, or both are broken. Testing the exit
-          # status with `if !` keeps the failure from tripping `set -e`.
+          # status with `if !` keeps the failure from tripping `set -e`. A
+          # pull failure is reported as such rather than as a broken package,
+          # and `--pull=never` keeps `docker run` from pulling a second time.
           failed=()
-          for image in "$UBUNTU_TAG" fedora:latest; do
+          for image in "$MIRROR/$UBUNTU_TAG" "$MIRROR/fedora:latest"; do
             echo "=== $image ==="
-            if ! docker run --rm \
+            if ! pull "$image"; then
+              failed+=("$image (could not pull)")
+              continue
+            fi
+            if ! docker run --rm --pull=never \
               -v "$PWD/packages:/p" \
               -v "$PWD/scripts/release/verify_linux_package.sh:/verify.sh:ro" \
               "$image" bash /verify.sh; then

@@ -124,10 +124,11 @@ encrypted with the same passphrase, and each one is self-contained: you can
 restore it on a brand-new device by entering the passphrase or recovery code,
 even before sync is set up there.
 
-> [!WARNING]
+> [!NOTE]
 > A device that has not been unlocked yet (one still waiting for the
-> passphrase) uploads its cloud backups **unencrypted**. Enter the passphrase on
-> each device before relying on the cloud backups it makes, or turn on
+> passphrase) never uploads an unencrypted backup. It keeps its backups on the
+> device only, and **Backup now** says so, until you enter the passphrase
+> there. To have a locked device upload backups anyway, turn on
 > **Encrypt backups** there, which encrypts them with its own password.
 
 Backups saved to a local folder or shared from the device are not covered by

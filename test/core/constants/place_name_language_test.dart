@@ -37,4 +37,32 @@ void main() {
     expect(PlaceNameLanguage.normalize(''), 'en');
     expect(PlaceNameLanguage.normalize('system'), 'en');
   });
+
+  // Issue #3111: a German phone showed the app in German but stored place
+  // names in English, because nothing tied the default to the app language.
+  group('forAppLocale', () {
+    test('an explicit app language is used as it is', () {
+      expect(PlaceNameLanguage.forAppLocale('de', const ['fr']), 'de');
+    });
+
+    test('system follows the first supported device language', () {
+      expect(
+        PlaceNameLanguage.forAppLocale('system', const ['pl', 'de']),
+        'de',
+      );
+    });
+
+    test('device language codes are compared case-insensitively', () {
+      expect(PlaceNameLanguage.forAppLocale('system', const ['FR']), 'fr');
+    });
+
+    test('system with no supported device language falls back to English', () {
+      expect(PlaceNameLanguage.forAppLocale('system', const ['pl', 'c']), 'en');
+      expect(PlaceNameLanguage.forAppLocale('system', const []), 'en');
+    });
+
+    test('an unknown explicit app language falls back to English', () {
+      expect(PlaceNameLanguage.forAppLocale('xx', const ['de']), 'en');
+    });
+  });
 }

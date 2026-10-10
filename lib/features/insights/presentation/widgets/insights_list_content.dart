@@ -9,6 +9,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
 /// Insights category data model.
 class InsightsCategory {
@@ -148,32 +149,54 @@ class InsightsListContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final listContent = ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: insightsCategoriesOf(context).length,
-      separatorBuilder: (context, index) {
-        if (index == 0) {
-          return const Divider(height: 16, thickness: 1);
-        }
-        return const Divider(height: 1);
-      },
-      itemBuilder: (context, index) {
-        final category = insightsCategoriesOf(context)[index];
-        final isSelected = selectedId == category.id;
+    final categories = insightsCategoriesOf(context);
+    void open(InsightsCategory category) {
+      final route = category.route;
+      if (route != null) {
+        context.push(route);
+      } else if (onItemSelected != null) {
+        onItemSelected!(category.id);
+      }
+    }
 
-        return _InsightsCategoryTile(
-          category: category,
-          isSelected: isSelected,
-          onTap: () {
-            final route = category.route;
-            if (route != null) {
-              context.push(route);
-            } else if (onItemSelected != null) {
-              onItemSelected!(category.id);
-            }
-          },
+    final listContent = KeyboardListNavigator(
+      keys: [for (final c in categories) c.id],
+      currentKey: selectedId,
+      onMove: (id) {
+        final category = categories.firstWhere((c) => c.id == id);
+        // A category with a route of its own opens a page rather than the pane,
+        // so it waits for Enter even beside the pane.
+        moveListCursor(
+          context,
+          canOpen: category.route == null && onItemSelected != null,
+          open: () => open(category),
+          highlight: () {},
         );
       },
+      onActivate: (id) => open(categories.firstWhere((c) => c.id == id)),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: categories.length,
+        separatorBuilder: (context, index) {
+          if (index == 0) {
+            return const Divider(height: 16, thickness: 1);
+          }
+          return const Divider(height: 1);
+        },
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final isSelected = selectedId == category.id;
+
+          return KeyboardListItem(
+            navigationKey: category.id,
+            child: _InsightsCategoryTile(
+              category: category,
+              isSelected: isSelected,
+              onTap: () => open(category),
+            ),
+          );
+        },
+      ),
     );
 
     if (!showAppBar) {

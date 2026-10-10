@@ -171,8 +171,13 @@ Open it with **Emergency card** in the Dashboard's quick actions, or from
 
 ### How your region is chosen
 
-The card uses the country of your most recent dive's site. When that is not
-known, it uses the worldwide hotline and says so.
+The card uses the country of your most recent dive's site, and shows it under
+the hotline. When that is not known, it uses the worldwide hotline and says so.
+
+To set the region yourself, for example the day before you travel, tap
+**Change region** and pick the country. The card then says the region was set
+manually, and it stays until you change it again. Pick **Automatic (most recent
+dive)** to go back to following your dives.
 
 ### Chambers
 

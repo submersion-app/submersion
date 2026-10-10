@@ -20,6 +20,11 @@ class TrendWindowSeater {
   TrendRange? _reportedRange;
   ({int first, int last})? _appliedSpan;
 
+  /// The window the diver last settled on: the one [seat] placed for a new
+  /// range or span, or the one [report] last described. A navigation that
+  /// ends where it began reports nothing, so the range keeps its label.
+  ChartViewport? _settled;
+
   /// Full x range of the last [seat], for turning a viewport into dates.
   ({double min, double span})? _fullX;
 
@@ -55,7 +60,7 @@ class TrendWindowSeater {
     _appliedRange = range;
     _reportedRange = null;
     _appliedSpan = dataSpan;
-    return ChartViewport.forWindow(
+    return _settled = ChartViewport.forWindow(
       window.start,
       window.end,
       zoomLimit: zoomLimit,
@@ -63,10 +68,13 @@ class TrendWindowSeater {
   }
 
   /// The range [viewport] shows: [TrendRange.all] when unzoomed, otherwise a
-  /// custom range of the visible dates. Null before the first [seat].
+  /// custom range of the visible dates. Null before the first [seat], and
+  /// when [viewport] shows the window last seated or reported.
   TrendRange? report(ChartViewport viewport) {
     final full = _fullX;
     if (full == null) return null;
+    if (_settled?.sameWindowAs(viewport) ?? false) return null;
+    _settled = viewport;
     final next = viewport.isZoomed
         ? TrendRange.custom(
             _date(full.min + viewport.windowStart * full.span),

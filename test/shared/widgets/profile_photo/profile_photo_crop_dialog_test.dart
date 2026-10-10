@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:submersion/shared/widgets/profile_photo/profile_photo_crop_dialog.dart';
@@ -97,6 +98,45 @@ void main() {
     final out = img.decodeImage(result!)!;
     expect(out.width, out.height, reason: 'the stored photo must be square');
     expect(out.width, lessThanOrEqualTo(512));
+  });
+
+  // Tropical light fills its app bar with primary, the colour a stock
+  // TextButton paints in, so Cancel (the only way out) vanished.
+  testWidgets('Cancel takes the app bar foreground on a primary fill', (
+    tester,
+  ) async {
+    const primary = Color(0xFF007D6F);
+    const foreground = Color(0xFFFFFFFF);
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Theme(
+          data: ThemeData(
+            colorScheme: const ColorScheme.light(primary: primary),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: primary,
+              foregroundColor: foreground,
+            ),
+          ),
+          child: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () => showProfilePhotoCropDialog(
+                context: context,
+                sourceBytes: _jpeg(400, 400),
+                declaredName: 'pick.jpg',
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await _settle(tester);
+
+    final cancel = tester.renderObject<RenderParagraph>(find.text('Cancel'));
+    expect(cancel.text.style?.color, foreground);
   });
 
   testWidgets('the dialog shows the repositioning hint', (tester) async {

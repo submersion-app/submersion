@@ -19,6 +19,13 @@ void main() {
       expect(names, ['Ark', 'Écueil', 'Eel Garden', 'Zanzibar']);
     });
 
+    test('sorts Hungarian double-acute letters with their base letter', () {
+      final names = ['Zóna', '\u0150rszem', 'Oszlop', '\u0171r', 'Ugrás']
+        ..sort(compareTextForSort);
+
+      expect(names, ['\u0150rszem', 'Oszlop', 'Ugrás', '\u0171r', 'Zóna']);
+    });
+
     test(
       'breaks case-only ties deterministically, whatever the input order',
       () {

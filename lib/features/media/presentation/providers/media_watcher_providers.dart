@@ -6,7 +6,6 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/media/data/repositories/watched_folder_repository.dart';
 import 'package:submersion/features/media/data/services/repair/watched_folder_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
@@ -74,25 +73,11 @@ class WatcherAutoApplyNotifier extends StateNotifier<bool> {
   }
 }
 
-/// Every missing row, paged out in full: the watcher repairs the whole
-/// backlog, not the first screenful.
-Future<List<MediaItem>> loadAllMissingRows(Ref ref) async {
-  final repo = ref.read(mediaLibraryRepositoryProvider);
-  final diverId = ref.read(currentDiverIdProvider);
-  final rows = <MediaItem>[];
-  MediaLibraryCursor? cursor;
-  do {
-    final page = await repo.getPage(
-      diverId: diverId,
-      filter: const MediaLibraryFilter(health: MediaHealthFilter.missing),
-      after: cursor,
-      limit: 200,
-    );
-    rows.addAll(page.entries.map((e) => e.item));
-    cursor = page.nextCursor;
-  } while (cursor != null);
-  return rows;
-}
+/// Every missing row, documents included: the watcher repairs the whole
+/// backlog, not the first screenful or the gallery's view of it.
+Future<List<MediaItem>> loadAllMissingRows(Ref ref) => ref
+    .read(mediaLibraryRepositoryProvider)
+    .getMissingRows(diverId: ref.read(currentDiverIdProvider));
 
 final watcherScannerProvider = Provider<WatchedFolderScanner>((ref) {
   return WatchedFolderScanner(

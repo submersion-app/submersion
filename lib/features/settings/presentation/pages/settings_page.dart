@@ -11,7 +11,6 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
-import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 
@@ -22,6 +21,7 @@ import 'package:submersion/features/settings/presentation/pages/column_config_pa
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/widgets/ascent_rate_thresholds_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/ccr_ppo2_limit_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
@@ -32,7 +32,7 @@ import 'package:submersion/features/settings/presentation/widgets/visibility_sca
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
-import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
+import 'package:submersion/features/settings/presentation/widgets/appearance_settings_tiles.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -51,7 +51,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
-import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/import_preferences_card.dart';
@@ -69,7 +68,6 @@ import 'package:submersion/features/auto_update/presentation/providers/update_pr
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
-import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/settings/presentation/format_enum_display.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -1409,6 +1407,27 @@ class _DecompressionSectionContent extends ConsumerWidget {
           const SizedBox(height: 24),
           _buildSectionHeader(
             context,
+            context.l10n.settings_decompression_header_icd,
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: SwitchListTile(
+              secondary: const Icon(Icons.compare_arrows),
+              title: Text(context.l10n.settings_decompression_icdWarnings),
+              subtitle: Text(
+                context.l10n.settings_decompression_icdWarnings_subtitle,
+              ),
+              value: settings.icdWarningsEnabled,
+              onChanged: (value) {
+                ref
+                    .read(settingsProvider.notifier)
+                    .setIcdWarningsEnabled(value);
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
             context.l10n.settings_decompression_header_ascent,
           ),
           const SizedBox(height: 4),
@@ -1452,6 +1471,8 @@ class _DecompressionSectionContent extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          const AscentRateSection(),
         ],
       ),
     );
@@ -1856,37 +1877,8 @@ class _DecompressionSectionContent extends ConsumerWidget {
   }
 }
 
-/// Appearance section content. Ordered section keys; labels are resolved
-/// through [_getSectionDisplayName] so the desktop pane localizes like the
-/// standalone AppearancePage.
-const _sectionHubKeys = [
-  'home',
-  'dives',
-  'sites',
-  'buddies',
-  'trips',
-  'equipment',
-  'diveCenters',
-  'certifications',
-  'courses',
-];
-
-String _getSectionDisplayName(BuildContext context, String key) {
-  final l10n = context.l10n;
-  return switch (key) {
-    'home' => l10n.nav_home,
-    'dives' => l10n.nav_dives,
-    'sites' => l10n.nav_sites,
-    'buddies' => l10n.nav_buddies,
-    'trips' => l10n.nav_trips,
-    'equipment' => l10n.nav_equipment,
-    'diveCenters' => l10n.nav_diveCenters,
-    'certifications' => l10n.nav_certifications,
-    'courses' => l10n.nav_courses,
-    _ => key,
-  };
-}
-
+/// Appearance section content: the tablet and desktop counterpart of
+/// AppearancePage, sharing its tiles from appearance_settings_tiles.dart.
 class _AppearanceSectionContent extends ConsumerStatefulWidget {
   const _AppearanceSectionContent();
 
@@ -1904,12 +1896,10 @@ class _AppearanceSectionContentState
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
-
     // Priority 1: Column config sub-page
     if (_showColumnConfig) {
       final backLabel = _columnConfigSection != null
-          ? _getSectionDisplayName(context, _columnConfigSection!)
+          ? appearanceSectionDisplayName(context, _columnConfigSection!)
           : context.l10n.settings_section_appearance_title;
       return Column(
         children: [
@@ -1934,7 +1924,7 @@ class _AppearanceSectionContentState
 
     // Priority 2: Language sub-page
     if (_showLanguageList) {
-      return _buildLanguageSubPage(context, settings);
+      return _buildLanguageSubPage(context);
     }
 
     // Priority 3: Section appearance sub-page
@@ -1974,163 +1964,36 @@ class _AppearanceSectionContentState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // -- General --
           _buildSectionHeader(
             context,
             context.l10n.settings_appearance_general,
           ),
           const SizedBox(height: 8),
           Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.palette_outlined),
-                  title: Text(context.l10n.settings_themes_current),
-                  subtitle: Text(_resolveCurrentThemeName(context)),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/themes'),
-                ),
-                const Divider(height: 1),
-                ...ThemeMode.values.map((mode) {
-                  final isSelected = mode == settings.themeMode;
-                  return ListTile(
-                    leading: Icon(_getThemeModeIcon(mode)),
-                    title: Text(_getThemeModeName(context, mode)),
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check,
-                            color: Theme.of(context).colorScheme.primary,
-                          )
-                        : null,
-                    onTap: () {
-                      ref.read(settingsProvider.notifier).setThemeMode(mode);
-                    },
-                  );
-                }),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.language),
-                  title: Text(context.l10n.settings_appearance_header_language),
-                  subtitle: Text(
-                    LanguageSettingsPage.getDisplayName(
-                      context.l10n,
-                      settings.locale,
-                    ),
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => setState(() => _showLanguageList = true),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.map_outlined),
-                  title: Text(context.l10n.settings_appearance_mapStyle),
-                  subtitle: Text(
-                    _getMapStyleDisplayName(context, settings.mapStyle),
-                  ),
-                  trailing: DropdownButton<MapStyle>(
-                    value: settings.mapStyle,
-                    underline: const SizedBox.shrink(),
-                    onChanged: (style) {
-                      if (style != null) {
-                        ref.read(settingsProvider.notifier).setMapStyle(style);
-                      }
-                    },
-                    items: MapStyle.values.map((style) {
-                      return DropdownMenuItem(
-                        value: style,
-                        child: Text(_getMapStyleDisplayName(context, style)),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const Divider(height: 1),
-                const NavCustomizationTile(),
-              ],
+            child: AppearanceGeneralTiles(
+              separator: const Divider(height: 1),
+              onLanguageTap: () => setState(() => _showLanguageList = true),
             ),
           ),
           const SizedBox(height: 24),
-          // -- Color accents --
           _buildSectionHeader(
             context,
             context.l10n.settings_appearance_colorAccents,
           ),
           const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: [
-                SwitchListTile(
-                  secondary: const FeatureAccentIcon(
-                    Icons.format_paint_outlined,
-                    featureId: 'settings-appearance',
-                    surface: AccentSurface.list,
-                  ),
-                  title: Text(context.l10n.settings_appearance_accentNavIcons),
-                  subtitle: Text(
-                    context.l10n.settings_appearance_accentNavIcons_subtitle,
-                  ),
-                  value: settings.accentNavIcons,
-                  onChanged: (value) => ref
-                      .read(settingsProvider.notifier)
-                      .setAccentNavIcons(value),
-                ),
-                const Divider(height: 1),
-                SwitchListTile(
-                  secondary: const FeatureAccentIcon(
-                    Icons.title_outlined,
-                    featureId: 'settings-appearance',
-                    surface: AccentSurface.list,
-                  ),
-                  title: Text(
-                    context.l10n.settings_appearance_accentSectionHeaders,
-                  ),
-                  subtitle: Text(
-                    context
-                        .l10n
-                        .settings_appearance_accentSectionHeaders_subtitle,
-                  ),
-                  value: settings.accentSectionHeaders,
-                  onChanged: (value) => ref
-                      .read(settingsProvider.notifier)
-                      .setAccentSectionHeaders(value),
-                ),
-                const Divider(height: 1),
-                SwitchListTile(
-                  secondary: const FeatureAccentIcon(
-                    Icons.list_alt_outlined,
-                    featureId: 'settings-appearance',
-                    surface: AccentSurface.list,
-                  ),
-                  title: Text(context.l10n.settings_appearance_accentListIcons),
-                  subtitle: Text(
-                    context.l10n.settings_appearance_accentListIcons_subtitle,
-                  ),
-                  value: settings.accentListIcons,
-                  onChanged: (value) => ref
-                      .read(settingsProvider.notifier)
-                      .setAccentListIcons(value),
-                ),
-              ],
-            ),
+          const Card(
+            child: AppearanceAccentTiles(separator: Divider(height: 1)),
           ),
           const SizedBox(height: 24),
-          // -- Sections --
           _buildSectionHeader(
             context,
             context.l10n.settings_appearance_sections,
           ),
           const SizedBox(height: 8),
           Card(
-            child: Column(
-              children: [
-                for (final (index, key) in _sectionHubKeys.indexed) ...[
-                  if (index > 0) const Divider(height: 1),
-                  ListTile(
-                    title: Text(_getSectionDisplayName(context, key)),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => setState(() => _activeSectionKey = key),
-                  ),
-                ],
-              ],
+            child: AppearanceSectionTiles(
+              separator: const Divider(height: 1),
+              onSectionTap: (key) => setState(() => _activeSectionKey = key),
             ),
           ),
         ],
@@ -2138,38 +2001,7 @@ class _AppearanceSectionContentState
     );
   }
 
-  String _resolveCurrentThemeName(BuildContext context) {
-    final presetId = ref.watch(settingsProvider.select((s) => s.themePresetId));
-    final preset = AppThemeRegistry.findById(presetId);
-    final l10n = context.l10n;
-    switch (preset.nameKey) {
-      case 'theme_submersion':
-        return l10n.theme_submersion;
-      case 'theme_console':
-        return l10n.theme_console;
-      case 'theme_tropical':
-        return l10n.theme_tropical;
-      case 'theme_minimalist':
-        return l10n.theme_minimalist;
-      case 'theme_deep':
-        return l10n.theme_deep;
-      default:
-        return preset.nameKey;
-    }
-  }
-
-  String _getMapStyleDisplayName(BuildContext context, MapStyle style) {
-    return switch (style) {
-      MapStyle.openStreetMap =>
-        context.l10n.settings_appearance_mapStyle_openStreetMap,
-      MapStyle.openTopoMap =>
-        context.l10n.settings_appearance_mapStyle_openTopoMap,
-      MapStyle.esriSatellite =>
-        context.l10n.settings_appearance_mapStyle_esriSatellite,
-    };
-  }
-
-  Widget _buildLanguageSubPage(BuildContext context, AppSettings settings) {
+  Widget _buildLanguageSubPage(BuildContext context) {
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
@@ -2196,42 +2028,7 @@ class _AppearanceSectionContentState
             ],
           ),
           const SizedBox(height: 8),
-          Card(
-            child: Column(
-              children: LanguageSettingsPage.supportedLocales.map((option) {
-                final isSelected = option.code == settings.locale;
-                return Semantics(
-                  selected: isSelected,
-                  child: ListTile(
-                    leading: option.code == 'system'
-                        ? const Icon(Icons.phone_android)
-                        : null,
-                    title: Text(
-                      option.code == 'system'
-                          ? context.l10n.settings_language_systemDefault
-                          : option.nativeName,
-                    ),
-                    subtitle: option.englishName.isNotEmpty
-                        ? Text(option.englishName)
-                        : null,
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check,
-                            color: theme.colorScheme.primary,
-                            semanticLabel:
-                                context.l10n.settings_language_selected,
-                          )
-                        : null,
-                    onTap: () {
-                      ref
-                          .read(settingsProvider.notifier)
-                          .setLocale(option.code);
-                    },
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
+          const Card(child: LanguageOptionTiles()),
         ],
       ),
     );
@@ -3729,28 +3526,6 @@ Widget _buildInfoCard(BuildContext context, String title, String content) {
       ),
     ),
   );
-}
-
-String _getThemeModeName(BuildContext context, ThemeMode mode) {
-  switch (mode) {
-    case ThemeMode.system:
-      return context.l10n.settings_appearance_theme_system;
-    case ThemeMode.light:
-      return context.l10n.settings_appearance_theme_light;
-    case ThemeMode.dark:
-      return context.l10n.settings_appearance_theme_dark;
-  }
-}
-
-IconData _getThemeModeIcon(ThemeMode mode) {
-  switch (mode) {
-    case ThemeMode.system:
-      return Icons.brightness_auto;
-    case ThemeMode.light:
-      return Icons.light_mode;
-    case ThemeMode.dark:
-      return Icons.dark_mode;
-  }
 }
 
 // ============================================================================

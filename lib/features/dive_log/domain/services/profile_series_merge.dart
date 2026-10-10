@@ -3,6 +3,41 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 
+/// The series of one source that nothing else it owns supersedes, in the
+/// order of [owned].
+///
+/// The same ranking `ProfileSeriesRepository.promoteWinnerOwnedBy` applies
+/// when a source becomes primary: the null-computer series (a manual edit)
+/// first, then the greatest id, and a lower-ranked series is dropped only
+/// where it overlaps a winner in time. A demoted source that was edited owns
+/// its original and its edit over the same timestamps; reading both would
+/// interleave two generations of one profile (issue #3066).
+List<ProfileSeries> liveSeriesOf(List<ProfileSeries> owned) {
+  if (owned.length < 2) return owned;
+  final ranked = [...owned]
+    ..sort((a, b) {
+      final byEdit = (a.computerId == null ? 0 : 1).compareTo(
+        b.computerId == null ? 0 : 1,
+      );
+      return byEdit != 0 ? byEdit : b.id.compareTo(a.id);
+    });
+  final winners = <ProfileSeries>[];
+  for (final candidate in ranked) {
+    final superseded = winners.any(
+      (winner) =>
+          candidate.summary.startTimestamp <= winner.summary.endTimestamp &&
+          winner.summary.startTimestamp <= candidate.summary.endTimestamp,
+    );
+    if (!superseded) winners.add(candidate);
+  }
+  // By id: ProfileSeries equality compares every sample.
+  final winnerIds = {for (final w in winners) w.id};
+  return [
+    for (final s in owned)
+      if (winnerIds.contains(s.id)) s,
+  ];
+}
+
 /// Every sample of every series in [series], interleaved by timestamp.
 ///
 /// This is what `ORDER BY timestamp` over the legacy row table produced for
@@ -234,10 +269,12 @@ bool _spansOverlap((int, int) a, (int, int) b) {
 /// family are superseded and must not render next to the edit. Family
 /// membership follows the legacy rule: with no data sources every series is
 /// family; otherwise a null-computer series or one on the primary computer
-/// is. The caller resolves the primary computer only when a demoted series
-/// carries a computer id, as `_dropSupersededOriginals` does; when it does
-/// not, only null-computer series are family. Nothing is dropped unless the
-/// family holds both a primary and a demoted member.
+/// is. The caller resolves the primary computer whenever promoted and demoted
+/// rows coexist, including the null-computer demoted-edit case; this keeps
+/// family membership aligned with `_dropSupersededOriginals` and prevents
+/// the restored original from rendering beside an inactive child edit.
+/// Nothing is dropped unless the family holds both a primary and a demoted
+/// member.
 List<ProfileSeries> dropSupersededSeries(
   List<ProfileSeries> series, {
   required bool hasSources,
@@ -250,7 +287,8 @@ List<ProfileSeries> dropSupersededSeries(
       !hasSources || s.computerId == null || s.computerId == primaryComputerId;
   final family = series.where(isFamily);
   final edited =
-      family.any((s) => s.isPrimary) && family.any((s) => !s.isPrimary);
+      family.any((s) => s.isPrimary && s.computerId == null) &&
+      family.any((s) => !s.isPrimary);
   if (!edited) return series;
   return [
     for (final s in series)

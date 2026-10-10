@@ -119,6 +119,10 @@ void main() {
     expect(fmt(metric, FieldKind.heightCm, 180.0), metric.formatHeight(180.0));
     expect(fmt(metric, FieldKind.ascentRate, 9.0), metric.formatDepthRate(9.0));
     expect(
+      fmt(imperial, FieldKind.tideRate, 0.3048),
+      imperial.formatTideRate(0.3048),
+    );
+    expect(
       fmt(metric, FieldKind.distance, 850.0),
       metric.formatDistance(850.0),
     );

@@ -6,7 +6,14 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Widget to display a saved instructor signature
+/// Heading for a saved signature: a buddy's signature is titled as one, and an
+/// instructor's (or a legacy untyped one) as an instructor's (issue #3034).
+String _signatureTitle(BuildContext context, Signature signature) =>
+    signature.isBuddySignature
+    ? context.l10n.signatures_buddySignature
+    : context.l10n.signatures_instructorSignature;
+
+/// Widget to display a saved instructor or buddy signature
 class SignatureDisplayWidget extends ConsumerWidget {
   final Signature signature;
   final VoidCallback? onTap;
@@ -50,7 +57,7 @@ class SignatureDisplayWidget extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            context.l10n.signatures_instructorSignature,
+                            _signatureTitle(context, signature),
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                           Text(
@@ -210,7 +217,7 @@ class SignatureFullViewDialog extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          context.l10n.signatures_instructorSignature,
+                          _signatureTitle(context, signature),
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         Text(

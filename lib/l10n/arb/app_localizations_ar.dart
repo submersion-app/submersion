@@ -1461,10 +1461,71 @@ class AppLocalizationsAr extends AppLocalizations {
       'أقرب خليط قياسي يغطي هذا العمق';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'الخليط الموصى به';
+  String get gasCalculators_bestMix_recommendedMix => 'الخليط المحسوب';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'الخليط المحسوب $mix، MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'عرض أقل';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'بدون هيليوم';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => 'مصدر الغاز';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'طوارئ';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'غاز التخفيف';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'الحفاظ على كثافة الغاز ضمن الحدود';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD عند العمق';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'تمت إضافة الهيليوم لإبقاء END وكثافة الغاز ضمن حدودك.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'تمت إضافة الهيليوم لإبقاء كثافة الغاز ضمن الحدود.';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'الوضع';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'الدائرة المغلقة: يتحقق «غاز التخفيف» مقابل ppO₂ الشطف لغاز التخفيف، و«الطوارئ» مقابل ppO₂ تخفيف الضغط (الحد الأقصى) في الدائرة المفتوحة.';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'ترايمكس في الدائرة المفتوحة، يُفحص مقابل حد ppO₂ العمل الخاص بك.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'نيتروكس للغوص الترفيهي، كما هو الحال اليوم.';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -3372,7 +3433,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'تاريخ الإصدار';
 
   @override
-  String get certifications_detail_label_type => 'النوع';
+  String get certifications_detail_label_title => 'العنوان';
 
   @override
   String get certifications_detail_label_validity => 'الصلاحية';
@@ -3695,7 +3756,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'اتركه فارغاً للشهادات التي لا تنتهي صلاحيتها';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'اختياري';
+  String get certifications_edit_helper_title =>
+      'اختياري. اتركه فارغاً لاستخدام الشهادة';
 
   @override
   String get certifications_edit_hint_cardNumber => 'أدخل رقم بطاقة الشهادة';
@@ -3856,10 +3918,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'تاريخ الإصدار';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'الاسم على البطاقة';
+  String get certifications_edit_label_notes => 'ملاحظات';
 
   @override
-  String get certifications_edit_label_notes => 'ملاحظات';
+  String get certifications_edit_label_title => 'عنوان الشهادة';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3917,8 +3979,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_snackBar_updated => 'تم تحديث الشهادة بنجاح';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'اختر شهادة أو أدخل اسمًا';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'اختر شهادة أو أدخل عنوانًا';
 
   @override
   String get certifications_list_button_retry => 'إعادة المحاولة';
@@ -9810,6 +9872,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'خليط الغاز';
 
   @override
+  String get diveLog_tank_computerMix_matches => 'سجّله كمبيوتر الغوص الخاص بك';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'سجّل كمبيوتر الغوص الخاص بك $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'استعادة';
+
+  @override
   String get diveLog_tank_selectPreset => 'اختر إعداداً مسبقاً...';
 
   @override
@@ -10097,6 +10170,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get divePlanner_action_editTank => 'تعديل الأسطوانة';
+
+  @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'أفضل خليط لعمق $depth: $mix';
+  }
 
   @override
   String get divePlanner_action_moreOptions => 'المزيد من الخيارات';
@@ -12019,7 +12097,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return 'سيؤدي هذا إلى حذف $name نهائيًا مع جميع البيانات المرتبطة، بما في ذلك سجلات الغوص وحواسيب الغوص والمعدات والشهادات والمواقع.';
   }
 
   @override
@@ -12163,12 +12241,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return 'اكتب \"حذف $name\" للتأكيد';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return 'حذف $name';
   }
 
   @override
@@ -12996,6 +13074,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_sortField_status => 'الحالة';
+
+  @override
+  String get enum_sortField_title => 'العنوان';
 
   @override
   String get enum_sortField_type => 'النوع';
@@ -14832,6 +14913,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'كان مركّبًا في';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'استنساخ المعدات';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'تعديل المعدات';
 
   @override
@@ -14957,18 +15041,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'حفظ التغييرات';
-
-  @override
-  String get equipment_edit_saveButton_new => 'إضافة معدات';
-
-  @override
-  String get equipment_edit_saveTooltip_edit => 'حفظ تغييرات المعدات';
-
-  @override
-  String get equipment_edit_saveTooltip_new => 'إضافة عنصر معدات جديد';
-
-  @override
   String get equipment_edit_selectDate => 'اختر التاريخ';
 
   @override
@@ -14981,6 +15053,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return 'خطأ في حفظ المعدات: $error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'تم الحفظ، لكن عرض القائمة الحالي يخفيه';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'عرض';
 
   @override
   String get equipment_edit_snackbar_updated => 'تم تحديث المعدات';
@@ -15445,6 +15524,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'ترتيب';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (نسخة)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'تم الاستنساخ، لكن تعذّر نسخ بعض عدادات الصيانة أو المجموعات أو المستندات.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'تم استنساخ المعدات';
+
+  @override
+  String get equipment_menu_clone => 'استنساخ';
 
   @override
   String get equipment_menu_delete => 'حذف';
@@ -15939,12 +16033,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_notFoundTitle => 'المجموعة غير موجودة';
 
   @override
-  String get equipment_setEdit_saveButton_edit => 'حفظ التغييرات';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'إنشاء مجموعة';
-
-  @override
   String get equipment_setEdit_saveTooltip_edit => 'حفظ تغييرات مجموعة المعدات';
 
   @override
@@ -16292,8 +16380,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'من ملف الغواص الخاص بك';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'يختلف عن ملفك ($value بار)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'يختلف عن ملفك ($value)';
   }
 
   @override
@@ -16518,6 +16606,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'العمق المخدر الأقصى';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'الغاز الحالي';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'الغاز المنتقل إليه';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'تقييم ICD';
+
+  @override
+  String get gasCalculators_icd_ok => 'لا يوجد خطر ICD وفق قاعدة الخُمس.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'حدي: ارتفاع النيتروجين قريب من الحد الأقصى المسموح.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'تم انتهاك قاعدة الخُمس: يرتفع النيتروجين بنسبة $increase%، والحد الأقصى المسموح به هو $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'تقييم ICD معطل في الإعدادات > إزالة الضغط.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'لتحقيق الامتثال';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'احتفظ بالغاز الحالي، واضبط نسبة الهليوم في الغاز المنتقل إليه على $he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'احتفظ بالغاز المنتقل إليه، واضبط نسبة الهليوم في الغاز الحالي على $he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'تطبيق';
+
+  @override
+  String get gasCalculators_icd_infoTitle =>
+      'حول الانتشار المعاكس متساوي الضغط';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'الانتشار المعاكس متساوي الضغط (ICD) هو خطر أن يؤدي التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين إلى زيادة إجمالي ضغط الغازات الخاملة في النسيج، لأن الهليوم ينتشر أسرع من النيتروجين. قاعدة الخُمس هي قاعدة تقريبية شائعة: لا ينبغي أن ترتفع نسبة النيتروجين بأكثر من خُمس مقدار انخفاض نسبة الهليوم.\n\nتختلف الجهات حول مدى أهمية ذلك عمليًا في غطسة مخططة جيدًا بغازات قياسية. تطبق هذه الحاسبة القاعدة التقريبية على الغازين المدخلين؛ وهي لا تحل محل التدريب أو المشورة المتخصصة.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'حد ppO₂';
 
   @override
@@ -16534,6 +16680,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'خلاط ترايمكس';
@@ -17025,6 +17174,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'حد عمق التخدير للخليط';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'خطر الانتشار المعاكس متساوي الضغط بين غازين';
 
   @override
   String get gasCalculators_tab_density => 'كثافة الغاز';
@@ -19407,7 +19560,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD، أفضل خليط، الاستهلاك، الاحتياطي الأدنى';
+      'حدود العمق، الخلائط، استهلاك الغاز والتعبئة';
 
   @override
   String get planning_card_gasCalculators_title => 'حاسبات الغاز';
@@ -19429,6 +19582,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'هذه الأدوات لأغراض التخطيط فقط. تحقق دائمًا من الحسابات واتبع تدريبك على الغوص.';
+
+  @override
+  String get planning_disclaimer_dialog_title => 'تنبيه أدوات التخطيط';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'الأدوات في هذا القسم هي لأغراض التخطيط فقط. لا تحل محل تدريبك على الغوص أو حاسوب الغوص الخاص بك. تحقق دائمًا من كل حساب بنفسك قبل استخدامه في قرار متعلق بالسلامة.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'فهمت';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'تم قبول تنبيه التخطيط';
 
   @override
   String get planning_section_tools => 'أدوات';
@@ -19474,9 +19641,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appBar_title => 'الإعدادات';
-
-  @override
-  String get settings_appearance_appLanguage => 'لغة التطبيق';
 
   @override
   String get settings_appearance_displaySize => 'حجم العرض';
@@ -20354,6 +20518,19 @@ class AppLocalizationsAr extends AppLocalizations {
       'المقياس الافتراضي المعروض على المحور الأيمن';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'وضع ملء الشاشة';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'ما إذا كان ملف الغوصة وعارض الوسائط في وضع ملء الشاشة يملآن النافذة أو الشاشة بأكملها';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'ملء النافذة';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'ملء الشاشة';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'مقاييس تخفيف الضغط';
 
@@ -20986,20 +21163,55 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'يحتفظ بنسخة $kept. تُتجاهل قيم $discarded لهذه الحقول: $fields.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$discarded',
+    });
+    return 'يحتفظ بنسخة $_temp0. تُتجاهل قيم $_temp1 لهذه الحقول: $fields.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'يحتفظ بنسخة $local ويضيف نسخة $remote كنسخة منفصلة.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$remote',
+    });
+    return 'يحتفظ بنسخة $_temp0 ويضيف نسخة $_temp1 كنسخة منفصلة.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'يحتفظ بالسجل بقيم $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$device',
+    });
+    return 'يحتفظ بالسجل بقيم $_temp0.';
   }
 
   @override
@@ -21016,8 +21228,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'السجل كما هو على $device:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$device',
+    });
+    return 'السجل كما هو على $_temp0:';
   }
 
   @override
@@ -21725,6 +21942,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_endLimit => 'حد العمق المخدر';
+
+  @override
+  String get settings_conflict_field_icdWarningsEnabled => 'تحذيرات ICD مفعلة';
 
   @override
   String get settings_conflict_field_endLongitude => 'خط طول النهاية';
@@ -22924,8 +23144,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_keepBoth => 'الاحتفاظ بكليهما';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'الاحتفاظ بـ $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'الاحتفاظ بنسخة هذا الجهاز',
+      'otherDevice': 'الاحتفاظ بنسخة الجهاز الآخر',
+      'other': 'الاحتفاظ بـ $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -22952,6 +23177,9 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$fields و$_temp0';
   }
+
+  @override
+  String get settings_conflict_fieldListSeparator => '، ';
 
   @override
   String get settings_conflict_next_tooltip => 'التعارض التالي';
@@ -23561,6 +23789,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_decompression_endLimit_dialog_title => 'حد END';
 
   @override
+  String get settings_decompression_header_icd =>
+      'الانتشار المعاكس متساوي الضغط';
+
+  @override
+  String get settings_decompression_icdWarnings => 'التحذير من خطر ICD';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'يعرض في حاسبة ICD تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.';
+
+  @override
   String get settings_decompression_cnsMethodTitle => 'حساب الـ CNS';
 
   @override
@@ -23751,9 +23990,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_language_appBar_title => 'اللغة';
-
-  @override
-  String get settings_language_selected => 'محدد';
 
   @override
   String get settings_language_systemDefault => 'الافتراضي للنظام';
@@ -24918,6 +25154,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get signatures_handoff_title => 'ناول جهازك إلى';
+
+  @override
+  String get signatures_buddySignature => 'توقيع زميل الغوص';
 
   @override
   String get signatures_instructorSignature => 'توقيع المدرب';
@@ -26343,10 +26582,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'توزيع العمق';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'مخطط دائري يعرض توزيع أنواع الغوص';
-
-  @override
   String get insights_summary_diveTypes_title => 'أنواع الغوص';
 
   @override
@@ -26912,13 +27147,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_manage_title => 'الوسوم';
 
   @override
-  String get tags_manage_importsSection => 'الاستيراد';
+  String get settings_autoTagImports_title => 'وسم الاستيرادات تلقائيا';
 
   @override
-  String get tags_manage_autoTagImports => 'وسم الاستيرادات تلقائيا';
-
-  @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'يبدأ كل استيراد جديد بوسم يحمل اسم المصدر والتاريخ. يمكن تغيير ذلك لعملية استيراد واحدة في خيارات تلك العملية.';
 
   @override
@@ -28471,16 +28703,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_appBar_edit => 'تعديل الرحلة';
 
   @override
-  String get trips_edit_button_add => 'إضافة رحلة';
-
-  @override
   String get trips_edit_button_cancel => 'إلغاء';
 
   @override
   String get trips_edit_button_save => 'حفظ';
-
-  @override
-  String get trips_edit_button_update => 'تحديث الرحلة';
 
   @override
   String get trips_edit_dialog_discard => 'تجاهل';
@@ -32100,6 +32326,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'ملء بيانات الخزان المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
 
   @override
+  String get tankPresets_defaultStartPressure => 'ضغط البداية الافتراضي';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'يُملأ في الخزانات الجديدة، وفي الخزانات المستوردة التي ليس لها ضغط بداية عند تطبيق الخزان الافتراضي على الاستيراد';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'أدخل ضغطًا من $min إلى $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'إعداد أسطوانة جديد';
 
   @override
@@ -35324,6 +35562,26 @@ class AppLocalizationsAr extends AppLocalizations {
       'المنطقة غير معروفة - يُستخدم الخط العالمي';
 
   @override
+  String emergencyCard_regionManual(String region) {
+    return 'المنطقة: $region، محددة يدويًا';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'تغيير المنطقة';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'منطقة الطوارئ';
+
+  @override
+  String get emergencyCard_regionPicker_automatic => 'تلقائي (أحدث غطسة)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'البحث عن الدول';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'لا توجد دول مطابقة';
+
+  @override
   String get emergencyCard_noDiverData =>
       'لا توجد بيانات ملف الغواص. أضف جهات اتصال الطوارئ والبيانات الطبية والتأمين في ملف الغواص.';
 
@@ -37241,6 +37499,27 @@ class AppLocalizationsAr extends AppLocalizations {
       'تُستخدم عند البحث عن البلد والمنطقة والبلدة والمسطح المائي من الإحداثيات. لا يتم تغيير المواقع الحالية.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'هل تريد حفظ أسماء الأماكن باللغة $language؟';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'تُحفظ أسماء الدول والمناطق التي يُبحث عنها لمواقع الغوص الخاصة بك باللغة $current. هل تريد التبديل إلى $language لعمليات البحث الجديدة؟ يمكنك بعد ذلك البحث من جديد عن مواقعك الحالية.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'الإبقاء على $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'تبديل';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'درجات عشرية';
 
   @override
@@ -38280,7 +38559,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'ملاحظات';
 
   @override
-  String get enum_certificationField_certName => 'الاسم';
+  String get enum_certificationField_certName => 'العنوان';
 
   @override
   String get enum_certificationField_agency => 'الجهة';
@@ -38310,7 +38589,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_certificationField_notes => 'ملاحظات';
 
   @override
-  String get enum_certificationField_certName_short => 'الاسم';
+  String get enum_certificationField_certName_short => 'العنوان';
 
   @override
   String get enum_certificationField_agency_short => 'الجهة';
@@ -44426,6 +44705,30 @@ class AppLocalizationsAr extends AppLocalizations {
       'أي الأسطوانات المحمولة يمكن للصعود المحاكى (TTS والسقف والمحطات) التبديل إليها عند كل عمق. تؤخذ في الاعتبار الغازات المسجَّلة في الغوصة فقط.';
 
   @override
+  String get settings_decompression_header_ascentRate => 'سرعة الصعود';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'الحدود التي تستخدمها ألوان وأحداث سرعة الصعود في الملف. تحتفظ مراجعة السلامة بحدودها الثابتة الخاصة، لذا لا يؤدي تغيير هذه القيم أبدًا إلى تعديل الغطسات التي تمت مراجعتها.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds => 'حدود سرعة الصعود';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'تحذير $warning، حرج $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'تحذير';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'حرج';
+
+  @override
   String get settings_decompression_header_dataSources =>
       'تفضيلات مصدر البيانات';
 
@@ -46362,6 +46665,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر تبديل مراجعة الملف الشخصي.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'حُفظ قبل سجل المراجعات؛ غير مرتبط بأي حاسوب غوص';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46675,6 +46982,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String backup_operation_created(String size) {
     return 'تم إنشاء نسخة احتياطية: $size';
+  }
+
+  @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'تم إنشاء نسخة احتياطية: $size. حُفظت على هذا الجهاز فقط: أدخل عبارة مرور التشفير لرفع النسخ الاحتياطية إلى السحابة.';
   }
 
   @override

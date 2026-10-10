@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
 /// Transfer section data model.
 class TransferSection {
@@ -66,24 +67,38 @@ class TransferListContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final listContent = ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: transferSections.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final section = transferSections[index];
-        final isSelected = selectedId == section.id;
+    final listContent = KeyboardListNavigator(
+      keys: [for (final s in transferSections) s.id],
+      currentKey: selectedId,
+      onMove: (id) => moveListCursor(
+        context,
+        canOpen: onItemSelected != null,
+        open: () => onItemSelected!(id),
+        highlight: () {},
+      ),
+      onActivate: (id) => onItemSelected?.call(id),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: transferSections.length,
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final section = transferSections[index];
+          final isSelected = selectedId == section.id;
 
-        return _TransferSectionTile(
-          section: section,
-          isSelected: isSelected,
-          onTap: () {
-            if (onItemSelected != null) {
-              onItemSelected!(section.id);
-            }
-          },
-        );
-      },
+          return KeyboardListItem(
+            navigationKey: section.id,
+            child: _TransferSectionTile(
+              section: section,
+              isSelected: isSelected,
+              onTap: () {
+                if (onItemSelected != null) {
+                  onItemSelected!(section.id);
+                }
+              },
+            ),
+          );
+        },
+      ),
     );
 
     if (!showAppBar) {

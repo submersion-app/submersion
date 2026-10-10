@@ -176,6 +176,7 @@ dependencies:
   nfc_manager: ^4.2.1
   nfc_manager_ndef: ^1.1.0
   ndef_record: ^1.4.2
+  window_manager: ^0.5.2
 
 dev_dependencies:
   flutter_test:

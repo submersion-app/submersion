@@ -30,7 +30,11 @@ void main() {
     // An older reader stores a scope tombstone as an inert unknown entity
     // type and keeps the events it names for good (#1926), so readers below
     // this rung are held until they update.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('a fresh database indexes profile events by dive', () async {

@@ -13,7 +13,12 @@ import 'package:submersion/features/equipment/figure/presentation/figure_paths.d
 /// Each view paints the mannequin, then every placed piece of that view in
 /// layer order (ties broken by item number), each path filled with its
 /// role's colour. A piece on a mirrored zone is flipped about the figure's
-/// centre line. Labels are not painted here; the widget positions them.
+/// centre line. Each path of a piece whose colour the palette says blends
+/// into the page is first stroked with the rim, then the whole piece is
+/// filled over it, so a rim shows only where that path meets the page or
+/// another piece: around a black suit, and around a black valve on a bright
+/// tank. The mannequin is never rimmed. Labels are not painted here; the
+/// widget positions them.
 class DiverFigurePainter extends CustomPainter {
   DiverFigurePainter({
     required this.model,
@@ -32,6 +37,9 @@ class DiverFigurePainter extends CustomPainter {
   /// Draw just this view (the phone layout).
   final FigureView? only;
 
+  /// How far a rim reaches outside the path it edges, in logical pixels.
+  static const double rimWidth = 1.5;
+
   @override
   void paint(Canvas canvas, Size size) {
     final l =
@@ -45,12 +53,12 @@ class DiverFigurePainter extends CustomPainter {
       canvas.save();
       canvas.translate(rect.left, rect.top);
       canvas.scale(l.scale);
-      _paintView(canvas, view);
+      _paintView(canvas, view, l.scale);
       canvas.restore();
     }
   }
 
-  void _paintView(Canvas canvas, FigureView view) {
+  void _paintView(Canvas canvas, FigureView view, double scale) {
     final bodyId = view == FigureView.front ? 'body_front' : 'body_back';
     final entries =
         <_Entry>[
@@ -59,6 +67,7 @@ class DiverFigurePainter extends CustomPainter {
             itemColor: 0,
             mirrored: false,
             order: 0,
+            rimmable: false,
           ),
           for (final item in model.placed)
             for (final id in item.pieceIds)
@@ -68,6 +77,7 @@ class DiverFigurePainter extends CustomPainter {
                   itemColor: item.color,
                   mirrored: item.zone!.mirrored,
                   order: item.number,
+                  rimmable: true,
                 ),
         ]..sort((a, b) {
           final byLayer = a.piece.layer.compareTo(b.piece.layer);
@@ -77,6 +87,14 @@ class DiverFigurePainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
+    // The stroke straddles the outline, so twice the width shows rimWidth
+    // outside it; divided by the scale to stay the same on any screen.
+    final rim = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = rimWidth * 2 / scale
+      ..strokeJoin = StrokeJoin.round
+      ..color = Color(palette.rim)
+      ..isAntiAlias = true;
     for (final entry in entries) {
       canvas.save();
       if (entry.mirrored) {
@@ -84,9 +102,17 @@ class DiverFigurePainter extends CustomPainter {
         canvas.scale(-1, 1);
       }
       final paths = FigurePaths.of(entry.piece.id);
+      final colors = [
+        for (final p in entry.piece.paths)
+          palette.colorFor(p.role, entry.itemColor),
+      ];
+      if (entry.rimmable) {
+        for (var i = 0; i < paths.length; i++) {
+          if (palette.needsRim(colors[i])) canvas.drawPath(paths[i], rim);
+        }
+      }
       for (var i = 0; i < paths.length; i++) {
-        final role = entry.piece.paths[i].role;
-        paint.color = Color(palette.colorFor(role, entry.itemColor));
+        paint.color = Color(colors[i]);
         canvas.drawPath(paths[i], paint);
       }
       canvas.restore();
@@ -107,10 +133,14 @@ class _Entry {
     required this.itemColor,
     required this.mirrored,
     required this.order,
+    required this.rimmable,
   });
 
   final FigurePieceData piece;
   final int itemColor;
   final bool mirrored;
   final int order;
+
+  /// False for the mannequin, whose tones are already set to read.
+  final bool rimmable;
 }

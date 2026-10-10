@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/presentation/widgets/equipment_set_list_content.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/keyboard_navigation_contract.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -128,4 +129,42 @@ void main() {
       expect(find.byType(Chip), findsNothing);
     },
   );
+
+  testWidgets('satisfies the master-list keyboard contract', (tester) async {
+    final repo = EquipmentSetRepository();
+    for (final (id, name) in [('a', 'Cold Water'), ('b', 'Warm Water')]) {
+      await repo.createSet(
+        EquipmentSet(
+          id: id,
+          diverId: 'd1',
+          name: name,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+    final overrides = await getBaseOverrides();
+    overrides.add(
+      validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+    );
+
+    await verifyKeyboardNavigationContract(
+      tester,
+      build: (onItemSelected) => ProviderScope(
+        overrides: overrides,
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: EquipmentSetListContent(
+              showAppBar: false,
+              onItemSelected: onItemSelected,
+            ),
+          ),
+        ),
+      ),
+      firstRow: find.text('Cold Water'),
+    );
+  });
 }

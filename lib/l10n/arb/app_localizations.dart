@@ -2207,14 +2207,116 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_bestMix_recommendedMix.
   ///
   /// In en, this message translates to:
-  /// **'Recommended mix'**
+  /// **'Calculated mix'**
   String get gasCalculators_bestMix_recommendedMix;
+
+  /// No description provided for @gasCalculators_bestMix_semanticsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculated mix {mix}, MOD {mod}'**
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod);
+
+  /// No description provided for @gasCalculators_bestMix_showAllMixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String gasCalculators_bestMix_showAllMixes(int count);
+
+  /// No description provided for @gasCalculators_bestMix_showFewerMixes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get gasCalculators_bestMix_showFewerMixes;
 
   /// No description provided for @gasCalculators_bestMix_withoutHelium.
   ///
   /// In en, this message translates to:
   /// **'Without helium'**
   String get gasCalculators_bestMix_withoutHelium;
+
+  /// No description provided for @gasCalculators_bestMix_ccrSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas source'**
+  String get gasCalculators_bestMix_ccrSource;
+
+  /// No description provided for @gasCalculators_bestMix_ccrSourceBailout.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout'**
+  String get gasCalculators_bestMix_ccrSourceBailout;
+
+  /// No description provided for @gasCalculators_bestMix_ccrSourceDiluent.
+  ///
+  /// In en, this message translates to:
+  /// **'Diluent'**
+  String get gasCalculators_bestMix_ccrSourceDiluent;
+
+  /// No description provided for @gasCalculators_bestMix_densityAware.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep gas density within limits'**
+  String get gasCalculators_bestMix_densityAware;
+
+  /// No description provided for @gasCalculators_bestMix_eadLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'EAD at depth'**
+  String get gasCalculators_bestMix_eadLabel;
+
+  /// No description provided for @gasCalculators_bestMix_heliumBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'Helium added to keep END and gas density within your limits.'**
+  String get gasCalculators_bestMix_heliumBoth;
+
+  /// No description provided for @gasCalculators_bestMix_heliumDensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Helium added to keep gas density within limits.'**
+  String get gasCalculators_bestMix_heliumDensity;
+
+  /// No description provided for @gasCalculators_bestMix_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get gasCalculators_bestMix_mode;
+
+  /// No description provided for @gasCalculators_bestMix_modeCcrTec.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR Tec'**
+  String get gasCalculators_bestMix_modeCcrTec;
+
+  /// No description provided for @gasCalculators_bestMix_modeCcrTecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed circuit: Diluent checks against the diluent\'s flush ppO2, Bailout against your OC deco (maximum) ppO2.'**
+  String get gasCalculators_bestMix_modeCcrTecHint;
+
+  /// No description provided for @gasCalculators_bestMix_modeOcTec.
+  ///
+  /// In en, this message translates to:
+  /// **'OC Tec'**
+  String get gasCalculators_bestMix_modeOcTec;
+
+  /// No description provided for @gasCalculators_bestMix_modeOcTecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimix on open circuit, checked against your working ppO2 limit.'**
+  String get gasCalculators_bestMix_modeOcTecHint;
+
+  /// No description provided for @gasCalculators_bestMix_modeRec.
+  ///
+  /// In en, this message translates to:
+  /// **'Rec'**
+  String get gasCalculators_bestMix_modeRec;
+
+  /// No description provided for @gasCalculators_bestMix_modeRecHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nitrox for recreational diving, as today.'**
+  String get gasCalculators_bestMix_modeRecHint;
 
   /// No description provided for @gasCalculators_planningCaveat.
   ///
@@ -5093,11 +5195,11 @@ abstract class AppLocalizations {
   /// **'Issue Date'**
   String get certifications_detail_label_issueDate;
 
-  /// No description provided for @certifications_detail_label_type.
+  /// No description provided for @certifications_detail_label_title.
   ///
   /// In en, this message translates to:
-  /// **'Type'**
-  String get certifications_detail_label_type;
+  /// **'Title'**
+  String get certifications_detail_label_title;
 
   /// No description provided for @certifications_detail_label_validity.
   ///
@@ -5630,11 +5732,11 @@ abstract class AppLocalizations {
   /// **'Leave empty for certifications that don\'t expire'**
   String get certifications_edit_help_expiryDate;
 
-  /// No description provided for @certifications_edit_helper_nameOnCard.
+  /// No description provided for @certifications_edit_helper_title.
   ///
   /// In en, this message translates to:
-  /// **'Optional'**
-  String get certifications_edit_helper_nameOnCard;
+  /// **'Optional. Leave blank to use the certification'**
+  String get certifications_edit_helper_title;
 
   /// No description provided for @certifications_edit_hint_cardNumber.
   ///
@@ -5876,17 +5978,17 @@ abstract class AppLocalizations {
   /// **'Issue Date'**
   String get certifications_edit_label_issueDate;
 
-  /// No description provided for @certifications_edit_label_nameOnCard.
-  ///
-  /// In en, this message translates to:
-  /// **'Name on card'**
-  String get certifications_edit_label_nameOnCard;
-
   /// No description provided for @certifications_edit_label_notes.
   ///
   /// In en, this message translates to:
   /// **'Notes'**
   String get certifications_edit_label_notes;
+
+  /// No description provided for @certifications_edit_label_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification title'**
+  String get certifications_edit_label_title;
 
   /// No description provided for @certifications_edit_photo_addSemanticLabel.
   ///
@@ -5972,11 +6074,11 @@ abstract class AppLocalizations {
   /// **'Certification updated successfully'**
   String get certifications_edit_snackBar_updated;
 
-  /// No description provided for @certifications_edit_validation_certificationOrNameRequired.
+  /// No description provided for @certifications_edit_validation_certificationOrTitleRequired.
   ///
   /// In en, this message translates to:
-  /// **'Choose a certification or enter a name'**
-  String get certifications_edit_validation_certificationOrNameRequired;
+  /// **'Choose a certification or enter a title'**
+  String get certifications_edit_validation_certificationOrTitleRequired;
 
   /// No description provided for @certifications_list_button_retry.
   ///
@@ -15499,6 +15601,24 @@ abstract class AppLocalizations {
   /// **'Gas Mix'**
   String get diveLog_tank_section_gasMix;
 
+  /// No description provided for @diveLog_tank_computerMix_matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded by your dive computer'**
+  String get diveLog_tank_computerMix_matches;
+
+  /// No description provided for @diveLog_tank_computerMix_differs.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive computer recorded {mix}'**
+  String diveLog_tank_computerMix_differs(String mix);
+
+  /// No description provided for @diveLog_tank_computerMix_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get diveLog_tank_computerMix_restore;
+
   /// No description provided for @diveLog_tank_selectPreset.
   ///
   /// In en, this message translates to:
@@ -16008,6 +16128,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Tank'**
   String get divePlanner_action_editTank;
+
+  /// No description provided for @divePlanner_action_fillBestMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Best mix for {depth}: {mix}'**
+  String divePlanner_action_fillBestMix(String depth, String mix);
 
   /// No description provided for @divePlanner_action_moreOptions.
   ///
@@ -20875,6 +21001,12 @@ abstract class AppLocalizations {
   /// **'Status'**
   String get enum_sortField_status;
 
+  /// No description provided for @enum_sortField_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get enum_sortField_title;
+
   /// No description provided for @enum_sortField_type.
   ///
   /// In en, this message translates to:
@@ -23687,6 +23819,12 @@ abstract class AppLocalizations {
   /// **'Was installed in'**
   String get equipment_detail_wasInstalledInLabel;
 
+  /// Title of the equipment form when it is pre-filled to clone an existing item
+  ///
+  /// In en, this message translates to:
+  /// **'Clone Equipment'**
+  String get equipment_edit_appBar_cloneTitle;
+
   /// No description provided for @equipment_edit_appBar_editTitle.
   ///
   /// In en, this message translates to:
@@ -23915,30 +24053,6 @@ abstract class AppLocalizations {
   /// **'{days} days'**
   String equipment_edit_reminderDays(Object days);
 
-  /// No description provided for @equipment_edit_saveButton_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get equipment_edit_saveButton_edit;
-
-  /// No description provided for @equipment_edit_saveButton_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Equipment'**
-  String get equipment_edit_saveButton_new;
-
-  /// No description provided for @equipment_edit_saveTooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save equipment changes'**
-  String get equipment_edit_saveTooltip_edit;
-
-  /// No description provided for @equipment_edit_saveTooltip_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Add new equipment item'**
-  String get equipment_edit_saveTooltip_new;
-
   /// No description provided for @equipment_edit_selectDate.
   ///
   /// In en, this message translates to:
@@ -23962,6 +24076,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error saving equipment: {error}'**
   String equipment_edit_snackbar_error(Object error);
+
+  /// Snackbar after saving equipment that the list's current filter hides, e.g. a Wanted item under the default view
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, but the current list view hides it'**
+  String get equipment_edit_snackbar_hiddenByView;
+
+  /// Snackbar action that switches the equipment list to a view showing the item just saved
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get equipment_edit_snackbar_showAction;
 
   /// No description provided for @equipment_edit_snackbar_updated.
   ///
@@ -24664,6 +24790,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sort'**
   String get equipment_list_sortTooltip;
+
+  /// Name a cloned equipment item starts with; name is the original item's name
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (copy)'**
+  String equipment_clone_nameCopy(String name);
+
+  /// Shown after a clone saved but copying some of the original's service clocks, equipment sets or documents failed
+  ///
+  /// In en, this message translates to:
+  /// **'Cloned, but some service clocks, sets or documents could not be copied.'**
+  String get equipment_clone_partialCopy;
+
+  /// Shown after a cloned equipment item is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment cloned'**
+  String get equipment_clone_snackbar_cloned;
+
+  /// Equipment detail menu action that opens a new item pre-filled from this one
+  ///
+  /// In en, this message translates to:
+  /// **'Clone'**
+  String get equipment_menu_clone;
 
   /// No description provided for @equipment_menu_delete.
   ///
@@ -25424,18 +25574,6 @@ abstract class AppLocalizations {
   /// **'Set Not Found'**
   String get equipment_setEdit_notFoundTitle;
 
-  /// No description provided for @equipment_setEdit_saveButton_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get equipment_setEdit_saveButton_edit;
-
-  /// No description provided for @equipment_setEdit_saveButton_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Set'**
-  String get equipment_setEdit_saveButton_new;
-
   /// No description provided for @equipment_setEdit_saveTooltip_edit.
   ///
   /// In en, this message translates to:
@@ -26044,11 +26182,11 @@ abstract class AppLocalizations {
   /// **'From your diver profile'**
   String get gasCalculators_mod_fromProfile;
 
-  /// No description provided for @gasCalculators_mod_differsFromProfile.
+  /// No description provided for @gasCalculators_differsFromProfile.
   ///
   /// In en, this message translates to:
-  /// **'Differs from your profile ({value} bar)'**
-  String gasCalculators_mod_differsFromProfile(String value);
+  /// **'Differs from your profile ({value})'**
+  String gasCalculators_differsFromProfile(String value);
 
   /// No description provided for @gasCalculators_mod_useProfileValue.
   ///
@@ -26397,6 +26535,102 @@ abstract class AppLocalizations {
   /// **'Maximum Narcotic Depth'**
   String get gasCalculators_mnd_resultTitle;
 
+  /// No description provided for @gasCalculators_icd_gasATitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current gas'**
+  String get gasCalculators_icd_gasATitle;
+
+  /// No description provided for @gasCalculators_icd_gasBTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switched-to gas'**
+  String get gasCalculators_icd_gasBTitle;
+
+  /// No description provided for @gasCalculators_icd_o2Percent.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 %'**
+  String get gasCalculators_icd_o2Percent;
+
+  /// No description provided for @gasCalculators_icd_hePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'He %'**
+  String get gasCalculators_icd_hePercent;
+
+  /// No description provided for @gasCalculators_icd_n2Percent.
+  ///
+  /// In en, this message translates to:
+  /// **'N2 %'**
+  String get gasCalculators_icd_n2Percent;
+
+  /// No description provided for @gasCalculators_icd_resultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ICD Assessment'**
+  String get gasCalculators_icd_resultTitle;
+
+  /// No description provided for @gasCalculators_icd_ok.
+  ///
+  /// In en, this message translates to:
+  /// **'No ICD risk under the rule of fifths.'**
+  String get gasCalculators_icd_ok;
+
+  /// No description provided for @gasCalculators_icd_caution.
+  ///
+  /// In en, this message translates to:
+  /// **'Borderline: the nitrogen increase is close to the allowed maximum.'**
+  String get gasCalculators_icd_caution;
+
+  /// No description provided for @gasCalculators_icd_violation.
+  ///
+  /// In en, this message translates to:
+  /// **'Rule of fifths violated: nitrogen rises {increase}%, the allowed maximum is {max}%.'**
+  String gasCalculators_icd_violation(String increase, String max);
+
+  /// No description provided for @gasCalculators_icd_disabledNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'The ICD assessment is turned off in Settings > Decompression.'**
+  String get gasCalculators_icd_disabledNotice;
+
+  /// No description provided for @gasCalculators_icd_suggestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it comply'**
+  String get gasCalculators_icd_suggestionsTitle;
+
+  /// No description provided for @gasCalculators_icd_suggestionKeepA.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the current gas, set the switched-to gas\'s He to {he}%'**
+  String gasCalculators_icd_suggestionKeepA(String he);
+
+  /// No description provided for @gasCalculators_icd_suggestionKeepB.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the switched-to gas, set the current gas\'s He to {he}%'**
+  String gasCalculators_icd_suggestionKeepB(String he);
+
+  /// No description provided for @gasCalculators_icd_applyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get gasCalculators_icd_applyButton;
+
+  /// No description provided for @gasCalculators_icd_infoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Isobaric Counterdiffusion'**
+  String get gasCalculators_icd_infoTitle;
+
+  /// No description provided for @gasCalculators_icd_infoContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion (ICD) is the risk that switching from a more helium-rich to a more nitrogen-rich gas increases total inert gas tension in tissue, because helium diffuses faster than nitrogen. The rule of fifths is a common rule of thumb: the nitrogen fraction should not rise by more than a fifth of how much the helium fraction falls.\n\nAgencies disagree on how much this matters in practice for a well-planned dive with standard gases. This calculator applies the rule of thumb to whichever two gases you enter; it is not a substitute for training or professional advice.'**
+  String get gasCalculators_icd_infoContent;
+
   /// No description provided for @gasCalculators_ppO2Limit.
   ///
   /// In en, this message translates to:
@@ -26432,6 +26666,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'MND/END'**
   String get gasCalculators_tab_mnd;
+
+  /// No description provided for @gasCalculators_tab_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'ICD'**
+  String get gasCalculators_tab_icd;
 
   /// No description provided for @gasCalculators_tab_blender.
   ///
@@ -27248,6 +27488,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Narcosis depth limit for a mix'**
   String get gasCalculators_desc_mnd;
+
+  /// No description provided for @gasCalculators_desc_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion risk between two gases'**
+  String get gasCalculators_desc_icd;
 
   /// No description provided for @gasCalculators_tab_density.
   ///
@@ -30700,7 +30946,7 @@ abstract class AppLocalizations {
   /// No description provided for @planning_card_gasCalculators_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'MOD, Best Mix, Consumption, Rock Bottom'**
+  /// **'Depth limits, mixes, gas use and blending'**
   String get planning_card_gasCalculators_subtitle;
 
   /// No description provided for @planning_card_gasCalculators_title.
@@ -30738,6 +30984,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These tools are for planning purposes only. Always verify calculations and follow your dive training.'**
   String get planning_info_disclaimer;
+
+  /// No description provided for @planning_disclaimer_dialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning Tools Disclaimer'**
+  String get planning_disclaimer_dialog_title;
+
+  /// No description provided for @planning_disclaimer_dialog_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The tools in this section are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.'**
+  String get planning_disclaimer_dialog_body;
+
+  /// No description provided for @planning_disclaimer_dialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'I Understand'**
+  String get planning_disclaimer_dialog_confirm;
+
+  /// No description provided for @settings_conflict_field_hasAcceptedPlanningDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning disclaimer accepted'**
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer;
 
   /// No description provided for @planning_section_tools.
   ///
@@ -30822,12 +31092,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings_appBar_title;
-
-  /// No description provided for @settings_appearance_appLanguage.
-  ///
-  /// In en, this message translates to:
-  /// **'App Language'**
-  String get settings_appearance_appLanguage;
 
   /// Title of the app-wide display zoom control in Appearance settings
   ///
@@ -32209,6 +32473,30 @@ abstract class AppLocalizations {
   /// **'Default metric shown on right axis'**
   String get settings_appearance_rightYAxisMetric_subtitle;
 
+  /// No description provided for @settings_appearance_viewerFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Fullscreen mode'**
+  String get settings_appearance_viewerFullscreen;
+
+  /// No description provided for @settings_appearance_viewerFullscreen_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Whether the fullscreen dive profile and media viewer fill the window or the whole screen'**
+  String get settings_appearance_viewerFullscreen_subtitle;
+
+  /// No description provided for @settings_appearance_viewerFullscreen_window.
+  ///
+  /// In en, this message translates to:
+  /// **'Full window'**
+  String get settings_appearance_viewerFullscreen_window;
+
+  /// No description provided for @settings_appearance_viewerFullscreen_screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen'**
+  String get settings_appearance_viewerFullscreen_screen;
+
   /// No description provided for @settings_appearance_subsection_decompressionMetrics.
   ///
   /// In en, this message translates to:
@@ -33073,24 +33361,34 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_consequence_keep.
   ///
   /// In en, this message translates to:
-  /// **'Keeps {kept}\'s version. {discarded}\'s values for {fields} are discarded.'**
+  /// **'Keeps {keptKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{kept}\'s}} version. {discardedKind, select, thisDevice{This device\'s} otherDevice{The other device\'s} other{{discarded}\'s}} values for {fields} are discarded.'**
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   );
 
   /// No description provided for @settings_conflict_consequence_keepBoth.
   ///
   /// In en, this message translates to:
-  /// **'Keeps {local}\'s version and adds {remote}\'s version as a separate copy.'**
-  String settings_conflict_consequence_keepBoth(String local, String remote);
+  /// **'Keeps {localKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{local}\'s}} version and adds {remoteKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{remote}\'s}} version as a separate copy.'**
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  );
 
   /// No description provided for @settings_conflict_consequence_keepRecord.
   ///
   /// In en, this message translates to:
-  /// **'Keeps the record, with {device}\'s values.'**
-  String settings_conflict_consequence_keepRecord(String device);
+  /// **'Keeps the record, with {deviceKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{device}\'s}} values.'**
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  );
 
   /// No description provided for @settings_conflict_consequence_nothingLost.
   ///
@@ -33113,8 +33411,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_deletedValues.
   ///
   /// In en, this message translates to:
-  /// **'The record as {device} has it:'**
-  String settings_conflict_deletedValues(String device);
+  /// **'The record as {deviceKind, select, thisDevice{this device} otherDevice{the other device} other{{device}}} has it:'**
+  String settings_conflict_deletedValues(String device, String deviceKind);
 
   /// No description provided for @settings_conflict_errorLoading.
   ///
@@ -34387,6 +34685,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Narcotic depth limit'**
   String get settings_conflict_field_endLimit;
+
+  /// No description provided for @settings_conflict_field_icdWarningsEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'ICD warnings enabled'**
+  String get settings_conflict_field_icdWarningsEnabled;
 
   /// No description provided for @settings_conflict_field_endLongitude.
   ///
@@ -36647,8 +36951,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_keepDevice.
   ///
   /// In en, this message translates to:
-  /// **'Keep {device}'**
-  String settings_conflict_keepDevice(String device);
+  /// **'{deviceKind, select, thisDevice{Keep this device\'s version} otherDevice{Keep the other device\'s version} other{Keep {device}}}'**
+  String settings_conflict_keepDevice(String device, String deviceKind);
 
   /// No description provided for @settings_conflict_localDeleted.
   ///
@@ -36667,6 +36971,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{fields} and {count, plural, one{{count} more} other{{count} more}}'**
   String settings_conflict_moreFields(String fields, int count);
+
+  /// Separator between field names in the conflict consequence line, such as ", " in English or "、" in Chinese.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get settings_conflict_fieldListSeparator;
 
   /// No description provided for @settings_conflict_next_tooltip.
   ///
@@ -37740,6 +38050,24 @@ abstract class AppLocalizations {
   /// **'END Limit'**
   String get settings_decompression_endLimit_dialog_title;
 
+  /// No description provided for @settings_decompression_header_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric Counterdiffusion'**
+  String get settings_decompression_header_icd;
+
+  /// No description provided for @settings_decompression_icdWarnings.
+  ///
+  /// In en, this message translates to:
+  /// **'Warn on ICD risk'**
+  String get settings_decompression_icdWarnings;
+
+  /// No description provided for @settings_decompression_icdWarnings_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.'**
+  String get settings_decompression_icdWarnings_subtitle;
+
   /// Title of the CNS calculation method setting tile and its picker dialog.
   ///
   /// In en, this message translates to:
@@ -38081,12 +38409,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get settings_language_appBar_title;
-
-  /// No description provided for @settings_language_selected.
-  ///
-  /// In en, this message translates to:
-  /// **'Selected'**
-  String get settings_language_selected;
 
   /// No description provided for @settings_language_systemDefault.
   ///
@@ -40095,6 +40417,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hand your device to'**
   String get signatures_handoff_title;
+
+  /// Title of a saved buddy signature card and its full view
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy Signature'**
+  String get signatures_buddySignature;
 
   /// Label for instructor signature section
   ///
@@ -42326,12 +42654,6 @@ abstract class AppLocalizations {
   /// **'Depth Distribution'**
   String get insights_summary_depthDistribution_title;
 
-  /// No description provided for @insights_summary_diveTypes_semanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Pie chart showing dive type distribution'**
-  String get insights_summary_diveTypes_semanticLabel;
-
   /// No description provided for @insights_summary_diveTypes_title.
   ///
   /// In en, this message translates to:
@@ -43125,23 +43447,17 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get tags_manage_title;
 
-  /// Section header above the auto-tag-imports switch on the tag management screen
-  ///
-  /// In en, this message translates to:
-  /// **'Imports'**
-  String get tags_manage_importsSection;
-
-  /// Switch title for auto-tagging every new import session
+  /// Switch title, in the Import card on Settings > Data, for auto-tagging every new import session
   ///
   /// In en, this message translates to:
   /// **'Tag imports automatically'**
-  String get tags_manage_autoTagImports;
+  String get settings_autoTagImports_title;
 
-  /// Switch subtitle for auto-tagging every new import session
+  /// Switch subtitle, in the Import card on Settings > Data, for auto-tagging every new import session
   ///
   /// In en, this message translates to:
   /// **'Every new import starts with a tag naming the source and date. You can change this for a single import in that import\'s options.'**
-  String get tags_manage_autoTagImports_subtitle;
+  String get settings_autoTagImports_subtitle;
 
   /// No description provided for @tags_manage_searchHint.
   ///
@@ -44897,12 +45213,6 @@ abstract class AppLocalizations {
   /// **'Edit Trip'**
   String get trips_edit_appBar_edit;
 
-  /// No description provided for @trips_edit_button_add.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Trip'**
-  String get trips_edit_button_add;
-
   /// No description provided for @trips_edit_button_cancel.
   ///
   /// In en, this message translates to:
@@ -44914,12 +45224,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get trips_edit_button_save;
-
-  /// No description provided for @trips_edit_button_update.
-  ///
-  /// In en, this message translates to:
-  /// **'Update Trip'**
-  String get trips_edit_button_update;
 
   /// No description provided for @trips_edit_dialog_discard.
   ///
@@ -50127,6 +50431,24 @@ abstract class AppLocalizations {
   /// **'Fill in missing tank data on imported dives using the default preset'**
   String get tankPresets_applyToImports_subtitle;
 
+  /// No description provided for @tankPresets_defaultStartPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Default start pressure'**
+  String get tankPresets_defaultStartPressure;
+
+  /// No description provided for @tankPresets_defaultStartPressure_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled in on new tanks, and on imported tanks with no start pressure when the default tank is applied to imports'**
+  String get tankPresets_defaultStartPressure_subtitle;
+
+  /// No description provided for @tankPresets_defaultStartPressure_range.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a pressure from {min} to {max}'**
+  String tankPresets_defaultStartPressure_range(String max, String min);
+
   /// No description provided for @tankPresets_new_title.
   ///
   /// In en, this message translates to:
@@ -55332,6 +55654,42 @@ abstract class AppLocalizations {
   /// **'Region unknown - using worldwide hotline'**
   String get emergencyCard_regionUnknown;
 
+  /// No description provided for @emergencyCard_regionManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Region: {region}, set manually'**
+  String emergencyCard_regionManual(String region);
+
+  /// No description provided for @emergencyCard_regionChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change region'**
+  String get emergencyCard_regionChange;
+
+  /// No description provided for @emergencyCard_regionPicker_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency region'**
+  String get emergencyCard_regionPicker_title;
+
+  /// No description provided for @emergencyCard_regionPicker_automatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic (most recent dive)'**
+  String get emergencyCard_regionPicker_automatic;
+
+  /// No description provided for @emergencyCard_regionPicker_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search countries'**
+  String get emergencyCard_regionPicker_search;
+
+  /// No description provided for @emergencyCard_regionPicker_noMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching countries'**
+  String get emergencyCard_regionPicker_noMatches;
+
   /// No description provided for @emergencyCard_noDiverData.
   ///
   /// In en, this message translates to:
@@ -58036,6 +58394,30 @@ abstract class AppLocalizations {
   /// **'Used when country, region, town and body of water are looked up from coordinates. Existing sites are not changed.'**
   String get settings_placeNameLanguage_subtitle;
 
+  /// No description provided for @settings_language_placeNameOffer_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Store place names in {language}?'**
+  String settings_language_placeNameOffer_title(String language);
+
+  /// No description provided for @settings_language_placeNameOffer_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Country and region names looked up for your sites are stored in {current}. Switch to {language} for new lookups? You can then look up your existing sites again.'**
+  String settings_language_placeNameOffer_body(String current, String language);
+
+  /// No description provided for @settings_language_placeNameOffer_keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep {current}'**
+  String settings_language_placeNameOffer_keep(String current);
+
+  /// No description provided for @settings_language_placeNameOffer_switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch'**
+  String get settings_language_placeNameOffer_switch;
+
   /// No description provided for @settings_coordinateFormat_decimalDegrees.
   ///
   /// In en, this message translates to:
@@ -60025,7 +60407,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_certificationField_certName.
   ///
   /// In en, this message translates to:
-  /// **'Name'**
+  /// **'Title'**
   String get enum_certificationField_certName;
 
   /// No description provided for @enum_certificationField_agency.
@@ -60085,7 +60467,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_certificationField_certName_short.
   ///
   /// In en, this message translates to:
-  /// **'Name'**
+  /// **'Title'**
   String get enum_certificationField_certName_short;
 
   /// No description provided for @enum_certificationField_agency_short.
@@ -70156,6 +70538,45 @@ abstract class AppLocalizations {
   /// **'Which carried cylinders the simulated ascent (TTS, ceiling and stops) may switch to at each depth. Only gases recorded on the dive are considered.'**
   String get settings_decompression_header_ascent_subtitle;
 
+  /// No description provided for @settings_decompression_header_ascentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate'**
+  String get settings_decompression_header_ascentRate;
+
+  /// No description provided for @settings_decompression_header_ascentRate_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The rates the profile\'s ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.'**
+  String get settings_decompression_header_ascentRate_subtitle;
+
+  /// No description provided for @settings_decompression_ascentRateThresholds.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate thresholds'**
+  String get settings_decompression_ascentRateThresholds;
+
+  /// No description provided for @settings_decompression_ascentRateThresholds_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning {warning}, critical {critical}'**
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  );
+
+  /// No description provided for @settings_decompression_ascentRateWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning'**
+  String get settings_decompression_ascentRateWarning;
+
+  /// No description provided for @settings_decompression_ascentRateCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get settings_decompression_ascentRateCritical;
+
   /// No description provided for @settings_decompression_header_dataSources.
   ///
   /// In en, this message translates to:
@@ -72739,6 +73160,12 @@ abstract class AppLocalizations {
   /// **'Could not switch profile revision.'**
   String get diveLog_profileEditor_revisionSwitchFailed;
 
+  /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved before revision history; not linked to a computer'**
+  String get diveLog_profileEditor_revisionLegacyHint;
+
   /// Header of the dive-detail section listing where a dive's data came from (dive computers, imported files, manual entry).
   ///
   /// In en, this message translates to:
@@ -73206,6 +73633,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backup created: {size}'**
   String backup_operation_created(String size);
+
+  /// No description provided for @backup_operation_createdLocalOnlyLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup created: {size}. It was saved on this device only: enter your encryption passphrase to upload backups to the cloud.'**
+  String backup_operation_createdLocalOnlyLocked(String size);
 
   /// No description provided for @backup_operation_backupFailed.
   ///

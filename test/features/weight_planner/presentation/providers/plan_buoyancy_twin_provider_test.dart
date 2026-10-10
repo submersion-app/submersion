@@ -115,39 +115,22 @@ void main() {
     expect(outputs.verdict.anchor.depthM, closeTo(5.0, 0.5));
   });
 
-  test('planned lead is a total: gear ballast is not added on top', () async {
-    // plannedWeightKg is only ever written as a snapshot of
-    // prediction.totalKg, and since #1103 that prediction is trained on
-    // observations whose carriedKg already includes ballast built into the
-    // rig. Adding EquipmentLead here would double-count it, so the planned
-    // figure must pass through untouched even when the rig carries 5 kg of
-    // weights-type gear.
+  /// A plan with an al80 tank and [plan]'s segments. settingsProvider reaches
+  /// the database through DiverRepository, and the plan notifier is built
+  /// from settings; the pure cases above do not need it, so only the cases
+  /// below set up the database.
+  Future<(ProviderContainer, DivePlanNotifier)> planContainer({
+    List<EquipmentItem> equipment = const [],
+  }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    // settingsProvider reaches the database through DiverRepository, and the
-    // plan notifier is built from settings; the other cases in this file are
-    // pure, so the database is set up only for this one.
     await setUpTestDatabase();
     addTearDown(tearDownTestDatabase);
-
-    const plate = EquipmentItem(
-      id: 'plate',
-      name: 'Weighted backplate',
-      type: EquipmentType.weights,
-      attributes: [
-        EquipmentAttribute(
-          id: 'a1',
-          equipmentId: 'plate',
-          key: EquipmentAttrKeys.dryWeightKg,
-          valueNum: 5.0,
-        ),
-      ],
-    );
 
     final container = ProviderContainer(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
-        allEquipmentProvider.overrideWith((ref) async => [plate]),
+        allEquipmentProvider.overrideWith((ref) async => equipment),
         latestDiverWeightProvider.overrideWith((ref) async => null),
         weightCalibrationProvider.overrideWith(
           (ref) async => WeightPredictionEngine.fit(
@@ -180,12 +163,62 @@ void main() {
     for (final s in plan) {
       notifier.addSegment(s);
     }
+    return (container, notifier);
+  }
+
+  test('planned lead is a total: gear ballast is not added on top', () async {
+    // plannedWeightKg is only ever written as a snapshot of
+    // prediction.totalKg, and since #1103 that prediction is trained on
+    // observations whose carriedKg already includes ballast built into the
+    // rig. Adding EquipmentLead here would double-count it, so the planned
+    // figure must pass through untouched even when the rig carries 5 kg of
+    // weights-type gear.
+    const plate = EquipmentItem(
+      id: 'plate',
+      name: 'Weighted backplate',
+      type: EquipmentType.weights,
+      attributes: [
+        EquipmentAttribute(
+          id: 'a1',
+          equipmentId: 'plate',
+          key: EquipmentAttrKeys.dryWeightKg,
+          valueNum: 5.0,
+        ),
+      ],
+    );
+    final (container, notifier) = await planContainer(equipment: const [plate]);
     notifier.setEquipmentIds(const ['plate']);
     notifier.setPlannedWeight(6.0, null);
 
     final outcome = container.read(planBuoyancyTwinProvider);
     expect(outcome, isNotNull);
     expect(outcome!.result.input.leadKg, closeTo(6.0, 1e-9));
+  });
+
+  test('a fresh-water plan feeds the twin a fresh-water predicted lead '
+      '(issue #3090)', () async {
+    final (container, notifier) = await planContainer();
+
+    notifier.updateWaterType(WaterType.salt);
+    final saltLead = container
+        .read(planBuoyancyTwinProvider)!
+        .result
+        .input
+        .leadKg;
+
+    notifier.updateWaterType(WaterType.fresh);
+    final outcome = container.read(planBuoyancyTwinProvider)!;
+    final freshPrediction = container.read(planWeightPredictionProvider)!;
+    // With no planned weight copied, the twin's lead is the live prediction,
+    // and both now use the plan's fresh water.
+    expect(outcome.result.input.leadKg, closeTo(freshPrediction.totalKg, 1e-9));
+    expect(
+      outcome.result.input.environment.waterDensityKgM3,
+      DiveEnvironment.forConditions(
+        waterType: WaterType.fresh,
+      ).waterDensityKgM3,
+    );
+    expect(saltLead - outcome.result.input.leadKg, greaterThan(1.5));
   });
 }
 

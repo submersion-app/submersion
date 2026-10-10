@@ -24,6 +24,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_log/data/services/dive_split_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 import '../../../helpers/global_test_defaults.dart';
@@ -39,9 +40,13 @@ class _FakeFindingsRepository implements QualityFindingsRepository {
   _FakeFindingsRepository(this.findings);
   List<QualityFinding> findings;
   final dismissed = <String>[];
+  final requestedDiverIds = <String?>[];
 
   @override
-  Stream<List<QualityFinding>> watchFindings() => Stream.value(findings);
+  Stream<List<QualityFinding>> watchFindings({String? diverId}) {
+    requestedDiverIds.add(diverId);
+    return Stream.value(findings);
+  }
 
   @override
   Future<void> setStatus(String id, QualityStatus status) async {
@@ -142,7 +147,10 @@ QualityFinding _f({
   updatedAt: DateTime.utc(2026, 7, 17),
 );
 
-Future<Widget> _wrap(_FakeFindingsRepository repo) async {
+Future<Widget> _wrap(
+  _FakeFindingsRepository repo, {
+  String? activeDiverId,
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   return ProviderScope(
@@ -150,6 +158,10 @@ Future<Widget> _wrap(_FakeFindingsRepository repo) async {
       qualityFindingsRepositoryProvider.overrideWithValue(repo),
       sharedPreferencesProvider.overrideWithValue(prefs),
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      if (activeDiverId != null)
+        validatedCurrentDiverIdProvider.overrideWith(
+          (ref) async => activeDiverId,
+        ),
     ],
     child: const MaterialApp(
       // Every assertion in this file is an English literal, and an unpinned
@@ -292,6 +304,15 @@ void main() {
   });
 
   // --- Existing fake-repository coverage -----------------------------------
+
+  // Another profile's findings must not be listed, opened or edited from the
+  // active diver's inbox (issue #3049).
+  testWidgets('lists only the active diver\'s findings', (tester) async {
+    final repo = _FakeFindingsRepository([]);
+    await tester.pumpWidget(await _wrap(repo, activeDiverId: 'diver-b'));
+    await tester.pumpAndSettle();
+    expect(repo.requestedDiverIds, ['diver-b']);
+  });
 
   testWidgets('empty inbox shows the all-clear state', (tester) async {
     await tester.pumpWidget(await _wrap(_FakeFindingsRepository([])));
@@ -1120,6 +1141,66 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('opened d1'), findsOneWidget);
+  });
+
+  // A shared gear pair spans two profiles. Bob sees it under his own dive,
+  // and Alice's dive is named but cannot be opened from his inbox (#3049).
+  testWidgets('files a cross-profile pair under the active diver\'s dive', (
+    tester,
+  ) async {
+    await _seedDive('a1', name: 'Alice wreck');
+    await _seedDive('b1', name: 'Bob reef');
+    final prefs = await _prefs();
+    final router = GoRouter(
+      initialLocation: '/quality',
+      routes: [
+        GoRoute(
+          path: '/quality',
+          builder: (_, _) => const DataQualityInboxPage(),
+        ),
+        GoRoute(
+          path: '/dives/:id',
+          builder: (_, state) =>
+              Scaffold(body: Text('opened ${state.pathParameters['id']}')),
+        ),
+      ],
+    );
+    final pair = _f(
+      id: 'gear',
+      diveId: 'a1',
+      relatedDiveId: 'b1',
+      detectorId: 'shared_gear_overlap',
+      category: QualityCategory.time,
+      severity: QualitySeverity.info,
+      params: const {
+        'equipmentId': 'light',
+        'itemName': 'Light',
+        'partIds': <String>[],
+        'dives': {
+          'a1': {'diverId': 'alice', 'diverName': 'Alice', 'removable': true},
+          'b1': {'diverId': 'bob', 'diverName': 'Bob', 'removable': true},
+        },
+      },
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: [
+          ..._overrides(prefs, findings: [pair]),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'bob'),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Alice's dive appears only in the "paired with" row, which does nothing.
+    await tester.tap(find.textContaining('Alice wreck'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('opened'), findsNothing);
+
+    await tester.tap(find.textContaining('Bob reef'));
+    await tester.pumpAndSettle();
+    expect(find.text('opened b1'), findsOneWidget);
   });
 
   testWidgets('a failed identity lookup says so rather than showing an id', (

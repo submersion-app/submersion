@@ -35,6 +35,7 @@ Widget _overlay({
   double visibleMaxSeconds = 1000,
   void Function(MediaItem item)? onOpenPhoto,
   VoidCallback? onAncestorDoubleTap,
+  VoidCallback? onTapBelow,
 }) {
   final overlay = PhotoMarkerOverlay(
     markers: markers,
@@ -46,6 +47,21 @@ Widget _overlay({
     units: const UnitFormatter(AppSettings()),
     onOpenPhoto: onOpenPhoto,
   );
+  // A host tap target stacked under the overlay, as the profile chart
+  // stacks its safety lane chips (issue #3051).
+  final layered = onTapBelow == null
+      ? overlay
+      : Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onTapBelow,
+              ),
+            ),
+            Positioned.fill(child: overlay),
+          ],
+        );
   return ProviderScope(
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -60,10 +76,10 @@ Widget _overlay({
           // tap recognizer below it stalls. Mirror that here or the marker
           // taps are tested in an arena they never actually run in.
           child: onAncestorDoubleTap == null
-              ? overlay
+              ? layered
               : GestureDetector(
                   onDoubleTap: onAncestorDoubleTap,
-                  child: overlay,
+                  child: layered,
                 ),
         ),
       ),
@@ -266,6 +282,41 @@ void main() {
       await tester.pump();
       expect(find.byKey(const ValueKey('photoMarkerCard')), findsNothing);
       await drainGestureTimers(tester);
+    });
+
+    testWidgets('the tap-away leaves the bottom gutter to the host', (
+      tester,
+    ) async {
+      var below = 0;
+      await tester.pumpWidget(
+        _overlay(markers: [_marker()], onTapBelow: () => below++),
+      );
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      await tester.pump();
+
+      // y = 290 is inside the 36 px bottom inset.
+      await tester.tapAt(const Offset(200, 290));
+      await tester.pumpAndSettle();
+      expect(below, 1);
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsOneWidget);
+    });
+
+    testWidgets('the card padding does not pass taps through', (tester) async {
+      var below = 0;
+      await tester.pumpWidget(
+        _overlay(markers: [_marker()], onTapBelow: () => below++),
+      );
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      await tester.pump();
+
+      final card = tester.getRect(
+        find.byKey(const ValueKey('photoMarkerCard')),
+      );
+      // Inside the card's 6 px padding, outside the thumbnail's tap target.
+      await tester.tapAt(Offset(card.left + 3, card.center.dy));
+      await tester.pumpAndSettle();
+      expect(below, 0);
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsOneWidget);
     });
 
     testWidgets('an impatient second tap dismisses instead of zooming', (

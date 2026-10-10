@@ -1429,10 +1429,71 @@ class AppLocalizationsIt extends AppLocalizations {
       'Miscela standard più vicina che copre questa quota';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'Miscela consigliata';
+  String get gasCalculators_bestMix_recommendedMix => 'Miscela calcolata';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'Miscela calcolata $mix, MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'Mostra tutto ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'Mostra meno';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'Senza elio';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => 'Fonte del gas';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'Emergenza';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'Diluente';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'Mantenere la densità del gas entro i limiti';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD alla quota';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'Elio aggiunto per mantenere l\'END e la densità del gas entro i tuoi limiti.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'Elio aggiunto per mantenere la densità del gas entro i limiti.';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'Modalità';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'Circuito chiuso: Diluente verifica rispetto alla ppO₂ di flush del diluente, Bailout rispetto alla tua ppO₂ di deco (massima) in circuito aperto.';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'Trimix in circuito aperto, verificato rispetto al tuo limite di ppO₂ di lavoro.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'Nitrox per l\'immersione ricreativa, come oggi.';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -3293,7 +3354,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'Data di rilascio';
 
   @override
-  String get certifications_detail_label_type => 'Tipo';
+  String get certifications_detail_label_title => 'Titolo';
 
   @override
   String get certifications_detail_label_validity => 'Validità';
@@ -3629,7 +3690,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Lascia vuoto per certificazioni senza scadenza';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'Facoltativo';
+  String get certifications_edit_helper_title =>
+      'Facoltativo. Lascia vuoto per usare la certificazione';
 
   @override
   String get certifications_edit_hint_cardNumber =>
@@ -3790,10 +3852,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'Data di rilascio';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'Nome sulla tessera';
+  String get certifications_edit_label_notes => 'Note';
 
   @override
-  String get certifications_edit_label_notes => 'Note';
+  String get certifications_edit_label_title => 'Titolo della certificazione';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3854,8 +3916,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Certificazione aggiornata con successo';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'Scegli una certificazione o inserisci un nome';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'Scegli una certificazione o inserisci un titolo';
 
   @override
   String get certifications_list_button_retry => 'Riprova';
@@ -9700,6 +9762,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'Miscela gas';
 
   @override
+  String get diveLog_tank_computerMix_matches =>
+      'Registrato dal tuo computer subacqueo';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'Il tuo computer subacqueo ha registrato $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'Ripristina';
+
+  @override
   String get diveLog_tank_selectPreset => 'Seleziona preset...';
 
   @override
@@ -9983,6 +10057,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get divePlanner_action_editTank => 'Modifica Bombola';
+
+  @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'Miscela migliore per $depth: $mix';
+  }
 
   @override
   String get divePlanner_action_moreOptions => 'Altre opzioni';
@@ -11863,7 +11942,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return 'Questa operazione eliminerà definitivamente $name e tutti i dati associati, inclusi i registri delle immersioni, i computer subacquei, l\'attrezzatura, i brevetti e i siti.';
   }
 
   @override
@@ -12007,12 +12086,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return 'Digita \"Elimina $name\" per confermare';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return 'Elimina $name';
   }
 
   @override
@@ -12851,6 +12930,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_sortField_status => 'Stato';
+
+  @override
+  String get enum_sortField_title => 'Titolo';
 
   @override
   String get enum_sortField_type => 'Tipo';
@@ -14648,6 +14730,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'Era installato in';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'Duplica attrezzatura';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'Modifica attrezzatura';
 
   @override
@@ -14776,19 +14861,6 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'Salva modifiche';
-
-  @override
-  String get equipment_edit_saveButton_new => 'Aggiungi attrezzatura';
-
-  @override
-  String get equipment_edit_saveTooltip_edit => 'Salva modifiche attrezzatura';
-
-  @override
-  String get equipment_edit_saveTooltip_new =>
-      'Aggiungi nuovo articolo di attrezzatura';
-
-  @override
   String get equipment_edit_selectDate => 'Seleziona data';
 
   @override
@@ -14801,6 +14873,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return 'Errore nel salvataggio dell\'attrezzatura: $error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Salvato, ma la vista attuale dell\'elenco lo nasconde';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Mostra';
 
   @override
   String get equipment_edit_snackbar_updated => 'Attrezzatura aggiornata';
@@ -15246,6 +15325,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'Ordina';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (copia)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'Duplicata, ma non è stato possibile copiare alcune scadenze di manutenzione, set o documenti.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'Attrezzatura duplicata';
+
+  @override
+  String get equipment_menu_clone => 'Duplica';
 
   @override
   String get equipment_menu_delete => 'Elimina';
@@ -15743,12 +15837,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_setEdit_notFoundTitle => 'Set non trovato';
 
   @override
-  String get equipment_setEdit_saveButton_edit => 'Salva modifiche';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'Crea set';
-
-  @override
   String get equipment_setEdit_saveTooltip_edit =>
       'Salva modifiche al set di attrezzatura';
 
@@ -16103,8 +16191,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'Dal tuo profilo subacqueo';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'Diverso dal profilo ($value bar)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'Diverso dal profilo ($value)';
   }
 
   @override
@@ -16331,6 +16419,65 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'Profondità narcotica massima';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'Gas attuale';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'Gas di cambio';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'Valutazione ICD';
+
+  @override
+  String get gasCalculators_icd_ok =>
+      'Nessun rischio di ICD secondo la regola del quinto.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'Al limite: l\'aumento di azoto è vicino al massimo consentito.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'Regola del quinto violata: l\'azoto aumenta del $increase%, il massimo consentito è $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'La valutazione ICD è disattivata in Impostazioni > Decompressione.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'Rendi conforme';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'Mantieni il gas attuale, imposta l\'He del gas di cambio al $he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'Mantieni il gas di cambio, imposta l\'He del gas attuale al $he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'Applica';
+
+  @override
+  String get gasCalculators_icd_infoTitle =>
+      'Informazioni sulla controdiffusione isobarica';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'La controdiffusione isobarica (ICD) è il rischio che passando da un gas più ricco di elio a uno più ricco di azoto aumenti la tensione totale dei gas inerti nei tessuti, poiché l\'elio diffonde più velocemente dell\'azoto. La regola del quinto è una regola empirica comune: la frazione di azoto non dovrebbe aumentare più di un quinto della diminuzione della frazione di elio.\n\nLe agenzie non sono d\'accordo su quanto ciò conti davvero in un\'immersione ben pianificata con gas standard. Questo calcolatore applica la regola ai due gas inseriti; non sostituisce la formazione né una consulenza professionale.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'Limite ppO₂';
 
   @override
@@ -16347,6 +16494,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'Miscelatore trimix';
@@ -16847,6 +16997,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get gasCalculators_desc_mnd =>
       'Profondità narcotica limite di una miscela';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'Rischio di controdiffusione isobarica tra due gas';
 
   @override
   String get gasCalculators_tab_density => 'Densità del gas';
@@ -19160,7 +19314,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Best Mix, Consumo, Rock Bottom';
+      'Limiti di profondità, miscele, consumo di gas e ricarica';
 
   @override
   String get planning_card_gasCalculators_title => 'Calcolatori gas';
@@ -19182,6 +19336,21 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'Questi strumenti sono solo per la pianificazione. Verifica sempre i calcoli e segui la tua formazione subacquea.';
+
+  @override
+  String get planning_disclaimer_dialog_title =>
+      'Avviso degli strumenti di pianificazione';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'Gli strumenti di questa sezione sono solo per la pianificazione. Non sostituiscono la tua formazione subacquea o il tuo computer da immersione. Verifica sempre ogni calcolo da solo prima di usarlo per una decisione di sicurezza.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'Ho capito';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'Avviso di pianificazione accettato';
 
   @override
   String get planning_section_tools => 'Strumenti';
@@ -19228,9 +19397,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_appBar_title => 'Impostazioni';
-
-  @override
-  String get settings_appearance_appLanguage => 'Lingua dell\'app';
 
   @override
   String get settings_appearance_displaySize => 'Dimensione di visualizzazione';
@@ -20098,6 +20264,19 @@ class AppLocalizationsIt extends AppLocalizations {
       'Metrica predefinita mostrata sull\'asse destro';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'Modalità schermo intero';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'Se il profilo immersione e il visualizzatore multimediale a schermo intero occupano la finestra o l\'intero schermo';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'Finestra intera';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'Schermo intero';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'Metriche di decompressione';
 
@@ -20720,20 +20899,55 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Mantiene la versione di $kept. I valori di $discarded per $fields vengono scartati.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'di questo dispositivo',
+      'otherDevice': 'dell\'altro dispositivo',
+      'other': 'di $kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'di questo dispositivo',
+      'otherDevice': 'dell\'altro dispositivo',
+      'other': 'di $discarded',
+    });
+    return 'Mantiene la versione $_temp0. I valori $_temp1 per $fields vengono scartati.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Mantiene la versione di $local e aggiunge la versione di $remote come copia separata.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'di questo dispositivo',
+      'otherDevice': 'dell\'altro dispositivo',
+      'other': 'di $local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'di questo dispositivo',
+      'otherDevice': 'dell\'altro dispositivo',
+      'other': 'di $remote',
+    });
+    return 'Mantiene la versione $_temp0 e aggiunge la versione $_temp1 come copia separata.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Mantiene il record, con i valori di $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'di questo dispositivo',
+      'otherDevice': 'dell\'altro dispositivo',
+      'other': 'di $device',
+    });
+    return 'Mantiene il record, con i valori $_temp0.';
   }
 
   @override
@@ -20750,8 +20964,13 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'Il record come lo ha $device:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'questo dispositivo',
+      'otherDevice': 'l\'altro dispositivo',
+      'other': '$device',
+    });
+    return 'Il record come lo ha $_temp0:';
   }
 
   @override
@@ -21504,6 +21723,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_endLimit =>
       'Limite di profondità narcotica';
+
+  @override
+  String get settings_conflict_field_icdWarningsEnabled =>
+      'Avvisi ICD attivati';
 
   @override
   String get settings_conflict_field_endLongitude => 'Longitudine finale';
@@ -22766,8 +22989,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Mantieni entrambi';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'Mantieni $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Mantieni la versione di questo dispositivo',
+      'otherDevice': 'Mantieni la versione dell\'altro dispositivo',
+      'other': 'Mantieni $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -22790,6 +23018,9 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$fields e $_temp0';
   }
+
+  @override
+  String get settings_conflict_fieldListSeparator => ', ';
 
   @override
   String get settings_conflict_next_tooltip => 'Conflitto successivo';
@@ -23393,6 +23624,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_decompression_endLimit_dialog_title => 'Limite END';
 
   @override
+  String get settings_decompression_header_icd => 'Controdiffusione isobarica';
+
+  @override
+  String get settings_decompression_icdWarnings =>
+      'Avvisa in caso di rischio ICD';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'Mostra nel calcolatore ICD una valutazione secondo la regola del quinto quando si passa da un gas più ricco di elio a uno più ricco di azoto.';
+
+  @override
   String get settings_decompression_cnsMethodTitle => 'Calcolo del CNS';
 
   @override
@@ -23587,9 +23829,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_language_appBar_title => 'Lingua';
-
-  @override
-  String get settings_language_selected => 'Selezionata';
 
   @override
   String get settings_language_systemDefault => 'Predefinito di sistema';
@@ -24757,6 +24996,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get signatures_handoff_title => 'Passa il dispositivo a';
+
+  @override
+  String get signatures_buddySignature => 'Firma compagno';
 
   @override
   String get signatures_instructorSignature => 'Firma Istruttore';
@@ -26199,10 +26441,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Distribuzione profondità';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'Grafico a torta che mostra la distribuzione dei tipi di immersione';
-
-  @override
   String get insights_summary_diveTypes_title => 'Tipi di immersione';
 
   @override
@@ -26753,14 +26991,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tags_manage_title => 'Tag';
 
   @override
-  String get tags_manage_importsSection => 'Importazioni';
-
-  @override
-  String get tags_manage_autoTagImports =>
+  String get settings_autoTagImports_title =>
       'Tagga automaticamente le importazioni';
 
   @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'Ogni nuova importazione inizia con un tag che indica l\'origine e la data. Puoi modificarlo per una singola importazione nelle opzioni di quell\'importazione.';
 
   @override
@@ -28167,16 +28402,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_edit_appBar_edit => 'Modifica viaggio';
 
   @override
-  String get trips_edit_button_add => 'Aggiungi viaggio';
-
-  @override
   String get trips_edit_button_cancel => 'Annulla';
 
   @override
   String get trips_edit_button_save => 'Salva';
-
-  @override
-  String get trips_edit_button_update => 'Aggiorna viaggio';
 
   @override
   String get trips_edit_dialog_discard => 'Scarta';
@@ -31694,6 +31923,19 @@ class AppLocalizationsIt extends AppLocalizations {
       'Completa i dati bombola mancanti nelle immersioni importate usando il preset predefinito';
 
   @override
+  String get tankPresets_defaultStartPressure =>
+      'Pressione iniziale predefinita';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Usata per le nuove bombole e per le bombole importate senza pressione iniziale quando la bombola predefinita viene applicata alle importazioni';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Inserisci una pressione da $min a $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'Nuovo preset bombola';
 
   @override
@@ -34881,6 +35123,28 @@ class AppLocalizationsIt extends AppLocalizations {
       'Regione sconosciuta: si usa la linea mondiale';
 
   @override
+  String emergencyCard_regionManual(String region) {
+    return 'Regione: $region, impostata manualmente';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Cambia regione';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Regione di emergenza';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automatica (immersione più recente)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Cerca paesi';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches =>
+      'Nessun paese corrispondente';
+
+  @override
   String get emergencyCard_noDiverData =>
       'Nessun dato del profilo subacqueo. Aggiungi contatti di emergenza, dati medici e assicurazione nel profilo subacqueo.';
 
@@ -36748,6 +37012,27 @@ class AppLocalizationsIt extends AppLocalizations {
       'Usata quando paese, regione, città e specchio d\'acqua vengono ricavati dalle coordinate. I siti esistenti non vengono modificati.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'Salvare i nomi dei luoghi in $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'I nomi di paesi e regioni cercati per i tuoi siti sono salvati in $current. Passare a $language per le nuove ricerche? Potrai poi cercare di nuovo i siti esistenti.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'Mantieni $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Cambia';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'Gradi decimali';
 
   @override
@@ -37784,7 +38069,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'Note';
 
   @override
-  String get enum_certificationField_certName => 'Nome';
+  String get enum_certificationField_certName => 'Titolo';
 
   @override
   String get enum_certificationField_agency => 'Agenzia';
@@ -37814,7 +38099,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_certificationField_notes => 'Note';
 
   @override
-  String get enum_certificationField_certName_short => 'Nome';
+  String get enum_certificationField_certName_short => 'Titolo';
 
   @override
   String get enum_certificationField_agency_short => 'Agenzia';
@@ -43899,6 +44184,31 @@ class AppLocalizationsIt extends AppLocalizations {
       'A quali bombole trasportate può passare la risalita simulata (TTS, ceiling e soste) a ciascuna profondità. Vengono considerati solo i gas registrati nell’immersione.';
 
   @override
+  String get settings_decompression_header_ascentRate => 'Velocità di risalita';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'Le soglie usate dai colori e dagli eventi della velocità di risalita nel profilo. La revisione di sicurezza mantiene i propri limiti fissi, quindi modificarle non cambia mai le immersioni già revisionate.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Soglie di velocità di risalita';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Avviso $warning, critica $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Avviso';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Critica';
+
+  @override
   String get settings_decompression_header_dataSources =>
       'Preferenze sulle fonti dei dati';
 
@@ -45743,6 +46053,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile cambiare la revisione del profilo.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Salvato prima della cronologia delle revisioni; non collegato a un computer';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46063,6 +46377,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String backup_operation_created(String size) {
     return 'Backup creato: $size';
+  }
+
+  @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'Backup creato: $size. È stato salvato solo su questo dispositivo: inserisci la passphrase di crittografia per caricare i backup nel cloud.';
   }
 
   @override

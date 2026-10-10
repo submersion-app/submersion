@@ -16,6 +16,9 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_saved_tanks_bar.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -180,6 +183,8 @@ class PlanTankList extends ConsumerWidget {
       builder: (context) => _TankEditDialog(
         units: units,
         mode: ref.read(divePlanNotifierProvider).mode,
+        bestMix: ref.read(planBestMixProvider),
+        resolveRole: _roleResolverFor(ref),
         onSave: (tank) {
           ref.read(divePlanNotifierProvider.notifier).addTank(tank);
         },
@@ -207,6 +212,8 @@ class PlanTankList extends ConsumerWidget {
             tank.role == TankRole.diluent &&
             planState.tanks.where((t) => t.role == TankRole.diluent).length ==
                 1,
+        bestMix: ref.read(planBestMixProvider),
+        resolveRole: _roleResolverFor(ref),
         onSave: (updated) {
           ref
               .read(divePlanNotifierProvider.notifier)
@@ -215,6 +222,23 @@ class PlanTankList extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The role [TankRoleResolver] would give a cylinder, as the dialog has it
+/// so far, once saved into the current plan: in place of the tank with its
+/// id, or added to the end when it is new.
+TankRole Function(DiveTank provisional) _roleResolverFor(WidgetRef ref) {
+  final plan = divePlanFromState(ref.read(divePlanNotifierProvider));
+  return (provisional) {
+    final isNew = plan.tanks.every((t) => t.id != provisional.id);
+    final tanks = [
+      for (final t in plan.tanks) t.id == provisional.id ? provisional : t,
+      if (isNew) provisional,
+    ];
+    return const TankRoleResolver().rolesFor(
+      plan.copyWith(tanks: tanks),
+    )[provisional.id]!;
+  };
 }
 
 class _TankChip extends StatelessWidget {
@@ -298,6 +322,18 @@ class _TankEditDialog extends StatefulWidget {
   /// Editing a CCR plan's only diluent: the tile shows ticked and cannot be
   /// unticked, since the plan always keeps at least one (#3220).
   final bool isOnlyDiluent;
+
+  /// The plan's best mixes at its deepest point, offered as a one-tap fill
+  /// of the O2/He fields: [bestMix.diluent] on a CCR plan if the cylinder
+  /// would resolve to the diluent, [bestMix.bottom] otherwise. Null hides
+  /// the offer (a plan with no depth). Never offered on the oxygen slot,
+  /// whose fields are not even shown (#3220).
+  final ({double depthMeters, GasMix bottom, GasMix? diluent})? bestMix;
+
+  /// The role the plan would give this cylinder as currently filled in (see
+  /// [_roleResolverFor]). Only a CCR diluent is offered [bestMix.diluent],
+  /// and the oxygen supply is offered nothing.
+  final TankRole Function(DiveTank provisional) resolveRole;
   final ValueChanged<DiveTank> onSave;
 
   const _TankEditDialog({
@@ -306,6 +342,8 @@ class _TankEditDialog extends StatefulWidget {
     required this.mode,
     this.lockedOxygenSlot = false,
     this.isOnlyDiluent = false,
+    this.bestMix,
+    required this.resolveRole,
     required this.onSave,
   });
 
@@ -320,6 +358,10 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   late TextEditingController _pressureController;
   late TextEditingController _o2Controller;
   late TextEditingController _heController;
+
+  /// The saved tank's id: the original's, or one minted now for a new tank,
+  /// so its provisional role is resolved under the id it will be saved with.
+  late final String _tankId = widget.tank?.id ?? _uuid.v4();
   bool _isTravelGas = false;
   bool _isDiluent = false;
 
@@ -441,6 +483,8 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                           labelText: context.l10n.divePlanner_field_o2Percent,
                         ),
                         keyboardType: TextInputType.number,
+                        // The best-mix offer depends on the mix (#3093).
+                        onChanged: (_) => setState(() {}),
                         validator: (value) => _validateGasPercent(
                           value,
                           _otherPercent(_heController),
@@ -455,6 +499,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                           labelText: context.l10n.divePlanner_field_hePercent,
                         ),
                         keyboardType: TextInputType.number,
+                        onChanged: (_) => setState(() {}),
                         validator: (value) => _validateGasPercent(
                           value,
                           _otherPercent(_o2Controller),
@@ -463,6 +508,26 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                     ),
                   ],
                 ),
+                if ((widget.bestMix, _offeredMix) case (
+                  final bestMix?,
+                  final mix?,
+                ))
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.auto_fix_high, size: 18),
+                      label: Text(
+                        context.l10n.divePlanner_action_fillBestMix(
+                          widget.units.formatDepth(
+                            bestMix.depthMeters,
+                            decimals: 0,
+                          ),
+                          mix.name,
+                        ),
+                      ),
+                      onPressed: () => _fillGas(mix),
+                    ),
+                  ),
                 const SizedBox(height: 8),
                 // CCR has no travel-gas concept: TankRoleResolver's loop branch
                 // never consults isTravelGas, so the option is meaningless
@@ -509,6 +574,51 @@ class _TankEditDialogState extends State<_TankEditDialog> {
         ),
       ],
     );
+  }
+
+  /// The best mix offered for this cylinder, by the role the plan would give
+  /// it as currently filled in. The explicit diluent tile (#3220) gets the
+  /// diluent mix; the locked oxygen slot never reaches here, since its
+  /// fields -- and this button -- are not shown at all. Everything else,
+  /// ticked or not, resolves through [TankRoleResolver] like any other
+  /// cylinder and gets the bottom mix.
+  GasMix? get _offeredMix {
+    final bestMix = widget.bestMix;
+    if (bestMix == null) return null;
+    final provisional = DiveTank(
+      id: _tankId,
+      gasMix: GasMix(
+        o2: _otherPercent(_o2Controller) ?? 21,
+        he: _otherPercent(_heController) ?? 0,
+      ),
+      // Mirrors _save()'s own role construction exactly, so the offer is
+      // computed against the same provisional role the save would actually
+      // produce.
+      role: widget.lockedOxygenSlot
+          ? TankRole.oxygenSupply
+          : _isDiluent
+          ? TankRole.diluent
+          : TankRole.backGas,
+      isTravelGas: _isTravelGas,
+    );
+    return switch (widget.resolveRole(provisional)) {
+      TankRole.oxygenSupply => null,
+      TankRole.diluent => bestMix.diluent ?? bestMix.bottom,
+      _ => bestMix.bottom,
+    };
+  }
+
+  /// Writes [mix] into the O2/He fields; the diver still saves the dialog.
+  /// A programmatic write fires no onChanged, so this rebuilds itself: the
+  /// offer follows the mix (a fill can make the cylinder the oxygen supply).
+  /// Re-validates so an error left by an earlier save attempt on either
+  /// field clears now that it holds a valid mix.
+  void _fillGas(GasMix mix) {
+    setState(() {
+      _o2Controller.text = formatDecimalForInput(mix.o2);
+      _heController.text = formatDecimalForInput(mix.he);
+    });
+    _formKey.currentState?.validate();
   }
 
   /// Empty is fine ([_save] defaults it); anything else must parse to a
@@ -560,7 +670,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
     final original = widget.tank;
 
     final tank = DiveTank(
-      id: original?.id ?? _uuid.v4(),
+      id: _tankId,
       name: _nameController.text.isNotEmpty ? _nameController.text : null,
       volume: specs.volumeLiters,
       workingPressure: specs.workingPressureBar,

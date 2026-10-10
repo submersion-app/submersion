@@ -58,7 +58,11 @@ void main() {
       AppDatabase.migrationStepCount(257),
       AppDatabase.migrationStepCount(258) + 1,
     );
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test(

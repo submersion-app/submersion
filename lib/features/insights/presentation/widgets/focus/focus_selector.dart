@@ -33,16 +33,32 @@ class _FocusSelectorState extends ConsumerState<FocusSelector> {
     super.initState();
     final selection = ref.read(focusSelectionProvider);
     _count = TextEditingController(text: '${selection.count}');
-    final threshold = selection.threshold;
     final units = FocusMetricUnits(
       selection.metric,
       UnitFormatter(ref.read(settingsProvider)),
     );
     _threshold = TextEditingController(
-      text: threshold == null
-          ? ''
-          : formatRoundedForInput(units.toDisplay(threshold), 2),
+      text: _thresholdText(selection.threshold, units),
     );
+  }
+
+  static String _thresholdText(double? threshold, FocusMetricUnits units) =>
+      threshold == null
+      ? ''
+      : formatRoundedForInput(units.toDisplay(threshold), 2);
+
+  /// Re-renders the stored threshold when the diver switches this metric's
+  /// unit, so the digits match the new suffix. Other settings changes leave
+  /// the field alone, keeping a half-typed entry intact.
+  void _onSettingsChanged(AppSettings? previous, AppSettings next) {
+    if (previous == null) return;
+    final selection = ref.read(focusSelectionProvider);
+    final before = FocusMetricUnits(selection.metric, UnitFormatter(previous));
+    final after = FocusMetricUnits(selection.metric, UnitFormatter(next));
+    final l10n = context.l10n;
+    if (before.symbol(l10n) == after.symbol(l10n)) return;
+    _threshold.text = _thresholdText(selection.threshold, after);
+    setState(() => _thresholdError = null);
   }
 
   @override
@@ -97,6 +113,7 @@ class _FocusSelectorState extends ConsumerState<FocusSelector> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    ref.listen(settingsProvider, _onSettingsChanged);
     final selection = ref.watch(focusSelectionProvider);
     final units = FocusMetricUnits(
       selection.metric,

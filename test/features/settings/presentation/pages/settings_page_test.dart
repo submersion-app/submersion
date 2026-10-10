@@ -27,7 +27,9 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
+import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
+import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
@@ -272,7 +274,7 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setDefaultTankVolume(double volume) async =>
       state = state.copyWith(defaultTankVolume: volume);
   @override
-  Future<void> setDefaultStartPressure(int pressure) async =>
+  Future<void> setDefaultStartPressure(double pressure) async =>
       state = state.copyWith(defaultStartPressure: pressure);
   @override
   Future<void> setDefaultTankPreset(String? presetName) async =>
@@ -315,11 +317,13 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setCnsWarningThreshold(int value) async =>
       state = state.copyWith(cnsWarningThreshold: value);
   @override
-  Future<void> setAscentRateWarning(double value) async =>
-      state = state.copyWith(ascentRateWarning: value);
-  @override
-  Future<void> setAscentRateCritical(double value) async =>
-      state = state.copyWith(ascentRateCritical: value);
+  Future<void> setAscentRateThresholds({
+    required double warning,
+    required double critical,
+  }) async => state = state.copyWith(
+    ascentRateWarning: warning,
+    ascentRateCritical: critical,
+  );
   @override
   Future<void> setShowCeilingOnProfile(bool value) async =>
       state = state.copyWith(showCeilingOnProfile: value);
@@ -437,6 +441,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setEndLimit(double value) async =>
       state = state.copyWith(endLimit: value);
+  @override
+  Future<void> setIcdWarningsEnabled(bool value) async =>
+      state = state.copyWith(icdWarningsEnabled: value);
   @override
   Future<void> setAscentGasSet(AscentGasSet value) async =>
       state = state.copyWith(ascentGasSet: value);
@@ -632,6 +639,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowDiveFigure(bool value) async =>
       state = state.copyWith(showDiveFigure: value);
+  @override
+  Future<void> acceptPlanningDisclaimer() async =>
+      state = state.copyWith(hasAcceptedPlanningDisclaimer: true);
   @override
   Future<void> setShowProfilePanelInTableView(bool value) async =>
       state = state.copyWith(showProfilePanelInTableView: value);
@@ -1461,6 +1471,14 @@ void main() {
   });
 
   group('AppearanceSectionContent navigation', () {
+    /// Titles of every ListTile on screen, in order, for comparing the
+    /// tablet/desktop pane against its phone counterpart.
+    List<String> tileTitles(WidgetTester tester) => [
+      for (final tile in tester.widgetList<ListTile>(find.byType(ListTile)))
+        if (tile.title case final Text text)
+          text.data ?? text.textSpan!.toPlainText(),
+    ];
+
     /// Build a widget that renders the SettingsPage via GoRouter with
     /// ?selected=appearance, which renders the _SettingsSectionDetailPage
     /// containing _AppearanceSectionContent (mobile detail page path).
@@ -1538,6 +1556,115 @@ void main() {
 
       expect(find.byType(NavCustomizationTile), findsOneWidget);
       expect(find.text('Insights · Tracks · Planning'), findsOneWidget);
+    });
+
+    // Settings > Appearance has two surfaces: AppearancePage on a phone and
+    // this inline pane on a tablet or desktop. Comparing their tile titles in
+    // order catches a tile added to, renamed in, or left out of either one,
+    // which is how the language label and Gear arrangement drifted (#3095).
+    testWidgets('hub offers the same tiles as the phone page', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+      final hubTitles = tileTitles(tester);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: getOverrides(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AppearancePage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final phoneTitles = tileTitles(tester);
+
+      expect(hubTitles, phoneTitles);
+      expect(
+        hubTitles,
+        containsAll(['Language', 'Display size', 'Gear arrangement']),
+      );
+      expect(hubTitles, isNot(contains('App Language')));
+    });
+
+    // The pane passes its own onLanguageTap: an inline sub-page, not the
+    // phone's pushed route, which this stub router does not define.
+    testWidgets('hub Language tile opens the inline language list', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+      expect(find.text('Deutsch'), findsNothing);
+
+      await tester.tap(find.text('Language'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Deutsch'), findsOneWidget);
+      expect(find.text('Gear arrangement'), findsNothing);
+    });
+
+    // The pane opens languages inline while a phone pushes
+    // LanguageSettingsPage; both lists come from one widget so they cannot
+    // drift the way the Appearance tiles did (#3095).
+    testWidgets('inline language list matches the language page', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Language'));
+      await tester.pumpAndSettle();
+      final inlineTitles = tileTitles(tester);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: getOverrides(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: LanguageSettingsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(inlineTitles, tileTitles(tester));
+      expect(
+        inlineTitles,
+        hasLength(LanguageSettingsPage.supportedLocales.length),
+      );
+      expect(inlineTitles.first, 'System Default');
+    });
+
+    testWidgets('hub opens the gear arrangement sheet', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        buildAppearanceWidget([
+          ...getOverrides(),
+          appSettingsRepositoryProvider.overrideWithValue(
+            FakeAppSettingsRepository(),
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Gear arrangement'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Order types by'), findsOneWidget);
     });
 
     // The desktop master-detail pane renders _AppearanceSectionContent, a
@@ -1702,7 +1829,7 @@ void main() {
       expect(find.byType(SectionAppearancePage), findsOneWidget);
     });
 
-    testWidgets('_getSectionDisplayName returns display name for known keys', (
+    testWidgets('a section entry opens that section by its display name', (
       tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
@@ -1711,7 +1838,7 @@ void main() {
       await tester.pumpWidget(buildAppearanceWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      // Navigate into "Sites" to exercise _getSectionDisplayName('sites')
+      // Navigate into "Sites" to exercise appearanceSectionDisplayName('sites')
       await tester.tap(find.text('Sites'));
       await tester.pumpAndSettle();
 

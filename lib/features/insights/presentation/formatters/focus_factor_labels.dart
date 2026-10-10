@@ -68,7 +68,12 @@ String focusNumericDifference(
   if (id == FocusFactorId.waterTemp) {
     return '$sign${units.formatTemperatureDelta(magnitude)}';
   }
-  return '$sign${focusNumericValue(id, magnitude, units, l10n)}';
+  // An imperial tank size with no working pressure is an estimate the
+  // formatter marks with a leading "~"; keep it ahead of the sign so the
+  // difference reads "~+6 cuft", not "+~6 cuft" (issue #3018).
+  final value = focusNumericValue(id, magnitude, units, l10n);
+  if (value.startsWith('~')) return '~$sign${value.substring(1)}';
+  return '$sign$value';
 }
 
 /// Display text for one category value, from the stable key the repository

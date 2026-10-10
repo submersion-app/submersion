@@ -73,7 +73,7 @@ extension DiveCenterSortFieldDisplay on DiveCenterSortField {
 
 extension CertificationSortFieldDisplay on CertificationSortField {
   String localizedName(AppLocalizations l10n) => switch (this) {
-    CertificationSortField.name => l10n.enum_sortField_name,
+    CertificationSortField.name => l10n.enum_sortField_title,
     CertificationSortField.dateIssued => l10n.enum_sortField_dateIssued,
     CertificationSortField.agency => l10n.enum_sortField_agency,
   };

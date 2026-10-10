@@ -1408,10 +1408,71 @@ class AppLocalizationsHe extends AppLocalizations {
       'התערובת התקנית הקרובה ביותר המכסה עומק זה';
 
   @override
-  String get gasCalculators_bestMix_recommendedMix => 'תערובת מומלצת';
+  String get gasCalculators_bestMix_recommendedMix => 'תערובת מחושבת';
+
+  @override
+  String gasCalculators_bestMix_semanticsLabel(String mix, String mod) {
+    return 'תערובת מחושבת $mix, MOD $mod';
+  }
+
+  @override
+  String gasCalculators_bestMix_showAllMixes(int count) {
+    return 'הצגת הכול ($count)';
+  }
+
+  @override
+  String get gasCalculators_bestMix_showFewerMixes => 'הצגת פחות';
 
   @override
   String get gasCalculators_bestMix_withoutHelium => 'ללא הליום';
+
+  @override
+  String get gasCalculators_bestMix_ccrSource => 'מקור הגז';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceBailout => 'חילוץ';
+
+  @override
+  String get gasCalculators_bestMix_ccrSourceDiluent => 'מדלל';
+
+  @override
+  String get gasCalculators_bestMix_densityAware =>
+      'לשמור על צפיפות הגז בתוך הגבולות';
+
+  @override
+  String get gasCalculators_bestMix_eadLabel => 'EAD בעומק';
+
+  @override
+  String get gasCalculators_bestMix_heliumBoth =>
+      'נוסף הליום כדי לשמור על ה-END וצפיפות הגז בתוך הגבולות שלך.';
+
+  @override
+  String get gasCalculators_bestMix_heliumDensity =>
+      'נוסף הליום כדי לשמור על צפיפות הגז בתוך הגבולות.';
+
+  @override
+  String get gasCalculators_bestMix_mode => 'מצב';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTec => 'CCR Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeCcrTecHint =>
+      'מעגל סגור: מדלל נבדק מול ppO₂ השטיפה של המדלל, חילוץ מול ppO₂ הדקו (המרבי) שלך במעגל פתוח.';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_bestMix_modeOcTecHint =>
+      'טרימיקס במעגל פתוח, נבדק מול מגבלת ppO₂ העבודה שלך.';
+
+  @override
+  String get gasCalculators_bestMix_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_bestMix_modeRecHint =>
+      'ניטרוקס לצלילת פנאי, כמו היום.';
 
   @override
   String get gasCalculators_planningCaveat =>
@@ -3239,7 +3300,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'תאריך הנפקה';
 
   @override
-  String get certifications_detail_label_type => 'סוג';
+  String get certifications_detail_label_title => 'כותרת';
 
   @override
   String get certifications_detail_label_validity => 'תוקף';
@@ -3562,7 +3623,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'השאר ריק להסמכות ללא תפוגה';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'אופציונלי';
+  String get certifications_edit_helper_title =>
+      'אופציונלי. השאר ריק כדי להשתמש בהסמכה';
 
   @override
   String get certifications_edit_hint_cardNumber => 'הזן מספר כרטיס הסמכה';
@@ -3713,10 +3775,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'תאריך הנפקה';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'השם על הכרטיס';
+  String get certifications_edit_label_notes => 'הערות';
 
   @override
-  String get certifications_edit_label_notes => 'הערות';
+  String get certifications_edit_label_title => 'כותרת ההסמכה';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3773,8 +3835,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get certifications_edit_snackBar_updated => 'ההסמכה עודכנה בהצלחה';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'יש לבחור הסמכה או להזין שם';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'יש לבחור הסמכה או להזין כותרת';
 
   @override
   String get certifications_list_button_retry => 'נסה שוב';
@@ -9475,6 +9537,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'תערובת גזים';
 
   @override
+  String get diveLog_tank_computerMix_matches => 'נרשם על ידי מחשב הצלילה שלך';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'מחשב הצלילה שלך רשם $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'שחזור';
+
+  @override
   String get diveLog_tank_selectPreset => 'בחר תבנית...';
 
   @override
@@ -9756,6 +9829,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get divePlanner_action_editTank => 'ערוך מיכל';
+
+  @override
+  String divePlanner_action_fillBestMix(String depth, String mix) {
+    return 'תערובת מיטבית ל-$depth: $mix';
+  }
 
   @override
   String get divePlanner_action_moreOptions => 'אפשרויות נוספות';
@@ -11598,7 +11676,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return 'פעולה זו תמחק לצמיתות את $name ואת כל הנתונים המשויכים, כולל יומני צלילה, מחשבי צלילה, ציוד, הסמכות ואתרים.';
   }
 
   @override
@@ -11741,12 +11819,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return 'הקלד \"מחיקה $name\" לאישור';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return 'מחיקה $name';
   }
 
   @override
@@ -12567,6 +12645,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_sortField_status => 'סטטוס';
+
+  @override
+  String get enum_sortField_title => 'כותרת';
 
   @override
   String get enum_sortField_type => 'סוג';
@@ -14342,6 +14423,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'היה מותקן ב';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'שכפול ציוד';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'ערוך ציוד';
 
   @override
@@ -14465,18 +14549,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'שמור שינויים';
-
-  @override
-  String get equipment_edit_saveButton_new => 'הוסף ציוד';
-
-  @override
-  String get equipment_edit_saveTooltip_edit => 'שמור שינויי ציוד';
-
-  @override
-  String get equipment_edit_saveTooltip_new => 'הוסף פריט ציוד חדש';
-
-  @override
   String get equipment_edit_selectDate => 'בחר תאריך';
 
   @override
@@ -14489,6 +14561,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return 'שגיאה בשמירת ציוד: $error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'נשמר, אך תצוגת הרשימה הנוכחית מסתירה אותו';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'הצג';
 
   @override
   String get equipment_edit_snackbar_updated => 'הציוד עודכן';
@@ -14926,6 +15005,21 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'מיין';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (עותק)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'שוכפל, אך לא ניתן היה להעתיק חלק משעוני הטיפולים, הסטים או המסמכים.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'הציוד שוכפל';
+
+  @override
+  String get equipment_menu_clone => 'שכפול';
 
   @override
   String get equipment_menu_delete => 'מחק';
@@ -15394,12 +15488,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setEdit_notFoundTitle => 'הסט לא נמצא';
 
   @override
-  String get equipment_setEdit_saveButton_edit => 'שמור שינויים';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'צור סט';
-
-  @override
   String get equipment_setEdit_saveTooltip_edit => 'שמור שינויי סט ציוד';
 
   @override
@@ -15742,8 +15830,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_fromProfile => 'מפרופיל הצולל שלך';
 
   @override
-  String gasCalculators_mod_differsFromProfile(String value) {
-    return 'שונה מהפרופיל ($value בר)';
+  String gasCalculators_differsFromProfile(String value) {
+    return 'שונה מהפרופיל ($value)';
   }
 
   @override
@@ -15966,6 +16054,63 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mnd_resultTitle => 'עומק נרקוטי מרבי';
 
   @override
+  String get gasCalculators_icd_gasATitle => 'הגז הנוכחי';
+
+  @override
+  String get gasCalculators_icd_gasBTitle => 'הגז שהוחלף אליו';
+
+  @override
+  String get gasCalculators_icd_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_icd_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_icd_n2Percent => 'N2 %';
+
+  @override
+  String get gasCalculators_icd_resultTitle => 'הערכת ICD';
+
+  @override
+  String get gasCalculators_icd_ok => 'אין סיכון ICD לפי כלל החמישית.';
+
+  @override
+  String get gasCalculators_icd_caution =>
+      'גבולי: עליית החנקן קרובה למקסימום המותר.';
+
+  @override
+  String gasCalculators_icd_violation(String increase, String max) {
+    return 'כלל החמישית הופר: החנקן עולה ב-$increase%, המקסימום המותר הוא $max%.';
+  }
+
+  @override
+  String get gasCalculators_icd_disabledNotice =>
+      'הערכת ה-ICD כבויה בהגדרות > דקומפרסיה.';
+
+  @override
+  String get gasCalculators_icd_suggestionsTitle => 'כך שהכלל יתקיים';
+
+  @override
+  String gasCalculators_icd_suggestionKeepA(String he) {
+    return 'השאר את הגז הנוכחי, קבע את ההליום של הגז שהוחלף אליו ל-$he%';
+  }
+
+  @override
+  String gasCalculators_icd_suggestionKeepB(String he) {
+    return 'השאר את הגז שהוחלף אליו, קבע את ההליום של הגז הנוכחי ל-$he%';
+  }
+
+  @override
+  String get gasCalculators_icd_applyButton => 'החל';
+
+  @override
+  String get gasCalculators_icd_infoTitle => 'על דיפוזיה הפכית איזובארית';
+
+  @override
+  String get gasCalculators_icd_infoContent =>
+      'דיפוזיה הפכית איזובארית (ICD) היא הסיכון שמעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן יגדיל את מתח הגזים האינרטיים הכולל ברקמה, מכיוון שהליום מתפזר מהר יותר מחנקן. כלל החמישית הוא כלל אצבע נפוץ: חלקיק החנקן לא אמור לעלות ביותר מחמישית מהירידה בחלקיק ההליום.\n\nארגונים חלוקים בדעתם עד כמה זה חשוב בפועל בצלילה מתוכננת היטב עם גזים סטנדרטיים. מחשבון זה מחיל את כלל האצבע על שני הגזים שהוזנו; הוא אינו מחליף הכשרה או ייעוץ מקצועי.';
+
+  @override
   String get gasCalculators_ppO2Limit => 'מגבלת ppO₂';
 
   @override
@@ -15982,6 +16127,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_tab_mnd => 'MND/END';
+
+  @override
+  String get gasCalculators_tab_icd => 'ICD';
 
   @override
   String get gasCalculators_tab_blender => 'מערבל טרימיקס';
@@ -16469,6 +16617,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'גבול עומק הנרקוזה לתערובת';
+
+  @override
+  String get gasCalculators_desc_icd =>
+      'סיכון דיפוזיה הפכית איזובארית בין שני גזים';
 
   @override
   String get gasCalculators_tab_density => 'צפיפות גז';
@@ -18734,7 +18886,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, תערובת אופטימלית, צריכה, Rock Bottom';
+      'מגבלות עומק, תערובות, צריכת גז ומילוי';
 
   @override
   String get planning_card_gasCalculators_title => 'מחשבוני גז';
@@ -18755,6 +18907,20 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get planning_info_disclaimer =>
       'כלים אלה מיועדים למטרות תכנון בלבד. תמיד אמת חישובים ופעל לפי הכשרת הצלילה שלך.';
+
+  @override
+  String get planning_disclaimer_dialog_title => 'אזהרת כלי התכנון';
+
+  @override
+  String get planning_disclaimer_dialog_body =>
+      'הכלים באזור זה מיועדים למטרות תכנון בלבד. הם אינם מחליפים את הכשרת הצלילה שלך או את מחשב הצלילה שלך. תמיד אמת כל חישוב בעצמך לפני שתשתמש בו להחלטת בטיחות.';
+
+  @override
+  String get planning_disclaimer_dialog_confirm => 'הבנתי';
+
+  @override
+  String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
+      'אזהרת תכנון אושרה';
 
   @override
   String get planning_section_tools => 'כלים';
@@ -18800,9 +18966,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appBar_title => 'הגדרות';
-
-  @override
-  String get settings_appearance_appLanguage => 'שפת האפליקציה';
 
   @override
   String get settings_appearance_displaySize => 'גודל התצוגה';
@@ -19649,6 +19812,19 @@ class AppLocalizationsHe extends AppLocalizations {
       'מדד ברירת מחדל המוצג בציר הימני';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'מצב מסך מלא';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'האם פרופיל הצלילה ומציג המדיה במסך מלא ממלאים את החלון או את המסך כולו';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'חלון מלא';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'מסך מלא';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'מדדי דקומפרסיה';
 
@@ -20244,20 +20420,55 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'שומר את הגרסה של $kept. הערכים של $discarded עבור $fields נמחקים.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$discarded',
+    });
+    return 'שומר את הגרסה של $_temp0. הערכים של $_temp1 עבור $fields נמחקים.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'שומר את הגרסה של $local ומוסיף את הגרסה של $remote כעותק נפרד.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$remote',
+    });
+    return 'שומר את הגרסה של $_temp0 ומוסיף את הגרסה של $_temp1 כעותק נפרד.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'שומר את הרשומה, עם הערכים של $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$device',
+    });
+    return 'שומר את הרשומה, עם הערכים של $_temp0.';
   }
 
   @override
@@ -20274,8 +20485,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'הרשומה כפי שהיא ב-$device:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'במכשיר הזה',
+      'otherDevice': 'במכשיר האחר',
+      'other': 'ב-$device',
+    });
+    return 'הרשומה כפי שהיא $_temp0:';
   }
 
   @override
@@ -20979,6 +21195,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_endLimit => 'מגבלת עומק נרקוטי';
+
+  @override
+  String get settings_conflict_field_icdWarningsEnabled => 'אזהרות ICD מופעלות';
 
   @override
   String get settings_conflict_field_endLongitude => 'קו אורך בסיום';
@@ -22165,8 +22384,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_keepBoth => 'שמור את שניהם';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'שמור את $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'שמור את הגרסה של המכשיר הזה',
+      'otherDevice': 'שמור את הגרסה של המכשיר האחר',
+      'other': 'שמור את $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -22190,6 +22414,9 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$fields ועוד $_temp0';
   }
+
+  @override
+  String get settings_conflict_fieldListSeparator => ', ';
 
   @override
   String get settings_conflict_next_tooltip => 'ההתנגשות הבאה';
@@ -22788,6 +23015,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_endLimit_dialog_title => 'מגבלת END';
 
   @override
+  String get settings_decompression_header_icd => 'דיפוזיה הפכית איזובארית';
+
+  @override
+  String get settings_decompression_icdWarnings => 'הזהר מסיכון ICD';
+
+  @override
+  String get settings_decompression_icdWarnings_subtitle =>
+      'מציג במחשבון ה-ICD הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.';
+
+  @override
   String get settings_decompression_cnsMethodTitle => 'חישוב CNS';
 
   @override
@@ -22975,9 +23212,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_language_appBar_title => 'שפה';
-
-  @override
-  String get settings_language_selected => 'נבחר';
 
   @override
   String get settings_language_systemDefault => 'ברירת מחדל של המערכת';
@@ -24123,6 +24357,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get signatures_handoff_title => 'העבר את המכשיר ל';
+
+  @override
+  String get signatures_buddySignature => 'חתימת שותף';
 
   @override
   String get signatures_instructorSignature => 'חתימת מדריך';
@@ -25510,10 +25747,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'התפלגות עומק';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'תרשים עוגה המציג התפלגות סוגי צלילה';
-
-  @override
   String get insights_summary_diveTypes_title => 'סוגי צלילה';
 
   @override
@@ -26057,13 +26290,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_title => 'תגיות';
 
   @override
-  String get tags_manage_importsSection => 'ייבוא';
+  String get settings_autoTagImports_title => 'תיוג אוטומטי של ייבואים';
 
   @override
-  String get tags_manage_autoTagImports => 'תיוג אוטומטי של ייבואים';
-
-  @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'כל ייבוא חדש מתחיל עם תגית הנושאת את שם המקור והתאריך. אפשר לשנות זאת לייבוא בודד באפשרויות אותו ייבוא.';
 
   @override
@@ -27443,16 +27673,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_appBar_edit => 'ערוך טיול';
 
   @override
-  String get trips_edit_button_add => 'הוסף טיול';
-
-  @override
   String get trips_edit_button_cancel => 'ביטול';
 
   @override
   String get trips_edit_button_save => 'שמירה';
-
-  @override
-  String get trips_edit_button_update => 'עדכן טיול';
 
   @override
   String get trips_edit_dialog_discard => 'מחיקה';
@@ -30902,6 +31126,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'השלם נתוני מיכל חסרים בצלילות מיובאות באמצעות תבנית ברירת המחדל';
 
   @override
+  String get tankPresets_defaultStartPressure => 'לחץ התחלתי ברירת מחדל';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'ממולא במיכלים חדשים, ובמיכלים מיובאים ללא לחץ התחלתי כאשר מיכל ברירת המחדל מוחל על ייבוא';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'הזן לחץ בין $min ל-$max';
+  }
+
+  @override
   String get tankPresets_new_title => 'תבנית מיכל חדשה';
 
   @override
@@ -34019,6 +34255,26 @@ class AppLocalizationsHe extends AppLocalizations {
       'אזור לא ידוע - נעשה שימוש בקו העולמי';
 
   @override
+  String emergencyCard_regionManual(String region) {
+    return 'אזור: $region, הוגדר ידנית';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'שינוי אזור';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'אזור חירום';
+
+  @override
+  String get emergencyCard_regionPicker_automatic => 'אוטומטי (הצלילה האחרונה)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'חיפוש מדינות';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'אין מדינות תואמות';
+
+  @override
   String get emergencyCard_noDiverData =>
       'אין נתוני פרופיל צולל. הוסף אנשי קשר לחירום, נתונים רפואיים וביטוח בפרופיל הצולל.';
 
@@ -35835,6 +36091,27 @@ class AppLocalizationsHe extends AppLocalizations {
       'בשימוש כאשר מדינה, אזור, עיר וגוף מים נשלפים מהקואורדינטות. אתרים קיימים אינם משתנים.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'לשמור את שמות המקומות בשפה $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'שמות המדינות והאזורים שנבדקים עבור האתרים שלך נשמרים בשפה $current. לעבור לשפה $language בבדיקות חדשות? לאחר מכן אפשר לבדוק מחדש את האתרים הקיימים.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'להשאיר $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'מעבר';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'מעלות עשרוניות';
 
   @override
@@ -36870,7 +37147,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'הערות';
 
   @override
-  String get enum_certificationField_certName => 'שם';
+  String get enum_certificationField_certName => 'כותרת';
 
   @override
   String get enum_certificationField_agency => 'גוף הסמכה';
@@ -36900,7 +37177,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_certificationField_notes => 'הערות';
 
   @override
-  String get enum_certificationField_certName_short => 'שם';
+  String get enum_certificationField_certName_short => 'כותרת';
 
   @override
   String get enum_certificationField_agency_short => 'גוף';
@@ -42951,6 +43228,30 @@ class AppLocalizationsHe extends AppLocalizations {
       'לאילו בלונים נישאים העלייה המדומה (TTS, תקרה ועצירות) יכולה לעבור בכל עומק. נלקחים בחשבון רק גזים שנרשמו בצלילה.';
 
   @override
+  String get settings_decompression_header_ascentRate => 'קצב עלייה';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'הספים שבהם משתמשים הצבעים והאירועים של קצב העלייה בפרופיל. סקירת הבטיחות שומרת על מגבלות קבועות משלה, כך ששינוי ערכים אלה אינו משנה צלילות שכבר נסקרו.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds => 'ספי קצב עלייה';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'אזהרה $warning, קריטי $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'אזהרה';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'קריטי';
+
+  @override
   String get settings_decompression_header_dataSources => 'העדפות מקור נתונים';
 
   @override
@@ -44798,6 +45099,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן להחליף את גרסת הפרופיל.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'נשמר לפני היסטוריית הגרסאות; לא מקושר למחשב צלילה';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -45098,6 +45403,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String backup_operation_created(String size) {
     return 'נוצר גיבוי: $size';
+  }
+
+  @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'נוצר גיבוי: $size. הוא נשמר במכשיר זה בלבד: יש להזין את משפט הסיסמה של ההצפנה כדי להעלות גיבויים לענן.';
   }
 
   @override

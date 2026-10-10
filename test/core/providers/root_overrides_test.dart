@@ -10,6 +10,7 @@ import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/shared/services/incoming_share.dart';
 import 'package:submersion/shared/services/navigation_ready_gate.dart';
 
@@ -58,6 +59,33 @@ void main() {
         .read(clockSyncSettingsNotifierProvider.notifier)
         .setGlobalEnabled(false);
     expect(prefs.getBool('dive_computer_clock_sync_enabled'), isFalse);
+  });
+
+  test('backs the viewer fullscreen mode with SharedPreferences', () async {
+    SharedPreferences.setMockInitialValues({
+      SettingsKeys.viewerFullscreenMode: 'fullscreen',
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final logFileService = LogFileService(
+      logDirectory: p.join(Directory.systemTemp.path, 'submersion-test'),
+    );
+
+    final container = ProviderContainer(
+      overrides: rootProviderOverrides(
+        prefs: prefs,
+        logFileService: logFileService,
+      ).cast(),
+    );
+    addTearDown(container.dispose);
+
+    expect(
+      container.read(viewerFullscreenModeProvider),
+      ViewerFullscreenMode.fullscreen,
+    );
+    await container
+        .read(viewerFullscreenModeProvider.notifier)
+        .setMode(ViewerFullscreenMode.fullWindow);
+    expect(prefs.getString(SettingsKeys.viewerFullscreenMode), 'fullWindow');
   });
 
   test('installs the process share gate when given one, so a held share '

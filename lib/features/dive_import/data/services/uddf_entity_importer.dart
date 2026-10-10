@@ -350,7 +350,7 @@ class UddfEntityImporter {
   final _log = LoggerService.forClass(UddfEntityImporter);
 
   final TankPresetEntity? _defaultTankPreset;
-  final int _defaultStartPressure;
+  final double _defaultStartPressure;
   final bool _applyDefaultTankToImports;
 
   /// ISO 639-1 code for reverse-geocoded country/region (issue #1187).
@@ -368,7 +368,7 @@ class UddfEntityImporter {
 
   UddfEntityImporter({
     TankPresetEntity? defaultTankPreset,
-    int defaultStartPressure = 200,
+    double defaultStartPressure = 200.0,
     bool applyDefaultTankToImports = false,
     String placeNameLanguage = LocationService.defaultLanguageCode,
     ImportedFileRepository? importedFiles,

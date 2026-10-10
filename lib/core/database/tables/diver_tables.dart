@@ -171,8 +171,11 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('recreational'))();
   RealColumn get defaultTankVolume =>
       real().withDefault(const Constant(12.0))();
-  IntColumn get defaultStartPressure =>
-      integer().withDefault(const Constant(200))();
+
+  /// Bar. REAL since v275 so a pressure entered in psi keeps its value
+  /// (issue #3091); whole bar before that.
+  RealColumn get defaultStartPressure =>
+      real().withDefault(const Constant(200.0))();
   TextColumn get defaultTankPreset =>
       text().nullable().withDefault(const Constant('al80'))();
   BoolColumn get applyDefaultTankToImports =>
@@ -208,6 +211,8 @@ class DiverSettings extends Table {
   // coverage:ignore-end
   BoolColumn get o2Narcotic => boolean().withDefault(const Constant(true))();
   RealColumn get endLimit => real().withDefault(const Constant(30.0))();
+  BoolColumn get icdWarningsEnabled =>
+      boolean().withDefault(const Constant(true))();
   BoolColumn get useDiveComputerCnsData =>
       boolean().withDefault(const Constant(false))();
   // The per-metric data sources stay at DEFAULT 1 (calculated) even though a
@@ -462,6 +467,10 @@ class DiverSettings extends Table {
   BoolColumn get showDetailsPaneCertifications =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get showDetailsPaneCourses =>
+      boolean().withDefault(const Constant(false))();
+  // v274: one-time confirmation of the planning safety disclaimer (issue
+  // #3120). Off by default; the app never resets it back to false.
+  BoolColumn get hasAcceptedPlanningDisclaimer =>
       boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();

@@ -30,6 +30,7 @@ const List<String> kGasCalculatorIds = [
   'consumption',
   'rock-bottom',
   'mnd',
+  'icd',
   'density',
   'blender',
 ];
@@ -96,6 +97,13 @@ List<PlanningTool> gasCalculatorToolsOf(BuildContext context) {
       color: Colors.teal,
       title: context.l10n.gasCalculators_tab_mnd,
       subtitle: context.l10n.gasCalculators_desc_mnd,
+    ),
+    tool(
+      id: 'icd',
+      icon: Icons.compare_arrows,
+      color: Colors.deepOrange,
+      title: context.l10n.gasCalculators_tab_icd,
+      subtitle: context.l10n.gasCalculators_desc_icd,
     ),
     tool(
       id: 'density',

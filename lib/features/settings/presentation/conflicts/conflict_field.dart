@@ -25,6 +25,9 @@ enum FieldKind {
   heightCm,
   ascentRate,
 
+  /// A tide's vertical rate in metres per hour, signed (rising positive).
+  tideRate,
+
   /// A gas rate in litres per minute (SAC, RMV).
   rmv,
   latitude,

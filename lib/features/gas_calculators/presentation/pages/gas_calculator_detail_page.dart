@@ -7,6 +7,7 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/blender
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_blender_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_calculators_summary_widget.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_consumption_calculator.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/icd_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mnd_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/rock_bottom_calculator.dart';
@@ -96,6 +97,8 @@ class GasCalculatorDetailPage extends StatelessWidget {
         return const RockBottomCalculator();
       case 'mnd':
         return const MndCalculator();
+      case 'icd':
+        return const IcdCalculator();
       case 'density':
         return const DensityCalculator();
       case 'blender':

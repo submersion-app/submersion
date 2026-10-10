@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
@@ -187,7 +188,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   /// content.
   static const _cardPadding = EdgeInsets.all(12);
 
-  final MapController _previewController = MapController();
   final MapController _fullController = MapController();
 
   @override
@@ -685,10 +685,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         height: 200,
         child: Stack(
           children: [
-            TrackpadZoomMap(
-              controller: _previewController,
+            LockedMapScrollPassthrough(
               child: FlutterMap(
-                mapController: _previewController,
                 key: ValueKey(
                   '${site.location!.latitude}_${site.location!.longitude}',
                 ),
@@ -697,8 +695,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                   initialZoom: 14.0,
                   minZoom: 2.0,
                   maxZoom: 18.0,
+                  // Locked: the preview sits in the scrolling detail page, and
+                  // a map that takes gestures there catches the wheel or drag
+                  // as soon as it scrolls under the pointer (issue #3156). The
+                  // fullscreen button opens the interactive map.
                   interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                    flags: InteractiveFlag.none,
                   ),
                 ),
                 children: [

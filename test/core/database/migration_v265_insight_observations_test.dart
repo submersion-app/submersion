@@ -38,7 +38,11 @@ void main() {
       AppDatabase.migrationStepCount(264),
       AppDatabase.migrationStepCount(265) + 1,
     );
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('upgrading from v264 adds the table and the nullable column', () async {

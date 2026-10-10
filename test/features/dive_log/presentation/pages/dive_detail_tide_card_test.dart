@@ -232,4 +232,18 @@ void main() {
 
     expect(find.textContaining('at 14:20'), findsNothing);
   });
+
+  testWidgets('rate of change uses the shared tide-rate format (#3028)', (
+    tester,
+  ) async {
+    await _pumpDetailPage(
+      tester,
+      _tideRecord(
+        highTideTime: DateTime.utc(2026, 3, 28, 14, 20),
+        lowTideTime: DateTime.utc(2026, 3, 28, 8, 20),
+      ),
+    );
+
+    expect(find.text('+0.40m/hr'), findsOneWidget);
+  });
 }

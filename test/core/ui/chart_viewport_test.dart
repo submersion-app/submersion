@@ -238,6 +238,14 @@ void main() {
       expect(vp.windowEnd, closeTo(0.75, 1e-9));
     });
 
+    test('sameWindowAs compares the window, not the zoom limit', () {
+      const vp = ChartViewport(zoom: 2, offsetX: 0.25);
+      expect(vp.sameWindowAs(vp.pannedBy(0, 0)), isTrue);
+      expect(vp.sameWindowAs(vp.withZoomLimit(40)), isTrue);
+      expect(vp.sameWindowAs(vp.pannedBy(0.1, 0)), isFalse);
+      expect(vp.sameWindowAs(vp.zoomedAt(0.5, 0, 1.5)), isFalse);
+    });
+
     test('forWindow of the full range is unzoomed', () {
       final vp = ChartViewport.forWindow(0, 1);
       expect(vp.isZoomed, isFalse);

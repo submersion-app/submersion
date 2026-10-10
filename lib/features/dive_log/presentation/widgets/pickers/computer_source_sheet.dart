@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// The sources the profile editor can start from: those with samples of
+/// their own in [profiles], whether or not they are linked to a registered
+/// computer (a file import usually is not). The sheet is offered only when
+/// more than one source qualifies (issue #3066).
+List<DiveDataSource> startableProfileSources(
+  List<DiveDataSource> sources,
+  Map<String, SourceProfile> profiles,
+) => [
+  for (final source in sources)
+    if (profiles[source.id]?.points.isNotEmpty ?? false) source,
+];
 
 /// Bottom sheet that lets the user choose which computer's profile to use
 /// as the starting point when opening the profile editor on a multi-computer

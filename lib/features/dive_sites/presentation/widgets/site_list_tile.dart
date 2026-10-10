@@ -10,9 +10,9 @@ import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_co
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
-import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_glyph.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
@@ -57,8 +57,6 @@ class SiteListTile extends ConsumerStatefulWidget {
 }
 
 class _SiteListTileState extends ConsumerState<SiteListTile> {
-  final MapController _mapController = MapController();
-
   static const _contentInset = 52.0;
 
   @override
@@ -330,10 +328,8 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: TrackpadZoomMap(
-                    controller: _mapController,
+                  child: LockedMapScrollPassthrough(
                     child: FlutterMap(
-                      mapController: _mapController,
                       options: MapOptions(
                         initialCenter: siteLocation,
                         initialZoom: 13.0,

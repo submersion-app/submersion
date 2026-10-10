@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_camera_fit.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
@@ -145,7 +146,8 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
 
   /// The trackpad zoom wraps only an interactive map: it wins the gesture
   /// arena against any enclosing scrollable, which in a story card would turn
-  /// a trackpad scroll over the map into a zoom.
+  /// a trackpad scroll over the map into a zoom. In a story card the locked
+  /// map forwards a trackpad scroll to the story instead (issue #3156).
   Widget _withTrackpad(double maxZoom, Widget map) => widget.interactive
       ? TrackpadZoomMap(
           controller: _controller,
@@ -153,7 +155,7 @@ class _TripDayMapState extends ConsumerState<TripDayMap> {
           maxZoom: maxZoom,
           child: map,
         )
-      : map;
+      : LockedMapScrollPassthrough(child: map);
 
   @override
   Widget build(BuildContext context) {

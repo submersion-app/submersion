@@ -114,6 +114,62 @@ void main() {
     expect(reported, TrendRange.all);
   });
 
+  group('a step that leaves the window unchanged reports nothing', () {
+    Future<TrendRange?> wheel(
+      WidgetTester tester, {
+      required List<TrendDataPoint> points,
+      required TrendRange range,
+      required Offset delta,
+    }) async {
+      TrendRange? reported;
+      await tester.pumpWidget(
+        host(
+          DiveTrendChart(
+            points: points,
+            range: range,
+            onRangeChanged: (r) => reported = r,
+          ),
+        ),
+      );
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      final centre = tester.getCenter(find.byType(LineChart));
+      await tester.sendEventToBinding(pointer.hover(centre));
+      await tester.sendEventToBinding(pointer.scroll(delta));
+      await tester.pump();
+      return reported;
+    }
+
+    testWidgets('wheel out on a preset longer than the data', (tester) async {
+      final reported = await wheel(
+        tester,
+        points: weekly(104),
+        range: const TrendRange.preset(TrendRangePreset.years5),
+        delta: const Offset(0, 120),
+      );
+      expect(reported, isNull);
+    });
+
+    testWidgets('a sideways wheel past the latest dive', (tester) async {
+      final reported = await wheel(
+        tester,
+        points: weekly(209),
+        range: year1,
+        delta: const Offset(120, 0),
+      );
+      expect(reported, isNull);
+    });
+
+    testWidgets('a wheel step that does move still reports', (tester) async {
+      final reported = await wheel(
+        tester,
+        points: weekly(209),
+        range: year1,
+        delta: const Offset(-120, 0),
+      );
+      expect(reported?.preset, TrendRangePreset.custom);
+    });
+  });
+
   testWidgets('a custom range keeps its dates when the data shrinks', (
     tester,
   ) async {

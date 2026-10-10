@@ -7,8 +7,12 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -324,6 +328,30 @@ void main() {
             'divesForTripProvider should auto-refresh after a dive delete, '
             'the same way tripListNotifierProvider already does',
       );
+    });
+
+    test('divesForTripProvider carries each dive\'s buddies, which the trip '
+        'story and day map cards render (#3039)', () async {
+      final trip = await tripRepo.createTrip(_makeTrip(name: 'Buddies'));
+      final dive = await diveRepo.createDive(
+        Dive(id: '', dateTime: DateTime(2024, 6, 1), tripId: trip.id),
+      );
+      final buddyRepo = BuddyRepository();
+      final ana = await buddyRepo.createBuddy(
+        Buddy(
+          id: '',
+          name: 'Ana Reyes',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+        ),
+      );
+      await buddyRepo.addBuddyToDive(dive.id, ana.id, DiveRole.buddyId);
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final dives = await container.read(divesForTripProvider(trip.id).future);
+      expect(dives.single.resolvedBuddyNames, 'Ana Reyes');
     });
   });
 

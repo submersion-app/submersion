@@ -218,12 +218,7 @@ final modCalculatorNotifierProvider =
 WaterType modCalculatorWaterType(
   ModCalculatorPreferences prefs,
   AppSettings settings,
-) =>
-    prefs.waterType ??
-    switch (settings.defaultPlannerWaterType) {
-      PlannerWaterType.fresh => WaterType.fresh,
-      PlannerWaterType.salt || PlannerWaterType.custom => WaterType.salt,
-    };
+) => resolveWaterType(prefs.waterType, settings.defaultPlannerWaterType);
 
 /// The profile's CCR high setpoint, held to the calculator's setpoint range.
 ///
@@ -248,6 +243,8 @@ ModProfileLimits modProfileLimits(AppSettings settings) => ModProfileLimits(
   decoPpO2: settings.ppO2MaxDeco,
   flushPpO2: modProfileFlushPpO2(settings),
   setpointBar: modProfileSetpoint(settings),
+  endLimitMeters: settings.endLimit,
+  o2Narcotic: settings.o2Narcotic,
 );
 
 /// The ppO2 limits in effect for the active diver, and which of them differ

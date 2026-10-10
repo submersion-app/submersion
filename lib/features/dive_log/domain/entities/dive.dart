@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_sna
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// Core dive log entry entity
 class Dive extends Equatable {
@@ -442,11 +443,13 @@ class Dive extends Equatable {
 
   /// RMV: respiratory minute volume in L/min at the surface under [model],
   /// summing gas consumed across every tank that has pressures and a volume.
+  /// A cylinder with no volume borrows its matched partner's, a sidemount
+  /// pair or back-gas doubles on one gas (#3109).
   ///
   /// This is the diver's property (how much gas their lungs move), so every
-  /// cylinder counts. Its pressure-lane sibling [sac] reads one reference
-  /// cylinder instead, because a pressure drop is a property of that
-  /// cylinder's size (discussions #354, #803).
+  /// cylinder counts. Its pressure-lane sibling [sac] is expressed in bar of
+  /// one reference cylinder instead, because a pressure drop is a property
+  /// of that cylinder's size (discussions #354, #803).
   ///
   /// Takes the model as a parameter rather than reading a provider so the
   /// entity stays free of container dependencies. Callers source it from
@@ -469,9 +472,10 @@ class Dive extends Equatable {
     int tanksWithData = 0;
 
     for (final tank in tanks) {
+      final volume = consumptionVolume(tank, tanks);
       if (tank.startPressure == null ||
           tank.endPressure == null ||
-          tank.volume == null) {
+          volume == null) {
         continue;
       }
 
@@ -479,14 +483,14 @@ class Dive extends Equatable {
       if (pressureUsed <= 0) continue;
 
       final startVolume = gasVolume(
-        tankSizeLiters: tank.volume!,
+        tankSizeLiters: volume,
         pressureBar: tank.startPressure!,
         o2Percent: tank.gasMix.o2,
         hePercent: tank.gasMix.he,
         model: model,
       );
       final endVolume = gasVolume(
-        tankSizeLiters: tank.volume!,
+        tankSizeLiters: volume,
         pressureBar: tank.endPressure!,
         o2Percent: tank.gasMix.o2,
         hePercent: tank.gasMix.he,
@@ -505,10 +509,11 @@ class Dive extends Equatable {
     return totalGasLiters / minutes / avgPressureBar;
   }
 
-  /// The cylinder the pressure lane ([sac]) reads, and the one whose
-  /// volume converts an unattributed SAC segment to L/min: on a multi-tank
-  /// dive the back gas, else the first cylinder; the only cylinder on a
-  /// single-tank dive whatever its role. Null when the dive has no cylinders.
+  /// The cylinder whose bar the pressure lane ([sac]) is expressed in, and
+  /// the one whose volume converts an unattributed SAC segment to L/min:
+  /// on a multi-tank dive the back gas, else the first cylinder; the only
+  /// cylinder on a single-tank dive whatever its role. Null when the dive
+  /// has no cylinders.
   DiveTank? get sacReferenceTank {
     if (tanks.isEmpty) return null;
     if (tanks.length == 1) return tanks.first;
@@ -519,11 +524,16 @@ class Dive extends Equatable {
   }
 
   /// SAC: surface air consumption as a tank-pressure drop rate, in bar/min
-  /// at the surface, read from [sacReferenceTank] only.
+  /// at the surface, in bar of [sacReferenceTank]. Every other breathed
+  /// cylinder adds its drop converted to that cylinder's size (issue #3109,
+  /// see [referencePressureDrop]); a rebreather dive reads the reference
+  /// cylinder alone.
   ///
   /// Needs no cylinder volume, so it exists for every dive-computer download
   /// that carries pressure. Not a unit conversion of [rmvFor] on multi-tank
-  /// dives: bar/min from a 12 L back gas and a 7 L stage cannot be averaged.
+  /// dives: bar/min from a 12 L back gas and a 7 L stage cannot be averaged,
+  /// only converted by volume. A cylinder of unknown size is left out
+  /// unless it pairs with the reference (see [isMatchedPair]).
   double? get sac {
     if (tanks.isEmpty || effectiveRuntime == null || avgDepth == null) {
       return null;
@@ -534,16 +544,12 @@ class Dive extends Equatable {
 
     final avgPressureAtm = (avgDepth! / 10) + 1; // Convert depth to ATM
 
-    final referenceTank = sacReferenceTank!;
-
-    if (referenceTank.startPressure == null ||
-        referenceTank.endPressure == null) {
-      return null;
-    }
-
-    final pressureUsed =
-        referenceTank.startPressure! - referenceTank.endPressure!;
-    if (pressureUsed <= 0) return null;
+    final pressureUsed = referencePressureDrop(
+      reference: sacReferenceTank!,
+      tanks: tanks,
+      referenceOnly: isRebreather,
+    );
+    if (pressureUsed == null) return null;
 
     // SAC in bar/min at surface
     return pressureUsed / minutes / avgPressureAtm;

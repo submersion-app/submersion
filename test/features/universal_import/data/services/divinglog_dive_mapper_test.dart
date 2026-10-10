@@ -536,7 +536,8 @@ void main() {
           id: 1,
           diveDate: '2024-06-01',
           entryTime: '09:30',
-          buddy: 'Ignored Text',
+          // The linked buddy's first name: the same person, not a second one.
+          buddy: 'alice',
           buddyIds: [1],
           equipmentIds: [3],
           diveTypeIds: [5],
@@ -587,7 +588,7 @@ void main() {
       expect(payload.entitiesOf(ImportEntityType.media), hasLength(1));
     });
 
-    test('a dive with BuddyIDs ignores its free text buddy column', () {
+    test('a text name that names a linked buddy is not imported twice', () {
       final payload = DivingLogDiveMapper.toPayload(wired());
       final d = payload.entitiesOf(ImportEntityType.dives).single;
       expect(d['buddyRefs'], ['Alice Smith']);
@@ -596,7 +597,34 @@ void main() {
           .map((b) => b['name'])
           .toList();
       expect(names, ['Alice Smith']);
-      expect(names, isNot(contains('Ignored Text')));
+    });
+
+    test('a text name beside linked buddies that names none of them is '
+        'kept (#3110)', () {
+      // DiveMate keeps someone never saved as a buddy record in the text
+      // column, next to the linked ones.
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(
+            id: 1,
+            diveDate: '2024-06-01',
+            buddy: 'Alice Smith, Toni',
+            buddyIds: [1],
+          ),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        buddiesById: {
+          1: DivingLogRawBuddy(id: 1, firstName: 'Alice', lastName: 'Smith'),
+        },
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d['buddyRefs'], ['Alice Smith', 'Toni']);
+      final names = payload
+          .entitiesOf(ImportEntityType.buddies)
+          .map((b) => b['name'])
+          .toSet();
+      expect(names, {'Alice Smith', 'Toni'});
     });
 
     test('links the dive to its references by uddfId', () {
@@ -632,9 +660,36 @@ void main() {
       expect(messages, contains('1 equipment reference(s)'));
     });
 
-    test('an unresolvable BuddyIDs does not fall back to the text', () {
-      // Ids win means ids win. Falling back here would recreate the phase 1
-      // duplicates precisely when the relational data is incomplete.
+    test('a text name in another case links the Buddy record, once', () {
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(
+            id: 1,
+            diveDate: '2024-06-01',
+            buddy: 'bob jones, Bob Jones',
+            buddyIds: [1],
+          ),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        buddiesById: {
+          1: DivingLogRawBuddy(id: 1, firstName: 'Alice'),
+          2: DivingLogRawBuddy(id: 2, firstName: 'Bob', lastName: 'Jones'),
+        },
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d['buddyRefs'], ['Alice', 'Bob Jones']);
+      final names = payload
+          .entitiesOf(ImportEntityType.buddies)
+          .map((b) => b['name'])
+          .toList();
+      expect(names, unorderedEquals(['Alice', 'Bob Jones']));
+    });
+
+    test('an unresolvable BuddyIDs still keeps the text names', () {
+      // The id names nobody, so no text name can be its duplicate. Dropping
+      // the text here lost every buddy of a dive whose link had dangled
+      // (#3110).
       const book = DivingLogLogbook(
         dives: [
           DivingLogRawDive(
@@ -648,8 +703,8 @@ void main() {
       );
       final payload = DivingLogDiveMapper.toPayload(book);
       final d = payload.entitiesOf(ImportEntityType.dives).single;
-      expect(d.containsKey('buddyRefs'), isFalse);
-      expect(payload.entitiesOf(ImportEntityType.buddies), isEmpty);
+      expect(d['buddyRefs'], ['Alice', 'Bob']);
+      expect(payload.entitiesOf(ImportEntityType.buddies), hasLength(2));
       expect(
         payload.warnings.map((w) => w.message).join(' '),
         contains('1 buddy reference(s)'),

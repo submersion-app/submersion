@@ -287,6 +287,53 @@ void main() {
     });
   });
 
+  group('translated dialog (issue #3069)', () {
+    Future<void> openInGerman(WidgetTester tester) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('de'),
+          child: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () =>
+                  DeleteDiverDialog.show(context, diverName: 'Alice'),
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+    }
+
+    FilledButton deleteButton(WidgetTester tester) =>
+        tester.widget<FilledButton>(find.byType(FilledButton));
+
+    testWidgets('warns and hints in the app language', (tester) async {
+      await openInGerman(tester);
+
+      expect(find.textContaining('dauerhaft gelöscht'), findsOneWidget);
+      expect(find.textContaining('permanently delete'), findsNothing);
+      expect(
+        find.text('Geben Sie "Löschen Alice" zur Bestätigung ein'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('enables Delete for the translated phrase it asks for', (
+      tester,
+    ) async {
+      await openInGerman(tester);
+
+      await tester.enterText(find.byType(TextField), 'Delete Alice');
+      await tester.pump();
+      expect(deleteButton(tester).onPressed, isNull);
+
+      await tester.enterText(find.byType(TextField), 'Löschen Alice');
+      await tester.pump();
+      expect(deleteButton(tester).onPressed, isNotNull);
+    });
+  });
+
   group('kept gear line (issue #2852)', () {
     Future<void> open(WidgetTester tester, {int kept = 0}) async {
       await tester.pumpWidget(

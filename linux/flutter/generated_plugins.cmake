@@ -11,7 +11,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
   libdivecomputer_plugin
   objectbox_flutter_libs
   printing
+  screen_retriever_linux
   url_launcher_linux
+  window_manager
   window_to_front
 )
 

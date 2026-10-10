@@ -5,11 +5,9 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
-import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
-import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
-import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
-import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Height of the map itself, exported because a card paired beside this one
@@ -19,18 +17,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 const double recentSitesMapHeight = 220;
 
 /// Mini map with pins for the sites of the most recent dives.
-class RecentSitesMapCard extends ConsumerStatefulWidget {
+class RecentSitesMapCard extends ConsumerWidget {
   const RecentSitesMapCard({super.key});
 
   @override
-  ConsumerState<RecentSitesMapCard> createState() => _RecentSitesMapCardState();
-}
-
-class _RecentSitesMapCardState extends ConsumerState<RecentSitesMapCard> {
-  final MapController _controller = MapController();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final pinsAsync = ref.watch(recentSitesProvider);
     final pins = pinsAsync.valueOrNull ?? const [];
     if (pins.isEmpty) return const SizedBox.shrink();
@@ -73,25 +64,23 @@ class _RecentSitesMapCardState extends ConsumerState<RecentSitesMapCard> {
               borderRadius: BorderRadius.circular(12),
               child: SizedBox(
                 height: recentSitesMapHeight,
-                child: TrackpadZoomMap(
-                  controller: _controller,
+                child: LockedMapScrollPassthrough(
                   child: FlutterMap(
-                    mapController: _controller,
                     options: MapOptions(
                       initialCenter: points.first,
                       initialZoom: 11,
                       initialCameraFit: fit,
-                      interactionOptions: rotatableMapInteraction,
+                      // Never interactive: a live map here would fight the
+                      // parent scroll view for the gesture arena on every drag.
+                      // The passthrough hands trackpad scrolls to the page,
+                      // which the locked map would otherwise swallow. The
+                      // expand icon above opens the full map.
+                      interactionOptions: const InteractionOptions(
+                        flags: InteractiveFlag.none,
+                      ),
                     ),
                     children: [
-                      TileLayer(
-                        urlTemplate: ref.watch(mapTileUrlProvider),
-                        userAgentPackageName: 'app.submersion',
-                        maxZoom: ref.watch(mapTileMaxZoomProvider),
-                        tileProvider: TileCacheService.instance.tileProviderFor(
-                          urlTemplate: ref.watch(mapTileUrlProvider),
-                        ),
-                      ),
+                      submersionTileLayer(ref),
                       MarkerLayer(
                         markers: [
                           for (final p in pins)

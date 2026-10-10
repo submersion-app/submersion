@@ -59,3 +59,22 @@ Future<void> awaitServiceStatusIfRead(
     if (!hold) sub.close();
   }
 }
+
+/// [awaitServiceStatusIfRead] for a widget, which has a [WidgetRef] rather
+/// than a provider's [Ref]: a one-off wait, so the listener is always
+/// released.
+Future<void> awaitServiceStatusIfReadFromWidget(
+  WidgetRef ref,
+  Set<String> tablesTouched,
+) async {
+  if (!tablesTouched.contains(serviceStatusTable)) return;
+  final sub = ref.listenManual(
+    equipmentServiceStatusCacheProvider.future,
+    (_, _) {},
+  );
+  try {
+    await sub.read();
+  } finally {
+    sub.close();
+  }
+}

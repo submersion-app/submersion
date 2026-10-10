@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
 /// Width of the master (list) pane in a split view.
@@ -311,7 +312,8 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     // While an edit/create form is actually shown in the detail pane, keep
     // keyboard Tab traversal confined to that pane. Without this, Tab crosses
     // the divider into the master list on the left (issue #444). The list
-    // remains clickable and accessible; only Tab traversal is excluded.
+    // remains clickable and accessible; only Tab traversal is excluded. The
+    // master pane's create FAB is hidden for the same span (issue #3174).
     //
     // These conditions mirror _DetailPane._buildContent so the master pane is
     // only excluded when the edit/create builder is genuinely rendered (not,
@@ -354,13 +356,24 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
                 child: ExcludeFocusTraversal(
                   excluding: isEditingDetail,
                   child: _MasterPane(
-                    floatingActionButton: widget.floatingActionButton != null
+                    // Hidden while a form is open: the FAB sits at the
+                    // form's bottom edge and reads as its submit button, but
+                    // it never saves. It only switches the pane to create
+                    // mode, which drops an open edit form's changes
+                    // unprompted (issue #3174).
+                    floatingActionButton:
+                        widget.floatingActionButton != null && !isEditingDetail
                         ? _wrapFabForCreate(widget.floatingActionButton!)
                         : null,
-                    child: widget.masterBuilder(
-                      context,
-                      _onItemSelected,
-                      selectedId,
+                    // The list's own create buttons hide for the same span
+                    // (issue #3192).
+                    child: MasterDetailFormScope(
+                      isFormOpen: isEditingDetail,
+                      child: widget.masterBuilder(
+                        context,
+                        _onItemSelected,
+                        selectedId,
+                      ),
                     ),
                   ),
                 ),

@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
@@ -256,6 +257,36 @@ void main() {
       );
       // A higher ppO2 ceiling allows a richer O2 fraction.
       expect(deco.idealO2Percent, greaterThan(bottom.idealO2Percent));
+    });
+
+    test('forDiluent gates the mix on the diluent MOD ppO2', () {
+      final plan = _decoPlan(ppO2Bottom: 1.2);
+      const diluentConfig = PlanEngineConfig(ccrDiluentModPpO2: 1.6);
+      final bottom = suggestBestMixForPlan(
+        plan,
+        diluentConfig,
+        depthMeters: 60.0,
+      );
+      final diluent = suggestBestMixForPlan(
+        plan,
+        diluentConfig,
+        depthMeters: 60.0,
+        forDiluent: true,
+      );
+      // The 1.6 bar diluent MOD allows a richer diluent than the 1.2 bar
+      // bottom ceiling allows a bottom gas.
+      expect(diluent.idealO2Percent, greaterThan(bottom.idealO2Percent));
+      expect(
+        diluent.recommended.mix,
+        computeBestMix(
+          BestMixInputs(
+            depthMeters: 60.0,
+            ppO2Limit: 1.6,
+            endLimitMeters: plan.bestMixEndMeters,
+            o2Narcotic: diluentConfig.resolvedFor(plan).o2Narcotic,
+          ),
+        ).recommended.mix,
+      );
     });
 
     test('targets the plan best-mix END, not the Settings END limit '

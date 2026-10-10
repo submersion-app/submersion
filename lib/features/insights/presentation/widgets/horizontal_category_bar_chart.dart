@@ -69,7 +69,7 @@ class HorizontalCategoryBarChart extends StatelessWidget {
                   ),
                   Expanded(
                     child: FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
+                      alignment: AlignmentDirectional.centerStart,
                       widthFactor: maxCount == 0 ? 0 : item.count / maxCount,
                       child: Container(
                         height: 16,

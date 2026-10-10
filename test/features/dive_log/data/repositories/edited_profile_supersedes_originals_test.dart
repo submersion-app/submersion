@@ -189,6 +189,45 @@ void main() {
         expect(asPairs(merged), asPairs(dive!.profile));
       },
     );
+
+    test(
+      'switching back to original revision does not re-merge demoted edited points',
+      () async {
+        await insertComputer('dc-a');
+        await insertDataSource(
+          id: 'src-a',
+          computerId: 'dc-a',
+          isPrimary: true,
+        );
+
+        final originalSeriesId = await ProfileSeriesRepository().insertSeries(
+          diveId: 'dive-1',
+          computerId: 'dc-a',
+          sourceId: 'src-a',
+          isPrimary: true,
+          samples: const [
+            ProfileSample(timestamp: 0, depth: 0.0),
+            ProfileSample(timestamp: 4, depth: 20.0),
+            ProfileSample(timestamp: 8, depth: 0.0),
+          ],
+          now: now,
+        );
+
+        await repository.saveEditedProfile('dive-1', const [
+          DiveProfilePoint(timestamp: 0, depth: 0.0),
+          DiveProfilePoint(timestamp: 4, depth: 10.0),
+        ]);
+
+        // Re-activate the imported/original revision.
+        await repository.setActiveProfileSeries('dive-1', originalSeriesId);
+
+        final dive = await repository.getDiveById('dive-1');
+        final merged = await repository.getMergedProfile('dive-1');
+
+        expect(asPairs(dive!.profile), [(0, 0.0), (4, 20.0), (8, 0.0)]);
+        expect(asPairs(merged), [(0, 0.0), (4, 20.0), (8, 0.0)]);
+      },
+    );
   });
 
   group('non-edited reads are unchanged', () {

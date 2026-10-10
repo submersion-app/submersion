@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/tides/presentation/tide_state_display.dart';
 
@@ -103,7 +105,9 @@ class CurrentTideIndicator extends StatelessWidget {
                     ),
                     if (status.rateOfChange != null && !compact)
                       Text(
-                        '${status.rateOfChange! > 0 ? '+' : ''}${DepthUnit.meters.convert(status.rateOfChange!, depthUnit).toStringAsFixed(2)}${depthUnit.symbol}/hr',
+                        UnitFormatter(
+                          AppSettings(depthUnit: depthUnit),
+                        ).formatTideRate(status.rateOfChange),
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

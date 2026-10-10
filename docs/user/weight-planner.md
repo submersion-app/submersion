@@ -162,11 +162,10 @@ gear and tanks attached to that plan, and shows the same through-the-dive
 summary. **Use as planned weight** copies the predicted figure onto the plan, so
 the plan carries its weighting alongside its depths and gases.
 
-> [!WARNING]
-> **The planned weight assumes salt water.** The through-the-dive summary follows
-> the plan's water type, but the **Predicted weight** on the Gear & Weights card
-> always uses the salt-water baseline. For a fresh-water dive, check the figure in
-> the standalone Weight Calculator, where water type is an explicit control.
+The prediction and the summary both follow the plan's water type in **Plan
+Settings > Environment > Water type**: salt, fresh, or a custom salinity. The
+copied planned weight is a snapshot, so if you change the water type afterwards,
+tap **Use as planned weight** again to pick up the new figure.
 
 ## After the Dive
 

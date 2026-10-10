@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -681,50 +683,66 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     return RefreshIndicator(
       onRefresh: () =>
           ref.read(diveCenterListNotifierProvider.notifier).refresh(),
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: centers.length,
-        itemBuilder: (context, index) {
-          final center = centers[index];
-          final isSelected =
-              widget.selectedId == center.id ||
-              ref.watch(highlightedDiveCenterIdProvider) == center.id;
-          final diveCountAsync = ref.watch(
-            diveCenterDiveCountProvider(center.id),
-          );
-          final diveCount = diveCountAsync.valueOrNull ?? 0;
-          final isChecked = _selectedIds.contains(center.id);
-          void onCheckChanged(bool _) => _selection.toggle(center.id);
-          return switch (viewMode) {
-            ListViewMode.detailed => DiveCenterListTile(
-              center: center,
-              isSelected: isSelected,
-              onTap: () => _handleRowTap(center),
-              isSelectionMode: _isSelectionMode,
-              isChecked: isChecked,
-              onCheckChanged: onCheckChanged,
-            ),
-            ListViewMode.compact => CompactDiveCenterListTile(
-              center: center,
-              diveCount: diveCount,
-              isSelected: isSelected,
-              onTap: () => _handleRowTap(center),
-              isSelectionMode: _isSelectionMode,
-              isChecked: isChecked,
-              onCheckChanged: onCheckChanged,
-            ),
-            ListViewMode.dense || ListViewMode.table => DenseDiveCenterListTile(
-              center: center,
-              diveCount: diveCount,
-              isSelected: isSelected,
-              onTap: () => _handleRowTap(center),
-              isSelectionMode: _isSelectionMode,
-              isChecked: isChecked,
-              onCheckChanged: onCheckChanged,
-            ),
-          };
-        },
+      child: KeyboardListNavigator(
+        keys: [for (final c in centers) c.id],
+        currentKey:
+            widget.selectedId ?? ref.watch(highlightedDiveCenterIdProvider),
+        onMove: (id) => moveListCursor(
+          context,
+          canOpen: !_isSelectionMode && widget.onItemSelected != null,
+          open: () => _handleRowTap(centers.firstWhere((c) => c.id == id)),
+          highlight: () =>
+              ref.read(highlightedDiveCenterIdProvider.notifier).state = id,
+        ),
+        onActivate: (id) =>
+            _handleRowTap(centers.firstWhere((c) => c.id == id)),
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.only(bottom: 80),
+          itemCount: centers.length,
+          itemBuilder: (context, index) {
+            final center = centers[index];
+            final isSelected =
+                widget.selectedId == center.id ||
+                ref.watch(highlightedDiveCenterIdProvider) == center.id;
+            final diveCountAsync = ref.watch(
+              diveCenterDiveCountProvider(center.id),
+            );
+            final diveCount = diveCountAsync.valueOrNull ?? 0;
+            final isChecked = _selectedIds.contains(center.id);
+            void onCheckChanged(bool _) => _selection.toggle(center.id);
+            final tile = switch (viewMode) {
+              ListViewMode.detailed => DiveCenterListTile(
+                center: center,
+                isSelected: isSelected,
+                onTap: () => _handleRowTap(center),
+                isSelectionMode: _isSelectionMode,
+                isChecked: isChecked,
+                onCheckChanged: onCheckChanged,
+              ),
+              ListViewMode.compact => CompactDiveCenterListTile(
+                center: center,
+                diveCount: diveCount,
+                isSelected: isSelected,
+                onTap: () => _handleRowTap(center),
+                isSelectionMode: _isSelectionMode,
+                isChecked: isChecked,
+                onCheckChanged: onCheckChanged,
+              ),
+              ListViewMode.dense ||
+              ListViewMode.table => DenseDiveCenterListTile(
+                center: center,
+                diveCount: diveCount,
+                isSelected: isSelected,
+                onTap: () => _handleRowTap(center),
+                isSelectionMode: _isSelectionMode,
+                isChecked: isChecked,
+                onCheckChanged: onCheckChanged,
+              ),
+            };
+            return KeyboardListItem(navigationKey: center.id, child: tile);
+          },
+        ),
       ),
     );
   }
@@ -761,19 +779,23 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              FilledButton.icon(
-                onPressed: () {
-                  if (ResponsiveBreakpoints.isMasterDetail(context)) {
-                    final routerState = GoRouterState.of(context);
-                    context.go('${routerState.uri.path}?mode=new');
-                  } else {
-                    context.push('/dive-centers/new');
-                  }
-                },
-                icon: const Icon(Icons.add),
-                label: Text(context.l10n.diveCenters_empty_button),
-              ),
-              const SizedBox(width: 12),
+              // Hidden beside an open form: it reads as the form's submit
+              // button but only reopens the create form (issue #3192).
+              if (!MasterDetailFormScope.isFormOpenOf(context)) ...[
+                FilledButton.icon(
+                  onPressed: () {
+                    if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                      final routerState = GoRouterState.of(context);
+                      context.go('${routerState.uri.path}?mode=new');
+                    } else {
+                      context.push('/dive-centers/new');
+                    }
+                  },
+                  icon: const Icon(Icons.add),
+                  label: Text(context.l10n.diveCenters_empty_button),
+                ),
+                const SizedBox(width: 12),
+              ],
               OutlinedButton.icon(
                 onPressed: () => context.push('/dive-centers/import'),
                 icon: const Icon(Icons.download),

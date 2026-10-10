@@ -24,13 +24,16 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/computer_recorded_tank.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/computer_mix_note.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_dropdown_label.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
@@ -82,6 +85,11 @@ class TankEditor extends ConsumerStatefulWidget {
   /// the diver changes it or the dive is saved.
   final bool suggested;
 
+  /// The saved dive this tank belongs to, so a tank its dive computer
+  /// recorded can say which mix the computer logged and restore it (issue
+  /// #3021). Null while creating a dive, and in bulk edits.
+  final String? diveId;
+
   const TankEditor({
     super.key,
     required this.tank,
@@ -95,6 +103,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.tripCylinderStates,
     this.takenTripCylinderIds = const {},
     this.suggested = false,
+    this.diveId,
   });
 
   @override
@@ -445,6 +454,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // through edits; only consolidation/unlink flows may change them.
       computerId: widget.tank.computerId,
       transmitterSerial: widget.tank.transmitterSerial,
+      // Computer-owned like the two above: which download and parsed tank
+      // the row came from, so the computer-recorded mix note keeps reading
+      // the right one after an edit (issue #3021).
+      sourceId: widget.tank.sourceId,
+      sourceTankIndex: widget.tank.sourceTankIndex,
+      sharedComputerIds: widget.tank.sharedComputerIds,
       regulatorEquipmentId: _regulatorEquipmentId,
       // Only the trip cylinder picker changes the link; every other edit
       // carries it, or updateDive would wipe it on the next save.
@@ -736,6 +751,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             )
             .toList();
     final known = regs.any((r) => r.id == _regulatorEquipmentId);
+    // Labelled as one list, so regulators sharing a name show their ID and,
+    // if that is not enough, the next detail that differs (#1549, #3191).
+    final labels = equipmentRowLabelsOf(context, ref, regs);
     return DropdownButtonFormField<String?>(
       key: const Key('tank-regulator-picker'),
       initialValue: known ? _regulatorEquipmentId : null,
@@ -752,17 +770,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         for (final r in regs)
           DropdownMenuItem<String?>(
             value: r.id,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ServiceStatusIndicatorFor(
-                  equipmentId: r.id,
-                  density: ServiceIndicatorDensity.dot,
-                ),
-                const SizedBox(width: 6),
-                Flexible(child: Text(r.name, overflow: TextOverflow.ellipsis)),
-              ],
-            ),
+            child: EquipmentDropdownLabel(item: r, label: labels[r.id]),
           ),
       ],
       onChanged: (value) {
@@ -923,6 +931,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               ),
             ),
           ],
+        ),
+        ComputerMixNote(
+          diveId: widget.diveId,
+          tank: widget.tank,
+          currentMix: _currentGasMix(),
+          onRestore: _setGasMix,
         ),
       ],
     );
@@ -1303,10 +1317,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     TankMaterial? material,
     GasMix? mix,
   }) {
+    // A computer logged what this tank breathed; the cylinder's last fill
+    // does not replace it (issue #3021).
+    final fillMix = isComputerRecordedTank(widget.tank) ? null : mix;
     if (volumeL == null &&
         workingPressureBar == null &&
         material == null &&
-        mix == null) {
+        fillMix == null) {
       return false;
     }
     final settings = ref.read(settingsProvider);
@@ -1351,12 +1368,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         );
       }
       if (material != null) _material = material;
-      if (mix != null) {
+      if (fillMix != null) {
         _mndDriven = false;
-        _o2Controller.text = formatDecimalForInput(mix.o2);
-        _heController.text = formatDecimalForInput(mix.he);
-        _lastValidO2 = mix.o2;
-        _lastValidHe = mix.he;
+        _o2Controller.text = formatDecimalForInput(fillMix.o2);
+        _heController.text = formatDecimalForInput(fillMix.he);
+        _lastValidO2 = fillMix.o2;
+        _lastValidHe = fillMix.he;
       }
     });
     _notifyChange();
@@ -1398,13 +1415,17 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     }
   }
 
-  void _applyGasTemplate(GasTemplate template) {
+  void _applyGasTemplate(GasTemplate template) =>
+      _setGasMix(GasMix(o2: template.o2, he: template.he));
+
+  /// Puts [mix] in the O2/He fields and reports the tank.
+  void _setGasMix(GasMix mix) {
     _mndDriven = false;
     setState(() {
-      _o2Controller.text = formatDecimalForInput(template.o2);
-      _heController.text = formatDecimalForInput(template.he);
-      _lastValidO2 = template.o2;
-      _lastValidHe = template.he;
+      _o2Controller.text = formatDecimalForInput(mix.o2);
+      _heController.text = formatDecimalForInput(mix.he);
+      _lastValidO2 = mix.o2;
+      _lastValidHe = mix.he;
     });
     _notifyChange();
   }

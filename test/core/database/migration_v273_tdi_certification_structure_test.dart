@@ -214,11 +214,21 @@ void main() {
   test('v273 is at or below the current schema version and in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(273));
     expect(AppDatabase.migrationVersions, contains(273));
-    expect(AppDatabase.migrationStepCount(272), 1);
-    // The combined jump from 271: v272's relaxed assertion only pins a
-    // floor, so this is what actually pins the total at exactly two steps.
-    expect(AppDatabase.migrationStepCount(271), 2);
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // Relaxed once v274 and v275 landed on top; the newest rung owns the exact
+    // count. Relative to 273, so 272 and 273 still read one step each.
+    expect(
+      AppDatabase.migrationStepCount(272),
+      AppDatabase.migrationStepCount(273) + 1,
+    );
+    expect(
+      AppDatabase.migrationStepCount(271),
+      AppDatabase.migrationStepCount(273) + 2,
+    );
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('rewrites the eight unambiguous legacy TDI levels', () async {

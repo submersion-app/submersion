@@ -1,5 +1,8 @@
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
+/// The built-in row a reference's [ConflictReference.name] was read from.
+typedef ConflictBuiltInSource = ({String targetType, String id});
+
 /// A foreign-key column of a conflicting record, resolved to whatever
 /// real-world anchor the row it points at carries.
 ///
@@ -15,6 +18,7 @@ class ConflictReference {
     this.exists = true,
     this.name,
     this.timestamp,
+    this.builtInSource,
   });
 
   /// The column on the conflicting record, e.g. `diveId`.
@@ -32,6 +36,13 @@ class ConflictReference {
 
   /// The referenced row's date anchor, for entities dated rather than named.
   final DateTime? timestamp;
+
+  /// Set when [name] is the stored name of a built-in row (a dive type, a
+  /// role, a species a sighting borrows its name from). Built-ins are stored
+  /// in English, so the dialog translates them from this id the way the rest
+  /// of the app does, rather than showing [name] as is (#3026). Null for a
+  /// diver's own rows, whose stored name is what they typed.
+  final ConflictBuiltInSource? builtInSource;
 
   /// Whether the referenced row is in the local database. Tracked explicitly
   /// rather than inferred from [name] and [timestamp] being null: several
@@ -215,12 +226,14 @@ class ConflictReferenceResolver {
         exists: false,
       );
     }
+    final naming = _naming(targetType, row) ?? await _borrowedNaming(row);
     return ConflictReference(
       field: field,
       targetType: targetType,
       recordId: recordId,
-      name: _nameOf(row) ?? await _borrowedName(row),
+      name: naming?.name,
       timestamp: _timestampOf(row),
+      builtInSource: naming?.builtInSource,
     );
   }
 
@@ -228,7 +241,7 @@ class ConflictReferenceResolver {
   /// a sighting is only ever known by its species. Borrow those names here
   /// too. Exactly one hop: the borrowed row's name is read directly and never
   /// resolved further.
-  Future<String?> _borrowedName(Map<String, dynamic> row) async {
+  Future<_Naming?> _borrowedNaming(Map<String, dynamic> row) async {
     for (final borrow in const [
       (field: 'siteId', target: 'diveSites'),
       (field: 'speciesId', target: 'species'),
@@ -236,10 +249,23 @@ class ConflictReferenceResolver {
       final id = row[borrow.field];
       if (id is! String || id.isEmpty) continue;
       final parent = await _fetch(borrow.target, id);
-      final name = parent == null ? null : _nameOf(parent);
-      if (name != null) return name;
+      final naming = parent == null ? null : _naming(borrow.target, parent);
+      if (naming != null) return naming;
     }
     return null;
+  }
+
+  /// [row]'s name, and which built-in row it came from when [row] is one.
+  static _Naming? _naming(String targetType, Map<String, dynamic> row) {
+    final name = _nameOf(row);
+    if (name == null) return null;
+    final id = row['id'];
+    return (
+      name: name,
+      builtInSource: row['isBuiltIn'] == true && id is String
+          ? (targetType: targetType, id: id)
+          : null,
+    );
   }
 
   Future<Map<String, dynamic>?> _fetch(String targetType, String id) async {
@@ -264,3 +290,5 @@ class ConflictReferenceResolver {
     return null;
   }
 }
+
+typedef _Naming = ({String name, ConflictBuiltInSource? builtInSource});

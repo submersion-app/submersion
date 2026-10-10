@@ -10,7 +10,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_dropdown_label.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/services/session_item_composer.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
@@ -178,8 +179,13 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
       ...options,
       if (chosen != null && !options.any((e) => e.id == chosen.id)) chosen,
     ];
+    // Labelled as one list, so devices sharing a name show their ID (#3191).
+    final labels = equipmentRowLabelsOf(context, ref, listed);
     return DropdownButtonFormField<EquipmentItem?>(
       initialValue: chosen,
+      // Bounds the label's width, so a long name and details ellipsize
+      // instead of overflowing the sheet.
+      isExpanded: true,
       decoration: InputDecoration(labelText: item.title),
       items: [
         DropdownMenuItem<EquipmentItem?>(
@@ -189,17 +195,7 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
         for (final e in listed)
           DropdownMenuItem<EquipmentItem?>(
             value: e.id == chosen?.id ? chosen : e,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ServiceStatusIndicatorFor(
-                  equipmentId: e.id,
-                  density: ServiceIndicatorDensity.dot,
-                ),
-                const SizedBox(width: 6),
-                Flexible(child: Text(e.name, overflow: TextOverflow.ellipsis)),
-              ],
-            ),
+            child: EquipmentDropdownLabel(item: e, label: labels[e.id]),
           ),
       ],
       onChanged: (e) => setState(() => _equipmentByItemId[item.id] = e),

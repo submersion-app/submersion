@@ -10,9 +10,15 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// It holds the preferences for how incoming dive data is interpreted:
 /// how closely a dive must sit to a site before site matching proposes it
 /// (used wherever dives are matched to sites: after an import, from the GPS
-/// logger, from a photo import and from a dive's suggestion card), and
-/// whether cylinder end pressure is read at the moment of surfacing (applied
-/// on dive computer downloads, file imports and reparses).
+/// logger, from a photo import and from a dive's suggestion card), whether
+/// cylinder end pressure is read at the moment of surfacing (applied on dive
+/// computer downloads, file imports and reparses), and whether every new
+/// import session starts with a tag naming its source and date (issue #998;
+/// moved here from Settings > Manage > Tags in issue #3193).
+///
+/// The auto-tag switch is only the starting point for a new session: the
+/// import wizard's Import Options sheet overrides it for a single import
+/// without touching this default.
 class ImportPreferencesCard extends ConsumerWidget {
   const ImportPreferencesCard({super.key});
 
@@ -23,6 +29,9 @@ class ImportPreferencesCard extends ConsumerWidget {
     );
     final trimAtSurfacing = ref.watch(
       settingsProvider.select((s) => s.trimTankPressureAtSurfacing),
+    );
+    final autoTagImports = ref.watch(
+      settingsProvider.select((s) => s.autoTagImports),
     );
 
     return Card(
@@ -69,6 +78,15 @@ class ImportPreferencesCard extends ConsumerWidget {
             onChanged: (value) => ref
                 .read(settingsProvider.notifier)
                 .setTrimTankPressureAtSurfacing(value),
+          ),
+          const Divider(height: 1),
+          SwitchListTile(
+            secondary: const Icon(Icons.label_outline),
+            title: Text(context.l10n.settings_autoTagImports_title),
+            subtitle: Text(context.l10n.settings_autoTagImports_subtitle),
+            value: autoTagImports,
+            onChanged: (value) =>
+                ref.read(settingsProvider.notifier).setAutoTagImports(value),
           ),
         ],
       ),

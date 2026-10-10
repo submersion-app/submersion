@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
 
 /// Fullscreen mode for a media viewer page (#1087): the page hides its own
 /// overlays while [isFullscreen] is on, and this mixin asks the app shell to
-/// hide its navigation too.
+/// hide its navigation too. On desktop, with the Fullscreen setting, the
+/// window goes into OS fullscreen as well (#3178).
 ///
 /// A tap reveals the exit controls ([fullscreenControlsVisible]), which go
 /// again after [fullscreenControlsTimeout]. Fullscreen is never persisted,
@@ -24,6 +27,10 @@ mixin MediaFullscreenMixin<T extends StatefulWidget> on State<T> {
   /// root navigator), where there is no shell chrome to hide.
   ShellChromeController? _shellChrome;
 
+  /// Cached for the same reason as [_shellChrome]: dispose must still be
+  /// able to hand the window back.
+  ViewerWindowFullscreen? _windowFullscreen;
+
   bool get isFullscreen => _isFullscreen;
 
   /// Whether a tap has revealed the exit button (and, on a video, its
@@ -39,6 +46,10 @@ mixin MediaFullscreenMixin<T extends StatefulWidget> on State<T> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _shellChrome = ShellChromeScope.maybeOf(context);
+    _windowFullscreen = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(viewerWindowFullscreenProvider);
   }
 
   @override
@@ -46,6 +57,7 @@ mixin MediaFullscreenMixin<T extends StatefulWidget> on State<T> {
     _controlsTimer?.cancel();
     // A viewer closed while fullscreen (swipe-down) gives the chrome back.
     _shellChrome?.releaseHidden(this);
+    _windowFullscreen?.exit(this);
     super.dispose();
   }
 
@@ -55,6 +67,7 @@ mixin MediaFullscreenMixin<T extends StatefulWidget> on State<T> {
       _controlsVisible = false;
     });
     _shellChrome?.requestHidden(this);
+    _windowFullscreen?.enter(this);
   }
 
   void exitFullscreen() {
@@ -65,6 +78,7 @@ mixin MediaFullscreenMixin<T extends StatefulWidget> on State<T> {
       onExitFullscreen();
     });
     _shellChrome?.releaseHidden(this);
+    _windowFullscreen?.exit(this);
   }
 
   /// Shows the fullscreen controls; with [autoHide] they go again after

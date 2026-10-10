@@ -8,6 +8,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/features/tank_presets/presentation/widgets/default_start_pressure_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/shared/widgets/built_in_show_column.dart';
@@ -77,6 +78,7 @@ class TankPresetsPage extends ConsumerWidget {
                       .setApplyDefaultTankToImports(value);
                 },
               ),
+              const DefaultStartPressureTile(),
               const Divider(),
               if (customPresets.isNotEmpty) ...[
                 _buildSectionHeader(

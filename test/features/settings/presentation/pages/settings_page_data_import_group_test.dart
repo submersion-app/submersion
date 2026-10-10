@@ -1,7 +1,8 @@
-// Issue #2779: the two import preferences (auto site matching and tank
+// Issue #2779: the import preferences (auto site matching and tank
 // pressure at surfacing) live in their own "Import" group on Settings > Data,
 // between Storage and Data Tools, instead of as loose cards above the first
-// header.
+// header. Issue #3193 moved the auto-tag imports switch into the same group
+// from Settings > Manage > Tags.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,14 +69,20 @@ void main() {
     expect(topOf(tester, 'Import'), lessThan(topOf(tester, 'Data Tools')));
   });
 
-  testWidgets('both import options sit inside the Import group', (
+  const importOptions = [
+    'Auto site matching',
+    'Tank pressure at surfacing',
+    'Tag imports automatically',
+  ];
+
+  testWidgets('every import option sits inside the Import group', (
     tester,
   ) async {
     await pumpDataSection(tester);
 
     final importTop = topOf(tester, 'Import');
     final dataToolsTop = topOf(tester, 'Data Tools');
-    for (final option in ['Auto site matching', 'Tank pressure at surfacing']) {
+    for (final option in importOptions) {
       expect(topOf(tester, option), greaterThan(importTop), reason: option);
       expect(topOf(tester, option), lessThan(dataToolsTop), reason: option);
     }
@@ -108,13 +115,13 @@ void main() {
     }
   });
 
-  testWidgets('the two options share one card', (tester) async {
+  testWidgets('the import options share one card', (tester) async {
     await pumpDataSection(tester);
 
-    expect(
-      cardOf(tester, 'Auto site matching'),
-      same(cardOf(tester, 'Tank pressure at surfacing')),
-    );
+    final card = cardOf(tester, importOptions.first);
+    for (final option in importOptions.skip(1)) {
+      expect(cardOf(tester, option), same(card), reason: option);
+    }
   });
 
   testWidgets('choosing a site matching level records the preference', (

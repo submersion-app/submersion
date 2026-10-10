@@ -357,6 +357,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // fields but must never trigger mirroring.
   bool _exitMethodLinked = true;
   WaterType? _waterType;
+
+  /// True while [_waterType] is the loaded site's water type standing in for
+  /// a dive that has none of its own (issue #3196). A site change then starts
+  /// from no water type, so the old site's value is never saved as the dive's.
+  bool _waterTypeFromSite = false;
   final _swellHeightController = TextEditingController();
 
   /// Measured visibility, entered in the diver's depth unit and converted to
@@ -607,7 +612,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         id: _uuid.v4(),
         volume: _defaultPreset?.volumeLiters ?? settings.defaultTankVolume,
         workingPressure: _defaultPreset?.workingPressureBar,
-        startPressure: settings.defaultStartPressure.toDouble(),
+        startPressure: settings.defaultStartPressure,
         endPressure: 50.0,
         gasMix: const GasMix(),
         role: TankRole.backGas,
@@ -858,6 +863,63 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
+  /// Seeds the fields a dive takes from its primary data source: entry and
+  /// exit, bottom time, runtime and water temperature. Call inside setState.
+  void _seedSourceFields(Dive dive, UnitFormatter units) {
+    // A refresh reseeds a form that already holds the previous primary's
+    // values, so clear what the branches below may leave unset.
+    _exitDate = null;
+    _exitTime = null;
+    _durationController.text = '';
+    _runtimeController.text = '';
+    // Use entryTime if available, otherwise fall back to dateTime
+    final entryDateTime = dive.entryTime ?? dive.dateTime;
+    _entryDate = entryDateTime;
+    _entryTime = TimeOfDay.fromDateTime(entryDateTime);
+    // Set exit time if available
+    if (dive.exitTime != null) {
+      _exitDate = dive.exitTime;
+      _exitTime = TimeOfDay.fromDateTime(dive.exitTime!);
+    } else if (dive.bottomTime != null) {
+      // Calculate exit time from entry + bottomTime
+      final exitDateTime = entryDateTime.add(dive.bottomTime!);
+      _exitDate = exitDateTime;
+      _exitTime = TimeOfDay.fromDateTime(exitDateTime);
+    }
+    // Bottom time (stored bottomTime, or auto-calculated from profile)
+    if (dive.bottomTime != null) {
+      _durationController.text = _seedInt(dive.bottomTime!.inMinutes);
+    } else if (dive.profile.isNotEmpty) {
+      // Auto-calculate from profile if no stored duration
+      final calculatedBottomTime = dive.calculateBottomTimeFromProfile();
+      if (calculatedBottomTime != null) {
+        _durationController.text = _seedInt(calculatedBottomTime.inMinutes);
+      }
+    }
+    // Runtime: use stored value, or calculate from entry/exit times
+    if (dive.runtime != null) {
+      _runtimeController.text = _seedInt(dive.runtime!.inMinutes);
+    } else if (dive.entryTime != null && dive.exitTime != null) {
+      final calculatedRuntime = dive.exitTime!.difference(dive.entryTime!);
+      _runtimeController.text = _seedInt(calculatedRuntime.inMinutes);
+    }
+    _waterTempController.text = dive.waterTemp != null
+        ? _seedDecimal(units.convertTemperature(dive.waterTemp!), 0)
+        : '';
+  }
+
+  /// Seeds the depth fields, which a saved profile edit recomputes. Call
+  /// inside setState.
+  void _seedDepthFields(Dive dive, UnitFormatter units) {
+    // Convert stored metric values to user's preferred units
+    _maxDepthController.text = dive.maxDepth != null
+        ? _seedDecimal(units.convertDepth(dive.maxDepth!), 1)
+        : '';
+    _avgDepthController.text = dive.avgDepth != null
+        ? _seedDecimal(units.convertDepth(dive.avgDepth!), 1)
+        : '';
+  }
+
   Future<void> _loadExistingDive() async {
     setState(() => _isLoading = true);
     try {
@@ -889,51 +951,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _diveNumberController.text = dive.diveNumber != null
               ? _seedInt(dive.diveNumber!)
               : '';
-          // Use entryTime if available, otherwise fall back to dateTime
-          final entryDateTime = dive.entryTime ?? dive.dateTime;
-          _entryDate = entryDateTime;
-          _entryTime = TimeOfDay.fromDateTime(entryDateTime);
-          // Set exit time if available
-          if (dive.exitTime != null) {
-            _exitDate = dive.exitTime;
-            _exitTime = TimeOfDay.fromDateTime(dive.exitTime!);
-          } else if (dive.bottomTime != null) {
-            // Calculate exit time from entry + bottomTime
-            final exitDateTime = entryDateTime.add(dive.bottomTime!);
-            _exitDate = exitDateTime;
-            _exitTime = TimeOfDay.fromDateTime(exitDateTime);
-          }
-          // Bottom time (stored bottomTime, or auto-calculated from profile)
-          if (dive.bottomTime != null) {
-            _durationController.text = _seedInt(dive.bottomTime!.inMinutes);
-          } else if (dive.profile.isNotEmpty) {
-            // Auto-calculate from profile if no stored duration
-            final calculatedBottomTime = dive.calculateBottomTimeFromProfile();
-            if (calculatedBottomTime != null) {
-              _durationController.text = _seedInt(
-                calculatedBottomTime.inMinutes,
-              );
-            }
-          }
-          // Runtime: use stored value, or calculate from entry/exit times
-          if (dive.runtime != null) {
-            _runtimeController.text = _seedInt(dive.runtime!.inMinutes);
-          } else if (dive.entryTime != null && dive.exitTime != null) {
-            final calculatedRuntime = dive.exitTime!.difference(
-              dive.entryTime!,
-            );
-            _runtimeController.text = _seedInt(calculatedRuntime.inMinutes);
-          }
-          // Convert stored metric values to user's preferred units
-          _maxDepthController.text = dive.maxDepth != null
-              ? _seedDecimal(units.convertDepth(dive.maxDepth!), 1)
-              : '';
-          _avgDepthController.text = dive.avgDepth != null
-              ? _seedDecimal(units.convertDepth(dive.avgDepth!), 1)
-              : '';
-          _waterTempController.text = dive.waterTemp != null
-              ? _seedDecimal(units.convertTemperature(dive.waterTemp!), 0)
-              : '';
+          _seedSourceFields(dive, units);
+          _seedDepthFields(dive, units);
           _airTempController.text = dive.airTemp != null
               ? _seedDecimal(units.convertTemperature(dive.airTemp!), 0)
               : '';
@@ -972,7 +991,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _exitMethod = dive.exitMethod;
           _exitMethodLinked =
               _exitMethod == null || _exitMethod == _entryMethod;
-          _waterType = dive.waterType;
+          // A dive with no water type of its own shows its site's, as the
+          // detail page does; saving then stores it (issue #3196).
+          _waterType = dive.effectiveWaterType;
+          _waterTypeFromSite = dive.waterType == null && _waterType != null;
           _swellHeightController.text = dive.swellHeight != null
               ? _seedDecimal(units.convertDepth(dive.swellHeight!), 1)
               : '';
@@ -2003,7 +2025,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               value: _waterType,
               options: WaterType.values,
               label: (v) => v.localizedName(context.l10n),
-              onChanged: (v) => setState(() => _waterType = v),
+              onChanged: (v) => setState(() {
+                _waterType = v;
+                _waterTypeFromSite = false;
+              }),
             ),
           ),
         ),
@@ -2764,7 +2789,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// saved values.
   void _assignSite(DiveSite? site) {
     _selectedSite = site;
-    _waterType = waterTypeAfterSiteAssign(_waterType, site);
+    _waterType = waterTypeAfterSiteAssign(
+      _waterTypeFromSite ? null : _waterType,
+      site,
+    );
+    _waterTypeFromSite = false;
     final entryExit = entryExitAfterSiteAssign(
       currentEntry: _entryMethod,
       currentExit: _exitMethod,
@@ -3289,46 +3318,64 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     },
   );
 
-  /// Opens the profile editor, optionally prompting the user to choose which
-  /// computer's profile to start from when the dive has multiple computers.
+  /// Opens the profile editor, first asking which source's profile to start
+  /// from when more than one source has samples of its own (issue #3066).
   Future<void> _openProfileEditor(String diveId, {String? initialMode}) async {
-    final readings = await ref.read(diveDataSourcesProvider(diveId).future);
+    final sources = await ref.read(diveDataSourcesProvider(diveId).future);
+    // Most dives have one source and can never offer a choice, so only a
+    // multi-source dive pays for hydrating every source's samples.
+    final startable = sources.length < 2
+        ? sources
+        : startableProfileSources(
+            sources,
+            await ref.read(sourceProfilesProvider(diveId).future),
+          );
+    if (!mounted) return;
 
-    // Filter to non-edited (original) sources only
-    final originalReadings = readings
-        .where((r) => r.computerId != null)
-        .toList();
-
-    if (originalReadings.length > 1 && mounted) {
-      // Multi-computer dive: ask which profile to start from
-      final selected = await showModalBottomSheet<DiveDataSource>(
+    // A single source needs no naming: the dive's profile is its own. With
+    // more, name the source even when it is the primary, since the dive's
+    // profile interleaves every source. Saving an edit of another source
+    // makes it primary.
+    DiveDataSource? chosen;
+    if (startable.length > 1) {
+      chosen = await showModalBottomSheet<DiveDataSource>(
         context: context,
-        builder: (context) =>
-            ComputerSourceSelectionSheet(readings: originalReadings),
+        builder: (context) => ComputerSourceSelectionSheet(readings: startable),
       );
-
-      if (selected == null || !mounted) return;
-
-      // Load the selected computer's profile points and push a pre-seeded
-      // editor.  We do this by passing the computerId as a query parameter
-      // so the router / page can load the correct source.
-      context.pushNamed(
-        'editProfile',
-        pathParameters: {'diveId': diveId},
-        queryParameters: {
-          'mode': ?initialMode,
-          'sourceComputerId': ?selected.computerId,
-        },
-      );
-    } else {
-      // Single-computer (or no readings): open editor directly
-      if (!mounted) return;
-      context.pushNamed(
-        'editProfile',
-        pathParameters: {'diveId': diveId},
-        queryParameters: {'mode': ?initialMode},
-      );
+      if (chosen == null || !mounted) return;
+    } else if (sources.length > 1 && startable.length == 1) {
+      // Only one source has samples, and it may not be the primary: the
+      // edit is that source's, not the sample-less primary's.
+      chosen = startable.single;
     }
+    final sourceId = chosen?.id;
+    final promotes = chosen != null && !chosen.isPrimary;
+
+    final saved = await context.pushNamed<bool>(
+      'editProfile',
+      pathParameters: {'diveId': diveId},
+      queryParameters: {'mode': ?initialMode, 'sourceId': ?sourceId},
+    );
+    if (saved == true && mounted) {
+      await _refreshAfterProfileSave(diveId, promoted: promotes);
+    }
+  }
+
+  /// A saved profile edit recomputed the dive's depths, and promoting another
+  /// source also replaced the fields taken from the primary source. Reload
+  /// them so saving this form does not write the old values back.
+  Future<void> _refreshAfterProfileSave(
+    String diveId, {
+    required bool promoted,
+  }) async {
+    final dive = await ref.read(diveRepositoryProvider).getDiveById(diveId);
+    if (dive == null || !mounted) return;
+    final units = UnitFormatter(ref.read(settingsProvider));
+    setState(() {
+      _existingDive = dive;
+      _seedDepthFields(dive, units);
+      if (promoted) _seedSourceFields(dive, units);
+    });
   }
 
   Widget _profileChild() {
@@ -3474,6 +3521,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               primarySourceId: primarySourceId,
             ),
             suggested: _suggestedTankIds.contains(_tanks[i].id),
+            // A saved dive's tanks can show the mix their computer logged.
+            diveId: _existingDive?.id,
             onChanged: (updatedTank) {
               final before = _tanks[i];
               setState(() {
@@ -3864,7 +3913,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           id: _uuid.v4(),
           volume: _defaultPreset?.volumeLiters ?? settings.defaultTankVolume,
           workingPressure: _defaultPreset?.workingPressureBar,
-          startPressure: settings.defaultStartPressure.toDouble(),
+          startPressure: settings.defaultStartPressure,
           endPressure: 50.0,
           gasMix: const GasMix(),
           role: _tanks.isEmpty ? TankRole.backGas : TankRole.stage,
@@ -4837,7 +4886,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         value: _waterType,
         values: WaterType.values,
         displayName: (v) => v.localizedName(l10n),
-        onChanged: (v) => setState(() => _waterType = v),
+        onChanged: (v) => setState(() {
+          _waterType = v;
+          _waterTypeFromSite = false;
+        }),
       ),
       EnumPickerRow<CurrentDirection>(
         label: l10n.diveLog_edit_label_currentDirection,
@@ -5350,7 +5402,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ..addAll(
           last.tanksForNewDive(
             newId: _uuid.v4,
-            startPressure: settings.defaultStartPressure.toDouble(),
+            startPressure: settings.defaultStartPressure,
             endPressure: 50.0,
           ),
         );

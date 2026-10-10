@@ -181,4 +181,70 @@ void main() {
     expect(c.read(focusSelectionProvider).threshold, isNull);
     expect(find.text('Enter a number'), findsNothing);
   });
+
+  testWidgets('a units change re-renders the threshold in the new unit', (
+    tester,
+  ) async {
+    final c = await pump(tester);
+    c.read(focusSelectionProvider.notifier).state = const FocusSelection(
+      metric: FocusMetric.maxDepth,
+      mode: FocusMode.above,
+    );
+    await tester.pump();
+    final field = find.byKey(const ValueKey('focus-threshold-field'));
+    await tester.enterText(field, '30');
+    await tester.pump();
+    expect(c.read(focusSelectionProvider).threshold, 30);
+
+    await c.read(settingsProvider.notifier).setDepthUnit(DepthUnit.feet);
+    await tester.pump();
+
+    expect(tester.widget<TextField>(field).controller!.text, '98.43');
+    expect(c.read(focusSelectionProvider).threshold, 30);
+  });
+
+  testWidgets('a units change for another metric leaves the field alone', (
+    tester,
+  ) async {
+    final c = await pump(tester);
+    c.read(focusSelectionProvider.notifier).state = const FocusSelection(
+      metric: FocusMetric.maxDepth,
+      mode: FocusMode.above,
+    );
+    await tester.pump();
+    final field = find.byKey(const ValueKey('focus-threshold-field'));
+    // A half-typed entry must survive a settings change that does not
+    // touch this metric's unit.
+    await tester.enterText(field, '30.');
+    await tester.pump();
+
+    await c
+        .read(settingsProvider.notifier)
+        .setTemperatureUnit(TemperatureUnit.fahrenheit);
+    await tester.pump();
+
+    expect(tester.widget<TextField>(field).controller!.text, '30.');
+  });
+
+  testWidgets('a units change replaces an unreadable entry and its error', (
+    tester,
+  ) async {
+    final c = await pump(tester);
+    c.read(focusSelectionProvider.notifier).state = const FocusSelection(
+      metric: FocusMetric.maxDepth,
+      mode: FocusMode.above,
+      threshold: 30,
+    );
+    await tester.pump();
+    final field = find.byKey(const ValueKey('focus-threshold-field'));
+    await tester.enterText(field, 'abc');
+    await tester.pump();
+    expect(find.text('Enter a number'), findsOneWidget);
+
+    await c.read(settingsProvider.notifier).setDepthUnit(DepthUnit.feet);
+    await tester.pump();
+
+    expect(tester.widget<TextField>(field).controller!.text, '98.43');
+    expect(find.text('Enter a number'), findsNothing);
+  });
 }

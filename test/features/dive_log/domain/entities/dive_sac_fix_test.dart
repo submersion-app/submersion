@@ -209,11 +209,14 @@ void main() {
             startPressure: 200,
             endPressure: 100,
           ),
+          // A stage, so it has no matched partner to borrow a volume from
+          // (back-gas doubles on one gas would, #3109).
           DiveTank(
             id: 't2',
             name: 'No volume',
             startPressure: 200,
             endPressure: 150,
+            role: TankRole.stage,
           ),
         ],
       );

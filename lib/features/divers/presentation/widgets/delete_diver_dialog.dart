@@ -4,8 +4,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Confirmation dialog for diver deletion with type-to-confirm safety gate.
 ///
-/// The user must type "Delete {name}" (case-sensitive) before the destructive
-/// Delete button becomes enabled.
+/// The user must type the locale's confirmation phrase, its Delete label
+/// followed by the diver's name ("Delete {name}" in English, case-sensitive),
+/// before the destructive Delete button becomes enabled.
 class DeleteDiverDialog extends StatefulWidget {
   const DeleteDiverDialog({
     super.key,

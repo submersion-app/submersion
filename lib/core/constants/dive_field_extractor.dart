@@ -9,10 +9,11 @@ import 'package:submersion/features/dive_log/domain/services/dive_participant_na
 extension DiveFieldExtractor on DiveField {
   /// Extract the raw value for this field from a full [Dive] entity.
   ///
-  /// [DiveField.sac] yields bar/min from [Dive.sac] (one reference tank, no
-  /// volume needed); [DiveField.rmv] yields L/min from [Dive.rmvFor] under
-  /// [gasModel] (every tank with a volume). The two are separate columns, so
-  /// there is no unit preference to thread through here.
+  /// [DiveField.sac] yields bar/min from [Dive.sac] (in bar of one reference
+  /// tank, no volume needed for it); [DiveField.rmv] yields L/min from
+  /// [Dive.rmvFor] under [gasModel] (every tank with a volume). The two are
+  /// separate columns, so there is no unit preference to thread through
+  /// here.
   ///
   /// [diveTypeLabel] resolves a dive-type slug to its display label for
   /// [DiveField.diveTypeName]. On-screen callers pass the localizing resolver

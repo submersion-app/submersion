@@ -1,3 +1,5 @@
+import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
+
 /// The id the merge keys a record by: `id` for most entities, the natural
 /// key for the handful that have none. Must agree with the id
 /// `SyncDataSerializer.recordIdsFor` emits and
@@ -64,6 +66,10 @@ Map<String, dynamic> overlayOntoLocal(
   Map<String, dynamic>? local,
 ) {
   if (local == null) return remote;
+  // An older peer's legacy spelling is moved to the current name first, or
+  // the merged map would carry both and the apply-path rename would keep the
+  // local value under the current name, dropping the peer's edit (#3025).
+  remote = withCurrentWireKeys(entityType, remote);
   final merged = {...local, ...remote};
   if (entityType == 'serviceSchedules' &&
       !remote.containsKey('anchorSetAt') &&

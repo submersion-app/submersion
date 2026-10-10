@@ -49,27 +49,27 @@ A new category tile labeled **"Overview"** (icon `Icons.dashboard_outlined`) is 
 | Sites Visited | `DiveStatistics.totalSites` | Integer |
 | Avg Water Temp | `DiveStatistics.avgTemperature` | `UnitFormatter.formatTemperature()`; hidden when null |
 
-**2. Distributions** — section titled "Distributions" containing two pie charts. Layout:
+**2. Distributions**: section titled "Distributions" containing one pie chart
+(depth) and two bar lists (depth buckets and dive types).
 
-- Phone or narrow detail pane (<600px): charts stacked vertically, Depth on top.
-- Wider (≥600px): charts side-by-side in a Row.
-
-Charts:
-
-- **Depth Distribution pie** — 14 fixed buckets, 0–10m through 130m+ (relabeled
+- **Depth Distribution pie**: 14 fixed buckets, 0-10m through 130m+ (relabeled
   to feet for imperial units). Source: `DiveStatistics.depthDistribution`.
   Legend: bucket label, dive count, capped at the first 6 occupied buckets.
-- **Dive Types pie** — buckets derived from each dive's type id(s). Source:
-  `diveTypeDistributionProvider` (memoized on `allDivesProvider`). Legend:
-  type label, percentage inside the slice.
+  Each dive falls in exactly one bucket, so the slices are true shares.
 
-Below each pie, a bar row per occupied bucket/type (issue #3074): bar length
-proportional to its count among the occupied buckets/types (with a minimum
-visible width so a bucket with very few dives next to a much larger one
-doesn't vanish), colored with the same palette entry as its pie slice, and
-the same "N dives • Xh Ym" trailing text the pie's own legend doesn't have
-room for. Unlike the legend, this list is never capped -- every occupied
-bucket/type gets a row (issue #641 follow-up).
+Below the pie, a bar row per occupied depth bucket (issue #3074), then a bar
+row per dive type: bar length proportional to its count among the occupied
+buckets/types (with a minimum visible width so a bucket with very few dives
+next to a much larger one doesn't vanish), and the same "N dives • Xh Ym"
+trailing text the pie's own legend doesn't have room for. Depth bars use the
+same palette entry as their pie slice. Unlike the legend, these lists are
+never capped: every occupied bucket/type gets a row (issue #641 follow-up).
+
+Dive types have no pie (issue #3048). Source: `diveTypeDistributionProvider`.
+A dive can carry several types and counts once under each, so the per-type
+counts sum to more than the number of dives and pie slices would not be
+shares of anything. The Gas page's gas-mix chart is a bar chart for the same
+reason: a dive breathing more than one mix counts under each.
 
 Hidden entirely when `totalDives == 0`.
 
@@ -179,7 +179,7 @@ final diveTypeDistributionProvider = FutureProvider<List<DiveTypeCount>>((ref) a
 - **Loading (first resolve):** single centered `CircularProgressIndicator`. No skeleton — SQLite queries are typically <100ms.
 - **Re-resolve (dive mutation triggers invalidation):** no full-page spinner; each section keeps previous data and updates in place when its provider emits. Avoids visible jumps on routine saves.
 - **`diveStatisticsProvider` error:** full-page error card with icon, message "Couldn't load statistics", and a "Try again" button that calls `ref.invalidate(diveStatisticsProvider)`.
-- **Per-section errors:** Personal Records or Distributions sections each render an inline error row and leave the rest of the page working. The depth-distribution pie can still render if it came through `diveStatisticsProvider` successfully even when `diveTypeDistributionProvider` failed.
+- **Per-section errors:** Personal Records or Distributions sections each render an inline error row and leave the rest of the page working. The depth pie and depth bars can still render if they came through `diveStatisticsProvider` successfully even when `diveTypeDistributionProvider` failed; the dive-type bar list then shows the inline error instead.
 - **Empty state:** guarded on `AsyncValue.data`, never on `loading`, to avoid race-condition flashes.
 
 ## Testing Strategy

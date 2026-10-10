@@ -15,8 +15,10 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -730,6 +732,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
       if (upcoming.isNotEmpty && past.isNotEmpty) _SectionHeader.past,
       ...past,
     ];
+    final tripsById = {for (final t in trips) t.trip.id: t.trip};
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -739,78 +742,108 @@ class _TripListContentState extends ConsumerState<TripListContent> {
         children: [
           if (hasActiveFilters) _buildActiveFiltersBar(context, ref),
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.only(bottom: 80),
-              itemCount: rows.length,
-              itemBuilder: (context, index) {
-                final row = rows[index];
-                if (row is _SectionHeader) {
-                  return Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                    child: Text(
-                      row == _SectionHeader.upcoming
-                          ? context.l10n.trips_list_upcomingSection
-                          : context.l10n.trips_list_pastSection,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+            child: KeyboardListNavigator(
+              keys: [
+                for (final row in rows)
+                  if (row is TripWithStats) row.trip.id,
+              ],
+              currentKey:
+                  widget.selectedId ?? ref.watch(highlightedTripIdProvider),
+              onMove: (id) => moveListCursor(
+                context,
+                canOpen: !_isSelectionMode && widget.onItemSelected != null,
+                open: () => _handleRowTap(tripsById[id]!),
+                highlight: () =>
+                    ref.read(highlightedTripIdProvider.notifier).state = id,
+              ),
+              onActivate: (id) => _handleRowTap(tripsById[id]!),
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.only(bottom: 80),
+                itemCount: rows.length,
+                itemBuilder: (context, index) {
+                  final row = rows[index];
+                  if (row is _SectionHeader) {
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                      child: Text(
+                        row == _SectionHeader.upcoming
+                            ? context.l10n.trips_list_upcomingSection
+                            : context.l10n.trips_list_pastSection,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
+                    );
+                  }
+                  final tripWithStats = row as TripWithStats;
+                  final isSelected =
+                      widget.selectedId == tripWithStats.trip.id ||
+                      ref.watch(highlightedTripIdProvider) ==
+                          tripWithStats.trip.id;
+                  final viewMode = ref.watch(tripListViewModeProvider);
+                  final showSharedBadge =
+                      tripWithStats.trip.isShared && diversCount >= 2;
+                  final isChecked = _selectedIds.contains(
+                    tripWithStats.trip.id,
                   );
-                }
-                final tripWithStats = row as TripWithStats;
-                final isSelected =
-                    widget.selectedId == tripWithStats.trip.id ||
-                    ref.watch(highlightedTripIdProvider) ==
-                        tripWithStats.trip.id;
-                final viewMode = ref.watch(tripListViewModeProvider);
-                final showSharedBadge =
-                    tripWithStats.trip.isShared && diversCount >= 2;
-                final isChecked = _selectedIds.contains(tripWithStats.trip.id);
-                void onCheckChanged(bool _) =>
-                    _selection.toggle(tripWithStats.trip.id);
-                final selectableTile = switch (viewMode) {
-                  ListViewMode.detailed => TripListTile(
-                    tripWithStats: tripWithStats,
-                    isSelected: isSelected,
-                    onTap: () => _handleRowTap(tripWithStats.trip),
-                    showSharedBadge: showSharedBadge,
-                    isSelectionMode: _isSelectionMode,
-                    isChecked: isChecked,
-                    onCheckChanged: onCheckChanged,
-                  ),
-                  ListViewMode.compact => CompactTripListTile(
-                    tripWithStats: tripWithStats,
-                    isSelected: isSelected,
-                    onTap: () => _handleRowTap(tripWithStats.trip),
-                    showSharedBadge: showSharedBadge,
-                    isSelectionMode: _isSelectionMode,
-                    isChecked: isChecked,
-                    onCheckChanged: onCheckChanged,
-                  ),
-                  ListViewMode.dense || ListViewMode.table => DenseTripListTile(
-                    tripWithStats: tripWithStats,
-                    isSelected: isSelected,
-                    onTap: () => _handleRowTap(tripWithStats.trip),
-                    showSharedBadge: showSharedBadge,
-                    isSelectionMode: _isSelectionMode,
-                    isChecked: isChecked,
-                    onCheckChanged: onCheckChanged,
-                  ),
-                };
-                if (!tripWithStats.trip.isUpcoming) return selectableTile;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-                      child: UpcomingTripBanner(trip: tripWithStats.trip),
+                  void onCheckChanged(bool _) =>
+                      _selection.toggle(tripWithStats.trip.id);
+                  final selectableTile = switch (viewMode) {
+                    ListViewMode.detailed => TripListTile(
+                      tripWithStats: tripWithStats,
+                      isSelected: isSelected,
+                      onTap: () => _handleRowTap(tripWithStats.trip),
+                      showSharedBadge: showSharedBadge,
+                      isSelectionMode: _isSelectionMode,
+                      isChecked: isChecked,
+                      onCheckChanged: onCheckChanged,
                     ),
-                    selectableTile,
-                  ],
-                );
-              },
+                    ListViewMode.compact => CompactTripListTile(
+                      tripWithStats: tripWithStats,
+                      isSelected: isSelected,
+                      onTap: () => _handleRowTap(tripWithStats.trip),
+                      showSharedBadge: showSharedBadge,
+                      isSelectionMode: _isSelectionMode,
+                      isChecked: isChecked,
+                      onCheckChanged: onCheckChanged,
+                    ),
+                    ListViewMode.dense ||
+                    ListViewMode.table => DenseTripListTile(
+                      tripWithStats: tripWithStats,
+                      isSelected: isSelected,
+                      onTap: () => _handleRowTap(tripWithStats.trip),
+                      showSharedBadge: showSharedBadge,
+                      isSelectionMode: _isSelectionMode,
+                      isChecked: isChecked,
+                      onCheckChanged: onCheckChanged,
+                    ),
+                  };
+                  return KeyboardListItem(
+                    navigationKey: tripWithStats.trip.id,
+                    child: !tripWithStats.trip.isUpcoming
+                        ? selectableTile
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  4,
+                                  20,
+                                  0,
+                                ),
+                                child: UpcomingTripBanner(
+                                  trip: tripWithStats.trip,
+                                ),
+                              ),
+                              selectableTile,
+                            ],
+                          ),
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -874,19 +907,23 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () {
-              if (ResponsiveBreakpoints.isMasterDetail(context)) {
-                final routerState = GoRouterState.of(context);
-                context.go('${routerState.uri.path}?mode=new');
-              } else {
-                context.push('/trips/new');
-              }
-            },
-            icon: const Icon(Icons.add),
-            label: Text(context.l10n.trips_list_empty_button),
-          ),
+          // Hidden beside an open form: it reads as the form's submit button
+          // but only reopens the create form (issue #3192).
+          if (!MasterDetailFormScope.isFormOpenOf(context)) ...[
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () {
+                if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                  final routerState = GoRouterState.of(context);
+                  context.go('${routerState.uri.path}?mode=new');
+                } else {
+                  context.push('/trips/new');
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: Text(context.l10n.trips_list_empty_button),
+            ),
+          ],
         ],
       ),
     );

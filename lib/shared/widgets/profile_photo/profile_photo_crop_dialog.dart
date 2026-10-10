@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_photo_crop_geometry.dart';
 
 /// Shows the pan and zoom crop surface and returns the encoded 512x512 JPEG,
@@ -169,7 +170,10 @@ class _ProfilePhotoCropDialogState extends State<_ProfilePhotoCropDialog> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.profilePhoto_crop_title),
+          // A stock TextButton paints in primary, Tropical light's app bar
+          // fill, which hid the only way out.
           leading: TextButton(
+            style: AppBarTabColors.of(Theme.of(context)).textButtonStyle,
             onPressed: _busy ? null : () => Navigator.of(context).pop(),
             child: Text(l10n.common_action_cancel),
           ),

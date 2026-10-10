@@ -29,7 +29,11 @@ void main() {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(250));
     expect(AppDatabase.migrationVersions, contains(250));
     expect(AppDatabase.migrationStepCount(249), greaterThanOrEqualTo(1));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('upgrading from v249 creates both tables', () async {

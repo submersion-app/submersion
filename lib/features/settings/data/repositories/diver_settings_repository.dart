@@ -250,6 +250,7 @@ class DiverSettingsRepository {
               ascentGasSet: Value(s.ascentGasSet.index),
               o2Narcotic: Value(s.o2Narcotic),
               endLimit: Value(s.endLimit),
+              icdWarningsEnabled: Value(s.icdWarningsEnabled),
               defaultNdlSource: Value(s.defaultNdlSource.toInt()),
               defaultDecoStopSource: Value(s.defaultDecoStopSource.toInt()),
               defaultTtsSource: Value(s.defaultTtsSource.toInt()),
@@ -342,6 +343,9 @@ class DiverSettingsRepository {
                 SiteDetailSectionConfig.sectionsToJson(s.siteDetailSections),
               ),
               siteDetailLayout: Value(s.siteDetailLayout.name),
+              hasAcceptedPlanningDisclaimer: Value(
+                s.hasAcceptedPlanningDisclaimer,
+              ),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -540,6 +544,7 @@ class DiverSettingsRepository {
     ascentGasSet: Value(settings.ascentGasSet.index),
     o2Narcotic: Value(settings.o2Narcotic),
     endLimit: Value(settings.endLimit),
+    icdWarningsEnabled: Value(settings.icdWarningsEnabled),
     defaultNdlSource: Value(settings.defaultNdlSource.toInt()),
     defaultDecoStopSource: Value(settings.defaultDecoStopSource.toInt()),
     defaultTtsSource: Value(settings.defaultTtsSource.toInt()),
@@ -626,6 +631,9 @@ class DiverSettingsRepository {
       SiteDetailSectionConfig.sectionsToJson(settings.siteDetailSections),
     ),
     siteDetailLayout: Value(settings.siteDetailLayout.name),
+    hasAcceptedPlanningDisclaimer: Value(
+      settings.hasAcceptedPlanningDisclaimer,
+    ),
   );
 
   /// Get or create settings for a diver (ensures settings always exist)
@@ -754,6 +762,7 @@ class DiverSettingsRepository {
           : AscentGasSet.allCarried,
       o2Narcotic: row.o2Narcotic,
       endLimit: row.endLimit,
+      icdWarningsEnabled: row.icdWarningsEnabled,
       defaultNdlSource: MetricDataSource.fromInt(row.defaultNdlSource),
       defaultDecoStopSource: MetricDataSource.fromInt(
         row.defaultDecoStopSource,
@@ -844,6 +853,7 @@ class DiverSettingsRepository {
         row.siteDetailSections,
       ),
       siteDetailLayout: DiveDetailLayout.fromName(row.siteDetailLayout),
+      hasAcceptedPlanningDisclaimer: row.hasAcceptedPlanningDisclaimer,
     );
   }
 

@@ -95,6 +95,23 @@ void main() {
       expect(t.presetName, 'steel12');
     });
 
+    test('a tank the dive computer recorded keeps its mix (#3021)', () {
+      final recorded = air.copyWith(
+        gasMix: const GasMix(o2: 32),
+        computerId: 'dc1',
+        sourceTankIndex: 0,
+      );
+      final t = tankFromTripCylinder(
+        recorded,
+        filled(slot('r'), o2: 21, pressure: 210),
+      );
+      expect(t.tripCylinderId, 'r');
+      expect(t.gasMix, const GasMix(o2: 32));
+      // Everything else still fills from the slot.
+      expect(t.startPressure, 210);
+      expect(t.volume, 11.1);
+    });
+
     test('a slot with specs but no preset clears the tank\'s preset', () {
       final t = tankFromTripCylinder(air, filled(slot('c', presetName: null)));
       expect(t.volume, 11.1);

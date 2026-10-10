@@ -7,6 +7,7 @@ import 'package:submersion/features/gas_calculators/presentation/providers/gas_c
 import 'package:submersion/features/planning/presentation/widgets/planning_list_content.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
 /// The Gas Calculators list: the calculators, then the safety disclaimer.
 ///
@@ -48,23 +49,44 @@ class GasCalculatorsListContent extends ConsumerWidget {
       ),
     ];
 
-    final list = ListView(
-      children: [
-        const SizedBox(height: 8),
-        ...List.generate(tools.length * 2 - 1, (index) {
-          if (index.isOdd) return const Divider(height: 1);
-          final tool = tools[index ~/ 2];
-          return PlanningTile(
-            tool: tool,
-            selected: tool.id == selectedId,
-            onToolSelected: onToolSelected,
-          );
-        }),
-        const Divider(height: 1),
-        const SizedBox(height: 16),
-        const _Disclaimer(),
-        const SizedBox(height: 16),
-      ],
+    final list = KeyboardListNavigator(
+      keys: [for (final tool in tools) tool.id],
+      currentKey: selectedId,
+      onMove: (id) {
+        final tool = tools.firstWhere((t) => t.id == id);
+        moveListCursor(
+          context,
+          canOpen: !tool.isFullPage && onToolSelected != null,
+          open: () => onToolSelected!(id),
+          highlight: () {},
+        );
+      },
+      onActivate: (id) => PlanningTile.select(
+        context,
+        tools.firstWhere((t) => t.id == id),
+        onToolSelected,
+      ),
+      child: ListView(
+        children: [
+          const SizedBox(height: 8),
+          ...List.generate(tools.length * 2 - 1, (index) {
+            if (index.isOdd) return const Divider(height: 1);
+            final tool = tools[index ~/ 2];
+            return KeyboardListItem(
+              navigationKey: tool.id,
+              child: PlanningTile(
+                tool: tool,
+                selected: tool.id == selectedId,
+                onToolSelected: onToolSelected,
+              ),
+            );
+          }),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          const _Disclaimer(),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
 
     if (!showAppBar) {

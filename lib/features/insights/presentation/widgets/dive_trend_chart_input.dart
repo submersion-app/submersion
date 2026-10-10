@@ -35,7 +35,8 @@ class TrendChartInputLayer extends StatefulWidget {
   final Widget child;
 
   /// Fires once a navigation settles: pointer up after a pan or pinch, the
-  /// end of a trackpad gesture, and each wheel or arrow-key step.
+  /// end of a trackpad gesture, and each wheel or arrow-key step. Not called
+  /// when the viewport did not change.
   final VoidCallback? onNavigationEnd;
 
   @override
@@ -76,7 +77,11 @@ class _TrendChartInputLayerState extends State<TrendChartInputLayer> {
   /// Whether the viewport moved since navigation last settled.
   bool _navigated = false;
 
+  /// Emits [next] unless it shows the same window as the current viewport,
+  /// so a step clamped to a no-op (a wheel out at zoom 1, a pan past an
+  /// edge) does not rebuild the chart.
   void _emit(ChartViewport next) {
+    if (next.sameWindowAs(_current)) return;
     _current = next;
     _navigated = true;
     widget.onViewportChanged(next);

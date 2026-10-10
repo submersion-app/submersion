@@ -15,8 +15,10 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/core/utils/stream_value_changes.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -49,6 +51,7 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_series_owner.dart';
 import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
@@ -399,6 +402,36 @@ class DiveRepository {
       )
       .debounce(changeTickDebounce);
 
+  /// Emits when the water type of [diveId]'s site changes, the deco fallback
+  /// [getDiveForAnalysis] reads for a dive with none of its own (issue
+  /// #3196). Deliberately not part of [watchAnalysisInputChanges]: that tick
+  /// fans out to every analysis input provider, and `dive_sites` is written
+  /// in bulk (a sync, the altitude backfill after site matching). This query
+  /// re-reads one value on such a write and emits only when it changed.
+  ///
+  /// Built on table updates, not a query stream, which would emit on
+  /// subscribe (see test/architecture/query_stream_tick_test.dart). A change
+  /// of the dive's own site link already ticks through `dives`.
+  Stream<void> watchSiteWaterTypeChanges(String diveId) => whenValueChanges(
+    _db
+        .tableUpdates(TableUpdateQuery.onTable(_db.diveSites))
+        .debounce(changeTickDebounce),
+    () => _siteWaterTypeOf(diveId),
+  );
+
+  // stats-scope-exempt: reads one dive's site water type for its analysis
+  Future<String?> _siteWaterTypeOf(String diveId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT s.water_type AS water_type FROM dives d '
+          'JOIN dive_sites s ON s.id = d.site_id WHERE d.id = ?',
+          variables: [Variable.withString(diveId)],
+          readsFrom: {_db.dives, _db.diveSites},
+        )
+        .getSingleOrNull();
+    return row?.readNullable<String>('water_type');
+  }
+
   /// Get all dives, ordered by date (newest first)
   /// This method is optimized to avoid N+1 queries by batch loading related data
   /// Optionally filter by [diverId] for multi-diver support
@@ -631,14 +664,35 @@ class DiveRepository {
     }
   }
 
-  /// Sets (or clears, when [siteId] is null) only the site association of a
-  /// dive. Single-column update — does not rewrite the whole row.
+  /// Sets (or clears, when [siteId] is null) the site association of a dive,
+  /// and snaps the site's water type, entry/exit methods and dive types onto
+  /// it as the dive form's site picker does (issue #3196). A partial update:
+  /// only the site link and the columns the snap changes are written.
+  ///
+  /// Dive types are only added here. The form can take back what the previous
+  /// site added in the same edit; a link made outside the form has no record
+  /// of that, so it never removes a type.
   Future<void> setSite(String diveId, String? siteId) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-        DivesCompanion(siteId: Value(siteId), updatedAt: Value(now)),
-      );
+      await _db.transaction(() async {
+        final dive = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+        if (dive == null) return;
+        final siteRow = siteId == null
+            ? null
+            : await (_db.select(
+                _db.diveSites,
+              )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+          siteSnapColumns(
+            dive,
+            siteRow == null ? null : mapDiveSiteRow(siteRow),
+          ).copyWith(siteId: Value(siteId), updatedAt: Value(now)),
+        );
+        if (siteRow != null) await _addSiteDiveTypes(dive, siteRow.id, now);
+      });
       await _syncRepository.markRecordPending(
         entityType: 'dives',
         recordId: diveId,
@@ -1098,10 +1152,18 @@ class DiveRepository {
   ///
   /// Revision kind is persisted as `Edit: <editKind>` (for example
   /// `Edit: profile_editor` or `Edit: data_quality_repair`).
+  ///
+  /// [sourceId] names the data source the edit started from. When it is not
+  /// the dive's primary source, that source is promoted first, in the same
+  /// transaction, so the edit still belongs to the primary (issue #3066).
+  /// A [sourceId] that names no source of this dive (deleted since the
+  /// editor opened, or a stale deep link) throws [StateError] before
+  /// anything is written, rather than saving the edit to another source.
   Future<void> saveEditedProfileWithKind({
     required String diveId,
     required List<domain.DiveProfilePoint> editedPoints,
     required String editKind,
+    String? sourceId,
   }) async {
     try {
       _log.info('Saving edited profile for dive: $diveId');
@@ -1109,6 +1171,23 @@ class DiveRepository {
       final revisionKind = _composeEditRevisionKind(editKind);
 
       await _db.transaction(() async {
+        if (sourceId != null) {
+          final chosen =
+              await (_db.select(_db.diveDataSources)..where(
+                    (t) => t.id.equals(sourceId) & t.diveId.equals(diveId),
+                  ))
+                  .getSingleOrNull();
+          if (chosen == null) {
+            throw StateError('Dive $diveId has no data source $sourceId');
+          }
+          if (!chosen.isPrimary) {
+            await setPrimaryDataSource(
+              diveId: diveId,
+              computerReadingId: sourceId,
+            );
+          }
+        }
+
         // The edit belongs to whichever source is primary right now: it is a
         // correction of that source's samples, not a new source. Read the id
         // before the demote so setPrimaryDataSource can later promote the
@@ -1232,15 +1311,27 @@ class DiveRepository {
     final seenStrands = <String>{};
     final result = <DiveDataSourcesData>[];
     for (final row in rows) {
-      final strand = dataSourceStrandKey(
-        rowId: row.id,
-        computerId: row.computerId,
-        mergeSourceSlot: row.mergeSourceSlot,
-      );
-      if (seenStrands.add(strand)) result.add(row);
+      if (seenStrands.add(_strandOf(row))) result.add(row);
     }
     return result;
   }
+
+  static String _strandOf(DiveDataSourcesData row) => dataSourceStrandKey(
+    rowId: row.id,
+    computerId: row.computerId,
+    mergeSourceSlot: row.mergeSourceSlot,
+  );
+
+  /// Every source row of [diveId], primary first and then oldest: the order
+  /// [_canonicalDataSourceRows] needs to keep the shown row of each strand.
+  Future<List<DiveDataSourcesData>> _sourceRowsInShownOrder(String diveId) =>
+      (_db.select(_db.diveDataSources)
+            ..where((t) => t.diveId.equals(diveId))
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.isPrimary),
+              (t) => OrderingTerm.asc(t.createdAt),
+            ]))
+          .get();
 
   /// Get profile samples grouped by owning data source.
   ///
@@ -1260,13 +1351,7 @@ class DiveRepository {
     try {
       final series = await _profileSeries.getSeriesForDive(diveId);
       final sourceRows = _canonicalDataSourceRows(
-        await (_db.select(_db.diveDataSources)
-              ..where((t) => t.diveId.equals(diveId))
-              ..orderBy([
-                (t) => OrderingTerm.desc(t.isPrimary),
-                (t) => OrderingTerm.asc(t.createdAt),
-              ]))
-            .get(),
+        await _sourceRowsInShownOrder(diveId),
       );
       if (sourceRows.isEmpty) {
         // Dives with series but no dive_data_sources row (older imports
@@ -1324,7 +1409,13 @@ class DiveRepository {
             sourceId: s.id,
             computerId: s.computerId,
             isEdited: s.id == primary.id && primaryIsEdited,
-            points: mergeSeriesPoints(grouped[s.id]!),
+            // The primary's superseded originals were already dropped above;
+            // another source may still own an edit and its original.
+            points: mergeSeriesPoints(
+              s.id == primary.id
+                  ? grouped[s.id]!
+                  : liveSeriesOf(grouped[s.id]!),
+            ),
           ),
       };
     } catch (e, stackTrace) {
@@ -1429,19 +1520,83 @@ class DiveRepository {
   }
 
   /// Metadata-only profile history for [diveId], newest first.
-  Future<List<ProfileSeriesRevision>> getProfileHistory(String diveId) {
-    return _profileSeries.getRevisionsForDive(diveId);
+  ///
+  /// Each revision's `sourceId` names the source as [getDataSources] shows
+  /// it: a series whose own row collapsed into its strand's chip names the
+  /// row that speaks for the strand, so a caller matching revisions to the
+  /// shown sources finds the right one (issue #3067).
+  Future<List<ProfileSeriesRevision>> getProfileHistory(String diveId) async {
+    final revisions = await _profileSeries.getRevisionsForDive(diveId);
+    final shownIdByStrand = <String, String>{};
+    final shownIdByRow = <String, String>{
+      for (final row in await _sourceRowsInShownOrder(diveId))
+        row.id: shownIdByStrand.putIfAbsent(_strandOf(row), () => row.id),
+    };
+    return [
+      for (final revision in revisions)
+        switch (shownIdByRow[revision.sourceId]) {
+          final String shownId when shownId != revision.sourceId =>
+            revision.copyWith(sourceId: shownId),
+          _ => revision,
+        },
+    ];
   }
 
   /// Makes [seriesId] the active profile for [diveId] without copying blobs.
+  ///
+  /// A series that another data source owns makes that source primary too,
+  /// as "Set as primary" does, so the live profile and the primary source
+  /// never name two different computers (issue #3067).
   Future<void> setActiveProfileSeries(String diveId, String seriesId) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await _profileSeries.activateSeriesForDive(
-      diveId: diveId,
-      seriesId: seriesId,
-      now: now,
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db.transaction(() async {
+        final newPrimary = await _sourceToPromoteForSeries(diveId, seriesId);
+        if (newPrimary != null) {
+          await _makeDataSourcePrimary(diveId, newPrimary, now: now);
+        }
+        await _profileSeries.activateSeriesForDive(
+          diveId: diveId,
+          seriesId: seriesId,
+          now: now,
+        );
+      });
+      await _refreshDiveAfterProfileSwitch(diveId, now: now);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to activate profile series $seriesId for dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// The source row that must become primary for [seriesId] to go live, or
+  /// null when its owner already is primary, shares the primary's strand
+  /// (another segment of the same recording), or no source owns it.
+  Future<DiveDataSourcesData?> _sourceToPromoteForSeries(
+    String diveId,
+    String seriesId,
+  ) async {
+    final series =
+        await (_db.select(_db.diveProfileSeries)
+              ..where((t) => t.id.equals(seriesId) & t.diveId.equals(diveId)))
+            .getSingleOrNull();
+    if (series == null) return null;
+    final rows = await _sourceRowsInShownOrder(diveId);
+    final owner = owningDataSource(
+      sourceId: series.sourceId,
+      computerId: series.computerId,
+      sources: [for (final row in rows) _mapRowToDataSource(row)],
     );
-    await _refreshDiveAfterProfileSwitch(diveId, now: now);
+    if (owner == null || owner.isPrimary) return null;
+    final ownerRow = rows.firstWhere((row) => row.id == owner.id);
+    final primaryRow = rows.where((row) => row.isPrimary).firstOrNull;
+    if (primaryRow != null && _strandOf(primaryRow) == _strandOf(ownerRow)) {
+      return null;
+    }
+    return ownerRow;
   }
 
   /// Brings the dive in line with a profile that a restore or a revision
@@ -5598,6 +5753,13 @@ class DiveRepository {
     if (diveIds.isEmpty) return {};
 
     final byDive = await _profileSeries.getSeriesForDives(diveIds);
+    final needsHistory = [
+      for (final entry in byDive.entries)
+        if (entry.value.any((s) => !s.isPrimary)) entry.key,
+    ];
+    final revisionsByDive = needsHistory.isEmpty
+        ? const <String, List<ProfileSeriesRevision>>{}
+        : await _profileSeries.getRevisionsForDives(needsHistory);
 
     // The primary-source read is the only SQL the per-dive merge performs, and
     // only for mixed-source dives. Batching it here keeps the loop below free
@@ -5610,11 +5772,19 @@ class DiveRepository {
 
     final result = <String, List<domain.DiveProfilePoint>>{};
     for (final entry in byDive.entries) {
+      final hiddenRevisionIds = {
+        for (final revision in revisionsByDive[entry.key] ?? const [])
+          if (revision.parentSeriesId != null && !revision.isActive)
+            revision.seriesId,
+      };
       // Absent for a dive that never needed the lookup, which resolves the
       // same way the single-dive path does when it skips the query.
       final primary = primaries[entry.key];
       final points = _mergePoints(
-        entry.value,
+        [
+          for (final s in entry.value)
+            if (!hiddenRevisionIds.contains(s.id)) s,
+        ],
         hasSources: primary?.hasSources ?? true,
         primaryComputerId: primary?.computerId,
       );
@@ -5634,10 +5804,21 @@ class DiveRepository {
   Future<List<domain.DiveProfilePoint>> _mergedSeriesPoints(
     String diveId,
   ) async {
-    return _pointsForSeries(
-      diveId,
-      await _profileSeries.getSeriesForDive(diveId),
-    );
+    final series = await _profileSeries.getSeriesForDive(diveId);
+    // History metadata is only needed to identify inactive child revisions,
+    // which are always represented as demoted rows.
+    final revisions = series.any((s) => !s.isPrimary)
+        ? await _profileSeries.getRevisionsForDive(diveId)
+        : const <ProfileSeriesRevision>[];
+    final hiddenRevisionIds = {
+      for (final revision in revisions)
+        if (revision.parentSeriesId != null && !revision.isActive)
+          revision.seriesId,
+    };
+    return _pointsForSeries(diveId, [
+      for (final s in series)
+        if (!hiddenRevisionIds.contains(s.id)) s,
+    ]);
   }
 
   /// [series] reduced to the points a reader should see: the superseded
@@ -5646,10 +5827,9 @@ class DiveRepository {
   ///
   /// Takes the series rather than reading them so [getMergedProfilesForDives]
   /// can batch the read and still land on the same points as the single-dive
-  /// path. The extra [_primarySourceComputer] query is skipped unless a
-  /// demoted series actually carries a computer id, which is the only case
-  /// where the primary computer decides family membership; a single-source
-  /// dive resolves with no further SQL.
+  /// path. The extra [_primarySourceComputer] query is skipped unless the
+  /// series set mixes promoted and demoted rows, which is the only state where
+  /// supersession may need the primary computer to decide family membership.
   Future<List<domain.DiveProfilePoint>> _pointsForSeries(
     String diveId,
     List<ProfileSeries> series,
@@ -5670,13 +5850,14 @@ class DiveRepository {
 
   /// Whether [series] needs the primary `dive_data_sources` row to resolve.
   ///
-  /// Only a promoted series alongside a demoted one that still names a
-  /// computer lets the primary computer decide family membership; a
-  /// single-source dive resolves with no further SQL. Shared by the
-  /// single-dive and batched paths so the condition cannot drift.
+  /// Supersession runs only when promoted and demoted rows coexist. In that
+  /// state, a demoted edited row often has no computer id while the active
+  /// original row does; resolving the primary computer is still required to
+  /// place both in one family and drop the demoted edit from merged reads.
+  /// Shared by the single-dive and batched paths so the condition cannot
+  /// drift.
   bool _needsPrimarySource(List<ProfileSeries> series) =>
-      series.any((s) => s.isPrimary) &&
-      series.any((s) => !s.isPrimary && s.computerId != null);
+      series.any((s) => s.isPrimary) && series.any((s) => !s.isPrimary);
 
   /// [series] reduced to displayable points. Pure: every read it depends on
   /// has already happened.
@@ -5773,11 +5954,20 @@ class DiveRepository {
                 ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
               .get();
       final profile = await getMergedProfile(diveId);
+      // The site rides along so `effectiveWaterType` can fall back to its
+      // water type for the deco environment (issue #3196).
+      final siteId = row.siteId;
+      final site = siteId == null
+          ? null
+          : await (_db.select(
+              _db.diveSites,
+            )..where((t) => t.id.equals(siteId))).getSingleOrNull();
 
       return _mapRowToDiveWithPreloadedData(
         row,
         tanks: tankRows,
         gear: const [],
+        site: site,
       ).copyWith(profile: profile);
     } catch (e, stackTrace) {
       _log.error(
@@ -6371,6 +6561,18 @@ class DiveRepository {
       await _replaceDiveTypeRows(diveId, merged, now);
     }
     await _bumpDives(diveIds, now);
+  }
+
+  /// Adds the dive types [siteId]'s site types stand for to [dive]'s set, for
+  /// [setSite]. Rewrites the junction only when a type is actually new.
+  Future<void> _addSiteDiveTypes(Dive dive, String siteId, int now) async {
+    final siteTypeIds = await diveTypeIdsForSite(siteId, dive.diverId);
+    if (siteTypeIds.isEmpty) return;
+    final current =
+        (await _diveTypesForDives([dive.id]))[dive.id] ?? [dive.diveType];
+    final added = siteTypeIds.where((t) => !current.contains(t)).toList();
+    if (added.isEmpty) return;
+    await _replaceDiveTypeRows(dive.id, [...current, ...added], now);
   }
 
   /// Remove [typeIds] from each dive's set. Never empties a dive: a removal
@@ -7357,13 +7559,9 @@ class DiveRepository {
   /// Get all data source snapshots for a dive.
   Future<List<DiveDataSource>> getDataSources(String diveId) async {
     try {
-      final query = _db.select(_db.diveDataSources)
-        ..where((t) => t.diveId.equals(diveId))
-        ..orderBy([
-          (t) => OrderingTerm.desc(t.isPrimary),
-          (t) => OrderingTerm.asc(t.createdAt),
-        ]);
-      final rows = _canonicalDataSourceRows(await query.get());
+      final rows = _canonicalDataSourceRows(
+        await _sourceRowsInShownOrder(diveId),
+      );
       final computerNames = await _friendlyNamesFor(rows);
       return rows
           .map((row) => _mapRowToDataSource(row, computerNames))
@@ -8047,83 +8245,8 @@ class DiveRepository {
 
         if (newPrimary == null) return;
 
-        // Demote all readings for this dive to non-primary. Both writes
-        // carry their own clock, beside the marks below (#2644).
-        final primaryAt = await _syncRepository.issueRowClock();
-        await (_db.update(
-          _db.diveDataSources,
-        )..where((t) => t.diveId.equals(diveId))).write(
-          DiveDataSourcesCompanion(
-            isPrimary: const Value(false),
-            hlc: Value(primaryAt),
-          ),
-        );
-
-        // Promote the selected reading.
-        await (_db.update(
-          _db.diveDataSources,
-        )..where((t) => t.id.equals(computerReadingId))).write(
-          DiveDataSourcesCompanion(
-            isPrimary: const Value(true),
-            hlc: Value(primaryAt),
-          ),
-        );
-
-        // Bottom time is derived from the new primary's own profile, never
-        // taken from its duration, which is the runtime it measured (issue
-        // #2421). With no profile to derive from, the dive keeps its own.
-        final derivedBottomTime = sourceBottomTimeSeconds(
-          await _profileSeries.getSeriesForDive(diveId),
-          sourceId: newPrimary.id,
-          computerId: newPrimary.computerId,
-          runtimeSeconds: newPrimary.duration,
-        );
-
-        // Update the dives record with the new primary's metadata.
         final now = DateTime.now().millisecondsSinceEpoch;
-        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-          DivesCompanion(
-            diveComputerModel: Value(newPrimary.computerModel),
-            diveComputerSerial: Value(newPrimary.computerSerial),
-            maxDepth: Value(newPrimary.maxDepth),
-            avgDepth: Value(newPrimary.avgDepth),
-            bottomTime: derivedBottomTime != null
-                ? Value(derivedBottomTime)
-                : const Value.absent(),
-            waterTemp: Value(newPrimary.waterTemp),
-            entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
-            exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),
-            surfaceIntervalSeconds: Value(newPrimary.surfaceInterval),
-            cnsEnd: Value(newPrimary.cns),
-            otu: Value(newPrimary.otu),
-            decoAlgorithm: Value(newPrimary.decoAlgorithm),
-            gradientFactorLow: Value(newPrimary.gradientFactorLow),
-            gradientFactorHigh: Value(newPrimary.gradientFactorHigh),
-            updatedAt: Value(now),
-          ),
-        );
-
-        // Publish the change: nothing was marked here, so a primary chosen
-        // on this device never reached another one (#2644). Every source of
-        // the dive had its flag written, so each is marked, which also
-        // restamps it; the dive row itself was edited above, so it is a
-        // real dive edit and is marked too (#1769 forbids that only for a
-        // child-only change).
-        final sources = await (_db.select(
-          _db.diveDataSources,
-        )..where((t) => t.diveId.equals(diveId))).get();
-        for (final source in sources) {
-          await _syncRepository.markRecordPending(
-            entityType: 'diveDataSources',
-            recordId: source.id,
-            localUpdatedAt: now,
-          );
-        }
-        await _syncRepository.markRecordPending(
-          entityType: 'dives',
-          recordId: diveId,
-          localUpdatedAt: now,
-        );
+        await _makeDataSourcePrimary(diveId, newPrimary, now: now);
 
         // Swap isPrimary on the profile series.
         //
@@ -8149,14 +8272,6 @@ class DiveRepository {
             now: now,
           );
         }
-
-        // The safety review grades the primary's own samples, so the stored
-        // one graded the computer that was primary until now.
-        await SafetyFindingsRepository.clearReviewForDive(
-          _db,
-          _syncRepository,
-          diveId,
-        );
       });
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
@@ -8167,6 +8282,102 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// Makes [newPrimary] the one primary data source of [diveId]: the source
+  /// flags, the dive row's mirrored metadata, the sync marks for both, and
+  /// the stored safety review, which graded the previous primary's samples.
+  /// Leaves the profile series to the caller, which knows which of them go
+  /// live. Run inside a transaction.
+  Future<void> _makeDataSourcePrimary(
+    String diveId,
+    DiveDataSourcesData newPrimary, {
+    required int now,
+  }) async {
+    // Demote all readings for this dive to non-primary. Both writes
+    // carry their own clock, beside the marks below (#2644).
+    final primaryAt = await _syncRepository.issueRowClock();
+    await (_db.update(
+      _db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).write(
+      DiveDataSourcesCompanion(
+        isPrimary: const Value(false),
+        hlc: Value(primaryAt),
+      ),
+    );
+
+    // Promote the selected reading.
+    await (_db.update(
+      _db.diveDataSources,
+    )..where((t) => t.id.equals(newPrimary.id))).write(
+      DiveDataSourcesCompanion(
+        isPrimary: const Value(true),
+        hlc: Value(primaryAt),
+      ),
+    );
+
+    // Bottom time is derived from the new primary's own profile, never
+    // taken from its duration, which is the runtime it measured (issue
+    // #2421). With no profile to derive from, the dive keeps its own.
+    final derivedBottomTime = sourceBottomTimeSeconds(
+      await _profileSeries.getSeriesForDive(diveId),
+      sourceId: newPrimary.id,
+      computerId: newPrimary.computerId,
+      runtimeSeconds: newPrimary.duration,
+    );
+
+    // Update the dives record with the new primary's metadata.
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(
+        diveComputerModel: Value(newPrimary.computerModel),
+        diveComputerSerial: Value(newPrimary.computerSerial),
+        maxDepth: Value(newPrimary.maxDepth),
+        avgDepth: Value(newPrimary.avgDepth),
+        bottomTime: derivedBottomTime != null
+            ? Value(derivedBottomTime)
+            : const Value.absent(),
+        waterTemp: Value(newPrimary.waterTemp),
+        entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
+        exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),
+        surfaceIntervalSeconds: Value(newPrimary.surfaceInterval),
+        cnsEnd: Value(newPrimary.cns),
+        otu: Value(newPrimary.otu),
+        decoAlgorithm: Value(newPrimary.decoAlgorithm),
+        gradientFactorLow: Value(newPrimary.gradientFactorLow),
+        gradientFactorHigh: Value(newPrimary.gradientFactorHigh),
+        updatedAt: Value(now),
+      ),
+    );
+
+    // Publish the change: nothing was marked here, so a primary chosen
+    // on this device never reached another one (#2644). Every source of
+    // the dive had its flag written, so each is marked, which also
+    // restamps it; the dive row itself was edited above, so it is a
+    // real dive edit and is marked too (#1769 forbids that only for a
+    // child-only change).
+    final sources = await (_db.select(
+      _db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    for (final source in sources) {
+      await _syncRepository.markRecordPending(
+        entityType: 'diveDataSources',
+        recordId: source.id,
+        localUpdatedAt: now,
+      );
+    }
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+
+    // The safety review grades the primary's own samples, so the stored
+    // one graded the computer that was primary until now.
+    await SafetyFindingsRepository.clearReviewForDive(
+      _db,
+      _syncRepository,
+      diveId,
+    );
   }
 
   /// Resolves a `{ computerId -> friendly name }` map for the given source

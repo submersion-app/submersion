@@ -526,9 +526,17 @@ final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) {
 /// This device's id and display name, for labelling the local side of a
 /// sync conflict. Same resolver the manifests use, so a peer sees this
 /// device under the same name.
+///
+/// Auto-disposed, and invalidated after Reset Sync State and after every
+/// sync, because both can mint a new device id: a cached id would stop
+/// recognising this device's own rows as its own (issue #3029).
+// no-tick: the one repository call is getDeviceId, which changes only when
+// SyncInitializer.adoptFreshIdentity runs, during Reset Sync State or a sync.
+// SyncNotifier invalidates this provider after both.
 final conflictLocalDeviceProvider =
-    FutureProvider<({String? id, String? name})>((ref) async {
-      final identity = await SyncDeviceMetadata(SyncRepository()).resolve();
+    FutureProvider.autoDispose<({String? id, String? name})>((ref) async {
+      final repo = ref.watch(syncRepositoryProvider);
+      final identity = await SyncDeviceMetadata(repo).resolve();
       return (id: identity.id, name: identity.name);
     });
 
@@ -1354,6 +1362,9 @@ class SyncNotifier extends StateNotifier<SyncState> {
         // This notifier can be disposed while a launch-triggered sync is in
         // flight; never touch state after an await without re-checking.
         if (!mounted) return;
+        // A sync can adopt a fresh identity (a cloned twin, or our own id's
+        // files with no local library), so the conflict dialog's id is stale.
+        _ref.invalidate(conflictLocalDeviceProvider);
 
         if (result.status == SyncResultStatus.awaitingAdoption) {
           final diveCount = await _ref
@@ -1373,6 +1384,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
               result = adopt;
             }
             if (!mounted) return;
+            _ref.invalidate(conflictLocalDeviceProvider);
           } else {
             state = state.copyWith(
               status: SyncStatus.idle,
@@ -1635,6 +1647,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
     await _syncService.resetSyncState();
     final initializer = _ref.read(syncInitializerProvider);
     await initializer.adoptFreshIdentity();
+    _ref.invalidate(conflictLocalDeviceProvider);
     // The question is about the RETIRED id, which is no longer this device's,
     // so it is passed explicitly rather than inferred from the current one.
     final provider = _ref.read(cloudStorageProviderProvider);

@@ -266,6 +266,9 @@ Manage presets in **Settings > Manage > Tank Presets**:
   default is AL80, and deleting the starred preset resets it to AL80.
 - **Also apply to imported dives:** fill in missing tank data on imported dives
   from the default preset. Values a dive already has are kept.
+- **Default start pressure:** the start pressure filled in on every new tank,
+  and on imported tanks with none when **Also apply to imported dives** is on.
+  Enter it in your pressure unit; the default is 200 bar (about 2900 psi).
 - **Show in tank pickers:** switch off the built-in presets you never use. The
   default preset is always shown.
 - **Add tank preset:** create your own.

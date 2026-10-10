@@ -29,11 +29,16 @@ class _FakePicker implements PhotoPickerService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-MediaItem broken(String id, DateTime takenAt) => MediaItem(
+MediaItem broken(
+  String id,
+  DateTime takenAt, {
+  MediaType mediaType = MediaType.photo,
+  String extension = 'jpg',
+}) => MediaItem(
   id: id,
-  mediaType: MediaType.photo,
+  mediaType: mediaType,
   sourceType: MediaSourceType.platformGallery,
-  originalFilename: '$id.jpg',
+  originalFilename: '$id.$extension',
   takenAt: takenAt,
   isOrphaned: true,
   createdAt: DateTime(2026, 6, 1),
@@ -80,5 +85,23 @@ void main() {
     ]);
     expect(harvest.byFilename, isEmpty);
     expect(harvest.foundPaths, isEmpty);
+  });
+
+  test('document rows are never matched to gallery assets', () async {
+    // The repair wizard hands missing documents to every source. A gallery
+    // asset is a photo or video, so accepting one would relink an invoice to
+    // an unrelated photo taken around the same time.
+    final taken = DateTime(2026, 6, 12, 10, 30);
+    final picker = _FakePicker([
+      asset('near', taken.add(const Duration(minutes: 5))),
+    ]);
+    final source = PhotoLibraryCandidateSource(picker: picker);
+
+    final harvest = await source.harvest([
+      broken('invoice', taken, mediaType: MediaType.document, extension: 'pdf'),
+    ]);
+
+    expect(harvest.byFilename, isEmpty);
+    expect(picker.windows, isEmpty);
   });
 }

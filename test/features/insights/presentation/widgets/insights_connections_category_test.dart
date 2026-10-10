@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -56,6 +57,68 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('CONNECTIONS PAGE'), findsOneWidget);
     expect(selected, isEmpty, reason: 'it does not fill the detail pane');
+  });
+
+  testWidgets('arrows skip opening Connections; Enter opens it (#3065)', (
+    tester,
+  ) async {
+    // Beside the pane, where a move opens the category it lands on.
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final selected = <String?>[];
+    final router = GoRouter(
+      initialLocation: '/insights',
+      routes: [
+        GoRoute(
+          path: '/insights',
+          builder: (_, _) => Scaffold(
+            body: InsightsListContent(
+              onItemSelected: selected.add,
+              showAppBar: false,
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/insights/connections',
+          builder: (_, _) => const Scaffold(body: Text('CONNECTIONS PAGE')),
+        ),
+      ],
+    );
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides,
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Overview'));
+    await tester.pumpAndSettle();
+    expect(selected, ['overview']);
+
+    // Down rests on Connections without leaving for its page.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(find.text('CONNECTIONS PAGE'), findsNothing);
+    expect(selected, ['overview']);
+
+    // The next Down opens the following category in the pane as usual.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(selected, ['overview', 'gas']);
+
+    // Back up to Connections, and Enter opens its page.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(find.text('CONNECTIONS PAGE'), findsOneWidget);
   });
 
   Future<List<InsightsCategory>> categoriesIn(

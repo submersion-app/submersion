@@ -14,6 +14,7 @@ import 'package:submersion/features/data_quality/domain/entities/diver_data_summ
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
+import 'package:submersion/features/data_quality/domain/services/finding_ownership.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/delete_duplicate_dialog.dart';
@@ -25,6 +26,7 @@ import 'package:submersion/features/dive_log/data/services/derived_metrics_sched
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassign_tank_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -35,13 +37,16 @@ QualityUnitFormatters buildQualityUnitFormatters(WidgetRef ref) =>
 
 typedef _DiveGroup = ({String diveId, List<QualityFinding> findings});
 
-List<_DiveGroup> _groupByDive(List<QualityFinding> findings) {
+List<_DiveGroup> _groupByDive(
+  List<QualityFinding> findings, {
+  required String Function(QualityFinding f) diveIdOf,
+}) {
   // findings arrive ordered by updatedAt (not diveId), so a dive's findings
   // can be interleaved with others. Accumulate by diveId in a map (insertion
   // order = each dive's newest finding) so every dive gets exactly one header.
   final byDive = <String, List<QualityFinding>>{};
   for (final f in findings) {
-    (byDive[f.diveId] ??= []).add(f);
+    (byDive[diveIdOf(f)] ??= []).add(f);
   }
   return [
     for (final entry in byDive.entries)
@@ -464,6 +469,14 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           // list -- and blinking the identities out is worse than showing the
           // last good ones for a frame.
           final dives = divesAsync.value;
+          // A shared gear pair can name another profile's dive. It is filed
+          // under the active diver's own dive, and that other dive is never
+          // a header to open (issue #3049).
+          final activeDiverId = ref
+              .watch(validatedCurrentDiverIdProvider)
+              .value;
+          String? foreignOf(QualityFinding f) =>
+              foreignDiveIdOf(f, activeDiverId);
           // Reading the names costs a diver lookup plus a computers-table
           // read, so only pay it when some finding actually names a computer.
           final computerNames = scoped.any((f) => f.computerId != null)
@@ -515,7 +528,10 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                       )
                     : ListView(
                         children: [
-                          for (final group in _groupByDive(open)) ...[
+                          for (final group in _groupByDive(
+                            open,
+                            diveIdOf: (f) => diveSidesOf(f, foreignOf(f)).own,
+                          )) ...[
                             _DiveGroupHeader(
                               label: identity(group.diveId),
                               loading: divesAsync.isLoading,
@@ -526,7 +542,10 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                               QualityFindingCard(
                                 finding: f,
                                 formatters: formatters,
-                                relatedDive: identity(f.relatedDiveId),
+                                relatedDive: identity(
+                                  diveSidesOf(f, foreignOf(f)).paired,
+                                ),
+                                foreignDiveId: foreignOf(f),
                                 computerName: computerNames[f.computerId],
                                 onRepair: (a) =>
                                     _runAction(f, a, identityOf: identity),

@@ -89,7 +89,7 @@ class BuoyancyTwinAssembler {
       items: dive.equipment,
       tanks: tanks,
       model: model,
-      waterType: dive.waterType,
+      waterType: dive.effectiveWaterType,
       bodyWeightKg: bodyWeightKg,
       rolledUpIds: GearTree.rolledUpIds(dive.gearProvenance),
     );
@@ -106,7 +106,7 @@ class BuoyancyTwinAssembler {
       droppableLeadKg: droppableLeadKg(dive),
       environment: DiveEnvironment.forConditions(
         altitudeMeters: dive.altitude,
-        waterType: dive.waterType,
+        waterType: dive.effectiveWaterType,
       ),
       totalMassKg: rig.totalMassKg,
     );

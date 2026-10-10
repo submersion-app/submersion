@@ -8,19 +8,27 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 /// falling back to [config]'s app-wide defaults for anything the plan leaves
 /// unset.
 ///
-/// [forDeco] selects which ppO2 ceiling gates the mix: the deco ceiling for a
-/// stop/switch gas, or the working ceiling for a bottom gas.
+/// [forDeco] and [forDiluent] select which ppO2 ceiling gates the mix: the
+/// deco ceiling for a stop/switch gas, the diluent MOD ppO2 for a CCR
+/// diluent, or (with neither) the working ceiling for a bottom gas.
 BestMixResult suggestBestMixForPlan(
   domain.DivePlan plan,
   PlanEngineConfig config, {
   required double depthMeters,
   bool forDeco = false,
+  bool forDiluent = false,
 }) {
+  assert(!(forDeco && forDiluent), 'a mix has one ppO2 ceiling');
   final resolved = config.resolvedFor(plan);
+  final ppO2Limit = forDiluent
+      ? resolved.ccrDiluentModPpO2
+      : forDeco
+      ? resolved.ppO2Deco
+      : resolved.ppO2Working;
   return computeBestMix(
     BestMixInputs(
       depthMeters: depthMeters,
-      ppO2Limit: forDeco ? resolved.ppO2Deco : resolved.ppO2Working,
+      ppO2Limit: ppO2Limit,
       endLimitMeters: resolved.bestMixEndMeters,
       o2Narcotic: resolved.o2Narcotic,
     ),

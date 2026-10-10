@@ -13,6 +13,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -609,7 +610,6 @@ class _MapSection extends ConsumerStatefulWidget {
 }
 
 class _MapSectionState extends ConsumerState<_MapSection> {
-  final MapController _previewController = MapController();
   final MapController _fullController = MapController();
 
   @override
@@ -625,18 +625,20 @@ class _MapSectionState extends ConsumerState<_MapSection> {
         height: 200,
         child: Stack(
           children: [
-            TrackpadZoomMap(
-              controller: _previewController,
+            LockedMapScrollPassthrough(
               child: FlutterMap(
-                mapController: _previewController,
                 key: ValueKey('${center.latitude}_${center.longitude}'),
                 options: MapOptions(
                   initialCenter: centerLocation,
                   initialZoom: 14.0,
                   minZoom: 2.0,
                   maxZoom: 18.0,
+                  // Locked: the preview sits in the scrolling detail page, and
+                  // a map that takes gestures there catches the wheel or drag
+                  // as soon as it scrolls under the pointer (issue #3156). The
+                  // fullscreen button opens the interactive map.
                   interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                    flags: InteractiveFlag.none,
                   ),
                 ),
                 children: [

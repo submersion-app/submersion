@@ -6,7 +6,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/profile_editing_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_series_owner.dart';
+import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/editor_context_panel.dart';
@@ -23,7 +28,18 @@ class ProfileEditorPage extends ConsumerStatefulWidget {
   final String diveId;
   final EditorMode? initialMode;
 
-  const ProfileEditorPage({super.key, required this.diveId, this.initialMode});
+  /// The data source whose samples the editor starts from, chosen in the
+  /// "Choose starting profile" sheet. Null edits the dive's profile, which
+  /// is that one source's on a dive with a single source of samples. Saving
+  /// an edit of a non-primary source makes that source primary (#3066).
+  final String? sourceId;
+
+  const ProfileEditorPage({
+    super.key,
+    required this.diveId,
+    this.initialMode,
+    this.sourceId,
+  });
 
   @override
   ConsumerState<ProfileEditorPage> createState() => _ProfileEditorPageState();
@@ -117,9 +133,14 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         diveId: widget.diveId,
         editedPoints: state.editedProfile,
         editKind: state.revisionEditKindToken,
+        sourceId: widget.sourceId,
       );
       ref.invalidate(diveProvider(widget.diveId));
       ref.invalidate(diveProfileProvider(widget.diveId));
+      if (widget.sourceId != null) {
+        ref.invalidate(sourceProfilesProvider(widget.diveId));
+        ref.invalidate(diveDataSourcesProvider(widget.diveId));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -132,12 +153,15 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     }
 
     if (mounted) {
-      context.pop();
+      context.pop(true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final sourceId = widget.sourceId;
+    if (sourceId != null) return _buildFromSource(sourceId);
+
     final diveAsync = ref.watch(diveProvider(widget.diveId));
 
     return diveAsync.when(
@@ -172,7 +196,50 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     );
   }
 
-  Widget _buildEditor() {
+  /// Starts the editor from one data source's own samples rather than the
+  /// dive's primary profile.
+  Widget _buildFromSource(String sourceId) {
+    final profilesAsync = ref.watch(sourceProfilesProvider(widget.diveId));
+
+    return profilesAsync.when(
+      loading: () => Scaffold(
+        appBar: AppBar(title: Text(context.l10n.diveLog_profileEditor_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Scaffold(
+        appBar: AppBar(title: Text(context.l10n.diveLog_profileEditor_title)),
+        body: Center(
+          child: Text(
+            context.l10n.diveLog_profileEditor_errorLoadingDive('$error'),
+          ),
+        ),
+      ),
+      data: (profiles) {
+        final points = profiles[sourceId]?.points ?? const [];
+        if (points.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(context.l10n.diveLog_profileEditor_title),
+            ),
+            body: Center(
+              child: Text(context.l10n.diveLog_profileEditor_noProfileData),
+            ),
+          );
+        }
+
+        _initializeProvider(points);
+
+        // Sources are keyed primary first.
+        return _buildEditor(
+          showRevisions: profiles.keys.firstOrNull == sourceId,
+        );
+      },
+    );
+  }
+
+  /// [showRevisions] is false while editing a source other than the
+  /// primary, whose revision history the app bar selector shows.
+  Widget _buildEditor({bool showRevisions = true}) {
     final state = ref.watch(_editorProvider);
     final notifier = ref.read(_editorProvider.notifier);
 
@@ -190,15 +257,20 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
           title: Row(
             children: [
               Text(context.l10n.diveLog_profileEditor_title),
-              const SizedBox(width: 12),
-              Flexible(
-                child: _buildProfileRevisionControl(
-                  context,
-                  ref,
-                  widget.diveId,
-                  enabled: !state.hasChanges,
+              // The revision history is the primary profile's lineage, so
+              // switching it would reload a profile other than the source
+              // being edited.
+              if (showRevisions) ...[
+                const SizedBox(width: 12),
+                Flexible(
+                  child: _buildProfileRevisionControl(
+                    context,
+                    ref,
+                    widget.diveId,
+                    enabled: !state.hasChanges,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
           actions: [
@@ -264,6 +336,9 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     required bool enabled,
   }) {
     final historyAsync = ref.watch(profileSeriesHistoryProvider(diveId));
+    final sources =
+        ref.watch(diveDataSourcesProvider(diveId)).value ?? const [];
+    final sourceLabels = sourceNameLabelsFor(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     return historyAsync.when(
@@ -300,10 +375,14 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
               await ref
                   .read(diveRepositoryProvider)
                   .setActiveProfileSeries(diveId, seriesId);
-              // Invalidate profile-related providers to refresh the editor
+              // Invalidate profile-related providers to refresh the editor.
+              // The switch can change the primary source too (issue #3067).
               ref.invalidate(diveProvider(diveId));
               ref.invalidate(diveProfileProvider(diveId));
               ref.invalidate(profileSeriesHistoryProvider(diveId));
+              // An editor started from the primary source reads it here.
+              ref.invalidate(sourceProfilesProvider(diveId));
+              ref.invalidate(diveDataSourcesProvider(diveId));
             } catch (_) {
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
@@ -329,6 +408,16 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
                       _formatRevisionCreatedAt(units, revision.createdAt),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
+                    for (final detail in _revisionDetails(
+                      context,
+                      revision,
+                      sources,
+                      sourceLabels,
+                    ))
+                      Text(
+                        detail,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                   ],
                 ),
               ),
@@ -371,6 +460,38 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         );
       },
     );
+  }
+
+  /// Extra lines under a revision entry: the source it belongs to when the
+  /// dive has more than one, so two "Computer Import" entries can be told
+  /// apart, and what a legacy entry is. Sources sharing a name are told
+  /// apart by file, as the cylinder rows do ([tankSourceName]).
+  List<String> _revisionDetails(
+    BuildContext context,
+    ProfileSeriesRevision revision,
+    List<DiveDataSource> sources,
+    SourceNameLabels labels,
+  ) {
+    final owner = sources.length > 1
+        ? owningDataSource(
+            sourceId: revision.sourceId,
+            computerId: revision.computerId,
+            sources: sources,
+          )
+        : null;
+    final ownerName = owner == null
+        ? null
+        : tankSourceName(
+            computerId: owner.computerId,
+            sourceId: owner.id,
+            sources: sources,
+            labels: labels,
+          );
+    return [
+      ?ownerName,
+      if (revision.revisionKind == 'legacy')
+        context.l10n.diveLog_profileEditor_revisionLegacyHint,
+    ];
   }
 
   String _revisionKindLabel(BuildContext context, String revisionKind) =>

@@ -151,6 +151,58 @@ void main() {
     expect(data.emsNumber, '911');
   });
 
+  test('card data says when the region was set by hand', () async {
+    final settings = MockSettingsNotifier();
+    await settings.setEmergencyRegion('JP');
+    final manual = _container(
+      summaries: [_summary(country: 'Germany')],
+      settings: settings,
+    );
+    addTearDown(manual.dispose);
+    expect(
+      (await manual.read(emergencyCardDataProvider.future)).regionIsManual,
+      isTrue,
+    );
+
+    final automatic = _container(summaries: [_summary(country: 'Germany')]);
+    addTearDown(automatic.dispose);
+    expect(
+      (await automatic.read(emergencyCardDataProvider.future)).regionIsManual,
+      isFalse,
+    );
+  });
+
+  test('region choices cover every country the bundled data knows', () async {
+    final container = _container(summaries: const []);
+    addTearDown(container.dispose);
+
+    final data = await container.read(emergencyCardDataProvider.future);
+    final numbers = await EmergencyDataService.loadNumbers();
+    final chambers = await EmergencyDataService.loadBundledChambers();
+    final expected = {
+      ...numbers.emsByCountry.keys,
+      for (final region in numbers.regions) ...region.countries,
+      for (final chamber in chambers) chamber.country,
+    };
+
+    expect(data.regionChoices.toSet(), expected);
+    // Sorted and free of duplicates, so the picker can list them as given.
+    expect(data.regionChoices, [...expected]..sort());
+  });
+
+  test(
+    'region choices keep a synced override the data does not know',
+    () async {
+      final settings = MockSettingsNotifier();
+      await settings.setEmergencyRegion('AQ');
+      final container = _container(summaries: const [], settings: settings);
+      addTearDown(container.dispose);
+
+      final data = await container.read(emergencyCardDataProvider.future);
+      expect(data.regionChoices, contains('AQ'));
+    },
+  );
+
   test('region derives from the most recent dive site country', () async {
     final container = _container(summaries: [_summary(country: 'Germany')]);
     addTearDown(container.dispose);

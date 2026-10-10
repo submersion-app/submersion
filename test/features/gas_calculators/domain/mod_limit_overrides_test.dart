@@ -7,6 +7,8 @@ const _profile = ModProfileLimits(
   decoPpO2: 1.6,
   flushPpO2: 1.6,
   setpointBar: 1.3,
+  endLimitMeters: 30,
+  o2Narcotic: true,
 );
 
 void main() {
@@ -38,6 +40,8 @@ void main() {
           decoPpO2: 1.6,
           flushPpO2: 1.1,
           setpointBar: 1.3,
+          endLimitMeters: 30,
+          o2Narcotic: true,
         ),
       );
       expect(caughtUp.workingOverridden, isFalse);
@@ -53,6 +57,25 @@ void main() {
       );
       expect(r.workingPpO2, 1.4);
       expect(r.decoPpO2, 1.4);
+    });
+
+    test('END limit and O2-narcotic follow the profile when unset', () {
+      final r = resolveModLimits(ModLimitOverrides.none, _profile);
+      expect(r.endLimitMeters, 30);
+      expect(r.o2Narcotic, isTrue);
+      expect(r.endLimitOverridden, isFalse);
+      expect(r.o2NarcoticOverridden, isFalse);
+    });
+
+    test('an END limit or O2-narcotic override is marked while it differs', () {
+      final r = resolveModLimits(
+        const ModLimitOverrides(endLimitMeters: 24, o2Narcotic: false),
+        _profile,
+      );
+      expect(r.endLimitMeters, 24);
+      expect(r.o2Narcotic, isFalse);
+      expect(r.endLimitOverridden, isTrue);
+      expect(r.o2NarcoticOverridden, isTrue);
     });
   });
 
@@ -73,6 +96,8 @@ void main() {
         decoPpO2: 1.5,
         flushPpO2: 1.1,
         setpointBar: 1.2,
+        endLimitMeters: 25,
+        o2Narcotic: false,
       );
       expect(ModLimitOverrides.fromJson(o.toJson()), o);
       final snapped = ModLimitOverrides.fromJson({
@@ -80,11 +105,33 @@ void main() {
         'flushPpO2': 1.45,
         'setpointBar': 1.26,
         'decoPpO2': 9.9,
+        'endLimitMeters': 90,
+        'o2Narcotic': 'not a bool',
       });
       expect(snapped.workingPpO2, 1.35);
       expect(snapped.flushPpO2, 1.5);
       expect(snapped.setpointBar, 1.3);
       expect(snapped.decoPpO2, isNull);
+      expect(snapped.endLimitMeters, isNull, reason: '90 m is out of range');
+      expect(snapped.o2Narcotic, isNull);
+    });
+
+    test('withEndLimit and withO2Narcotic follow the profile when equal', () {
+      final endLimit = ModLimitOverrides.none.withEndLimit(30, _profile);
+      expect(endLimit.endLimitMeters, isNull);
+      final differentEndLimit = ModLimitOverrides.none.withEndLimit(
+        24,
+        _profile,
+      );
+      expect(differentEndLimit.endLimitMeters, 24);
+
+      final narcotic = ModLimitOverrides.none.withO2Narcotic(true, _profile);
+      expect(narcotic.o2Narcotic, isNull);
+      final differentNarcotic = ModLimitOverrides.none.withO2Narcotic(
+        false,
+        _profile,
+      );
+      expect(differentNarcotic.o2Narcotic, isFalse);
     });
   });
 }

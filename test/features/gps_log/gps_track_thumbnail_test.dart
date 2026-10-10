@@ -7,6 +7,7 @@ import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/gps_track_thumbnail.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_shape_painter.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 
 import '../../helpers/mock_providers.dart';
 
@@ -54,6 +55,8 @@ void main() {
     await _pump(tester, geometry: [p(0), p(1), p(2)]);
     final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
     expect(map.options.interactionOptions.flags, InteractiveFlag.none);
+    // A trackpad scroll over the row's map scrolls the list (#3156).
+    expect(find.byType(LockedMapScrollPassthrough), findsOneWidget);
   });
 
   testWidgets('clamps the camera fit to a low shared-tile zoom', (

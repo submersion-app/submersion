@@ -1,52 +1,20 @@
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart';
 import 'package:submersion/features/gas_calculators/domain/rock_bottom.dart';
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/density_calculator_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/providers/icd_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mnd_calculator_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
-/// The blender's own state lives in its own file; re-exported so every
-/// existing consumer and [resetGasCalculators] keep resolving.
+/// The blender's and the Best Mix calculator's own state live in their own
+/// files; re-exported so every existing consumer and [resetGasCalculators]
+/// keep resolving.
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 export 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
-
-// ═══════════════════════════════════════════════════════════════════════════
-// Best Mix Calculator State
-// ═══════════════════════════════════════════════════════════════════════════
-/// Target depth for best mix calculation (meters)
-final bestMixDepthProvider = StateProvider<double>((ref) => 30.0);
-
-/// Maximum ppO2 limit for best mix
-final bestMixPpO2Provider = StateProvider<double>((ref) => 1.4);
-
-/// END limit for best mix (meters), initialized from settings.
-///
-/// Uses ref.read (not ref.watch) so user overrides are not lost when
-/// unrelated settings change. Reset via ref.invalidate re-reads settings,
-/// mirroring the MND calculator.
-final bestMixEndLimitProvider = StateProvider<double>((ref) {
-  return ref.read(settingsProvider).endLimit;
-});
-
-/// Whether O2 counts as narcotic, initialized from settings.
-final bestMixO2NarcoticProvider = StateProvider<bool>((ref) {
-  return ref.read(settingsProvider).o2Narcotic;
-});
-
-/// Best mix for the target depth, rounded toward safety.
-final bestMixResultProvider = Provider<BestMixResult>((ref) {
-  return computeBestMix(
-    BestMixInputs(
-      depthMeters: ref.watch(bestMixDepthProvider),
-      ppO2Limit: ref.watch(bestMixPpO2Provider),
-      endLimitMeters: ref.watch(bestMixEndLimitProvider),
-      o2Narcotic: ref.watch(bestMixO2NarcoticProvider),
-    ),
-  );
-});
+import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
+export 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Gas Consumption Calculator State
@@ -128,10 +96,7 @@ void resetGasCalculators(WidgetRef ref) {
   // MOD
   ref.read(modCalculatorNotifierProvider.notifier).reset();
   // Best Mix
-  ref.read(bestMixDepthProvider.notifier).state = 30.0;
-  ref.read(bestMixPpO2Provider.notifier).state = 1.4;
-  ref.invalidate(bestMixEndLimitProvider);
-  ref.invalidate(bestMixO2NarcoticProvider);
+  ref.read(bestMixCalculatorNotifierProvider.notifier).reset();
   // Consumption
   ref.read(consumptionDepthProvider.notifier).state = 20.0;
   ref.read(consumptionTimeProvider.notifier).state = 45;
@@ -147,6 +112,8 @@ void resetGasCalculators(WidgetRef ref) {
   ref.read(rockBottomSafetyStopProvider.notifier).state = true;
   // MND/END
   resetMndCalculator(ref);
+  // ICD
+  resetIcdCalculator(ref);
   // Gas Density
   resetDensityCalculator(ref);
   // Gas Blender

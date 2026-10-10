@@ -147,4 +147,30 @@ void main() {
     }
     expect(emptied, isTrue);
   });
+  test(
+    'the Wanted view lists a wanted item as soon as it is added (#3068)',
+    () async {
+      container.read(equipmentFilterProvider.notifier).state =
+          const EquipmentFilterState(status: EquipmentStatus.wanted);
+      expect(await settledItems(), isEmpty);
+      final added = await container
+          .read(equipmentListNotifierProvider.notifier)
+          .addEquipment(
+            const EquipmentItem(
+              id: '',
+              name: 'Wish',
+              type: EquipmentType.fins,
+              status: EquipmentStatus.wanted,
+              isActive: false,
+            ),
+          );
+      var ids = <String>[];
+      for (var i = 0; i < 200; i++) {
+        ids = (await settledItems()).map((e) => e.id).toList();
+        if (ids.contains(added.id)) break;
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(ids, [added.id]);
+    },
+  );
 }

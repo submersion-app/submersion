@@ -20,7 +20,10 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_nav_stops.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -1253,40 +1256,103 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
               if (row is SiteRow<SiteWithDiveCount>) row.item,
           ];
 
+    // The keyboard cursor walks the same rows: each country header, then
+    // the sites of an open country (#3065).
+    final navStops = KeyboardNavStops();
+    if (rows == null) {
+      for (final site in sites) {
+        navStops.addRow(site.site.id);
+      }
+    } else {
+      String? header;
+      for (final row in rows) {
+        switch (row) {
+          case CountryHeaderRow(:final group):
+            header = _countryNavKey(group.key);
+            navStops.addHeader(header, group.key);
+          case RegionHeaderRow():
+            break;
+          case SiteRow(:final item):
+            navStops.addRow(item.site.id, header: header);
+        }
+      }
+    }
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(sortedSitesWithCountsProvider);
       },
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: rows?.length ?? sites.length,
-        itemBuilder: (context, index) {
-          if (rows == null) {
-            return _buildSiteTile(sites[index], orderedSites, diversCount);
-          }
-          return switch (rows[index]) {
-            CountryHeaderRow(:final group, :final isExpanded) =>
-              SiteCountryHeader(
-                label: countryGroupLabel(context.l10n, group),
-                siteCount: group.siteCount,
-                isExpanded: isExpanded,
-                onTap: () => _toggleCountry(group.key, expanded),
-              ),
-            RegionHeaderRow(:final label) => SiteSectionLabel(
-              label,
-              indent: 32,
-            ),
-            SiteRow(:final item) => _buildSiteTile(
-              item,
-              orderedSites,
-              diversCount,
-            ),
-          };
+      child: KeyboardListNavigator(
+        keys: navStops.keys,
+        currentKey: widget.selectedId ?? ref.watch(highlightedSiteIdProvider),
+        onMove: (key) {
+          if (navStops.groupOfHeader(key) != null) return;
+          moveListCursor(
+            context,
+            canOpen: !_isSelectionMode && widget.onItemSelected != null,
+            open: () => _handleRowTap(key, orderedSites),
+            highlight: () =>
+                ref.read(highlightedSiteIdProvider.notifier).state = key,
+          );
         },
+        onActivate: (key) {
+          final country = navStops.groupOfHeader(key);
+          if (country != null) {
+            _toggleCountry(country, expanded);
+          } else {
+            _handleRowTap(key, orderedSites);
+          }
+        },
+        onExpand: (key) {
+          final country = navStops.groupOfHeader(key);
+          if (country != null && !expanded.contains(country)) {
+            _toggleCountry(country, expanded);
+          }
+        },
+        onCollapse: (key) {
+          final header = navStops.headerFor(key);
+          if (header == null) return null;
+          final country = navStops.groupOfHeader(header)!;
+          if (expanded.contains(country)) _toggleCountry(country, expanded);
+          return header;
+        },
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.only(bottom: 80),
+          itemCount: rows?.length ?? sites.length,
+          itemBuilder: (context, index) {
+            if (rows == null) {
+              return _buildSiteTile(sites[index], orderedSites, diversCount);
+            }
+            return switch (rows[index]) {
+              CountryHeaderRow(:final group, :final isExpanded) =>
+                KeyboardListItem(
+                  navigationKey: _countryNavKey(group.key),
+                  child: SiteCountryHeader(
+                    label: countryGroupLabel(context.l10n, group),
+                    siteCount: group.siteCount,
+                    isExpanded: isExpanded,
+                    onTap: () => _toggleCountry(group.key, expanded),
+                  ),
+                ),
+              RegionHeaderRow(:final label) => SiteSectionLabel(
+                label,
+                indent: 32,
+              ),
+              SiteRow(:final item) => _buildSiteTile(
+                item,
+                orderedSites,
+                diversCount,
+              ),
+            };
+          },
+        ),
       ),
     );
   }
+
+  /// The keyboard stop for the header of the country group [countryKey].
+  static String _countryNavKey(String countryKey) => 'country:$countryKey';
 
   Widget _buildSiteTile(
     SiteWithDiveCount siteData,
@@ -1304,7 +1370,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final locationString = site.locationString.isNotEmpty
         ? site.locationString
         : null;
-    return switch (viewMode) {
+    final tile = switch (viewMode) {
       ListViewMode.detailed => SiteListTile(
         entry: siteData,
         isSelectionMode: _isSelectionMode,
@@ -1332,6 +1398,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         onTap: () => _handleRowTap(site.id, orderedSites),
       ),
     };
+    return KeyboardListItem(navigationKey: site.id, child: tile);
   }
 
   Widget _buildEmptyState(BuildContext context, bool hasActiveFilters) {
@@ -1395,19 +1462,23 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
             ),
           ),
           const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () {
-              if (ResponsiveBreakpoints.isMasterDetail(context)) {
-                final routerState = GoRouterState.of(context);
-                context.go('${routerState.uri.path}?mode=new');
-              } else {
-                context.push('/sites/new');
-              }
-            },
-            icon: const Icon(Icons.add_location),
-            label: Text(context.l10n.diveSites_list_empty_addFirstSite),
-          ),
-          const SizedBox(height: 12),
+          // Hidden beside an open form: it reads as the form's submit button
+          // but only reopens the create form (issue #3192).
+          if (!MasterDetailFormScope.isFormOpenOf(context)) ...[
+            FilledButton.icon(
+              onPressed: () {
+                if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                  final routerState = GoRouterState.of(context);
+                  context.go('${routerState.uri.path}?mode=new');
+                } else {
+                  context.push('/sites/new');
+                }
+              },
+              icon: const Icon(Icons.add_location),
+              label: Text(context.l10n.diveSites_list_empty_addFirstSite),
+            ),
+            const SizedBox(height: 12),
+          ],
           OutlinedButton.icon(
             onPressed: () => context.push('/sites/import'),
             icon: const Icon(Icons.download),

@@ -128,7 +128,11 @@ void main() {
     final above255 = AppDatabase.migrationStepCount(255);
     expect(AppDatabase.migrationStepCount(254), above255 + 1);
     expect(AppDatabase.migrationStepCount(252), above255 + 3);
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('a database at v252 loses its safety stop ceilings and keeps every '

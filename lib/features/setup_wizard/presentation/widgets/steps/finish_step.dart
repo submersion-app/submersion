@@ -38,7 +38,14 @@ class _FinishStepState extends ConsumerState<FinishStep> {
       final draft = ref.read(setupWizardProvider(widget.mode));
       final service = ref.read(setupApplyServiceProvider);
       if (widget.mode == SetupWizardMode.firstRun) {
-        await service.applyFirstRun(draft);
+        await service.applyFirstRun(
+          draft,
+          deviceLanguageCodes: WidgetsBinding
+              .instance
+              .platformDispatcher
+              .locales
+              .map((locale) => locale.languageCode),
+        );
       } else {
         await service.applySettingsMode(draft);
       }

@@ -4,6 +4,7 @@ import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -22,7 +23,9 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 /// `getAllDives()` on the first home frame (WS4, large-DB performance).
 final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  // Includes the buddy link tables: the cards show buddy names, and a rename
+  // or a synced buddy link never restamps the dive row (#1769, #3039).
+  ref.invalidateSelfWhen(repository.watchDivesChangesWithBuddyLinks());
 
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final summaries = await repository.getDiveSummaries(
@@ -52,7 +55,9 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
     }
   }
 
-  return recent;
+  // getDiveById does not load the dive_buddies junction, which the Dives tab
+  // gets from getAllDives; attach it so the cards' Buddy field matches (#3039).
+  return ref.read(buddyRepositoryProvider).withBuddies(recent);
 });
 
 /// Current diver provider (re-exported for convenience)

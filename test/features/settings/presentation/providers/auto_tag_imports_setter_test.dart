@@ -26,7 +26,7 @@ class _GatedDiverRepository extends DiverRepository {
   }
 }
 
-/// The tag management switch (issue #998) can be flipped before the diver's
+/// The auto-tag imports switch (issue #998) can be flipped before the diver's
 /// settings row has loaded. The load then replaces the whole state, so a
 /// setter that did not wait for it would lose the diver's choice.
 void main() {

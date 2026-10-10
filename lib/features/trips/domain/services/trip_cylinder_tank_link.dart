@@ -1,4 +1,5 @@
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/computer_recorded_tank.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 
@@ -6,13 +7,14 @@ import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fo
 /// pressure from the slot's current state, the size, working pressure,
 /// material and preset from the slot when it has them (decided 2026-09-28).
 /// Whatever the slot does not know keeps the tank's own value; the end
-/// pressure is always the diver's to log.
+/// pressure is always the diver's to log. A tank a dive computer recorded
+/// keeps its mix: the computer logged what was breathed (issue #3021).
 DiveTank tankFromTripCylinder(DiveTank tank, TripCylinderState slot) {
   final c = slot.cylinder;
   final hasSpecs = c.volume != null || c.workingPressure != null;
   return tank.copyWith(
     tripCylinderId: c.id,
-    gasMix: slot.mix,
+    gasMix: isComputerRecordedTank(tank) ? tank.gasMix : slot.mix,
     startPressure: slot.pressure,
     volume: c.volume,
     workingPressure: c.workingPressure,
