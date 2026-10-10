@@ -125,4 +125,43 @@ void main() {
     expect(t.hiddenByKind, {ConnectionKind.site: 2});
     expect(t.hiddenNodeCount, 2);
   });
+
+  group('withoutUnconnected', () {
+    ConnectionNode n(String id) =>
+        ConnectionNode(ref: _b(id), label: id, diveCount: 1);
+    final edge = ConnectionEdge(
+      source: _b('a'),
+      target: _b('b'),
+      weight: 1,
+      firstDiveAt: DateTime.utc(2024),
+      lastDiveAt: DateTime.utc(2024),
+    );
+
+    test('drops nodes with no edge, keeps the rest', () {
+      final g = ConnectionGraph(
+        nodes: [n('a'), n('b'), n('lone')],
+        edges: [edge],
+      );
+      expect(g.withoutUnconnected().nodes.map((x) => x.ref.id), ['a', 'b']);
+    });
+
+    test('keeps the focus even with no edge', () {
+      final g = ConnectionGraph(
+        nodes: [n('a'), n('b'), n('me')],
+        edges: [edge],
+      );
+      expect(g.withoutUnconnected(keep: _b('me')).nodes.map((x) => x.ref.id), [
+        'a',
+        'b',
+        'me',
+      ]);
+    });
+
+    test('returns itself when nothing is dropped or everything would be', () {
+      final linked = ConnectionGraph(nodes: [n('a'), n('b')], edges: [edge]);
+      expect(identical(linked.withoutUnconnected(), linked), isTrue);
+      final loose = ConnectionGraph(nodes: [n('x'), n('y')], edges: const []);
+      expect(identical(loose.withoutUnconnected(), loose), isTrue);
+    });
+  });
 }

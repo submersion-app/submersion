@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/connections/data/repositories/connections_repository.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/insights/graph_insights.dart';
@@ -12,8 +13,10 @@ import 'package:submersion/features/connections/domain/insights/label_propagatio
 import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
-import 'package:submersion/features/connections/presentation/canvas/connections_canvas.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
+import 'package:submersion/features/connections/presentation/pages/connections_graph_stack.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_display_provider.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/presentation/panel/connections_panel.dart';
 import 'package:submersion/features/connections/presentation/panel/view_tab.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
@@ -28,7 +31,6 @@ import 'package:submersion/features/connections/presentation/share/connections_s
 import 'package:submersion/features/connections/presentation/share/connections_share_renderer.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
-import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/connections/presentation/widgets/year_play_pill.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -165,18 +167,54 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     super.dispose();
   }
 
+  ConnectionsLayout? _laidOutLayout;
+  double? _laidOutSpacing;
+
+  /// The canvas graph for the last source, keyed like [_localize], so the
+  /// layout sees the same instance on a rebuild.
+  ConnectionGraph? _canvasFrom;
+  bool _canvasHide = false;
+  NodeRef? _canvasKeep;
+  ConnectionGraph? _canvasGraph;
+
+  ConnectionGraph _canvasGraphFor(
+    ConnectionGraph graph, {
+    required bool hide,
+    NodeRef? keep,
+  }) {
+    if (identical(graph, _canvasFrom) &&
+        hide == _canvasHide &&
+        keep == _canvasKeep) {
+      return _canvasGraph!;
+    }
+    _canvasFrom = graph;
+    _canvasHide = hide;
+    _canvasKeep = keep;
+    return _canvasGraph = hide ? graph.withoutUnconnected(keep: keep) : graph;
+  }
+
   void _syncLayout(
     ConnectionGraph graph,
     NodeRef? focus, {
+    required ConnectionsLayout layout,
+    required double spacing,
     required bool animate,
   }) {
-    if (identical(_laidOut, graph) && _laidOutFocus == focus) return;
+    if (identical(_laidOut, graph) &&
+        _laidOutFocus == focus &&
+        _laidOutLayout == layout &&
+        _laidOutSpacing == spacing) {
+      return;
+    }
     _laidOut = graph;
     _laidOutFocus = focus;
+    _laidOutLayout = layout;
+    _laidOutSpacing = spacing;
     _layout.setGraph(
       graph,
-      layout: focus == null ? ConnectionsLayout.web : ConnectionsLayout.radial,
+      layout: layout,
       focus: focus,
+      spacing: spacing,
       animate: animate,
     );
     _hadGraph = true;
@@ -217,6 +255,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   Future<void> _share(
     ConnectionGraph graph,
     ConnectionsViewState view,
+    ConnectionsDisplay display,
     BuildContext button,
   ) {
     final caption = ConnectionsShareCaption.of(
@@ -236,6 +275,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     final groups = _groups;
     final fontFamily = Theme.of(context).textTheme.bodyMedium?.fontFamily;
     final direction = Directionality.of(context);
+    final l10n = context.l10n;
+    final kindNames = {
+      for (final k in ConnectionKind.values) k: kindLabel(l10n, k),
+    };
     return shareConnectionsImage(
       context,
       anchorContext: button,
@@ -247,6 +290,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         caption: caption,
         fontFamily: fontFamily,
         direction: direction,
+        labels: display.labels,
+        nodeSize: display.nodeSize,
+        edges: display.edges,
+        kindNames: kindNames,
       ),
     );
   }
@@ -316,6 +363,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         .hasActiveFilters;
     final colors = ConnectionKindColors.of(context);
     final focus = view.mode == ConnectionsMode.around ? view.focus : null;
+    final display = ref.watch(connectionsDisplayProvider);
+    final layoutChoice = display.layoutFor(
+      around: view.mode == ConnectionsMode.around,
+    );
 
     ref.listen(connectionGraphProvider(budget), (_, next) {
       if (next.hasError && next.error is FocusNotFoundException) {
@@ -353,10 +404,26 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     final showCanvas =
         held != null && !view.isAroundWithoutFocus && !graph.isEmpty;
     final animate = _hadGraph && !MediaQuery.disableAnimationsOf(context);
+    final canvasGraph = _canvasGraphFor(
+      graph,
+      hide: display.hideUnconnected,
+      keep: focus,
+    );
     if (showCanvas) {
-      _syncLayout(graph, focus, animate: animate);
+      if (display.view == ConnectionsViewKind.graph) {
+        _syncLayout(
+          canvasGraph,
+          focus,
+          layout: layoutChoice,
+          spacing: display.spacing,
+          animate: animate,
+        );
+      }
       _story(graph, focus);
     }
+    final VoidCallback? showAll = budget >= ConnectionsPage.maxBudget
+        ? null
+        : () => _showAll(graph.nodes.length + graph.hiddenNodeCount);
     final reloadFailed =
         held != null &&
         graphAsync.hasError &&
@@ -413,111 +480,40 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           ],
         );
       }
-      final kinds = graph.nodes.map((n) => n.ref.kind).toSet();
-      return Stack(
-        children: [
-          Positioned.fill(
-            child: ConnectionsCanvas(
-              graph: graph,
-              controller: _layout,
-              colors: colors,
-              selection: selection,
-              semanticsLabel: _semanticsLabel(graph, selection),
-              animate: animate,
-              bottomInset: bottomInset,
-              topInset: stripHeight,
-              highlight: view.highlight,
-              groupOf: _groups.groupOf,
-              onSelect: (s) =>
-                  ref.read(connectionsSelectionProvider.notifier).state = s,
-              onFocus: (node) {
-                ref
-                    .read(connectionsViewProvider.notifier)
-                    .update((s) => s.centreOn(node));
-                ref.read(connectionsSelectionProvider.notifier).state =
-                    NodeSelection(node);
-              },
-            ),
-          ),
-          Positioned(
-            key: const ValueKey('connections-insights'),
-            left: 0,
-            right: 0,
-            top: 8,
-            child: InsightStrip(
-              graph: graph,
-              tiles: _insights,
-              onSelect: (s) =>
-                  ref.read(connectionsSelectionProvider.notifier).state = s,
-              onGroups: () => ref
-                  .read(connectionsViewProvider.notifier)
-                  .update((s) => s.withHighlight(HighlightMode.groups)),
-            ),
-          ),
-          if (!wide)
-            Positioned(
-              left: 12,
-              top: belowStrip,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: ConnectionsLegend(
-                    kinds: kinds,
-                    colors: colors,
-                    showTitle: false,
-                    highlight: view.highlight,
-                    groupCount: _groups.count,
-                  ),
-                ),
-              ),
-            ),
-          Positioned(
-            right: 12,
-            top: belowStrip,
-            child: HiddenNodesChip(
-              count: graph.hiddenNodeCount,
-              onShowAll: budget >= ConnectionsPage.maxBudget
-                  ? null
-                  : () => _showAll(graph.nodes.length + graph.hiddenNodeCount),
-            ),
-          ),
-          if (reloadFailed)
-            Positioned(
-              left: 12,
-              right: 12,
-              top: belowStrip + 44,
-              child: Card(
-                key: const ValueKey('connections-reload-error'),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
-                  child: Row(
-                    children: [
-                      Expanded(child: Text(l10n.connections_error_load)),
-                      TextButton(
-                        onPressed: () =>
-                            ref.invalidate(connectionGraphProvider(budget)),
-                        child: Text(l10n.common_action_retry),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          playPill,
-          if (graphAsync.isLoading)
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              child: Semantics(
-                label: l10n.connections_loading,
-                child: const LinearProgressIndicator(
-                  key: ValueKey('connections-reload-progress'),
-                  minHeight: 2,
-                ),
-              ),
-            ),
-        ],
+      return ConnectionsGraphStack(
+        graph: graph,
+        canvasGraph: canvasGraph,
+        controller: _layout,
+        colors: colors,
+        selection: selection,
+        semanticsLabel: _semanticsLabel(graph, selection),
+        animate: animate,
+        bottomInset: bottomInset,
+        stripHeight: stripHeight,
+        belowStrip: belowStrip,
+        highlight: view.highlight,
+        groups: _groups,
+        insights: _insights,
+        wide: wide,
+        display: display,
+        onSelect: (s) =>
+            ref.read(connectionsSelectionProvider.notifier).state = s,
+        onFocus: (node) {
+          ref
+              .read(connectionsViewProvider.notifier)
+              .update((s) => s.centreOn(node));
+          ref.read(connectionsSelectionProvider.notifier).state = NodeSelection(
+            node,
+          );
+        },
+        onGroups: () => ref
+            .read(connectionsViewProvider.notifier)
+            .update((s) => s.withHighlight(HighlightMode.groups)),
+        onShowAll: showAll,
+        reloadFailed: reloadFailed,
+        onRetry: () => ref.invalidate(connectionGraphProvider(budget)),
+        playPill: playPill,
+        loading: graphAsync.isLoading,
       );
     }
 
@@ -574,9 +570,22 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
               key: const ValueKey('connections-share'),
               icon: const Icon(Icons.ios_share),
               tooltip: l10n.connections_share_tooltip,
-              onPressed: showCanvas ? () => _share(graph, view, button) : null,
+              onPressed: showCanvas
+                  ? () => _share(graph, view, display, button)
+                  : null,
             ),
           ),
+          if (display.view == ConnectionsViewKind.graph)
+            ListenableBuilder(
+              listenable: _layout,
+              builder: (context, _) => focus == null || _layout.hasPins
+                  ? IconButton(
+                      icon: const Icon(Icons.refresh),
+                      tooltip: l10n.connections_tooltip_relayout,
+                      onPressed: _layout.relayout,
+                    )
+                  : const SizedBox.shrink(),
+            ),
           if (focus != null)
             IconButton(
               icon: const Icon(Icons.zoom_out_map),
@@ -587,12 +596,6 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
                     .update((s) => s.withMode(ConnectionsMode.map));
                 ref.read(connectionsSelectionProvider.notifier).state = null;
               },
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              tooltip: l10n.connections_tooltip_relayout,
-              onPressed: _layout.relayout,
             ),
         ],
       ),

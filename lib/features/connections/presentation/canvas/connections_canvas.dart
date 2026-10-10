@@ -157,7 +157,8 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
         widget.controller.frame.positions.isNotEmpty) {
       _viewport = _fitTarget(_size);
     }
-    if (old.graph != widget.graph) {
+    final graphChanged = old.graph != widget.graph;
+    if (graphChanged || old.layoutToken != widget.layoutToken) {
       _autoFit = true;
       _userMoved = false;
       if (widget.animate &&
@@ -166,6 +167,8 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
         _glideFrom = _viewport;
         _glide.forward(from: 0);
       }
+    }
+    if (graphChanged) {
       _clearTextCaches();
       _decodePhotos();
     }
