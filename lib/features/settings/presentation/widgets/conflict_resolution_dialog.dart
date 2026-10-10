@@ -241,8 +241,8 @@ class _ConflictResolutionDialogState
   String _conflictTitle(SyncConflict conflict) {
     final own = _ownName(conflict.localData) ?? _ownName(conflict.remoteData);
     if (own != null) return own;
-    return conflictReferenceSummary(conflict.localReferences) ??
-        conflictReferenceSummary(conflict.remoteReferences) ??
+    return conflictReferenceSummary(context.l10n, conflict.localReferences) ??
+        conflictReferenceSummary(context.l10n, conflict.remoteReferences) ??
         conflict.displayName;
   }
 
@@ -276,7 +276,10 @@ class _ConflictResolutionDialogState
             children: [
               ChoiceChip(
                 label: Text(
-                  context.l10n.settings_conflict_keepDevice(devices.local),
+                  context.l10n.settings_conflict_keepDevice(
+                    devices.local,
+                    devices.localKind.name,
+                  ),
                 ),
                 selected: selected == ConflictResolution.keepLocal,
                 onSelected: (_) =>
@@ -285,7 +288,10 @@ class _ConflictResolutionDialogState
               ),
               ChoiceChip(
                 label: Text(
-                  context.l10n.settings_conflict_keepDevice(devices.remote),
+                  context.l10n.settings_conflict_keepDevice(
+                    devices.remote,
+                    devices.remoteKind.name,
+                  ),
                 ),
                 selected: selected == ConflictResolution.keepRemote,
                 onSelected: (_) =>

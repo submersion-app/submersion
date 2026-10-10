@@ -596,32 +596,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           // Notification Overrides: service reminders are for owned gear
           // (#2025).
           if (!_isWanted) _buildNotificationSection(context),
-
-          if (!widget.embedded) ...[
-            const SizedBox(height: 32),
-            // Save Button
-            Tooltip(
-              message: widget.isEditing
-                  ? context.l10n.equipment_edit_saveTooltip_edit
-                  : context.l10n.equipment_edit_saveTooltip_new,
-              child: FilledButton(
-                onPressed: _isLoading
-                    ? null
-                    : () => _saveEquipment(existingEquipment),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        widget.isEditing
-                            ? context.l10n.equipment_edit_saveButton_edit
-                            : context.l10n.equipment_edit_saveButton_new,
-                      ),
-              ),
-            ),
-          ],
+          // No save button down here: Save lives in the app bar (or the
+          // embedded header) only, since a second, differently labelled one
+          // read as another action (issue #3174).
         ],
       ),
     );

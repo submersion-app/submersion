@@ -4,6 +4,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -95,6 +97,7 @@ Future<List<String?>> _pump(
   required List<TripStoryMapPoint> points,
   String? highlighted,
   VoidCallback? onExpand,
+  bool interactive = true,
 }) async {
   final taps = <String?>[];
   final overrides = await getBaseOverrides();
@@ -114,6 +117,7 @@ Future<List<String?>> _pump(
               highlightedDiveId: highlighted,
               onDiveTap: taps.add,
               onExpand: onExpand,
+              interactive: interactive,
             ),
           ),
         ),
@@ -126,6 +130,22 @@ Future<List<String?>> _pump(
 }
 
 void main() {
+  testWidgets('a story-card map forwards trackpad scrolls to the story', (
+    tester,
+  ) async {
+    await _pump(tester, points: [_reefA], interactive: false);
+
+    expect(find.byType(LockedMapScrollPassthrough), findsOneWidget);
+    expect(find.byType(TrackpadZoomMap), findsNothing);
+  });
+
+  testWidgets('an interactive day map keeps trackpad zoom', (tester) async {
+    await _pump(tester, points: [_reefA]);
+
+    expect(find.byType(TrackpadZoomMap), findsOneWidget);
+    expect(find.byType(LockedMapScrollPassthrough), findsNothing);
+  });
+
   testWidgets('draws a pin per dive numbered like the rows, and the port', (
     tester,
   ) async {

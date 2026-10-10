@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
 
 /// The mannequin and the number badges have to read on every theme the app ships.
@@ -43,12 +45,42 @@ void main() {
           greaterThanOrEqualTo(2.0),
         );
       });
+
+      // Issue #3181: a black wetsuit vanished on dark schemes, and white gear
+      // does the same on light ones.
+      final surfaces = [
+        scheme.surface,
+        scheme.surfaceContainerLow,
+        scheme.surfaceContainer,
+      ];
+
+      test('$name: the rim reads on every surface the figure sits on', () {
+        for (final surface in surfaces) {
+          expect(
+            contrastRatio(Color(palette.rim), surface),
+            greaterThanOrEqualTo(3.0),
+          );
+        }
+      });
+
+      test('$name: gear that blends into the page gets a rim', () {
+        final lost = brightness == Brightness.dark
+            ? [_argb(equipmentColorBlack), FigureColors.black]
+            : [_argb(equipmentColorWhite)];
+        for (final colour in lost) {
+          expect(palette.needsRim(colour), isTrue, reason: '$colour');
+        }
+      });
+
+      test('$name: gear that reads on the page gets none', () {
+        expect(palette.needsRim(0xFFEF4444), isFalse);
+      });
     }
   }
 
   test('a scheme with no contrast at all still yields a figure and a pill', () {
     // Nothing can stand off a surface that equals its own text colour, so
-    // both walks fall back to the text colour itself rather than failing.
+    // every walk falls back to the text colour itself rather than failing.
     const flat = ColorScheme.light(
       surface: Color(0xFF808080),
       surfaceContainer: Color(0xFF808080),
@@ -56,6 +88,7 @@ void main() {
       onSurface: Color(0xFF808080),
     );
     expect(Color(figurePaletteFor(flat).body), flat.onSurface);
+    expect(Color(figurePaletteFor(flat).rim), flat.onSurface);
     expect(figurePillFor(flat).fill, flat.onSurface);
   });
 
@@ -75,3 +108,5 @@ void main() {
     );
   });
 }
+
+int _argb(String hex) => 0xFF000000 | int.parse(hex.substring(1), radix: 16);

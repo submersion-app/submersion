@@ -6,7 +6,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/profile_editing_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_waypoint.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_series_owner.dart';
+import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/editor_context_panel.dart';
@@ -331,6 +336,9 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     required bool enabled,
   }) {
     final historyAsync = ref.watch(profileSeriesHistoryProvider(diveId));
+    final sources =
+        ref.watch(diveDataSourcesProvider(diveId)).value ?? const [];
+    final sourceLabels = sourceNameLabelsFor(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     return historyAsync.when(
@@ -367,12 +375,14 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
               await ref
                   .read(diveRepositoryProvider)
                   .setActiveProfileSeries(diveId, seriesId);
-              // Invalidate profile-related providers to refresh the editor
+              // Invalidate profile-related providers to refresh the editor.
+              // The switch can change the primary source too (issue #3067).
               ref.invalidate(diveProvider(diveId));
               ref.invalidate(diveProfileProvider(diveId));
               ref.invalidate(profileSeriesHistoryProvider(diveId));
               // An editor started from the primary source reads it here.
               ref.invalidate(sourceProfilesProvider(diveId));
+              ref.invalidate(diveDataSourcesProvider(diveId));
             } catch (_) {
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
@@ -398,6 +408,16 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
                       _formatRevisionCreatedAt(units, revision.createdAt),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
+                    for (final detail in _revisionDetails(
+                      context,
+                      revision,
+                      sources,
+                      sourceLabels,
+                    ))
+                      Text(
+                        detail,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                   ],
                 ),
               ),
@@ -440,6 +460,38 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         );
       },
     );
+  }
+
+  /// Extra lines under a revision entry: the source it belongs to when the
+  /// dive has more than one, so two "Computer Import" entries can be told
+  /// apart, and what a legacy entry is. Sources sharing a name are told
+  /// apart by file, as the cylinder rows do ([tankSourceName]).
+  List<String> _revisionDetails(
+    BuildContext context,
+    ProfileSeriesRevision revision,
+    List<DiveDataSource> sources,
+    SourceNameLabels labels,
+  ) {
+    final owner = sources.length > 1
+        ? owningDataSource(
+            sourceId: revision.sourceId,
+            computerId: revision.computerId,
+            sources: sources,
+          )
+        : null;
+    final ownerName = owner == null
+        ? null
+        : tankSourceName(
+            computerId: owner.computerId,
+            sourceId: owner.id,
+            sources: sources,
+            labels: labels,
+          );
+    return [
+      ?ownerName,
+      if (revision.revisionKind == 'legacy')
+        context.l10n.diveLog_profileEditor_revisionLegacyHint,
+    ];
   }
 
   String _revisionKindLabel(BuildContext context, String revisionKind) =>

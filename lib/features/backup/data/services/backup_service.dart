@@ -243,9 +243,10 @@ class BackupService {
       try {
         cloudFileId = await _uploadToCloud(ref, storedName);
         // Only a real file id means a cloud copy exists: the upload also
-        // gives up (returning null) when the backup folder is unreachable,
-        // and history that claims `both` with no id sends restore looking
-        // for a file that was never written.
+        // gives up (returning null) when the backup folder is unreachable or
+        // sync encryption is locked on this device (issue #3089), and history
+        // that claims `both` with no id sends restore looking for a file that
+        // was never written.
         if (cloudFileId != null) {
           location = BackupLocation.both;
           _log.info('Backup uploaded to cloud: $cloudFileId');
@@ -1489,8 +1490,54 @@ class BackupService {
     return (mlk: key.mlk, libraryKeyId: key.libraryKeyId, keyslotBytes: mirror);
   }
 
+  /// True when cloud backup is on and end-to-end sync encryption is on, but
+  /// this device has not been unlocked yet (no key or keyslot mirror in its
+  /// keychain). Cloud uploads fail closed in that state, so callers use this
+  /// to tell the user why a backup stayed on the device (issue #3089). Backup
+  /// encryption exempts the device: its .sbe backups upload regardless.
+  Future<bool> isCloudBackupBlockedByEncryptionLock() async {
+    if (_cloudProvider == null) return false;
+    final settings = _preferences.getSettings();
+    if (!settings.cloudBackupEnabled || settings.backupEncryptionEnabled) {
+      return false;
+    }
+    if (!(_syncPreferences?.syncEncryptionEnabled ?? false)) return false;
+    return await _unlockedSyncKey() == null;
+  }
+
+  /// The sync-encryption key and its keyslot mirror, or null when either is
+  /// missing from this device's keychain.
+  Future<({SecretKey mlk, String libraryKeyId, Uint8List keyslotBytes})?>
+  _unlockedSyncKey() async {
+    final key = await _encryptionKeyStore?.loadKey();
+    final mirror = await _encryptionKeyStore?.loadKeyslotMirror();
+    if (key == null || mirror == null) return null;
+    return (mlk: key.mlk, libraryKeyId: key.libraryKeyId, keyslotBytes: mirror);
+  }
+
   Future<String?> _uploadToCloud(String localPath, String filename) async {
     if (_cloudProvider == null) return null;
+
+    // When backup encryption (issue #580) already produced a framed .sbe, the
+    // local artifact IS the encrypted upload -- send it verbatim. Otherwise, if
+    // sync encryption is on, the CLOUD copy becomes a framed .sbe here (local
+    // artifacts stay plaintext by design). The cloud decorator exempts
+    // submersion_backup_*.sbe, so a pass-through .sbe is never double-encrypted.
+    final alreadyEncrypted = await BackupCrypto.isEncryptedBackup(localPath);
+    final needsSyncEncryption =
+        !alreadyEncrypted && (_syncPreferences?.syncEncryptionEnabled ?? false);
+    final unlocked = needsSyncEncryption ? await _unlockedSyncKey() : null;
+    if (needsSyncEncryption && unlocked == null) {
+      // Fail closed (issue #3089): a diver who turned on end-to-end
+      // encryption must never get a plaintext copy in the cloud. Checked
+      // before touching the cloud folder, and the caller keeps the backup
+      // local-only.
+      _log.warning(
+        'Sync encryption is enabled but this device is not unlocked; '
+        'cloud upload skipped',
+      );
+      return null;
+    }
 
     final folderId = await _getOrCreateCloudBackupFolder();
     if (folderId == null) return null;
@@ -1499,35 +1546,19 @@ class BackupService {
     var uploadName = filename;
     File? encryptedTemp;
 
-    // When backup encryption (issue #580) already produced a framed .sbe, the
-    // local artifact IS the encrypted upload -- send it verbatim. Otherwise, if
-    // sync encryption is on, the CLOUD copy becomes a framed .sbe here (local
-    // artifacts stay plaintext by design). The cloud decorator exempts
-    // submersion_backup_*.sbe, so a pass-through .sbe is never double-encrypted.
-    final alreadyEncrypted = await BackupCrypto.isEncryptedBackup(localPath);
-    if (!alreadyEncrypted &&
-        (_syncPreferences?.syncEncryptionEnabled ?? false)) {
-      final key = await _encryptionKeyStore?.loadKey();
-      final mirror = await _encryptionKeyStore?.loadKeyslotMirror();
-      if (key == null || mirror == null) {
-        _log.error(
-          'Encryption is enabled but no key/keyslots are available; '
-          'uploading backup UNENCRYPTED',
-        );
-      } else {
-        final tempDir = await resolveSyncTempDir();
-        uploadName =
-            p.basenameWithoutExtension(filename) + BackupCrypto.fileExtension;
-        uploadPath = p.join(tempDir.path, uploadName);
-        await BackupCrypto.encryptFile(
-          inPath: localPath,
-          outPath: uploadPath,
-          mlk: key.mlk,
-          libraryKeyId: key.libraryKeyId,
-          keyslotBytes: mirror,
-        );
-        encryptedTemp = File(uploadPath);
-      }
+    if (unlocked != null) {
+      final tempDir = await resolveSyncTempDir();
+      uploadName =
+          p.basenameWithoutExtension(filename) + BackupCrypto.fileExtension;
+      uploadPath = p.join(tempDir.path, uploadName);
+      await BackupCrypto.encryptFile(
+        inPath: localPath,
+        outPath: uploadPath,
+        mlk: unlocked.mlk,
+        libraryKeyId: unlocked.libraryKeyId,
+        keyslotBytes: unlocked.keyslotBytes,
+      );
+      encryptedTemp = File(uploadPath);
     }
 
     try {

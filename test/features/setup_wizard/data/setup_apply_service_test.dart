@@ -79,6 +79,43 @@ void main() {
     },
   );
 
+  // Issue #3111. The app language defaults to the device's, but place names
+  // defaulted to English, so a German install stored "Germany" and "Spain".
+  group('applyFirstRun place name language', () {
+    const draft = SetupWizardDraft(
+      mode: SetupWizardMode.firstRun,
+      path: SetupPath.fresh,
+      name: 'Eric',
+    );
+
+    Future<String> storedPlaceNameLanguage() async {
+      final diver = (await DiverRepository().getAllDivers()).single;
+      final stored = await DiverSettingsRepository().getSettingsForDiver(
+        diver.id,
+      );
+      return stored!.placeNameLanguage;
+    }
+
+    test('follows the first supported device language', () async {
+      final service = makeContainer().read(setupApplyServiceProvider);
+
+      await service.applyFirstRun(
+        draft,
+        deviceLanguageCodes: const ['pl', 'de'],
+      );
+
+      expect(await storedPlaceNameLanguage(), 'de');
+    });
+
+    test('stays English when no device language is supported', () async {
+      final service = makeContainer().read(setupApplyServiceProvider);
+
+      await service.applyFirstRun(draft, deviceLanguageCodes: const ['pl']);
+
+      expect(await storedPlaceNameLanguage(), 'en');
+    });
+  });
+
   // Issue #2298. On a fresh database the app is already running with a live
   // SettingsNotifier and CurrentDiverIdNotifier. Creating the wizard's diver
   // ticks the divers table, the id notifier self-repairs to that new default

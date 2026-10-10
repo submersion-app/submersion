@@ -851,8 +851,42 @@
     }
   },
   "gasCalculators_bestMix_nearestStandard": "Nearest standard mix covering this depth",
-  "gasCalculators_bestMix_recommendedMix": "Recommended mix",
+  "gasCalculators_bestMix_recommendedMix": "Calculated mix",
+  "gasCalculators_bestMix_semanticsLabel": "Calculated mix {mix}, MOD {mod}",
+  "@gasCalculators_bestMix_semanticsLabel": {
+    "placeholders": {
+      "mix": {
+        "type": "String"
+      },
+      "mod": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_bestMix_showAllMixes": "Show all ({count})",
+  "@gasCalculators_bestMix_showAllMixes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gasCalculators_bestMix_showFewerMixes": "Show fewer",
   "gasCalculators_bestMix_withoutHelium": "Without helium",
+  "gasCalculators_bestMix_ccrSource": "Gas source",
+  "gasCalculators_bestMix_ccrSourceBailout": "Bailout",
+  "gasCalculators_bestMix_ccrSourceDiluent": "Diluent",
+  "gasCalculators_bestMix_densityAware": "Keep gas density within limits",
+  "gasCalculators_bestMix_eadLabel": "EAD at depth",
+  "gasCalculators_bestMix_heliumBoth": "Helium added to keep END and gas density within your limits.",
+  "gasCalculators_bestMix_heliumDensity": "Helium added to keep gas density within limits.",
+  "gasCalculators_bestMix_mode": "Mode",
+  "gasCalculators_bestMix_modeCcrTec": "CCR Tec",
+  "gasCalculators_bestMix_modeCcrTecHint": "Closed circuit: Diluent checks against the diluent's flush ppO2, Bailout against your OC deco (maximum) ppO2.",
+  "gasCalculators_bestMix_modeOcTec": "OC Tec",
+  "gasCalculators_bestMix_modeOcTecHint": "Trimix on open circuit, checked against your working ppO2 limit.",
+  "gasCalculators_bestMix_modeRec": "Rec",
+  "gasCalculators_bestMix_modeRecHint": "Nitrox for recreational diving, as today.",
   "gasCalculators_planningCaveat": "Planning estimate. Assumes a direct ascent. Verify against your training and add margin for conditions.",
   "gasCalculators_rockBottom_solveGas": "Problem-solving gas at {depth}{unit}",
   "@gasCalculators_rockBottom_solveGas": {
@@ -6135,6 +6169,17 @@
   "divePlanner_action_convertToDive": "Convert to Dive",
   "divePlanner_action_deletePlan": "Delete plan",
   "divePlanner_action_editTank": "Edit Tank",
+  "divePlanner_action_fillBestMix": "Best mix for {depth}: {mix}",
+  "@divePlanner_action_fillBestMix": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      },
+      "mix": {
+        "type": "String"
+      }
+    }
+  },
   "divePlanner_action_moreOptions": "More options",
   "divePlanner_action_quickPlan": "Quick Plan",
   "divePlanner_action_renamePlan": "Rename Plan",
@@ -8756,10 +8801,6 @@
   "equipment_edit_expectedPriceLabel": "Expected Price",
   "equipment_edit_remindMeBeforeServiceDue": "Remind me before service is due:",
   "equipment_edit_reminderDays": "{days} days",
-  "equipment_edit_saveButton_edit": "Save Changes",
-  "equipment_edit_saveButton_new": "Add Equipment",
-  "equipment_edit_saveTooltip_edit": "Save equipment changes",
-  "equipment_edit_saveTooltip_new": "Add new equipment item",
   "equipment_edit_selectDate": "Select Date",
   "equipment_edit_serialNumberLabel": "Serial Number",
   "equipment_edit_snackbar_added": "Equipment added",
@@ -9203,8 +9244,6 @@
   "equipment_setEdit_noEquipmentAvailable": "No equipment available",
   "equipment_setEdit_notFoundMessage": "This equipment set no longer exists.",
   "equipment_setEdit_notFoundTitle": "Set Not Found",
-  "equipment_setEdit_saveButton_edit": "Save Changes",
-  "equipment_setEdit_saveButton_new": "Create Set",
   "equipment_setEdit_saveTooltip_edit": "Save equipment set changes",
   "equipment_setEdit_saveTooltip_new": "Create new equipment set",
   "equipment_setEdit_selectEquipmentSubtitle": "Choose the equipment items to include in this set.",
@@ -9570,8 +9609,8 @@
   "gasCalculators_mod_flushPpO2": "ppO₂ for the diluent MOD (flush)",
   "gasCalculators_mod_minPpO2": "Minimum ppO₂ (hypoxic mixes)",
   "gasCalculators_mod_fromProfile": "From your diver profile",
-  "gasCalculators_mod_differsFromProfile": "Differs from your profile ({value} bar)",
-  "@gasCalculators_mod_differsFromProfile": {
+  "gasCalculators_differsFromProfile": "Differs from your profile ({value})",
+  "@gasCalculators_differsFromProfile": {
     "placeholders": {
       "value": {
         "type": "String"
@@ -12005,13 +12044,17 @@
   "planning_card_decoCalculator_title": "Deco Calculator",
   "planning_card_divePlanner_subtitle": "Create multi-level dive plans",
   "planning_card_divePlanner_title": "Dive Planner",
-  "planning_card_gasCalculators_subtitle": "MOD, Best Mix, Consumption, Rock Bottom",
+  "planning_card_gasCalculators_subtitle": "Depth limits, mixes, gas use and blending",
   "planning_card_gasCalculators_title": "Gas Calculators",
   "planning_card_surfaceInterval_subtitle": "Plan repetitive dive intervals",
   "planning_card_surfaceInterval_title": "Surface Interval",
   "planning_card_weightCalculator_subtitle": "Recommended weight for your setup",
   "planning_card_weightCalculator_title": "Weight Calculator",
   "planning_info_disclaimer": "These tools are for planning purposes only. Always verify calculations and follow your dive training.",
+  "planning_disclaimer_dialog_title": "Planning Tools Disclaimer",
+  "planning_disclaimer_dialog_body": "The tools in this section are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.",
+  "planning_disclaimer_dialog_confirm": "I Understand",
+  "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Planning disclaimer accepted",
   "planning_section_tools": "Tools",
   "planning_summary_prompt": "Select a tool to get started",
   "planning_summary_savedPlans": "Saved plans",
@@ -12747,17 +12790,17 @@
   "settings_conflict_close": "Close",
   "settings_conflict_close_tooltip": "Close conflict dialog",
   "settings_conflict_consequence_deleteHere": "Deletes the record on this device too.",
-  "settings_conflict_consequence_keep": "Keeps {kept}'s version. {discarded}'s values for {fields} are discarded.",
-  "@settings_conflict_consequence_keep": {"placeholders": {"kept": {"type": "String"}, "discarded": {"type": "String"}, "fields": {"type": "String"}}},
-  "settings_conflict_consequence_keepBoth": "Keeps {local}'s version and adds {remote}'s version as a separate copy.",
-  "@settings_conflict_consequence_keepBoth": {"placeholders": {"local": {"type": "String"}, "remote": {"type": "String"}}},
-  "settings_conflict_consequence_keepRecord": "Keeps the record, with {device}'s values.",
-  "@settings_conflict_consequence_keepRecord": {"placeholders": {"device": {"type": "String"}}},
+  "settings_conflict_consequence_keep": "Keeps {keptKind, select, thisDevice{this device's} otherDevice{the other device's} other{{kept}'s}} version. {discardedKind, select, thisDevice{This device's} otherDevice{The other device's} other{{discarded}'s}} values for {fields} are discarded.",
+  "@settings_conflict_consequence_keep": {"placeholders": {"kept": {"type": "String"}, "keptKind": {"type": "String"}, "discarded": {"type": "String"}, "discardedKind": {"type": "String"}, "fields": {"type": "String"}}},
+  "settings_conflict_consequence_keepBoth": "Keeps {localKind, select, thisDevice{this device's} otherDevice{the other device's} other{{local}'s}} version and adds {remoteKind, select, thisDevice{this device's} otherDevice{the other device's} other{{remote}'s}} version as a separate copy.",
+  "@settings_conflict_consequence_keepBoth": {"placeholders": {"local": {"type": "String"}, "localKind": {"type": "String"}, "remote": {"type": "String"}, "remoteKind": {"type": "String"}}},
+  "settings_conflict_consequence_keepRecord": "Keeps the record, with {deviceKind, select, thisDevice{this device's} otherDevice{the other device's} other{{device}'s}} values.",
+  "@settings_conflict_consequence_keepRecord": {"placeholders": {"device": {"type": "String"}, "deviceKind": {"type": "String"}}},
   "settings_conflict_consequence_nothingLost": "Both versions match, so nothing is lost.",
   "settings_conflict_consequence_staysDeleted": "The record stays deleted on this device.",
   "settings_conflict_counterLabel": "Conflict {current} of {total}",
-  "settings_conflict_deletedValues": "The record as {device} has it:",
-  "@settings_conflict_deletedValues": {"placeholders": {"device": {"type": "String"}}},
+  "settings_conflict_deletedValues": "The record as {deviceKind, select, thisDevice{this device} otherDevice{the other device} other{{device}}} has it:",
+  "@settings_conflict_deletedValues": {"placeholders": {"device": {"type": "String"}, "deviceKind": {"type": "String"}}},
   "settings_conflict_errorLoading": "Error loading conflicts: {error}",
   "settings_conflict_fieldHeader": "Field",
   "settings_conflict_field_accentListIcons": "Colored list icons",
@@ -13352,14 +13395,16 @@
   "settings_conflict_field_workingPressureBar": "Working pressure",
   "settings_conflict_finerThanShown": "The difference is finer than this display shows.",
   "settings_conflict_keepBoth": "Keep Both",
-  "settings_conflict_keepDevice": "Keep {device}",
-  "@settings_conflict_keepDevice": {"placeholders": {"device": {"type": "String"}}},
+  "settings_conflict_keepDevice": "{deviceKind, select, thisDevice{Keep this device's version} otherDevice{Keep the other device's version} other{Keep {device}}}",
+  "@settings_conflict_keepDevice": {"placeholders": {"device": {"type": "String"}, "deviceKind": {"type": "String"}}},
   "settings_conflict_localDeleted": "{device} deleted this record.",
   "@settings_conflict_localDeleted": {"placeholders": {"device": {"type": "String"}}},
   "settings_conflict_modifiedBy": "{device} · modified {time}",
   "@settings_conflict_modifiedBy": {"placeholders": {"device": {"type": "String"}, "time": {"type": "String"}}},
   "settings_conflict_moreFields": "{fields} and {count, plural, one{{count} more} other{{count} more}}",
   "@settings_conflict_moreFields": {"placeholders": {"fields": {"type": "String"}, "count": {"type": "int"}}},
+  "settings_conflict_fieldListSeparator": ", ",
+  "@settings_conflict_fieldListSeparator": {"description": "Separator between field names in the conflict consequence line, such as \", \" in English or \"\u3001\" in Chinese."},
   "settings_conflict_next_tooltip": "Next conflict",
   "settings_conflict_noConflicts_message": "All sync conflicts have been resolved.",
   "settings_conflict_noConflicts_title": "No Conflicts",
@@ -14427,6 +14472,7 @@
   "signatures_field_instructorName": "Instructor Name",
   "signatures_field_instructorNameHint": "Enter instructor name",
   "signatures_handoff_title": "Hand your device to",
+  "signatures_buddySignature": "Buddy Signature",
   "signatures_instructorSignature": "Instructor Signature",
   "signatures_noSignatureImage": "No signature image",
   "signatures_signHere": "{name} - Sign Here",
@@ -14516,6 +14562,9 @@
   },
   "@signatures_handoff_title": {
     "description": "Instruction text before handing device to buddy for signing"
+  },
+  "@signatures_buddySignature": {
+    "description": "Title of a saved buddy signature card and its full view"
   },
   "@signatures_instructorSignature": {
     "description": "Label for instructor signature section"
@@ -16529,10 +16578,8 @@
   "trips_diveScan_unknownSite": "Unknown Site",
   "trips_edit_appBar_add": "Add Trip",
   "trips_edit_appBar_edit": "Edit Trip",
-  "trips_edit_button_add": "Add Trip",
   "trips_edit_button_cancel": "Cancel",
   "trips_edit_button_save": "Save",
-  "trips_edit_button_update": "Update Trip",
   "trips_edit_dialog_discard": "Discard",
   "trips_edit_dialog_discardContent": "You have unsaved changes. Are you sure you want to leave?",
   "trips_edit_dialog_discardTitle": "Discard Changes?",
@@ -22830,6 +22877,34 @@
   "settings_coordinateFormat_title": "Coordinate format",
   "settings_placeNameLanguage_title": "Place name language",
   "settings_placeNameLanguage_subtitle": "Used when country, region, town and body of water are looked up from coordinates. Existing sites are not changed.",
+  "settings_language_placeNameOffer_title": "Store place names in {language}?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "Country and region names looked up for your sites are stored in {current}. Switch to {language} for new lookups? You can then look up your existing sites again.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "Keep {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Switch",
   "settings_coordinateFormat_decimalDegrees": "Decimal degrees",
   "settings_coordinateFormat_degreesDecimalMinutes": "Degrees and decimal minutes",
   "settings_coordinateFormat_degreesMinutesSeconds": "Degrees, minutes, seconds",
@@ -26779,6 +26854,7 @@
   "diveLog_profileEditor_mode_trim": "Trim",
   "diveLog_profileEditor_revisionSelectorTooltip": "Switch active revision. This takes effect immediately and all future edits will be based on this revision.",
   "diveLog_profileEditor_revisionSwitchFailed": "Could not switch profile revision.",
+  "diveLog_profileEditor_revisionLegacyHint": "Saved before revision history; not linked to a computer",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Data Source} =1{Data Source} other{Data Sources}}",
   "diveLog_sources_badge_manual": "Manual",
   "diveLog_sources_badge_viewing": "Viewing",
@@ -27338,6 +27414,7 @@
     "description": "Title of the system save dialog for the cylinder fills CSV"
   },
   "backup_operation_created": "Backup created: {size}",
+  "backup_operation_createdLocalOnlyLocked": "Backup created: {size}. It was saved on this device only: enter your encryption passphrase to upload backups to the cloud.",
   "backup_operation_backupFailed": "Backup failed: {error}",
   "backup_operation_restoring": "Restoring backup...",
   "backup_operation_restoreFailed": "Restore failed: {error}",
@@ -27421,6 +27498,13 @@
     }
   },
   "@backup_operation_created": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@backup_operation_createdLocalOnlyLocked": {
     "placeholders": {
       "size": {
         "type": "String"

@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -44,6 +45,7 @@ Future<void> _pump(
   MapController? controller,
   Dive? dive,
   bool expanded = true,
+  ScrollController? scrollController,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.binding.setSurfaceSize(const Size(600, 1200));
@@ -64,9 +66,17 @@ Future<void> _pump(
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: SurfaceGpsSection(
-              dive: dive ?? _dive(),
-              controller: controller,
+            controller: scrollController,
+            // Content taller than the viewport, so the page can scroll the way
+            // the dive detail pane does.
+            child: Column(
+              children: [
+                SurfaceGpsSection(
+                  dive: dive ?? _dive(),
+                  controller: controller,
+                ),
+                const SizedBox(height: 2000),
+              ],
             ),
           ),
         ),
@@ -79,19 +89,82 @@ Future<void> _pump(
 }
 
 void main() {
-  testWidgets(
-    'renders an interactive map and entry/exit/site coordinate rows',
-    (tester) async {
-      await _pump(tester);
+  group('the inline map does not capture scrolling (#3156)', () {
+    testWidgets('a mouse wheel over the map scrolls the page, not the map', (
+      tester,
+    ) async {
+      final controller = MapController();
+      final scroll = ScrollController();
+      addTearDown(scroll.dispose);
+      await _pump(tester, controller: controller, scrollController: scroll);
+      final zoom = controller.camera.zoom;
 
-      expect(find.byType(FlutterMap), findsOneWidget);
-      // Rendered in the diver's coordinate notation, decimal degrees here.
-      expect(find.text('12.345670° N, 98.765430° E'), findsOneWidget); // entry
-      expect(find.text('12.346120° N, 98.764890° E'), findsOneWidget); // exit
-      expect(find.text('12.340000° N, 98.760000° E'), findsOneWidget); // site
-      expect(find.text('Open in Maps'), findsNothing);
-    },
-  );
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      final center = tester.getCenter(find.byType(FlutterMap));
+      await tester.sendEventToBinding(pointer.hover(center));
+      await tester.sendEventToBinding(pointer.scroll(const Offset(0, 100)));
+      await tester.pump();
+
+      expect(controller.camera.zoom, zoom);
+      expect(scroll.offset, greaterThan(0));
+    });
+
+    testWidgets('a trackpad two-finger scroll over the map scrolls the page', (
+      tester,
+    ) async {
+      final controller = MapController();
+      final scroll = ScrollController();
+      addTearDown(scroll.dispose);
+      await _pump(tester, controller: controller, scrollController: scroll);
+      final zoom = controller.camera.zoom;
+      final mapCenter = controller.camera.center;
+
+      final center = tester.getCenter(find.byType(FlutterMap));
+      final gesture = await tester.createGesture(
+        kind: PointerDeviceKind.trackpad,
+      );
+      await gesture.panZoomStart(center);
+      await tester.pump();
+      // Fingers moving up scroll the content forward, as on a touch screen.
+      await gesture.panZoomUpdate(center, pan: const Offset(0, -100));
+      await tester.pump();
+      await gesture.panZoomEnd();
+      await tester.pump();
+
+      expect(controller.camera.zoom, zoom);
+      expect(controller.camera.center, mapCenter);
+      expect(scroll.offset, greaterThan(0));
+    });
+
+    testWidgets('a touch drag starting on the map scrolls the page', (
+      tester,
+    ) async {
+      final controller = MapController();
+      final scroll = ScrollController();
+      addTearDown(scroll.dispose);
+      await _pump(tester, controller: controller, scrollController: scroll);
+      final mapCenter = controller.camera.center;
+
+      await tester.drag(find.byType(FlutterMap), const Offset(0, -150));
+      await tester.pump();
+
+      expect(controller.camera.center, mapCenter);
+      expect(scroll.offset, greaterThan(0));
+    });
+  });
+
+  testWidgets('renders a map and entry/exit/site coordinate rows', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    expect(find.byType(FlutterMap), findsOneWidget);
+    // Rendered in the diver's coordinate notation, decimal degrees here.
+    expect(find.text('12.345670° N, 98.765430° E'), findsOneWidget); // entry
+    expect(find.text('12.346120° N, 98.764890° E'), findsOneWidget); // exit
+    expect(find.text('12.340000° N, 98.760000° E'), findsOneWidget); // site
+    expect(find.text('Open in Maps'), findsNothing);
+  });
 
   testWidgets('copy icon copies the coordinate at full (6-dp) precision', (
     tester,

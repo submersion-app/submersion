@@ -53,6 +53,7 @@ void main() {
     DiveIdentityLabel? relatedDive,
     String? computerName,
     Widget? evidence,
+    String? foreignDiveId,
   }) async {
     await tester.pumpWidget(
       localizedMaterialApp(
@@ -66,6 +67,7 @@ void main() {
             relatedDive: relatedDive,
             computerName: computerName,
             evidence: evidence,
+            foreignDiveId: foreignDiveId,
           ),
         ),
       ),
@@ -498,6 +500,63 @@ void main() {
     await toggleExpand(tester);
     expect(find.text("Remove from Anna's dive"), findsOneWidget);
     expect(find.text("Remove from another profile's dive"), findsOneWidget);
+  });
+
+  // A shared gear pair spans two profiles; each sees it but may act only on
+  // its own dive (issue #3049).
+  group('a pair with another profile\'s dive', () {
+    QualityFinding crossDiver() => _finding(
+      detectorId: 'shared_gear_overlap',
+      relatedDiveId: 'd2',
+      params: const {
+        'equipmentId': 'light',
+        'itemName': 'Light',
+        'partIds': <String>[],
+        'dives': {
+          'd1': {'diverName': 'Anna', 'entryMs': 0, 'removable': true},
+          'd2': {'diverName': 'Ben', 'entryMs': 0, 'removable': true},
+        },
+      },
+    );
+
+    testWidgets('offers no repair on the other profile\'s dive', (
+      tester,
+    ) async {
+      await pumpCard(tester, finding: crossDiver(), foreignDiveId: 'd1');
+      await toggleExpand(tester);
+      expect(find.text("Remove from Anna's dive"), findsNothing);
+      expect(find.text("Remove from Ben's dive"), findsOneWidget);
+    });
+
+    testWidgets('names the other profile\'s dive without opening it', (
+      tester,
+    ) async {
+      final tapped = <String>[];
+      await pumpCard(
+        tester,
+        finding: crossDiver(),
+        foreignDiveId: 'd1',
+        relatedDive: const DiveIdentityLabel(headline: 'Anna #7'),
+        onGoToDive: tapped.add,
+      );
+      await tester.tap(find.text('Paired with Anna #7'));
+      await tester.pumpAndSettle();
+      expect(tapped, isEmpty);
+    });
+
+    testWidgets('goes to the active diver\'s own dive', (tester) async {
+      final tapped = <String>[];
+      await pumpCard(
+        tester,
+        finding: crossDiver(),
+        foreignDiveId: 'd1',
+        onGoToDive: tapped.add,
+      );
+      await toggleExpand(tester);
+      await tester.tap(find.text('Go to dive'));
+      await tester.pumpAndSettle();
+      expect(tapped, ['d2']);
+    });
   });
 
   group('finding context rows', () {

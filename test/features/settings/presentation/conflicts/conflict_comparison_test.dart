@@ -118,6 +118,31 @@ void main() {
     ]);
   });
 
+  test('an accented label sorts with its letter, not after Z', () {
+    final result = compare(
+      conflict(
+        {'zeta': 1, 'épaisseur': 1, 'alpha': 1, 'ölçü': 1, 'oak': 1},
+        {'zeta': 2, 'épaisseur': 2, 'alpha': 1, 'ölçü': 1, 'oak': 1},
+      ),
+    );
+    expect(result.differences.map((d) => d.key), ['épaisseur', 'zeta']);
+    expect(result.unchanged.map((f) => f.key), ['alpha', 'oak', 'ölçü']);
+  });
+
+  test("a deleted record's values sort accented labels with their letter", () {
+    final result = compare(
+      conflict(
+        {'zeta': 1, 'épaisseur': 1, 'alpha': 1},
+        {'id': 'r1', '_deleted': true},
+      ),
+    );
+    expect(result.survivingValues.map((f) => f.key), [
+      'alpha',
+      'épaisseur',
+      'zeta',
+    ]);
+  });
+
   test('an unchanged opaque payload reads Same, not Changed', () {
     final result = compare(
       conflict(
@@ -288,5 +313,56 @@ void main() {
         expect(keys, contains('detectorId'));
       });
     }
+  });
+
+  // Issue #3025. A peer below the compatibility floor spells two fields the
+  // old way; "Keep remote" applies them under the new name, so the dialog
+  // has to compare them under it too.
+  group('renamed fields from an older peer', () {
+    test('a legacy service key is compared under its new name', () {
+      final result = compare(
+        conflict(
+          {'serviceCategory': 'cleaning'},
+          {'serviceType': 'repair'},
+          entityType: 'serviceRecords',
+        ),
+      );
+      expect(result.state, ConflictComparisonState.differing);
+      expect(result.differences.single.key, 'serviceCategory');
+      expect(result.differences.single.remoteValue, 'repair');
+      expect(result.unchanged, isEmpty);
+    });
+
+    test('a legacy SAC unit is compared as the lane it meant', () {
+      final result = compare(
+        conflict(
+          {'gasConsumptionDisplay': 'sac'},
+          {'sacUnit': 'litersPerMin'},
+          entityType: 'diverSettings',
+        ),
+      );
+      expect(result.differences.single.key, 'gasConsumptionDisplay');
+      expect(result.differences.single.remoteValue, 'rmv');
+    });
+
+    test('a legacy SAC unit that means the local lane is the same', () {
+      final result = compare(
+        conflict(
+          {'gasConsumptionDisplay': 'sac'},
+          {'sacUnit': 'pressurePerMin'},
+          entityType: 'diverSettings',
+        ),
+      );
+      expect(result.state, ConflictComparisonState.sameContent);
+      expect(result.unchanged.map((f) => f.key), ['gasConsumptionDisplay']);
+    });
+
+    test("a deleted record's remote values use the new name", () {
+      final result = compare(
+        conflict({}, {'serviceType': 'repair'}, entityType: 'serviceRecords'),
+      );
+      expect(result.state, ConflictComparisonState.localDeleted);
+      expect(result.survivingValues.map((f) => f.key), ['serviceCategory']);
+    });
   });
 }

@@ -214,10 +214,12 @@ void main() {
   test('v273 is at or below the current schema version and in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(273));
     expect(AppDatabase.migrationVersions, contains(273));
-    expect(AppDatabase.migrationStepCount(272), 1);
+    // v274 (issue #3120) shipped after this rung, so both counts below are
+    // one higher than when this test was written for v273 alone.
+    expect(AppDatabase.migrationStepCount(272), 2);
     // The combined jump from 271: v272's relaxed assertion only pins a
-    // floor, so this is what actually pins the total at exactly two steps.
-    expect(AppDatabase.migrationStepCount(271), 2);
+    // floor, so this is what actually pins the total at exactly three steps.
+    expect(AppDatabase.migrationStepCount(271), 3);
     expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
   });
 

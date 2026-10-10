@@ -8,6 +8,7 @@ import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_camera.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_shape_painter.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 
 const double kTrackThumbnailWidth = 88;
@@ -57,32 +58,34 @@ class GpsTrackThumbnail extends ConsumerWidget {
         height: kTrackThumbnailHeight,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: FlutterMap(
-            options: MapOptions(
-              // Never interactive: a live map here would fight the parent
-              // ListView for the gesture arena on every drag.
-              interactionOptions: const InteractionOptions(
-                flags: InteractiveFlag.none,
+          child: LockedMapScrollPassthrough(
+            child: FlutterMap(
+              options: MapOptions(
+                // Never interactive: a live map here would fight the parent
+                // ListView for the gesture arena on every drag.
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+                initialCameraFit: camera.fit,
+                initialCenter: camera.center ?? const LatLng(0, 0),
+                initialZoom: camera.zoom ?? _kThumbMaxZoom,
               ),
-              initialCameraFit: camera.fit,
-              initialCenter: camera.center ?? const LatLng(0, 0),
-              initialZoom: camera.zoom ?? _kThumbMaxZoom,
+              children: [
+                submersionTileLayer(ref, maxZoomOverride: _kThumbMaxZoom),
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: [
+                        for (final p in points) LatLng(p.latitude, p.longitude),
+                      ],
+                      color: Theme.of(context).colorScheme.primary,
+                      strokeWidth: 2.5,
+                      strokeCap: StrokeCap.round,
+                    ),
+                  ],
+                ),
+              ],
             ),
-            children: [
-              submersionTileLayer(ref, maxZoomOverride: _kThumbMaxZoom),
-              PolylineLayer(
-                polylines: [
-                  Polyline(
-                    points: [
-                      for (final p in points) LatLng(p.latitude, p.longitude),
-                    ],
-                    color: Theme.of(context).colorScheme.primary,
-                    strokeWidth: 2.5,
-                    strokeCap: StrokeCap.round,
-                  ),
-                ],
-              ),
-            ],
           ),
         ),
       ),
