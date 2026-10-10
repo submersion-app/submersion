@@ -3433,7 +3433,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'تاريخ الإصدار';
 
   @override
-  String get certifications_detail_label_type => 'النوع';
+  String get certifications_detail_label_title => 'العنوان';
 
   @override
   String get certifications_detail_label_validity => 'الصلاحية';
@@ -3756,7 +3756,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'اتركه فارغاً للشهادات التي لا تنتهي صلاحيتها';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'اختياري';
+  String get certifications_edit_helper_title =>
+      'اختياري. اتركه فارغاً لاستخدام الشهادة';
 
   @override
   String get certifications_edit_hint_cardNumber => 'أدخل رقم بطاقة الشهادة';
@@ -3917,10 +3918,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'تاريخ الإصدار';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'الاسم على البطاقة';
+  String get certifications_edit_label_notes => 'ملاحظات';
 
   @override
-  String get certifications_edit_label_notes => 'ملاحظات';
+  String get certifications_edit_label_title => 'عنوان الشهادة';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3978,8 +3979,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_edit_snackBar_updated => 'تم تحديث الشهادة بنجاح';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'اختر شهادة أو أدخل اسمًا';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'اختر شهادة أو أدخل عنوانًا';
 
   @override
   String get certifications_list_button_retry => 'إعادة المحاولة';

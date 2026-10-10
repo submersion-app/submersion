@@ -3354,7 +3354,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'Fecha de emisión';
 
   @override
-  String get certifications_detail_label_type => 'Tipo';
+  String get certifications_detail_label_title => 'Título';
 
   @override
   String get certifications_detail_label_validity => 'Validez';
@@ -3690,7 +3690,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Deja vacío para certificaciones que no expiran';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'Opcional';
+  String get certifications_edit_helper_title =>
+      'Opcional. Déjalo vacío para usar la certificación';
 
   @override
   String get certifications_edit_hint_cardNumber =>
@@ -3853,10 +3854,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'Fecha de emisión';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'Nombre en la tarjeta';
+  String get certifications_edit_label_notes => 'Notas';
 
   @override
-  String get certifications_edit_label_notes => 'Notas';
+  String get certifications_edit_label_title => 'Título de la certificación';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3918,8 +3919,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Certificación actualizada correctamente';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'Elige una certificación o introduce un nombre';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'Elige una certificación o introduce un título';
 
   @override
   String get certifications_list_button_retry => 'Reintentar';

@@ -655,13 +655,14 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Name on card: optional. Blank means "use the derived
-                  // title", which the hint shows live.
+                  // Certification title: optional. Blank means "use the
+                  // derived title", which the hint shows live. A value here
+                  // replaces the certification as the card's title on every
+                  // surface, so the label must not read as the diver's name.
                   TextFormField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      labelText:
-                          context.l10n.certifications_edit_label_nameOnCard,
+                      labelText: context.l10n.certifications_edit_label_title,
                       prefixIcon: const Icon(Icons.card_membership),
                       hintText: derivedCertificationTitleL10n(
                         _agency,
@@ -669,8 +670,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                         context.l10n,
                         catalog: context.certificationCatalog,
                       ),
-                      helperText:
-                          context.l10n.certifications_edit_helper_nameOnCard,
+                      helperText: context.l10n.certifications_edit_helper_title,
                     ),
                     textCapitalization: TextCapitalization.words,
                     validator: (value) {
@@ -678,7 +678,7 @@ class _CertificationEditPageState extends ConsumerState<CertificationEditPage> {
                           _level == null) {
                         return context
                             .l10n
-                            .certifications_edit_validation_certificationOrNameRequired;
+                            .certifications_edit_validation_certificationOrTitleRequired;
                       }
                       return null;
                     },

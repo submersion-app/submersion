@@ -3308,7 +3308,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'Issue Date';
 
   @override
-  String get certifications_detail_label_type => 'Type';
+  String get certifications_detail_label_title => 'Title';
 
   @override
   String get certifications_detail_label_validity => 'Validity';
@@ -3634,7 +3634,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Leave empty for certifications that don\'t expire';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'Optional';
+  String get certifications_edit_helper_title =>
+      'Optional. Leave blank to use the certification';
 
   @override
   String get certifications_edit_hint_cardNumber =>
@@ -3792,10 +3793,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'Issue Date';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'Name on card';
+  String get certifications_edit_label_notes => 'Notes';
 
   @override
-  String get certifications_edit_label_notes => 'Notes';
+  String get certifications_edit_label_title => 'Certification title';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3856,8 +3857,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Certification updated successfully';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'Choose a certification or enter a name';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'Choose a certification or enter a title';
 
   @override
   String get certifications_list_button_retry => 'Retry';

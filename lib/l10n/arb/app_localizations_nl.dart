@@ -3334,7 +3334,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'Uitgiftedatum';
 
   @override
-  String get certifications_detail_label_type => 'Type';
+  String get certifications_detail_label_title => 'Titel';
 
   @override
   String get certifications_detail_label_validity => 'Geldigheid';
@@ -3666,7 +3666,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Laat leeg voor certificeringen die niet verlopen';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'Optioneel';
+  String get certifications_edit_helper_title =>
+      'Optioneel. Laat leeg om de certificering te gebruiken';
 
   @override
   String get certifications_edit_hint_cardNumber =>
@@ -3830,10 +3831,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'Uitgiftedatum';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'Naam op de kaart';
+  String get certifications_edit_label_notes => 'Notities';
 
   @override
-  String get certifications_edit_label_notes => 'Notities';
+  String get certifications_edit_label_title => 'Titel van de certificering';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3893,8 +3894,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Certificering succesvol bijgewerkt';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'Kies een certificering of voer een naam in';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'Kies een certificering of voer een titel in';
 
   @override
   String get certifications_list_button_retry => 'Opnieuw proberen';
