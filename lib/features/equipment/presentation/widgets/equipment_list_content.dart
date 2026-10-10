@@ -603,8 +603,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         id: 'printLabels',
         icon: Icons.qr_code_2,
         label: context.l10n.passport_tag_printLabels,
-        isEnabled: (ids) =>
-            everyChecked(ids, (e) => e.type == EquipmentType.tank),
+        // Any gear the diver owns takes a label (issue #2652).
+        isEnabled: (ids) => everyChecked(ids, (e) => !e.isWanted),
         onInvoke: () async {
           final ids = _selectedIds.toList();
           final messenger = ScaffoldMessenger.of(context);
