@@ -268,6 +268,25 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
     );
   }
 
+  void _beginDrag(Offset p) {
+    _autoFit = false;
+    _userMoved = true;
+    _glide.stop();
+    final node = _nodeAt(p);
+    setState(() => _dragging = node);
+    if (node != null) widget.onSelect(NodeSelection(node));
+  }
+
+  void _dragTo(Offset p) {
+    final node = _dragging;
+    if (node == null) return;
+    widget.controller.moveNode(node, _viewport.toGraph(p));
+  }
+
+  void _endDrag() {
+    if (_dragging != null) setState(() => _dragging = null);
+  }
+
   void _zoomAt(double factor, Offset focal) {
     setState(() {
       _autoFit = false;
@@ -334,6 +353,28 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
         final gestures = RawGestureDetector(
           behavior: HitTestBehavior.opaque,
           gestures: <Type, GestureRecognizerFactory>{
+            // First, so its pointer route sees each move before the scale
+            // recognizer does.
+            _NodeDragGestureRecognizer:
+                GestureRecognizerFactoryWithHandlers<
+                  _NodeDragGestureRecognizer
+                >(
+                  () => _NodeDragGestureRecognizer(
+                    isOnNode: (p) => _nodeAt(p) != null,
+                  ),
+                  (r) => r
+                    ..dragStartBehavior = DragStartBehavior.down
+                    ..onStart = (d) {
+                      _beginDrag(d.localPosition);
+                    }
+                    ..onUpdate = (d) {
+                      _dragTo(d.localPosition);
+                    }
+                    ..onEnd = (_) {
+                      _endDrag();
+                    }
+                    ..onCancel = _endDrag,
+                ),
             _TouchScaleGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<
                   _TouchScaleGestureRecognizer
@@ -346,6 +387,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
                       PointerDeviceKind.invertedStylus,
                       PointerDeviceKind.unknown,
                     },
+                    isOnNode: (p) => _nodeAt(p) != null,
                   ),
                   (r) => r
                     ..onStart = (_) {
@@ -393,28 +435,15 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
                   () => LongPressGestureRecognizer(),
                   (r) => r
                     ..onLongPressStart = (d) {
-                      _autoFit = false;
-                      _userMoved = true;
-                      _glide.stop();
-                      _dragging = _nodeAt(d.localPosition);
-                      if (_dragging != null) {
-                        widget.onSelect(NodeSelection(_dragging!));
-                      }
+                      _beginDrag(d.localPosition);
                     }
                     ..onLongPressMoveUpdate = (d) {
-                      final node = _dragging;
-                      if (node == null) return;
-                      widget.controller.moveNode(
-                        node,
-                        _viewport.toGraph(d.localPosition),
-                      );
+                      _dragTo(d.localPosition);
                     }
                     ..onLongPressEnd = (_) {
-                      _dragging = null;
+                      _endDrag();
                     }
-                    ..onLongPressCancel = () {
-                      _dragging = null;
-                    },
+                    ..onLongPressCancel = _endDrag,
                 ),
           },
           child: RepaintBoundary(
@@ -444,6 +473,11 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
             _pan(e.panDelta);
           },
           child: MouseRegion(
+            cursor: _dragging != null
+                ? SystemMouseCursors.grabbing
+                : _hovered != null
+                ? SystemMouseCursors.grab
+                : MouseCursor.defer,
             onHover: (e) {
               final node = _nodeAt(e.localPosition);
               if (node != _hovered || node != null) {
@@ -493,13 +527,43 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
   }
 }
 
-/// Refuses trackpad pan-zoom so the Listener above handles it once. Same
-/// arrangement as the 3D viewport (dive_3d_interactive_viewport.dart).
+/// Refuses trackpad pan-zoom so the Listener above handles it once (same
+/// arrangement as dive_3d_interactive_viewport.dart), and refuses a mouse
+/// or stylus press on a node, which [_NodeDragGestureRecognizer] owns.
 class _TouchScaleGestureRecognizer extends ScaleGestureRecognizer {
-  _TouchScaleGestureRecognizer({super.supportedDevices});
+  _TouchScaleGestureRecognizer({
+    super.supportedDevices,
+    required this.isOnNode,
+  });
+
+  final bool Function(Offset local) isOnNode;
 
   @override
   bool isPointerPanZoomAllowed(PointerPanZoomStartEvent event) => false;
+
+  @override
+  bool isPointerAllowed(PointerDownEvent event) =>
+      super.isPointerAllowed(event) &&
+      !(_precise.contains(event.kind) && isOnNode(event.localPosition));
+}
+
+const Set<PointerDeviceKind> _precise = {
+  PointerDeviceKind.mouse,
+  PointerDeviceKind.stylus,
+  PointerDeviceKind.invertedStylus,
+};
+
+/// A press-drag that starts on a node, for mouse and stylus only. Touch
+/// keeps long-press, so a finger landing on a node can still pan the map.
+class _NodeDragGestureRecognizer extends PanGestureRecognizer {
+  _NodeDragGestureRecognizer({required this.isOnNode})
+    : super(supportedDevices: _precise);
+
+  final bool Function(Offset local) isOnNode;
+
+  @override
+  bool isPointerAllowed(PointerEvent event) =>
+      super.isPointerAllowed(event) && isOnNode(event.localPosition);
 }
 
 class _HoverTooltip extends StatelessWidget {
