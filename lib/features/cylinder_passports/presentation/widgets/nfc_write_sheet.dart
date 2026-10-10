@@ -136,11 +136,12 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
       if (firstPassportUri(found) case final held?) recent.note(held);
     }
     final written = switch (outcome) {
-      TagWritten(:final plan) => plan.payload,
-      TagReadBackMismatch() || TagWriteFailed() => widget.payload,
+      TagWritten(:final plan) => plan.url,
+      TagReadBackMismatch() ||
+      TagWriteFailed() => PassportPayloadCodec.httpsUrl(widget.payload),
       TagNotNdef() || TagReadOnly() || TagTooSmall() => null,
     };
-    if (written != null) recent.note(PassportPayloadCodec.httpsUrl(written));
+    if (written != null) recent.note(written);
   }
 
   void _cancel() {
@@ -221,7 +222,7 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
                     ),
               textAlign: TextAlign.center,
             ),
-            if (written.plan.payload.fill != null) ...[
+            if (written.plan.includesFill) ...[
               const SizedBox(height: 4),
               Text(l10n.passport_nfc_fillIncluded, textAlign: TextAlign.center),
             ],
