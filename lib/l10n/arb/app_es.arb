@@ -6887,6 +6887,8 @@
   "settings_network_validation_portInvalid": "Introduce un puerto entre 1 y 65535",
   "settings_network_validation_passwordRequired": "Introduce la contraseña de este nombre de usuario",
   "settings_network_validation_usernameColon": "El nombre de usuario no puede contener dos puntos",
+  "settings_network_validation_usernameSemicolon": "El nombre de usuario no puede contener punto y coma",
+  "settings_network_validation_usernameWhitespace": "El nombre de usuario no puede empezar ni terminar con un espacio",
   "settings_network_validation_passwordSemicolon": "La contraseña no puede contener punto y coma",
   "settings_network_validation_passwordWhitespace": "La contraseña no puede empezar ni terminar con un espacio",
   "settings_network_validation_tooLong": "Debe tener 255 bytes o menos",

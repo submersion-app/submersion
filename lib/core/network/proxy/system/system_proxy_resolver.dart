@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:submersion/core/network/proxy/system/channel_system_proxy_resolver.dart';
+import 'package:submersion/core/network/proxy/system/env_fallback_system_proxy_resolver.dart';
 import 'package:submersion/core/network/proxy/system/linux_system_proxy_resolver.dart';
 import 'package:submersion/core/network/proxy/system/windows_system_proxy_resolver.dart';
 import 'package:submersion/core/network/proxy/system_proxy_result.dart';
@@ -16,9 +17,15 @@ abstract class SystemProxyResolver {
   Future<SystemProxyResult> resolve(Uri probe);
 
   /// The resolver for the platform this process runs on.
+  ///
+  /// Windows and the channel platforms fall back to the HTTPS_PROXY-style
+  /// environment variables when the OS reports no proxy (Linux reads them
+  /// first already).
   static SystemProxyResolver forPlatform() {
-    if (Platform.isWindows) return WindowsSystemProxyResolver();
     if (Platform.isLinux) return LinuxSystemProxyResolver();
-    return ChannelSystemProxyResolver();
+    if (Platform.isWindows) {
+      return EnvFallbackSystemProxyResolver(WindowsSystemProxyResolver());
+    }
+    return EnvFallbackSystemProxyResolver(ChannelSystemProxyResolver());
   }
 }

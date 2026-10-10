@@ -6,6 +6,8 @@ import 'package:submersion/core/network/proxy/proxy_settings.dart';
 enum ProxyCredentialsProblem {
   passwordRequired,
   usernameHasColon,
+  usernameHasSemicolon,
+  usernameHasEdgeWhitespace,
   passwordHasSemicolon,
   passwordHasEdgeWhitespace,
   tooLong,
@@ -15,7 +17,8 @@ enum ProxyCredentialsProblem {
 ///
 /// HTTP credentials travel inside the dart:io proxy directive
 /// (`PROXY user:pass@host:port`), the only way dart:io authenticates a CONNECT
-/// tunnel. Its parser splits on `;`, trims both values, ends the username at
+/// tunnel. Its parser splits the whole directive on `;` (so neither value may
+/// hold one), trims both values, ends the username at
 /// the first `:` and rejects an empty password. SOCKS5 (RFC 1929) allows any
 /// bytes but at most 255 of each, and no empty password.
 ///
@@ -31,6 +34,12 @@ ProxyCredentialsProblem? checkProxyCredentials(
     case ProxyType.http:
       if (username.contains(':')) {
         return ProxyCredentialsProblem.usernameHasColon;
+      }
+      if (username.contains(';')) {
+        return ProxyCredentialsProblem.usernameHasSemicolon;
+      }
+      if (username.trim() != username) {
+        return ProxyCredentialsProblem.usernameHasEdgeWhitespace;
       }
       if (password.contains(';')) {
         return ProxyCredentialsProblem.passwordHasSemicolon;

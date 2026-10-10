@@ -289,8 +289,10 @@ class SettingsSectionDetailPage extends ConsumerWidget {
           // Pop the pushed section route; fall back to go() for deep links
           // where the detail page is the root of the stack.
           onPressed: () {
+            // maybePop, not pop: a section with unsaved edits (Network)
+            // can ask before its route closes.
             if (context.canPop()) {
-              context.pop();
+              unawaited(Navigator.of(context).maybePop());
             } else {
               context.go('/settings');
             }

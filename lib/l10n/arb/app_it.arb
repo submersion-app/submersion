@@ -6781,6 +6781,8 @@
   "settings_network_validation_portInvalid": "Inserisci una porta da 1 a 65535",
   "settings_network_validation_passwordRequired": "Inserisci la password per questo nome utente",
   "settings_network_validation_usernameColon": "Il nome utente non può contenere i due punti",
+  "settings_network_validation_usernameSemicolon": "Il nome utente non può contenere il punto e virgola",
+  "settings_network_validation_usernameWhitespace": "Il nome utente non può iniziare o finire con uno spazio",
   "settings_network_validation_passwordSemicolon": "La password non può contenere il punto e virgola",
   "settings_network_validation_passwordWhitespace": "La password non può iniziare o finire con uno spazio",
   "settings_network_validation_tooLong": "Massimo 255 byte",

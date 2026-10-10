@@ -58,6 +58,20 @@ void main() {
     return port;
   }
 
+  test('failure details never carry proxy credentials', () {
+    expect(
+      redactProxyCredentials(
+        'Invalid proxy configuration PROXY ann:s3cret@host:8080',
+      ),
+      'Invalid proxy configuration PROXY ***@host:8080',
+    );
+    expect(
+      redactProxyCredentials('PROXY ab;cd:secret@host:8080'),
+      'PROXY ***@host:8080',
+    );
+    expect(redactProxyCredentials('plain message'), 'plain message');
+  });
+
   test('direct success', () async {
     final o = await tester(
       url: Uri.parse('http://127.0.0.1:${target.port}/'),

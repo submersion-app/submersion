@@ -24110,6 +24110,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The username can\'t contain a colon';
 
   @override
+  String get settings_network_validation_usernameSemicolon =>
+      'The username can\'t contain a semicolon';
+
+  @override
+  String get settings_network_validation_usernameWhitespace =>
+      'The username can\'t start or end with a space';
+
+  @override
   String get settings_network_validation_passwordSemicolon =>
       'The password can\'t contain a semicolon';
 

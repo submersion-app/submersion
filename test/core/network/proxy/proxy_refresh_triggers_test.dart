@@ -19,6 +19,30 @@ class _Counting implements SystemProxyResolver {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('resume refreshes at most once per interval', () async {
+    final r = _Counting();
+    final c = ProxyController(resolver: r);
+    addTearDown(c.dispose);
+    final changes = StreamController<Object?>();
+    addTearDown(changes.close);
+    var now = DateTime(2026, 10, 10, 12);
+    final t = ProxyRefreshTriggers(
+      c,
+      networkChanges: changes.stream,
+      listenToLifecycle: false,
+      clock: () => now,
+    );
+    addTearDown(t.dispose);
+    t.onResume();
+    t.onResume();
+    await pumpEventQueue();
+    expect(r.calls, 1);
+    now = now.add(const Duration(minutes: 2));
+    t.onResume();
+    await pumpEventQueue();
+    expect(r.calls, 2);
+  });
+
   test('a network change refreshes; dispose stops listening', () async {
     final r = _Counting();
     final c = ProxyController(resolver: r);

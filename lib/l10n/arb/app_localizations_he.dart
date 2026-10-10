@@ -23912,6 +23912,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'שם המשתמש לא יכול להכיל נקודתיים';
 
   @override
+  String get settings_network_validation_usernameSemicolon =>
+      'שם המשתמש לא יכול להכיל נקודה-פסיק';
+
+  @override
+  String get settings_network_validation_usernameWhitespace =>
+      'שם המשתמש לא יכול להתחיל או להסתיים ברווח';
+
+  @override
   String get settings_network_validation_passwordSemicolon =>
       'הסיסמה לא יכולה להכיל נקודה-פסיק';
 

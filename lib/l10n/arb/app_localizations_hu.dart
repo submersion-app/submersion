@@ -24432,6 +24432,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'A felhasználónév nem tartalmazhat kettőspontot';
 
   @override
+  String get settings_network_validation_usernameSemicolon =>
+      'A felhasználónév nem tartalmazhat pontosvesszőt';
+
+  @override
+  String get settings_network_validation_usernameWhitespace =>
+      'A felhasználónév nem kezdődhet és nem végződhet szóközzel';
+
+  @override
   String get settings_network_validation_passwordSemicolon =>
       'A jelszó nem tartalmazhat pontosvesszőt';
 

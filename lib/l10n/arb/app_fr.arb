@@ -6785,6 +6785,8 @@
   "settings_network_validation_portInvalid": "Saisissez un port entre 1 et 65535",
   "settings_network_validation_passwordRequired": "Saisissez le mot de passe de ce nom d'utilisateur",
   "settings_network_validation_usernameColon": "Le nom d'utilisateur ne peut pas contenir de deux-points",
+  "settings_network_validation_usernameSemicolon": "Le nom d'utilisateur ne peut pas contenir de point-virgule",
+  "settings_network_validation_usernameWhitespace": "Le nom d'utilisateur ne peut pas commencer ni se terminer par une espace",
   "settings_network_validation_passwordSemicolon": "Le mot de passe ne peut pas contenir de point-virgule",
   "settings_network_validation_passwordWhitespace": "Le mot de passe ne peut pas commencer ni se terminer par une espace",
   "settings_network_validation_tooLong": "255 octets au maximum",

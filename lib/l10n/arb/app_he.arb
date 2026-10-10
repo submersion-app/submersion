@@ -6887,6 +6887,8 @@
   "settings_network_validation_portInvalid": "יש להזין פורט בין 1 ל-65535",
   "settings_network_validation_passwordRequired": "יש להזין את הסיסמה של שם המשתמש",
   "settings_network_validation_usernameColon": "שם המשתמש לא יכול להכיל נקודתיים",
+  "settings_network_validation_usernameSemicolon": "שם המשתמש לא יכול להכיל נקודה-פסיק",
+  "settings_network_validation_usernameWhitespace": "שם המשתמש לא יכול להתחיל או להסתיים ברווח",
   "settings_network_validation_passwordSemicolon": "הסיסמה לא יכולה להכיל נקודה-פסיק",
   "settings_network_validation_passwordWhitespace": "הסיסמה לא יכולה להתחיל או להסתיים ברווח",
   "settings_network_validation_tooLong": "עד 255 בתים",

@@ -24486,6 +24486,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Benutzername darf keinen Doppelpunkt enthalten';
 
   @override
+  String get settings_network_validation_usernameSemicolon =>
+      'Der Benutzername darf kein Semikolon enthalten';
+
+  @override
+  String get settings_network_validation_usernameWhitespace =>
+      'Der Benutzername darf nicht mit einem Leerzeichen beginnen oder enden';
+
+  @override
   String get settings_network_validation_passwordSemicolon =>
       'Das Passwort darf kein Semikolon enthalten';
 

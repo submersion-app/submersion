@@ -8,6 +8,11 @@ import 'package:submersion/core/network/proxy/socks5_connector.dart';
 import 'package:submersion/core/network/proxy/system/system_proxy_resolver.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
+/// [text] with any `PROXY user:pass@` credentials masked, for error text
+/// that reaches the screen or the log.
+String redactProxyCredentials(String text) =>
+    text.replaceAll(RegExp(r'PROXY \S*@'), 'PROXY ***@');
+
 /// How a connection test ended.
 sealed class ProxyTestOutcome {
   const ProxyTestOutcome();
@@ -82,7 +87,12 @@ class ProxyConnectionTester {
       }
       return ProxyTestSuccess(watch.elapsed, proxy);
     } catch (e, st) {
-      _log.warning('Proxy test failed via $proxy', error: e, stackTrace: st);
+      // The error text is redacted, not attached: a dart:io directive error
+      // quotes the directive, credentials included.
+      _log.warning(
+        'Proxy test failed via $proxy: ${redactProxyCredentials('$e')}',
+        stackTrace: st,
+      );
       return _classify(e, proxy);
     } finally {
       client.close(force: true);
@@ -97,7 +107,7 @@ class ProxyConnectionTester {
         Socks5Failure.handshakeTimeout => const ProxyTestTimeout(),
         Socks5Failure.authRejected ||
         Socks5Failure.noAcceptableAuth => const ProxyTestAuthRejected(),
-        _ => ProxyTestFailed(e.message),
+        _ => ProxyTestFailed(redactProxyCredentials(e.message)),
       };
     }
     // dart:io reports a refused CONNECT as "Proxy failed to establish
@@ -117,8 +127,10 @@ class ProxyConnectionTester {
       if (proxy.kind == ProxyKind.http && _shouldProxy(_probe, proxy)) {
         return ProxyTestUnreachable(proxy.endpoint);
       }
-      return ProxyTestFailed(e.osError?.message ?? e.message);
+      return ProxyTestFailed(
+        redactProxyCredentials(e.osError?.message ?? e.message),
+      );
     }
-    return ProxyTestFailed('$e');
+    return ProxyTestFailed(redactProxyCredentials('$e'));
   }
 }

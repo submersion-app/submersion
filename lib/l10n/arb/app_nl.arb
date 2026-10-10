@@ -6887,6 +6887,8 @@
   "settings_network_validation_portInvalid": "Voer een poort van 1 tot 65535 in",
   "settings_network_validation_passwordRequired": "Voer het wachtwoord voor deze gebruikersnaam in",
   "settings_network_validation_usernameColon": "De gebruikersnaam mag geen dubbele punt bevatten",
+  "settings_network_validation_usernameSemicolon": "De gebruikersnaam mag geen puntkomma bevatten",
+  "settings_network_validation_usernameWhitespace": "De gebruikersnaam mag niet met een spatie beginnen of eindigen",
   "settings_network_validation_passwordSemicolon": "Het wachtwoord mag geen puntkomma bevatten",
   "settings_network_validation_passwordWhitespace": "Het wachtwoord mag niet met een spatie beginnen of eindigen",
   "settings_network_validation_tooLong": "Maximaal 255 bytes",

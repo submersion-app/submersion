@@ -108,9 +108,9 @@ class ProxyController {
     ProxySettingsStore store,
     ProxySettings settings,
   ) async {
-    if (settings.mode != ProxyMode.manual || settings.username.isEmpty) {
-      return null;
-    }
+    // Loaded whatever the mode: switching back to Manual later must not
+    // send the saved proxy without its password.
+    if (settings.username.isEmpty) return null;
     try {
       return await store.loadPassword();
     } catch (e, st) {

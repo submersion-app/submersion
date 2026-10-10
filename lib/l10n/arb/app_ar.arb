@@ -6887,6 +6887,8 @@
   "settings_network_validation_portInvalid": "أدخل منفذاً من 1 إلى 65535",
   "settings_network_validation_passwordRequired": "أدخل كلمة المرور لاسم المستخدم هذا",
   "settings_network_validation_usernameColon": "لا يمكن أن يحتوي اسم المستخدم على نقطتين",
+  "settings_network_validation_usernameSemicolon": "لا يمكن أن يحتوي اسم المستخدم على فاصلة منقوطة",
+  "settings_network_validation_usernameWhitespace": "لا يمكن أن يبدأ اسم المستخدم بمسافة أو ينتهي بها",
   "settings_network_validation_passwordSemicolon": "لا يمكن أن تحتوي كلمة المرور على فاصلة منقوطة",
   "settings_network_validation_passwordWhitespace": "لا يمكن أن تبدأ كلمة المرور بمسافة أو تنتهي بها",
   "settings_network_validation_tooLong": "يجب ألا يتجاوز 255 بايت",

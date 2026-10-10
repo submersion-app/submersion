@@ -24359,6 +24359,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'De gebruikersnaam mag geen dubbele punt bevatten';
 
   @override
+  String get settings_network_validation_usernameSemicolon =>
+      'De gebruikersnaam mag geen puntkomma bevatten';
+
+  @override
+  String get settings_network_validation_usernameWhitespace =>
+      'De gebruikersnaam mag niet met een spatie beginnen of eindigen';
+
+  @override
   String get settings_network_validation_passwordSemicolon =>
       'Het wachtwoord mag geen puntkomma bevatten';
 

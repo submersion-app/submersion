@@ -23171,6 +23171,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_network_validation_usernameColon => '用户名不能包含冒号';
 
   @override
+  String get settings_network_validation_usernameSemicolon => '用户名不能包含分号';
+
+  @override
+  String get settings_network_validation_usernameWhitespace => '用户名不能以空格开头或结尾';
+
+  @override
   String get settings_network_validation_passwordSemicolon => '密码不能包含分号';
 
   @override

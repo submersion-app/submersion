@@ -7004,6 +7004,8 @@
   "settings_network_validation_portInvalid": "Geben Sie einen Port von 1 bis 65535 ein",
   "settings_network_validation_passwordRequired": "Geben Sie das Passwort für diesen Benutzernamen ein",
   "settings_network_validation_usernameColon": "Der Benutzername darf keinen Doppelpunkt enthalten",
+  "settings_network_validation_usernameSemicolon": "Der Benutzername darf kein Semikolon enthalten",
+  "settings_network_validation_usernameWhitespace": "Der Benutzername darf nicht mit einem Leerzeichen beginnen oder enden",
   "settings_network_validation_passwordSemicolon": "Das Passwort darf kein Semikolon enthalten",
   "settings_network_validation_passwordWhitespace": "Das Passwort darf nicht mit einem Leerzeichen beginnen oder enden",
   "settings_network_validation_tooLong": "Höchstens 255 Bytes",

@@ -14124,6 +14124,8 @@
   "settings_network_validation_portInvalid": "Enter a port from 1 to 65535",
   "settings_network_validation_passwordRequired": "Enter the password for this username",
   "settings_network_validation_usernameColon": "The username can't contain a colon",
+  "settings_network_validation_usernameSemicolon": "The username can't contain a semicolon",
+  "settings_network_validation_usernameWhitespace": "The username can't start or end with a space",
   "settings_network_validation_passwordSemicolon": "The password can't contain a semicolon",
   "settings_network_validation_passwordWhitespace": "The password can't start or end with a space",
   "settings_network_validation_tooLong": "Must be 255 bytes or fewer",

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/network/proxy/effective_proxy.dart';
 import 'package:submersion/core/network/proxy/proxy_connection_tester.dart';
@@ -10,6 +13,7 @@ import 'package:submersion/core/network/proxy/system/system_proxy_resolver.dart'
 import 'package:submersion/core/network/proxy/system_proxy_result.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/pages/network_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/network_proxy_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -331,6 +335,49 @@ void main() {
     await tester.tap(find.text('Discard'));
     await tester.pumpAndSettle();
     expect(find.text('root'), findsOneWidget);
+  });
+
+  testWidgets('the app bar back arrow asks before discarding edits', (
+    tester,
+  ) async {
+    await setUpController(saved: manualSaved);
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => const Scaffold(body: Text('root')),
+          routes: [
+            GoRoute(
+              path: 'network',
+              builder: (_, _) =>
+                  const SettingsSectionDetailPage(sectionId: 'network'),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [proxyControllerProvider.overrideWithValue(controller)],
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    unawaited(router.push('/network'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('proxy-host')), 'unsaved');
+    await tester.pump();
+    await tester.tap(find.byTooltip('Back to settings'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await tester.tap(find.text('Keep editing'));
+    await tester.pumpAndSettle();
+    expect(find.text('root'), findsNothing);
   });
 
   testWidgets('leaving Manual makes an unsaved draft no reason to stop '

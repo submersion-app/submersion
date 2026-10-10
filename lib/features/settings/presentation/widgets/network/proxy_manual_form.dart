@@ -82,6 +82,8 @@ class _ProxyManualFormState extends ConsumerState<ProxyManualForm> {
     final problem = checkProxyCredentials(_type, username, password);
     final onUsername =
         problem == ProxyCredentialsProblem.usernameHasColon ||
+        problem == ProxyCredentialsProblem.usernameHasSemicolon ||
+        problem == ProxyCredentialsProblem.usernameHasEdgeWhitespace ||
         (problem == ProxyCredentialsProblem.tooLong &&
             username.length >= password.length);
     setState(() {
@@ -273,6 +275,10 @@ String credentialsMessage(
     l10n.settings_network_validation_passwordRequired,
   ProxyCredentialsProblem.usernameHasColon =>
     l10n.settings_network_validation_usernameColon,
+  ProxyCredentialsProblem.usernameHasSemicolon =>
+    l10n.settings_network_validation_usernameSemicolon,
+  ProxyCredentialsProblem.usernameHasEdgeWhitespace =>
+    l10n.settings_network_validation_usernameWhitespace,
   ProxyCredentialsProblem.passwordHasSemicolon =>
     l10n.settings_network_validation_passwordSemicolon,
   ProxyCredentialsProblem.passwordHasEdgeWhitespace =>

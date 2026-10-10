@@ -24531,6 +24531,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'O nome de usuário não pode conter dois-pontos';
 
   @override
+  String get settings_network_validation_usernameSemicolon =>
+      'O nome de usuário não pode conter ponto e vírgula';
+
+  @override
+  String get settings_network_validation_usernameWhitespace =>
+      'O nome de usuário não pode começar nem terminar com um espaço';
+
+  @override
   String get settings_network_validation_passwordSemicolon =>
       'A senha não pode conter ponto e vírgula';
 

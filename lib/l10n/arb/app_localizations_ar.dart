@@ -24706,6 +24706,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن أن يحتوي اسم المستخدم على نقطتين';
 
   @override
+  String get settings_network_validation_usernameSemicolon =>
+      'لا يمكن أن يحتوي اسم المستخدم على فاصلة منقوطة';
+
+  @override
+  String get settings_network_validation_usernameWhitespace =>
+      'لا يمكن أن يبدأ اسم المستخدم بمسافة أو ينتهي بها';
+
+  @override
   String get settings_network_validation_passwordSemicolon =>
       'لا يمكن أن تحتوي كلمة المرور على فاصلة منقوطة';
 

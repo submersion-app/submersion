@@ -7061,6 +7061,8 @@
   "settings_network_validation_portInvalid": "请输入 1 到 65535 之间的端口",
   "settings_network_validation_passwordRequired": "请输入此用户名的密码",
   "settings_network_validation_usernameColon": "用户名不能包含冒号",
+  "settings_network_validation_usernameSemicolon": "用户名不能包含分号",
+  "settings_network_validation_usernameWhitespace": "用户名不能以空格开头或结尾",
   "settings_network_validation_passwordSemicolon": "密码不能包含分号",
   "settings_network_validation_passwordWhitespace": "密码不能以空格开头或结尾",
   "settings_network_validation_tooLong": "不能超过 255 字节",

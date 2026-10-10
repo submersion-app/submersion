@@ -162,6 +162,27 @@ void main() {
     expect(c.current.endpoint, 'corp:8080');
   });
 
+  test('a saved manual password is used after starting in another '
+      'mode', () async {
+    await store.save(
+      const ProxySettings(
+        mode: ProxyMode.none,
+        type: ProxyType.http,
+        host: 'm',
+        port: 3128,
+        username: 'ann',
+      ),
+    );
+    await store.savePassword('pw');
+    final c = ProxyController(resolver: _Resolver());
+    addTearDown(c.dispose);
+    await c.initialize(store);
+    expect(c.manualPassword, 'pw');
+    await c.saveSettings(c.state.settings.copyWith(mode: ProxyMode.manual));
+    expect(c.current.username, 'ann');
+    expect(c.current.password, 'pw');
+  });
+
   test('a resolver that throws leaves the app direct', () async {
     final c = ProxyController(resolver: _Throwing());
     addTearDown(c.dispose);

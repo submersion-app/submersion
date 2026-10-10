@@ -22,6 +22,13 @@ void main() {
     test('username colon', () {
       expect(check('a:b', 'x'), ProxyCredentialsProblem.usernameHasColon);
     });
+    test('username semicolon or edge whitespace', () {
+      expect(check('a;b', 'x'), ProxyCredentialsProblem.usernameHasSemicolon);
+      expect(
+        check(' ann', 'x'),
+        ProxyCredentialsProblem.usernameHasEdgeWhitespace,
+      );
+    });
     test('password semicolon', () {
       expect(check('a', 'x;y'), ProxyCredentialsProblem.passwordHasSemicolon);
     });

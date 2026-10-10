@@ -39590,6 +39590,18 @@ abstract class AppLocalizations {
   /// **'The username can\'t contain a colon'**
   String get settings_network_validation_usernameColon;
 
+  /// No description provided for @settings_network_validation_usernameSemicolon.
+  ///
+  /// In en, this message translates to:
+  /// **'The username can\'t contain a semicolon'**
+  String get settings_network_validation_usernameSemicolon;
+
+  /// No description provided for @settings_network_validation_usernameWhitespace.
+  ///
+  /// In en, this message translates to:
+  /// **'The username can\'t start or end with a space'**
+  String get settings_network_validation_usernameWhitespace;
+
   /// No description provided for @settings_network_validation_passwordSemicolon.
   ///
   /// In en, this message translates to:

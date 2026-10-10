@@ -24546,6 +24546,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'El nombre de usuario no puede contener dos puntos';
 
   @override
+  String get settings_network_validation_usernameSemicolon =>
+      'El nombre de usuario no puede contener punto y coma';
+
+  @override
+  String get settings_network_validation_usernameWhitespace =>
+      'El nombre de usuario no puede empezar ni terminar con un espacio';
+
+  @override
   String get settings_network_validation_passwordSemicolon =>
       'La contraseña no puede contener punto y coma';
 
