@@ -584,6 +584,13 @@ class DivePlanState extends Equatable {
   /// the minimum-gas calculation. Mirrors [DivePlan.problemSolvingMinutes].
   final int problemSolvingMinutes;
 
+  /// Minimum stop time in seconds enforced wherever the gas actually
+  /// switches (main table and bailout alike); 0 = no floor. Mirrors
+  /// [DivePlan.gasSwitchStopSeconds]. Unlike the ppO2/O2-narcotic fields
+  /// below, there is no app-wide default to fall back to -- it is plan-only,
+  /// same as [DivePlan] itself.
+  final int gasSwitchStopSeconds;
+
   /// ppO2 ceiling for the working part of the dive; null = use the app-wide
   /// setting. Mirrors [DivePlan.ppO2Bottom].
   final double? ppO2Bottom;
@@ -684,6 +691,7 @@ class DivePlanState extends Equatable {
     this.reservePressure = kDefaultReservePressureBar,
     this.sacFactor = 2.0,
     this.problemSolvingMinutes = 2,
+    this.gasSwitchStopSeconds = 0,
     this.ppO2Bottom,
     this.ppO2Deco,
     this.bestMixEndMeters = 30.0,
@@ -769,6 +777,7 @@ class DivePlanState extends Equatable {
     double? reservePressure,
     double? sacFactor,
     int? problemSolvingMinutes,
+    int? gasSwitchStopSeconds,
     double? ppO2Bottom,
     bool clearPpO2Bottom = false,
     double? ppO2Deco,
@@ -853,6 +862,7 @@ class DivePlanState extends Equatable {
       sacFactor: sacFactor ?? this.sacFactor,
       problemSolvingMinutes:
           problemSolvingMinutes ?? this.problemSolvingMinutes,
+      gasSwitchStopSeconds: gasSwitchStopSeconds ?? this.gasSwitchStopSeconds,
       ppO2Bottom: clearPpO2Bottom ? null : (ppO2Bottom ?? this.ppO2Bottom),
       ppO2Deco: clearPpO2Deco ? null : (ppO2Deco ?? this.ppO2Deco),
       bestMixEndMeters: bestMixEndMeters ?? this.bestMixEndMeters,
@@ -912,6 +922,7 @@ class DivePlanState extends Equatable {
     reservePressure,
     sacFactor,
     problemSolvingMinutes,
+    gasSwitchStopSeconds,
     ppO2Bottom,
     ppO2Deco,
     bestMixEndMeters,

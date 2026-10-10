@@ -6192,6 +6192,10 @@
   "divePlanner_gasOptions_sacDeco": "Deco RMV",
   "divePlanner_gasOptions_sacFactor": "RMV factor",
   "divePlanner_gasOptions_problemSolvingMinutes": "Problem solving time",
+  "divePlanner_gasOptions_gasSwitchStopSeconds": "Gas switch stop",
+  "@divePlanner_gasOptions_gasSwitchStopSeconds": {
+    "description": "Minimum stop time enforced at every gas switch, main plan and bailout alike; 0 means no floor"
+  },
   "divePlanner_gasOptions_ppO2Bottom": "Bottom ppO₂",
   "divePlanner_gasOptions_ppO2Deco": "Deco ppO₂",
   "divePlanner_gasOptions_bestMixEnd": "Best mix END",

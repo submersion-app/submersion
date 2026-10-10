@@ -10120,6 +10120,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_gasOptions_problemSolvingMinutes => 'Problemlösezeit';
 
   @override
+  String get divePlanner_gasOptions_gasSwitchStopSeconds =>
+      'Stopp beim Gaswechsel';
+
+  @override
   String get divePlanner_gasOptions_ppO2Bottom => 'Grund-ppO₂';
 
   @override

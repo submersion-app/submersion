@@ -70,6 +70,16 @@ class PlanGasOptionsSection extends ConsumerWidget {
           ),
         ),
         PlanNumberField(
+          label: context.l10n.divePlanner_gasOptions_gasSwitchStopSeconds,
+          value: (state.gasSwitchStopSeconds / 60).roundToDouble(),
+          hintValue: 0,
+          suffixText: context.l10n.divePlanner_label_minutesUnit,
+          isInteger: true,
+          onChanged: (value) => notifier.updateGasOptions(
+            gasSwitchStopSeconds: ((value ?? 0) * 60).round(),
+          ),
+        ),
+        PlanNumberField(
           label: context.l10n.divePlanner_gasOptions_ppO2Bottom,
           value: state.ppO2Bottom,
           hintValue: globalPpO2Working,

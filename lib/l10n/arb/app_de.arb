@@ -3136,6 +3136,7 @@
   "divePlanner_gasOptions_sacDeco": "Deko-AMV",
   "divePlanner_gasOptions_sacFactor": "AMV-Faktor",
   "divePlanner_gasOptions_problemSolvingMinutes": "Problemlösezeit",
+  "divePlanner_gasOptions_gasSwitchStopSeconds": "Stopp beim Gaswechsel",
   "divePlanner_gasOptions_ppO2Bottom": "Grund-ppO₂",
   "divePlanner_gasOptions_ppO2Deco": "Deko-ppO₂",
   "divePlanner_gasOptions_bestMixEnd": "Best-Mix END",

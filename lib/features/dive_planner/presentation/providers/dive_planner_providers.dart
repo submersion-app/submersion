@@ -806,11 +806,15 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// [sacDeco], [ppO2Bottom], [ppO2Deco], and [o2Narcotic] are nullable
   /// overrides of the app-wide settings (or, for [sacDeco], of the 0.8x-of-
   /// bottom fallback) - pass the matching `clear*` flag to fall back again.
+  /// [gasSwitchStopSeconds] has no app-wide default to fall back to (#3225):
+  /// it is plan-only, same as every other field [DivePlan] keeps with no
+  /// matching Settings entry, so there is no `clear*` for it either.
   void updateGasOptions({
     double? sacDeco,
     bool clearSacDeco = false,
     double? sacFactor,
     int? problemSolvingMinutes,
+    int? gasSwitchStopSeconds,
     double? ppO2Bottom,
     bool clearPpO2Bottom = false,
     double? ppO2Deco,
@@ -824,6 +828,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       clearSacDeco: clearSacDeco,
       sacFactor: sacFactor,
       problemSolvingMinutes: problemSolvingMinutes,
+      gasSwitchStopSeconds: gasSwitchStopSeconds,
       ppO2Bottom: ppO2Bottom,
       clearPpO2Bottom: clearPpO2Bottom,
       ppO2Deco: ppO2Deco,

@@ -9898,6 +9898,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'Problem solving time';
 
   @override
+  String get divePlanner_gasOptions_gasSwitchStopSeconds => 'Gas switch stop';
+
+  @override
   String get divePlanner_gasOptions_ppO2Bottom => 'Bottom ppO₂';
 
   @override

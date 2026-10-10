@@ -16267,6 +16267,12 @@ abstract class AppLocalizations {
   /// **'Problem solving time'**
   String get divePlanner_gasOptions_problemSolvingMinutes;
 
+  /// Minimum stop time enforced at every gas switch, main plan and bailout alike; 0 means no floor
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switch stop'**
+  String get divePlanner_gasOptions_gasSwitchStopSeconds;
+
   /// No description provided for @divePlanner_gasOptions_ppO2Bottom.
   ///
   /// In en, this message translates to:

@@ -43,11 +43,12 @@ void main() {
       tester.element(find.byType(PlanGasOptionsSection)),
     );
     // Declaration order in PlanGasOptionsSection: Deco RMV, RMV factor,
-    // problem solving time, ppO2 bottom, ppO2 deco, best-mix END.
+    // problem solving time, gas switch stop, ppO2 bottom, ppO2 deco,
+    // best-mix END.
     final fields = tester
         .widgetList<TextField>(find.byType(TextField))
         .toList();
-    expect(fields, hasLength(6));
+    expect(fields, hasLength(7));
     expect(fields.first.decoration?.hintText, '15');
 
     await tester.enterText(find.byType(TextField).at(1), '3');
@@ -69,6 +70,22 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(container.read(divePlanNotifierProvider).problemSolvingMinutes, 4);
+  });
+
+  testWidgets('editing the gas switch stop updates the notifier state in '
+      'seconds', (tester) async {
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasOptionsSection)),
+    );
+    expect(container.read(divePlanNotifierProvider).gasSwitchStopSeconds, 0);
+
+    await tester.enterText(find.byType(TextField).at(3), '2');
+    await tester.pumpAndSettle();
+
+    expect(container.read(divePlanNotifierProvider).gasSwitchStopSeconds, 120);
   });
 
   testWidgets(
