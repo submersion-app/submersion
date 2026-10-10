@@ -8,9 +8,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
-/// Lowest and highest default start pressure, in bar.
-const double _minBar = 1;
-const double _maxBar = 400;
+const double _minBar = SettingsNotifier.defaultStartPressureMin;
+const double _maxBar = SettingsNotifier.defaultStartPressureMax;
 
 /// The start pressure filled in on a new tank in the dive editor, and on an
 /// imported tank that has none when the default tank is applied to imports
@@ -65,15 +64,14 @@ class _DefaultStartPressureDialogState
     extends State<_DefaultStartPressureDialog> {
   /// The stored value in the diver's unit, to one decimal, so 206.8428 bar
   /// opens as 3000 psi and a bar value keeps a typed half.
+  late final String _initialText = formatDecimalForInput(
+    (widget.units.convertPressure(widget.units.settings.defaultStartPressure) *
+                10)
+            .roundToDouble() /
+        10,
+  );
   late final TextEditingController _controller = TextEditingController(
-    text: formatDecimalForInput(
-      (widget.units.convertPressure(
-                    widget.units.settings.defaultStartPressure,
-                  ) *
-                  10)
-              .roundToDouble() /
-          10,
-    ),
+    text: _initialText,
   );
   final _formKey = GlobalKey<FormState>();
 
@@ -96,6 +94,12 @@ class _DefaultStartPressureDialogState
   }
 
   void _save() {
+    // Unedited text is not a change. It shows the stored value rounded to
+    // one decimal, and converting that back would overwrite the exact value.
+    if (_controller.text == _initialText) {
+      Navigator.of(context).pop();
+      return;
+    }
     if (!_formKey.currentState!.validate()) return;
     final read = readNumber(_controller.text, allowNegative: false);
     if (read case NumberValue(:final value)) {

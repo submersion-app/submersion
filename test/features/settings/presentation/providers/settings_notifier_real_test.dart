@@ -263,6 +263,27 @@ void main() {
       expect(container.read(settingsProvider).ascentRateCritical, 15);
     });
 
+    test(
+      'setDefaultStartPressure keeps a decimal and clamps the range',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+        final notifier = container.read(settingsProvider.notifier);
+
+        await notifier.setDefaultStartPressure(206.8428);
+        expect(container.read(settingsProvider).defaultStartPressure, 206.8428);
+
+        await notifier.setDefaultStartPressure(0);
+        expect(container.read(settingsProvider).defaultStartPressure, 1);
+
+        await notifier.setDefaultStartPressure(900);
+        expect(container.read(settingsProvider).defaultStartPressure, 400);
+
+        await notifier.setDefaultStartPressure(double.nan);
+        expect(container.read(settingsProvider).defaultStartPressure, 400);
+      },
+    );
+
     test('sets siteMatchSensitivity', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

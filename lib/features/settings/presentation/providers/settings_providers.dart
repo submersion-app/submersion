@@ -1863,8 +1863,20 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Lowest and highest default start pressure, in bar.
+  static const double defaultStartPressureMin = 1;
+  static const double defaultStartPressureMax = 400;
+
+  /// Bar. Clamped to [defaultStartPressureMin]..[defaultStartPressureMax];
+  /// a non-finite value is ignored.
   Future<void> setDefaultStartPressure(double pressure) async {
-    state = state.copyWith(defaultStartPressure: pressure);
+    if (!pressure.isFinite) return;
+    state = state.copyWith(
+      defaultStartPressure: pressure.clamp(
+        defaultStartPressureMin,
+        defaultStartPressureMax,
+      ),
+    );
     await _saveSettings();
   }
 

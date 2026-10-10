@@ -81,6 +81,36 @@ void main() {
     expect(settings.state.defaultStartPressure, 232.5);
   });
 
+  testWidgets('saving without editing keeps the exact stored value', (
+    tester,
+  ) async {
+    // 206.8428 bar (3000 psi) opens in bar as 206.8. Saving that text would
+    // store 206.8 and read back as 2999 psi.
+    final settings = MockSettingsNotifier(
+      const AppSettings(defaultStartPressure: 206.8428),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [settingsProvider.overrideWith((ref) => settings)],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: DefaultStartPressureTile()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Default start pressure'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(settings.state.defaultStartPressure, 206.8428);
+  });
+
   testWidgets('reopening shows the value as it was entered', (tester) async {
     await pump(tester, pressureUnit: PressureUnit.psi);
     await enter(tester, '3000');
