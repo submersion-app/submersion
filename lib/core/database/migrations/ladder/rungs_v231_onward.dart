@@ -307,5 +307,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertIcdWarningsColumn();
     }
     if (from < 276) await reportProgress();
+    // v277: documents store (issue #2613). Tables re-asserted in beforeOpen;
+    // the data copy runs here only, never on open.
+    if (from < 277) {
+      await _assertDocumentsSchema();
+      await _migrateLegacyDocuments();
+    }
+    if (from < 277) await reportProgress();
   }
 }

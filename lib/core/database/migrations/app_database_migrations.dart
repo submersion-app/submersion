@@ -8,6 +8,7 @@ library;
 
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
@@ -29,6 +30,8 @@ import 'package:submersion/core/database/tag_uniqueness.dart';
 import 'package:submersion/core/database/tank_shared_computer_backfill.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_scope.dart';
+import 'package:submersion/features/documents/domain/document_ids.dart';
+import 'package:submersion/features/documents/domain/entities/document_page.dart';
 
 part 'before_open.dart';
 part 'before_open_child_columns.dart';
@@ -43,6 +46,7 @@ part 'helpers/dive_migrations.dart';
 part 'helpers/dive_plan_migrations.dart';
 part 'helpers/dive_profile_migrations.dart';
 part 'helpers/diver_migrations.dart';
+part 'helpers/document_migrations.dart';
 part 'helpers/equipment_migrations.dart';
 part 'helpers/equipment_condition_migrations.dart';
 part 'helpers/equipment_location_migrations.dart';

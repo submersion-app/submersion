@@ -12,6 +12,7 @@ import 'package:submersion/core/database/tables/dive_profile_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_condition_tables.dart';
+import 'package:submersion/core/database/tables/document_tables.dart';
 import 'package:submersion/core/database/tables/equipment_location_tables.dart';
 import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
@@ -42,6 +43,7 @@ export 'package:submersion/core/database/tables/dive_profile_tables.dart';
 export 'package:submersion/core/database/tables/dive_tables.dart';
 export 'package:submersion/core/database/tables/diver_tables.dart';
 export 'package:submersion/core/database/tables/equipment_condition_tables.dart';
+export 'package:submersion/core/database/tables/document_tables.dart';
 export 'package:submersion/core/database/tables/equipment_location_tables.dart';
 export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
@@ -244,6 +246,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     CertificationCurrencyRules,
     CertificationCurrencyPrefs,
     CertificationCurrencyEvents,
+    // Documents store (v277, issue #2613)
+    Documents,
+    DocumentPages,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -253,7 +258,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 276;
+  static const int currentSchemaVersion = 277;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1178,6 +1183,9 @@ class AppDatabase extends _$AppDatabase {
     275,
     // v276: diver_settings.icd_warnings_enabled (issue #3121).
     276,
+    // v277: documents and document_pages; insurance, medical clearance and
+    // certification card photos copied in (issue #2613).
+    277,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
