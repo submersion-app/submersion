@@ -181,6 +181,41 @@ void main() {
     );
   });
 
+  testWidgets(
+    'the cylinder-only resolver ignores an item retyped away from a tank',
+    (tester) async {
+      await tester.runAsync(
+        () => CylinderPassportRepository().assignPassportId(
+          equipmentId: 'eq-1',
+          passportId: id,
+        ),
+      );
+      await tester.runAsync(
+        () => (db.update(db.equipment)..where((t) => t.id.equals('eq-1')))
+            .write(const EquipmentCompanion(type: Value('regulator'))),
+      );
+      late WidgetRef scanner;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...await getBaseOverrides(),
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          ].cast(),
+          child: Consumer(
+            builder: (context, ref, _) {
+              scanner = ref;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      final resolution = await tester.runAsync(
+        () => resolveScannedTag(scanner, tag),
+      );
+      expect(resolution, isA<ForeignCylinder>());
+    },
+  );
+
   testWidgets('a tag nobody holds opens the foreign passport', (tester) async {
     await pump(tester, text: tag);
     expect(find.text('foreign page'), findsOneWidget);

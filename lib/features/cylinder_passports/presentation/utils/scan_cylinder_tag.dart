@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -16,13 +18,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('scanCylinderTag');
 
-/// Resolves [text] against the active diver's cylinders.
+/// Resolves [text] against the active diver's cylinders only: the tank
+/// editor and the blender take nothing else (issue #2652).
 Future<PassportResolution> resolveScannedTag(WidgetRef ref, String text) async {
   final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
   final repository = ref.read(cylinderPassportRepositoryProvider);
   return PassportResolver(
-    findEquipmentId: (passportId) =>
-        repository.findEquipmentIdByPassportId(passportId, diverId: diverId),
+    findEquipmentId: (passportId) => repository.findEquipmentIdByPassportId(
+      passportId,
+      diverId: diverId,
+      type: EquipmentType.tank,
+    ),
   ).resolve(text);
 }
 
