@@ -7,6 +7,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
 /// Settings section data model.
 ///
@@ -152,26 +153,40 @@ class SettingsListContent extends ConsumerWidget {
 
     // The setup card is row 0 of the list itself: it scrolls with the
     // sections and cannot overflow the viewport in either variant.
-    final listContent = ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: sections.length + 1,
-      separatorBuilder: (context, index) =>
-          index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
-      itemBuilder: (context, index) {
-        if (index == 0) return const PendingSetupCard();
-        final section = sections[index - 1];
-        final isSelected = selectedId == section.id;
+    final listContent = KeyboardListNavigator(
+      keys: [for (final s in sections) s.id],
+      currentKey: selectedId,
+      onMove: (id) => moveListCursor(
+        context,
+        canOpen: onItemSelected != null,
+        open: () => onItemSelected!(id),
+        highlight: () {},
+      ),
+      onActivate: (id) => onItemSelected?.call(id),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: sections.length + 1,
+        separatorBuilder: (context, index) =>
+            index == 0 ? const SizedBox.shrink() : const Divider(height: 1),
+        itemBuilder: (context, index) {
+          if (index == 0) return const PendingSetupCard();
+          final section = sections[index - 1];
+          final isSelected = selectedId == section.id;
 
-        return _SettingsSectionTile(
-          section: section,
-          isSelected: isSelected,
-          onTap: () {
-            if (onItemSelected != null) {
-              onItemSelected!(section.id);
-            }
-          },
-        );
-      },
+          return KeyboardListItem(
+            navigationKey: section.id,
+            child: _SettingsSectionTile(
+              section: section,
+              isSelected: isSelected,
+              onTap: () {
+                if (onItemSelected != null) {
+                  onItemSelected!(section.id);
+                }
+              },
+            ),
+          );
+        },
+      ),
     );
 
     if (!showAppBar) {

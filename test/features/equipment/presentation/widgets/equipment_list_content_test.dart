@@ -53,6 +53,7 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/keyboard_navigation_contract.dart';
 import '../../../../helpers/selection_contract.dart';
 
 // ---------------------------------------------------------------------------
@@ -1063,6 +1064,19 @@ void main() {
           ];
         },
         visibleAfterFilter: 1,
+      );
+
+      await verifyKeyboardNavigationContract(
+        tester,
+        build: (onItemSelected) => testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: EquipmentListContent(
+            showAppBar: true,
+            onItemSelected: onItemSelected,
+          ),
+        ),
+        firstRow: find.text('Aaa Reg'),
       );
     });
   });

@@ -31,6 +31,7 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/select_items_menu.dart';
+import '../../../../helpers/keyboard_navigation_contract.dart';
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -222,6 +223,19 @@ void main() {
           container.read(_visibleBuddiesProvider.notifier).state = [all.first];
         },
         visibleAfterFilter: 1,
+      );
+
+      await verifyKeyboardNavigationContract(
+        tester,
+        build: (onItemSelected) => testApp(
+          overrides: overrides,
+          locale: const Locale('en'),
+          child: BuddyListContent(
+            showAppBar: true,
+            onItemSelected: onItemSelected,
+          ),
+        ),
+        firstRow: find.text('Aaa Buddy'),
       );
     });
   });

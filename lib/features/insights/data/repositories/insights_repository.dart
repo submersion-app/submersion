@@ -453,7 +453,13 @@ class InsightsRepository {
     }
   }
 
-  /// Get gas mix distribution (Air, Nitrox, Trimix)
+  /// Get gas mix distribution (Air, Nitrox, Trimix).
+  ///
+  /// A dive breathing more than one mix (air back gas with a nitrox deco
+  /// tank, say) counts once under each, so the counts can sum to more than
+  /// the number of dives. `percentage` is each mix's share of those summed
+  /// counts, not of dives, which is why the Gas page draws bars rather than
+  /// a pie (issue #3048).
   Future<List<DistributionSegment>> getGasMixDistribution({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),

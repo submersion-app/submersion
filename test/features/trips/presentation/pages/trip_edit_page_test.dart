@@ -300,7 +300,14 @@ void main() {
       expect(find.text('Save'), findsOneWidget);
     });
 
-    testWidgets('should display Cancel button', (tester) async {
+    testWidgets('Save in the app bar is the only save action (#3174)', (
+      tester,
+    ) async {
+      // Tall enough that the whole lazy form, down to its end, is built.
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 6000);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -320,12 +327,10 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      await tester.scrollUntilVisible(
-        find.text('Cancel'),
-        50.0,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Save'), findsOneWidget);
+      // "Add Trip" is the app bar title only, not a second button.
+      expect(find.text('Add Trip'), findsOneWidget);
+      expect(find.text('Cancel'), findsNothing);
     });
 
     testWidgets('should show validation error when name is empty', (
@@ -1750,50 +1755,9 @@ void main() {
   });
 
   group('TripEditPage - discard changes', () {
-    testWidgets(
-      'discard confirmation dialog appears when cancel tapped with changes',
-      (tester) async {
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              tripRepositoryProvider.overrideWithValue(_MockTripRepository()),
-              tripListNotifierProvider.overrideWith((ref) {
-                return _MockTripListNotifier([]);
-              }),
-            ],
-            child: const MaterialApp(
-              locale: Locale('en'),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: TripEditPage(),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await tester.enterText(
-          find.widgetWithText(TextFormField, 'Trip Name *'),
-          'Some text',
-        );
-        await tester.pumpAndSettle();
-        // Scroll to and tap cancel.
-        await tester.scrollUntilVisible(
-          find.text('Cancel'),
-          100,
-          scrollable: find.byType(Scrollable).first,
-        );
-        await tester.tap(find.text('Cancel'));
-        await tester.pumpAndSettle();
-        expect(find.text('Discard Changes?'), findsOneWidget);
-        expect(find.text('Keep Editing'), findsOneWidget);
-        expect(find.text('Discard'), findsOneWidget);
-        // Keep Editing - dialog dismisses.
-        await tester.tap(find.text('Keep Editing'));
-        await tester.pumpAndSettle();
-        expect(find.text('Discard Changes?'), findsNothing);
-      },
-    );
-
-    testWidgets('cancel without changes does not show dialog', (tester) async {
+    // The full-page form is left through the app bar's back button; it has
+    // no Cancel button of its own (#3174).
+    Future<void> pumpPushedEditor(WidgetTester tester) async {
       final router = GoRouter(
         initialLocation: '/list',
         routes: [
@@ -1816,6 +1780,7 @@ void main() {
           ),
         ],
       );
+      addTearDown(router.dispose);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -1835,11 +1800,42 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('OPEN_EDIT'));
       await tester.pumpAndSettle();
-      // Scroll the Cancel button into view: a fixed fling breaks whenever
-      // the form grows.
-      await tester.ensureVisible(find.byType(OutlinedButton));
+    }
+
+    testWidgets('back with changes asks before discarding them', (
+      tester,
+    ) async {
+      await pumpPushedEditor(tester);
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Trip Name *'),
+        'Some text',
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.byType(OutlinedButton));
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('Discard Changes?'), findsOneWidget);
+      expect(find.text('Keep Editing'), findsOneWidget);
+      expect(find.text('Discard'), findsOneWidget);
+
+      // Keep Editing - dialog dismisses and the form stays.
+      await tester.tap(find.text('Keep Editing'));
+      await tester.pumpAndSettle();
+      expect(find.text('Discard Changes?'), findsNothing);
+      expect(find.text('Some text'), findsOneWidget);
+
+      // Discard - back to the list.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Discard'));
+      await tester.pumpAndSettle();
+      expect(find.text('OPEN_EDIT'), findsOneWidget);
+    });
+
+    testWidgets('back without changes leaves without a dialog', (tester) async {
+      await pumpPushedEditor(tester);
+
+      await tester.pageBack();
       await tester.pumpAndSettle();
       // No discard dialog because no changes.
       expect(find.text('Discard Changes?'), findsNothing);

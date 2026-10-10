@@ -160,8 +160,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
               ? context.l10n.equipment_setEdit_appBar_editTitle
               : context.l10n.equipment_setEdit_appBar_newTitle,
         ),
-        // Save sits top right, where the gear editor has it (issue #2266);
-        // the button at the bottom of the form stays for divers who scroll.
+        // Save sits top right, where the gear editor has it (issue #2266),
+        // and is the form's only save action (issue #3174).
         actions: [
           Tooltip(
             message: widget.isEditing
@@ -512,29 +512,6 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                 child: Text(
                   context.l10n.equipment_setEdit_errorMessage('$error'),
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // Save Button
-            Tooltip(
-              message: widget.isEditing
-                  ? context.l10n.equipment_setEdit_saveTooltip_edit
-                  : context.l10n.equipment_setEdit_saveTooltip_new,
-              child: FilledButton(
-                onPressed: _isLoading ? null : () => _saveSet(existingSet),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        widget.isEditing
-                            ? context.l10n.equipment_setEdit_saveButton_edit
-                            : context.l10n.equipment_setEdit_saveButton_new,
-                      ),
               ),
             ),
           ],

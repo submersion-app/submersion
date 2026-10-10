@@ -311,7 +311,8 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     // While an edit/create form is actually shown in the detail pane, keep
     // keyboard Tab traversal confined to that pane. Without this, Tab crosses
     // the divider into the master list on the left (issue #444). The list
-    // remains clickable and accessible; only Tab traversal is excluded.
+    // remains clickable and accessible; only Tab traversal is excluded. The
+    // master pane's create FAB is hidden for the same span (issue #3174).
     //
     // These conditions mirror _DetailPane._buildContent so the master pane is
     // only excluded when the edit/create builder is genuinely rendered (not,
@@ -354,7 +355,13 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
                 child: ExcludeFocusTraversal(
                   excluding: isEditingDetail,
                   child: _MasterPane(
-                    floatingActionButton: widget.floatingActionButton != null
+                    // Hidden while a form is open: the FAB sits at the
+                    // form's bottom edge and reads as its submit button, but
+                    // it never saves. It only switches the pane to create
+                    // mode, which drops an open edit form's changes
+                    // unprompted (issue #3174).
+                    floatingActionButton:
+                        widget.floatingActionButton != null && !isEditingDetail
                         ? _wrapFabForCreate(widget.floatingActionButton!)
                         : null,
                     child: widget.masterBuilder(

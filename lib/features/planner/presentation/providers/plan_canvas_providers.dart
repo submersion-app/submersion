@@ -10,6 +10,7 @@ import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
+import 'package:submersion/features/planner/domain/services/plan_best_mix.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
@@ -31,6 +32,43 @@ final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
   );
 });
 
+/// The best bottom mix for the plan's deepest point, judged against the
+/// plan's Gas options (best-mix END, O2 narcotic, bottom ppO2) over the
+/// diver's Settings. The tank dialog offers it as a one-tap fill, which is
+/// the only place the best-mix END takes effect (issue #3093).
+///
+/// A CCR plan also carries the best diluent, gated on the diver's diluent
+/// MOD ppO2 instead of the bottom ceiling: the same split the PlanEngine
+/// makes when it checks a CCR diluent against that limit. Other modes leave
+/// [diluent] null.
+///
+/// Null while the plan has no depth to suggest a mix for. Auto-dispose: it
+/// is only read when the dialog opens, so nothing should keep it recomputing
+/// on every later plan edit.
+final planBestMixProvider =
+    Provider.autoDispose<
+      ({double depthMeters, GasMix bottom, GasMix? diluent})?
+    >((ref) {
+      final state = ref.watch(divePlanNotifierProvider);
+      final depth = state.maxDepth;
+      if (depth <= 0) return null;
+      final plan = divePlanFromState(state);
+      final config = ref.watch(planEngineConfigProvider);
+      GasMix mixFor({bool forDiluent = false}) => suggestBestMixForPlan(
+        plan,
+        config,
+        depthMeters: depth,
+        forDiluent: forDiluent,
+      ).recommended.mix;
+      return (
+        depthMeters: depth,
+        bottom: mixFor(),
+        diluent: state.mode == domain.PlanMode.ccr
+            ? mixFor(forDiluent: true)
+            : null,
+      );
+    });
+
 /// The canvas's single source of computed truth: the current editing state
 /// run through the PlanEngine on every change (live recalc, no button).
 final planOutcomeProvider = Provider<PlanOutcome>((ref) {
@@ -39,6 +77,19 @@ final planOutcomeProvider = Provider<PlanOutcome>((ref) {
     state,
     config: ref.watch(planEngineConfigProvider),
   );
+});
+
+/// Whether the plan can be converted to a dive: it has segments and the
+/// engine reports no critical issue. This reads the same [planOutcomeProvider]
+/// issues the results pane and status chips show, so the gate never disagrees
+/// with what the diver sees (issue #3094). It judges the live plan, never a
+/// previewed contingency ([activePlanOutcomeProvider]): conversion logs the
+/// live plan, so a contingency's issues must not block or allow it.
+final planIsValidProvider = Provider<bool>((ref) {
+  final hasSegments = ref.watch(
+    divePlanNotifierProvider.select((s) => s.segments.isNotEmpty),
+  );
+  return hasSegments && ref.watch(planOutcomeProvider).isDiveable;
 });
 
 /// The diver's logged average back-gas SAC in L/min ("from your log");

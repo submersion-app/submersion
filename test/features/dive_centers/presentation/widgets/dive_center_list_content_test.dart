@@ -25,6 +25,7 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/keyboard_navigation_contract.dart';
 import '../../../../helpers/selection_contract.dart';
 
 // ---------------------------------------------------------------------------
@@ -284,6 +285,40 @@ void main() {
           notifier.showOnly([all.first]);
         },
         visibleAfterFilter: 1,
+      );
+
+      List<Override> keyboardOverrides() => [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        diveCenterListNotifierProvider.overrideWith(
+          (ref) => _MockDCListNotifier(all),
+        ),
+        diveCenterListViewModeProvider.overrideWith(
+          (ref) => ListViewMode.detailed,
+        ),
+        diveCenterTableConfigProvider.overrideWith(
+          (ref) => _TestDCTableConfigNotifier(_testConfig),
+        ),
+        diveCenterDiveCountProvider.overrideWith((ref, centerId) => 0),
+        highlightedDiveCenterIdProvider.overrideWith((ref) => null),
+      ];
+
+      // The keyboard contract mounts the list twice, and a ProviderScope
+      // disposes the notifier it was handed, so each mount gets its own.
+      await verifyKeyboardNavigationContract(
+        tester,
+        build: (onItemSelected) => testApp(
+          overrides: keyboardOverrides(),
+          locale: const Locale('en'),
+          child: DiveCenterListContent(
+            showAppBar: true,
+            onItemSelected: onItemSelected,
+          ),
+        ),
+        firstRow: find.text('Aaa Center'),
       );
     });
   });

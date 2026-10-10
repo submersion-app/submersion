@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sections.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
 /// Base height of a trip group header at the default text scale.
 const double _kHeaderBaseExtent = 62;
@@ -189,6 +190,7 @@ class TripGroupHeaderDelegate extends SliverPersistentHeaderDelegate {
     this.isSelectionMode = false,
     this.groupChecked,
     this.onGroupCheckedChanged,
+    this.navigationKey,
   });
 
   final TripSection section;
@@ -198,6 +200,9 @@ class TripGroupHeaderDelegate extends SliverPersistentHeaderDelegate {
   final bool isSelectionMode;
   final bool? groupChecked;
   final ValueChanged<bool?>? onGroupCheckedChanged;
+
+  /// The header's stop in the list's keyboard cursor, when it has one.
+  final String? navigationKey;
 
   @override
   double get minExtent => extent;
@@ -211,7 +216,7 @@ class TripGroupHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return SizedBox(
+    final header = SizedBox(
       height: extent,
       child: TripGroupHeader(
         section: section,
@@ -222,6 +227,9 @@ class TripGroupHeaderDelegate extends SliverPersistentHeaderDelegate {
         onGroupCheckedChanged: onGroupCheckedChanged,
       ),
     );
+    final key = navigationKey;
+    if (key == null) return header;
+    return KeyboardListItem(navigationKey: key, child: header);
   }
 
   @override

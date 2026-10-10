@@ -1093,10 +1093,9 @@ final divePlanNotifierProvider =
 /// This automatically recalculates whenever the plan state changes.
 ///
 /// The gradient factors come from the plan, not the settings: the plan is
-/// seeded from the diver's settings but is editable per plan, and
-/// [planIsValidProvider] gates convert-to-dive off these results. Computing
-/// them on the settings pair would judge a plan by factors it is not using,
-/// and diverge from [planOutcomeProvider], which the canvas displays.
+/// seeded from the diver's settings but is editable per plan. Computing them
+/// on the settings pair would judge a plan by factors it is not using, and
+/// diverge from the plan outcome the canvas displays.
 final planResultsProvider = Provider<PlanResult>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   final calculator = ref
@@ -1130,28 +1129,6 @@ final planProfilePointsProvider = Provider<List<DiveProfilePoint>>((ref) {
   final calculator = ref.watch(planCalculatorServiceProvider);
 
   return calculator.generateProfilePoints(state.segments);
-});
-
-/// Provider for checking if plan has warnings.
-final planHasWarningsProvider = Provider<bool>((ref) {
-  final results = ref.watch(planResultsProvider);
-  return results.warnings.isNotEmpty;
-});
-
-/// Provider for critical warnings only.
-final planCriticalWarningsProvider = Provider<List<PlanWarning>>((ref) {
-  final results = ref.watch(planResultsProvider);
-  return results.warnings
-      .where((w) => w.severity == PlanWarningSeverity.critical)
-      .toList();
-});
-
-/// Provider for plan validity (no critical warnings, has segments).
-final planIsValidProvider = Provider<bool>((ref) {
-  final state = ref.watch(divePlanNotifierProvider);
-  final criticalWarnings = ref.watch(planCriticalWarningsProvider);
-
-  return state.segments.isNotEmpty && criticalWarnings.isEmpty;
 });
 
 // ============================================================================

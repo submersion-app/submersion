@@ -633,103 +633,107 @@ void main() {
       prefs = await SharedPreferences.getInstance();
     });
 
-    testWidgets('renders depth and type pies when data is present', (
-      tester,
-    ) async {
-      final stats = DiveStatistics(
-        totalDives: 15,
-        totalTimeSeconds: 27000,
-        maxDepth: 30.0,
-        avgMaxDepth: 18.0,
-        totalSites: 2,
-        firstDiveDate: DateTime.now().subtract(const Duration(days: 365)),
-        depthDistribution: [
-          DepthRangeStat(
-            label: '0-10m',
-            minDepth: 0,
-            maxDepth: 10,
-            count: 5,
-            totalDurationSeconds: 18000, // 5h 0m
-          ),
-          DepthRangeStat(
-            label: '10-20m',
-            minDepth: 10,
-            maxDepth: 20,
-            count: 7,
-            totalDurationSeconds: 27000, // 7h 30m
-          ),
-          DepthRangeStat(
-            label: '20-30m',
-            minDepth: 20,
-            maxDepth: 30,
-            count: 3,
-            totalDurationSeconds: 11700, // 3h 15m
-          ),
-        ],
-      );
-
-      final diveTypes = [
-        DistributionSegment(
-          label: 'Recreational',
-          count: 10,
-          percentage: 66.7,
-          totalDurationSeconds: 36000, // 10h 0m
-        ),
-        DistributionSegment(
-          label: 'Technical',
-          count: 5,
-          percentage: 33.3,
-          totalDurationSeconds: 19800, // 5h 30m
-        ),
-      ];
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            diveStatisticsProvider.overrideWith((ref) async => stats),
-            filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
-            filteredDiveRecordsProvider.overrideWith(
-              (ref) async => DiveRecords(),
+    testWidgets(
+      'renders the depth pie and both bar lists when data is present',
+      (tester) async {
+        final stats = DiveStatistics(
+          totalDives: 15,
+          totalTimeSeconds: 27000,
+          maxDepth: 30.0,
+          avgMaxDepth: 18.0,
+          totalSites: 2,
+          firstDiveDate: DateTime.now().subtract(const Duration(days: 365)),
+          depthDistribution: [
+            DepthRangeStat(
+              label: '0-10m',
+              minDepth: 0,
+              maxDepth: 10,
+              count: 5,
+              totalDurationSeconds: 18000, // 5h 0m
             ),
-            diveTypeDistributionProvider.overrideWith((ref) async => diveTypes),
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
-            currentDiverIdProvider.overrideWith(
-              (ref) => _MockCurrentDiverIdNotifier(),
+            DepthRangeStat(
+              label: '10-20m',
+              minDepth: 10,
+              maxDepth: 20,
+              count: 7,
+              totalDurationSeconds: 27000, // 7h 30m
+            ),
+            DepthRangeStat(
+              label: '20-30m',
+              minDepth: 20,
+              maxDepth: 30,
+              count: 3,
+              totalDurationSeconds: 11700, // 3h 15m
             ),
           ],
-          child: const MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: Locale('en'),
-            home: InsightsOverviewPage(embedded: true),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        );
 
-      expect(find.text('Distributions'), findsOneWidget);
-      // Depth range legend labels should contain depth values.
-      expect(find.textContaining('10'), findsWidgets);
-      // Per-depth-bucket count + total dive time list (issue #641 follow-up).
-      // The bucket label also appears once in the pie chart's own legend
-      // above the list.
-      expect(find.text('0-10m'), findsNWidgets(2));
-      expect(find.text('5 dives • 5h 0m'), findsOneWidget);
-      expect(find.text('10-20m'), findsNWidgets(2));
-      expect(find.text('7 dives • 7h 30m'), findsOneWidget);
-      expect(find.text('20-30m'), findsNWidgets(2));
-      expect(find.text('3 dives • 3h 15m'), findsOneWidget);
-      // Per-type count + total dive time list (issue #641). The type name
-      // also appears once in the pie chart's own legend above the list.
-      expect(find.text('Recreational'), findsNWidgets(2));
-      expect(find.text('10 dives • 10h 0m'), findsOneWidget);
-      expect(find.text('Technical'), findsNWidgets(2));
-      expect(find.text('5 dives • 5h 30m'), findsOneWidget);
-    });
+        final diveTypes = [
+          DistributionSegment(
+            label: 'Recreational',
+            count: 10,
+            percentage: 66.7,
+            totalDurationSeconds: 36000, // 10h 0m
+          ),
+          DistributionSegment(
+            label: 'Technical',
+            count: 5,
+            percentage: 33.3,
+            totalDurationSeconds: 19800, // 5h 30m
+          ),
+        ];
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              diveStatisticsProvider.overrideWith((ref) async => stats),
+              filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+              filteredDiveRecordsProvider.overrideWith(
+                (ref) async => DiveRecords(),
+              ),
+              diveTypeDistributionProvider.overrideWith(
+                (ref) async => diveTypes,
+              ),
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => _MockCurrentDiverIdNotifier(),
+              ),
+            ],
+            child: const MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: Locale('en'),
+              home: InsightsOverviewPage(embedded: true),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Distributions'), findsOneWidget);
+        // Depth range legend labels should contain depth values.
+        expect(find.textContaining('10'), findsWidgets);
+        // Per-depth-bucket count + total dive time list (issue #641 follow-up).
+        // The bucket label also appears once in the pie chart's own legend
+        // above the list.
+        expect(find.text('0-10m'), findsNWidgets(2));
+        expect(find.text('5 dives • 5h 0m'), findsOneWidget);
+        expect(find.text('10-20m'), findsNWidgets(2));
+        expect(find.text('7 dives • 7h 30m'), findsOneWidget);
+        expect(find.text('20-30m'), findsNWidgets(2));
+        expect(find.text('3 dives • 3h 15m'), findsOneWidget);
+        // Per-type count + total dive time list (issue #641). A dive can carry
+        // several types, so there is no pie (and so no pie legend) for them
+        // (issue #3048): each type name appears only once, on its bar.
+        expect(find.text('Recreational'), findsOneWidget);
+        expect(find.text('10 dives • 10h 0m'), findsOneWidget);
+        expect(find.text('Technical'), findsOneWidget);
+        expect(find.text('5 dives • 5h 30m'), findsOneWidget);
+      },
+    );
 
     testWidgets(
-      'colors each bar to match its pie slice and sizes it by count',
+      'colors each depth bar to match its pie slice and sizes bars by count',
       (tester) async {
         final stats = DiveStatistics(
           totalDives: 15,
@@ -805,13 +809,14 @@ void main() {
         );
         await tester.pumpAndSettle();
 
+        // Only depth gets a pie: a dive sits in exactly one depth bucket, but
+        // can carry several dive types, so type shares are not parts of a
+        // whole and are shown as bars alone (issue #3048).
         final pieCharts = tester
             .widgetList<PieChart>(find.byType(PieChart))
             .toList();
+        expect(pieCharts, hasLength(1));
         final depthPieColors = pieCharts[0].data.sections
-            .map((s) => s.color)
-            .toList();
-        final typePieColors = pieCharts[1].data.sections
             .map((s) => s.color)
             .toList();
 
@@ -832,8 +837,17 @@ void main() {
           fillColor(const ValueKey('depth-bar-fill-2')),
           depthPieColors[2],
         );
-        expect(fillColor(const ValueKey('type-bar-fill-0')), typePieColors[0]);
-        expect(fillColor(const ValueKey('type-bar-fill-1')), typePieColors[1]);
+        expect(
+          fillColor(const ValueKey('type-bar-fill-0')),
+          isNot(fillColor(const ValueKey('type-bar-fill-1'))),
+        );
+        // Recreational (10) outnumbers Technical (5), so its bar is wider.
+        expect(
+          tester.getSize(find.byKey(const ValueKey('type-bar-fill-0'))).width,
+          greaterThan(
+            tester.getSize(find.byKey(const ValueKey('type-bar-fill-1'))).width,
+          ),
+        );
 
         // 10-20m (count 7) is the largest depth bucket, so its bar is wider
         // than the 0-10m (5) and 20-30m (3) buckets either side of it.
@@ -1079,9 +1093,95 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Pie legend and stats list, same as the built-in-type case above.
-      expect(find.text('DPV'), findsNWidgets(2));
+      // The bar list is the only place a dive type is named (issue #3048).
+      expect(find.text('DPV'), findsOneWidget);
       expect(find.text('Dpv'), findsNothing);
+    });
+
+    // Issue #3048: with no type pie, the dive-type bar section is where a
+    // failed load surfaces, under its own heading, beside the depth chart.
+    testWidgets('shows the dive-type error under its heading', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 3,
+        totalTimeSeconds: 5400,
+        maxDepth: 20.0,
+        avgMaxDepth: 20.0,
+        totalSites: 1,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 30)),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
+            diveTypeDistributionProvider.overrideWith(
+              (ref) async => throw StateError('boom'),
+            ),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: InsightsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dive Types'), findsOneWidget);
+      expect(find.text('Unable to load dive type data'), findsOneWidget);
+      // The depth chart is fed by a different provider and still renders.
+      expect(find.text('Depth Distribution'), findsOneWidget);
+    });
+
+    // Dives exist but none carries a type: the section stays, with an
+    // explicit no-data line instead of silently vanishing (issue #3048).
+    testWidgets('shows a no-data line when no dive has a type', (tester) async {
+      final stats = DiveStatistics(
+        totalDives: 3,
+        totalTimeSeconds: 5400,
+        maxDepth: 20.0,
+        avgMaxDepth: 20.0,
+        totalSites: 1,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 30)),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveStatisticsProvider.overrideWith((ref) async => stats),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: InsightsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dive Types'), findsOneWidget);
+      expect(find.text('No data available'), findsOneWidget);
     });
 
     testWidgets('hides Distributions when totalDives is 0', (tester) async {

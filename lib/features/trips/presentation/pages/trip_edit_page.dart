@@ -730,31 +730,10 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                         orElse: () => const SizedBox.shrink(),
                       ),
                   const SizedBox(height: 16),
-
-                  if (!widget.embedded) ...[
-                    // Save button
-                    FilledButton(
-                      onPressed: _isSaving ? null : _saveTrip,
-                      child: _isSaving
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(
-                              isEditing
-                                  ? context.l10n.trips_edit_button_update
-                                  : context.l10n.trips_edit_button_add,
-                            ),
-                    ),
-
-                    // Cancel button
-                    const SizedBox(height: 8),
-                    OutlinedButton(
-                      onPressed: () => _confirmCancel(),
-                      child: Text(context.l10n.trips_edit_button_cancel),
-                    ),
-                  ],
+                  // No Save or Cancel buttons down here: the app bar's Save
+                  // and back button (or the embedded header) are the form's
+                  // only actions, since a second, differently labelled save
+                  // read as another action (issue #3174).
                 ],
               ),
             ),
@@ -953,17 +932,6 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
       return await _showDiscardDialog() ?? false;
     }
     return true;
-  }
-
-  Future<void> _confirmCancel() async {
-    if (_hasChanges) {
-      final discard = await _showDiscardDialog();
-      if (discard == true && mounted) {
-        _handleCancel();
-      }
-    } else {
-      _handleCancel();
-    }
   }
 
   Future<bool?> _showDiscardDialog() {
