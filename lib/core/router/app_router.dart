@@ -576,6 +576,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'newEquipment',
                 builder: (context, state) => EquipmentEditPage(
                   initialParentId: state.uri.queryParameters['parent'],
+                  cloneFromId: state.uri.queryParameters['cloneFrom'],
                 ),
               ),
               GoRoute(

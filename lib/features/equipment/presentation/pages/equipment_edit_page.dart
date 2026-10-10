@@ -30,6 +30,9 @@ import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/children_card.dart';
+import 'package:submersion/features/equipment/data/services/equipment_clone_service.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_clone_seed.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
@@ -42,6 +45,11 @@ class EquipmentEditPage extends ConsumerStatefulWidget {
   /// Kept while the chosen type can live in that parent.
   final String? initialParentId;
 
+  /// For a new item: the item it is cloned from (issue #3184). The form
+  /// starts from [cloneFormSeed] of it, and the save also copies its
+  /// clocks, sets and documents.
+  final String? cloneFromId;
+
   const EquipmentEditPage({
     super.key,
     this.equipmentId,
@@ -49,9 +57,12 @@ class EquipmentEditPage extends ConsumerStatefulWidget {
     this.onSaved,
     this.onCancel,
     this.initialParentId,
+    this.cloneFromId,
   });
 
   bool get isEditing => equipmentId != null;
+
+  bool get isCloning => equipmentId == null && cloneFromId != null;
 
   @override
   ConsumerState<EquipmentEditPage> createState() => _EquipmentEditPageState();
@@ -155,7 +166,21 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   void _initializeFromEquipment(EquipmentItem equipment) {
     if (_isInitialized) return;
     _isInitialized = true;
+    _seedForm(equipment);
+    _loadTags(equipment.id);
+  }
 
+  void _initializeFromClone(EquipmentItem source) {
+    if (_isInitialized) return;
+    _isInitialized = true;
+    _seedForm(
+      cloneFormSeed(source, copyName: context.l10n.equipment_clone_nameCopy),
+    );
+    _loadCloneSelections(source.id);
+  }
+
+  /// Fills every form field from [equipment].
+  void _seedForm(EquipmentItem equipment) {
     // A colour on a type without one loads as a custom field, so the save
     // keeps it (issue #2520).
     for (final attr in keepStrayColorAsCustom(
@@ -201,7 +226,52 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     _parentEquipmentId = equipment.parentEquipmentId;
     _customReminderEnabled = equipment.customReminderEnabled;
     _customReminderDays = equipment.customReminderDays ?? const [7, 14, 30];
-    _loadTags(equipment.id);
+  }
+
+  /// The source's tags and place as the clone's starting picks, only those
+  /// that are the active diver's own: cloning shared gear (#2046) must not
+  /// bring the owner's tags or places onto the sharee's item. A pick the
+  /// diver made while these loaded is kept.
+  Future<void> _loadCloneSelections(String sourceId) async {
+    // Called from build: yield before the first provider read, as _loadTags
+    // does.
+    await null;
+    if (!mounted) return;
+    try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      final tags = await ref.read(tagsForEquipmentProvider(sourceId).future);
+      final own = [
+        for (final t in tags)
+          if (diverId == null || t.diverId == null || t.diverId == diverId) t,
+      ];
+      if (mounted && _selectedTags.isEmpty && own.isNotEmpty) {
+        setState(() => _selectedTags = own);
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not load the tags of equipment $sourceId to clone',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+    try {
+      final place = (await ref.read(
+        currentEquipmentLocationsProvider.future,
+      ))[sourceId];
+      if (place == null) return;
+      final mine = await ref.read(equipmentLocationsProvider.future);
+      if (mounted &&
+          _initialLocation == null &&
+          mine.any((l) => l.id == place.id)) {
+        setState(() => _initialLocation = place);
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not load the location of equipment $sourceId to clone',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// Loads the item's tags into the Tags field (issue #1942) and the
@@ -286,10 +356,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isEditing) {
-      final equipmentAsync = ref.watch(
-        equipmentItemProvider(widget.equipmentId!),
-      );
+    // The item to edit, or the one a clone starts from.
+    final loadId = widget.equipmentId ?? widget.cloneFromId;
+    if (loadId != null) {
+      final equipmentAsync = ref.watch(equipmentItemProvider(loadId));
       return equipmentAsync.when(
         data: (equipment) {
           if (equipment == null) {
@@ -307,8 +377,12 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               ),
             );
           }
-          _initializeFromEquipment(equipment);
-          return _buildForm(context, equipment);
+          if (widget.isEditing) {
+            _initializeFromEquipment(equipment);
+            return _buildForm(context, equipment);
+          }
+          _initializeFromClone(equipment);
+          return _buildForm(context, null);
         },
         loading: () {
           if (widget.embedded) {
@@ -661,6 +735,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           title: Text(
             widget.isEditing
                 ? context.l10n.equipment_edit_appBar_editTitle
+                : widget.isCloning
+                ? context.l10n.equipment_edit_appBar_cloneTitle
                 : context.l10n.equipment_edit_appBar_newTitle,
           ),
           actions: [
@@ -1139,6 +1215,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       String savedId;
       // False only when a chosen first location failed to save.
       var locationSaved = true;
+      // A clone's extras that could not be copied (issue #3184).
+      var failedCloneSteps = const <CloneExtrasStep>{};
 
       // Tags (issue #1942) are written with the row, in one transaction,
       // only when they differ from what the form loaded; a new item writes
@@ -1169,13 +1247,33 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             locationId: place.id,
           );
         }
+        if (widget.isCloning) {
+          failedCloneSteps = await ref
+              .read(equipmentCloneServiceProvider)
+              .copyExtras(
+                sourceId: widget.cloneFromId!,
+                cloneId: savedId,
+                diverId: diverId,
+              );
+        }
       }
 
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         final locationFailed = context.l10n.equipment_edit_locationFailed;
+        final partialCopy = context.l10n.equipment_clone_partialCopy;
         if (widget.embedded) {
           widget.onSaved?.call(savedId);
+        } else if (widget.isCloning) {
+          // The clone, not the original, is what the diver goes on to
+          // rename and adjust; Back still returns to the original. When some
+          // clocks, sets or documents did not copy, that message ("Cloned,
+          // but ...") replaces the plain one rather than queueing behind it.
+          final cloned = failedCloneSteps.isEmpty
+              ? context.l10n.equipment_clone_snackbar_cloned
+              : partialCopy;
+          context.pushReplacement('/equipment/$savedId');
+          messenger.showSnackBar(SnackBar(content: Text(cloned)));
         } else {
           context.pop();
           messenger.showSnackBar(
@@ -1192,6 +1290,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         // diver knows to set it with Move rather than retry the save.
         if (!locationSaved) {
           messenger.showSnackBar(SnackBar(content: Text(locationFailed)));
+        }
+        // Likewise for an embedded clone whose clocks, sets or documents did
+        // not all copy: they can be added on the clone by hand.
+        if (widget.embedded && failedCloneSteps.isNotEmpty) {
+          messenger.showSnackBar(SnackBar(content: Text(partialCopy)));
         }
       }
     } catch (e) {
