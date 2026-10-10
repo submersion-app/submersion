@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
 
 /// What a node disc shows inside it.
 enum NodeGlyph { none, initials, icon, photo }
@@ -17,6 +18,15 @@ class NodeMetrics {
     final t = math.sqrt((diveCount / maxDiveCount).clamp(0.0, 1.0));
     return minRadius + (maxRadius - minRadius) * t;
   }
+
+  /// Every node's radius when the diver picks a uniform size: big enough
+  /// for photos and initials to show.
+  static const double uniformRadius = 14;
+
+  static double radiusIn(NodeSizeMode mode, int diveCount, int maxDiveCount) =>
+      mode == NodeSizeMode.uniform
+      ? uniformRadius
+      : radiusFor(diveCount, maxDiveCount);
 
   static double edgeWidthFor(int weight, int maxWeight) {
     if (maxWeight <= 0) return 1;

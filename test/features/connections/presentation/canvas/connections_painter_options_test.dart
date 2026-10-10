@@ -1,0 +1,176 @@
+import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
+import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/connection_node.dart';
+import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/layout/graph_point.dart';
+import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
+import 'package:submersion/features/connections/domain/layout/layout_guide.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
+import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
+import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
+import 'package:submersion/features/connections/presentation/canvas/graph_viewport.dart';
+
+/// Records every canvas call by name; a label draws one halo rounded rect.
+class _Recording implements Canvas {
+  final calls = <Invocation>[];
+  int count(Symbol name) => calls.where((c) => c.memberName == name).length;
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    calls.add(invocation);
+    return null;
+  }
+}
+
+NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
+
+void main() {
+  final graph = ConnectionGraph(
+    nodes: [
+      ConnectionNode(ref: _b('a'), label: 'Ann', diveCount: 5),
+      ConnectionNode(ref: _b('b'), label: 'Bob', diveCount: 2),
+      ConnectionNode(ref: _b('c'), label: 'Cy', diveCount: 1),
+    ],
+    edges: [
+      ConnectionEdge(
+        source: _b('a'),
+        target: _b('b'),
+        weight: 3,
+        firstDiveAt: DateTime.utc(2024),
+        lastDiveAt: DateTime.utc(2024),
+      ),
+    ],
+  );
+  LayoutFrame frame({List<LayoutGuide> guides = const []}) =>
+      LayoutFrame.fromPositions(
+        {
+          _b('a'): const GraphPoint(0, 0),
+          _b('b'): const GraphPoint(300, 0),
+          _b('c'): const GraphPoint(0, 300),
+        },
+        settled: true,
+        guides: guides,
+      );
+
+  _Recording paint({
+    LabelMode labels = LabelMode.auto,
+    EdgeMode edges = EdgeMode.weighted,
+    NodeSizeMode nodeSize = NodeSizeMode.byDives,
+    GraphSelection? selection,
+    double scale = 1,
+    List<LayoutGuide> guides = const [],
+  }) {
+    final rec = _Recording();
+    ConnectionsPainter(
+      graph: graph,
+      frame: frame(guides: guides),
+      viewport: GraphViewport(scale: scale, offset: const Offset(50, 50)),
+      colors: const ConnectionKindColors({}, Colors.grey),
+      labelStyle: const TextStyle(fontSize: 12, color: Colors.black),
+      haloColor: Colors.white,
+      selection: selection,
+      maxLabelsAtLowZoom: 1,
+      labels: labels,
+      edges: edges,
+      nodeSize: nodeSize,
+      kindNames: const {ConnectionKind.buddy: 'Buddies'},
+    ).paint(rec, const Size(800, 800));
+    return rec;
+  }
+
+  test('labels off draws none but the selection and its neighbours', () {
+    expect(paint(labels: LabelMode.off).count(#drawRRect), 0);
+    expect(
+      paint(
+        labels: LabelMode.off,
+        selection: NodeSelection(_b('a')),
+      ).count(#drawRRect),
+      2,
+    );
+  });
+
+  test('labels all ignores the low-zoom cap', () {
+    expect(paint(scale: 0.3).count(#drawRRect), 1);
+    expect(paint(scale: 0.3, labels: LabelMode.all).count(#drawRRect), 3);
+  });
+
+  test('selected-only edges appear only for the selection', () {
+    expect(paint(edges: EdgeMode.selectedOnly).count(#drawLine), 0);
+    expect(
+      paint(
+        edges: EdgeMode.selectedOnly,
+        selection: NodeSelection(_b('a')),
+      ).count(#drawLine),
+      1,
+    );
+  });
+
+  test('thin edges are one pixel', () {
+    final line = paint(
+      edges: EdgeMode.thin,
+    ).calls.singleWhere((c) => c.memberName == #drawLine);
+    expect((line.positionalArguments[2] as Paint).strokeWidth, 1);
+  });
+
+  test('uniform node size draws every disc at the same radius', () {
+    final radii = paint(nodeSize: NodeSizeMode.uniform).calls
+        .where((c) => c.memberName == #drawCircle)
+        .map((c) => c.positionalArguments[1] as double)
+        .toSet();
+    expect(radii, {14.0});
+  });
+
+  test('guides are drawn as text', () {
+    final without = paint().count(#drawParagraph);
+    final withGuides = paint(
+      guides: const [
+        YearGuide(2020, GraphPoint(0, -70)),
+        LaneGuide(ConnectionKind.buddy, GraphPoint(-70, 0)),
+      ],
+    ).count(#drawParagraph);
+    expect(withGuides - without, 2);
+  });
+
+  test('shouldRepaint reacts to every display option', () {
+    // Frames compare by identity, so every painter shares one.
+    final shared = frame();
+    ConnectionsPainter p({
+      LabelMode labels = LabelMode.auto,
+      EdgeMode edges = EdgeMode.weighted,
+      NodeSizeMode nodeSize = NodeSizeMode.byDives,
+    }) => ConnectionsPainter(
+      graph: graph,
+      frame: shared,
+      viewport: const GraphViewport(),
+      colors: const ConnectionKindColors({}, Colors.grey),
+      labelStyle: const TextStyle(fontSize: 12),
+      labels: labels,
+      edges: edges,
+      nodeSize: nodeSize,
+    );
+    expect(p().shouldRepaint(p(labels: LabelMode.off)), isTrue);
+    expect(p().shouldRepaint(p(edges: EdgeMode.thin)), isTrue);
+    expect(p().shouldRepaint(p(nodeSize: NodeSizeMode.uniform)), isTrue);
+    expect(p().shouldRepaint(p()), isFalse);
+  });
+
+  test('every option paints into a real canvas without throwing', () {
+    final recorder = ui.PictureRecorder();
+    ConnectionsPainter(
+      graph: graph,
+      frame: frame(guides: const [YearGuide(2020, GraphPoint(0, -70))]),
+      viewport: const GraphViewport(),
+      colors: const ConnectionKindColors({}, Colors.grey),
+      labelStyle: const TextStyle(fontSize: 12),
+      labels: LabelMode.all,
+      edges: EdgeMode.selectedOnly,
+      nodeSize: NodeSizeMode.uniform,
+    ).paint(Canvas(recorder), const Size(400, 400));
+    recorder.endRecording().dispose();
+  });
+}

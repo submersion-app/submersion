@@ -3,10 +3,13 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
+import 'package:submersion/features/connections/domain/layout/layout_guide.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_group_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
@@ -32,6 +35,10 @@ class ConnectionsPainter extends CustomPainter {
     this.haloColor,
     this.highlight = HighlightMode.byKind,
     this.groupOf = const {},
+    this.labels = LabelMode.auto,
+    this.nodeSize = NodeSizeMode.byDives,
+    this.edges = EdgeMode.weighted,
+    this.kindNames = const {},
     Map<NodeRef, TextPainter>? labelCache,
     Map<NodeRef, TextPainter>? dimLabelCache,
     Map<(NodeRef, int), TextPainter>? initialsCache,
@@ -62,6 +69,18 @@ class ConnectionsPainter extends CustomPainter {
   /// Each grouped node's group number, largest group first; read in
   /// [HighlightMode.groups].
   final Map<NodeRef, int> groupOf;
+
+  /// Which labels to draw.
+  final LabelMode labels;
+
+  /// How big each disc is.
+  final NodeSizeMode nodeSize;
+
+  /// How edges are drawn.
+  final EdgeMode edges;
+
+  /// Lane guide text per kind, in the diver's language.
+  final Map<ConnectionKind, String> kindNames;
 
   /// Laid-out text, owned by the canvas state so a frame never re-runs
   /// paragraph layout for every node (measured at about 7 ms per frame for
@@ -106,7 +125,7 @@ class ConnectionsPainter extends CustomPainter {
   }
 
   double radiusOf(ConnectionNode n) =>
-      NodeMetrics.radiusFor(n.diveCount, graph.maxDiveCount) *
+      NodeMetrics.radiusIn(nodeSize, n.diveCount, graph.maxDiveCount) *
       viewport.scale.clamp(0.5, 1.5) *
       frame.appearOf(n.ref);
 
@@ -154,6 +173,8 @@ class ConnectionsPainter extends CustomPainter {
       }
     }
 
+    _paintGuides(canvas, ink);
+
     for (final e in graph.edges) {
       final a = frame.positions[e.source];
       final b = frame.positions[e.target];
@@ -163,18 +184,23 @@ class ConnectionsPainter extends CustomPainter {
         EdgeSelection(:final a, :final b) => e.touches(a) && e.touches(b),
         null => false,
       };
+      final touchesHover = hovered != null && e.touches(hovered!);
+      if (edges == EdgeMode.selectedOnly && !onSelection && !touchesHover) {
+        continue;
+      }
+      final thin = edges == EdgeMode.thin;
       final fade = newest != null && oldest != null
           ? recencyFactor(e.lastDiveAt, newest, oldest)
           : 1.0;
       final alpha =
-          NodeMetrics.edgeOpacityFor(e.weight, graph.maxWeight) *
+          (thin ? 0.5 : NodeMetrics.edgeOpacityFor(e.weight, graph.maxWeight)) *
           (dim && !onSelection ? 0.25 : 1) *
           fade;
       final paint = Paint()
         ..color = ink.withValues(alpha: alpha)
         ..strokeWidth =
-            NodeMetrics.edgeWidthFor(e.weight, graph.maxWeight) *
-            (onSelection ? 1.4 : 1)
+            (thin ? 1.0 : NodeMetrics.edgeWidthFor(e.weight, graph.maxWeight)) *
+            (onSelection && !thin ? 1.4 : 1)
         ..strokeCap = StrokeCap.round;
       canvas.drawLine(viewport.toScreen(a), viewport.toScreen(b), paint);
     }
@@ -279,19 +305,26 @@ class ConnectionsPainter extends CustomPainter {
       ));
     }
 
-    final allowed = viewport.scale < labelZoomThreshold
-        ? labelCandidates.take(maxLabelsAtLowZoom).toList()
-        : labelCandidates;
     final forced = {?selectedNode, ...lit, ?hovered};
+    final allowed = switch (labels) {
+      LabelMode.off => [
+        for (final c in labelCandidates)
+          if (forced.contains(c.ref)) c,
+      ],
+      LabelMode.all => labelCandidates,
+      LabelMode.auto =>
+        viewport.scale < labelZoomThreshold
+            ? labelCandidates.take(maxLabelsAtLowZoom).toList()
+            : labelCandidates,
+    };
     final ranked = [
       ...allowed.where((c) => forced.contains(c.ref)),
       ...allowed.where((c) => !forced.contains(c.ref)),
     ];
-    final visible = LabelCollision.visible(
-      ranked,
-      obstacles: discs,
-      exempt: forced,
-    );
+    // All means every label, overlap accepted; the other modes thin them.
+    final visible = labels == LabelMode.all
+        ? {for (final c in ranked) c.ref}
+        : LabelCollision.visible(ranked, obstacles: discs, exempt: forced);
     for (final c in ranked) {
       if (!visible.contains(c.ref)) continue;
       final dimmed = dim && !forced.contains(c.ref);
@@ -315,6 +348,34 @@ class ConnectionsPainter extends CustomPainter {
     }
   }
 
+  /// Timeline years and kind lanes, drawn under the edges.
+  void _paintGuides(Canvas canvas, Color ink) {
+    for (final g in frame.guides) {
+      final text = switch (g) {
+        YearGuide(:final year) => '$year',
+        LaneGuide(:final kind) => kindNames[kind] ?? kind.name,
+      };
+      final tp = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: labelStyle.copyWith(
+            color: ink.withValues(alpha: 0.6),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout();
+      final at = viewport.toScreen(g.at);
+      final topLeft = switch (g) {
+        YearGuide() => at - Offset(tp.width / 2, tp.height / 2),
+        LaneGuide() => at - Offset(tp.width, tp.height / 2),
+      };
+      tp.paint(canvas, topLeft);
+      tp.dispose();
+    }
+  }
+
   @override
   bool shouldRepaint(ConnectionsPainter old) =>
       old.frame != frame ||
@@ -327,5 +388,9 @@ class ConnectionsPainter extends CustomPainter {
       old.labelStyle != labelStyle ||
       old.haloColor != haloColor ||
       old.highlight != highlight ||
-      !mapEquals(old.groupOf, groupOf);
+      !mapEquals(old.groupOf, groupOf) ||
+      old.labels != labels ||
+      old.nodeSize != nodeSize ||
+      old.edges != edges ||
+      !mapEquals(old.kindNames, kindNames);
 }

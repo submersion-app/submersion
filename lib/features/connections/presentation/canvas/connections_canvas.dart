@@ -4,8 +4,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
 
@@ -36,6 +38,11 @@ class ConnectionsCanvas extends StatefulWidget {
     this.topInset = 0,
     this.highlight = HighlightMode.byKind,
     this.groupOf = const {},
+    this.labels = LabelMode.auto,
+    this.nodeSize = NodeSizeMode.byDives,
+    this.edges = EdgeMode.weighted,
+    this.kindNames = const {},
+    this.layoutToken,
   });
 
   final ConnectionGraph graph;
@@ -62,6 +69,22 @@ class ConnectionsCanvas extends StatefulWidget {
 
   /// Each grouped node's group number, for [HighlightMode.groups].
   final Map<NodeRef, int> groupOf;
+
+  /// Which labels the painter draws.
+  final LabelMode labels;
+
+  /// How big each node disc is; picking uses the same radius.
+  final NodeSizeMode nodeSize;
+
+  /// How edges are drawn.
+  final EdgeMode edges;
+
+  /// Timeline lane names per kind, in the diver's language.
+  final Map<ConnectionKind, String> kindNames;
+
+  /// Changes when the layout or spacing changes; the camera refits as it
+  /// does for a new graph.
+  final Object? layoutToken;
 
   @override
   State<ConnectionsCanvas> createState() => _ConnectionsCanvasState();
@@ -198,7 +221,11 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
   double _radiusOf(NodeRef ref) {
     final node = widget.graph.nodeFor(ref);
     if (node == null) return NodeMetrics.minRadius;
-    return NodeMetrics.radiusFor(node.diveCount, widget.graph.maxDiveCount) *
+    return NodeMetrics.radiusIn(
+          widget.nodeSize,
+          node.diveCount,
+          widget.graph.maxDiveCount,
+        ) *
         _viewport.scale.clamp(0.5, 1.5);
   }
 
@@ -299,6 +326,10 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
           haloColor: theme.colorScheme.surface,
           highlight: widget.highlight,
           groupOf: widget.groupOf,
+          labels: widget.labels,
+          nodeSize: widget.nodeSize,
+          edges: widget.edges,
+          kindNames: widget.kindNames,
         );
         final gestures = RawGestureDetector(
           behavior: HitTestBehavior.opaque,
