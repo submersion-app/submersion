@@ -418,13 +418,25 @@ fi
 # neither the variable nor the value. Warn and fall back instead: a mistyped
 # tuning knob must never block a push. The value is read as decimal (08 is 8),
 # and zero in any spelling is refused.
+#
+# An oversized value is clamped to OVERRIDE_MAX, which is already more than
+# any pool or importer count, so it keeps its meaning ("every importer", "no
+# hubs"). Left alone, BSD head rejected a count from 2^31 up, which killed the
+# push silently under set -e, and past 2^63 bash arithmetic wrapped instead.
+# The digits are compared as a string, before any arithmetic can wrap them.
+OVERRIDE_MAX=999999
 sanitized_override() {
-    local name="$1" value="$2" fallback="$3"
+    local name="$1" value="$2" fallback="$3" digits
     case "$value" in
         ''|*[!0-9]*) ;;
         *)
-            if [ "$((10#$value))" -gt 0 ]; then
-                printf '%s' "$((10#$value))"
+            digits="${value#"${value%%[!0]*}"}"
+            if [ "${#digits}" -gt "${#OVERRIDE_MAX}" ]; then
+                printf '%s' "$OVERRIDE_MAX"
+                return
+            fi
+            if [ -n "$digits" ] && [ "$((10#$digits))" -gt 0 ]; then
+                printf '%s' "$((10#$digits))"
                 return
             fi
             ;;

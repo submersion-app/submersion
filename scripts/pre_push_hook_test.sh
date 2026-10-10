@@ -610,6 +610,17 @@ else
         "selected $selected_l10n of 60"
 fi
 
+# From 2^31 up, BSD head rejected the line count and set -e ended the push
+# silently. An oversized sample now means every importer.
+run_hook "$tmp" L10N_SAMPLE=3000000000
+selected_l10n="$(printf '%s\n' "$hook_output" | grep -c 'test/features/gamma/l10n_' || true)"
+if [ "$hook_status" -eq 0 ] && [ "$selected_l10n" -eq 60 ]; then
+    pass 'an oversized L10N_SAMPLE runs every l10n importer'
+else
+    fail 'an oversized L10N_SAMPLE runs every l10n importer' \
+        "exit $hook_status; selected $selected_l10n of 60: $hook_output"
+fi
+
 rm -rf "$tmp"
 
 # Build a repo for the full-suite path: runnable test files, the real
@@ -949,6 +960,30 @@ run_hook "$tmp" HUB_THRESHOLD=1 HUB_SAMPLE=1
 assert_selected has 'test/features/zeta/small_helper_user_test.dart' \
     'counts hub importers per file, not per mention'
 git -C "$tmp/wt" checkout -q -- test/features/zeta/small_helper_user_test.dart
+
+# An oversized knob means "more than any pool": run every importer. BSD head
+# rejects a line count from 2^31 up, and inside the hook's $(...) under set -e
+# that killed the push with no message; past 2^63 bash arithmetic wrapped the
+# value instead. Both are clamped before they reach head.
+for big in 3000000000 99999999999999999999; do
+    run_hook "$tmp" HUB_SAMPLE="$big"
+    selected_hub="$(count_selected "$hub_importers")"
+    if [ "$hook_status" -eq 0 ] && [ "$selected_hub" -eq 280 ]; then
+        pass "HUB_SAMPLE=$big runs every hub importer"
+    else
+        fail "HUB_SAMPLE=$big runs every hub importer" \
+            "exit $hook_status; selected $selected_hub of 280: $hook_output"
+    fi
+done
+
+run_hook "$tmp" HUB_THRESHOLD=99999999999999999999
+selected_mock="$(count_selected 'test/features/zeta/mock_')"
+if [ "$hook_status" -eq 0 ] && [ "$selected_mock" -eq 110 ]; then
+    pass 'an oversized HUB_THRESHOLD means no hubs'
+else
+    fail 'an oversized HUB_THRESHOLD means no hubs' \
+        "exit $hook_status; selected $selected_mock of 110 helper importers"
+fi
 
 run_hook "$tmp" RUN_ALL_AFFECTED=1
 selected_hub="$(count_selected "$hub_importers")"
