@@ -181,9 +181,8 @@ void main() {
 
     final overflowRect = tester.getRect(find.byType(PopupMenuButton<String>));
 
-    // The slate goes out through sharePdfBytes rather than saveAndShareFile,
-    // a separate helper with its own optional anchor, so it needs its own
-    // coverage.
+    // The slate shares the delivery path with the plan file but passes the
+    // anchor through its own menu handler, so it needs its own coverage.
     await exportFromOverflow(tester, 'Export slate (PDF)');
 
     expect(sharePlatform.calls.single.sharePositionOrigin, overflowRect);

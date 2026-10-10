@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
@@ -271,15 +272,21 @@ class _PlanTile extends ConsumerWidget {
                   // read while the button is certainly mounted and at its
                   // current position, not after a database round trip.
                   final anchor = shareAnchorFrom(menuContext);
-                  await deliverPlanExport(
-                    context,
-                    title: context.l10n.plannerCanvas_share_menu,
-                    savedMessage: context.l10n.plannerCanvas_share_saved,
-                    shareAnchor: anchor,
-                    build: () async {
-                      final plan = await repository.getPlan(summary.id);
-                      return plan == null ? null : subplanExport(plan);
-                    },
+                  // The menu drops this callback's future, so a failure needs
+                  // a listener to be logged against this tile.
+                  logFailure(
+                    deliverPlanExport(
+                      context,
+                      title: context.l10n.plannerCanvas_share_menu,
+                      savedMessage: context.l10n.plannerCanvas_share_saved,
+                      shareAnchor: anchor,
+                      build: () async {
+                        final plan = await repository.getPlan(summary.id);
+                        return plan == null ? null : subplanExport(plan);
+                      },
+                    ),
+                    _PlanTile,
+                    'export plan file',
                   );
                 }
               },
