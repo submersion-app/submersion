@@ -60113,7 +60113,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_certificationField_certName.
   ///
   /// In en, this message translates to:
-  /// **'Name'**
+  /// **'Title'**
   String get enum_certificationField_certName;
 
   /// No description provided for @enum_certificationField_agency.
@@ -60173,7 +60173,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_certificationField_certName_short.
   ///
   /// In en, this message translates to:
-  /// **'Name'**
+  /// **'Title'**
   String get enum_certificationField_certName_short;
 
   /// No description provided for @enum_certificationField_agency_short.

@@ -38388,7 +38388,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'ملاحظات';
 
   @override
-  String get enum_certificationField_certName => 'الاسم';
+  String get enum_certificationField_certName => 'العنوان';
 
   @override
   String get enum_certificationField_agency => 'الجهة';
@@ -38418,7 +38418,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_certificationField_notes => 'ملاحظات';
 
   @override
-  String get enum_certificationField_certName_short => 'الاسم';
+  String get enum_certificationField_certName_short => 'العنوان';
 
   @override
   String get enum_certificationField_agency_short => 'الجهة';

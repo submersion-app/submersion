@@ -35795,7 +35795,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_diveCenterField_notes_short => '备注';
 
   @override
-  String get enum_certificationField_certName => '名称';
+  String get enum_certificationField_certName => '标题';
 
   @override
   String get enum_certificationField_agency => '机构';
@@ -35825,7 +35825,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_certificationField_notes => '备注';
 
   @override
-  String get enum_certificationField_certName_short => '名称';
+  String get enum_certificationField_certName_short => '标题';
 
   @override
   String get enum_certificationField_agency_short => '机构';

@@ -37993,7 +37993,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'Notes';
 
   @override
-  String get enum_certificationField_certName => 'Nom';
+  String get enum_certificationField_certName => 'Titre';
 
   @override
   String get enum_certificationField_agency => 'Organisme';
@@ -38024,7 +38024,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_certificationField_notes => 'Notes';
 
   @override
-  String get enum_certificationField_certName_short => 'Nom';
+  String get enum_certificationField_certName_short => 'Titre';
 
   @override
   String get enum_certificationField_agency_short => 'Orga.';

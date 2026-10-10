@@ -36978,7 +36978,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'הערות';
 
   @override
-  String get enum_certificationField_certName => 'שם';
+  String get enum_certificationField_certName => 'כותרת';
 
   @override
   String get enum_certificationField_agency => 'גוף הסמכה';
@@ -37008,7 +37008,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_certificationField_notes => 'הערות';
 
   @override
-  String get enum_certificationField_certName_short => 'שם';
+  String get enum_certificationField_certName_short => 'כותרת';
 
   @override
   String get enum_certificationField_agency_short => 'גוף';

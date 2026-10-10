@@ -37882,7 +37882,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'Notas';
 
   @override
-  String get enum_certificationField_certName => 'Nome';
+  String get enum_certificationField_certName => 'Título';
 
   @override
   String get enum_certificationField_agency => 'Agência';
@@ -37912,7 +37912,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_certificationField_notes => 'Notas';
 
   @override
-  String get enum_certificationField_certName_short => 'Nome';
+  String get enum_certificationField_certName_short => 'Título';
 
   @override
   String get enum_certificationField_agency_short => 'Agência';

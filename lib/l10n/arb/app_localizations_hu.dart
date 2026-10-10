@@ -37688,7 +37688,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'Jegyz.';
 
   @override
-  String get enum_certificationField_certName => 'Név';
+  String get enum_certificationField_certName => 'Cím';
 
   @override
   String get enum_certificationField_agency => 'Szervezet';
@@ -37718,7 +37718,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_certificationField_notes => 'Jegyzetek';
 
   @override
-  String get enum_certificationField_certName_short => 'Név';
+  String get enum_certificationField_certName_short => 'Cím';
 
   @override
   String get enum_certificationField_agency_short => 'Szerv.';
