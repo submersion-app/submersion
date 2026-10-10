@@ -13712,6 +13712,74 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_logFill_saveFailed => 'تعذّر حفظ التعبئة. حاول مرة أخرى.';
 
   @override
+  String get tagScan_title => 'مسح بطاقة';
+
+  @override
+  String get gearPassport_title => 'جواز المعدات';
+
+  @override
+  String gearPassport_entry_lastService(String date) {
+    return 'آخر صيانة: $date';
+  }
+
+  @override
+  String get gearPassport_entry_noService => 'لا توجد صيانة مسجّلة';
+
+  @override
+  String get gearPassport_recent_title => 'الصيانة الأخيرة';
+
+  @override
+  String get gearPassport_recent_none => 'لم تُسجَّل أي صيانة بعد';
+
+  @override
+  String get gearPassport_recent_seeAll => 'عرض الكل';
+
+  @override
+  String get gearPassport_unknownType => 'معدات';
+
+  @override
+  String get gearPassport_foreign_title => 'بطاقة المعدات';
+
+  @override
+  String get gearPassport_foreign_notInGear => 'هذه القطعة ليست ضمن معداتك.';
+
+  @override
+  String get gearPassport_foreign_addFailed =>
+      'تعذّر إضافة القطعة. حاول مرة أخرى.';
+
+  @override
+  String get gearPassport_field_lastService => 'تاريخ آخر صيانة';
+
+  @override
+  String get gearPassport_scan_action => 'مسح';
+
+  @override
+  String gearPassport_scan_added(String name) {
+    return 'تمت إضافة $name';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnDive(String name) {
+    return '$name موجود بالفعل في هذه الغطسة';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnTrip(String name) {
+    return '$name موجود بالفعل في هذه الرحلة';
+  }
+
+  @override
+  String get gearPassport_scan_notYours => 'ليست ضمن معداتك';
+
+  @override
+  String get gearPassport_scan_view => 'عرض';
+
+  @override
+  String gearPassport_scan_wishlist(String name) {
+    return 'حالة $name: مرغوب';
+  }
+
+  @override
   String get pdf_unknownSite => 'موقع غير معروف';
 
   @override
@@ -29278,6 +29346,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_gear_add_rental => 'أسطوانات مستأجرة';
+
+  @override
+  String get trips_gear_add_scan => 'مسح بطاقة';
 
   @override
   String get trips_gear_section_packed => 'مُجهز';

@@ -13605,6 +13605,76 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'enregistrer le gonflage. Réessayez.';
 
   @override
+  String get tagScan_title => 'Scanner une étiquette';
+
+  @override
+  String get gearPassport_title => 'Passeport de l\'équipement';
+
+  @override
+  String gearPassport_entry_lastService(String date) {
+    return 'Dernier entretien : $date';
+  }
+
+  @override
+  String get gearPassport_entry_noService => 'Aucun entretien enregistré';
+
+  @override
+  String get gearPassport_recent_title => 'Entretiens récents';
+
+  @override
+  String get gearPassport_recent_none =>
+      'Aucun entretien enregistré pour l\'instant';
+
+  @override
+  String get gearPassport_recent_seeAll => 'Tout voir';
+
+  @override
+  String get gearPassport_unknownType => 'Équipement';
+
+  @override
+  String get gearPassport_foreign_title => 'Étiquette d\'équipement';
+
+  @override
+  String get gearPassport_foreign_notInGear =>
+      'Cet article ne fait pas partie de votre équipement.';
+
+  @override
+  String get gearPassport_foreign_addFailed =>
+      'Impossible d\'ajouter l\'article. Réessayez.';
+
+  @override
+  String get gearPassport_field_lastService => 'Date du dernier entretien';
+
+  @override
+  String get gearPassport_scan_action => 'Scanner';
+
+  @override
+  String gearPassport_scan_added(String name) {
+    return '$name ajouté';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnDive(String name) {
+    return '$name figure déjà dans cette plongée';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnTrip(String name) {
+    return '$name figure déjà dans ce voyage';
+  }
+
+  @override
+  String get gearPassport_scan_notYours => 'Absent de votre équipement';
+
+  @override
+  String get gearPassport_scan_view => 'Voir';
+
+  @override
+  String gearPassport_scan_wishlist(String name) {
+    return '$name a le statut Souhaité';
+  }
+
+  @override
   String get pdf_unknownSite => 'Site inconnu';
 
   @override
@@ -29040,6 +29110,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get trips_gear_add_rental => 'Blocs de location';
+
+  @override
+  String get trips_gear_add_scan => 'Scanner une étiquette';
 
   @override
   String get trips_gear_section_packed => 'Prévu';

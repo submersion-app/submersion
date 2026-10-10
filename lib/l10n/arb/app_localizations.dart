@@ -22045,6 +22045,120 @@ abstract class AppLocalizations {
   /// **'Could not save the fill. Try again.'**
   String get passport_logFill_saveFailed;
 
+  /// No description provided for @tagScan_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a tag'**
+  String get tagScan_title;
+
+  /// No description provided for @gearPassport_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear passport'**
+  String get gearPassport_title;
+
+  /// The newest service date of a piece of gear, such as Last serviced 2 Mar 2026.
+  ///
+  /// In en, this message translates to:
+  /// **'Last serviced {date}'**
+  String gearPassport_entry_lastService(String date);
+
+  /// No description provided for @gearPassport_entry_noService.
+  ///
+  /// In en, this message translates to:
+  /// **'No service recorded'**
+  String get gearPassport_entry_noService;
+
+  /// No description provided for @gearPassport_recent_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent service'**
+  String get gearPassport_recent_title;
+
+  /// No description provided for @gearPassport_recent_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No service recorded yet'**
+  String get gearPassport_recent_none;
+
+  /// No description provided for @gearPassport_recent_seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get gearPassport_recent_seeAll;
+
+  /// No description provided for @gearPassport_unknownType.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get gearPassport_unknownType;
+
+  /// No description provided for @gearPassport_foreign_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear tag'**
+  String get gearPassport_foreign_title;
+
+  /// No description provided for @gearPassport_foreign_notInGear.
+  ///
+  /// In en, this message translates to:
+  /// **'This gear is not in your library.'**
+  String get gearPassport_foreign_notInGear;
+
+  /// No description provided for @gearPassport_foreign_addFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add the gear. Try again.'**
+  String get gearPassport_foreign_addFailed;
+
+  /// No description provided for @gearPassport_field_lastService.
+  ///
+  /// In en, this message translates to:
+  /// **'Last service date'**
+  String get gearPassport_field_lastService;
+
+  /// No description provided for @gearPassport_scan_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get gearPassport_scan_action;
+
+  /// Said after a scanned item was added to a dive or a trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {name}'**
+  String gearPassport_scan_added(String name);
+
+  /// Said when a scanned item is already in the dive's gear.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is already on this dive'**
+  String gearPassport_scan_alreadyOnDive(String name);
+
+  /// Said when a scanned item is already packed for the trip.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is already on this trip'**
+  String gearPassport_scan_alreadyOnTrip(String name);
+
+  /// No description provided for @gearPassport_scan_notYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in your gear'**
+  String get gearPassport_scan_notYours;
+
+  /// No description provided for @gearPassport_scan_view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get gearPassport_scan_view;
+
+  /// Said when a scanned item has the Wanted status, so it is not gear the diver owns yet.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has the status Wanted'**
+  String gearPassport_scan_wishlist(String name);
+
   /// No description provided for @pdf_unknownSite.
   ///
   /// In en, this message translates to:
@@ -46054,6 +46168,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rental cylinders'**
   String get trips_gear_add_rental;
+
+  /// No description provided for @trips_gear_add_scan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a tag'**
+  String get trips_gear_add_scan;
 
   /// No description provided for @trips_gear_section_packed.
   ///

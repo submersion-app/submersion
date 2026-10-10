@@ -13270,6 +13270,74 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה לשמור את המילוי. נסו שוב.';
 
   @override
+  String get tagScan_title => 'סריקת תג';
+
+  @override
+  String get gearPassport_title => 'דרכון הציוד';
+
+  @override
+  String gearPassport_entry_lastService(String date) {
+    return 'טיפול אחרון: $date';
+  }
+
+  @override
+  String get gearPassport_entry_noService => 'לא נרשם טיפול';
+
+  @override
+  String get gearPassport_recent_title => 'טיפולים אחרונים';
+
+  @override
+  String get gearPassport_recent_none => 'עדיין לא נרשם טיפול';
+
+  @override
+  String get gearPassport_recent_seeAll => 'הצג הכול';
+
+  @override
+  String get gearPassport_unknownType => 'ציוד';
+
+  @override
+  String get gearPassport_foreign_title => 'תג ציוד';
+
+  @override
+  String get gearPassport_foreign_notInGear => 'הפריט הזה אינו חלק מהציוד שלך.';
+
+  @override
+  String get gearPassport_foreign_addFailed =>
+      'לא ניתן היה להוסיף את הפריט. נסו שוב.';
+
+  @override
+  String get gearPassport_field_lastService => 'תאריך הטיפול האחרון';
+
+  @override
+  String get gearPassport_scan_action => 'סריקה';
+
+  @override
+  String gearPassport_scan_added(String name) {
+    return '$name נוסף';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnDive(String name) {
+    return '$name כבר נמצא בצלילה הזו';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnTrip(String name) {
+    return '$name כבר נמצא בטיול הזה';
+  }
+
+  @override
+  String get gearPassport_scan_notYours => 'לא בציוד שלך';
+
+  @override
+  String get gearPassport_scan_view => 'הצג';
+
+  @override
+  String gearPassport_scan_wishlist(String name) {
+    return 'הסטטוס של $name: רצוי';
+  }
+
+  @override
   String get pdf_unknownSite => 'אתר לא ידוע';
 
   @override
@@ -28219,6 +28287,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_gear_add_rental => 'מכלים מושכרים';
+
+  @override
+  String get trips_gear_add_scan => 'סריקת תג';
 
   @override
   String get trips_gear_section_packed => 'ארוז';

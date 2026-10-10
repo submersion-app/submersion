@@ -12933,6 +12933,73 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_logFill_saveFailed => '无法保存充气记录。请重试。';
 
   @override
+  String get tagScan_title => '扫描标签';
+
+  @override
+  String get gearPassport_title => '装备护照';
+
+  @override
+  String gearPassport_entry_lastService(String date) {
+    return '上次保养：$date';
+  }
+
+  @override
+  String get gearPassport_entry_noService => '暂无保养记录';
+
+  @override
+  String get gearPassport_recent_title => '近期保养';
+
+  @override
+  String get gearPassport_recent_none => '尚无保养记录';
+
+  @override
+  String get gearPassport_recent_seeAll => '查看全部';
+
+  @override
+  String get gearPassport_unknownType => '装备';
+
+  @override
+  String get gearPassport_foreign_title => '装备标签';
+
+  @override
+  String get gearPassport_foreign_notInGear => '此物品不在您的装备中。';
+
+  @override
+  String get gearPassport_foreign_addFailed => '无法添加该物品。请重试。';
+
+  @override
+  String get gearPassport_field_lastService => '上次保养日期';
+
+  @override
+  String get gearPassport_scan_action => '扫描';
+
+  @override
+  String gearPassport_scan_added(String name) {
+    return '已添加 $name';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnDive(String name) {
+    return '$name 已在此潜水中';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnTrip(String name) {
+    return '$name 已在此行程中';
+  }
+
+  @override
+  String get gearPassport_scan_notYours => '不在您的装备中';
+
+  @override
+  String get gearPassport_scan_view => '查看';
+
+  @override
+  String gearPassport_scan_wishlist(String name) {
+    return '$name 的状态为想要';
+  }
+
+  @override
   String get pdf_unknownSite => '未知潜水点';
 
   @override
@@ -27318,6 +27385,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_gear_add_rental => '租用气瓶';
+
+  @override
+  String get trips_gear_add_scan => '扫描标签';
 
   @override
   String get trips_gear_section_packed => '已打包';

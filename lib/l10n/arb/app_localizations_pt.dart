@@ -13562,6 +13562,75 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível salvar a carga. Tente novamente.';
 
   @override
+  String get tagScan_title => 'Ler etiqueta';
+
+  @override
+  String get gearPassport_title => 'Passaporte do equipamento';
+
+  @override
+  String gearPassport_entry_lastService(String date) {
+    return 'Última manutenção: $date';
+  }
+
+  @override
+  String get gearPassport_entry_noService => 'Nenhuma manutenção registrada';
+
+  @override
+  String get gearPassport_recent_title => 'Manutenção recente';
+
+  @override
+  String get gearPassport_recent_none => 'Nenhuma manutenção registrada ainda';
+
+  @override
+  String get gearPassport_recent_seeAll => 'Ver tudo';
+
+  @override
+  String get gearPassport_unknownType => 'Equipamento';
+
+  @override
+  String get gearPassport_foreign_title => 'Etiqueta do equipamento';
+
+  @override
+  String get gearPassport_foreign_notInGear =>
+      'Este item não está no seu equipamento.';
+
+  @override
+  String get gearPassport_foreign_addFailed =>
+      'Não foi possível adicionar o item. Tente novamente.';
+
+  @override
+  String get gearPassport_field_lastService => 'Data da última manutenção';
+
+  @override
+  String get gearPassport_scan_action => 'Ler';
+
+  @override
+  String gearPassport_scan_added(String name) {
+    return '$name adicionado';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnDive(String name) {
+    return '$name já está neste mergulho';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnTrip(String name) {
+    return '$name já está nesta viagem';
+  }
+
+  @override
+  String get gearPassport_scan_notYours => 'Não está no seu equipamento';
+
+  @override
+  String get gearPassport_scan_view => 'Ver';
+
+  @override
+  String gearPassport_scan_wishlist(String name) {
+    return '$name tem o status Desejado';
+  }
+
+  @override
   String get pdf_unknownSite => 'Ponto Desconhecido';
 
   @override
@@ -28948,6 +29017,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get trips_gear_add_rental => 'Cilindros alugados';
+
+  @override
+  String get trips_gear_add_scan => 'Ler etiqueta';
 
   @override
   String get trips_gear_section_packed => 'Preparado';

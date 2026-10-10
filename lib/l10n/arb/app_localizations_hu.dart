@@ -13527,6 +13527,75 @@ class AppLocalizationsHu extends AppLocalizations {
       'A töltés mentése nem sikerült. Próbálja újra.';
 
   @override
+  String get tagScan_title => 'Címke beolvasása';
+
+  @override
+  String get gearPassport_title => 'Felszerelés-útlevél';
+
+  @override
+  String gearPassport_entry_lastService(String date) {
+    return 'Utolsó szerviz: $date';
+  }
+
+  @override
+  String get gearPassport_entry_noService => 'Nincs rögzített szerviz';
+
+  @override
+  String get gearPassport_recent_title => 'Legutóbbi szervizek';
+
+  @override
+  String get gearPassport_recent_none => 'Még nincs rögzített szerviz';
+
+  @override
+  String get gearPassport_recent_seeAll => 'Összes';
+
+  @override
+  String get gearPassport_unknownType => 'Felszerelés';
+
+  @override
+  String get gearPassport_foreign_title => 'Felszerelés-címke';
+
+  @override
+  String get gearPassport_foreign_notInGear =>
+      'Ez a tétel nem szerepel a felszerelésében.';
+
+  @override
+  String get gearPassport_foreign_addFailed =>
+      'A tétel hozzáadása nem sikerült. Próbálja újra.';
+
+  @override
+  String get gearPassport_field_lastService => 'Utolsó szerviz dátuma';
+
+  @override
+  String get gearPassport_scan_action => 'Beolvasás';
+
+  @override
+  String gearPassport_scan_added(String name) {
+    return '$name hozzáadva';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnDive(String name) {
+    return '$name már szerepel ebben a merülésben';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnTrip(String name) {
+    return '$name már szerepel ezen az úton';
+  }
+
+  @override
+  String get gearPassport_scan_notYours => 'Nincs a felszerelésében';
+
+  @override
+  String get gearPassport_scan_view => 'Megtekintés';
+
+  @override
+  String gearPassport_scan_wishlist(String name) {
+    return '$name állapota: Kívánt';
+  }
+
+  @override
   String get pdf_unknownSite => 'Ismeretlen merülőhely';
 
   @override
@@ -28798,6 +28867,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_gear_add_rental => 'Bérelt palackok';
+
+  @override
+  String get trips_gear_add_scan => 'Címke beolvasása';
 
   @override
   String get trips_gear_section_packed => 'Bepakolva';

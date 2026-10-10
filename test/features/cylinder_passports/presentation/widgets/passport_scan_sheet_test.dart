@@ -86,6 +86,17 @@ void main() {
     expect(results, [tag]);
   });
 
+  testWidgets('the title names any tag, not only a cylinder (issue #2652)', (
+    tester,
+  ) async {
+    await openSheet(tester, camera: null);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    expect(find.text(l10n.tagScan_title), findsOneWidget);
+    expect(find.text(l10n.passport_scan_title), findsNothing);
+  });
+
   testWidgets('paste fills the link from the clipboard', (tester) async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {

@@ -7974,6 +7974,46 @@
       }
     }
   },
+  "@gearPassport_entry_lastService": {
+    "description": "The newest service date of a piece of gear, such as Last serviced 2 Mar 2026.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@gearPassport_scan_added": {
+    "description": "Said after a scanned item was added to a dive or a trip.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@gearPassport_scan_alreadyOnDive": {
+    "description": "Said when a scanned item is already in the dive's gear.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@gearPassport_scan_alreadyOnTrip": {
+    "description": "Said when a scanned item is already packed for the trip.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@gearPassport_scan_wishlist": {
+    "description": "Said when a scanned item has the Wanted status, so it is not gear the diver owns yet.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "passport_trip_assign": "Pack for a trip",
   "passport_trip_unassign": "Unpack from this trip",
   "passport_trip_onBoard": "On the trip's cylinder board",
@@ -7981,6 +8021,25 @@
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
   "passport_logFill_saveFailed": "Could not save the fill. Try again.",
+  "tagScan_title": "Scan a tag",
+  "gearPassport_title": "Gear passport",
+  "gearPassport_entry_lastService": "Last serviced {date}",
+  "gearPassport_entry_noService": "No service recorded",
+  "gearPassport_recent_title": "Recent service",
+  "gearPassport_recent_none": "No service recorded yet",
+  "gearPassport_recent_seeAll": "See all",
+  "gearPassport_unknownType": "Gear",
+  "gearPassport_foreign_title": "Gear tag",
+  "gearPassport_foreign_notInGear": "This gear is not in your library.",
+  "gearPassport_foreign_addFailed": "Could not add the gear. Try again.",
+  "gearPassport_field_lastService": "Last service date",
+  "gearPassport_scan_action": "Scan",
+  "gearPassport_scan_added": "Added {name}",
+  "gearPassport_scan_alreadyOnDive": "{name} is already on this dive",
+  "gearPassport_scan_alreadyOnTrip": "{name} is already on this trip",
+  "gearPassport_scan_notYours": "Not in your gear",
+  "gearPassport_scan_view": "View",
+  "gearPassport_scan_wishlist": "{name} has the status Wanted",
   "pdf_unknownSite": "Unknown Site",
   "pdf_signaturePlaceholder": "[Signature]",
   "pdf_signerBuddy": "Buddy",
@@ -16890,6 +16949,7 @@
   "trips_gear_add_fromEquipment": "From my equipment",
   "trips_gear_add_fromSet": "An equipment set",
   "trips_gear_add_rental": "Rental cylinders",
+  "trips_gear_add_scan": "Scan a tag",
   "trips_gear_section_packed": "Packed",
   "trips_gear_section_cylinders": "Cylinders",
   "trips_gear_empty_upcoming": "Nothing packed yet. Add the gear you'll bring and the cylinders you'll dive from.",

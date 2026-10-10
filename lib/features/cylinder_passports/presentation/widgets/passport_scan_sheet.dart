@@ -163,7 +163,7 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            l10n.passport_scan_title,
+            l10n.tagScan_title,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 12),

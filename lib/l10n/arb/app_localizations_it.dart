@@ -13563,6 +13563,76 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile salvare la ricarica. Riprova.';
 
   @override
+  String get tagScan_title => 'Scansiona un tag';
+
+  @override
+  String get gearPassport_title => 'Passaporto dell\'attrezzatura';
+
+  @override
+  String gearPassport_entry_lastService(String date) {
+    return 'Ultima manutenzione: $date';
+  }
+
+  @override
+  String get gearPassport_entry_noService => 'Nessuna manutenzione registrata';
+
+  @override
+  String get gearPassport_recent_title => 'Manutenzioni recenti';
+
+  @override
+  String get gearPassport_recent_none =>
+      'Nessuna manutenzione ancora registrata';
+
+  @override
+  String get gearPassport_recent_seeAll => 'Vedi tutto';
+
+  @override
+  String get gearPassport_unknownType => 'Attrezzatura';
+
+  @override
+  String get gearPassport_foreign_title => 'Tag dell\'attrezzatura';
+
+  @override
+  String get gearPassport_foreign_notInGear =>
+      'Questo articolo non fa parte della tua attrezzatura.';
+
+  @override
+  String get gearPassport_foreign_addFailed =>
+      'Impossibile aggiungere l\'articolo. Riprova.';
+
+  @override
+  String get gearPassport_field_lastService => 'Data dell\'ultima manutenzione';
+
+  @override
+  String get gearPassport_scan_action => 'Scansiona';
+
+  @override
+  String gearPassport_scan_added(String name) {
+    return '$name aggiunto';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnDive(String name) {
+    return '$name è già in questa immersione';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnTrip(String name) {
+    return '$name è già in questo viaggio';
+  }
+
+  @override
+  String get gearPassport_scan_notYours => 'Non è nella tua attrezzatura';
+
+  @override
+  String get gearPassport_scan_view => 'Vedi';
+
+  @override
+  String gearPassport_scan_wishlist(String name) {
+    return '$name ha lo stato Desiderato';
+  }
+
+  @override
   String get pdf_unknownSite => 'Sito sconosciuto';
 
   @override
@@ -28955,6 +29025,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get trips_gear_add_rental => 'Bombole a noleggio';
+
+  @override
+  String get trips_gear_add_scan => 'Scansiona un tag';
 
   @override
   String get trips_gear_section_packed => 'In valigia';
