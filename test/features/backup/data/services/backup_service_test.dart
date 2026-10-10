@@ -502,6 +502,19 @@ void main() {
         expect(preferences.getHistory().single.note, 'Before merging sites');
       });
 
+      test('an automatic backup ignores a note it is handed', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+        final record = await service.performBackup(
+          isAutomatic: true,
+          note: 'Should not stick',
+        );
+        expect(fakeDb.lastBackupNote, isNull);
+        expect(record.note, isNull);
+      });
+
       test('an automatic backup carries no note', () async {
         final service = BackupService(
           dbAdapter: fakeDb,

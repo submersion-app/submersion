@@ -161,7 +161,8 @@ class BackupService {
   /// the backup is also uploaded to cloud storage.
   ///
   /// [note] is the diver's optional description: it is stamped into the file
-  /// and kept on the record.
+  /// and kept on the record. An automatic backup never carries one, so it is
+  /// ignored when [isAutomatic] is set.
   Future<BackupRecord> performBackup({
     bool isAutomatic = false,
     String? note,
@@ -177,7 +178,7 @@ class BackupService {
       return await _performBackupInto(
         lease.target,
         isAutomatic: isAutomatic,
-        note: normalizeBackupNote(note),
+        note: isAutomatic ? null : normalizeBackupNote(note),
       );
     } finally {
       await lease.release();
