@@ -25322,13 +25322,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_manage_title => '标签';
 
   @override
-  String get tags_manage_importsSection => '导入';
+  String get settings_autoTagImports_title => '自动为导入的记录打标签';
 
   @override
-  String get tags_manage_autoTagImports => '自动为导入的记录打标签';
-
-  @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       '每次新的导入都会以包含来源和日期的标签开始。可以在该次导入的选项中为单次导入更改此设置。';
 
   @override

@@ -26704,13 +26704,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_manage_title => 'Címkék';
 
   @override
-  String get tags_manage_importsSection => 'Importok';
+  String get settings_autoTagImports_title => 'Importok automatikus címkézése';
 
   @override
-  String get tags_manage_autoTagImports => 'Importok automatikus címkézése';
-
-  @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'Minden új import egy, a forrást és a dátumot megnevező címkével kezdődik. Ez egyetlen importra megváltoztatható az adott import beállításaiban.';
 
   @override

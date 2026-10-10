@@ -27004,13 +27004,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_manage_title => 'الوسوم';
 
   @override
-  String get tags_manage_importsSection => 'الاستيراد';
+  String get settings_autoTagImports_title => 'وسم الاستيرادات تلقائيا';
 
   @override
-  String get tags_manage_autoTagImports => 'وسم الاستيرادات تلقائيا';
-
-  @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'يبدأ كل استيراد جديد بوسم يحمل اسم المصدر والتاريخ. يمكن تغيير ذلك لعملية استيراد واحدة في خيارات تلك العملية.';
 
   @override

@@ -43201,23 +43201,17 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get tags_manage_title;
 
-  /// Section header above the auto-tag-imports switch on the tag management screen
-  ///
-  /// In en, this message translates to:
-  /// **'Imports'**
-  String get tags_manage_importsSection;
-
-  /// Switch title for auto-tagging every new import session
+  /// Switch title, in the Import card on Settings > Data, for auto-tagging every new import session
   ///
   /// In en, this message translates to:
   /// **'Tag imports automatically'**
-  String get tags_manage_autoTagImports;
+  String get settings_autoTagImports_title;
 
-  /// Switch subtitle for auto-tagging every new import session
+  /// Switch subtitle, in the Import card on Settings > Data, for auto-tagging every new import session
   ///
   /// In en, this message translates to:
   /// **'Every new import starts with a tag naming the source and date. You can change this for a single import in that import\'s options.'**
-  String get tags_manage_autoTagImports_subtitle;
+  String get settings_autoTagImports_subtitle;
 
   /// No description provided for @tags_manage_searchHint.
   ///
