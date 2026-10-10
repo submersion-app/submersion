@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
@@ -64,9 +65,11 @@ void main() {
 
       test('$name: gear that blends into the page gets a rim', () {
         final lost = brightness == Brightness.dark
-            ? equipmentColorBlack
-            : equipmentColorWhite;
-        expect(palette.needsRim(_argb(lost)), isTrue);
+            ? [_argb(equipmentColorBlack), FigureColors.black]
+            : [_argb(equipmentColorWhite)];
+        for (final colour in lost) {
+          expect(palette.needsRim(colour), isTrue, reason: '$colour');
+        }
       });
 
       test('$name: gear that reads on the page gets none', () {
