@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_locations_map_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -150,6 +151,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(_drawnPointCount(tester), 17);
+  });
+
+  testWidgets('the fullscreen map draws the same track as the card (#3156)', (
+    tester,
+  ) async {
+    // The inline map is locked, so the fullscreen page is where the track is
+    // zoomed and panned; it must carry the runs the card draws.
+    await _pump(tester, track: _track());
+    await tester.tap(find.byKey(const ValueKey('gps-expand')));
+    await tester.pumpAndSettle();
+
+    final page = tester.widget<DiveLocationsMapPage>(
+      find.byType(DiveLocationsMapPage),
+    );
+    final runs = page.trackRuns;
+    expect(runs, isNotNull);
+    expect(runs!.fold<int>(0, (sum, r) => sum + r.points.length), 6);
   });
 
   testWidgets('a collapsed section never resolves the track', (tester) async {

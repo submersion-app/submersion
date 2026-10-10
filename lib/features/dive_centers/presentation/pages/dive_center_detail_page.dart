@@ -609,7 +609,6 @@ class _MapSection extends ConsumerStatefulWidget {
 }
 
 class _MapSectionState extends ConsumerState<_MapSection> {
-  final MapController _previewController = MapController();
   final MapController _fullController = MapController();
 
   @override
@@ -626,7 +625,6 @@ class _MapSectionState extends ConsumerState<_MapSection> {
         child: Stack(
           children: [
             FlutterMap(
-              mapController: _previewController,
               key: ValueKey('${center.latitude}_${center.longitude}'),
               options: MapOptions(
                 initialCenter: centerLocation,

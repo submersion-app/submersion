@@ -56,8 +56,6 @@ class SiteListTile extends ConsumerStatefulWidget {
 }
 
 class _SiteListTileState extends ConsumerState<SiteListTile> {
-  final MapController _mapController = MapController();
-
   static const _contentInset = 52.0;
 
   @override
@@ -330,7 +328,6 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
               children: [
                 Positioned.fill(
                   child: FlutterMap(
-                    mapController: _mapController,
                     options: MapOptions(
                       initialCenter: siteLocation,
                       initialZoom: 13.0,

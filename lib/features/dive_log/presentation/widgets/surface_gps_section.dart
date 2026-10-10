@@ -72,7 +72,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
     );
   }
 
-  void _openFullscreen(BuildContext context) {
+  void _openFullscreen(BuildContext context, List<TrackRun>? runs) {
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute<void>(
         builder: (_) => DiveLocationsMapPage(
@@ -80,6 +80,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
           entry: widget.dive.entryLocation,
           exit: widget.dive.exitLocation,
           site: widget.dive.site?.location,
+          trackRuns: runs,
         ),
       ),
     );
@@ -206,7 +207,7 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
                         key: const ValueKey('gps-expand'),
                         icon: const Icon(Icons.fullscreen),
                         tooltip: context.l10n.diveLog_detail_locationsMap_title,
-                        onPressed: () => _openFullscreen(context),
+                        onPressed: () => _openFullscreen(context, runs),
                       ),
                     ),
                   ),

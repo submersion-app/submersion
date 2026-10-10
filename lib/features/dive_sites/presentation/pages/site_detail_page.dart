@@ -187,7 +187,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
   /// content.
   static const _cardPadding = EdgeInsets.all(12);
 
-  final MapController _previewController = MapController();
   final MapController _fullController = MapController();
 
   @override
@@ -686,7 +685,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         child: Stack(
           children: [
             FlutterMap(
-              mapController: _previewController,
               key: ValueKey(
                 '${site.location!.latitude}_${site.location!.longitude}',
               ),
