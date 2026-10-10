@@ -9,6 +9,7 @@ import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/write_fill_to_tag.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/nfc_write_sheet.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -133,7 +134,9 @@ void main() {
       await tester.tap(find.text(l10n.passport_fill_writeToTag));
       await tester.pumpAndSettle();
       final sheet = tester.widget<NfcWriteSheet>(find.byType(NfcWriteSheet));
-      expect(sheet.payload.fill?.id, newest.id);
+      final writing =
+          PassportPayloadCodec.decode(sheet.request.fullUrl) as PassportDecoded;
+      expect(writing.payload.fill?.id, newest.id);
       expect(nfc.sessions, 1);
     });
 
