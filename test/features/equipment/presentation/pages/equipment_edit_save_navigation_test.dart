@@ -90,8 +90,8 @@ void main() {
       expect(find.text('Save'), findsOneWidget);
       // The tall viewport lays out the whole lazy form, down to its end.
       expect(find.text('Notifications (Optional)'), findsOneWidget);
-      expect(find.byType(FilledButton), findsNothing);
       expect(find.text('Add Equipment'), findsNothing);
+      expect(find.byTooltip('Add new equipment item'), findsNothing);
     });
 
     testWidgets('Save stores the item and returns to the list', (tester) async {

@@ -357,8 +357,9 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
                   child: _MasterPane(
                     // Hidden while a form is open: the FAB sits at the
                     // form's bottom edge and reads as its submit button, but
-                    // it only reopens a blank create form, dropping whatever
-                    // the open form held (issue #3174).
+                    // it never saves. It only switches the pane to create
+                    // mode, which drops an open edit form's changes
+                    // unprompted (issue #3174).
                     floatingActionButton:
                         widget.floatingActionButton != null && !isEditingDetail
                         ? _wrapFabForCreate(widget.floatingActionButton!)

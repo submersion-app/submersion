@@ -595,10 +595,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
 
           // Notification Overrides: service reminders are for owned gear
           // (#2025).
-          // Save lives in the app bar (or the embedded header) only: a second,
-          // differently labelled button down here read as another action
-          // (issue #3174).
           if (!_isWanted) _buildNotificationSection(context),
+          // No save button down here: Save lives in the app bar (or the
+          // embedded header) only, since a second, differently labelled one
+          // read as another action (issue #3174).
         ],
       ),
     );
