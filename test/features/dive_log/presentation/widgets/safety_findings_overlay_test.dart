@@ -34,6 +34,8 @@ void main() {
     void Function(SafetyFinding)? onTap,
     void Function(SafetyFinding)? onDismiss,
     void Function(SafetyFinding)? onDetails,
+    bool showLane = true,
+    bool showCallout = true,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -55,6 +57,8 @@ void main() {
               onFindingTap: onTap ?? (_) {},
               onFindingDismiss: onDismiss ?? (_) {},
               onFindingDetails: onDetails,
+              showLane: showLane,
+              showCallout: showCallout,
             ),
           ),
         ),
@@ -62,6 +66,36 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  group('layer flags (issue #3051)', () {
+    const strip = ValueKey('safetyLaneStrip');
+    const chip = ValueKey('safetyLaneChip-0');
+    const callout = ValueKey('safetyFindingCallout');
+
+    testWidgets('lane only: strip and chips, no callout', (tester) async {
+      await pumpOverlay(
+        tester,
+        findings: [finding('a', start: 100, end: 200)],
+        selectedFindingId: 'a',
+        showCallout: false,
+      );
+      expect(find.byKey(strip), findsOneWidget);
+      expect(find.byKey(chip), findsOneWidget);
+      expect(find.byKey(callout), findsNothing);
+    });
+
+    testWidgets('callout only: the card, no strip or chips', (tester) async {
+      await pumpOverlay(
+        tester,
+        findings: [finding('a', start: 100, end: 200)],
+        selectedFindingId: 'a',
+        showLane: false,
+      );
+      expect(find.byKey(strip), findsNothing);
+      expect(find.byKey(chip), findsNothing);
+      expect(find.byKey(callout), findsOneWidget);
+    });
+  });
 
   testWidgets('renders one chip per finding', (tester) async {
     await pumpOverlay(
