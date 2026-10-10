@@ -205,6 +205,40 @@ void main() {
     expect(store.load().host, '');
   });
 
+  testWidgets('the password can be revealed and SOCKS5 changes the port '
+      'hint', (tester) async {
+    await pump(tester, saved: manualSaved);
+    TextField field(String key) =>
+        tester.widget<TextField>(find.byKey(ValueKey(key)));
+    expect(field('proxy-password').obscureText, isTrue);
+    await tester.tap(find.byTooltip('Show password'));
+    await tester.pump();
+    expect(field('proxy-password').obscureText, isFalse);
+    expect(field('proxy-port').decoration!.hintText, '8080');
+    await tester.tap(find.text('SOCKS5'));
+    await tester.pump();
+    expect(field('proxy-port').decoration!.hintText, '1080');
+  });
+
+  testWidgets('an over-long SOCKS5 username is flagged on the username', (
+    tester,
+  ) async {
+    await pump(tester, saved: manualSaved.copyWith(type: ProxyType.socks5));
+    await tester.enterText(find.byKey(const ValueKey('proxy-host')), 's');
+    await tester.enterText(find.byKey(const ValueKey('proxy-port')), '1080');
+    await tester.enterText(
+      find.byKey(const ValueKey('proxy-username')),
+      'u' * 256,
+    );
+    await tester.enterText(find.byKey(const ValueKey('proxy-password')), 'p');
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    final username = tester.widget<TextField>(
+      find.byKey(const ValueKey('proxy-username')),
+    );
+    expect(username.decoration!.errorText, 'Must be 255 bytes or fewer');
+  });
+
   testWidgets('the form starts from the saved proxy and password', (
     tester,
   ) async {

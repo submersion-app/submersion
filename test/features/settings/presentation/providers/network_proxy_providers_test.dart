@@ -36,6 +36,12 @@ void main() {
     },
   );
 
+  test('the controller must be supplied by main()', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    expect(() => container.read(proxyControllerProvider), throwsA(anything));
+  });
+
   test('the draft keeps edits until cleared', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);

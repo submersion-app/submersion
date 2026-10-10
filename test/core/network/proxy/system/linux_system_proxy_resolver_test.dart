@@ -50,6 +50,21 @@ void main() {
     );
   });
 
+  test('a failing gsettings read is a platform error', () async {
+    final r = await LinuxSystemProxyResolver(
+      environment: const {},
+      gsettings: (schema, key) async => throw StateError('dbus'),
+    ).resolve(probe);
+    expect(
+      r,
+      isA<SystemProxyUnavailable>().having(
+        (u) => u.reason,
+        'reason',
+        SystemProxyUnavailableReason.platformError,
+      ),
+    );
+  });
+
   test('gnome none and missing gsettings are none', () async {
     expect(
       await LinuxSystemProxyResolver(
