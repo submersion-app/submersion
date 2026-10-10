@@ -4,6 +4,7 @@ import 'package:characters/characters.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
 
 /// Longest note a diver can attach to a backup, in user-perceived characters.
@@ -18,6 +19,8 @@ const int maxBackupNoteLength = 200;
 const String backupInfoTable = 'backup_info';
 
 const String _noteKey = 'note';
+
+const _log = LoggerService('BackupNoteStamp');
 
 /// Trims [note], turns a blank one into null and caps it at
 /// [maxBackupNoteLength] grapheme clusters, so an emoji is never split.
@@ -85,5 +88,34 @@ Future<String?> readBackupNote(String path) async {
     }
   } catch (_) {
     return null;
+  }
+}
+
+/// Makes a backup copy at [path] with [export], then stamps [note] into it.
+///
+/// With no note the stamp is only hygiene (dropping a table inherited from a
+/// restored backup), so a failure is logged and the copy kept. That matters:
+/// `DatabaseService.backup` falls back to a raw byte copy exactly when the
+/// live file will not open, SQLite cannot open that copy either, and it may be
+/// the only copy of whatever survives. With a note the stamp is what the diver
+/// asked for, so a failure fails the backup.
+Future<void> exportAndStampBackup(
+  String path, {
+  required Future<void> Function(String path) export,
+  String? note,
+}) async {
+  await export(path);
+  if (normalizeBackupNote(note) != null) {
+    stampBackupNote(path, note);
+    return;
+  }
+  try {
+    stampBackupNote(path, null);
+  } catch (e, st) {
+    _log.warning(
+      'Kept a backup copy whose inherited note could not be cleared',
+      error: e,
+      stackTrace: st,
+    );
   }
 }

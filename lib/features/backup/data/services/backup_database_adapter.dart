@@ -53,10 +53,12 @@ class DefaultBackupDatabaseAdapter implements BackupDatabaseAdapter {
   const DefaultBackupDatabaseAdapter(this._dbAdapter);
 
   @override
-  Future<void> backup(String destinationPath, {String? note}) async {
-    await _dbAdapter.backup(destinationPath);
-    stampBackupNote(destinationPath, note);
-  }
+  Future<void> backup(String destinationPath, {String? note}) =>
+      exportAndStampBackup(
+        destinationPath,
+        export: _dbAdapter.backup,
+        note: note,
+      );
 
   @override
   Future<void> restore(

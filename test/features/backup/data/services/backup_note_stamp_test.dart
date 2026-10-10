@@ -128,4 +128,63 @@ void main() {
       expect(await readBackupNote(makeCopy()), isNull);
     });
   });
+
+  group('exportAndStampBackup', () {
+    /// Stands in for DatabaseService.backup: copies [source] to the path.
+    Future<void> Function(String) copyOf(String source) =>
+        (path) async => File(source).copySync(path);
+
+    test(
+      'an automatic copy of a restored, noted database has no note',
+      () async {
+        final live = makeCopy('live.db');
+        stampBackupNote(live, 'Inherited from a restored backup');
+        final dest = p.join(dir.path, 'auto.db');
+
+        await exportAndStampBackup(dest, export: copyOf(live));
+
+        expect(hasInfoTable(dest), isFalse);
+        expect(await readBackupNote(dest), isNull);
+      },
+    );
+
+    test('a noted copy reads back its own note', () async {
+      final live = makeCopy('live.db');
+      stampBackupNote(live, 'Inherited');
+      final dest = p.join(dir.path, 'manual.db');
+
+      await exportAndStampBackup(dest, export: copyOf(live), note: 'Mine');
+
+      expect(await readBackupNote(dest), 'Mine');
+    });
+
+    test(
+      'keeps a raw fallback copy SQLite cannot open when there is no note',
+      () async {
+        // DatabaseService.backup falls back to a raw byte copy when the live
+        // file will not open; that copy may be the only one that survives.
+        final raw = p.join(dir.path, 'unopenable.db');
+        File(raw).writeAsBytesSync(List<int>.generate(8192, (i) => i % 251));
+        final dest = p.join(dir.path, 'fallback.db');
+
+        await exportAndStampBackup(dest, export: copyOf(raw));
+
+        expect(File(dest).readAsBytesSync(), File(raw).readAsBytesSync());
+      },
+    );
+
+    test('a note that cannot be stamped fails the backup', () async {
+      final raw = p.join(dir.path, 'unopenable.db');
+      File(raw).writeAsBytesSync(List<int>.generate(8192, (i) => i % 251));
+
+      await expectLater(
+        exportAndStampBackup(
+          p.join(dir.path, 'noted.db'),
+          export: copyOf(raw),
+          note: 'Typed by the diver',
+        ),
+        throwsA(anything),
+      );
+    });
+  });
 }
