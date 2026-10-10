@@ -413,4 +413,57 @@ void main() {
       expect(a, equals(b));
     });
   });
+
+  group('dive-day helpers', () {
+    final d1 = Dive(
+      id: 'a',
+      dateTime: DateTime(2026, 3, 8, 9),
+      runtime: const Duration(minutes: 50),
+      maxDepth: 18,
+      airTemp: 29,
+    );
+    final d2 = Dive(
+      id: 'b',
+      dateTime: DateTime(2026, 3, 8, 14),
+      bottomTime: const Duration(minutes: 40),
+      maxDepth: 24,
+      cloudCover: CloudCover.partlyCloudy,
+    );
+
+    test('runtime sums runtime, falling back to bottom time', () {
+      expect(diveDayRuntime([d1, d2]), const Duration(minutes: 90));
+      expect(diveDayRuntime(const []), Duration.zero);
+    });
+
+    test('max depth is the deepest dive, null without depths', () {
+      expect(diveDayMaxDepth([d1, d2]), 24);
+      expect(
+        diveDayMaxDepth([Dive(id: 'c', dateTime: DateTime(2026))]),
+        isNull,
+      );
+    });
+
+    test('weather combines the first non-null field of each kind', () {
+      final w = diveDayWeather([d1, d2])!;
+      expect(w.airTemp, 29);
+      expect(w.cloudCover, CloudCover.partlyCloudy);
+      expect(diveDayWeather([Dive(id: 'c', dateTime: DateTime(2026))]), isNull);
+    });
+
+    test('resolve prefers renderable logged weather, else stored', () {
+      const logged = TripStoryDayWeather(airTemp: 28);
+      const blank = TripStoryDayWeather(precipitation: Precipitation.none);
+      const stored = TripStoryDayWeather(airTemp: 31);
+      expect(
+        TripStoryDayWeather.resolve(logged: logged, stored: stored),
+        logged,
+      );
+      expect(
+        TripStoryDayWeather.resolve(logged: blank, stored: stored),
+        stored,
+      );
+      expect(TripStoryDayWeather.resolve(logged: blank, stored: null), blank);
+      expect(TripStoryDayWeather.resolve(logged: null, stored: null), isNull);
+    });
+  });
 }
