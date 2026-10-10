@@ -161,6 +161,43 @@ void main() {
       );
     });
 
+    testWidgets('an open preview survives the lane appearing', (tester) async {
+      await pumpChart(tester, photoMarkers: [deepPhoto()]);
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsOneWidget);
+
+      // Findings arriving (analysis finishing, a rule enabled) insert the
+      // lane layer below the photo layer; the photo layer keeps its state.
+      await pumpChart(
+        tester,
+        safetyFindings: [finding('a', start: 60, end: 120)],
+        photoMarkers: [deepPhoto()],
+      );
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsOneWidget);
+    });
+
+    testWidgets('a lane chip still takes a tap while a preview is open', (
+      tester,
+    ) async {
+      SafetyFinding? tapped;
+      await pumpChart(
+        tester,
+        safetyFindings: [finding('a', start: 60, end: 120)],
+        photoMarkers: [deepPhoto()],
+        onTap: (f) => tapped = f,
+      );
+      await tester.tap(find.byIcon(Icons.camera_alt));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('photoMarkerCard')), findsOneWidget);
+
+      // The photo layer's tap-away sits above the lane; it must not swallow
+      // taps that land on a lane chip.
+      await tester.tap(find.byKey(const ValueKey('safetyLaneChip-0')));
+      await tester.pumpAndSettle();
+      expect(tapped?.id, 'a');
+    });
+
     testWidgets('the finding callout paints above the photo markers', (
       tester,
     ) async {

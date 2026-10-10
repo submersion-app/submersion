@@ -4730,7 +4730,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         // directly between the gas strip (or plot) and the tick labels.
         // Below the photo markers, so a preview card opened from a deep
         // photo paints over the lane strip rather than under it (#3051).
-        if (_hasSafetyLane) Positioned.fill(child: safetyLayer(lane: true)),
+        // Keyed, like the stateful layers around it, so that the lane and
+        // callout appearing or disappearing never shifts the photo or range
+        // overlay into another layer's element and resets it.
+        if (_hasSafetyLane)
+          Positioned.fill(
+            key: const ValueKey('safetyLaneLayer'),
+            child: safetyLayer(lane: true),
+          ),
         // Photo markers: tappable camera chips at each photo's (time, depth).
         // A widget layer (not an fl_chart element) so its taps never enter
         // the chart's gesture arena; positioned by the shared plot rect.
@@ -4738,6 +4745,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             widget.photoMarkers != null &&
             widget.photoMarkers!.isNotEmpty)
           Positioned.fill(
+            key: const ValueKey('photoMarkerLayer'),
             child: PhotoMarkerOverlay(
               markers: widget.photoMarkers!,
               visibleMinSeconds: visibleMinX,
@@ -4750,15 +4758,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ),
         // Safety finding callout: its own layer above the photo markers, so
         // camera chips never poke through the open card (#3051). Present
-        // whenever the lane is, even with nothing selected: toggling an
-        // unkeyed Positioned.fill here would shift the stateful range overlay
-        // below into a different element and remount it.
-        if (_hasSafetyLane) Positioned.fill(child: safetyLayer(lane: false)),
+        // whenever the lane is, even with nothing selected (it then renders
+        // nothing), so selecting a finding never reshapes the child list.
+        if (_hasSafetyLane)
+          Positioned.fill(
+            key: const ValueKey('safetyCalloutLayer'),
+            child: safetyLayer(lane: false),
+          ),
         // Range-statistics handles. Topmost so a handle wins the pointer
         // over the layers below it, and inside the chart so it shares the
         // plot rect and visible window (issue #1579).
         if (widget.rangeSelection != null)
           Positioned.fill(
+            key: const ValueKey('rangeSelectionLayer'),
             child: RangeSelectionOverlay(
               startSeconds: widget.rangeSelection!.startSeconds,
               endSeconds: widget.rangeSelection!.endSeconds,
