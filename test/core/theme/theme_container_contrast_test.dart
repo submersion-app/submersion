@@ -161,19 +161,19 @@ void main() {
       expectAllReadable((theme, label, pair) {
         final scheme = theme.colorScheme;
         // A transparent app bar (Minimalist) shows the surface through it.
-        Color onSurface(Color? fill, Color fallback) =>
+        Color overSurface(Color? fill, Color fallback) =>
             Color.alphaBlend(fill ?? fallback, scheme.surface);
         final appBar = theme.appBarTheme;
         pair(
           '$label app bar',
           appBar.foregroundColor ?? scheme.onSurface,
-          onSurface(appBar.backgroundColor, scheme.surface),
+          overSurface(appBar.backgroundColor, scheme.surface),
         );
         final fab = theme.floatingActionButtonTheme;
         pair(
           '$label FAB',
           fab.foregroundColor ?? scheme.onPrimaryContainer,
-          onSurface(fab.backgroundColor, scheme.primaryContainer),
+          overSurface(fab.backgroundColor, scheme.primaryContainer),
         );
       });
     });
