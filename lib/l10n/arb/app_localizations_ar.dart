@@ -9810,6 +9810,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'خليط الغاز';
 
   @override
+  String get diveLog_tank_computerMix_matches => 'سجّله كمبيوتر الغوص الخاص بك';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'سجّل كمبيوتر الغوص الخاص بك $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'استعادة';
+
+  @override
   String get diveLog_tank_selectPreset => 'اختر إعداداً مسبقاً...';
 
   @override

@@ -9700,6 +9700,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'Miscela gas';
 
   @override
+  String get diveLog_tank_computerMix_matches =>
+      'Registrato dal tuo computer subacqueo';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'Il tuo computer subacqueo ha registrato $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'Ripristina';
+
+  @override
   String get diveLog_tank_selectPreset => 'Seleziona preset...';
 
   @override

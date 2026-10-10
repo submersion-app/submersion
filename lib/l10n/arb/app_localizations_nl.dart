@@ -9630,6 +9630,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'Gasmengsel';
 
   @override
+  String get diveLog_tank_computerMix_matches =>
+      'Vastgelegd door je duikcomputer';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'Je duikcomputer heeft $mix vastgelegd';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'Herstellen';
+
+  @override
   String get diveLog_tank_selectPreset => 'Selecteer voorinstelling...';
 
   @override

@@ -9733,6 +9733,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'Mélange gazeux';
 
   @override
+  String get diveLog_tank_computerMix_matches =>
+      'Enregistré par votre ordinateur de plongée';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'Votre ordinateur de plongée a enregistré $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'Restaurer';
+
+  @override
   String get diveLog_tank_selectPreset => 'Sélectionner un preset...';
 
   @override

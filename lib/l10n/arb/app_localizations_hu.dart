@@ -9678,6 +9678,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'Gázkeverék';
 
   @override
+  String get diveLog_tank_computerMix_matches => 'A búvárkomputered rögzítette';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'A búvárkomputered $mix keveréket rögzített';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'Visszaállítás';
+
+  @override
   String get diveLog_tank_selectPreset => 'Válasszon előre beállítást...';
 
   @override

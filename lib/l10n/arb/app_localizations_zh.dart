@@ -9221,6 +9221,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_section_gasMix => '气体混合';
 
   @override
+  String get diveLog_tank_computerMix_matches => '由潜水电脑记录';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return '潜水电脑记录的是 $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => '恢复';
+
+  @override
   String get diveLog_tank_selectPreset => '选择预设...';
 
   @override

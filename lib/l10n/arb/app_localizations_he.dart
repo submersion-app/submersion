@@ -9475,6 +9475,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'תערובת גזים';
 
   @override
+  String get diveLog_tank_computerMix_matches => 'נרשם על ידי מחשב הצלילה שלך';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'מחשב הצלילה שלך רשם $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'שחזור';
+
+  @override
   String get diveLog_tank_selectPreset => 'בחר תבנית...';
 
   @override
