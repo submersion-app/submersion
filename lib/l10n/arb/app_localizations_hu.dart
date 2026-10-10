@@ -12542,6 +12542,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_rashGuard => 'Vízi trikó';
 
   @override
+  String get enum_equipmentType_vest => 'Neoprén mellény';
+
+  @override
   String get enum_equipmentType_wing => 'Szárny';
 
   @override
@@ -34082,6 +34085,15 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_upf_rating => 'UPF-érték';
 
   @override
+  String get attrLabel_hooded => 'Csuklyás';
+
+  @override
+  String get attrLabel_vest_layer => 'Viselet';
+
+  @override
+  String get attrLabel_closure => 'Záródás';
+
+  @override
   String get attrLabel_snorkel_type => 'Típus';
 
   @override
@@ -34508,6 +34520,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_sleeve_length_sleeveless => 'Ujjatlan';
+
+  @override
+  String get attrChoice_vest_layer_over_suit => 'A ruha felett';
+
+  @override
+  String get attrChoice_vest_layer_under_suit => 'A ruha alatt';
+
+  @override
+  String get attrChoice_closure_front_zip => 'Elöl cipzáras';
+
+  @override
+  String get attrChoice_closure_side_zip => 'Oldalt cipzáras';
+
+  @override
+  String get attrChoice_closure_pullover => 'Belebújós';
 
   @override
   String get attrChoice_snorkel_type_classic => 'Klasszikus';

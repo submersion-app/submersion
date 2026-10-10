@@ -12608,6 +12608,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentType_rashGuard => 'Lycra';
 
   @override
+  String get enum_equipmentType_vest => 'Gilet néoprène';
+
+  @override
   String get enum_equipmentType_wing => 'Wing';
 
   @override
@@ -34379,6 +34382,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_upf_rating => 'Indice UPF';
 
   @override
+  String get attrLabel_hooded => 'Avec cagoule';
+
+  @override
+  String get attrLabel_vest_layer => 'Port';
+
+  @override
+  String get attrLabel_closure => 'Fermeture';
+
+  @override
   String get attrLabel_snorkel_type => 'Type';
 
   @override
@@ -34805,6 +34817,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get attrChoice_sleeve_length_sleeveless => 'Sans manches';
+
+  @override
+  String get attrChoice_vest_layer_over_suit => 'Sur la combinaison';
+
+  @override
+  String get attrChoice_vest_layer_under_suit => 'Sous la combinaison';
+
+  @override
+  String get attrChoice_closure_front_zip => 'Zip frontal';
+
+  @override
+  String get attrChoice_closure_side_zip => 'Zip latéral';
+
+  @override
+  String get attrChoice_closure_pullover => 'À enfiler';
 
   @override
   String get attrChoice_snorkel_type_classic => 'Classique';

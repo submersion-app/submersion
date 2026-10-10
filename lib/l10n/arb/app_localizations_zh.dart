@@ -11981,6 +11981,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_rashGuard => '防磨衣';
 
   @override
+  String get enum_equipmentType_vest => '保暖背心';
+
+  @override
   String get enum_equipmentType_wing => '背飞气囊';
 
   @override
@@ -32310,6 +32313,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_upf_rating => 'UPF 防晒指数';
 
   @override
+  String get attrLabel_hooded => '连帽';
+
+  @override
+  String get attrLabel_vest_layer => '穿着方式';
+
+  @override
+  String get attrLabel_closure => '闭合方式';
+
+  @override
   String get attrLabel_snorkel_type => '类型';
 
   @override
@@ -32734,6 +32746,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_sleeve_length_sleeveless => '无袖';
+
+  @override
+  String get attrChoice_vest_layer_over_suit => '穿在潜水服外';
+
+  @override
+  String get attrChoice_vest_layer_under_suit => '穿在潜水服内';
+
+  @override
+  String get attrChoice_closure_front_zip => '前拉链';
+
+  @override
+  String get attrChoice_closure_side_zip => '侧拉链';
+
+  @override
+  String get attrChoice_closure_pullover => '套头式';
 
   @override
   String get attrChoice_snorkel_type_classic => '经典式';

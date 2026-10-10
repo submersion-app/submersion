@@ -12575,6 +12575,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentType_rashGuard => 'Rashguard';
 
   @override
+  String get enum_equipmentType_vest => 'Neoprenweste';
+
+  @override
   String get enum_equipmentType_wing => 'Wing';
 
   @override
@@ -34207,6 +34210,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_upf_rating => 'UPF-Wert';
 
   @override
+  String get attrLabel_hooded => 'Mit Kopfhaube';
+
+  @override
+  String get attrLabel_vest_layer => 'Getragen';
+
+  @override
+  String get attrLabel_closure => 'Verschluss';
+
+  @override
   String get attrLabel_snorkel_type => 'Typ';
 
   @override
@@ -34634,6 +34646,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_sleeve_length_sleeveless => 'Ärmellos';
+
+  @override
+  String get attrChoice_vest_layer_over_suit => 'Über dem Anzug';
+
+  @override
+  String get attrChoice_vest_layer_under_suit => 'Unter dem Anzug';
+
+  @override
+  String get attrChoice_closure_front_zip => 'Frontreißverschluss';
+
+  @override
+  String get attrChoice_closure_side_zip => 'Seitenreißverschluss';
+
+  @override
+  String get attrChoice_closure_pullover => 'Zum Überziehen';
 
   @override
   String get attrChoice_snorkel_type_classic => 'Klassisch';

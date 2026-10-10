@@ -129,7 +129,14 @@ class GearFeature extends Equatable {
         };
       case EquipmentType.hood:
         if (mm == null) return null;
-        return (0.10 * mm).clamp(0.0, 2.0);
+        return (_hoodKgPerMm * mm).clamp(0.0, 2.0);
+      // A vest (#3108) covers the torso only: about a third of a full suit's
+      // neoprene, below the shorty's 0.55 because it has no legs or sleeves.
+      // An attached hood adds what a separate hood of that thickness would.
+      case EquipmentType.vest:
+        if (mm == null) return null;
+        final hood = t.hooded == true ? _hoodKgPerMm * mm : 0.0;
+        return (_vestKgPerMm * mm + hood).clamp(0.0, 5.0);
       case EquipmentType.gloves:
         if (mm == null) return null;
         return (0.06 * mm * _gloveTypeFactor(t.gloveType)).clamp(0.0, 2.0);
@@ -213,6 +220,10 @@ class GearFeature extends Equatable {
   static double? _finiteOrNull(double? v) =>
       (v != null && v.isFinite) ? v : null;
 
+  // Lift per millimetre of neoprene: a hood's, and a torso-only vest's.
+  static const double _hoodKgPerMm = 0.10;
+  static const double _vestKgPerMm = 0.35;
+
   static double _suitStyleFactor(String? style) => switch (style) {
     'semi_dry' => 1.1,
     'two_piece' => 1.35,
@@ -250,6 +261,7 @@ class GearFeature extends Equatable {
     EquipmentType.baselayer => 0.2,
     EquipmentType.bcd => -0.5,
     EquipmentType.hood => 0.3,
+    EquipmentType.vest => 1.0,
     EquipmentType.gloves => 0.2,
     EquipmentType.boots => 0.4,
     // Stated rather than left to the fallthrough, which already returns 0.0:
@@ -263,6 +275,7 @@ class GearFeature extends Equatable {
     EquipmentType.drysuit => 3.0,
     EquipmentType.undersuit => 1.5,
     EquipmentType.baselayer => 0.4,
+    EquipmentType.vest => 0.8,
     EquipmentType.bcd => 3.5,
     // Rig accessories (#1877) weigh a fraction of the 0.5 kg fallthrough, and
     // divers log several. The weight pocket is the empty pouch: the lead

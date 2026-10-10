@@ -29,6 +29,7 @@ extension EquipmentTypeDisplay on EquipmentType {
     EquipmentType.undersuit => l10n.enum_equipmentType_undersuit,
     EquipmentType.baselayer => l10n.enum_equipmentType_baselayer,
     EquipmentType.rashGuard => l10n.enum_equipmentType_rashGuard,
+    EquipmentType.vest => l10n.enum_equipmentType_vest,
     EquipmentType.fins => l10n.enum_equipmentType_fins,
     EquipmentType.mask => l10n.enum_equipmentType_mask,
     EquipmentType.snorkel => l10n.enum_equipmentType_snorkel,

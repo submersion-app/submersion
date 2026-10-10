@@ -245,6 +245,18 @@ void main() {
       ));
     });
 
+    test('a vest in the suit field is the vest (#3108)', () {
+      expect(classifySuitGear('7mm ice vest'), (
+        type: EquipmentType.vest,
+        thickness: null,
+      ));
+      // Named with its suit, the suit is what the field records.
+      expect(
+        classifySuitGear('7mm wetsuit + ice vest')?.type,
+        EquipmentType.wetsuit,
+      );
+    });
+
     test('a name that says neither is unclear', () {
       expect(classifySuitGear('Full suit'), isNull);
       expect(classifySuitGear('Fourth Element Argonaut'), isNull);

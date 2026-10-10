@@ -20311,6 +20311,12 @@ abstract class AppLocalizations {
   /// **'Rash Guard'**
   String get enum_equipmentType_rashGuard;
 
+  /// No description provided for @enum_equipmentType_vest.
+  ///
+  /// In en, this message translates to:
+  /// **'Vest'**
+  String get enum_equipmentType_vest;
+
   /// No description provided for @enum_equipmentType_wing.
   ///
   /// In en, this message translates to:
@@ -54130,6 +54136,24 @@ abstract class AppLocalizations {
   /// **'UPF rating'**
   String get attrLabel_upf_rating;
 
+  /// No description provided for @attrLabel_hooded.
+  ///
+  /// In en, this message translates to:
+  /// **'Hooded'**
+  String get attrLabel_hooded;
+
+  /// No description provided for @attrLabel_vest_layer.
+  ///
+  /// In en, this message translates to:
+  /// **'Worn'**
+  String get attrLabel_vest_layer;
+
+  /// No description provided for @attrLabel_closure.
+  ///
+  /// In en, this message translates to:
+  /// **'Closure'**
+  String get attrLabel_closure;
+
   /// No description provided for @attrLabel_snorkel_type.
   ///
   /// In en, this message translates to:
@@ -54981,6 +55005,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sleeveless'**
   String get attrChoice_sleeve_length_sleeveless;
+
+  /// No description provided for @attrChoice_vest_layer_over_suit.
+  ///
+  /// In en, this message translates to:
+  /// **'Over the suit'**
+  String get attrChoice_vest_layer_over_suit;
+
+  /// No description provided for @attrChoice_vest_layer_under_suit.
+  ///
+  /// In en, this message translates to:
+  /// **'Under the suit'**
+  String get attrChoice_vest_layer_under_suit;
+
+  /// No description provided for @attrChoice_closure_front_zip.
+  ///
+  /// In en, this message translates to:
+  /// **'Front zip'**
+  String get attrChoice_closure_front_zip;
+
+  /// No description provided for @attrChoice_closure_side_zip.
+  ///
+  /// In en, this message translates to:
+  /// **'Side zip'**
+  String get attrChoice_closure_side_zip;
+
+  /// No description provided for @attrChoice_closure_pullover.
+  ///
+  /// In en, this message translates to:
+  /// **'Pullover'**
+  String get attrChoice_closure_pullover;
 
   /// No description provided for @attrChoice_snorkel_type_classic.
   ///

@@ -12572,6 +12572,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentType_rashGuard => 'Rash guard';
 
   @override
+  String get enum_equipmentType_vest => 'Corpetto';
+
+  @override
   String get enum_equipmentType_wing => 'Sacco wing';
 
   @override
@@ -34281,6 +34284,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_upf_rating => 'Indice UPF';
 
   @override
+  String get attrLabel_hooded => 'Con cappuccio';
+
+  @override
+  String get attrLabel_vest_layer => 'Indossato';
+
+  @override
+  String get attrLabel_closure => 'Chiusura';
+
+  @override
   String get attrLabel_snorkel_type => 'Tipo';
 
   @override
@@ -34708,6 +34720,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_sleeve_length_sleeveless => 'Senza maniche';
+
+  @override
+  String get attrChoice_vest_layer_over_suit => 'Sopra la muta';
+
+  @override
+  String get attrChoice_vest_layer_under_suit => 'Sotto la muta';
+
+  @override
+  String get attrChoice_closure_front_zip => 'Zip frontale';
+
+  @override
+  String get attrChoice_closure_side_zip => 'Zip laterale';
+
+  @override
+  String get attrChoice_closure_pullover => 'Senza zip';
 
   @override
   String get attrChoice_snorkel_type_classic => 'Classico';

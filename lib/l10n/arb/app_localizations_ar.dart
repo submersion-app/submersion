@@ -12725,6 +12725,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_rashGuard => 'قميص واقٍ من الاحتكاك';
 
   @override
+  String get enum_equipmentType_vest => 'سترة نيوبرين';
+
+  @override
   String get enum_equipmentType_wing => 'جناح';
 
   @override
@@ -34725,6 +34728,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_upf_rating => 'تصنيف UPF';
 
   @override
+  String get attrLabel_hooded => 'بغطاء رأس';
+
+  @override
+  String get attrLabel_vest_layer => 'طريقة الارتداء';
+
+  @override
+  String get attrLabel_closure => 'الإغلاق';
+
+  @override
   String get attrLabel_snorkel_type => 'النوع';
 
   @override
@@ -35150,6 +35162,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_sleeve_length_sleeveless => 'بدون أكمام';
+
+  @override
+  String get attrChoice_vest_layer_over_suit => 'فوق البدلة';
+
+  @override
+  String get attrChoice_vest_layer_under_suit => 'تحت البدلة';
+
+  @override
+  String get attrChoice_closure_front_zip => 'سحاب أمامي';
+
+  @override
+  String get attrChoice_closure_side_zip => 'سحاب جانبي';
+
+  @override
+  String get attrChoice_closure_pullover => 'تُلبس من الرأس';
 
   @override
   String get attrChoice_snorkel_type_classic => 'كلاسيكي';

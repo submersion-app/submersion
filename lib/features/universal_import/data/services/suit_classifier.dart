@@ -70,13 +70,15 @@ const Set<EquipmentType> _layerTypes = {
   EquipmentType.undersuit,
   EquipmentType.baselayer,
   EquipmentType.rashGuard,
+  // A vest (#3108) worn with the suit, when the field names only the vest.
+  EquipmentType.vest,
 };
 
 /// The gear type an imported suit field names, or null when it names none.
 ///
 /// A wetsuit or drysuit comes from [classifySuit], with its thickness; a
-/// layer that names itself (undersuit, base layer, rash guard) takes that
-/// type from the free-text mapper (#1885). The CSV and Subsurface XML
+/// layer that names itself (undersuit, base layer, rash guard, vest) takes
+/// that type from the free-text mapper (#1885). The CSV and Subsurface XML
 /// importers share this rule; what each does with a null differs (#633).
 SuitClassification? classifySuitGear(String? text) {
   final classified = classifySuit(text);

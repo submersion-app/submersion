@@ -12380,6 +12380,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentType_rashGuard => 'Rash Guard';
 
   @override
+  String get enum_equipmentType_vest => 'Vest';
+
+  @override
   String get enum_equipmentType_wing => 'Wing';
 
   @override
@@ -33695,6 +33698,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_upf_rating => 'UPF rating';
 
   @override
+  String get attrLabel_hooded => 'Hooded';
+
+  @override
+  String get attrLabel_vest_layer => 'Worn';
+
+  @override
+  String get attrLabel_closure => 'Closure';
+
+  @override
   String get attrLabel_snorkel_type => 'Type';
 
   @override
@@ -34120,6 +34132,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_sleeve_length_sleeveless => 'Sleeveless';
+
+  @override
+  String get attrChoice_vest_layer_over_suit => 'Over the suit';
+
+  @override
+  String get attrChoice_vest_layer_under_suit => 'Under the suit';
+
+  @override
+  String get attrChoice_closure_front_zip => 'Front zip';
+
+  @override
+  String get attrChoice_closure_side_zip => 'Side zip';
+
+  @override
+  String get attrChoice_closure_pullover => 'Pullover';
 
   @override
   String get attrChoice_snorkel_type_classic => 'Classic';

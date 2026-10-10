@@ -49,6 +49,11 @@ GearFeature? gearFeatureFromEquipment(EquipmentItem item) {
       liftCapacityKg: attrs[EquipmentAttrKeys.liftCapacityKg]?.valueNum,
       gloveType: attrs[EquipmentAttrKeys.gloveType]?.valueText,
       insulationLevel: attrs[EquipmentAttrKeys.insulationLevel]?.valueText,
+      // A flag stores 1 or 0 in valueNum; no row means not recorded.
+      hooded: switch (attrs[EquipmentAttrKeys.hooded]?.valueNum) {
+        null => null,
+        final v => v == 1,
+      },
     ),
   );
 }
