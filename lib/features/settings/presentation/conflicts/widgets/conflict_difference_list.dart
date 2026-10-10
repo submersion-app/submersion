@@ -12,24 +12,59 @@ const kConflictTableMinWidth = 480.0;
 
 /// Every field the two versions disagree on: a field, local, remote table
 /// when there is room, one block per field when there is not.
-class ConflictDifferenceList extends StatelessWidget {
+class ConflictDifferenceList extends StatefulWidget {
   const ConflictDifferenceList({
     super.key,
     required this.differences,
     required this.devices,
+    @visibleForTesting this.diff = diffWords,
   });
 
   final List<FieldDifference> differences;
   final ConflictDeviceLabels devices;
 
+  /// Computes a long-text field's word diff.
+  final WordDiff? Function(String local, String remote) diff;
+
+  @override
+  State<ConflictDifferenceList> createState() => _ConflictDifferenceListState();
+}
+
+class _ConflictDifferenceListState extends State<ConflictDifferenceList> {
+  // The dialog rebuilds on every chip tap and provider tick, each time with
+  // new FieldDifference objects for the same conflict. The word diff is an
+  // LCS over the two texts, so it is kept until the texts themselves change.
+  late Map<String, (String, String)> _texts;
+  late Map<String, WordDiff?> _diffs;
+
+  @override
+  void initState() {
+    super.initState();
+    _texts = _textsOf(widget.differences);
+    _diffs = _compute(_texts);
+  }
+
+  @override
+  void didUpdateWidget(ConflictDifferenceList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final texts = _textsOf(widget.differences);
+    if (widget.diff != oldWidget.diff || !_sameTexts(texts, _texts)) {
+      _texts = texts;
+      _diffs = _compute(texts);
+    }
+  }
+
+  Map<String, WordDiff?> _compute(Map<String, (String, String)> texts) =>
+      Map.unmodifiable(
+        {
+          for (final MapEntry(:key, value: (local, remote)) in texts.entries)
+            key: widget.diff(local, remote),
+        }..removeWhere((_, diff) => diff == null),
+      );
+
   @override
   Widget build(BuildContext context) {
-    final diffs = {
-      for (final d in differences)
-        if (_isText(d))
-          d.key: diffWords(d.localValue! as String, d.remoteValue! as String),
-    }..removeWhere((_, diff) => diff == null);
-
+    final diffs = _diffs;
     return LayoutBuilder(
       builder: (context, constraints) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,7 +72,8 @@ class ConflictDifferenceList extends StatelessWidget {
           if (constraints.maxWidth >= kConflictTableMinWidth)
             _table(context, diffs)
           else
-            for (final d in differences) _block(context, d, diffs[d.key]),
+            for (final d in widget.differences)
+              _block(context, d, diffs[d.key]),
           if (diffs.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -79,11 +115,11 @@ class ConflictDifferenceList extends StatelessWidget {
             cell(
               Text(context.l10n.settings_conflict_fieldHeader, style: header),
             ),
-            cell(Text(devices.local, style: header)),
-            cell(Text(devices.remote, style: header)),
+            cell(Text(widget.devices.local, style: header)),
+            cell(Text(widget.devices.remote, style: header)),
           ],
         ),
-        for (final d in differences)
+        for (final d in widget.differences)
           TableRow(
             children: [
               cell(Text(d.label, style: label)),
@@ -129,8 +165,8 @@ class ConflictDifferenceList extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          line(devices.local, _value(context, d, diff, local: true)),
-          line(devices.remote, _value(context, d, diff, local: false)),
+          line(widget.devices.local, _value(context, d, diff, local: true)),
+          line(widget.devices.remote, _value(context, d, diff, local: false)),
         ],
       ),
     );
@@ -191,6 +227,17 @@ class ConflictDifferenceList extends StatelessWidget {
 }
 
 String _collapsed(String text) => text.trim().replaceAll(RegExp(r'\s+'), ' ');
+
+/// The two texts of each long-text field, by key.
+Map<String, (String, String)> _textsOf(List<FieldDifference> differences) => {
+  for (final d in differences)
+    if (_isText(d)) d.key: (d.localValue! as String, d.remoteValue! as String),
+};
+
+bool _sameTexts(
+  Map<String, (String, String)> a,
+  Map<String, (String, String)> b,
+) => a.length == b.length && a.entries.every((e) => b[e.key] == e.value);
 
 bool _isText(FieldDifference d) =>
     d.kind == FieldKind.longText &&
