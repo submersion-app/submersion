@@ -13,7 +13,8 @@ import 'package:flutter/widgets.dart';
 ///
 /// A box with several children ends the search: a card found below one is
 /// part of the row's contents (a chip in a dense row), not its surface. A row
-/// with no surface of its own, like a plain ListTile, is ringed at its bounds.
+/// with no shaped surface, like a plain ListTile or a full-width unshaped
+/// Material, is ringed at its bounds.
 class KeyboardListFocusRing extends SingleChildRenderObjectWidget {
   const KeyboardListFocusRing({
     super.key,
