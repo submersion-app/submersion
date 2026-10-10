@@ -56,6 +56,21 @@ abstract final class CsvColumns {
     CsvQuantity.depth,
     metricDecimals: 1,
   );
+
+  /// Low end of a visibility range (issue #3226), inclusive; empty for a
+  /// measured or legacy dive.
+  static const visibilityMin = CsvColumn(
+    'Visibility Min',
+    CsvQuantity.depth,
+    metricDecimals: 1,
+  );
+
+  /// High end of a visibility range, exclusive.
+  static const visibilityMax = CsvColumn(
+    'Visibility Max',
+    CsvQuantity.depth,
+    metricDecimals: 1,
+  );
   static const startPressure = CsvColumn(
     'Start Pressure',
     CsvQuantity.pressure,

@@ -645,6 +645,14 @@ const _submersionNative = CsvPreset(
           transform: ValueTransform.visibilityScale,
         ),
         ColumnMapping(
+          sourceColumn: DiveCsvColumns.visibilityMin,
+          targetField: 'visibilityMinMeters',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.visibilityMax,
+          targetField: 'visibilityMaxMeters',
+        ),
+        ColumnMapping(
           sourceColumn: DiveCsvColumns.diveType,
           targetField: 'diveTypeNames',
         ),

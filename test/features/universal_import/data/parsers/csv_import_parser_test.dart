@@ -992,6 +992,21 @@ void main() {
       expect(result.warnings, isEmpty);
     });
 
+    test('maps visibility min and max to the range, not the measurement '
+        '(issue #3226)', () async {
+      const csv =
+          'Date,Visibility (m),Visibility Min (m),Visibility Max (m)\n'
+          '2024-01-15,,6.0,12.0\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['visibilityMinMeters'], 6.0);
+      expect(dive['visibilityMaxMeters'], 12.0);
+      expect(dive.containsKey('visibilityMeters'), isFalse);
+      expect(result.warnings, isEmpty);
+    });
+
     test('keeps a bare or non-metre visibility on the bucket field', () async {
       for (final header in ['Visibility', 'Visibility (ft)']) {
         final result = await parser.parse(

@@ -16,6 +16,7 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
@@ -168,6 +169,51 @@ void main() {
           stored['Mk25']!.id,
           stored['Long hose']!.id,
         ]);
+      });
+
+      test('visibility ranges come back (issue #3226)', () async {
+        final dives = [
+          Dive(
+            id: 'range-closed',
+            diveNumber: 21,
+            dateTime: DateTime.utc(2026, 3, 1, 9),
+            visibilityMinMeters: 6,
+            visibilityMaxMeters: 12,
+          ),
+          Dive(
+            id: 'range-open',
+            diveNumber: 22,
+            dateTime: DateTime.utc(2026, 3, 2, 9),
+            visibilityMinMeters: 12,
+          ),
+          // A hand-edited inverted range imports as no range.
+          Dive(
+            id: 'range-inverted',
+            diveNumber: 23,
+            dateTime: DateTime.utc(2026, 3, 3, 9),
+            visibilityMinMeters: 12,
+            visibilityMaxMeters: 6,
+          ),
+        ];
+        await importCsv(
+          CsvDivesWriter(units).write(dives),
+          ImportFormat.submersionDivesCsv,
+        );
+        final repo = DiveRepository();
+        Future<Dive> back(int number) async {
+          final all = await repo.getAllDives();
+          final summary = all.firstWhere((d) => d.diveNumber == number);
+          return (await repo.getDiveById(summary.id))!;
+        }
+
+        final closed = await back(21);
+        expect(closed.visibilityMeters, isNull);
+        near(closed.visibilityMinMeters, 6, 0.06, 'closed min');
+        near(closed.visibilityMaxMeters, 12, 0.06, 'closed max');
+        final open = await back(22);
+        near(open.visibilityMinMeters, 12, 0.06, 'open min');
+        expect(open.visibilityMaxMeters, isNull);
+        expect((await back(23)).visibilityRange, isNull);
       });
 
       test('dives come back', () async {

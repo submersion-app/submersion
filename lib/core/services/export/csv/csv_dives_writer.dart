@@ -87,6 +87,10 @@ class CsvDivesWriter {
       DiveCsvColumns.hePercent,
       DiveCsvColumns.customFields,
       DiveCsvColumns.diveTypeIds,
+      // A band-picked dive's range (issue #3226), appended for the same
+      // reason as the columns above.
+      units.header(CsvColumns.visibilityMin),
+      units.header(CsvColumns.visibilityMax),
       ...sortedCustomKeys.map(
         (key) => sanitizeCsvField('${DiveCsvColumns.customFieldPrefix}$key'),
       ),
@@ -145,6 +149,8 @@ class CsvDivesWriter {
         sanitizeCsvField(
           dive.diveTypeIds.join(DiveCsvColumns.diveTypeSeparator),
         ),
+        units.value(CsvColumns.visibilityMin, dive.visibilityMinMeters),
+        units.value(CsvColumns.visibilityMax, dive.visibilityMaxMeters),
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields
               .where((f) => f.key == key)

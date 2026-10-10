@@ -79,8 +79,13 @@ void main() {
     });
 
     test('appends Dive Type IDs after the pre-#1834 columns', () {
-      // Spreadsheets that address the export by position keep their offsets.
-      expect(DiveCsvColumns.fixed.last, DiveCsvColumns.diveTypeIds);
+      // Spreadsheets that address the export by position keep their offsets:
+      // later columns (the visibility range, issue #3226) append after it.
+      expect(DiveCsvColumns.fixed.sublist(DiveCsvColumns.fixed.length - 3), [
+        DiveCsvColumns.diveTypeIds,
+        DiveCsvColumns.visibilityMin,
+        DiveCsvColumns.visibilityMax,
+      ]);
     });
   });
 }

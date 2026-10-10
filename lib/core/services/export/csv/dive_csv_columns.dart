@@ -26,6 +26,11 @@ abstract final class DiveCsvColumns {
   // column carries a pre-v144 dive's bucket label.
   static const visibility = 'Visibility (m)';
   static const visibilityRating = 'Visibility Rating';
+
+  /// A band-picked dive's visibility range (issue #3226). Appended after
+  /// [diveTypeIds] so position-addressed spreadsheets keep their offsets.
+  static const visibilityMin = 'Visibility Min (m)';
+  static const visibilityMax = 'Visibility Max (m)';
   static const diveType = 'Dive Type';
   static const buddy = 'Buddy';
   static const diveMaster = 'Dive Master';
@@ -115,5 +120,7 @@ abstract final class DiveCsvColumns {
     hePercent,
     customFields,
     diveTypeIds,
+    visibilityMin,
+    visibilityMax,
   ];
 }

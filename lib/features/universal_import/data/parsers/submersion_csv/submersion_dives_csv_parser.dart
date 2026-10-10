@@ -33,6 +33,8 @@ class SubmersionDivesCsvParser implements ImportParser {
     CsvColumns.waterTemp,
     CsvColumns.airTemp,
     CsvColumns.visibility,
+    CsvColumns.visibilityMin,
+    CsvColumns.visibilityMax,
     CsvColumns.startPressure,
     CsvColumns.endPressure,
     CsvColumns.tankVolume,
@@ -137,6 +139,9 @@ class SubmersionDivesCsvParser implements ImportParser {
         'waterTemp': table.quantity(row, CsvColumns.waterTemp),
         'airTemp': table.quantity(row, CsvColumns.airTemp),
         'visibilityMeters': visibilityMeters,
+        // A band-picked range (issue #3226); the importer validates it.
+        'visibilityMinMeters': table.quantity(row, CsvColumns.visibilityMin),
+        'visibilityMaxMeters': table.quantity(row, CsvColumns.visibilityMax),
         // A pre-v144 dive carries only the bucket; a measured distance wins.
         'visibility': visibilityMeters == null
             ? _enumName(
