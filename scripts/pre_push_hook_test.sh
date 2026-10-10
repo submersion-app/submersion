@@ -938,6 +938,11 @@ fi
 # A hub is counted in FILES. small_helper_user_test.dart names its helper
 # twice, so counting matches would make a one-importer helper a hub at a
 # threshold of 1 and push its only importer into the sample.
+#
+# The extra mention is deliberately left UNCOMMITTED. Hub counting greps the
+# working tree, so it sees the edit; committing it would make the file a changed
+# test, which tier 1 always selects, and the assertion would pass whichever way
+# importers were counted. (Verified: restoring per-match counting fails this.)
 printf '// see ../../helpers/small_helper.dart\n' \
     >> "$tmp/wt/test/features/zeta/small_helper_user_test.dart"
 run_hook "$tmp" HUB_THRESHOLD=1 HUB_SAMPLE=1
