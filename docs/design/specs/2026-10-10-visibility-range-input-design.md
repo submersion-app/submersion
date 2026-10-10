@@ -68,9 +68,10 @@ No backfill. Existing dives keep their shape.
 - `VisibilityRange rangeFor(VisibilityBand band)` returns the band's metres on
   this scale. Poor is `[null, moderate)`, Moderate is `[moderate, good)`, Good
   is `[good, excellent)`, Excellent is `[excellent, null)`.
-- `VisibilityBand? bandForRange(double? minM, double? maxM)` returns the band
-  that wholly contains the range, or null when the range spans bands (or both
-  ends are null).
+- `VisibilityBand? bandForRange(VisibilityRange range)` returns the band that
+  wholly contains the range, or null when the range spans bands.
+- `VisibilityBand? bandMatching(VisibilityRange range)` returns the band whose
+  range is exactly this one, which decides the selected chip.
 
 `VisibilityRange` is a small immutable value object (`minM`, `maxM`, equality,
 `copyWith`) in `lib/core/domain/visibility/`.
@@ -86,7 +87,7 @@ its own widget under `lib/features/dive_log/presentation/widgets/`.
 - A `Range | Precise` segmented control sits above the input.
 - **Range:** four choice chips with the band names. A caption shows the range
   that will be saved, in the diver's depth unit ("6-12 m", "under 2 m",
-  "12 m and over"). Tapping the selected chip clears the pick.
+  "12 m+"). Tapping the selected chip clears the pick.
 - **Precise:** today's number field and band caption, unchanged, including the
   validator that blocks a save on unreadable text.
 - Each mode keeps its own value while the form is open; only the active
@@ -116,17 +117,20 @@ every selected dive under the same at-most-one-shape rule.
 
 ## Display
 
-Detail card, dive list and table column, PDF templates and the field
-extractor render a range through one formatter:
+The detail card renders a range through one formatter, the same way it
+renders a precise value today (distance plus adjective):
 
 - `6-12 m · Good` when `bandForRange` finds a band on the current scale
 - `6-12 m` when the range spans bands
-- `under 2 m` / `12 m and over` for open ends, with the adjective under the
-  same rule
+- `under 2 m` / `12 m+` for open ends, with the adjective under the same rule
+
+Surfaces that show a precise value without an adjective today (the PDF
+templates, the dive table column) show the range without one too.
 
 The formatter reuses the existing `visibility_range_between`,
-`visibility_range_under` and `visibility_range_over` strings. New strings are
-only the form's mode labels and the Insights "Spans bands" label.
+`visibility_range_under` and `visibility_range_atLeast` strings (the low end
+is inclusive, so "12 m+" is exact where "over 12 m" would not be). New
+strings are only the form's mode labels and the Insights "Spans bands" label.
 
 Precedence in `formatDiveVisibility`: precise, then range, then legacy.
 
@@ -159,9 +163,10 @@ The query field's empty check also requires both range columns to be null.
 
 ## Merge, mirror, sync, conflicts
 
-- `dive_merge_builder` takes the whole visibility shape from the first dive
-  that has any, instead of picking each column independently (which could
-  produce a dive with both a precise value and a range).
+- `dive_merge_builder` takes the whole visibility shape from one source, by
+  reader precedence: the first dive with a precise value, else the first with
+  a range, else the first with a legacy bucket. Picking each column
+  independently could produce a dive with both a precise value and a range.
 - `dive_mirror_fields`, the sync conflict catalogue (`dive_log_fields.dart`)
   and planned-dive fill fields list the two new columns.
 - Sync: dive rows serialize generically and both columns are nullable, so a
