@@ -86,7 +86,10 @@ void main() {
         );
   }
 
-  pigeon.ParsedDive parsed(List<pigeon.GasMix> mixes) => pigeon.ParsedDive(
+  pigeon.ParsedDive parsed(
+    List<pigeon.GasMix> mixes, {
+    List<pigeon.TankInfo> tanks = const [],
+  }) => pigeon.ParsedDive(
     fingerprint: 'fp',
     dateTimeYear: 2026,
     dateTimeMonth: 10,
@@ -101,7 +104,7 @@ void main() {
       pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0),
       pigeon.ProfileSample(timeSeconds: 60, depthMeters: 20),
     ],
-    tanks: const [],
+    tanks: tanks,
     gasMixes: mixes,
     events: const [],
   );
@@ -218,6 +221,36 @@ void main() {
 
     expect(mix, const domain.GasMix(o2: 32));
   });
+
+  test(
+    'is null when the computer reported no mix, not the air default',
+    () async {
+      await insertSource('s1', computerId: 'dc1', isPrimary: true);
+      // A transmitter tank, but no mix: the resolver defaults it to air.
+      parsedFor['s1'] = parsed(
+        const [],
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: -1,
+            startPressureBar: 200,
+            endPressureBar: 60,
+          ),
+        ],
+      );
+
+      final mix = await reader().recordedMix(
+        diveId: 'd1',
+        tank: const domain.DiveTank(
+          id: 't',
+          computerId: 'dc1',
+          sourceTankIndex: 0,
+        ),
+      );
+
+      expect(mix, isNull);
+    },
+  );
 
   test('is null for a hand-added tank, without parsing', () async {
     await insertSource('s1', computerId: 'dc1', isPrimary: true);

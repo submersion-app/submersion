@@ -57,6 +57,9 @@ class ComputerMixReader {
       final model = source.descriptorModel;
       if (vendor == null || product == null || model == null) return null;
       final parsed = await parseFn(vendor, product, model, rawData);
+      // A computer that reported no mix gets air from the resolver as a
+      // default, which the note must not pass off as a recording.
+      if (parsed.gasMixes.isEmpty) return null;
       final cylinder = resolveParsedTanks(
         parsed,
         vendor: vendor,
