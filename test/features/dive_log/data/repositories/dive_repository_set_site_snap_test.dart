@@ -168,6 +168,32 @@ void main() {
     });
   });
 
+  test('an unrecognised manual exit is never taken for a linked one', () async {
+    await insertDive('d1', entryMethod: 'boat', exitMethod: 'zipline');
+    await insertSite('s1', entryMethod: 'shore');
+
+    await repo.setSite('d1', 's1');
+
+    final row = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals('d1'))).getSingle();
+    expect(row.entryMethod, 'shore');
+    expect(row.exitMethod, 'zipline');
+  });
+
+  test('the analysis dive carries its site, for the water fallback', () async {
+    await insertDive('d1');
+    await insertSite('s1', waterType: 'fresh');
+    await repo.setSite('d1', 's1');
+    await db.customStatement(
+      "UPDATE dives SET water_type = NULL WHERE id = 'd1'",
+    );
+
+    final dive = (await repo.getDiveForAnalysis('d1'))!;
+
+    expect(dive.effectiveWaterType, WaterType.fresh);
+  });
+
   group('dive types', () {
     test('adds the dive types the site types stand for', () async {
       await insertDive('d1');

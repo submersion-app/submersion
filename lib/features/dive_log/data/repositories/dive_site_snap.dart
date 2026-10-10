@@ -26,7 +26,10 @@ DivesCompanion siteSnapColumns(Dive dive, domain.DiveSite? site) {
   final snapped = entryExitAfterSiteAssign(
     currentEntry: entry,
     currentExit: exit,
-    currentLinked: exit == null || exit == entry,
+    // Read off the stored strings, not the parsed values: an exit this build
+    // does not recognise parses to null but is still the diver's own choice.
+    currentLinked:
+        dive.exitMethod == null || dive.exitMethod == dive.entryMethod,
     site: site,
   );
 

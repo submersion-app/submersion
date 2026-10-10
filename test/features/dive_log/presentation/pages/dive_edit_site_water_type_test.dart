@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
+import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -117,5 +118,53 @@ void main() {
 
     expect(find.text('Fresh Water'), findsOneWidget);
     expect(find.text('Salt Water'), findsNothing);
+  });
+
+  testWidgets('clearing the site drops a water type it only lent', (
+    tester,
+  ) async {
+    final dive = await createDiveAtSite(siteWater: WaterType.salt);
+    await pumpExistingDivePage(tester, dive.id);
+
+    final siteRow = find.ancestor(
+      of: find.text('Blue Hole'),
+      matching: find.byType(FormRow),
+    );
+    await tester.tap(
+      find.descendant(of: siteRow, matching: find.byIcon(Icons.clear)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final saved = (await repository.getDiveById(dive.id))!;
+    expect(saved.site, isNull);
+    expect(saved.waterType, isNull);
+  });
+
+  testWidgets('clearing the site keeps a water type the dive owns', (
+    tester,
+  ) async {
+    final dive = await createDiveAtSite(
+      siteWater: WaterType.salt,
+      diveWater: WaterType.brackish,
+    );
+    await pumpExistingDivePage(tester, dive.id);
+
+    final siteRow = find.ancestor(
+      of: find.text('Blue Hole'),
+      matching: find.byType(FormRow),
+    );
+    await tester.tap(
+      find.descendant(of: siteRow, matching: find.byIcon(Icons.clear)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      (await repository.getDiveById(dive.id))!.waterType,
+      WaterType.brackish,
+    );
   });
 }

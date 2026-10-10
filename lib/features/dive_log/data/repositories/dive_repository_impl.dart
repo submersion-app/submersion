@@ -397,6 +397,8 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.diveDataSources),
           TableUpdateQuery.onTable(_db.diveComputers),
           TableUpdateQuery.onTable(_db.diveProfileEvents),
+          // The site's water type is the deco fallback (issue #3196).
+          TableUpdateQuery.onTable(_db.diveSites),
         ]),
       )
       .debounce(changeTickDebounce);
@@ -5866,11 +5868,20 @@ class DiveRepository {
                 ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
               .get();
       final profile = await getMergedProfile(diveId);
+      // The site rides along so `effectiveWaterType` can fall back to its
+      // water type for the deco environment (issue #3196).
+      final siteId = row.siteId;
+      final site = siteId == null
+          ? null
+          : await (_db.select(
+              _db.diveSites,
+            )..where((t) => t.id.equals(siteId))).getSingleOrNull();
 
       return _mapRowToDiveWithPreloadedData(
         row,
         tanks: tankRows,
         gear: const [],
+        site: site,
       ).copyWith(profile: profile);
     } catch (e, stackTrace) {
       _log.error(
