@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
+import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/data/services/orphaned_backup_scan.dart';
 
 void main() {
@@ -52,6 +54,28 @@ void main() {
         knownPaths: () async => known,
         thisDeviceId: () async => thisDevice,
       );
+
+  test('a plaintext forgotten backup reports its note', () async {
+    final name = buildBackupFilename(
+      timestamp: '2026-08-31_120000',
+      deviceId: thisDevice,
+    );
+    final path = p.join(backups.path, name);
+    final db = sqlite3.sqlite3.open(path);
+    db.execute('CREATE TABLE dives (id TEXT)');
+    db.close();
+    stampBackupNote(path, 'Before the Cozumel trip');
+
+    final found = await build().find();
+
+    expect(found.single.note, 'Before the Cozumel trip');
+  });
+
+  test('a file that cannot be read has no note', () async {
+    await writeBackup(deviceId: thisDevice, timestamp: '2026-08-31_120000');
+    final found = await build().find();
+    expect(found.single.note, isNull);
+  });
 
   test('a backup still in the history is not unrecognized', () async {
     final path = await writeBackup(

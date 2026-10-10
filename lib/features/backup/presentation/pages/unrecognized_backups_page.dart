@@ -218,14 +218,32 @@ class _BackupTile extends ConsumerWidget {
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
 
+    final note = entry.note;
+    final detail = Text(
+      l10n.backup_unrecognized_fileDetail(
+        formatBytes(entry.sizeBytes),
+        units.formatDateTime(entry.modified, l10n: l10n),
+      ),
+    );
+
     return ListTile(
       title: Text(entry.filename, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        l10n.backup_unrecognized_fileDetail(
-          formatBytes(entry.sizeBytes),
-          units.formatDateTime(entry.modified, l10n: l10n),
-        ),
-      ),
+      isThreeLine: note != null,
+      subtitle: note == null
+          ? detail
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  note,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium,
+                ),
+                detail,
+              ],
+            ),
       trailing: entry.isReclaimable
           ? Checkbox(
               value: selected,
