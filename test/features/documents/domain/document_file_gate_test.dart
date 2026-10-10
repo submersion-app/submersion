@@ -22,8 +22,16 @@ void main() {
   });
 
   test('picked images are accepted and re-encoded', () {
-    final v = checkDocumentFile(fileName: 'scan.HEIC', sizeBytes: 10);
+    final v = checkDocumentFile(fileName: 'scan.PNG', sizeBytes: 10);
     expect((v as DocumentFileAccepted).needsImageReencode, isTrue);
+  });
+
+  test('HEIC files are refused: the image decoder cannot read them', () {
+    expect(
+      checkDocumentFile(fileName: 'scan.heic', sizeBytes: 10),
+      isA<DocumentFileUnsupported>(),
+    );
+    expect(kDocumentPickerExtensions, isNot(contains('heic')));
   });
 
   test('exactly 10 MB is accepted, one byte more is refused', () {

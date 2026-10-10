@@ -12,7 +12,10 @@ const Map<String, String> _fileMimeTypes = {
   'txt': 'text/plain',
 };
 
-const Set<String> _imageExtensions = {'jpg', 'jpeg', 'png', 'heic'};
+/// Images the stored-image encoder decodes. HEIC is not among them, so a
+/// HEIC file is refused as unsupported rather than failing to decode; the
+/// camera and gallery pickers already hand back JPEG.
+const Set<String> _imageExtensions = {'jpg', 'jpeg', 'png'};
 
 /// Extensions offered by the file picker.
 const List<String> kDocumentPickerExtensions = [
@@ -23,7 +26,6 @@ const List<String> kDocumentPickerExtensions = [
   'jpg',
   'jpeg',
   'png',
-  'heic',
 ];
 
 sealed class DocumentFileVerdict {
