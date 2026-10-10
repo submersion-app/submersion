@@ -67,11 +67,32 @@ class LanguageSettingsPage extends StatelessWidget {
 /// entry. Shared by [LanguageSettingsPage], pushed on a phone, and the inline
 /// language list of the tablet and desktop settings pane, so the two cannot
 /// drift apart (#3095).
-class LanguageOptionTiles extends ConsumerWidget {
+class LanguageOptionTiles extends ConsumerStatefulWidget {
   const LanguageOptionTiles({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LanguageOptionTiles> createState() =>
+      _LanguageOptionTilesState();
+}
+
+class _LanguageOptionTilesState extends ConsumerState<LanguageOptionTiles> {
+  /// True while a selection saves and its place name offer is open. A tap on
+  /// another row before the offer appears would start a second flow, whose
+  /// answer could leave place names in a language the app no longer uses.
+  bool _selecting = false;
+
+  Future<void> _onSelect(String code) async {
+    if (_selecting) return;
+    _selecting = true;
+    try {
+      await _selectLanguage(context, ref, code);
+    } finally {
+      _selecting = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentLocale = ref.watch(localeProvider);
     final theme = Theme.of(context);
 
@@ -97,8 +118,7 @@ class LanguageOptionTiles extends ConsumerWidget {
               trailing: option.code == currentLocale
                   ? Icon(Icons.check, color: theme.colorScheme.primary)
                   : null,
-              onTap: () =>
-                  unawaited(_selectLanguage(context, ref, option.code)),
+              onTap: () => unawaited(_onSelect(option.code)),
             ),
           ),
       ],

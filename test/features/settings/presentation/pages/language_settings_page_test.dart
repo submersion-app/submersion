@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -31,20 +33,37 @@ class _RecordingBackfill extends StateNotifier<BackfillState>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Holds every app language save until [release], as a slow database write
+/// would, so a second tap can land before the first offer appears.
+class _SlowSaveSettingsNotifier extends MockSettingsNotifier {
+  _SlowSaveSettingsNotifier(super.initial);
+
+  final _saved = Completer<void>();
+
+  void release() => _saved.complete();
+
+  @override
+  Future<void> setLocale(String locale) async {
+    state = state.copyWith(locale: locale);
+    await _saved.future;
+  }
+}
+
 Future<MockSettingsNotifier> _pumpPage(
   WidgetTester tester, {
   AppSettings settings = const AppSettings(),
   _RecordingBackfill? backfill,
+  MockSettingsNotifier? notifier,
 }) async {
   await tester.binding.setSurfaceSize(const Size(400, 2000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
-  final notifier = MockSettingsNotifier(settings);
+  notifier ??= MockSettingsNotifier(settings);
 
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        settingsProvider.overrideWith((ref) => notifier),
+        settingsProvider.overrideWith((ref) => notifier!),
         siteLocationBackfillProvider.overrideWith(
           (_) => backfill ?? _RecordingBackfill(),
         ),
@@ -184,6 +203,25 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(offer(), findsNothing);
+    });
+
+    // Two taps before the first offer appears must not run two flows: the
+    // later offer could otherwise leave place names in the earlier language.
+    testWidgets('a second tap while a selection runs is ignored', (
+      tester,
+    ) async {
+      final notifier = _SlowSaveSettingsNotifier(const AppSettings());
+      await _pumpPage(tester, backfill: backfill, notifier: notifier);
+
+      await tester.tap(find.text('Deutsch'));
+      await tester.pump();
+      await tester.tap(find.text('Français'));
+      await tester.pump();
+      notifier.release();
+      await tester.pumpAndSettle();
+
+      expect(offer(), findsOneWidget);
+      expect(notifier.state.locale, 'de');
     });
 
     testWidgets('System Default offers the device language', (tester) async {
