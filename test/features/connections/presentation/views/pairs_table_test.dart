@@ -105,4 +105,16 @@ void main() {
     await _pump(tester, width: 900);
     expect(find.text('First shared'), findsOneWidget);
   });
+
+  testWidgets('a numeric column keeps a gap before the next column', (
+    tester,
+  ) async {
+    await _pump(tester, width: 900);
+    final count = tester.getRect(find.text('7'));
+    final date = tester.getRect(find.text('Jan 1, 2024'));
+    expect(date.left - count.right, greaterThanOrEqualTo(12));
+    final header = tester.getRect(find.text('Shared dives'));
+    final next = tester.getRect(find.text('Last shared'));
+    expect(next.left - header.right, greaterThanOrEqualTo(12));
+  });
 }

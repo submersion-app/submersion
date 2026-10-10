@@ -105,7 +105,9 @@ class _PairsTableState extends ConsumerState<PairsTable> {
                       onTap: () =>
                           widget.onSelect(EdgeSelection(e.source, e.target)),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12 - kTableCellInset,
+                        ),
                         child: Row(
                           children: [
                             ConnectionsTableCell(

@@ -110,7 +110,9 @@ class _EntitiesTableState extends ConsumerState<EntitiesTable> {
                       key: ValueKey('entity-row-$i'),
                       onTap: () => widget.onSelect(NodeSelection(r.node.ref)),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12 - kTableCellInset,
+                        ),
                         child: Row(
                           children: [
                             ConnectionsTableCell(

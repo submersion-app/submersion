@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 
+/// Each side of a cell, header or body, so neighbouring columns never touch
+/// (a right-aligned number would otherwise run into the next column).
+const double kTableCellInset = 6;
+
 class TableColumnSpec<T extends Enum> {
   const TableColumnSpec(
     this.id,
@@ -32,9 +36,12 @@ class ConnectionsTableCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Expanded(
     flex: flex,
-    child: Align(
-      alignment: numeric ? Alignment.centerRight : Alignment.centerLeft,
-      child: child,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kTableCellInset),
+      child: Align(
+        alignment: numeric ? Alignment.centerRight : Alignment.centerLeft,
+        child: child,
+      ),
     ),
   );
 }
@@ -63,7 +70,7 @@ class SortableHeader<T extends Enum> extends StatelessWidget {
     return Container(
       height: 40,
       color: theme.colorScheme.surfaceContainerHigh,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12 - kTableCellInset),
       child: Row(
         children: [
           for (final c in columns)
@@ -72,25 +79,30 @@ class SortableHeader<T extends Enum> extends StatelessWidget {
               child: InkWell(
                 key: ValueKey('sort-${c.id.name}'),
                 onTap: () => onSort(c.id),
-                child: Row(
-                  mainAxisAlignment: c.numeric
-                      ? MainAxisAlignment.end
-                      : MainAxisAlignment.start,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        c.label,
-                        style: style,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: kTableCellInset,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: c.numeric
+                        ? MainAxisAlignment.end
+                        : MainAxisAlignment.start,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          c.label,
+                          style: style,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    if (c.id == sortedBy)
-                      Icon(
-                        ascending ? Icons.arrow_upward : Icons.arrow_downward,
-                        size: 14,
-                      ),
-                  ],
+                      if (c.id == sortedBy)
+                        Icon(
+                          ascending ? Icons.arrow_upward : Icons.arrow_downward,
+                          size: 14,
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
