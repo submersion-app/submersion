@@ -45,9 +45,7 @@ class WindowsSystemProxyResolver implements SystemProxyResolver {
         detail: '$e',
       );
     }
-    final usesPac =
-        config.autoDetect || (config.autoConfigUrl?.isNotEmpty ?? false);
-    if (!usesPac) return parseWindowsProxy(config);
+    if (autoProxyFlags(config) == 0) return parseWindowsProxy(config);
     RawWindowsProxy answered;
     try {
       answered = await _queryPac(probe.toString(), config).timeout(_timeout);
@@ -96,7 +94,6 @@ final class _ProxyInfo extends Struct {
   external Pointer<Utf16> lpszProxyBypass;
 }
 
-const _autoDetect = 0x1; // WINHTTP_AUTOPROXY_AUTO_DETECT
 const _configUrl = 0x2; // WINHTTP_AUTOPROXY_CONFIG_URL
 const _detectDhcp = 0x1; // WINHTTP_AUTO_DETECT_TYPE_DHCP
 const _detectDnsA = 0x2; // WINHTTP_AUTO_DETECT_TYPE_DNS_A
@@ -126,7 +123,8 @@ RawWindowsProxy readIeProxyConfig() {
 /// [url]. Runs in a background isolate, on Windows only.
 RawWindowsProxy queryPacForUrl(String url, RawWindowsProxy config) {
   final f = _WinHttp.open();
-  final configUrl = config.autoConfigUrl;
+  final flags = autoProxyFlags(config);
+  final configUrl = flags & _configUrl != 0 ? config.autoConfigUrl : null;
   RawWindowsProxy result({bool ok = false, String? proxy, String? bypass}) =>
       RawWindowsProxy(
         autoDetect: config.autoDetect,
@@ -150,9 +148,7 @@ RawWindowsProxy queryPacForUrl(String url, RawWindowsProxy config) {
     try {
       final options = arena<_AutoProxyOptions>();
       options.ref
-        ..dwFlags =
-            (config.autoDetect ? _autoDetect : 0) |
-            (configUrl != null ? _configUrl : 0)
+        ..dwFlags = flags
         ..dwAutoDetectFlags = config.autoDetect
             ? (_detectDhcp | _detectDnsA)
             : 0

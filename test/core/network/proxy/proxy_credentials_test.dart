@@ -44,6 +44,23 @@ void main() {
     });
   });
 
+  test('username problems are the username field\'s', () {
+    expect(ProxyCredentialsProblem.usernameHasColon.isUsernameProblem, isTrue);
+    expect(
+      ProxyCredentialsProblem.usernameHasSemicolon.isUsernameProblem,
+      isTrue,
+    );
+    expect(
+      ProxyCredentialsProblem.usernameHasEdgeWhitespace.isUsernameProblem,
+      isTrue,
+    );
+    expect(ProxyCredentialsProblem.passwordRequired.isUsernameProblem, isFalse);
+    expect(
+      ProxyCredentialsProblem.passwordHasSemicolon.isUsernameProblem,
+      isFalse,
+    );
+  });
+
   group('socks5', () {
     ProxyCredentialsProblem? check(String u, String p) =>
         checkProxyCredentials(ProxyType.socks5, u, p);

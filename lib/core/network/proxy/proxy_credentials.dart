@@ -13,6 +13,21 @@ enum ProxyCredentialsProblem {
   tooLong,
 }
 
+extension ProxyCredentialsProblemField on ProxyCredentialsProblem {
+  /// Whether the problem is the username's (shown under that field); the
+  /// rest are the password's. [ProxyCredentialsProblem.tooLong] can be
+  /// either, so the form decides it by which value is too long.
+  bool get isUsernameProblem => switch (this) {
+    ProxyCredentialsProblem.usernameHasColon ||
+    ProxyCredentialsProblem.usernameHasSemicolon ||
+    ProxyCredentialsProblem.usernameHasEdgeWhitespace => true,
+    ProxyCredentialsProblem.passwordRequired ||
+    ProxyCredentialsProblem.passwordHasSemicolon ||
+    ProxyCredentialsProblem.passwordHasEdgeWhitespace ||
+    ProxyCredentialsProblem.tooLong => false,
+  };
+}
+
 /// Checks a manual username and password against what the transport can send.
 ///
 /// HTTP credentials travel inside the dart:io proxy directive

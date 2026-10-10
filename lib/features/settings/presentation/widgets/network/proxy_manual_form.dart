@@ -81,11 +81,10 @@ class _ProxyManualFormState extends ConsumerState<ProxyManualForm> {
     final password = _password.text;
     final problem = checkProxyCredentials(_type, username, password);
     final onUsername =
-        problem == ProxyCredentialsProblem.usernameHasColon ||
-        problem == ProxyCredentialsProblem.usernameHasSemicolon ||
-        problem == ProxyCredentialsProblem.usernameHasEdgeWhitespace ||
-        (problem == ProxyCredentialsProblem.tooLong &&
-            username.length >= password.length);
+        problem != null &&
+        (problem.isUsernameProblem ||
+            (problem == ProxyCredentialsProblem.tooLong &&
+                username.length >= password.length));
     setState(() {
       _hostError = host.isEmpty
           ? l10n.settings_network_validation_hostRequired

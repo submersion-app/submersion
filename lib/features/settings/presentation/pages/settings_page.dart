@@ -292,7 +292,12 @@ class SettingsSectionDetailPage extends ConsumerWidget {
             // maybePop, not pop: a section with unsaved edits (Network)
             // can ask before its route closes.
             if (context.canPop()) {
-              unawaited(Navigator.of(context).maybePop());
+              unawaited(() async {
+                // maybePop bubbles (false) for the first route of a nested
+                // navigator; the router can still pop a parent then.
+                final handled = await Navigator.of(context).maybePop();
+                if (!handled && context.mounted) context.pop();
+              }());
             } else {
               context.go('/settings');
             }

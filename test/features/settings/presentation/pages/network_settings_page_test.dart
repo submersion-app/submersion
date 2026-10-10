@@ -258,6 +258,19 @@ void main() {
     expect(store.load().host, '');
   });
 
+  testWidgets('Test reads a pasted URL the way Save does', (tester) async {
+    final fake = _Tester(const ProxyTestTimeout());
+    await pump(tester, saved: manualSaved, testerFake: fake);
+    await tester.enterText(
+      find.byKey(const ValueKey('proxy-host')),
+      'http://proxy.corp:3128/',
+    );
+    await tester.tap(find.text('Test connection'));
+    await tester.pumpAndSettle();
+    expect(fake.ran!.host, 'proxy.corp');
+    expect(fake.ran!.port, 3128);
+  });
+
   testWidgets('a direct success says so', (tester) async {
     await pump(
       tester,

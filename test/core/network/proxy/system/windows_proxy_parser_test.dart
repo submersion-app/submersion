@@ -44,6 +44,34 @@ void main() {
     });
   });
 
+  group('autoProxyFlags', () {
+    test('auto-detect only', () {
+      expect(autoProxyFlags(const RawWindowsProxy(autoDetect: true)), 1);
+    });
+    test('an empty setup-script URL is not a setup script', () {
+      expect(
+        autoProxyFlags(
+          const RawWindowsProxy(autoDetect: true, autoConfigUrl: ''),
+        ),
+        1,
+      );
+    });
+    test('setup script and both', () {
+      expect(
+        autoProxyFlags(
+          const RawWindowsProxy(autoDetect: false, autoConfigUrl: 'http://p'),
+        ),
+        2,
+      );
+      expect(
+        autoProxyFlags(
+          const RawWindowsProxy(autoDetect: true, autoConfigUrl: 'http://p'),
+        ),
+        3,
+      );
+    });
+  });
+
   group('parseWindowsProxy', () {
     test('static proxy with bypass list', () {
       final r = parseWindowsProxy(

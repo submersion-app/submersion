@@ -32,6 +32,13 @@ class RawWindowsProxy {
   final String? pacBypass;
 }
 
+/// WINHTTP_AUTOPROXY_OPTIONS.dwFlags for [config]: auto-detect (1) and/or a
+/// setup script (2). Zero means no PAC query is needed. An empty setup-script
+/// string is no setup script.
+int autoProxyFlags(RawWindowsProxy config) =>
+    (config.autoDetect ? 0x1 : 0) |
+    ((config.autoConfigUrl?.trim().isNotEmpty ?? false) ? 0x2 : 0);
+
 /// Turns what WinHTTP reported into the app's view of the system proxy.
 SystemProxyResult parseWindowsProxy(RawWindowsProxy raw) {
   if (raw.pacAttempted && raw.pacSucceeded) {

@@ -34,10 +34,12 @@ class _ProxyTestSectionState extends ConsumerState<ProxyTestSection> {
     var settings = state.settings;
     var password = widget.controller.manualPassword;
     if (settings.mode == ProxyMode.manual && draft != null) {
-      final port = readProxyPort(draft.port);
+      // Read the way Save reads it, so Test checks what Save would store.
+      final parsed = parseProxyHostInput(draft.host);
+      final port = readProxyPort(draft.port) ?? parsed.port;
       settings = settings.copyWith(
         type: draft.type,
-        host: draft.host,
+        host: parsed.host,
         port: port,
         clearPort: port == null,
         username: draft.username,
