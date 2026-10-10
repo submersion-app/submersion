@@ -23071,64 +23071,59 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_section_manage_title => '管理';
 
   @override
-  String get settings_network_mode_header => 'Proxy';
+  String get settings_network_mode_header => '代理';
 
   @override
-  String get settings_network_mode_system => 'System proxy';
+  String get settings_network_mode_system => '系统代理';
 
   @override
-  String get settings_network_mode_system_subtitle =>
-      'Use the proxy configured in your device\'s network settings';
+  String get settings_network_mode_system_subtitle => '使用设备网络设置中配置的代理';
 
   @override
-  String get settings_network_mode_manual => 'Manual';
+  String get settings_network_mode_manual => '手动';
 
   @override
-  String get settings_network_mode_manual_subtitle => 'Enter a proxy server';
+  String get settings_network_mode_manual_subtitle => '输入代理服务器';
 
   @override
-  String get settings_network_mode_none => 'No proxy';
+  String get settings_network_mode_none => '不使用代理';
 
   @override
-  String get settings_network_mode_none_subtitle => 'Always connect directly';
+  String get settings_network_mode_none_subtitle => '始终直接连接';
 
   @override
-  String get settings_network_status_detecting =>
-      'Checking this device\'s proxy settings';
+  String get settings_network_status_detecting => '正在检查此设备的代理设置';
 
   @override
-  String get settings_network_status_none =>
-      'No proxy configured on this device';
+  String get settings_network_status_none => '此设备未配置代理';
 
   @override
   String settings_network_status_fixed(String endpoint) {
-    return 'Using $endpoint';
+    return '正在使用 $endpoint';
   }
 
   @override
   String settings_network_status_fixedPac(String endpoint) {
-    return 'Using $endpoint (from automatic configuration)';
+    return '正在使用 $endpoint（来自自动配置）';
   }
 
   @override
   String settings_network_status_fixedSocks(String endpoint) {
-    return 'Using $endpoint (SOCKS5)';
+    return '正在使用 $endpoint（SOCKS5）';
   }
 
   @override
   String get settings_network_status_pacUnsupported =>
-      'Automatic proxy configuration isn\'t supported on this device. Choose Manual and enter the proxy.';
+      '此设备不支持自动代理配置。请选择手动并输入代理。';
 
   @override
-  String get settings_network_status_pacFailed =>
-      'The automatic proxy configuration couldn\'t be read. Choose Manual and enter the proxy.';
+  String get settings_network_status_pacFailed => '无法读取自动代理配置。请选择手动并输入代理。';
 
   @override
-  String get settings_network_status_error =>
-      'This device\'s proxy settings couldn\'t be read.';
+  String get settings_network_status_error => '无法读取此设备的代理设置。';
 
   @override
-  String get settings_network_status_refresh => 'Check again';
+  String get settings_network_status_refresh => '重新检查';
 
   @override
   String get settings_network_manual_typeHttp => 'HTTP';
@@ -23137,65 +23132,58 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_network_manual_typeSocks => 'SOCKS5';
 
   @override
-  String get settings_network_manual_host => 'Host';
+  String get settings_network_manual_host => '主机';
 
   @override
-  String get settings_network_manual_port => 'Port';
+  String get settings_network_manual_port => '端口';
 
   @override
-  String get settings_network_manual_username => 'Username (optional)';
+  String get settings_network_manual_username => '用户名（可选）';
 
   @override
-  String get settings_network_manual_password => 'Password (optional)';
+  String get settings_network_manual_password => '密码（可选）';
 
   @override
-  String get settings_network_manual_showPassword => 'Show password';
+  String get settings_network_manual_showPassword => '显示密码';
 
   @override
-  String get settings_network_manual_hidePassword => 'Hide password';
+  String get settings_network_manual_hidePassword => '隐藏密码';
 
   @override
-  String get settings_network_manual_save => 'Save';
+  String get settings_network_manual_save => '保存';
 
   @override
-  String get settings_network_manual_saved => 'Proxy settings saved';
+  String get settings_network_manual_saved => '代理设置已保存';
 
   @override
-  String get settings_network_manual_nativeNote =>
-      'Sign-in screens provided by the operating system use the system proxy.';
+  String get settings_network_manual_nativeNote => '操作系统提供的登录界面使用系统代理。';
 
   @override
-  String get settings_network_validation_hostRequired => 'Enter the proxy host';
+  String get settings_network_validation_hostRequired => '请输入代理主机';
 
   @override
-  String get settings_network_validation_portInvalid =>
-      'Enter a port from 1 to 65535';
+  String get settings_network_validation_portInvalid => '请输入 1 到 65535 之间的端口';
 
   @override
-  String get settings_network_validation_passwordRequired =>
-      'Enter the password for this username';
+  String get settings_network_validation_passwordRequired => '请输入此用户名的密码';
 
   @override
-  String get settings_network_validation_usernameColon =>
-      'The username can\'t contain a colon';
+  String get settings_network_validation_usernameColon => '用户名不能包含冒号';
 
   @override
-  String get settings_network_validation_passwordSemicolon =>
-      'The password can\'t contain a semicolon';
+  String get settings_network_validation_passwordSemicolon => '密码不能包含分号';
 
   @override
-  String get settings_network_validation_passwordWhitespace =>
-      'The password can\'t start or end with a space';
+  String get settings_network_validation_passwordWhitespace => '密码不能以空格开头或结尾';
 
   @override
-  String get settings_network_validation_tooLong =>
-      'Must be 255 bytes or fewer';
+  String get settings_network_validation_tooLong => '不能超过 255 字节';
 
   @override
-  String get settings_network_test_button => 'Test connection';
+  String get settings_network_test_button => '测试连接';
 
   @override
-  String get settings_network_test_running => 'Testing';
+  String get settings_network_test_running => '正在测试';
 
   @override
   String settings_network_test_successProxy(
@@ -23203,44 +23191,43 @@ class AppLocalizationsZh extends AppLocalizations {
     String type,
     int ms,
   ) {
-    return 'Connected through $endpoint ($type) in $ms ms';
+    return '已通过 $endpoint（$type）连接，用时 $ms 毫秒';
   }
 
   @override
   String settings_network_test_successDirect(int ms) {
-    return 'Connected directly in $ms ms';
+    return '已直接连接，用时 $ms 毫秒';
   }
 
   @override
   String settings_network_test_unreachable(String endpoint) {
-    return 'Couldn\'t reach $endpoint. Check the host and port.';
+    return '无法连接到 $endpoint。请检查主机和端口。';
   }
 
   @override
-  String get settings_network_test_authRejected =>
-      'The proxy rejected the username or password.';
+  String get settings_network_test_authRejected => '代理拒绝了用户名或密码。';
 
   @override
   String get settings_network_test_authRequiredSystem =>
-      'This proxy requires a username and password. Choose Manual and enter them.';
+      '此代理需要用户名和密码。请选择手动并输入。';
 
   @override
   String get settings_network_test_tls =>
-      'Secure connection failed. Your network may inspect HTTPS traffic; its certificate must be trusted by this device.';
+      '安全连接失败。你的网络可能会检查 HTTPS 流量；此设备必须信任其证书。';
 
   @override
-  String get settings_network_test_timeout => 'The connection timed out.';
+  String get settings_network_test_timeout => '连接超时。';
 
   @override
   String settings_network_test_failed(String detail) {
-    return 'The connection failed: $detail. The debug log has the full error.';
+    return '连接失败：$detail。调试日志中有完整的错误信息。';
   }
 
   @override
-  String get settings_section_network_subtitle => 'Proxy server';
+  String get settings_section_network_subtitle => '代理服务器';
 
   @override
-  String get settings_section_network_title => 'Network';
+  String get settings_section_network_title => '网络';
 
   @override
   String get settings_section_notifications_subtitle => '维护提醒';

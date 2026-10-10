@@ -24322,61 +24322,63 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_network_mode_header => 'Proxy';
 
   @override
-  String get settings_network_mode_system => 'System proxy';
+  String get settings_network_mode_system => 'Rendszerproxy';
 
   @override
   String get settings_network_mode_system_subtitle =>
-      'Use the proxy configured in your device\'s network settings';
+      'Az eszköz hálózati beállításaiban megadott proxy használata';
 
   @override
-  String get settings_network_mode_manual => 'Manual';
+  String get settings_network_mode_manual => 'Kézi';
 
   @override
-  String get settings_network_mode_manual_subtitle => 'Enter a proxy server';
+  String get settings_network_mode_manual_subtitle =>
+      'Proxykiszolgáló megadása';
 
   @override
-  String get settings_network_mode_none => 'No proxy';
+  String get settings_network_mode_none => 'Nincs proxy';
 
   @override
-  String get settings_network_mode_none_subtitle => 'Always connect directly';
+  String get settings_network_mode_none_subtitle =>
+      'Mindig közvetlen kapcsolat';
 
   @override
   String get settings_network_status_detecting =>
-      'Checking this device\'s proxy settings';
+      'Az eszköz proxybeállításainak ellenőrzése';
 
   @override
   String get settings_network_status_none =>
-      'No proxy configured on this device';
+      'Ezen az eszközön nincs proxy beállítva';
 
   @override
   String settings_network_status_fixed(String endpoint) {
-    return 'Using $endpoint';
+    return 'Használatban: $endpoint';
   }
 
   @override
   String settings_network_status_fixedPac(String endpoint) {
-    return 'Using $endpoint (from automatic configuration)';
+    return 'Használatban: $endpoint (automatikus konfigurációból)';
   }
 
   @override
   String settings_network_status_fixedSocks(String endpoint) {
-    return 'Using $endpoint (SOCKS5)';
+    return 'Használatban: $endpoint (SOCKS5)';
   }
 
   @override
   String get settings_network_status_pacUnsupported =>
-      'Automatic proxy configuration isn\'t supported on this device. Choose Manual and enter the proxy.';
+      'Az automatikus proxykonfiguráció ezen az eszközön nem támogatott. Válassza a Kézi lehetőséget, és adja meg a proxyt.';
 
   @override
   String get settings_network_status_pacFailed =>
-      'The automatic proxy configuration couldn\'t be read. Choose Manual and enter the proxy.';
+      'Az automatikus proxykonfiguráció nem olvasható. Válassza a Kézi lehetőséget, és adja meg a proxyt.';
 
   @override
   String get settings_network_status_error =>
-      'This device\'s proxy settings couldn\'t be read.';
+      'Az eszköz proxybeállításai nem olvashatók.';
 
   @override
-  String get settings_network_status_refresh => 'Check again';
+  String get settings_network_status_refresh => 'Újraellenőrzés';
 
   @override
   String get settings_network_manual_typeHttp => 'HTTP';
@@ -24385,65 +24387,66 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_network_manual_typeSocks => 'SOCKS5';
 
   @override
-  String get settings_network_manual_host => 'Host';
+  String get settings_network_manual_host => 'Kiszolgáló';
 
   @override
   String get settings_network_manual_port => 'Port';
 
   @override
-  String get settings_network_manual_username => 'Username (optional)';
+  String get settings_network_manual_username =>
+      'Felhasználónév (nem kötelező)';
 
   @override
-  String get settings_network_manual_password => 'Password (optional)';
+  String get settings_network_manual_password => 'Jelszó (nem kötelező)';
 
   @override
-  String get settings_network_manual_showPassword => 'Show password';
+  String get settings_network_manual_showPassword => 'Jelszó megjelenítése';
 
   @override
-  String get settings_network_manual_hidePassword => 'Hide password';
+  String get settings_network_manual_hidePassword => 'Jelszó elrejtése';
 
   @override
-  String get settings_network_manual_save => 'Save';
+  String get settings_network_manual_save => 'Mentés';
 
   @override
-  String get settings_network_manual_saved => 'Proxy settings saved';
+  String get settings_network_manual_saved => 'Proxybeállítások mentve';
 
   @override
   String get settings_network_manual_nativeNote =>
-      'Sign-in screens provided by the operating system use the system proxy.';
+      'Az operációs rendszer által biztosított bejelentkezési képernyők a rendszerproxyt használják.';
 
   @override
-  String get settings_network_validation_hostRequired => 'Enter the proxy host';
+  String get settings_network_validation_hostRequired =>
+      'Adja meg a proxykiszolgálót';
 
   @override
   String get settings_network_validation_portInvalid =>
-      'Enter a port from 1 to 65535';
+      'Adjon meg egy portot 1 és 65535 között';
 
   @override
   String get settings_network_validation_passwordRequired =>
-      'Enter the password for this username';
+      'Adja meg a felhasználónévhez tartozó jelszót';
 
   @override
   String get settings_network_validation_usernameColon =>
-      'The username can\'t contain a colon';
+      'A felhasználónév nem tartalmazhat kettőspontot';
 
   @override
   String get settings_network_validation_passwordSemicolon =>
-      'The password can\'t contain a semicolon';
+      'A jelszó nem tartalmazhat pontosvesszőt';
 
   @override
   String get settings_network_validation_passwordWhitespace =>
-      'The password can\'t start or end with a space';
+      'A jelszó nem kezdődhet és nem végződhet szóközzel';
 
   @override
-  String get settings_network_validation_tooLong =>
-      'Must be 255 bytes or fewer';
+  String get settings_network_validation_tooLong => 'Legfeljebb 255 bájt lehet';
 
   @override
-  String get settings_network_test_button => 'Test connection';
+  String get settings_network_test_button => 'Kapcsolat tesztelése';
 
   @override
-  String get settings_network_test_running => 'Testing';
+  String get settings_network_test_running => 'Tesztelés';
 
   @override
   String settings_network_test_successProxy(
@@ -24451,44 +24454,45 @@ class AppLocalizationsHu extends AppLocalizations {
     String type,
     int ms,
   ) {
-    return 'Connected through $endpoint ($type) in $ms ms';
+    return 'Kapcsolódva ezen keresztül: $endpoint ($type), $ms ms alatt';
   }
 
   @override
   String settings_network_test_successDirect(int ms) {
-    return 'Connected directly in $ms ms';
+    return 'Közvetlen kapcsolat $ms ms alatt';
   }
 
   @override
   String settings_network_test_unreachable(String endpoint) {
-    return 'Couldn\'t reach $endpoint. Check the host and port.';
+    return '$endpoint nem érhető el. Ellenőrizze a kiszolgálót és a portot.';
   }
 
   @override
   String get settings_network_test_authRejected =>
-      'The proxy rejected the username or password.';
+      'A proxy elutasította a felhasználónevet vagy a jelszót.';
 
   @override
   String get settings_network_test_authRequiredSystem =>
-      'This proxy requires a username and password. Choose Manual and enter them.';
+      'Ez a proxy felhasználónevet és jelszót kér. Válassza a Kézi lehetőséget, és adja meg őket.';
 
   @override
   String get settings_network_test_tls =>
-      'Secure connection failed. Your network may inspect HTTPS traffic; its certificate must be trusted by this device.';
+      'A biztonságos kapcsolat sikertelen. Lehet, hogy a hálózat ellenőrzi a HTTPS-forgalmat; a tanúsítványának megbízhatónak kell lennie ezen az eszközön.';
 
   @override
-  String get settings_network_test_timeout => 'The connection timed out.';
+  String get settings_network_test_timeout =>
+      'A kapcsolat túllépte az időkorlátot.';
 
   @override
   String settings_network_test_failed(String detail) {
-    return 'The connection failed: $detail. The debug log has the full error.';
+    return 'A kapcsolat sikertelen: $detail. A hibakeresési napló tartalmazza a teljes hibát.';
   }
 
   @override
-  String get settings_section_network_subtitle => 'Proxy server';
+  String get settings_section_network_subtitle => 'Proxykiszolgáló';
 
   @override
-  String get settings_section_network_title => 'Network';
+  String get settings_section_network_title => 'Hálózat';
 
   @override
   String get settings_section_notifications_subtitle => 'Szerviz emlékeztetők';

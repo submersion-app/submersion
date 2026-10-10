@@ -24597,64 +24597,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_section_manage_title => 'الإدارة';
 
   @override
-  String get settings_network_mode_header => 'Proxy';
+  String get settings_network_mode_header => 'الوكيل';
 
   @override
-  String get settings_network_mode_system => 'System proxy';
+  String get settings_network_mode_system => 'وكيل النظام';
 
   @override
   String get settings_network_mode_system_subtitle =>
-      'Use the proxy configured in your device\'s network settings';
+      'استخدام الوكيل المضبوط في إعدادات الشبكة على جهازك';
 
   @override
-  String get settings_network_mode_manual => 'Manual';
+  String get settings_network_mode_manual => 'يدوي';
 
   @override
-  String get settings_network_mode_manual_subtitle => 'Enter a proxy server';
+  String get settings_network_mode_manual_subtitle => 'إدخال خادم وكيل';
 
   @override
-  String get settings_network_mode_none => 'No proxy';
+  String get settings_network_mode_none => 'بدون وكيل';
 
   @override
-  String get settings_network_mode_none_subtitle => 'Always connect directly';
+  String get settings_network_mode_none_subtitle => 'الاتصال مباشرة دائماً';
 
   @override
   String get settings_network_status_detecting =>
-      'Checking this device\'s proxy settings';
+      'جارٍ التحقق من إعدادات الوكيل على هذا الجهاز';
 
   @override
   String get settings_network_status_none =>
-      'No proxy configured on this device';
+      'لا يوجد وكيل مضبوط على هذا الجهاز';
 
   @override
   String settings_network_status_fixed(String endpoint) {
-    return 'Using $endpoint';
+    return 'يستخدم $endpoint';
   }
 
   @override
   String settings_network_status_fixedPac(String endpoint) {
-    return 'Using $endpoint (from automatic configuration)';
+    return 'يستخدم $endpoint (من الإعداد التلقائي)';
   }
 
   @override
   String settings_network_status_fixedSocks(String endpoint) {
-    return 'Using $endpoint (SOCKS5)';
+    return 'يستخدم $endpoint (SOCKS5)';
   }
 
   @override
   String get settings_network_status_pacUnsupported =>
-      'Automatic proxy configuration isn\'t supported on this device. Choose Manual and enter the proxy.';
+      'الإعداد التلقائي للوكيل غير مدعوم على هذا الجهاز. اختر يدوي وأدخل الوكيل.';
 
   @override
   String get settings_network_status_pacFailed =>
-      'The automatic proxy configuration couldn\'t be read. Choose Manual and enter the proxy.';
+      'تعذّرت قراءة الإعداد التلقائي للوكيل. اختر يدوي وأدخل الوكيل.';
 
   @override
   String get settings_network_status_error =>
-      'This device\'s proxy settings couldn\'t be read.';
+      'تعذّرت قراءة إعدادات الوكيل على هذا الجهاز.';
 
   @override
-  String get settings_network_status_refresh => 'Check again';
+  String get settings_network_status_refresh => 'التحقق مرة أخرى';
 
   @override
   String get settings_network_manual_typeHttp => 'HTTP';
@@ -24663,65 +24663,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_network_manual_typeSocks => 'SOCKS5';
 
   @override
-  String get settings_network_manual_host => 'Host';
+  String get settings_network_manual_host => 'المضيف';
 
   @override
-  String get settings_network_manual_port => 'Port';
+  String get settings_network_manual_port => 'المنفذ';
 
   @override
-  String get settings_network_manual_username => 'Username (optional)';
+  String get settings_network_manual_username => 'اسم المستخدم (اختياري)';
 
   @override
-  String get settings_network_manual_password => 'Password (optional)';
+  String get settings_network_manual_password => 'كلمة المرور (اختيارية)';
 
   @override
-  String get settings_network_manual_showPassword => 'Show password';
+  String get settings_network_manual_showPassword => 'إظهار كلمة المرور';
 
   @override
-  String get settings_network_manual_hidePassword => 'Hide password';
+  String get settings_network_manual_hidePassword => 'إخفاء كلمة المرور';
 
   @override
-  String get settings_network_manual_save => 'Save';
+  String get settings_network_manual_save => 'حفظ';
 
   @override
-  String get settings_network_manual_saved => 'Proxy settings saved';
+  String get settings_network_manual_saved => 'تم حفظ إعدادات الوكيل';
 
   @override
   String get settings_network_manual_nativeNote =>
-      'Sign-in screens provided by the operating system use the system proxy.';
+      'تستخدم شاشات تسجيل الدخول التي يوفرها نظام التشغيل وكيلَ النظام.';
 
   @override
-  String get settings_network_validation_hostRequired => 'Enter the proxy host';
+  String get settings_network_validation_hostRequired => 'أدخل مضيف الوكيل';
 
   @override
   String get settings_network_validation_portInvalid =>
-      'Enter a port from 1 to 65535';
+      'أدخل منفذاً من 1 إلى 65535';
 
   @override
   String get settings_network_validation_passwordRequired =>
-      'Enter the password for this username';
+      'أدخل كلمة المرور لاسم المستخدم هذا';
 
   @override
   String get settings_network_validation_usernameColon =>
-      'The username can\'t contain a colon';
+      'لا يمكن أن يحتوي اسم المستخدم على نقطتين';
 
   @override
   String get settings_network_validation_passwordSemicolon =>
-      'The password can\'t contain a semicolon';
+      'لا يمكن أن تحتوي كلمة المرور على فاصلة منقوطة';
 
   @override
   String get settings_network_validation_passwordWhitespace =>
-      'The password can\'t start or end with a space';
+      'لا يمكن أن تبدأ كلمة المرور بمسافة أو تنتهي بها';
 
   @override
-  String get settings_network_validation_tooLong =>
-      'Must be 255 bytes or fewer';
+  String get settings_network_validation_tooLong => 'يجب ألا يتجاوز 255 بايت';
 
   @override
-  String get settings_network_test_button => 'Test connection';
+  String get settings_network_test_button => 'اختبار الاتصال';
 
   @override
-  String get settings_network_test_running => 'Testing';
+  String get settings_network_test_running => 'جارٍ الاختبار';
 
   @override
   String settings_network_test_successProxy(
@@ -24729,44 +24728,44 @@ class AppLocalizationsAr extends AppLocalizations {
     String type,
     int ms,
   ) {
-    return 'Connected through $endpoint ($type) in $ms ms';
+    return 'تم الاتصال عبر $endpoint ($type) خلال $ms مللي ثانية';
   }
 
   @override
   String settings_network_test_successDirect(int ms) {
-    return 'Connected directly in $ms ms';
+    return 'تم الاتصال مباشرة خلال $ms مللي ثانية';
   }
 
   @override
   String settings_network_test_unreachable(String endpoint) {
-    return 'Couldn\'t reach $endpoint. Check the host and port.';
+    return 'تعذّر الوصول إلى $endpoint. تحقق من المضيف والمنفذ.';
   }
 
   @override
   String get settings_network_test_authRejected =>
-      'The proxy rejected the username or password.';
+      'رفض الوكيل اسم المستخدم أو كلمة المرور.';
 
   @override
   String get settings_network_test_authRequiredSystem =>
-      'This proxy requires a username and password. Choose Manual and enter them.';
+      'يتطلب هذا الوكيل اسم مستخدم وكلمة مرور. اختر يدوي وأدخلهما.';
 
   @override
   String get settings_network_test_tls =>
-      'Secure connection failed. Your network may inspect HTTPS traffic; its certificate must be trusted by this device.';
+      'فشل الاتصال الآمن. قد تفحص شبكتك حركة HTTPS؛ ويجب أن يثق هذا الجهاز بشهادتها.';
 
   @override
-  String get settings_network_test_timeout => 'The connection timed out.';
+  String get settings_network_test_timeout => 'انتهت مهلة الاتصال.';
 
   @override
   String settings_network_test_failed(String detail) {
-    return 'The connection failed: $detail. The debug log has the full error.';
+    return 'فشل الاتصال: $detail. يحتوي سجل التصحيح على الخطأ كاملاً.';
   }
 
   @override
-  String get settings_section_network_subtitle => 'Proxy server';
+  String get settings_section_network_subtitle => 'خادم الوكيل';
 
   @override
-  String get settings_section_network_title => 'Network';
+  String get settings_section_network_title => 'الشبكة';
 
   @override
   String get settings_section_notifications_subtitle => 'تذكيرات الصيانة';

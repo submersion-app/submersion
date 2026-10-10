@@ -24251,61 +24251,63 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_network_mode_header => 'Proxy';
 
   @override
-  String get settings_network_mode_system => 'System proxy';
+  String get settings_network_mode_system => 'Systeemproxy';
 
   @override
   String get settings_network_mode_system_subtitle =>
-      'Use the proxy configured in your device\'s network settings';
+      'De proxy uit de netwerkinstellingen van je apparaat gebruiken';
 
   @override
-  String get settings_network_mode_manual => 'Manual';
+  String get settings_network_mode_manual => 'Handmatig';
 
   @override
-  String get settings_network_mode_manual_subtitle => 'Enter a proxy server';
+  String get settings_network_mode_manual_subtitle =>
+      'Een proxyserver invoeren';
 
   @override
-  String get settings_network_mode_none => 'No proxy';
+  String get settings_network_mode_none => 'Geen proxy';
 
   @override
-  String get settings_network_mode_none_subtitle => 'Always connect directly';
+  String get settings_network_mode_none_subtitle =>
+      'Altijd rechtstreeks verbinden';
 
   @override
   String get settings_network_status_detecting =>
-      'Checking this device\'s proxy settings';
+      'Proxy-instellingen van dit apparaat worden gecontroleerd';
 
   @override
   String get settings_network_status_none =>
-      'No proxy configured on this device';
+      'Op dit apparaat is geen proxy ingesteld';
 
   @override
   String settings_network_status_fixed(String endpoint) {
-    return 'Using $endpoint';
+    return 'Gebruikt $endpoint';
   }
 
   @override
   String settings_network_status_fixedPac(String endpoint) {
-    return 'Using $endpoint (from automatic configuration)';
+    return 'Gebruikt $endpoint (via automatische configuratie)';
   }
 
   @override
   String settings_network_status_fixedSocks(String endpoint) {
-    return 'Using $endpoint (SOCKS5)';
+    return 'Gebruikt $endpoint (SOCKS5)';
   }
 
   @override
   String get settings_network_status_pacUnsupported =>
-      'Automatic proxy configuration isn\'t supported on this device. Choose Manual and enter the proxy.';
+      'Automatische proxyconfiguratie wordt op dit apparaat niet ondersteund. Kies Handmatig en voer de proxy in.';
 
   @override
   String get settings_network_status_pacFailed =>
-      'The automatic proxy configuration couldn\'t be read. Choose Manual and enter the proxy.';
+      'De automatische proxyconfiguratie kon niet worden gelezen. Kies Handmatig en voer de proxy in.';
 
   @override
   String get settings_network_status_error =>
-      'This device\'s proxy settings couldn\'t be read.';
+      'De proxy-instellingen van dit apparaat konden niet worden gelezen.';
 
   @override
-  String get settings_network_status_refresh => 'Check again';
+  String get settings_network_status_refresh => 'Opnieuw controleren';
 
   @override
   String get settings_network_manual_typeHttp => 'HTTP';
@@ -24317,62 +24319,61 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_network_manual_host => 'Host';
 
   @override
-  String get settings_network_manual_port => 'Port';
+  String get settings_network_manual_port => 'Poort';
 
   @override
-  String get settings_network_manual_username => 'Username (optional)';
+  String get settings_network_manual_username => 'Gebruikersnaam (optioneel)';
 
   @override
-  String get settings_network_manual_password => 'Password (optional)';
+  String get settings_network_manual_password => 'Wachtwoord (optioneel)';
 
   @override
-  String get settings_network_manual_showPassword => 'Show password';
+  String get settings_network_manual_showPassword => 'Wachtwoord tonen';
 
   @override
-  String get settings_network_manual_hidePassword => 'Hide password';
+  String get settings_network_manual_hidePassword => 'Wachtwoord verbergen';
 
   @override
-  String get settings_network_manual_save => 'Save';
+  String get settings_network_manual_save => 'Opslaan';
 
   @override
-  String get settings_network_manual_saved => 'Proxy settings saved';
+  String get settings_network_manual_saved => 'Proxy-instellingen opgeslagen';
 
   @override
   String get settings_network_manual_nativeNote =>
-      'Sign-in screens provided by the operating system use the system proxy.';
+      'Inlogschermen van het besturingssysteem gebruiken de systeemproxy.';
 
   @override
-  String get settings_network_validation_hostRequired => 'Enter the proxy host';
+  String get settings_network_validation_hostRequired => 'Voer de proxyhost in';
 
   @override
   String get settings_network_validation_portInvalid =>
-      'Enter a port from 1 to 65535';
+      'Voer een poort van 1 tot 65535 in';
 
   @override
   String get settings_network_validation_passwordRequired =>
-      'Enter the password for this username';
+      'Voer het wachtwoord voor deze gebruikersnaam in';
 
   @override
   String get settings_network_validation_usernameColon =>
-      'The username can\'t contain a colon';
+      'De gebruikersnaam mag geen dubbele punt bevatten';
 
   @override
   String get settings_network_validation_passwordSemicolon =>
-      'The password can\'t contain a semicolon';
+      'Het wachtwoord mag geen puntkomma bevatten';
 
   @override
   String get settings_network_validation_passwordWhitespace =>
-      'The password can\'t start or end with a space';
+      'Het wachtwoord mag niet met een spatie beginnen of eindigen';
 
   @override
-  String get settings_network_validation_tooLong =>
-      'Must be 255 bytes or fewer';
+  String get settings_network_validation_tooLong => 'Maximaal 255 bytes';
 
   @override
-  String get settings_network_test_button => 'Test connection';
+  String get settings_network_test_button => 'Verbinding testen';
 
   @override
-  String get settings_network_test_running => 'Testing';
+  String get settings_network_test_running => 'Bezig met testen';
 
   @override
   String settings_network_test_successProxy(
@@ -24380,44 +24381,45 @@ class AppLocalizationsNl extends AppLocalizations {
     String type,
     int ms,
   ) {
-    return 'Connected through $endpoint ($type) in $ms ms';
+    return 'Verbonden via $endpoint ($type) in $ms ms';
   }
 
   @override
   String settings_network_test_successDirect(int ms) {
-    return 'Connected directly in $ms ms';
+    return 'Rechtstreeks verbonden in $ms ms';
   }
 
   @override
   String settings_network_test_unreachable(String endpoint) {
-    return 'Couldn\'t reach $endpoint. Check the host and port.';
+    return '$endpoint is niet bereikbaar. Controleer de host en poort.';
   }
 
   @override
   String get settings_network_test_authRejected =>
-      'The proxy rejected the username or password.';
+      'De proxy heeft de gebruikersnaam of het wachtwoord geweigerd.';
 
   @override
   String get settings_network_test_authRequiredSystem =>
-      'This proxy requires a username and password. Choose Manual and enter them.';
+      'Deze proxy vereist een gebruikersnaam en wachtwoord. Kies Handmatig en voer ze in.';
 
   @override
   String get settings_network_test_tls =>
-      'Secure connection failed. Your network may inspect HTTPS traffic; its certificate must be trusted by this device.';
+      'Beveiligde verbinding mislukt. Je netwerk inspecteert mogelijk HTTPS-verkeer; het certificaat daarvan moet op dit apparaat vertrouwd zijn.';
 
   @override
-  String get settings_network_test_timeout => 'The connection timed out.';
+  String get settings_network_test_timeout =>
+      'Er is een time-out opgetreden bij de verbinding.';
 
   @override
   String settings_network_test_failed(String detail) {
-    return 'The connection failed: $detail. The debug log has the full error.';
+    return 'Verbinding mislukt: $detail. Het foutopsporingslogboek bevat de volledige fout.';
   }
 
   @override
-  String get settings_section_network_subtitle => 'Proxy server';
+  String get settings_section_network_subtitle => 'Proxyserver';
 
   @override
-  String get settings_section_network_title => 'Network';
+  String get settings_section_network_title => 'Netwerk';
 
   @override
   String get settings_section_notifications_subtitle =>

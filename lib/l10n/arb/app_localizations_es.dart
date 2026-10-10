@@ -24437,61 +24437,63 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_network_mode_header => 'Proxy';
 
   @override
-  String get settings_network_mode_system => 'System proxy';
+  String get settings_network_mode_system => 'Proxy del sistema';
 
   @override
   String get settings_network_mode_system_subtitle =>
-      'Use the proxy configured in your device\'s network settings';
+      'Usar el proxy configurado en los ajustes de red de tu dispositivo';
 
   @override
   String get settings_network_mode_manual => 'Manual';
 
   @override
-  String get settings_network_mode_manual_subtitle => 'Enter a proxy server';
+  String get settings_network_mode_manual_subtitle =>
+      'Introducir un servidor proxy';
 
   @override
-  String get settings_network_mode_none => 'No proxy';
+  String get settings_network_mode_none => 'Sin proxy';
 
   @override
-  String get settings_network_mode_none_subtitle => 'Always connect directly';
+  String get settings_network_mode_none_subtitle =>
+      'Conectar siempre directamente';
 
   @override
   String get settings_network_status_detecting =>
-      'Checking this device\'s proxy settings';
+      'Comprobando los ajustes de proxy de este dispositivo';
 
   @override
   String get settings_network_status_none =>
-      'No proxy configured on this device';
+      'No hay ningún proxy configurado en este dispositivo';
 
   @override
   String settings_network_status_fixed(String endpoint) {
-    return 'Using $endpoint';
+    return 'Usando $endpoint';
   }
 
   @override
   String settings_network_status_fixedPac(String endpoint) {
-    return 'Using $endpoint (from automatic configuration)';
+    return 'Usando $endpoint (desde la configuración automática)';
   }
 
   @override
   String settings_network_status_fixedSocks(String endpoint) {
-    return 'Using $endpoint (SOCKS5)';
+    return 'Usando $endpoint (SOCKS5)';
   }
 
   @override
   String get settings_network_status_pacUnsupported =>
-      'Automatic proxy configuration isn\'t supported on this device. Choose Manual and enter the proxy.';
+      'La configuración automática del proxy no es compatible con este dispositivo. Elige Manual e introduce el proxy.';
 
   @override
   String get settings_network_status_pacFailed =>
-      'The automatic proxy configuration couldn\'t be read. Choose Manual and enter the proxy.';
+      'No se pudo leer la configuración automática del proxy. Elige Manual e introduce el proxy.';
 
   @override
   String get settings_network_status_error =>
-      'This device\'s proxy settings couldn\'t be read.';
+      'No se pudieron leer los ajustes de proxy de este dispositivo.';
 
   @override
-  String get settings_network_status_refresh => 'Check again';
+  String get settings_network_status_refresh => 'Comprobar de nuevo';
 
   @override
   String get settings_network_manual_typeHttp => 'HTTP';
@@ -24503,62 +24505,63 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_network_manual_host => 'Host';
 
   @override
-  String get settings_network_manual_port => 'Port';
+  String get settings_network_manual_port => 'Puerto';
 
   @override
-  String get settings_network_manual_username => 'Username (optional)';
+  String get settings_network_manual_username => 'Nombre de usuario (opcional)';
 
   @override
-  String get settings_network_manual_password => 'Password (optional)';
+  String get settings_network_manual_password => 'Contraseña (opcional)';
 
   @override
-  String get settings_network_manual_showPassword => 'Show password';
+  String get settings_network_manual_showPassword => 'Mostrar contraseña';
 
   @override
-  String get settings_network_manual_hidePassword => 'Hide password';
+  String get settings_network_manual_hidePassword => 'Ocultar contraseña';
 
   @override
-  String get settings_network_manual_save => 'Save';
+  String get settings_network_manual_save => 'Guardar';
 
   @override
-  String get settings_network_manual_saved => 'Proxy settings saved';
+  String get settings_network_manual_saved => 'Ajustes de proxy guardados';
 
   @override
   String get settings_network_manual_nativeNote =>
-      'Sign-in screens provided by the operating system use the system proxy.';
+      'Las pantallas de inicio de sesión del sistema operativo usan el proxy del sistema.';
 
   @override
-  String get settings_network_validation_hostRequired => 'Enter the proxy host';
+  String get settings_network_validation_hostRequired =>
+      'Introduce el host del proxy';
 
   @override
   String get settings_network_validation_portInvalid =>
-      'Enter a port from 1 to 65535';
+      'Introduce un puerto entre 1 y 65535';
 
   @override
   String get settings_network_validation_passwordRequired =>
-      'Enter the password for this username';
+      'Introduce la contraseña de este nombre de usuario';
 
   @override
   String get settings_network_validation_usernameColon =>
-      'The username can\'t contain a colon';
+      'El nombre de usuario no puede contener dos puntos';
 
   @override
   String get settings_network_validation_passwordSemicolon =>
-      'The password can\'t contain a semicolon';
+      'La contraseña no puede contener punto y coma';
 
   @override
   String get settings_network_validation_passwordWhitespace =>
-      'The password can\'t start or end with a space';
+      'La contraseña no puede empezar ni terminar con un espacio';
 
   @override
   String get settings_network_validation_tooLong =>
-      'Must be 255 bytes or fewer';
+      'Debe tener 255 bytes o menos';
 
   @override
-  String get settings_network_test_button => 'Test connection';
+  String get settings_network_test_button => 'Probar conexión';
 
   @override
-  String get settings_network_test_running => 'Testing';
+  String get settings_network_test_running => 'Probando';
 
   @override
   String settings_network_test_successProxy(
@@ -24566,44 +24569,44 @@ class AppLocalizationsEs extends AppLocalizations {
     String type,
     int ms,
   ) {
-    return 'Connected through $endpoint ($type) in $ms ms';
+    return 'Conectado a través de $endpoint ($type) en $ms ms';
   }
 
   @override
   String settings_network_test_successDirect(int ms) {
-    return 'Connected directly in $ms ms';
+    return 'Conectado directamente en $ms ms';
   }
 
   @override
   String settings_network_test_unreachable(String endpoint) {
-    return 'Couldn\'t reach $endpoint. Check the host and port.';
+    return 'No se pudo acceder a $endpoint. Comprueba el host y el puerto.';
   }
 
   @override
   String get settings_network_test_authRejected =>
-      'The proxy rejected the username or password.';
+      'El proxy rechazó el nombre de usuario o la contraseña.';
 
   @override
   String get settings_network_test_authRequiredSystem =>
-      'This proxy requires a username and password. Choose Manual and enter them.';
+      'Este proxy requiere nombre de usuario y contraseña. Elige Manual e introdúcelos.';
 
   @override
   String get settings_network_test_tls =>
-      'Secure connection failed. Your network may inspect HTTPS traffic; its certificate must be trusted by this device.';
+      'Falló la conexión segura. Es posible que tu red inspeccione el tráfico HTTPS; este dispositivo debe confiar en su certificado.';
 
   @override
-  String get settings_network_test_timeout => 'The connection timed out.';
+  String get settings_network_test_timeout => 'Se agotó el tiempo de conexión.';
 
   @override
   String settings_network_test_failed(String detail) {
-    return 'The connection failed: $detail. The debug log has the full error.';
+    return 'Falló la conexión: $detail. El registro de depuración contiene el error completo.';
   }
 
   @override
-  String get settings_section_network_subtitle => 'Proxy server';
+  String get settings_section_network_subtitle => 'Servidor proxy';
 
   @override
-  String get settings_section_network_title => 'Network';
+  String get settings_section_network_title => 'Red';
 
   @override
   String get settings_section_notifications_subtitle =>
