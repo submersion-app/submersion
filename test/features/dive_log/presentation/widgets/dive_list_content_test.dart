@@ -24,6 +24,7 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 
+import '../../../../helpers/list_create_router.dart';
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/select_items_menu.dart';
@@ -1786,6 +1787,51 @@ void main() {
   });
 
   group('empty state beside an open form (issue #3192)', () {
+    Future<GoRouter> pumpEmptyInRouter(
+      WidgetTester tester, {
+      required double width,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        dives: [],
+        viewMode: ListViewMode.detailed,
+        highlightedDiveId: null,
+      );
+      return pumpListInCreateRouter(
+        tester,
+        overrides: overrides,
+        content: const DiveListContent(showAppBar: false),
+        listPath: '/dives',
+        width: width,
+      );
+    }
+
+    testWidgets('the create button opens the full-page form when narrow', (
+      tester,
+    ) async {
+      final router = await pumpEmptyInRouter(tester, width: 900);
+
+      await tester.tap(find.text('Log Your First Dive'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Log Dive Manually'));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.toString(), '/dives/new');
+      expect(find.text(kFullPageCreateForm), findsOneWidget);
+    });
+
+    testWidgets('the create button opens the pane form beside a detail pane', (
+      tester,
+    ) async {
+      final router = await pumpEmptyInRouter(tester, width: 1400);
+
+      await tester.tap(find.text('Log Your First Dive'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Log Dive Manually'));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.toString(), '/dives?mode=new');
+    });
+
     Future<void> pumpEmpty(
       WidgetTester tester, {
       required bool isFormOpen,
