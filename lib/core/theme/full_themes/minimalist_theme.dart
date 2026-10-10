@@ -16,8 +16,9 @@ const _surfaceDark = Color(0xFF121212);
 const _primaryLight = Color(0xFF475569);
 const _primaryDark = Color(0xFF94A3B8);
 
-// The light slate secondary reads at under 4:1 on the dark surface and cards,
-// so dark mode lifts it a step and pairs it with dark text (#2967).
+// The mid slate #64748B is too dark to read on the dark surface and cards
+// (under 4:1), so dark mode lifts it a step and pairs it with dark text
+// (#2967).
 const _secondaryDark = Color(0xFF7A8AA0);
 
 const _cardLight = Color(0xFFFFFFFF);

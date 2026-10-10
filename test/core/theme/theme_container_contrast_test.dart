@@ -104,8 +104,9 @@ void main() {
   });
 
   // Accents are drawn as text and icons straight on the page (section
-  // headers, TextButton labels, links): Console dark's app-bar navy secondary
-  // sat at 1.10:1 (#2959), Tropical light's teal primary at 2.46:1 (#2967).
+  // headers, TextButton labels, links): Console dark's tertiary once fell
+  // back to its card navy at 1:1 (#2956), its app-bar navy secondary sat at
+  // 1.10:1 (#2959), and Tropical light's teal primary at 2.46:1 (#2967).
   group('theme accent roles', () {
     /// Runs [check] on every preset in both brightnesses and fails once with
     /// every pair under WCAG AA, so one run lists all the offenders.
