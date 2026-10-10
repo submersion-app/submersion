@@ -235,6 +235,96 @@ void main() {
     expect(inner.offset, 0);
   });
 
+  testWidgets('removing the map mid-scroll releases the page', (tester) async {
+    final scroll = ScrollController();
+    addTearDown(scroll.dispose);
+    final showMap = ValueNotifier(true);
+    addTearDown(showMap.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            controller: scroll,
+            child: Column(
+              children: [
+                ValueListenableBuilder<bool>(
+                  valueListenable: showMap,
+                  builder: (context, show, _) => SizedBox(
+                    height: 200,
+                    child: show
+                        ? const LockedMapScrollPassthrough(
+                            child: FlutterMap(
+                              options: MapOptions(
+                                initialCenter: LatLng(0, 0),
+                                initialZoom: 5,
+                                interactionOptions: InteractionOptions(
+                                  flags: InteractiveFlag.none,
+                                ),
+                              ),
+                              children: [],
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
+                const SizedBox(height: 3000),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final at =
+        tester.getTopLeft(find.byType(FlutterMap)) + const Offset(20, 20);
+
+    final gesture = await tester.createGesture(
+      kind: PointerDeviceKind.trackpad,
+    );
+    await gesture.panZoomStart(at);
+    await gesture.panZoomUpdate(at, pan: const Offset(0, -60));
+    await tester.pump();
+    expect(scroll.position.isScrollingNotifier.value, isTrue);
+
+    // The drag is cancelled with the map, so the page is not left mid-drag.
+    showMap.value = false;
+    await tester.pump();
+    await gesture.panZoomEnd();
+    await tester.pumpAndSettle();
+
+    expect(scroll.position.isScrollingNotifier.value, isFalse);
+    expect(scroll.offset, 60);
+  });
+
+  testWidgets('a trackpad click-drag scrolls the page like a touch drag', (
+    tester,
+  ) async {
+    final (:scroll, map: _) = await pumpLockedMap(tester);
+    final at =
+        tester.getTopLeft(find.byType(FlutterMap)) + const Offset(20, 20);
+
+    // An ordinary trackpad pointer, not a pan-zoom: the passthrough leaves it
+    // alone and the page's own drag recognizer takes it.
+    final gesture = await tester.startGesture(
+      at,
+      kind: PointerDeviceKind.trackpad,
+    );
+    await gesture.moveBy(const Offset(0, -40));
+    await gesture.up();
+    await tester.pump();
+
+    expect(scroll.offset, 40);
+  });
+
+  testWidgets('names its recognizer in diagnostics', (tester) async {
+    await pumpLockedMap(tester);
+
+    expect(
+      tester.element(find.byType(LockedMapScrollPassthrough)).toStringDeep(),
+      contains('trackpadScroll'),
+    );
+  });
+
   testWidgets('taps still reach widgets inside the locked map', (tester) async {
     var taps = 0;
     await pumpLockedMap(tester, onPinTap: () => taps++);

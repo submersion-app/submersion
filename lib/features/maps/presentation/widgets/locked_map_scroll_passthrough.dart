@@ -36,8 +36,8 @@ class _LockedMapScrollPassthroughState
   /// Starts the drag on the first movement, once the gesture's main axis is
   /// known, so a vertical scroll skips a nearer horizontal scrollable.
   void _update(Offset panDelta, Offset globalPosition) {
+    // The recognizer reports only non-zero movement.
     if (_drag == null) {
-      if (panDelta == Offset.zero) return;
       final axis = panDelta.dy.abs() >= panDelta.dx.abs()
           ? Axis.vertical
           : Axis.horizontal;
@@ -111,8 +111,9 @@ class _LockedMapScrollPassthroughState
 /// Claims a trackpad pan-zoom gesture, reporting each update's pan delta and
 /// the release velocity.
 ///
-/// Like `TrackpadZoomGestureRecognizer`, [addAllowedPointer] is a no-op, so
-/// ordinary pointers (mouse, touch, a trackpad click-drag) are left alone.
+/// Like `TrackpadZoomGestureRecognizer`, it takes only pan-zoom: ordinary
+/// pointers (mouse, touch, a trackpad click-drag) are never added, since the
+/// inherited `addAllowedPointer` ignores them.
 class _TrackpadScrollRecognizer extends OneSequenceGestureRecognizer {
   _TrackpadScrollRecognizer({super.debugOwner})
     : super(supportedDevices: const {PointerDeviceKind.trackpad});
@@ -121,9 +122,6 @@ class _TrackpadScrollRecognizer extends OneSequenceGestureRecognizer {
   void Function(Velocity velocity)? onEnd;
 
   VelocityTracker? _tracker;
-
-  @override
-  void addAllowedPointer(PointerDownEvent event) {}
 
   @override
   void addAllowedPointerPanZoom(PointerPanZoomStartEvent event) {
