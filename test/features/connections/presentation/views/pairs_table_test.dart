@@ -12,6 +12,7 @@ import 'package:submersion/features/connections/presentation/views/pairs_table.d
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import 'package:submersion/features/connections/presentation/views/table_parts.dart';
 
 NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
 
@@ -116,5 +117,13 @@ void main() {
     final header = tester.getRect(find.text('Shared dives'));
     final next = tester.getRect(find.text('Last shared'));
     expect(next.left - header.right, greaterThanOrEqualTo(12));
+  });
+
+  testWidgets('the list ends clear of the year play pill', (tester) async {
+    await _pump(tester);
+    expect(
+      tester.widget<ListView>(find.byType(ListView)).padding,
+      const EdgeInsets.only(bottom: kTableEndPadding),
+    );
   });
 }

@@ -8,6 +8,7 @@ import 'package:submersion/features/connections/domain/entities/graph_selection.
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/views/matrix_model.dart';
 import 'package:submersion/features/connections/presentation/views/matrix_painter.dart';
+import 'package:submersion/features/connections/presentation/views/table_parts.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shared dives between every pair on the map as a grid. Drag or scroll to
@@ -52,7 +53,8 @@ class _ConnectionsMatrixState extends State<ConnectionsMatrix> {
     final maxY = math.max(
       0.0,
       m.rows.length * MatrixGeometry.cell -
-          (size.height - MatrixGeometry.columnHeader),
+          (size.height - MatrixGeometry.columnHeader) +
+          kTableEndPadding,
     );
     return Offset(o.dx.clamp(0.0, maxX), o.dy.clamp(0.0, maxY));
   }

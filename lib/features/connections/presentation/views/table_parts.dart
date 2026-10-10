@@ -6,6 +6,10 @@ import 'package:submersion/features/connections/presentation/canvas/connection_k
 /// (a right-aligned number would otherwise run into the next column).
 const double kTableCellInset = 6;
 
+/// Space after the last table row or matrix row, so the year play pill that
+/// floats at the bottom never covers it.
+const double kTableEndPadding = 72;
+
 class TableColumnSpec<T extends Enum> {
   const TableColumnSpec(
     this.id,

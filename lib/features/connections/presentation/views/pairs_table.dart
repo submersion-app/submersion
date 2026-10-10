@@ -88,6 +88,7 @@ class _PairsTableState extends ConsumerState<PairsTable> {
             ),
             Expanded(
               child: ListView.builder(
+                padding: const EdgeInsets.only(bottom: kTableEndPadding),
                 itemCount: rows.length,
                 itemExtent: 48,
                 itemBuilder: (context, i) {

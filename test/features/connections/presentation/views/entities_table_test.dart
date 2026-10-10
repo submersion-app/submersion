@@ -12,6 +12,7 @@ import 'package:submersion/features/connections/presentation/views/entities_tabl
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import 'package:submersion/features/connections/presentation/views/table_parts.dart';
 
 NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
 
@@ -106,5 +107,13 @@ void main() {
     expect(find.text('Strongest connection'), findsOneWidget);
     expect(find.text('Cy (7)'), findsOneWidget);
     expect(find.text('First dive'), findsOneWidget);
+  });
+
+  testWidgets('the list ends clear of the year play pill', (tester) async {
+    await _pump(tester);
+    expect(
+      tester.widget<ListView>(find.byType(ListView)).padding,
+      const EdgeInsets.only(bottom: kTableEndPadding),
+    );
   });
 }

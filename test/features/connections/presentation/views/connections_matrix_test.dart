@@ -11,6 +11,7 @@ import 'package:submersion/features/connections/presentation/views/connections_m
 import 'package:submersion/features/connections/presentation/views/matrix_model.dart';
 import 'package:submersion/features/connections/presentation/views/matrix_painter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/connections/presentation/views/table_parts.dart';
 
 NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
 NodeRef _s(String id) => NodeRef(ConnectionKind.site, id);
@@ -31,7 +32,10 @@ final _graph = ConnectionGraph(
   edges: [_e(_b('ann'), _s('reef'), 3), _e(_b('bob'), _s('reef'), 1)],
 );
 
-Future<List<GraphSelection?>> _pump(WidgetTester tester) async {
+Future<List<GraphSelection?>> _pump(
+  WidgetTester tester, {
+  ConnectionGraph? graph,
+}) async {
   tester.view.physicalSize = const Size(400, 600);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
@@ -42,7 +46,7 @@ Future<List<GraphSelection?>> _pump(WidgetTester tester) async {
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: ConnectionsMatrix(
-          graph: _graph,
+          graph: graph ?? _graph,
           colors: const ConnectionKindColors({}, Colors.grey),
           selection: null,
           onSelect: picked.add,
@@ -106,5 +110,35 @@ void main() {
                 .painter!
             as MatrixPainter;
     expect(painter.scroll, Offset.zero);
+  });
+
+  testWidgets('the last row scrolls clear of the year play pill', (
+    tester,
+  ) async {
+    final buddies = [
+      for (var i = 0; i < 30; i++)
+        ConnectionNode(ref: _b('b$i'), label: 'B$i', diveCount: 30 - i),
+    ];
+    await _pump(
+      tester,
+      graph: ConnectionGraph(
+        nodes: [...buddies, _graph.nodes.first],
+        edges: [for (final b in buddies) _e(b.ref, _s('reef'), 1)],
+      ),
+    );
+    await tester.drag(find.byType(ConnectionsMatrix), const Offset(0, -3000));
+    await tester.pump();
+    final painter =
+        tester
+                .widget<CustomPaint>(
+                  find.byKey(const ValueKey('connections-matrix-paint')),
+                )
+                .painter!
+            as MatrixPainter;
+    const viewport = 600 - MatrixGeometry.columnHeader;
+    expect(
+      painter.scroll.dy,
+      30 * MatrixGeometry.cell - viewport + kTableEndPadding,
+    );
   });
 }
