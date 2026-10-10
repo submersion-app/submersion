@@ -195,10 +195,7 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
         for (final e in listed)
           DropdownMenuItem<EquipmentItem?>(
             value: e.id == chosen?.id ? chosen : e,
-            child: EquipmentDropdownLabel(
-              item: e,
-              details: labels[e.id]?.subtitle,
-            ),
+            child: EquipmentDropdownLabel(item: e, label: labels[e.id]),
           ),
       ],
       onChanged: (e) => setState(() => _equipmentByItemId[item.id] = e),

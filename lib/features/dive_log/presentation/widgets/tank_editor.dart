@@ -756,10 +756,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         for (final r in regs)
           DropdownMenuItem<String?>(
             value: r.id,
-            child: EquipmentDropdownLabel(
-              item: r,
-              details: labels[r.id]?.subtitle,
-            ),
+            child: EquipmentDropdownLabel(item: r, label: labels[r.id]),
           ),
       ],
       onChanged: (value) {

@@ -222,5 +222,30 @@ void main() {
       );
       expect(find.textContaining('ID Left', findRichText: true), findsNothing);
     });
+
+    testWidgets('lead with the ID, ahead of brand and model', (tester) async {
+      // A cut-off label loses its end first; the ID is what tells these two
+      // apart, so it must not be the part that goes.
+      final withModel = xtx(
+        'reg-2',
+        'Right',
+      ).copyWith(brand: 'Apeks', model: 'XTX50 Tungsten');
+      await _pump(
+        tester,
+        equipment: [xtx('reg-1', 'Left'), withModel],
+        tank: const DiveTank(id: 'tank-1', regulatorEquipmentId: 'reg-2'),
+      );
+
+      final label = tester
+          .widget<RichText>(
+            find.textContaining('ID Right', findRichText: true).first,
+          )
+          .text
+          .toPlainText();
+      expect(
+        label.indexOf('ID Right'),
+        lessThan(label.indexOf('Apeks XTX50 Tungsten')),
+      );
+    });
   });
 }
