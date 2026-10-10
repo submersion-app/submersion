@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/domain/water_temp_bands.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
+import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
@@ -40,6 +41,7 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
+          conditionsRowsProvider.overrideWith((ref) async => const []),
           waterTempTrendProvider.overrideWith((ref) async => const []),
           temperatureByMonthProvider.overrideWith((ref) async => const []),
           waterTempBandDistributionProvider.overrideWith((ref) async => bands),
