@@ -36,12 +36,22 @@ class _ConnectionsMatrixState extends State<ConnectionsMatrix> {
   ConnectionGraph? _modelFor;
   late MatrixModel _model;
 
+  final _text = MatrixTextCache();
+  TextStyle? _textStyle;
+
   MatrixModel get _current {
     if (!identical(_modelFor, widget.graph)) {
       _modelFor = widget.graph;
       _model = MatrixModel.of(widget.graph);
+      _text.clear();
     }
     return _model;
+  }
+
+  @override
+  void dispose() {
+    _text.clear();
+    super.dispose();
   }
 
   Offset _clamped(Offset o, Size size, MatrixModel m) {
@@ -82,6 +92,13 @@ class _ConnectionsMatrixState extends State<ConnectionsMatrix> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final m = _current;
+    final textStyle = theme.textTheme.labelSmall!.copyWith(
+      color: theme.colorScheme.onSurface,
+    );
+    if (textStyle != _textStyle) {
+      _text.clear();
+      _textStyle = textStyle;
+    }
     final selection = widget.selection;
     final ConnectionEdge? selectedEdge = switch (selection) {
       EdgeSelection(:final a, :final b) =>
@@ -123,9 +140,8 @@ class _ConnectionsMatrixState extends State<ConnectionsMatrix> {
                   model: m,
                   scroll: _scroll,
                   colors: widget.colors,
-                  textStyle: theme.textTheme.labelSmall!.copyWith(
-                    color: theme.colorScheme.onSurface,
-                  ),
+                  textStyle: textStyle,
+                  text: _text,
                   fill: theme.colorScheme.primary,
                   onFill: theme.colorScheme.onPrimary,
                   grid: theme.colorScheme.outlineVariant,

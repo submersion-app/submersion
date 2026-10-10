@@ -6,6 +6,23 @@ import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/views/matrix_model.dart';
 
+/// Laid-out matrix text, kept across frames by the matrix widget so a
+/// scroll never re-lays out the same header or count. The owner clears it
+/// when the map or the text style changes.
+class MatrixTextCache {
+  final Map<Object, TextPainter> painters = {};
+
+  TextPainter get(Object key, TextPainter Function() build) =>
+      painters.putIfAbsent(key, build);
+
+  void clear() {
+    for (final p in painters.values) {
+      p.dispose();
+    }
+    painters.clear();
+  }
+}
+
 /// Paints only the visible cells, with the row and column headers frozen at
 /// the left and top.
 class MatrixPainter extends CustomPainter {
@@ -22,7 +39,8 @@ class MatrixPainter extends CustomPainter {
     this.textDirection = TextDirection.ltr,
     this.selectedNode,
     this.selectedEdge,
-  });
+    MatrixTextCache? text,
+  }) : text = text ?? MatrixTextCache();
 
   final MatrixModel model;
   final Offset scroll;
@@ -44,6 +62,9 @@ class MatrixPainter extends CustomPainter {
   final NodeRef? selectedNode;
   final ConnectionEdge? selectedEdge;
 
+  /// Where laid-out header and count text lives between frames.
+  final MatrixTextCache text;
+
   static const _cell = MatrixGeometry.cell;
   static const _rowHeader = MatrixGeometry.rowHeader;
   static const _columnHeader = MatrixGeometry.columnHeader;
@@ -61,7 +82,6 @@ class MatrixPainter extends CustomPainter {
     final lastRow = ((scroll.dy + size.height - _columnHeader) / _cell)
         .ceil()
         .clamp(0, lastRowIndex);
-    final counts = <(int, bool), TextPainter>{};
     final gridPaint = Paint()
       ..color = grid
       ..strokeWidth = 0.5
@@ -93,8 +113,8 @@ class MatrixPainter extends CustomPainter {
             Paint()..color = fill.withValues(alpha: 0.15 + 0.75 * t),
           );
           final strong = t > 0.5;
-          final tp = counts.putIfAbsent(
-            (edge.weight, strong),
+          final tp = text.get(
+            ('count', edge.weight, strong),
             () => TextPainter(
               text: TextSpan(
                 text: '${edge.weight}',
@@ -157,10 +177,6 @@ class MatrixPainter extends CustomPainter {
       canvas.restore();
     }
     canvas.restore();
-
-    for (final tp in counts.values) {
-      tp.dispose();
-    }
   }
 
   /// A kind dot then the label, vertically centred on [at].
@@ -177,19 +193,21 @@ class MatrixPainter extends CustomPainter {
       Paint()..color = colors.colorFor(ref.kind),
     );
     final selected = ref == selectedNode;
-    final tp = TextPainter(
-      text: TextSpan(
-        text: label,
-        style: selected
-            ? textStyle.copyWith(fontWeight: FontWeight.w700)
-            : textStyle,
-      ),
-      textDirection: textDirection,
-      maxLines: 1,
-      ellipsis: '…',
-    )..layout(maxWidth: maxWidth);
+    final tp = text.get(
+      ('header', ref, selected, maxWidth),
+      () => TextPainter(
+        text: TextSpan(
+          text: label,
+          style: selected
+              ? textStyle.copyWith(fontWeight: FontWeight.w700)
+              : textStyle,
+        ),
+        textDirection: textDirection,
+        maxLines: 1,
+        ellipsis: '…',
+      )..layout(maxWidth: maxWidth),
+    );
     tp.paint(canvas, at + Offset(14, -tp.height / 2));
-    tp.dispose();
   }
 
   @override
