@@ -58,7 +58,7 @@ void main() {
         });
       }
 
-      test('the typed phrase starts with the Delete button label', () {
+      test('the typed phrase is the Delete button label plus the name', () {
         expect(
           arb['divers_detail_deleteDialogConfirmText'],
           '${arb['divers_detail_deleteButton']} {name}',
