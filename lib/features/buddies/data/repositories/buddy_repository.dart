@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
+import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_coun
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_conversion_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as dive_domain;
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -538,15 +540,22 @@ class BuddyRepository {
   }
 
   /// [dives] with [dive_domain.Dive.buddies] loaded from the `dive_buddies`
-  /// junction in one batched [getBuddiesForDives] query.
+  /// junction, in batched [getBuddiesForDives] queries.
   ///
   /// For dives read through `getDiveById` or `getDivesByIds`, which leave the
   /// junction unloaded (only `getAllDives` hydrates it), when the caller shows
-  /// or exports the people on them (#3039).
+  /// or exports the people on them (#3039). The ids are bound in runs of
+  /// [chunkSize], since a whole trip or a large export selection has no upper
+  /// bound and each id is one SQL variable.
   Future<List<dive_domain.Dive>> withBuddies(
-    List<dive_domain.Dive> dives,
-  ) async {
-    final byDive = await getBuddiesForDives(dives.map((d) => d.id).toList());
+    List<dive_domain.Dive> dives, {
+    @visibleForTesting int chunkSize = kSeriesIdChunkSize,
+  }) async {
+    final ids = dives.map((d) => d.id).toSet().toList();
+    final byDive = <String, List<domain.BuddyWithRole>>{};
+    for (final chunk in seriesIdChunks(ids, size: chunkSize)) {
+      byDive.addAll(await getBuddiesForDives(chunk));
+    }
     return [
       for (final dive in dives)
         dive.copyWith(buddies: byDive[dive.id] ?? const []),
