@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_dive_parser.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_file_adapter.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/import_wizard/data/adapters/suunto_route_wri
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/suunto_file_step.dart';
 
+import '../../../../helpers/fake_dive_computer_connections.dart';
 import 'suunto_cloud_adapter_test.mocks.dart';
 
 class _RecordingRouteWriter implements SuuntoRouteWriter {
@@ -117,6 +119,29 @@ void main() {
 
     expect(result.importedDiveIds, ['new-dive-id']);
     expect(recorder.attached, ['new-dive-id']);
+  });
+
+  test('records the Suunto JSON file as a connection (#3106)', () async {
+    final connections = FakeDiveComputerConnections();
+    final recording = SuuntoFileAdapter(
+      importService: mockImportService,
+      computerRepository: mockComputerRepo,
+      diveRepository: mockDiveRepo,
+      consolidationService: MockDiveConsolidationService(),
+      diverId: 'diver-1',
+      routeWriter: recorder,
+      connectionRepository: connections,
+    );
+    recording.setParsedDives([parsed]);
+    final bundle = await recording.buildBundle();
+
+    await recording.performImport(bundle, {
+      ImportEntityType.dives: {0},
+    }, {});
+
+    expect(connections.recorded.map((r) => (r.kind, r.detail)), [
+      (DiveComputerConnectionKind.file, 'suuntoJson'),
+    ]);
   });
 
   test('loads only the dives from the file step results', () async {

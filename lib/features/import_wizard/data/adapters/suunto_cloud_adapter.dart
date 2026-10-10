@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_cloud_client.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_session_store.dart';
@@ -45,6 +46,7 @@ class SuuntoCloudAdapter extends SuuntoDiveImportCore {
     required super.diverId,
     super.routeWriter,
     super.ref,
+    super.connectionRepository,
   });
 
   /// The authenticated client obtained by the sign-in step, reused by the
@@ -65,6 +67,12 @@ class SuuntoCloudAdapter extends SuuntoDiveImportCore {
   void setAccount(String? account) {
     _account = account;
   }
+
+  /// Each computer imported here reached the library through the Suunto cloud
+  /// (issue #3106).
+  @override
+  (DiveComputerConnectionKind, String) get importConnection =>
+      (DiveComputerConnectionKind.cloud, 'suuntoCloud');
 
   @override
   String? get sourceAccount => _account;

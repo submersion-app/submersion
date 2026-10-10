@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/database/computer_serial_identity.dart';
+import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -115,7 +119,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     WidgetRef? ref,
     bool forceFullDownload = false,
     PlannedDiveFillService? fillService,
+    DiveComputerConnectionRepository? connectionRepository,
   }) : _importService = importService,
+       _connectionRepository = connectionRepository,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
        _consolidationService = consolidationService,
@@ -138,6 +144,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   final DiveComputerRepository _computerRepository;
   final DiveRepository _diveRepository;
   final DiveConsolidationService _consolidationService;
+
+  /// Where this download's connection is recorded (issue #3106). Read from
+  /// [_ref] when not given, and absent in a bare test, which then records
+  /// nothing.
+  final DiveComputerConnectionRepository? _connectionRepository;
+  DiveComputerConnectionRepository? get _connections =>
+      _connectionRepository ??
+      _ref?.read(diveComputerConnectionRepositoryProvider);
 
   /// Fills planned dives from downloads (issue #2002).
   final PlannedDiveFillService _fillService;
@@ -251,6 +265,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   /// completes.
   Future<void> resolveKnownComputer(DiscoveredDevice device) async {
     if (computer != null) return;
+    if (_diverId.isNotEmpty && await _resolveByLocalConnection(device)) {
+      return;
+    }
     if (device.connectionType == DeviceConnectionType.ble ||
         device.connectionType == DeviceConnectionType.bluetoothClassic) {
       if (_diverId.isEmpty) return;
@@ -261,6 +278,81 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       if (existing != null) {
         _computer = existing;
       }
+    }
+  }
+
+  /// Whether this device's connections name the computer at [device]'s
+  /// address (issue #3106), for any direct transport: a known USB computer
+  /// is found by its port, which the Bluetooth-only legacy lookup never did,
+  /// so its downloads resume from the stored fingerprint too.
+  Future<bool> _resolveByLocalConnection(DiscoveredDevice device) async {
+    final connections = _connections;
+    if (connections == null) return false;
+    try {
+      final id = await connections.computerIdForLocalAddress(
+        address: device.address,
+        diverId: _diverId,
+      );
+      if (id == null) return false;
+      final found = await _computerRepository.getComputerById(id);
+      if (found == null) return false;
+      _computer = found;
+      return true;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not look up ${device.address} in the saved connections',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
+  }
+
+  /// Record the transport this download used on [_computer] (issue #3106).
+  ///
+  /// A saved computer can be matched by make and model alone (issue #1423),
+  /// so a reported serial that is not the stored one means another unit
+  /// answered, and nothing about that connection belongs on this record.
+  /// Bookkeeping: a failure is logged, never thrown (#2439).
+  Future<void> _recordDirectConnection(
+    DiscoveredDevice device,
+    String? reportedSerial,
+  ) async {
+    final computer = this.computer;
+    final connections = _connections;
+    if (computer == null || connections == null) return;
+    final stored = computer.serialNumber?.trim() ?? '';
+    final reported = reportedSerial?.trim() ?? '';
+    if (stored.isNotEmpty &&
+        reported.isNotEmpty &&
+        !computerSerialsMatch(
+          stored,
+          reported,
+          shearwater: shearwaterPair(
+            manufacturerA: computer.manufacturer,
+            modelA: computer.model,
+            manufacturerB: device.manufacturer,
+            modelB: device.model,
+          ),
+        )) {
+      _log.warning(
+        'Not recording ${device.address} for ${computer.displayName}: it '
+        'reported serial $reported, the record holds $stored',
+      );
+      return;
+    }
+    try {
+      await connections.recordConnection(
+        computerId: computer.id,
+        kind: DiveComputerConnectionKind.fromDevice(device.connectionType),
+        address: device.address,
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Could not record the connection for ${computer.displayName}',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -323,7 +415,10 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       DeviceConnectionType.infrared => 'infrared',
     };
 
-    if (computer != null) return;
+    if (computer != null) {
+      await _recordDirectConnection(device, serialNumber);
+      return;
+    }
 
     // A BLE identifier is local to the host running this app. After a fresh
     // discovery, use the stable hardware identity to rebind this host's
@@ -368,6 +463,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             );
         await _computerRepository.updateComputer(rebound);
         _computer = rebound;
+        await _recordDirectConnection(device, normalizedSerial);
         return;
       }
     }
@@ -394,6 +490,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         );
 
     _computer = await _computerRepository.createComputer(newComputer);
+    await _recordDirectConnection(device, serialNumber);
   }
 
   // ---------------------------------------------------------------------------
