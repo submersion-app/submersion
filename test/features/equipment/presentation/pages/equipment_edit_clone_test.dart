@@ -57,6 +57,7 @@ void main() {
     source = await repository.createEquipment(
       const EquipmentItem(
         id: '',
+        diverId: 'owner',
         name: 'Reg A',
         type: EquipmentType.regulator,
         brand: 'Apeks',
@@ -67,6 +68,13 @@ void main() {
     await tagRepository.replaceTags(source.id, ['t1', 't2']);
   });
   tearDown(tearDownTestDatabase);
+
+  /// Shares the source with the 'sharee' profile (#2046).
+  Future<void> shareWithSharee() =>
+      DatabaseService.instance.database.customStatement(
+        'INSERT INTO equipment_shares (id, equipment_id, diver_id, created_at) '
+        "VALUES ('share-1', '${source.id}', 'sharee', 0)",
+      );
 
   Future<void> pumpClone(
     WidgetTester tester, {
@@ -195,6 +203,35 @@ void main() {
     expect(fieldText(tester, 'Name *'), 'Reg B');
   });
 
+  group('a source the active diver cannot see', () {
+    testWidgets('opens as not found, so nothing can be cloned', (tester) async {
+      // Owned by 'owner' and not shared: a known id in the route must not
+      // open another profile's gear for copying.
+      await pumpClone(
+        tester,
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'sharee'),
+        ],
+      );
+
+      expect(find.text('Equipment Not Found'), findsOneWidget);
+      expect(find.text('Clone Equipment'), findsNothing);
+      expect(find.text('Save'), findsNothing);
+    });
+
+    testWidgets('opens once it is shared with the diver', (tester) async {
+      await shareWithSharee();
+      await pumpClone(
+        tester,
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'sharee'),
+        ],
+      );
+
+      expect(find.text('Clone Equipment'), findsOneWidget);
+    });
+  });
+
   testWidgets('starts with the source\'s tags', (tester) async {
     await pumpClone(tester);
 
@@ -205,6 +242,7 @@ void main() {
   testWidgets('a sharee\'s clone leaves the owner\'s own tags behind', (
     tester,
   ) async {
+    await shareWithSharee();
     await pumpClone(
       tester,
       extraOverrides: [
@@ -259,12 +297,15 @@ void main() {
       tester,
     ) async {
       await placeSource('owner');
+      await shareWithSharee();
       await pumpClone(
         tester,
         extraOverrides: [
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'sharee'),
         ],
       );
+      // The form opened, so the missing place below is the scoping at work.
+      expect(find.text('Clone Equipment'), findsOneWidget);
 
       expect(
         find.descendant(

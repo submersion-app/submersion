@@ -376,7 +376,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     // The item to edit, or the one a clone starts from.
     final loadId = widget.equipmentId ?? widget.cloneFromId;
     if (loadId != null) {
-      final equipmentAsync = ref.watch(equipmentItemProvider(loadId));
+      final equipmentAsync = ref.watch(
+        widget.isEditing
+            ? equipmentItemProvider(loadId)
+            : cloneSourceProvider(loadId),
+      );
       return equipmentAsync.when(
         data: (equipment) {
           if (equipment == null) {
