@@ -139,8 +139,12 @@ the same groups the Groups highlight colours. Each group of two or more nodes
 gets its own `ForceLayout` run to rest, and groups are packed side by side by
 the existing `IslandPacker`, biggest first. Ungrouped nodes go in the grid
 below, as the Web layout does today. Choosing Clusters does not switch the
-highlight to Groups. The cluster simulations run to rest inside the layout
-function (bounded by `maxIterations`), so the result is a static frame.
+highlight to Groups. Like Web, Clusters is a live layout: the group
+simulations advance a bounded number of iterations per frame
+(`WholeWebLayout` with the groups as its islands), so a 400-node map never
+blocks a frame, and a dragged node's group re-settles around it. (Running
+the simulations to rest in one pass measured up to 258 ms per graph change
+at 400 nodes, which stalled year play.)
 
 ### Timeline
 

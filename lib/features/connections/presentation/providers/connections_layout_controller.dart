@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/insights/label_propagation.dart';
 import 'package:submersion/features/connections/domain/layout/connections_layout.dart';
 import 'package:submersion/features/connections/domain/layout/graph_point.dart';
 import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
@@ -15,9 +16,10 @@ import 'package:submersion/features/connections/domain/layout/whole_web_layout.d
 const Duration kRefocusDuration = Duration(milliseconds: 450);
 const Curve kRefocusCurve = Curves.easeInOutCubic;
 
-/// Owns the live layout. The web layout advances a bounded number of
-/// iterations per frame until it settles; every other layout is computed
-/// at once and morphs in from the previous frame. Dragged nodes are pinned
+/// Owns the live layout. The web and clusters layouts advance a bounded
+/// number of iterations per frame until they settle (so a big map never
+/// blocks a frame); every other layout is computed at once and morphs in
+/// from the previous frame. Dragged nodes are pinned
 /// until the graph, the layout or the spacing changes, or [relayout].
 class ConnectionsLayoutController extends ChangeNotifier {
   ConnectionsLayoutController({
@@ -73,13 +75,10 @@ class ConnectionsLayoutController extends ChangeNotifier {
     _pins = const {};
     _morphTo = null;
     _morphFrom = null;
-    if (layout == ConnectionsLayout.web) {
+    if (_isLive(layout)) {
       _base = null;
-      final web = WholeWebLayout(
-        nodes: _byDives(graph),
-        edges: graph.edges,
+      final web = _liveLayout(
         initialPositions: warmStart ? previous.positions : const {},
-        spacing: spacing,
       );
       _web = web;
       _frame = web.frame;
@@ -143,12 +142,8 @@ class ConnectionsLayoutController extends ChangeNotifier {
   /// Releases every pin: the web lays the graph out again from its seed, a
   /// static layout returns to its computed frame.
   void relayout() {
-    if (_layout == ConnectionsLayout.web) {
-      final web = WholeWebLayout(
-        nodes: _byDives(_graph),
-        edges: _graph.edges,
-        spacing: _spacing,
-      );
+    if (_isLive(_layout)) {
+      final web = _liveLayout();
       _web = web;
       _frame = web.frame;
       _syncTicker();
@@ -251,6 +246,34 @@ class ConnectionsLayoutController extends ChangeNotifier {
   void dispose() {
     _ticker.dispose();
     super.dispose();
+  }
+
+  static bool _isLive(ConnectionsLayout layout) =>
+      layout == ConnectionsLayout.web || layout == ConnectionsLayout.clusters;
+
+  /// A force layout over the current graph: one island per connected
+  /// component for web, one per label-propagation group for clusters.
+  WholeWebLayout _liveLayout({
+    Map<NodeRef, GraphPoint> initialPositions = const {},
+  }) {
+    final order = _byDives(_graph);
+    List<List<NodeRef>>? islands;
+    if (_layout == ConnectionsLayout.clusters) {
+      final groupOf = LabelPropagation.communities(_graph).groupOf;
+      final byGroup = <int, List<NodeRef>>{};
+      for (final ref in order) {
+        final g = groupOf[ref];
+        if (g != null) byGroup.putIfAbsent(g, () => []).add(ref);
+      }
+      islands = [for (final g in byGroup.keys.toList()..sort()) byGroup[g]!];
+    }
+    return WholeWebLayout(
+      nodes: order,
+      edges: _graph.edges,
+      initialPositions: initialPositions,
+      spacing: _spacing,
+      islands: islands,
+    );
   }
 
   /// Busiest first, then by name, so the island grid leads with the

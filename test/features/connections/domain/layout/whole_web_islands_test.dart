@@ -1,11 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
-import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
-import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
-import 'package:submersion/features/connections/domain/layout/cluster_layout.dart';
 import 'package:submersion/features/connections/domain/layout/graph_point.dart';
+import 'package:submersion/features/connections/domain/layout/whole_web_layout.dart';
 
 NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
 
@@ -17,24 +15,38 @@ ConnectionEdge _e(String a, String b) => ConnectionEdge(
   lastDiveAt: DateTime.utc(2024),
 );
 
-final _graph = ConnectionGraph(
-  nodes: [
-    for (final id in ['a1', 'a2', 'a3', 'z1', 'z2', 'z3', 'lone'])
-      ConnectionNode(ref: _b(id), label: id, diveCount: 1),
-  ],
-  edges: [
-    _e('a1', 'a2'),
-    _e('a2', 'a3'),
-    _e('a1', 'a3'),
-    _e('z1', 'z2'),
-    _e('z2', 'z3'),
-    _e('z1', 'z3'),
-  ],
-);
+final _nodes = [
+  for (final id in ['a1', 'a2', 'a3', 'z1', 'z2', 'z3', 'lone']) _b(id),
+];
+
+// One edge (a3-z1) joins the two groups, so connected components alone
+// would lay them out as one island.
+final _edges = [
+  _e('a1', 'a2'),
+  _e('a2', 'a3'),
+  _e('a1', 'a3'),
+  _e('z1', 'z2'),
+  _e('z2', 'z3'),
+  _e('z1', 'z3'),
+  _e('a3', 'z1'),
+];
+
+final _islands = [
+  [_b('a1'), _b('a2'), _b('a3')],
+  [_b('z1'), _b('z2'), _b('z3')],
+];
+
+WholeWebLayout _settled() {
+  final web = WholeWebLayout(nodes: _nodes, edges: _edges, islands: _islands);
+  while (!web.settled) {
+    web.advance(50);
+  }
+  return web;
+}
 
 void main() {
-  test('each group gets its own island, islands do not overlap', () {
-    final f = ClusterLayout.compute(graph: _graph);
+  test('given islands are laid out apart even when an edge joins them', () {
+    final f = _settled().frame;
     GraphBounds box(List<String> ids) =>
         GraphBounds.of([for (final id in ids) f.positions[_b(id)]!]);
     final a = box(['a1', 'a2', 'a3']);
@@ -47,8 +59,8 @@ void main() {
     expect(apart, isTrue);
   });
 
-  test('an ungrouped node goes below the islands', () {
-    final f = ClusterLayout.compute(graph: _graph);
+  test('a node in no island goes in the grid below', () {
+    final f = _settled().frame;
     final lowest = [
       for (final id in ['a1', 'a2', 'a3', 'z1', 'z2', 'z3'])
         f.positions[_b(id)]!.y,
@@ -56,17 +68,12 @@ void main() {
     expect(f.positions[_b('lone')]!.y, greaterThan(lowest));
   });
 
-  test('is deterministic and settled', () {
-    final f1 = ClusterLayout.compute(graph: _graph);
-    final f2 = ClusterLayout.compute(graph: _graph);
-    expect(f1.positions, f2.positions);
-    expect(f1.settled, isTrue);
+  test('islands step over ticks rather than settling at once', () {
+    final web = WholeWebLayout(nodes: _nodes, edges: _edges, islands: _islands);
+    expect(web.settled, isFalse);
   });
 
-  test('an empty graph lays out nothing', () {
-    expect(
-      ClusterLayout.compute(graph: ConnectionGraph.empty).positions,
-      isEmpty,
-    );
+  test('is deterministic', () {
+    expect(_settled().frame.positions, _settled().frame.positions);
   });
 }

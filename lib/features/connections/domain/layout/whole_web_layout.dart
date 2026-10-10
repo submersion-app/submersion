@@ -8,7 +8,10 @@ import 'package:submersion/features/connections/domain/layout/island_packer.dart
 import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
 
 /// One [ForceLayout] per connected component of two or more nodes, packed
-/// side by side, with single nodes in a grid below them.
+/// side by side, with single nodes in a grid below them. Given [islands],
+/// those groups are laid out instead (the Clusters layout passes the groups
+/// label propagation finds); edges between islands are not simulated, and
+/// a node in no island joins the single-node grid.
 ///
 /// Packing offsets are recomputed on every frame until every island has
 /// settled, then frozen, so a node the user drags afterwards stays where it
@@ -20,9 +23,12 @@ class WholeWebLayout {
     Map<NodeRef, GraphPoint> initialPositions = const {},
     int maxIterations = 300,
     double spacing = 1,
+    List<List<NodeRef>>? islands,
   }) : _spacing = spacing {
     final order = {for (var i = 0; i < nodes.length; i++) nodes[i]: i};
-    final comps = IslandPacker.components(nodes, edges);
+    final comps = islands == null
+        ? IslandPacker.components(nodes, edges)
+        : _withLoose(nodes, islands);
     _singles = [
       for (final c in comps)
         if (c.length == 1) c.single,
@@ -48,6 +54,23 @@ class WholeWebLayout {
     }
     _offsets = List.filled(_layouts.length, GraphPoint.zero);
     _recompose();
+  }
+
+  /// [islands] of two or more nodes, then every other node on its own.
+  static List<List<NodeRef>> _withLoose(
+    List<NodeRef> nodes,
+    List<List<NodeRef>> islands,
+  ) {
+    final grouped = [
+      for (final i in islands)
+        if (i.length > 1) i,
+    ];
+    final placed = {for (final i in grouped) ...i};
+    return [
+      ...grouped,
+      for (final n in nodes)
+        if (!placed.contains(n)) [n],
+    ];
   }
 
   final List<ForceLayout> _layouts = [];

@@ -97,4 +97,32 @@ void main() {
     c.moveNode(_b('a'), const GraphPoint(3, 3));
     expect(c.hasPins, isTrue);
   });
+
+  test('clusters returns at once and settles over ticks', () {
+    final triangle = ConnectionGraph(
+      nodes: [
+        for (final id in ['a', 'b', 'c', 'd'])
+          ConnectionNode(ref: _b(id), label: id, diveCount: 1),
+      ],
+      edges: [
+        for (final (x, y) in [('a', 'b'), ('b', 'c'), ('a', 'c'), ('c', 'd')])
+          ConnectionEdge(
+            source: _b(x),
+            target: _b(y),
+            weight: 2,
+            firstDiveAt: DateTime.utc(2024),
+            lastDiveAt: DateTime.utc(2024),
+          ),
+      ],
+    );
+    c.setGraph(triangle, layout: ConnectionsLayout.clusters);
+    expect(c.layout, ConnectionsLayout.clusters);
+    expect(c.settled, isFalse);
+    while (!c.settled) {
+      c.stepForTest();
+    }
+    expect(c.frame.positions.length, 4);
+    c.moveNode(_b('a'), const GraphPoint(400, 400));
+    expect(c.hasPins, isTrue);
+  });
 }
