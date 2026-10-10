@@ -20,7 +20,23 @@ item removes that retyping.
    source (rules below). Nothing is written until Save.
 4. Cancel leaves no trace.
 5. Save creates the clone, copies its extras (below), and replaces the form
-   with the **clone's** detail page, showing an "Equipment cloned" snackbar.
+   with the **clone's** detail page (`pushReplacement`, so Back returns to the
+   original), showing an "Equipment cloned" snackbar.
+
+## Shared gear
+
+Clone is offered to everyone who can see the item, a sharee of shared gear
+(#2046) included, like Open in Connections. The clone always belongs to the
+active diver (the form is in create mode, so the save takes the current diver,
+never the source's owner). Two copy rules keep it inside that diver's profile:
+
+- Set membership copies only into sets owned by the active diver (with no
+  active diver, every set counts, as elsewhere). The owner's sets are never
+  touched.
+- A source clock whose service kind is another diver's custom kind is skipped,
+  the same scoping `autoAttachForEquipment` applies.
+- Tags pre-fill only when they are unowned or the active diver's, and the
+  first location pre-fills only when it is one of the active diver's places.
 
 ## What the form pre-fills
 
@@ -111,10 +127,11 @@ clone follows the same rule:
   id, the suffixed name, no serial, no legacy service fields, and the cell slot
   and install date attributes removed.
 - **`EquipmentCloneService`** (`lib/features/equipment/data/services/`): one
-  method, `copyExtras({sourceId, cloneId})`, returning the failed steps. It
+  method, `copyExtras({sourceId, cloneId, diverId})`, returning the failed
+  steps. It
   depends on the service schedule, equipment set and media repositories.
-- **Detail page.** A `clone` entry in `_buildMenuItems` and its case in the
-  menu handler.
+- **Detail page.** A `clone` entry in `_buildMenuItems`, shown to every
+  viewer, and its case in the menu handler.
 
 ## Strings
 
