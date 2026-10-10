@@ -30445,12 +30445,6 @@ abstract class AppLocalizations {
   /// **'Setup'**
   String get plannerCanvas_tab_setup;
 
-  /// No description provided for @plannerCanvas_o2Narcotic.
-  ///
-  /// In en, this message translates to:
-  /// **'Treat O₂ as narcotic'**
-  String get plannerCanvas_o2Narcotic;
-
   /// No description provided for @plannerCanvas_rates_ascent.
   ///
   /// In en, this message translates to:

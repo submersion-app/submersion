@@ -95,7 +95,6 @@ class PlanEnvironmentSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final planState = ref.watch(divePlanNotifierProvider);
-    final o2Narcotic = ref.watch(settingsProvider.select((s) => s.o2Narcotic));
     final units = UnitFormatter(ref.watch(settingsProvider));
     final waterOption = planWaterOptionFor(
       waterType: planState.waterType,
@@ -157,13 +156,6 @@ class PlanEnvironmentSection extends ConsumerWidget {
                 .updateSalinityPpt(value),
           ),
         ],
-        SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(context.l10n.plannerCanvas_o2Narcotic),
-          value: o2Narcotic,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).setO2Narcotic(value),
-        ),
       ],
     );
   }

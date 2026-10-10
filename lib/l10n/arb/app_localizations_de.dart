@@ -10131,7 +10131,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
-      'Treat O₂ as narcotic for this plan';
+      'O₂ für diesen Plan als narkotisch behandeln';
 
   @override
   String get divePlanner_label_tanks => 'Flaschen';
@@ -18997,9 +18997,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerCanvas_tab_setup => 'Einrichtung';
-
-  @override
-  String get plannerCanvas_o2Narcotic => 'O₂ als narkotisch behandeln';
 
   @override
   String get plannerCanvas_rates_ascent => 'Aufstiegsrate';

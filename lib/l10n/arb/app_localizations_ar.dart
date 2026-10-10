@@ -19264,9 +19264,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_tab_setup => 'الإعداد';
 
   @override
-  String get plannerCanvas_o2Narcotic => 'اعتبار الأكسجين مخدرًا';
-
-  @override
   String get plannerCanvas_rates_ascent => 'معدل الصعود';
 
   @override

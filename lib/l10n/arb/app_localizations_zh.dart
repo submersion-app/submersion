@@ -18110,9 +18110,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_tab_setup => '设置';
 
   @override
-  String get plannerCanvas_o2Narcotic => '将氧气视为麻醉性';
-
-  @override
   String get plannerCanvas_rates_ascent => '上升速率';
 
   @override

@@ -18891,9 +18891,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_tab_setup => 'Instellingen';
 
   @override
-  String get plannerCanvas_o2Narcotic => 'O₂ als narcotisch behandelen';
-
-  @override
   String get plannerCanvas_rates_ascent => 'Stijgsnelheid';
 
   @override
