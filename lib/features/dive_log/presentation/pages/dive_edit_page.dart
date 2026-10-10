@@ -3300,8 +3300,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Opens the profile editor, first asking which source's profile to start
   /// from when more than one source has samples of its own (issue #3066).
   Future<void> _openProfileEditor(String diveId, {String? initialMode}) async {
-    final sources = await ref.read(diveDataSourcesProvider(diveId).future);
-    final profiles = await ref.read(sourceProfilesProvider(diveId).future);
+    final (sources, profiles) = await (
+      ref.read(diveDataSourcesProvider(diveId).future),
+      ref.read(sourceProfilesProvider(diveId).future),
+    ).wait;
     if (!mounted) return;
 
     final startable = startableProfileSources(sources, profiles);

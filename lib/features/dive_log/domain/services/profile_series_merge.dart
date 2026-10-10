@@ -3,6 +3,42 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample_point.
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 
+/// The series of one source that nothing else it owns supersedes, in the
+/// order of [owned].
+///
+/// The same ranking `ProfileSeriesRepository.promoteWinnerOwnedBy` applies
+/// when a source becomes primary: the null-computer series (a manual edit)
+/// first, then the newest, then the greatest id, and a lower-ranked series
+/// is dropped only
+/// where it overlaps a winner in time. A demoted source that was edited
+/// owns its original and its edit over the same timestamps; reading both
+/// would interleave two generations of one profile (issue #3066).
+List<ProfileSeries> liveSeriesOf(List<ProfileSeries> owned) {
+  if (owned.length < 2) return owned;
+  final ranked = [...owned]
+    ..sort((a, b) {
+      final byEdit = (a.computerId == null ? 0 : 1).compareTo(
+        b.computerId == null ? 0 : 1,
+      );
+      if (byEdit != 0) return byEdit;
+      final byAge = b.createdAt.compareTo(a.createdAt);
+      return byAge != 0 ? byAge : b.id.compareTo(a.id);
+    });
+  final winners = <ProfileSeries>[];
+  for (final candidate in ranked) {
+    final superseded = winners.any(
+      (winner) =>
+          candidate.summary.startTimestamp <= winner.summary.endTimestamp &&
+          winner.summary.startTimestamp <= candidate.summary.endTimestamp,
+    );
+    if (!superseded) winners.add(candidate);
+  }
+  return [
+    for (final s in owned)
+      if (winners.contains(s)) s,
+  ];
+}
+
 /// Every sample of every series in [series], interleaved by timestamp.
 ///
 /// This is what `ORDER BY timestamp` over the legacy row table produced for

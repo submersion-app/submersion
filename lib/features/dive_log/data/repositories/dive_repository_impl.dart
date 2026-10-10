@@ -1343,7 +1343,13 @@ class DiveRepository {
             sourceId: s.id,
             computerId: s.computerId,
             isEdited: s.id == primary.id && primaryIsEdited,
-            points: mergeSeriesPoints(grouped[s.id]!),
+            // The primary's superseded originals were already dropped above;
+            // another source may still own an edit and its original.
+            points: mergeSeriesPoints(
+              s.id == primary.id
+                  ? grouped[s.id]!
+                  : liveSeriesOf(grouped[s.id]!),
+            ),
           ),
       };
     } catch (e, stackTrace) {

@@ -128,4 +128,50 @@ void main() {
     expect(profiles['src-a']!.isEdited, isTrue);
     expect([for (final p in profiles['src-b']!.points) p.depth], [0, 30, 0]);
   });
+
+  test('a demoted source that was edited reads as its edit alone', () async {
+    // Edit src-a while it is primary, then make src-b primary. src-a now
+    // owns its original and its edit, both demoted; the editor and the
+    // chart must see the edit, not both generations interleaved.
+    await repository.saveEditedProfileWithKind(
+      diveId: 'dive-1',
+      editedPoints: edited,
+      editKind: 'profile_editor',
+    );
+    await repository.setPrimaryDataSource(
+      diveId: 'dive-1',
+      computerReadingId: 'src-b',
+    );
+
+    final profiles = await repository.getProfilesByDataSource('dive-1');
+    expect(profiles.keys.first, 'src-b');
+    expect(
+      [for (final p in profiles['src-a']!.points) (p.timestamp, p.depth)],
+      [(0, 0.0), (60, 28.0), (120, 0.0)],
+    );
+  });
+
+  test('promoting an edited file import back restores its edit', () async {
+    // Neither series of src-a names a computer, so the edit cannot win on
+    // the null-computer rank; it has to win as the newer generation.
+    await repository.saveEditedProfileWithKind(
+      diveId: 'dive-1',
+      editedPoints: edited,
+      editKind: 'profile_editor',
+    );
+    await repository.setPrimaryDataSource(
+      diveId: 'dive-1',
+      computerReadingId: 'src-b',
+    );
+    await repository.setPrimaryDataSource(
+      diveId: 'dive-1',
+      computerReadingId: 'src-a',
+    );
+
+    final profile = await repository.getDiveProfile('dive-1');
+    expect(
+      [for (final p in profile) (p.timestamp, p.depth)],
+      [(0, 0.0), (60, 28.0), (120, 0.0)],
+    );
+  });
 }
