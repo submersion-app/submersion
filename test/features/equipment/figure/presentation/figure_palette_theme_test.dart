@@ -80,7 +80,7 @@ void main() {
 
   test('a scheme with no contrast at all still yields a figure and a pill', () {
     // Nothing can stand off a surface that equals its own text colour, so
-    // both walks fall back to the text colour itself rather than failing.
+    // every walk falls back to the text colour itself rather than failing.
     const flat = ColorScheme.light(
       surface: Color(0xFF808080),
       surfaceContainer: Color(0xFF808080),
@@ -88,6 +88,7 @@ void main() {
       onSurface: Color(0xFF808080),
     );
     expect(Color(figurePaletteFor(flat).body), flat.onSurface);
+    expect(Color(figurePaletteFor(flat).rim), flat.onSurface);
     expect(figurePillFor(flat).fill, flat.onSurface);
   });
 
