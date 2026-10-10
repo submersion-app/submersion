@@ -10,6 +10,7 @@ import 'package:submersion/features/maps/presentation/widgets/map_attribution.da
 import 'package:submersion/features/maps/presentation/widgets/submersion_tile_layer.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 
 /// Marker colors for the GPS entry/exit fixes, matching the values the dive
@@ -281,11 +282,12 @@ class _DiveLocationsMapState extends ConsumerState<DiveLocationsMap> {
       children: [
         // The trackpad zoom wraps only an interactive map: it wins the gesture
         // arena against any enclosing scrollable, so around a locked map it
-        // would still turn a trackpad scroll over the map into a zoom.
+        // would still turn a trackpad scroll over the map into a zoom. A
+        // locked map forwards the trackpad scroll to the page instead.
         if (interactive)
           TrackpadZoomMap(controller: _effectiveController, child: map)
         else
-          map,
+          LockedMapScrollPassthrough(child: map),
         // Reset-to-north compass (only when the map accepts rotation gestures)
         if (interactive)
           Positioned(

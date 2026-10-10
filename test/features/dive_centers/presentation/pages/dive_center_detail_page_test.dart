@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -279,6 +280,7 @@ void main() {
         final map = tester.widget<FlutterMap>(find.byType(FlutterMap).first);
         expect(map.options.interactionOptions.flags, InteractiveFlag.none);
         expect(find.byType(TrackpadZoomMap), findsNothing);
+        expect(find.byType(LockedMapScrollPassthrough), findsOneWidget);
       },
     );
 

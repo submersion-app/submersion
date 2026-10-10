@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_co
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -327,25 +328,28 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: FlutterMap(
-                    options: MapOptions(
-                      initialCenter: siteLocation,
-                      initialZoom: 13.0,
-                      interactionOptions: const InteractionOptions(
-                        flags: InteractiveFlag.none,
-                      ),
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: ref.watch(mapTileUrlProvider),
-                        userAgentPackageName: 'app.submersion',
-                        maxZoom: ref.watch(mapTileMaxZoomProvider),
-                        tileProvider: TileCacheService.instance.tileProviderFor(
-                          urlTemplate: ref.watch(mapTileUrlProvider),
+                  child: LockedMapScrollPassthrough(
+                    child: FlutterMap(
+                      options: MapOptions(
+                        initialCenter: siteLocation,
+                        initialZoom: 13.0,
+                        interactionOptions: const InteractionOptions(
+                          flags: InteractiveFlag.none,
                         ),
                       ),
-                      const MapAttribution(),
-                    ],
+                      children: [
+                        TileLayer(
+                          urlTemplate: ref.watch(mapTileUrlProvider),
+                          userAgentPackageName: 'app.submersion',
+                          maxZoom: ref.watch(mapTileMaxZoomProvider),
+                          tileProvider: TileCacheService.instance
+                              .tileProviderFor(
+                                urlTemplate: ref.watch(mapTileUrlProvider),
+                              ),
+                        ),
+                        const MapAttribution(),
+                      ],
+                    ),
                   ),
                 ),
                 Positioned.fill(

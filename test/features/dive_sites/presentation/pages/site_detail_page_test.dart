@@ -16,6 +16,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
@@ -1110,6 +1111,7 @@ void main() {
         final map = tester.widget<FlutterMap>(find.byType(FlutterMap).first);
         expect(map.options.interactionOptions.flags, InteractiveFlag.none);
         expect(find.byType(TrackpadZoomMap), findsNothing);
+        expect(find.byType(LockedMapScrollPassthrough), findsOneWidget);
       },
     );
 

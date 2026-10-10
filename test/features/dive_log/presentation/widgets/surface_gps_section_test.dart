@@ -109,12 +109,15 @@ void main() {
       expect(scroll.offset, greaterThan(0));
     });
 
-    testWidgets('a trackpad two-finger scroll over the map does not zoom it', (
+    testWidgets('a trackpad two-finger scroll over the map scrolls the page', (
       tester,
     ) async {
       final controller = MapController();
-      await _pump(tester, controller: controller);
+      final scroll = ScrollController();
+      addTearDown(scroll.dispose);
+      await _pump(tester, controller: controller, scrollController: scroll);
       final zoom = controller.camera.zoom;
+      final mapCenter = controller.camera.center;
 
       final center = tester.getCenter(find.byType(FlutterMap));
       final gesture = await tester.createGesture(
@@ -122,12 +125,15 @@ void main() {
       );
       await gesture.panZoomStart(center);
       await tester.pump();
-      await gesture.panZoomUpdate(center, pan: const Offset(0, 100));
+      // Fingers moving up scroll the content forward, as on a touch screen.
+      await gesture.panZoomUpdate(center, pan: const Offset(0, -100));
       await tester.pump();
       await gesture.panZoomEnd();
       await tester.pump();
 
       expect(controller.camera.zoom, zoom);
+      expect(controller.camera.center, mapCenter);
+      expect(scroll.offset, greaterThan(0));
     });
 
     testWidgets('a touch drag starting on the map scrolls the page', (
