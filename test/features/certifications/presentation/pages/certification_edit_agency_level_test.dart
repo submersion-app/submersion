@@ -158,6 +158,29 @@ void main() {
     expect(selectedCertification('Nitrox'), findsOneWidget);
   });
 
+  for (final agency in ['PADI', 'SDI']) {
+    testWidgets('$agency offers Master Instructor (issue #3194)', (
+      tester,
+    ) async {
+      await tester.pumpWidget(await buildHarness(tester));
+      await tester.pumpAndSettle();
+
+      // PADI is the default agency; re-selecting it would match both the
+      // closed button and its menu row.
+      if (agency == 'PADI') {
+        expect(
+          find.descendant(of: agencyDropdown(), matching: find.text('PADI')),
+          findsOneWidget,
+        );
+      } else {
+        await selectFromDropdown(tester, agencyDropdown(), agency);
+      }
+      await selectFromDropdown(tester, levelDropdown(), 'Master Instructor');
+
+      expect(selectedCertification('Master Instructor'), findsOneWidget);
+    });
+  }
+
   testWidgets(
     'existing record with out-of-catalog level renders and survives save',
     (tester) async {
