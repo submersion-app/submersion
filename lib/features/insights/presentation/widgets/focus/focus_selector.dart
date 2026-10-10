@@ -33,12 +33,13 @@ class _FocusSelectorState extends ConsumerState<FocusSelector> {
     super.initState();
     final selection = ref.read(focusSelectionProvider);
     _count = TextEditingController(text: '${selection.count}');
-    final threshold = selection.threshold;
     final units = FocusMetricUnits(
       selection.metric,
       UnitFormatter(ref.read(settingsProvider)),
     );
-    _threshold = TextEditingController(text: _thresholdText(threshold, units));
+    _threshold = TextEditingController(
+      text: _thresholdText(selection.threshold, units),
+    );
   }
 
   static String _thresholdText(double? threshold, FocusMetricUnits units) =>
