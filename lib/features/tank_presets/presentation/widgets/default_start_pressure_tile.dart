@@ -70,10 +70,22 @@ class _DefaultStartPressureDialogState
   );
   final _formKey = GlobalKey<FormState>();
 
+  /// The range's ends in the diver's unit, rounded the way the error
+  /// message shows them ("15 psi" to "5802 psi"), so the dialog accepts
+  /// exactly what the message promises.
+  late final double _min = _shown(_minBar);
+  late final double _max = _shown(_maxBar);
+
+  double _shown(int bar) =>
+      widget.units.convertPressure(bar.toDouble()).roundToDouble();
+
   /// The entered value in whole bar, or null when it is outside the range.
+  /// The range is checked on the value as typed, before rounding, so 0.5 bar
+  /// is refused rather than rounded up to 1. The clamp only absorbs the
+  /// display rounding at the ends (5802 psi is 400.03 bar).
   int? _toBar(double value) {
-    final bar = widget.units.pressureToBar(value).round();
-    return bar < _minBar || bar > _maxBar ? null : bar;
+    if (value < _min || value > _max) return null;
+    return widget.units.pressureToBar(value).round().clamp(_minBar, _maxBar);
   }
 
   void _save() {

@@ -81,6 +81,38 @@ void main() {
     expect(settings.state.defaultStartPressure, 200);
   });
 
+  testWidgets('refuses a value that only rounds into the range', (
+    tester,
+  ) async {
+    final settings = await pump(tester);
+
+    await enter(tester, '0.5');
+
+    expect(find.text('Enter a pressure from 1 bar to 400 bar'), findsOneWidget);
+    expect(settings.state.defaultStartPressure, 200);
+  });
+
+  testWidgets('refuses a value just past the top of the range', (tester) async {
+    final settings = await pump(tester);
+
+    await enter(tester, '400.4');
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(settings.state.defaultStartPressure, 200);
+  });
+
+  testWidgets('accepts both ends of the range as the message shows them', (
+    tester,
+  ) async {
+    final settings = await pump(tester, pressureUnit: PressureUnit.psi);
+
+    await enter(tester, '5802');
+    expect(settings.state.defaultStartPressure, 400);
+
+    await enter(tester, '15');
+    expect(settings.state.defaultStartPressure, 1);
+  });
+
   testWidgets('refuses a pressure above the range', (tester) async {
     final settings = await pump(tester, pressureUnit: PressureUnit.psi);
 
