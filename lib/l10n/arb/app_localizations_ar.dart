@@ -26319,10 +26319,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'توزيع العمق';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'مخطط دائري يعرض توزيع أنواع الغوص';
-
-  @override
   String get insights_summary_diveTypes_title => 'أنواع الغوص';
 
   @override

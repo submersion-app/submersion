@@ -7526,7 +7526,6 @@
   "insights_summary_avgDepth": "平均深度",
   "insights_summary_depthDistribution_semanticLabel": "显示深度分布的饼图",
   "insights_summary_depthDistribution_title": "深度分布",
-  "insights_summary_diveTypes_semanticLabel": "显示潜水类型分布的饼图",
   "insights_summary_diveTypes_title": "潜水类型",
   "insights_summary_maxDepth": "最大深度",
   "insights_summary_sitesVisited": "已访问潜水点",

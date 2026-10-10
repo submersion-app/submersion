@@ -25486,10 +25486,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'התפלגות עומק';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'תרשים עוגה המציג התפלגות סוגי צלילה';
-
-  @override
   String get insights_summary_diveTypes_title => 'סוגי צלילה';
 
   @override

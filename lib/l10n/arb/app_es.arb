@@ -7352,7 +7352,6 @@
   "insights_summary_avgDepth": "Prof. promedio",
   "insights_summary_depthDistribution_semanticLabel": "Gráfico circular mostrando la distribución de profundidad",
   "insights_summary_depthDistribution_title": "Distribución de profundidad",
-  "insights_summary_diveTypes_semanticLabel": "Gráfico circular mostrando la distribución de tipos de inmersión",
   "insights_summary_diveTypes_title": "Tipos de inmersión",
   "insights_summary_maxDepth": "Prof. máxima",
   "insights_summary_sitesVisited": "Sitios visitados",

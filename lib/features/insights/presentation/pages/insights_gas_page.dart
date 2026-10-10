@@ -14,9 +14,9 @@ import 'package:submersion/features/insights/presentation/providers/insights_gas
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
-import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
+import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -136,13 +136,12 @@ class InsightsGasPage extends ConsumerWidget {
       title: context.l10n.insights_gas_gasMix_title,
       subtitle: context.l10n.insights_gas_gasMix_subtitle,
       child: gasMixAsync.when(
-        data: (data) => DistributionPieChart(
-          data: data,
-          colors: [
-            Colors.blue.shade400,
-            Colors.green.shade400,
-            Colors.purple.shade400,
-          ],
+        // Bars rather than a pie (issue #3048): a dive breathing more than
+        // one mix, such as air back gas with a nitrox deco tank, counts under
+        // each, so the counts are not shares of a whole.
+        data: (data) => HorizontalCategoryBarChart(
+          data: [for (final s in data) (label: s.label, count: s.count)],
+          barColor: Colors.blue.shade400,
         ),
         loading: () => const SizedBox(
           height: 200,

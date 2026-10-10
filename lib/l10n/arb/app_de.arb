@@ -7469,7 +7469,6 @@
   "insights_summary_avgDepth": "Durchschn. Tiefe",
   "insights_summary_depthDistribution_semanticLabel": "Kreisdiagramm der Tiefenverteilung",
   "insights_summary_depthDistribution_title": "Tiefenverteilung",
-  "insights_summary_diveTypes_semanticLabel": "Kreisdiagramm der Tauchgangarten-Verteilung",
   "insights_summary_diveTypes_title": "Tauchgangarten",
   "insights_summary_maxDepth": "Max. Tiefe",
   "insights_summary_sitesVisited": "Besuchte Plätze",

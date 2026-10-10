@@ -677,32 +677,11 @@ class _DistributionsSection extends ConsumerWidget {
       fmt: fmt,
     );
 
-    final typeChart = diveTypesAsync.when(
-      loading: () => const SizedBox(
-        height: 160,
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (_, _) =>
-          _InlineError(message: context.l10n.insights_summary_diveTypes_error),
-      // The repository emits dive-type ids as stable keys, so built-in
-      // types are translated here instead of rendering a capitalized slug.
-      data: (diveTypes) => _TypePieCard(
-        diveTypes: localizeDistribution(
-          diveTypes,
-          (key) => diveTypeDistributionLabel(
-            key,
-            context.l10n,
-            typesById: typesById,
-          ),
-        ),
-      ),
-    );
-
-    final wide = MediaQuery.of(context).size.width >= 600;
-
-    // Every dive type's count and summed dive time (issue #641), listed in
-    // full underneath the pie charts above -- unlike the pie chart's legend,
-    // this isn't truncated to the top 6, since every type must be shown.
+    // Dive types get no pie (issue #3048): a dive can carry several types and
+    // counts once under each, so the per-type counts sum to more than the
+    // number of dives and a pie's slices would not be shares of anything.
+    // Each type's count and summed dive time (issue #641) is listed in full
+    // as a bar row instead, sized against the most common type.
     final typeStats = diveTypesAsync.maybeWhen(
       data: (diveTypes) => diveTypes,
       orElse: () => const <DistributionSegment>[],
@@ -710,6 +689,16 @@ class _DistributionsSection extends ConsumerWidget {
     final typeMaxCount = typeStats.isEmpty
         ? 0
         : typeStats.map((t) => t.count).reduce((a, b) => a > b ? a : b);
+    final typeStatus = diveTypesAsync.when(
+      loading: () => const SizedBox(
+        height: 48,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, _) =>
+          _InlineError(message: context.l10n.insights_summary_diveTypes_error),
+      data: (_) => null,
+    );
+
     // Same for depth buckets: every bucket that has a dive in it, with its
     // count and summed dive time, regardless of how many the pie's own
     // legend can fit (issue #641 follow-up). The original index into the
@@ -739,19 +728,7 @@ class _DistributionsSection extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            if (wide)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: depthChart),
-                  const SizedBox(width: 8),
-                  Expanded(child: typeChart),
-                ],
-              )
-            else
-              Column(
-                children: [depthChart, const SizedBox(height: 8), typeChart],
-              ),
+            depthChart,
             if (depthEntries.isNotEmpty) ...[
               const SizedBox(height: 12),
               const Divider(height: 1),
@@ -774,7 +751,7 @@ class _DistributionsSection extends ConsumerWidget {
                   fillKey: ValueKey('depth-bar-fill-$index'),
                 ),
             ],
-            if (typeStats.isNotEmpty) ...[
+            if (typeStatus != null || typeStats.isNotEmpty) ...[
               const SizedBox(height: 12),
               const Divider(height: 1),
               Padding(
@@ -784,6 +761,7 @@ class _DistributionsSection extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
+              ?typeStatus,
               for (final (index, segment) in typeStats.indexed)
                 _DistributionBarRow(
                   label: diveTypeDistributionLabel(
@@ -810,9 +788,9 @@ class _DistributionsSection extends ConsumerWidget {
 /// One row of the bar list that replaced the separate pie legend + full-list
 /// combination below each pie (issue #3074): a label, a bar whose length is
 /// proportional to [fraction], and the same "count • duration" trailing text
-/// the old `ListTile` rows showed. [color] is the caller's `_depthColors` or
-/// `_typeColors` entry for this bucket/type, so the bar always matches its
-/// pie slice.
+/// the old `ListTile` rows showed. [color] is the caller's `_depthColors`
+/// entry for a depth bucket, so the bar matches its pie slice, or its
+/// `_typeColors` entry for a dive type, which has no pie (issue #3048).
 class _DistributionBarRow extends StatelessWidget {
   final String label;
   final int count;
@@ -981,12 +959,11 @@ class _DepthPieCard extends StatelessWidget {
                               nonEmptyEntries.add((i, depthDistribution[i]));
                             }
                           }
-                          // Caps the inline legend the same way the dive-type
-                          // pie does (max 6 rows) so a diver with many
-                          // occupied depth buckets can't push the legend
+                          // Caps the inline legend at 6 rows so a diver with
+                          // many occupied depth buckets can't push the legend
                           // below the fixed-height chart box. The full,
                           // uncapped breakdown with count and time is listed
-                          // underneath both pie charts.
+                          // underneath the pie chart.
                           return nonEmptyEntries.take(6).map((
                             (int, DepthRangeStat) entry,
                           ) {
@@ -1022,113 +999,6 @@ class _DepthPieCard extends StatelessWidget {
                             );
                           }).toList();
                         }(),
-                      ),
-                    ),
-                  ],
-                )
-              : Center(
-                  child: Icon(
-                    Icons.pie_chart_outline,
-                    size: 40,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.4),
-                  ),
-                ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TypePieCard extends StatelessWidget {
-  final List<DistributionSegment> diveTypes;
-  const _TypePieCard({required this.diveTypes});
-
-  @override
-  Widget build(BuildContext context) {
-    final hasData = diveTypes.isNotEmpty;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.l10n.insights_summary_diveTypes_title,
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 160,
-          child: hasData
-              ? Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Semantics(
-                        label: context
-                            .l10n
-                            .insights_summary_diveTypes_semanticLabel,
-                        child: PieChart(
-                          PieChartData(
-                            sectionsSpace: 2,
-                            centerSpaceRadius: 24,
-                            sections: List.generate(diveTypes.length, (index) {
-                              final segment = diveTypes[index];
-                              return PieChartSectionData(
-                                value: segment.count.toDouble(),
-                                title:
-                                    '${segment.percentage.toStringAsFixed(0)}%',
-                                color: _typeColors[index % _typeColors.length],
-                                radius: 50,
-                                titleStyle: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11,
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: List.generate(
-                          diveTypes.length > 6 ? 6 : diveTypes.length,
-                          (index) {
-                            final segment = diveTypes[index];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 2),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 10,
-                                    height: 10,
-                                    decoration: BoxDecoration(
-                                      color:
-                                          _typeColors[index %
-                                              _typeColors.length],
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      segment.label,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
                       ),
                     ),
                   ],

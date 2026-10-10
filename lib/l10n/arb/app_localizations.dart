@@ -42278,12 +42278,6 @@ abstract class AppLocalizations {
   /// **'Depth Distribution'**
   String get insights_summary_depthDistribution_title;
 
-  /// No description provided for @insights_summary_diveTypes_semanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Pie chart showing dive type distribution'**
-  String get insights_summary_diveTypes_semanticLabel;
-
   /// No description provided for @insights_summary_diveTypes_title.
   ///
   /// In en, this message translates to:

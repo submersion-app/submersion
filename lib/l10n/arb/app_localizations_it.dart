@@ -26175,10 +26175,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Distribuzione profondità';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'Grafico a torta che mostra la distribuzione dei tipi di immersione';
-
-  @override
   String get insights_summary_diveTypes_title => 'Tipi di immersione';
 
   @override

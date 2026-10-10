@@ -15020,7 +15020,6 @@
   "insights_summary_avgDepth": "Avg Depth",
   "insights_summary_depthDistribution_semanticLabel": "Pie chart showing depth distribution",
   "insights_summary_depthDistribution_title": "Depth Distribution",
-  "insights_summary_diveTypes_semanticLabel": "Pie chart showing dive type distribution",
   "insights_summary_diveTypes_title": "Dive Types",
   "insights_summary_maxDepth": "Max Depth",
   "insights_summary_sitesVisited": "Sites Visited",

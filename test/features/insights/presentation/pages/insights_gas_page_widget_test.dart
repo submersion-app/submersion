@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_gas_pag
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
+import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -100,6 +102,42 @@ void main() {
 
     expect(find.byType(DiveTrendChart), findsOneWidget);
     expect(find.byKey(const ValueKey('trend-aggregation-sac')), findsOneWidget);
+  });
+
+  // A dive breathing air from its back gas and nitrox from a deco tank
+  // counts under both, so the gas-mix shares are not parts of a whole and
+  // must not be drawn as a pie (issue #3048).
+  testWidgets('gas mix renders as bars, not a pie', (tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          gasMixDistributionProvider.overrideWith(
+            (ref) async => [
+              DistributionSegment(label: 'Air', count: 8, percentage: 61.5),
+              DistributionSegment(label: 'Nitrox', count: 5, percentage: 38.5),
+            ],
+          ),
+        ].cast(),
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: InsightsGasPage(embedded: true)),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.byType(PieChart), findsNothing);
+    final bars = find.byType(HorizontalCategoryBarChart);
+    expect(bars, findsOneWidget);
+    expect(tester.widget<HorizontalCategoryBarChart>(bars).data, [
+      (label: 'Air', count: 8),
+      (label: 'Nitrox', count: 5),
+    ]);
   });
 
   testWidgets('See top 10 presets Dive focus to the gas lane', (tester) async {

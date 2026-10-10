@@ -24687,9 +24687,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_summary_depthDistribution_title => '深度分布';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel => '显示潜水类型分布的饼图';
-
-  @override
   String get insights_summary_diveTypes_title => '潜水类型';
 
   @override

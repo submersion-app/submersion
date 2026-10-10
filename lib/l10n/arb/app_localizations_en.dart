@@ -25700,10 +25700,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'Depth Distribution';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'Pie chart showing dive type distribution';
-
-  @override
   String get insights_summary_diveTypes_title => 'Dive Types';
 
   @override

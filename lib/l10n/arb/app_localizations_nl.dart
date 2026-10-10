@@ -25970,10 +25970,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'Diepteverdeling';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'Cirkeldiagram met duiktypeverdeling';
-
-  @override
   String get insights_summary_diveTypes_title => 'Duiktypes';
 
   @override

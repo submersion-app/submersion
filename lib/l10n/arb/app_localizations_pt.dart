@@ -26168,10 +26168,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Distribuição de Profundidade';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'Gráfico de pizza mostrando distribuição de tipos de mergulho';
-
-  @override
   String get insights_summary_diveTypes_title => 'Tipos de Mergulho';
 
   @override
