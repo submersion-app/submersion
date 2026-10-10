@@ -119,6 +119,15 @@ void main() {
       expect(r.dives.single['diveCenterRef'], 'center_declared');
     });
 
+    test('a link to an undeclared center falls back to the operator', () async {
+      final r = await service.importAllDataFromUddf(
+        _uddf(['Blue Dive'], centerLink: 'center_missing'),
+      );
+
+      expect(r.diveCenters.single['name'], 'Blue Dive');
+      expect(r.dives.single['diveCenterRef'], r.diveCenters.single['uddfId']);
+    });
+
     test('an operator named like a declared center links to it', () async {
       final r = await service.importAllDataFromUddf(
         _uddf(['Declared Center'], declaredCenter: 'Declared Center'),

@@ -12,8 +12,8 @@ class UddfOperatorCenters {
   /// cannot collide with the id of a center the file declares itself.
   static const refPrefix = 'diveoperator:';
 
-  /// Points every dive that names an operator, and links no center yet, at
-  /// a center for that operator, adding one to [diveCenters] the first time
+  /// Points every dive that names an operator, and links no declared center,
+  /// at a center for that operator, adding one to [diveCenters] the first time
   /// a name is seen.
   ///
   /// Names match ignoring case and surrounding space. A name that matches a
@@ -30,10 +30,16 @@ class UddfOperatorCenters {
         if (center['uddfId'] case final String id)
           if (_key(center['name']) case final String key) key: id,
     };
+    final declaredIds = {
+      for (final center in diveCenters)
+        if (center['uddfId'] case final String id) id,
+    };
     final created = <String, Map<String, dynamic>>{};
 
     for (final dive in dives) {
-      if (dive['diveCenterRef'] != null) continue;
+      // A link to a center the file never declares resolves to nothing on
+      // import, so the operator still gets its say.
+      if (declaredIds.contains(dive['diveCenterRef'])) continue;
       final key = _key(dive['diveOperator']);
       if (key == null) continue;
       final name = (dive['diveOperator'] as String).trim();
