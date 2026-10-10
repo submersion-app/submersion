@@ -4,8 +4,8 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 
-/// Derives each cylinder's [TankRole] from the gas it carries and the
-/// segments that breathe it.
+/// Derives each cylinder's [TankRole] from the gas it carries and, on open
+/// circuit, the segments that breathe it.
 ///
 /// A plan's cylinders are described by name, size, start pressure and mix. The
 /// role used to be a ninth thing the diver declared, and it could disagree
@@ -13,21 +13,25 @@ import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 /// Deco bottle leaner than the bottom mix. The plan already says which tank
 /// every segment breathes and what each mix's MOD is, so the role follows.
 ///
-/// The single exception is a CCR bailout cylinder. On a loop plan a 100% O2
-/// cylinder is either the oxygen supply or a bailout/deco bottle, and the
-/// numbers cannot tell those apart - calling a bailout bottle the O2 supply
-/// would quietly drop it out of the bailout calculation. So `bailout` stays an
-/// explicit choice: on a loop plan a stored role of [TankRole.bailout] is
-/// honoured as the diver's override and never re-derived.
+/// A loop plan (CCR/SCR/PSCR) works the other way around: diluent is the
+/// diver's one explicit choice, made on the tank itself, not inferred from
+/// which segment breathes it. A stored role of [TankRole.diluent] is
+/// honoured; everything else defaults to bailout, except a pure-O2 cylinder,
+/// which is always the oxygen supply. This used to run in reverse -- a
+/// cylinder was diluent only if a segment happened to reference it, bailout
+/// otherwise -- so a diluent bottle the diver forgot to assign to a segment
+/// silently became bailout with no indication why (issue #3135). Making
+/// diluent the explicit flag means there is no silent default to fall into:
+/// a cylinder is exactly what its own checkbox says.
 ///
-/// Only on a loop plan. Open circuit has no such ambiguity, and the tank
-/// editor does not even offer the flag there, so a stored bailout role on an
-/// OC plan is left over from somewhere else and is re-derived like any
-/// other.
+/// Open circuit has no such ambiguity, and the tank editor does not even
+/// offer the diluent flag there, so a stored diluent role on an OC plan is
+/// left over from somewhere else and is re-derived like any other.
 ///
 /// Nothing here is persisted. Callers apply it to their own copy of the plan
-/// so the stored role remains the diver's raw input (bailout or nothing),
-/// which keeps a derived role from later being mistaken for an override.
+/// so the stored role remains the diver's raw input (diluent or nothing on a
+/// loop plan), which keeps a derived role from later being mistaken for an
+/// override.
 class TankRoleResolver {
   const TankRoleResolver();
 
@@ -48,7 +52,6 @@ class TankRoleResolver {
   /// The derived role of every cylinder, by tank id.
   Map<String, TankRole> rolesFor(domain.DivePlan plan) {
     final bottomTankId = _bottomTankId(plan);
-    final breathed = plan.segments.map((s) => s.tankId).toSet();
     final bottomO2 = _tankById(plan, bottomTankId)?.gasMix.o2 ?? 21.0;
     final isLoop = plan.mode != domain.PlanMode.oc;
 
@@ -59,7 +62,6 @@ class TankRoleResolver {
           isLoop: isLoop,
           bottomTankId: bottomTankId,
           bottomO2: bottomO2,
-          breathed: breathed,
         ),
     };
   }
@@ -69,26 +71,19 @@ class TankRoleResolver {
     required bool isLoop,
     required String? bottomTankId,
     required double bottomO2,
-    required Set<String> breathed,
   }) {
     if (isLoop) {
-      // The diver's only explicit choice, and honoured only here: on a loop
-      // plan a 100% cylinder is either the oxygen supply or a bailout bottle
-      // and the numbers cannot tell them apart. An open-circuit plan has no
-      // such ambiguity, so a stored bailout role there is stale input - a
-      // cylinder carried over from a loop plan, or picked from a saved
-      // configuration - and is re-derived like any other. Honouring it would
-      // hide the bottle from the lost-gas contingency, which only looks at
-      // deco, stage and travel gas.
-      if (tank.role == TankRole.bailout) return TankRole.bailout;
+      // Diluent is the diver's explicit choice, honoured only here: an
+      // open-circuit plan has no such flag, so a stored diluent role there
+      // is stale input and is re-derived like any other.
+      if (tank.role == TankRole.diluent) return TankRole.diluent;
 
-      // Pure O2 that nothing breathes directly is the oxygen supply; the gas
-      // the segments actually breathe is the diluent; anything else carried
-      // on a loop dive is open-circuit bailout.
-      if (tank.gasMix.o2 >= 99.5 && !breathed.contains(tank.id)) {
-        return TankRole.oxygenSupply;
-      }
-      if (breathed.contains(tank.id)) return TankRole.diluent;
+      // Pure O2 not explicitly marked diluent is the oxygen supply, never
+      // bailout -- the one case left for the numbers to settle, since the
+      // diver has no reason to tick bailout on it either.
+      if (tank.gasMix.o2 >= 99.5) return TankRole.oxygenSupply;
+
+      // Everything else carried on a loop dive is open-circuit bailout.
       return TankRole.bailout;
     }
 

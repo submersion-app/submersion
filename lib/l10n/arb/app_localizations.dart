@@ -16207,6 +16207,18 @@ abstract class AppLocalizations {
   /// **'Open-circuit gas carried in case the loop fails'**
   String get divePlanner_field_bailoutGasHint;
 
+  /// No description provided for @divePlanner_field_diluentGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Diluent'**
+  String get divePlanner_field_diluentGas;
+
+  /// No description provided for @divePlanner_field_diluentGasHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Unticked cylinders default to bailout'**
+  String get divePlanner_field_diluentGasHint;
+
   /// No description provided for @divePlanner_field_hePercent.
   ///
   /// In en, this message translates to:
@@ -30367,6 +30379,12 @@ abstract class AppLocalizations {
   /// **'Bailout gas insufficient for the worst case'**
   String get plannerCanvas_bailout_insufficient;
 
+  /// No description provided for @plannerCanvas_bailout_schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule from the worst case'**
+  String get plannerCanvas_bailout_schedule;
+
   /// No description provided for @plannerCanvas_bailout_required.
   ///
   /// In en, this message translates to:
@@ -30816,6 +30834,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Duration'**
   String get plannerCanvas_table_duration;
+
+  /// No description provided for @plannerCanvas_table_ppO2.
+  ///
+  /// In en, this message translates to:
+  /// **'PO2'**
+  String get plannerCanvas_table_ppO2;
+
+  /// No description provided for @plannerCanvas_table_end.
+  ///
+  /// In en, this message translates to:
+  /// **'END'**
+  String get plannerCanvas_table_end;
 
   /// No description provided for @plannerCanvas_turnRule_allUsable.
   ///

@@ -6196,6 +6196,8 @@
   "divePlanner_info_reserveDefault": "Not entered — assuming {value} {unit}",
   "divePlanner_field_bailoutGas": "Bailout gas",
   "divePlanner_field_bailoutGasHint": "Open-circuit gas carried in case the loop fails",
+  "divePlanner_field_diluentGas": "Diluent",
+  "divePlanner_field_diluentGasHint": "Unticked cylinders default to bailout",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Name",
   "divePlanner_field_o2Percent": "O₂ %",
@@ -11838,6 +11840,7 @@
     }
   },
   "plannerCanvas_bailout_insufficient": "Bailout gas insufficient for the worst case",
+  "plannerCanvas_bailout_schedule": "Schedule from the worst case",
   "plannerCanvas_bailout_required": "Required {liters}",
   "@plannerCanvas_bailout_required": {
     "placeholders": {
@@ -12089,6 +12092,8 @@
   "plannerCanvas_table_gas": "Gas",
   "plannerCanvas_table_runtime": "RT",
   "plannerCanvas_table_duration": "Duration",
+  "plannerCanvas_table_ppO2": "PO2",
+  "plannerCanvas_table_end": "END",
   "plannerCanvas_turnRule_allUsable": "All usable",
   "plannerCanvas_turnRule_custom": "Custom",
   "plannerCanvas_turnRule_halves": "Halves",

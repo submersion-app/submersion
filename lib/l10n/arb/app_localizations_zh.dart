@@ -9609,6 +9609,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_field_bailoutGasHint => '开放式循环气体，用于循环系统故障时';
 
   @override
+  String get divePlanner_field_diluentGas => 'Diluent';
+
+  @override
+  String get divePlanner_field_diluentGasHint =>
+      'Unticked cylinders default to bailout';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override
@@ -18045,6 +18052,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_bailout_insufficient => '逃生气体不足以应对最坏情况';
 
   @override
+  String get plannerCanvas_bailout_schedule => 'Schedule from the worst case';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return '需要 $liters';
   }
@@ -18321,6 +18331,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => '时长';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => '全部可用';

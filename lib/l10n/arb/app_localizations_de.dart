@@ -10100,6 +10100,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Offenes Gas, mitgeführt für den Fall eines Kreislaufausfalls';
 
   @override
+  String get divePlanner_field_diluentGas => 'Diluent';
+
+  @override
+  String get divePlanner_field_diluentGasHint =>
+      'Nicht angehakte Flaschen gelten automatisch als Bailout';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override
@@ -18937,6 +18944,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bailout-Gas reicht für den schlimmsten Fall nicht aus';
 
   @override
+  String get plannerCanvas_bailout_schedule => 'Plan ab dem schlimmsten Fall';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return 'Benötigt $liters';
   }
@@ -19222,6 +19232,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => 'Dauer';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => 'Alles nutzbar';

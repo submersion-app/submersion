@@ -10217,6 +10217,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'غاز الدائرة المفتوحة المحمول في حال تعطل الدائرة';
 
   @override
+  String get divePlanner_field_diluentGas => 'Diluent';
+
+  @override
+  String get divePlanner_field_diluentGasHint =>
+      'Unticked cylinders default to bailout';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override
@@ -19202,6 +19209,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'غاز الإنقاذ غير كافٍ لأسوأ حالة';
 
   @override
+  String get plannerCanvas_bailout_schedule => 'Schedule from the worst case';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return 'المطلوب $liters';
   }
@@ -19489,6 +19499,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => 'المدة';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => 'كل القابل للاستخدام';

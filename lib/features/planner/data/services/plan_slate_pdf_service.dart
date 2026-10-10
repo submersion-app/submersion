@@ -250,12 +250,10 @@ class PlanSlatePdfService {
               cell('${line.durationMinutes}'),
               cell('${line.runtimeMinutes}'),
               cell(
-                line.row.gasSwitch
-                    ? GasMix(
-                        o2: line.row.gasFO2 * 100.0,
-                        he: line.row.gasFHe * 100.0,
-                      ).name
-                    : '',
+                GasMix(
+                  o2: line.row.gasFO2 * 100.0,
+                  he: line.row.gasFHe * 100.0,
+                ).name,
               ),
             ],
           ),

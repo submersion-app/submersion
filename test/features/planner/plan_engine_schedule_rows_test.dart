@@ -74,28 +74,44 @@ void main() {
       expect(rows[1].runtimeSeconds, 35 * 60);
     });
 
-    test('alternates a travel leg and a stop for every computed stop', () {
+    test('a travel leg precedes only the first stop; later stops follow it '
+        'directly (#3138)', () {
       final tail = rows.sublist(2);
-      // ..., travel, stop, travel, stop, ..., travel-to-surface.
+      // travel-to-first-stop, stop, stop, ..., travel-to-surface: no
+      // travel row between two stops, their travel time folds into the
+      // stop it leads to instead (scheduleLines derives the printed
+      // minutes from consecutive rows' runtimeSeconds, so nothing is
+      // lost -- see schedule_lines.dart).
+      expect(tail.first.kind, PlanScheduleRowKind.ascent);
       expect(tail.last.kind, PlanScheduleRowKind.ascent);
       expect(tail.last.depthMeters, 0);
       final stopsInTable = tail.where(
         (r) => r.kind == PlanScheduleRowKind.stop,
       );
       expect(stopsInTable.length, outcome.stops.length);
-      for (var i = 0; i < tail.length - 1; i++) {
-        final expected = i.isEven
-            ? PlanScheduleRowKind.ascent
-            : PlanScheduleRowKind.stop;
-        expect(tail[i].kind, expected, reason: 'tail row $i');
+      for (var i = 1; i < tail.length - 1; i++) {
+        expect(tail[i].kind, PlanScheduleRowKind.stop, reason: 'tail row $i');
       }
     });
 
-    test('each line begins where the previous one ended', () {
-      for (var i = 1; i < rows.length; i++) {
+    test('the first four lines (authored legs, travel to the first stop, '
+        'first stop) begin where the previous one ended', () {
+      for (var i = 1; i < 4; i++) {
         expect(
           rows[i].startRuntimeSeconds,
           rows[i - 1].runtimeSeconds,
+          reason: 'row $i',
+        );
+      }
+    });
+
+    test('runtime never goes backwards across the table, even where a later '
+        "stop's folded-in travel time leaves a gap behind the previous row "
+        '(#3138)', () {
+      for (var i = 1; i < rows.length; i++) {
+        expect(
+          rows[i].runtimeSeconds,
+          greaterThanOrEqualTo(rows[i - 1].runtimeSeconds),
           reason: 'row $i',
         );
       }
@@ -128,10 +144,12 @@ void main() {
       expect(switches[1].kind, PlanScheduleRowKind.stop);
       expect(switches[1].gasFO2, closeTo(0.50, 1e-9));
       expect(switches[1].depthMeters, lessThanOrEqualTo(21));
-      // The leg that carried the diver there was still on air.
-      final legBefore = rows[rows.indexOf(switches[1]) - 1];
-      expect(legBefore.kind, PlanScheduleRowKind.ascent);
-      expect(legBefore.gasFO2, closeTo(0.21, 1e-9));
+      // Whatever line came before it (the travel leg, if this is the first
+      // stop, or an earlier stop once travel-between-stops rows fold away
+      // per #3138) was still on air -- the switch is never retroactively
+      // attributed to an earlier line.
+      final before = rows[rows.indexOf(switches[1]) - 1];
+      expect(before.gasFO2, closeTo(0.21, 1e-9));
     });
 
     test('the table agrees with the stops it was built from', () {

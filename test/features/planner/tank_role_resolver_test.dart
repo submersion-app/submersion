@@ -159,16 +159,44 @@ void main() {
   });
 
   group('closed circuit', () {
-    test('pure O2 is the oxygen supply and the breathed gas the diluent', () {
+    test('diluent is the diver\'s explicit choice, not inferred from being '
+        'breathed (#3135)', () {
+      // Marked diluent AND breathed by the bottom segment: the common
+      // case, honoured either way.
       final plan = _plan(
         mode: domain.PlanMode.ccr,
-        tanks: [_tank('o2', o2: 100), _tank('dil', o2: 21, he: 35)],
+        tanks: [
+          _tank('o2', o2: 100),
+          _tank('dil', o2: 21, he: 35, role: TankRole.diluent),
+        ],
         segments: [_seg('s1', 45, 25, 'dil', 0)],
       );
 
       final roles = _roles(plan);
       expect(roles['o2'], TankRole.oxygenSupply);
       expect(roles['dil'], TankRole.diluent);
+    });
+
+    test('a cylinder no segment breathes is still diluent once explicitly '
+        'marked -- the whole point of the inversion', () {
+      final plan = _plan(
+        mode: domain.PlanMode.ccr,
+        tanks: [_tank('dil', o2: 21, he: 35, role: TankRole.diluent)],
+        segments: const [],
+      );
+
+      expect(_roles(plan)['dil'], TankRole.diluent);
+    });
+
+    test('a cylinder a segment breathes but that was never marked diluent is '
+        'bailout, not diluent (#3135: the old implicit fallback is gone)', () {
+      final plan = _plan(
+        mode: domain.PlanMode.ccr,
+        tanks: [_tank('dil', o2: 21, he: 35)],
+        segments: [_seg('s1', 45, 25, 'dil', 0)],
+      );
+
+      expect(_roles(plan)['dil'], TankRole.bailout);
     });
 
     test(
@@ -178,7 +206,7 @@ void main() {
           mode: domain.PlanMode.ccr,
           tanks: [
             _tank('o2', o2: 100),
-            _tank('dil', o2: 21, he: 35),
+            _tank('dil', o2: 21, he: 35, role: TankRole.diluent),
             _tank('bo', o2: 21),
           ],
           segments: [_seg('s1', 45, 25, 'dil', 0)],
@@ -188,38 +216,34 @@ void main() {
       },
     );
 
-    test('an explicit bailout flag wins over the pure-O2 derivation', () {
-      // The case the numbers cannot settle: two 100% cylinders, one the
-      // oxygen supply and one a deco bottle. Marking the bottle keeps it in
-      // the bailout calculation instead of being read as the supply.
+    test('an explicit diluent flag wins even over the pure-O2 derivation', () {
+      // The diver's own choice always wins: a 100% cylinder they marked
+      // diluent is diluent, not silently reassigned to oxygen supply.
       final plan = _plan(
         mode: domain.PlanMode.ccr,
         tanks: [
+          _tank('o2dil', o2: 100, role: TankRole.diluent),
           _tank('o2supply', o2: 100),
-          _tank('decoBottle', o2: 100, role: TankRole.bailout),
-          _tank('dil', o2: 21, he: 35),
         ],
-        segments: [_seg('s1', 45, 25, 'dil', 0)],
+        segments: const [],
       );
 
       final roles = _roles(plan);
-      expect(roles['decoBottle'], TankRole.bailout);
+      expect(roles['o2dil'], TankRole.diluent);
       expect(roles['o2supply'], TankRole.oxygenSupply);
-      expect(roles['dil'], TankRole.diluent);
     });
 
-    test('the override does not carry over to an open-circuit plan', () {
-      // The override exists because a loop plan cannot tell an O2 supply from
-      // a bailout bottle by the numbers. Open circuit has no such ambiguity
-      // and the tank editor does not offer the flag there, so a flag that
-      // arrives on an OC plan is stale - a cylinder picked from a saved
-      // configuration, or a plan switched from CCR to OC. Honouring it would
-      // file the cylinder as bailout, which ContingencyService.isLosable does
-      // not match, and the lost-gas contingency would skip it in silence.
+    test('the diluent flag does not carry over to an open-circuit plan', () {
+      // The flag exists because a loop plan has no other way to tell
+      // diluent from bailout; open circuit has no such ambiguity and the
+      // tank editor does not even offer it there, so a stored diluent role
+      // on an OC plan is stale - a cylinder picked from a saved
+      // configuration, or a plan switched from CCR to OC - and is
+      // re-derived like any other.
       final plan = _plan(
         tanks: [
           _tank('bottom'),
-          _tank('flagged', role: TankRole.bailout),
+          _tank('flagged', role: TankRole.diluent),
         ],
         segments: [_seg('s1', 30, 20, 'bottom', 0)],
       );

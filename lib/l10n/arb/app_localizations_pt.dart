@@ -10100,6 +10100,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Gás de circuito aberto levado em caso de falha do circuito';
 
   @override
+  String get divePlanner_field_diluentGas => 'Diluent';
+
+  @override
+  String get divePlanner_field_diluentGasHint =>
+      'Unticked cylinders default to bailout';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override
@@ -18954,6 +18961,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Gás de bailout insuficiente para o pior caso';
 
   @override
+  String get plannerCanvas_bailout_schedule => 'Schedule from the worst case';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return 'Necessário $liters';
   }
@@ -19242,6 +19252,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => 'Duração';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => 'Tudo utilizável';

@@ -4,6 +4,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 
 const _diluent = GasMix(o2: 18, he: 45);
@@ -126,5 +127,136 @@ void main() {
     final outcome = solver.solve(_plan())!;
     final target = outcome.points[2].runtimeSeconds.toDouble();
     expect(outcome.nearest(target).runtimeSeconds, target.toInt());
+  });
+
+  group('worstCaseRows (#3137)', () {
+    test('reads the whole dive: the authored descent/bottom phase (on the '
+        'diluent) up to the bailout instant, then the OC ascent down to the '
+        'surface', () {
+      final outcome = solver.solve(_plan())!;
+      expect(outcome.worstCaseRows, isNotEmpty);
+      expect(outcome.worstCaseRows.first.kind, PlanScheduleRowKind.descent);
+      expect(outcome.worstCaseRows.first.tankId, 'dil');
+      expect(outcome.worstCaseRows.last.depthMeters, 0);
+      // RT is continuous across the whole table, not restarted at the
+      // bailout instant.
+      for (var i = 1; i < outcome.worstCaseRows.length; i++) {
+        expect(
+          outcome.worstCaseRows[i].runtimeSeconds,
+          greaterThanOrEqualTo(outcome.worstCaseRows[i - 1].runtimeSeconds),
+          reason: 'row $i',
+        );
+      }
+      expect(
+        outcome.worstCaseRows.last.runtimeSeconds,
+        greaterThanOrEqualTo(outcome.worstCase.ttsSeconds),
+      );
+    });
+
+    test('the OC tail resolves to the single carried bailout tank; the '
+        'authored phase before it stays on the diluent', () {
+      final outcome = solver.solve(_plan())!;
+      final bailoutStart = outcome.worstCaseRows.indexWhere(
+        (r) => r.tankId == 'bo',
+      );
+      expect(bailoutStart, greaterThan(0));
+      for (final row in outcome.worstCaseRows.sublist(0, bailoutStart)) {
+        expect(row.tankId, 'dil', reason: 'row at ${row.depthMeters} m');
+      }
+      for (final row in outcome.worstCaseRows.sublist(bailoutStart)) {
+        expect(row.tankId, 'bo', reason: 'row at ${row.depthMeters} m');
+        expect(row.gasFO2, closeTo(0.50, 1e-9));
+      }
+    });
+
+    test('a second, richer bailout gas switches in near its own MOD', () {
+      final outcome = solver.solve(
+        _plan(
+          tanks: [
+            _diluentTank,
+            _bailout(),
+            const DiveTank(
+              id: 'deco',
+              volume: 11.1,
+              startPressure: 207,
+              gasMix: GasMix(o2: 100),
+              role: TankRole.bailout,
+            ),
+          ],
+        ),
+      )!;
+      final tankIds = outcome.worstCaseRows.map((r) => r.tankId).toSet();
+      expect(
+        tankIds,
+        containsAll(['bo', 'deco']),
+        reason: 'the shallower, richer gas should get used near the surface',
+      );
+    });
+
+    test('only the first travel leg prints before a stop; later stops '
+        'fold the travel time in, same as the main table (#3138)', () {
+      final outcome = solver.solve(_plan())!;
+      final rows = outcome.worstCaseRows;
+      final stopIndexes = [
+        for (var i = 0; i < rows.length; i++)
+          if (rows[i].kind == PlanScheduleRowKind.stop) i,
+      ];
+      expect(stopIndexes.length, greaterThan(1));
+      for (final i in stopIndexes.skip(1)) {
+        expect(rows[i - 1].kind, PlanScheduleRowKind.stop);
+      }
+    });
+  });
+
+  group('bailoutTankUsages', () {
+    test('one row per bailout tank, summing to the worst case\'s required '
+        'liters', () {
+      final outcome = solver.solve(_plan())!;
+      expect(outcome.bailoutTankUsages, hasLength(1));
+      final usage = outcome.bailoutTankUsages.single;
+      expect(usage.tankId, 'bo');
+      expect(usage.litersUsed, closeTo(outcome.worstCase.litersRequired, 0.5));
+      expect(usage.totalLiters, isNotNull);
+      expect(usage.remainingPressure, isNotNull);
+    });
+
+    test('usage splits across tanks when more than one bailout gas is '
+        'actually used', () {
+      final outcome = solver.solve(
+        _plan(
+          tanks: [
+            _diluentTank,
+            _bailout(),
+            const DiveTank(
+              id: 'deco',
+              volume: 11.1,
+              startPressure: 207,
+              gasMix: GasMix(o2: 100),
+              role: TankRole.bailout,
+            ),
+          ],
+        ),
+      )!;
+      final byId = {for (final u in outcome.bailoutTankUsages) u.tankId: u};
+      expect(byId.keys, containsAll(['bo', 'deco']));
+      expect(byId['bo']!.litersUsed, greaterThan(0));
+      expect(byId['deco']!.litersUsed, greaterThan(0));
+      final total = byId.values.fold<double>(0, (sum, u) => sum + u.litersUsed);
+      expect(total, closeTo(outcome.worstCase.litersRequired, 0.5));
+    });
+
+    test(
+      'flags a cylinder whose own usage exceeds its own capacity (#3190)',
+      () {
+        final outcome = solver.solve(
+          _plan(tanks: [_diluentTank, _bailout(volume: 3.0, pressure: 100)]),
+        )!;
+        final usage = outcome.bailoutTankUsages.single;
+        expect(usage.litersUsed, greaterThan(usage.totalLiters!));
+        expect(usage.reserveViolation, isTrue);
+        // pressureAfterConsuming floors at zero rather than negative.
+        expect(usage.remainingPressure, 0.0);
+      },
+    );
   });
 }

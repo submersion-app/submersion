@@ -459,6 +459,7 @@ class PlanEngine {
       ascentPlan,
       lastDepth,
       runtime,
+      environment,
     );
 
     // A separate, finely-sampled replay purely for the chart's ceiling curve.
@@ -1294,7 +1295,12 @@ class PlanEngine {
           airBreakSeconds: stop.airBreakSeconds,
           gasFO2: fO2,
           gasFHe: gas.fHe,
-          tankId: _tankForGas(plan.tanks, fO2, gas.fHe),
+          tankId: _tankForGas(
+            plan.tanks,
+            fO2,
+            gas.fHe,
+            isCcr: plan.mode == domain.PlanMode.ccr,
+          ),
           arrivalRuntimeSeconds: arrival,
         ),
       );
@@ -1324,10 +1330,57 @@ class PlanEngine {
     AscentGasPlan ascentPlan,
     double lastDepth,
     int segmentsRuntime,
+    DiveEnvironment environment,
   ) {
     final rows = <PlanScheduleRow>[];
+    final isCcr = plan.mode == domain.PlanMode.ccr;
     double? previousFO2;
     double? previousFHe;
+
+    // The loop's real inspired ppO2 at a depth -- always the setpoint
+    // (clamped to alveolar pressure where the diluent can no longer dilute
+    // enough), never ambient x a stored gas fraction. gasFO2/gasFHe on a
+    // computed-ascent row are normalized against alveolar pressure
+    // (CcrLoopAscentGas: fN2 = pN2 / pAlv, and so on), not against raw
+    // ambient pressure -- multiplying that fraction back by ambient
+    // overstates ppO2 by a margin that *grows* as depth shrinks (ambient
+    // and pAlv differ by a fixed ~0.063 bar water-vapour term, which is a
+    // bigger fraction of a small ambient than a large one). A diver saw
+    // this directly: PO2 drifting from 1.30 at depth up to 1.35 near the
+    // surface on a dive with one constant 1.3 bar high setpoint. Asking the
+    // loop model directly for the inspired pO2 is exact at every depth.
+    double? ccrPpO2At(double atDepth) {
+      if (!isCcr || ascentPlan is! CcrLoopAscentGas) return null;
+      final loop = ascentPlan;
+      return ClosedCircuit(
+        setpoint: loop.setpointAt(atDepth),
+        diluentFO2: loop.diluentFO2,
+        diluentFHe: loop.diluentFHe,
+      ).inspiredAt(environment.pressureAtDepth(atDepth)).pO2;
+    }
+
+    // The loop's TRUE gas identity at a depth, for display: the diluent, or
+    // pure O2 once the loop can no longer dilute enough to hold any
+    // setpoint (shallow hypoxic cap). CcrLoopAscentGas.gasForDepth() instead
+    // returns a continuously drifting pAlv-normalized fraction for the deco
+    // engine's own bookkeeping -- using that for the Gas column fabricates
+    // an invented mix on every line even on a single-diluent dive (a diver
+    // saw this directly: Tx 10/70 shown as Tx 12/68, Tx 24/59, ... Tx
+    // 87/10). A diver on one diluent breathes exactly that gas (or pure O2)
+    // the whole dive, never a smooth interpolation between the two.
+    ({double fO2, double fHe})? ccrDisplayGasAt(double atDepth) {
+      if (!isCcr || ascentPlan is! CcrLoopAscentGas) return null;
+      final loop = ascentPlan;
+      final inspired = ClosedCircuit(
+        setpoint: loop.setpointAt(atDepth),
+        diluentFO2: loop.diluentFO2,
+        diluentFHe: loop.diluentFHe,
+      ).inspiredAt(environment.pressureAtDepth(atDepth));
+      final isPureO2 = inspired.pN2 <= 0 && inspired.pHe <= 0;
+      return isPureO2
+          ? (fO2: 1.0, fHe: 0.0)
+          : (fO2: loop.diluentFO2, fHe: loop.diluentFHe);
+    }
 
     void add({
       required PlanScheduleRowKind kind,
@@ -1338,6 +1391,23 @@ class PlanEngine {
       required double fHe,
       required String? tankId,
       int airBreakSeconds = 0,
+      // Set whenever the row's gas was resolved through ccrPpO2At/
+      // ccrDisplayGasAt rather than ambient x fO2: the real inspired ppO2
+      // (the CCR setpoint, clamped once the diluent can no longer dilute
+      // enough), which ambient x fO2 does not reproduce for a loop mode --
+      // fO2 there is either the carried gas's own fraction (an authored
+      // leg) or CcrLoopAscentGas's pAlv-normalized fraction (a computed
+      // row), neither of which is "ambient x fO2 = real ppO2". Every OC row
+      // keeps the ambient x fO2 fallback, which is correct for a real tank
+      // mix.
+      double? ppO2Override,
+      // The depth ppO2/END are computed at, when it differs from the row's
+      // own displayed [depth]. A CCR travel row determines its gas identity
+      // and loop state at the leg's deeper end (the same conservative
+      // approximation open-circuit legs make) but displays the shallower
+      // arrival depth, so the physics must use the depth that determination
+      // actually came from.
+      double? physicsDepth,
     }) {
       final lastFO2 = previousFO2;
       final lastFHe = previousFHe;
@@ -1346,6 +1416,7 @@ class PlanEngine {
           lastFHe == null ||
           (fO2 - lastFO2).abs() > _gasFractionEpsilon ||
           (fHe - lastFHe).abs() > _gasFractionEpsilon;
+      final pDepth = physicsDepth ?? depth;
       rows.add(
         PlanScheduleRow(
           kind: kind,
@@ -1357,6 +1428,11 @@ class PlanEngine {
           tankId: tankId,
           gasSwitch: switched,
           airBreakSeconds: airBreakSeconds,
+          ppO2: ppO2Override ?? environment.pressureAtDepth(pDepth) * fO2,
+          endMeters: GasMix(
+            o2: fO2 * 100,
+            he: fHe * 100,
+          ).end(pDepth, o2Narcotic: config.o2Narcotic),
         ),
       );
       previousFO2 = fO2;
@@ -1364,6 +1440,8 @@ class PlanEngine {
     }
 
     for (final leg in legs) {
+      final segment = leg.segment;
+      final segmentIsLoop = _modeFor(plan, segment) != domain.PlanMode.oc;
       add(
         kind: switch (leg.phase) {
           SegmentPhase.descent => PlanScheduleRowKind.descent,
@@ -1377,41 +1455,76 @@ class PlanEngine {
         fO2: leg.gasMix.o2 / 100.0,
         fHe: leg.gasMix.he / 100.0,
         tankId: leg.tankId,
+        ppO2Override: segmentIsLoop
+            ? _breathingFor(
+                plan,
+                leg.gasMix,
+                leg.endDepth,
+                segment: segment,
+              ).inspiredAt(environment.pressureAtDepth(leg.endDepth)).pO2
+            : null,
       );
     }
 
     void addTravel(double from, double to, int duration, int arrival) {
-      final gas = ascentPlan.gasForDepth(from);
-      final fO2 = 1.0 - gas.fN2 - gas.fHe;
+      final displayGas = ccrDisplayGasAt(from);
+      double fO2;
+      double fHe;
+      if (displayGas != null) {
+        fO2 = displayGas.fO2;
+        fHe = displayGas.fHe;
+      } else {
+        final gas = ascentPlan.gasForDepth(from);
+        fO2 = 1.0 - gas.fN2 - gas.fHe;
+        fHe = gas.fHe;
+      }
       add(
         kind: PlanScheduleRowKind.ascent,
         depth: to,
         duration: duration,
         runtime: arrival,
         fO2: fO2,
-        fHe: gas.fHe,
-        tankId: _tankForGas(plan.tanks, fO2, gas.fHe),
+        fHe: fHe,
+        tankId: _tankForGas(plan.tanks, fO2, fHe, isCcr: isCcr),
+        physicsDepth: isCcr ? from : null,
+        ppO2Override: ccrPpO2At(from),
       );
     }
 
     var depth = lastDepth;
     var end = segmentsRuntime;
     var phase = AscentPhase.toFirstStop;
-    for (final stop in stops) {
+    for (var i = 0; i < stops.length; i++) {
+      final stop = stops[i];
       final travel = stop.arrivalRuntimeSeconds - end;
-      if (travel > 0) {
+      // The first travel leg (bottom phase to the first stop) stays its own
+      // row -- an informative transition. From the second stop on, a real
+      // gas switch always lands exactly at the stop it leads into
+      // (AscentGasPlan's design: a switch-at-MOD never falls strictly
+      // between two 3 m-spaced stops), so a travel-between-stops row would
+      // only ever repeat the previous line's gas -- clutter, not
+      // information. Dropping it loses nothing: scheduleLines() already
+      // derives each printed duration from consecutive runtimeSeconds, so
+      // the travel time folds straight into the stop it leads to (#3138).
+      if (i == 0 && travel > 0) {
         addTravel(depth, stop.depthMeters, travel, stop.arrivalRuntimeSeconds);
       }
       end = stop.arrivalRuntimeSeconds + stop.durationSeconds;
+      final stopDisplayGas = ccrDisplayGasAt(stop.depthMeters);
+      final stopFO2 = stopDisplayGas?.fO2 ?? stop.gasFO2;
+      final stopFHe = stopDisplayGas?.fHe ?? stop.gasFHe;
       add(
         kind: PlanScheduleRowKind.stop,
         depth: stop.depthMeters,
         duration: stop.durationSeconds,
         runtime: end,
-        fO2: stop.gasFO2,
-        fHe: stop.gasFHe,
-        tankId: stop.tankId,
+        fO2: stopFO2,
+        fHe: stopFHe,
+        tankId: stopDisplayGas != null
+            ? _tankForGas(plan.tanks, stopFO2, stopFHe, isCcr: isCcr)
+            : stop.tankId,
         airBreakSeconds: stop.airBreakSeconds,
+        ppO2Override: ccrPpO2At(stop.depthMeters),
       );
       depth = stop.depthMeters;
       phase = AscentPhase.betweenStops;
@@ -1429,9 +1542,30 @@ class PlanEngine {
 
   /// The carried tank whose mix matches the stop gas (deco/stage roles win
   /// ties so the back gas is not charged for deco stops it did not supply).
-  String? _tankForGas(List<DiveTank> tanks, double fO2, double fHe) {
+  ///
+  /// On a loop plan the diver is never actually breathing a bailout tank
+  /// unless they have bailed out, which this schedule does not model -- so a
+  /// bailout mix must never be offered as a match. Without this filter, a
+  /// dense OC bailout staging can coincidentally fall within tolerance of
+  /// the loop's continuously-shifting inert fraction at almost any stop,
+  /// making the gas column claim a switch that never happened (#3131).
+  String? _tankForGas(
+    List<DiveTank> tanks,
+    double fO2,
+    double fHe, {
+    // Defaults false because _computeTankUsages, the only OC-side caller,
+    // never carries a CCR plan (see the isCcr ? _computeCcrTankUsages(...) :
+    // _computeTankUsages(...) split): every CCR-reachable call site below
+    // sets this explicitly.
+    bool isCcr = false,
+  }) {
     DiveTank? match;
     for (final tank in tanks) {
+      if (isCcr &&
+          tank.role != TankRole.diluent &&
+          tank.role != TankRole.oxygenSupply) {
+        continue;
+      }
       final tankFO2 = tank.gasMix.o2 / 100.0;
       final tankFHe = tank.gasMix.he / 100.0;
       if ((tankFO2 - fO2).abs() < 0.005 && (tankFHe - fHe).abs() < 0.005) {

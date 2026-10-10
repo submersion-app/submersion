@@ -10085,6 +10085,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nyitott rendszerű gáz a kör meghibásodása esetére';
 
   @override
+  String get divePlanner_field_diluentGas => 'Diluent';
+
+  @override
+  String get divePlanner_field_diluentGasHint =>
+      'Unticked cylinders default to bailout';
+
+  @override
   String get divePlanner_field_hePercent => 'He %';
 
   @override
@@ -18892,6 +18899,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'A bailout gáz nem elegendő a legrosszabb esethez';
 
   @override
+  String get plannerCanvas_bailout_schedule => 'Schedule from the worst case';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return 'Szükséges $liters';
   }
@@ -19177,6 +19187,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => 'Időtartam';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => 'Minden felhasználható';

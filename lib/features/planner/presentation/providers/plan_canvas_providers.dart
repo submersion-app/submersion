@@ -173,7 +173,11 @@ class PlanCanvasSeries {
 final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   final outcome = ref.watch(planOutcomeProvider);
-  return buildCanvasSeries(segments: state.segments, outcome: outcome);
+  return buildCanvasSeries(
+    segments: state.segments,
+    outcome: outcome,
+    isCcr: state.mode == domain.PlanMode.ccr,
+  );
 });
 
 /// Builds the chart series for any (segments, outcome) pair — the live plan
@@ -181,6 +185,7 @@ final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
 PlanCanvasSeries buildCanvasSeries({
   required List<PlanSegment> segments,
   required PlanOutcome outcome,
+  bool isCcr = false,
 }) {
   final sorted = List<PlanSegment>.from(segments)
     ..sort((a, b) => a.order.compareTo(b.order));
@@ -224,10 +229,17 @@ PlanCanvasSeries buildCanvasSeries({
         durationSeconds: stop.durationSeconds,
       ),
     );
+    // The computed ascent only ever carries one fixed diluent, so its
+    // ppO2-at-constant-setpoint fraction necessarily drifts with ambient
+    // pressure at almost every stop even though the diver never leaves the
+    // loop. Comparing it against previousFO2/FHe would fabricate a
+    // different gas name at nearly every marker (#3131); CCR never shows a
+    // switch marker on the computed ascent.
     final switched =
-        previousFO2 == null ||
-        (stop.gasFO2 - previousFO2).abs() > 0.005 ||
-        (stop.gasFHe - (previousFHe ?? 0)).abs() > 0.005;
+        !isCcr &&
+        (previousFO2 == null ||
+            (stop.gasFO2 - previousFO2).abs() > 0.005 ||
+            (stop.gasFHe - (previousFHe ?? 0)).abs() > 0.005);
     if (switched && previousFO2 != null) {
       gasSwitches.add(
         CanvasMarker(
@@ -372,6 +384,7 @@ final contingencyGhostSeriesProvider = Provider<PlanCanvasSeries?>((ref) {
   return buildCanvasSeries(
     segments: preview.plan.segments,
     outcome: preview.outcome,
+    isCcr: preview.plan.mode == domain.PlanMode.ccr,
   );
 });
 

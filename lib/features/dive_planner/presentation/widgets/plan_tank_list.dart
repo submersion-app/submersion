@@ -72,7 +72,10 @@ class PlanTankList extends ConsumerWidget {
             // diver's saved cylinders, each a tap away from joining the plan.
             const PlanSavedTanksBar(),
 
-            // Tank chips
+            // Tank chips. Diluent is now the diver's one explicit choice on
+            // a loop plan (#3135 follow-up) -- unticked, a cylinder defaults
+            // to bailout, with no silent fallback to warn about: the chip's
+            // own badge already says which it is.
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -257,7 +260,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   /// so its provisional role is resolved under the id it will be saved with.
   late final String _tankId = widget.tank?.id ?? _uuid.v4();
   bool _isTravelGas = false;
-  bool _isBailout = false;
+  bool _isDiluent = false;
 
   /// The volume field's seeded text, so [_save] can tell an untouched field
   /// from an edited one and keep the stored litres exactly (issue #2027).
@@ -297,11 +300,10 @@ class _TankEditDialogState extends State<_TankEditDialog> {
       text: formatDecimalForInput(widget.tank?.gasMix.he ?? 0),
     );
     _isTravelGas = widget.tank?.isTravelGas ?? false;
-    // `role` is no longer a field the diver fills in. The only value that
-    // still carries intent is `bailout`, which TankRoleResolver honours as an
-    // override because a 100% cylinder on a loop plan could equally be the
-    // oxygen supply or a bailout bottle.
-    _isBailout = widget.tank?.role == TankRole.bailout;
+    // `role` is no longer a field the diver fills in, except on a loop plan:
+    // diluent is the one explicit choice there, which TankRoleResolver
+    // honours and never re-derives from anything else (#3135).
+    _isDiluent = widget.tank?.role == TankRole.diluent;
   }
 
   @override
@@ -423,27 +425,31 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                   ),
                 ),
               const SizedBox(height: 8),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: _isTravelGas,
-                title: Text(context.l10n.divePlanner_field_travelGas),
-                onChanged: (value) {
-                  setState(() => _isTravelGas = value ?? false);
-                },
-              ),
+              // CCR has no travel-gas concept: TankRoleResolver's loop branch
+              // never consults isTravelGas, so the option is meaningless
+              // there and only confuses a diluent/bailout choice (#3131).
+              if (widget.mode != PlanMode.ccr)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: _isTravelGas,
+                  title: Text(context.l10n.divePlanner_field_travelGas),
+                  onChanged: (value) {
+                    setState(() => _isTravelGas = value ?? false);
+                  },
+                ),
               if (widget.mode != PlanMode.oc)
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,
-                  value: _isBailout,
-                  title: Text(context.l10n.divePlanner_field_bailoutGas),
+                  value: _isDiluent,
+                  title: Text(context.l10n.divePlanner_field_diluentGas),
                   subtitle: Text(
-                    context.l10n.divePlanner_field_bailoutGasHint,
+                    context.l10n.divePlanner_field_diluentGasHint,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   onChanged: (value) {
-                    setState(() => _isBailout = value ?? false);
+                    setState(() => _isDiluent = value ?? false);
                   },
                 ),
             ],
@@ -572,9 +578,9 @@ class _TankEditDialogState extends State<_TankEditDialog> {
         o2: _validated(_o2Controller, blank: 21)!,
         he: _validated(_heController, blank: 0)!,
       ),
-      // Everything except an explicit bailout is derived by
-      // TankRoleResolver; backGas is the neutral "derive me" placeholder.
-      role: _isBailout ? TankRole.bailout : TankRole.backGas,
+      // Everything except an explicit diluent (loop plans only) is derived
+      // by TankRoleResolver; backGas is the neutral "derive me" placeholder.
+      role: _isDiluent ? TankRole.diluent : TankRole.backGas,
       order: widget.tank?.order ?? 0,
       isTravelGas: _isTravelGas,
     );

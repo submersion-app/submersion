@@ -625,7 +625,7 @@ void main() {
       expect(checkbox.value, isTrue);
     });
   });
-  group('PlanTankList bailout checkbox', () {
+  group('PlanTankList diluent checkbox', () {
     Future<ProviderContainer> pumpList(
       WidgetTester tester, {
       required PlanMode mode,
@@ -647,7 +647,7 @@ void main() {
       return container;
     }
 
-    testWidgets('is absent on open circuit, where nothing is bailout', (
+    testWidgets('is absent on open circuit, where nothing is diluent', (
       tester,
     ) async {
       await pumpList(tester, mode: PlanMode.oc);
@@ -655,63 +655,84 @@ void main() {
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
 
-      expect(find.text('Bailout gas'), findsNothing);
+      expect(find.text('Diluent'), findsNothing);
       expect(find.byType(CheckboxListTile), findsOneWidget);
     });
 
-    testWidgets('on CCR, ticking it saves the tank with the bailout role', (
-      tester,
-    ) async {
-      final container = await pumpList(tester, mode: PlanMode.ccr);
+    testWidgets(
+      'travel gas is absent on CCR, where only diluent and bailout apply '
+      '(#3131)',
+      (tester) async {
+        await pumpList(tester, mode: PlanMode.ccr);
 
-      await tester.tap(find.byIcon(Icons.add));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.add));
+        await tester.pumpAndSettle();
 
-      final tile = find.widgetWithText(CheckboxListTile, 'Bailout gas');
-      expect(tile, findsOneWidget);
-      expect(
-        find.text('Open-circuit gas carried in case the loop fails'),
-        findsOneWidget,
-      );
-      expect(tester.widget<CheckboxListTile>(tile).value, isFalse);
+        expect(find.text('Also used as travel gas'), findsNothing);
+        expect(
+          find.widgetWithText(CheckboxListTile, 'Diluent'),
+          findsOneWidget,
+        );
+      },
+    );
 
-      await tester.tap(tile);
-      await tester.pumpAndSettle();
-      expect(tester.widget<CheckboxListTile>(tile).value, isTrue);
+    testWidgets(
+      'on CCR, ticking it saves the tank with the diluent role; unticked '
+      'defaults to bailout (#3135)',
+      (tester) async {
+        final container = await pumpList(tester, mode: PlanMode.ccr);
 
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.add));
+        await tester.pumpAndSettle();
 
-      final addedTank = container.read(divePlanNotifierProvider).tanks.last;
-      expect(addedTank.role, TankRole.bailout);
-      expect(addedTank.isTravelGas, isFalse);
-    });
+        final tile = find.widgetWithText(CheckboxListTile, 'Diluent');
+        expect(tile, findsOneWidget);
+        expect(
+          find.text('Unticked cylinders default to bailout'),
+          findsOneWidget,
+        );
+        expect(tester.widget<CheckboxListTile>(tile).value, isFalse);
 
-    testWidgets('on SCR, an unticked tile leaves the role to be derived', (
-      tester,
-    ) async {
-      final container = await pumpList(tester, mode: PlanMode.scr);
+        await tester.tap(tile);
+        await tester.pumpAndSettle();
+        expect(tester.widget<CheckboxListTile>(tile).value, isTrue);
 
-      await tester.tap(find.byIcon(Icons.add));
-      await tester.pumpAndSettle();
-      final tile = find.widgetWithText(CheckboxListTile, 'Bailout gas');
-      expect(tile, findsOneWidget);
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
 
-      // Tick and untick: the checkbox round-trips.
-      await tester.tap(tile);
-      await tester.pumpAndSettle();
-      await tester.tap(tile);
-      await tester.pumpAndSettle();
-      expect(tester.widget<CheckboxListTile>(tile).value, isFalse);
+        final addedTank = container.read(divePlanNotifierProvider).tanks.last;
+        expect(addedTank.role, TankRole.diluent);
+        expect(addedTank.isTravelGas, isFalse);
+      },
+    );
 
-      await tester.tap(find.text('Save'));
-      await tester.pumpAndSettle();
+    testWidgets(
+      'on SCR, an unticked tile leaves the neutral placeholder role, which '
+      'the resolver then defaults to bailout',
+      (tester) async {
+        final container = await pumpList(tester, mode: PlanMode.scr);
 
-      final addedTank = container.read(divePlanNotifierProvider).tanks.last;
-      expect(addedTank.role, TankRole.backGas);
-    });
+        await tester.tap(find.byIcon(Icons.add));
+        await tester.pumpAndSettle();
+        final tile = find.widgetWithText(CheckboxListTile, 'Diluent');
+        expect(tile, findsOneWidget);
 
-    testWidgets('editing a bailout tank shows the tile already ticked', (
+        // Tick and untick: the checkbox round-trips.
+        await tester.tap(tile);
+        await tester.pumpAndSettle();
+        await tester.tap(tile);
+        await tester.pumpAndSettle();
+        expect(tester.widget<CheckboxListTile>(tile).value, isFalse);
+
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+
+        final addedTank = container.read(divePlanNotifierProvider).tanks.last;
+        expect(addedTank.role, TankRole.backGas);
+      },
+    );
+
+    testWidgets('editing a diluent tank shows the tile already ticked', (
       tester,
     ) async {
       final container = await pumpList(tester, mode: PlanMode.ccr);
@@ -719,21 +740,21 @@ void main() {
           .read(divePlanNotifierProvider.notifier)
           .addTank(
             const DiveTank(
-              id: 'bo',
-              name: 'Bailout 50',
-              volume: 11.1,
+              id: 'dil',
+              name: 'Diluent 18/45',
+              volume: 3.0,
               startPressure: 200,
-              gasMix: GasMix(o2: 50, he: 0),
-              role: TankRole.bailout,
+              gasMix: GasMix(o2: 18, he: 45),
+              role: TankRole.diluent,
               order: 1,
             ),
           );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.widgetWithText(InputChip, 'Bailout 50'));
+      await tester.tap(find.widgetWithText(InputChip, 'Diluent 18/45'));
       await tester.pumpAndSettle();
 
-      final tile = find.widgetWithText(CheckboxListTile, 'Bailout gas');
+      final tile = find.widgetWithText(CheckboxListTile, 'Diluent');
       expect(tester.widget<CheckboxListTile>(tile).value, isTrue);
     });
   });

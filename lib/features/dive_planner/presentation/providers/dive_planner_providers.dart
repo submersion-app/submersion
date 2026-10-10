@@ -750,8 +750,26 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
             (state.setpointLow == null || state.setpointHigh == null)
         ? _getDefaultCcrSetpoints()
         : null;
+    // Diluent is the diver's explicit per-tank choice on a loop plan
+    // (#3135) -- nothing marks itself diluent just by being breathed
+    // anymore. Entering a loop mode with nothing marked yet would leave the
+    // plan with no diluent at all, so the tank(s) the plan already breathes
+    // are marked here, once, as the one convenience carried over from the
+    // old inference. Anything added afterwards needs its own checkbox.
+    var tanks = state.tanks;
+    if (mode != domain.PlanMode.oc &&
+        !tanks.any((t) => t.role == TankRole.diluent)) {
+      final breathedIds = state.segments.map((s) => s.tankId).toSet();
+      tanks = [
+        for (final tank in tanks)
+          breathedIds.contains(tank.id)
+              ? tank.copyWith(role: TankRole.diluent)
+              : tank,
+      ];
+    }
     state = state.copyWith(
       mode: mode,
+      tanks: tanks,
       setpointLow: state.setpointLow ?? defaults?.low,
       setpointHigh: state.setpointHigh ?? defaults?.high,
       isDirty: true,

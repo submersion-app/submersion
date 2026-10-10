@@ -21,6 +21,10 @@ const _airTank = DiveTank(
   volume: 11.1,
   startPressure: 207.0,
   gasMix: _air,
+  // Diluent is now an explicit per-tank choice on a loop plan, honoured by
+  // TankRoleResolver and never inferred from being breathed -- needed for
+  // the CCR bailout-slate case below.
+  role: TankRole.diluent,
 );
 const _decoTank = DiveTank(
   id: 'tank-2',
