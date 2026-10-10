@@ -935,6 +935,16 @@ else
         "selected $selected_mock of 110 helper importers"
 fi
 
+# A hub is counted in FILES. small_helper_user_test.dart names its helper
+# twice, so counting matches would make a one-importer helper a hub at a
+# threshold of 1 and push its only importer into the sample.
+printf '// see ../../helpers/small_helper.dart\n' \
+    >> "$tmp/wt/test/features/zeta/small_helper_user_test.dart"
+run_hook "$tmp" HUB_THRESHOLD=1 HUB_SAMPLE=1
+assert_selected has 'test/features/zeta/small_helper_user_test.dart' \
+    'counts hub importers per file, not per mention'
+git -C "$tmp/wt" checkout -q -- test/features/zeta/small_helper_user_test.dart
+
 run_hook "$tmp" RUN_ALL_AFFECTED=1
 selected_hub="$(count_selected "$hub_importers")"
 if [ "$selected_hub" -eq 280 ]; then

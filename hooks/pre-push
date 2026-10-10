@@ -579,11 +579,12 @@ test/${rel%.dart}_test.dart"
 done <<< "$changed_files"
 
 # Patterns from file $1 that more than HUB_THRESHOLD test files contain. One
-# grep pass for every pattern: -o prints each match, so counting the matches
-# per pattern counts its importers (an import line appears once per file).
+# grep pass for every pattern: -o prints each match as "path:pattern", deduped
+# per file so a test naming a file twice (an import plus a comment, say) still
+# counts once, then counted per pattern.
 hub_patterns_in() {
-    grep -rhoF -f "$1" --include='*_test.dart' test 2>/dev/null \
-        | sort | uniq -c \
+    grep -roF -f "$1" --include='*_test.dart' test 2>/dev/null \
+        | sort -u | cut -d: -f2- | sort | uniq -c \
         | awk -v limit="$HUB_THRESHOLD_COUNT" '$1 > limit { print $2 }' || true
 }
 
