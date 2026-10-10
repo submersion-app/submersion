@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/window_fullscreen.dart';
 
@@ -130,6 +132,96 @@ void main() {
       expect(platform.setCalls, [true]);
     },
   );
+
+  test(
+    'a failed exit keeps the hold, so the next release retries it',
+    () async {
+      final first = Object();
+      await controller.request(first);
+      platform.throwOnSet = true;
+      await controller.release(first);
+      expect(platform.fullScreen, isTrue, reason: 'the exit failed');
+
+      platform.throwOnSet = false;
+      final second = Object();
+      await controller.request(second);
+      await controller.release(second);
+
+      expect(platform.setCalls, [true, false]);
+      expect(platform.fullScreen, isFalse);
+    },
+  );
+
+  test(
+    'a failed exit does not swallow the next leave the user makes',
+    () async {
+      final first = Object();
+      await controller.request(first);
+      platform.throwOnSet = true;
+      await controller.release(first);
+      platform.throwOnSet = false;
+
+      // Still fullscreen and ours; the user now leaves and goes back in.
+      final second = Object();
+      await controller.request(second);
+      platform.userLeaves();
+      platform.fullScreen = true;
+      await controller.release(second);
+
+      expect(platform.fullScreen, isTrue);
+    },
+  );
+
+  group('WindowManagerFullscreenPlatform', () {
+    const channel = MethodChannel('window_manager');
+
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            return switch (call.method) {
+              'isFullScreen' => false,
+              _ => true,
+            };
+          });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    test('disposing the container removes its window listener', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final before = windowManager.listeners.length;
+      // A soft restart (restartApp) builds a new root scope, so the old
+      // scope's listener must not outlive it.
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await container.read(windowFullscreenPlatformProvider).isFullScreen();
+      expect(windowManager.listeners.length, before + 1);
+
+      container.dispose();
+      expect(windowManager.listeners.length, before);
+    });
+
+    test('a container disposed mid-initialization adds no listener', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final before = windowManager.listeners.length;
+      final container = ProviderContainer();
+
+      final pending = container
+          .read(windowFullscreenPlatformProvider)
+          .isFullScreen();
+      container.dispose();
+      await pending;
+
+      expect(windowManager.listeners.length, before);
+    });
+  });
 
   group('windowFullscreenPlatformProvider', () {
     for (final platformCase in [

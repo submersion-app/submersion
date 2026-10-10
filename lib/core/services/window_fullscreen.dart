@@ -30,12 +30,21 @@ class WindowManagerFullscreenPlatform
   Future<void>? _initialized;
 
   void Function()? _onLeave;
+  bool _disposed = false;
 
   Future<void> _ensureInitialized() => _initialized ??= _initialize();
 
   Future<void> _initialize() async {
     await windowManager.ensureInitialized();
-    windowManager.addListener(this);
+    if (!_disposed) windowManager.addListener(this);
+  }
+
+  /// Stops listening to the window. A soft restart builds a new root
+  /// provider scope, and with it a new platform; the plugin keeps every
+  /// listener it is given, so the old one has to be taken off.
+  void dispose() {
+    _disposed = true;
+    windowManager.removeListener(this);
   }
 
   @override
@@ -117,7 +126,15 @@ class WindowFullscreenController {
       // green button on macOS); toggling again would put them back in.
       if (!await _platform.isFullScreen()) return;
       _ownLeavesPending++;
-      await _platform.setFullScreen(false);
+      try {
+        await _platform.setFullScreen(false);
+      } catch (_) {
+        // The window is still fullscreen and still ours, and no leave event
+        // is coming: keep the hold so the next release tries again.
+        _ownLeavesPending--;
+        _enteredByUs = true;
+        rethrow;
+      }
     });
   }
 
@@ -162,11 +179,14 @@ bool hasDesktopWindow() =>
 
 /// The window this app runs in. Read through [defaultTargetPlatform] so a
 /// widget test, which reports Android, never reaches the real plugin.
-final windowFullscreenPlatformProvider = Provider<WindowFullscreenPlatform>(
-  (ref) => hasDesktopWindow()
-      ? WindowManagerFullscreenPlatform()
-      : const _NoWindowFullscreenPlatform(),
-);
+final windowFullscreenPlatformProvider = Provider<WindowFullscreenPlatform>((
+  ref,
+) {
+  if (!hasDesktopWindow()) return const _NoWindowFullscreenPlatform();
+  final platform = WindowManagerFullscreenPlatform();
+  ref.onDispose(platform.dispose);
+  return platform;
+});
 
 final windowFullscreenControllerProvider = Provider<WindowFullscreenController>(
   (ref) =>
