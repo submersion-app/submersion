@@ -742,6 +742,13 @@ class _GasRow extends StatelessWidget {
         width: double.infinity,
         height: 4,
         child: Row(
+          // A childless ColoredBox takes the smallest size its constraints
+          // allow, and a Row only hands its children LOOSE cross-axis
+          // constraints by default -- so without stretch each segment was
+          // laid out 0 px tall and the whole bar vanished (a diver saw both
+          // over-capacity cylinders print their negative readings with no
+          // bar underneath at all).
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
               flex: coveredPermille,

@@ -156,6 +156,19 @@ void main() {
       // single-colour LinearProgressIndicator.
       expect(find.byType(LinearProgressIndicator), findsNothing);
       expect(find.byType(ColoredBox), findsNWidgets(2));
+      // Both segments must actually occupy the bar's 4 px height: a Row
+      // hands childless ColoredBoxes loose cross-axis constraints, under
+      // which they collapse to 0 px tall and render nothing.
+      final segmentSizes = tester
+          .widgetList<ColoredBox>(find.byType(ColoredBox))
+          .map((w) => tester.getSize(find.byWidget(w)))
+          .toList();
+      for (final size in segmentSizes) {
+        expect(size.height, 4.0);
+        expect(size.width, greaterThan(0.0));
+      }
+      // 2000 of 2500 L covered: the blue share is four times the red one.
+      expect(segmentSizes[0].width / segmentSizes[1].width, closeTo(4.0, 0.05));
     },
   );
 
