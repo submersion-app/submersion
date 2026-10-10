@@ -17,13 +17,14 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/add_trip_cylinders_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/scan_owned_item.dart';
 
 const _log = LoggerService('tripGearAddSheet');
 
-enum _Way { equipment, set, rental }
+enum _Way { equipment, set, scan, rental }
 
 /// The Gear tab's one Add (#2845): a chooser that opens the equipment
-/// picker, the set picker, or the rental cylinder form. A cylinder picked
+/// picker, the set picker, a tag scan (#2652), or the rental cylinder form. A cylinder picked
 /// from the diver's equipment becomes a slot on the board; anything else is
 /// packed.
 Future<void> showTripGearAddSheet(
@@ -51,6 +52,11 @@ Future<void> showTripGearAddSheet(
             onTap: () => Navigator.of(sheet).pop(_Way.set),
           ),
           ListTile(
+            leading: const Icon(Icons.qr_code_scanner),
+            title: Text(l10n.trips_gear_add_scan),
+            onTap: () => Navigator.of(sheet).pop(_Way.scan),
+          ),
+          ListTile(
             leading: const Icon(MdiIcons.divingScubaTank),
             title: Text(l10n.trips_gear_add_rental),
             onTap: () => Navigator.of(sheet).pop(_Way.rental),
@@ -70,6 +76,25 @@ Future<void> showTripGearAddSheet(
       if (picked == null || !context.mounted) return;
       final (set, items) = picked;
       await _apply(context, ref, trip, slots, items, setName: set.name);
+    case _Way.scan:
+      final item = await scanOwnedItem(context, ref);
+      if (item == null || !context.mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      final already =
+          packed.any((p) => p.id == item.id) ||
+          slots.any((s) => s.equipmentId == item.id);
+      if (already) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.gearPassport_scan_alreadyOnTrip(item.name)),
+          ),
+        );
+        return;
+      }
+      await _apply(context, ref, trip, slots, [item], setName: null);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.gearPassport_scan_added(item.name))),
+      );
     case _Way.rental:
       await showAddTripCylindersSheet(
         context,

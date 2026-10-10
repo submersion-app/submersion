@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/database/database.dart' show DiversCompanion;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -33,6 +35,8 @@ import 'package:submersion/features/trips/presentation/providers/trip_fill_forec
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -239,6 +243,7 @@ Future<_Harness> _pumpTab(
   AppSettings settings = const AppSettings(),
   Object? gearError,
   List<String>? forecastReads,
+  String? scanned,
 }) async {
   final packs = _FakePacks();
   final slots = _FakeSlots();
@@ -299,6 +304,10 @@ Future<_Harness> _pumpTab(
         ),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
         equipmentRepositoryProvider.overrideWithValue(_FakeEquipment()),
+        if (scanned != null)
+          passportScanLauncherProvider.overrideWithValue(
+            (context) async => scanned,
+          ),
       ].cast(),
       child: MaterialApp.router(
         locale: const Locale('en'),
@@ -890,5 +899,81 @@ void main() {
       forecastReads: underWayReads,
     );
     expect(underWayReads, isNotEmpty);
+  });
+
+  group('scan a tag (issue #2652)', () {
+    const regPid = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+    const tankPid = '22222222-3333-4444-8555-666666666666';
+    const regLink = 'https://submersion.app/g#f=1&p=$regPid&t=regulator';
+
+    Future<void> seedTagged(WidgetTester tester) => tester.runAsync(() async {
+      final db = DatabaseService.instance.database;
+      final t = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: 'd1',
+              name: 'd1',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      final repo = EquipmentRepository();
+      final passports = CylinderPassportRepository();
+      // The diver's own gear: the harness's diver is d1.
+      await repo.createEquipment(reg.copyWith(diverId: 'd1'));
+      await repo.createEquipment(tank.copyWith(diverId: 'd1'));
+      await passports.assignPassportId(equipmentId: 'reg', passportId: regPid);
+      await passports.assignPassportId(equipmentId: 'tk', passportId: tankPid);
+    });
+
+    Future<AppLocalizations> scanFromChooser(WidgetTester tester) async {
+      await _openAdd(tester);
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(TripGearTab)),
+      );
+      await tester.tap(find.text(l10n.trips_gear_add_scan));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 200)),
+      );
+      await tester.pumpAndSettle();
+      return l10n;
+    }
+
+    testWidgets('a scanned item is packed', (tester) async {
+      await seedTagged(tester);
+      final h = await _pumpTab(tester, gear: const [fins], scanned: regLink);
+      final l10n = await scanFromChooser(tester);
+      expect(h.packs.packed.single.$1, 't1');
+      expect(h.packs.packed.single.$2, ['reg']);
+      expect(
+        find.text(l10n.gearPassport_scan_added('Regulator')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a scanned tank becomes a slot on the board', (tester) async {
+      await seedTagged(tester);
+      final h = await _pumpTab(
+        tester,
+        gear: const [fins],
+        scanned: 'https://submersion.app/c#f=1&p=$tankPid',
+      );
+      await scanFromChooser(tester);
+      expect(h.packs.packed, isEmpty);
+      expect(h.slots.created.single.single.equipmentId, 'tk');
+    });
+
+    testWidgets('an item already packed is not packed again', (tester) async {
+      await seedTagged(tester);
+      final h = await _pumpTab(tester, gear: const [reg], scanned: regLink);
+      final l10n = await scanFromChooser(tester);
+      expect(h.packs.packed, isEmpty);
+      expect(
+        find.text(l10n.gearPassport_scan_alreadyOnTrip('Regulator')),
+        findsOneWidget,
+      );
+    });
   });
 }
