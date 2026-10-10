@@ -21,6 +21,7 @@ void main() {
   Future<void> pumpPage(
     WidgetTester tester, {
     List<ConditionsRow> rows = const [],
+    bool rowsFail = false,
     MockSettingsNotifier? settings,
   }) async {
     tester.view.physicalSize = const Size(1200, 8000);
@@ -46,7 +47,9 @@ void main() {
             (ref) async => const [],
           ),
           waterTempBandMetricsProvider.overrideWith((ref) async => const []),
-          conditionsRowsProvider.overrideWith((ref) async => rows),
+          conditionsRowsProvider.overrideWith(
+            (ref) async => rowsFail ? throw StateError('boom') : rows,
+          ),
         ],
         child: const MaterialApp(
           locale: Locale('en'),
@@ -116,5 +119,18 @@ void main() {
     );
     // 1 C per year is 1.8 F per year, never 33.8 F.
     expect(section.rateFormatter!(1), '1.8°F');
+  });
+
+  testWidgets('a failed conditions query leaves the existing cards alone', (
+    tester,
+  ) async {
+    await pumpPage(tester, rowsFail: true);
+    expect(find.text('Visibility Distribution'), findsOneWidget);
+    expect(find.text('Dives by Water Temperature'), findsOneWidget);
+    expect(find.text('Entry Method'), findsOneWidget);
+    expect(
+      find.text('Failed to load weather and conditions data'),
+      findsNWidgets(2),
+    );
   });
 }

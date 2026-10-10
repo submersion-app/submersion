@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/site_access_condition_cards.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/surface_weather_group.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/water_movement_group.dart';
+import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -161,5 +164,68 @@ void main() {
 
     pending.complete(const []);
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('a failed refresh hides altitude and exit, matching the groups', (
+    tester,
+  ) async {
+    var calls = 0;
+    await pump(tester, () {
+      calls++;
+      return calls == 1
+          ? Future.value([
+              row('a', altitude: 1200, exitMethod: EntryMethod.ladder),
+            ])
+          : Future<List<ConditionsRow>>.error(StateError('boom'));
+    });
+    expect(find.text('Altitude'), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(AltitudeConditionsCard)),
+    ).invalidate(conditionsRowsProvider);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Failed to load weather and conditions data'),
+      findsNWidgets(2),
+    );
+    expect(find.text('Altitude'), findsNothing);
+    expect(find.text('Exit Method'), findsNothing);
+  });
+
+  testWidgets('air temperature rate in F is a difference, not a reading', (
+    tester,
+  ) async {
+    final settings = MockSettingsNotifier();
+    await settings.setTemperatureUnit(TemperatureUnit.fahrenheit);
+    tester.view.physicalSize = const Size(1200, 6000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final base = await getBaseOverrides(settingsNotifier: settings);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          conditionsRowsProvider.overrideWith(
+            (ref) async => [row('a', airTemp: 22)],
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(child: SurfaceWeatherGroup()),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final section = tester.widget<TrendChartSection>(
+      find.byType(TrendChartSection),
+    );
+    expect(section.chartId, TrendChartIds.airTemp);
+    // 1 C per year is 1.8 F per year, never 33.8 F.
+    expect(section.rateFormatter!(1), '1.8°F');
   });
 }

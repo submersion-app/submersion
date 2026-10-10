@@ -41,7 +41,7 @@ class SurfaceWeatherGroup extends ConsumerWidget {
               stats.windDirection.isEmpty,
               stats.humidity.isEmpty,
               stats.surfacePressure.isEmpty,
-            ].contains(false);
+            ].any((empty) => !empty);
             if (!hasAny) return const SizedBox.shrink();
             final units = UnitFormatter(ref.watch(settingsProvider));
             return Column(
