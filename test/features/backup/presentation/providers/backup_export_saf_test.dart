@@ -105,6 +105,15 @@ void main() {
     return container;
   }
 
+  test('Share hands the note to the artifact it prepares', () async {
+    final container = makeContainer();
+    final file = await container
+        .read(backupOperationProvider.notifier)
+        .exportForSharing(note: 'For my buddy');
+    expect(file, isNotNull);
+    expect(service.lastNote, 'For my buddy');
+  });
+
   test('hands the note to the exported artifact', () async {
     final container = makeContainer();
     await container
