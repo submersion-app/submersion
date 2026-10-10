@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_comparison.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_device_labels.dart';
@@ -35,7 +36,7 @@ class _ConflictDifferenceListState extends State<ConflictDifferenceList> {
   // new FieldDifference objects for the same conflict. The word diff is an
   // LCS over the two texts, so it is kept until the texts themselves change.
   late Map<String, (String, String)> _texts;
-  late Map<String, WordDiff?> _diffs;
+  late Map<String, WordDiff> _diffs;
 
   @override
   void initState() {
@@ -48,33 +49,30 @@ class _ConflictDifferenceListState extends State<ConflictDifferenceList> {
   void didUpdateWidget(ConflictDifferenceList oldWidget) {
     super.didUpdateWidget(oldWidget);
     final texts = _textsOf(widget.differences);
-    if (widget.diff != oldWidget.diff || !_sameTexts(texts, _texts)) {
+    if (widget.diff != oldWidget.diff || !_textEquality.equals(texts, _texts)) {
       _texts = texts;
       _diffs = _compute(texts);
     }
   }
 
-  Map<String, WordDiff?> _compute(Map<String, (String, String)> texts) =>
-      Map.unmodifiable(
-        {
-          for (final MapEntry(:key, value: (local, remote)) in texts.entries)
-            key: widget.diff(local, remote),
-        }..removeWhere((_, diff) => diff == null),
-      );
+  Map<String, WordDiff> _compute(Map<String, (String, String)> texts) =>
+      Map.unmodifiable({
+        for (final MapEntry(:key, value: (local, remote)) in texts.entries)
+          key: ?widget.diff(local, remote),
+      });
 
   @override
   Widget build(BuildContext context) {
-    final diffs = _diffs;
     return LayoutBuilder(
       builder: (context, constraints) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (constraints.maxWidth >= kConflictTableMinWidth)
-            _table(context, diffs)
+            _table(context, _diffs)
           else
             for (final d in widget.differences)
-              _block(context, d, diffs[d.key]),
-          if (diffs.isNotEmpty)
+              _block(context, d, _diffs[d.key]),
+          if (_diffs.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
@@ -89,7 +87,7 @@ class _ConflictDifferenceListState extends State<ConflictDifferenceList> {
     );
   }
 
-  Widget _table(BuildContext context, Map<String, WordDiff?> diffs) {
+  Widget _table(BuildContext context, Map<String, WordDiff> diffs) {
     final theme = Theme.of(context);
     final header = theme.textTheme.labelMedium?.copyWith(
       fontWeight: FontWeight.bold,
@@ -234,10 +232,7 @@ Map<String, (String, String)> _textsOf(List<FieldDifference> differences) => {
     if (_isText(d)) d.key: (d.localValue! as String, d.remoteValue! as String),
 };
 
-bool _sameTexts(
-  Map<String, (String, String)> a,
-  Map<String, (String, String)> b,
-) => a.length == b.length && a.entries.every((e) => b[e.key] == e.value);
+const _textEquality = MapEquality<String, (String, String)>();
 
 bool _isText(FieldDifference d) =>
     d.kind == FieldKind.longText &&
