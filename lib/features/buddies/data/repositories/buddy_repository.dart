@@ -16,6 +16,8 @@ import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_coun
 import 'package:submersion/features/buddies/domain/entities/legacy_buddy_conversion.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_conversion_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_merge_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as dive_domain;
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -533,6 +535,22 @@ class BuddyRepository {
           .add(domain.BuddyWithRole(buddy: buddy, roles: roles));
     }
     return byDive;
+  }
+
+  /// [dives] with [dive_domain.Dive.buddies] loaded from the `dive_buddies`
+  /// junction in one batched [getBuddiesForDives] query.
+  ///
+  /// For dives read through `getDiveById` or `getDivesByIds`, which leave the
+  /// junction unloaded (only `getAllDives` hydrates it), when the caller shows
+  /// or exports the people on them (#3039).
+  Future<List<dive_domain.Dive>> withBuddies(
+    List<dive_domain.Dive> dives,
+  ) async {
+    final byDive = await getBuddiesForDives(dives.map((d) => d.id).toList());
+    return [
+      for (final dive in dives)
+        dive.copyWith(buddies: byDive[dive.id] ?? const []),
+    ];
   }
 
   /// [getBuddiesForDives] plus each person's derived primary certification,

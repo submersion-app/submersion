@@ -38,13 +38,6 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
     if (dive != null) recent.add(dive);
   }
 
-  // getDiveById does not load the dive_buddies junction, which the Dives tab
-  // gets from getAllDives; attach it in one batched query so the cards'
-  // Buddy field matches the Dives tab (#3039).
-  final buddiesByDive = await ref
-      .read(buddyRepositoryProvider)
-      .getBuddiesForDives(recent.map((d) => d.id).toList());
-
   // Pre-load downsampled profiles so DiveListTile mini charts render
   // immediately (the batch cache is shared with the paginated dive list).
   if (recent.isNotEmpty) {
@@ -62,10 +55,9 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
     }
   }
 
-  return [
-    for (final dive in recent)
-      dive.copyWith(buddies: buddiesByDive[dive.id] ?? const []),
-  ];
+  // getDiveById does not load the dive_buddies junction, which the Dives tab
+  // gets from getAllDives; attach it so the cards' Buddy field matches (#3039).
+  return ref.read(buddyRepositoryProvider).withBuddies(recent);
 });
 
 /// Current diver provider (re-exported for convenience)

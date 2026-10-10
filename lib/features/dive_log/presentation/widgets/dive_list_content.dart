@@ -848,14 +848,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       // query, rather than shipping an export that omits the team. UDDF loads
       // its participants separately, through its extras fetch.
       if (format == _BulkExportFormat.pdf || format == _BulkExportFormat.csv) {
-        final buddiesByDive = await ref
+        selectedDives = await ref
             .read(buddyRepositoryProvider)
-            .getBuddiesForDives(selectedDives.map((d) => d.id).toList());
-        if (buddiesByDive.isNotEmpty) {
-          selectedDives = selectedDives
-              .map((d) => d.copyWith(buddies: buddiesByDive[d.id] ?? const []))
-              .toList();
-        }
+            .withBuddies(selectedDives);
       }
       final exportService = ref.read(exportServiceProvider);
       final settings = ref.read(settingsProvider);

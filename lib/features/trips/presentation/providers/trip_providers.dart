@@ -286,17 +286,11 @@ final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
     diverId: diverId,
   );
   if (diveIds.isEmpty) return [];
-  final dives = await diveRepository.getDivesByIds(diveIds);
-
-  // getDivesByIds does not load the dive_buddies junction; attach it in one
-  // batched query so the cards' Buddy field matches the Dives tab (#3039).
-  final buddiesByDive = await ref
+  // getDivesByIds does not load the dive_buddies junction; attach it so the
+  // cards' Buddy field matches the Dives tab (#3039).
+  return ref
       .read(buddyRepositoryProvider)
-      .getBuddiesForDives(diveIds);
-  return [
-    for (final dive in dives)
-      dive.copyWith(buddies: buddiesByDive[dive.id] ?? const []),
-  ];
+      .withBuddies(await diveRepository.getDivesByIds(diveIds));
 });
 
 /// Trip search provider
