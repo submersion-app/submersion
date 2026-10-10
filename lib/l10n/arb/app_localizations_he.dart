@@ -35812,7 +35812,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_language_placeNameOffer_title(String language) {
-    return 'לשמור את שמות המקומות ב$language?';
+    return 'לשמור את שמות המקומות בשפה $language?';
   }
 
   @override
@@ -35820,7 +35820,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String current,
     String language,
   ) {
-    return 'שמות המדינות והאזורים שנבדקים עבור האתרים שלך נשמרים ב$current. לעבור ל$language בבדיקות חדשות? לאחר מכן אפשר לבדוק מחדש את האתרים הקיימים.';
+    return 'שמות המדינות והאזורים שנבדקים עבור האתרים שלך נשמרים בשפה $current. לעבור לשפה $language בבדיקות חדשות? לאחר מכן אפשר לבדוק מחדש את האתרים הקיימים.';
   }
 
   @override

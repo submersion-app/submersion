@@ -11112,7 +11112,7 @@
   "settings_coordinateFormat_title": "פורמט קואורדינטות",
   "settings_placeNameLanguage_title": "שפת שמות המקומות",
   "settings_placeNameLanguage_subtitle": "בשימוש כאשר מדינה, אזור, עיר וגוף מים נשלפים מהקואורדינטות. אתרים קיימים אינם משתנים.",
-  "settings_language_placeNameOffer_title": "לשמור את שמות המקומות ב{language}?",
+  "settings_language_placeNameOffer_title": "לשמור את שמות המקומות בשפה {language}?",
   "@settings_language_placeNameOffer_title": {
     "placeholders": {
       "language": {
@@ -11120,7 +11120,7 @@
       }
     }
   },
-  "settings_language_placeNameOffer_body": "שמות המדינות והאזורים שנבדקים עבור האתרים שלך נשמרים ב{current}. לעבור ל{language} בבדיקות חדשות? לאחר מכן אפשר לבדוק מחדש את האתרים הקיימים.",
+  "settings_language_placeNameOffer_body": "שמות המדינות והאזורים שנבדקים עבור האתרים שלך נשמרים בשפה {current}. לעבור לשפה {language} בבדיקות חדשות? לאחר מכן אפשר לבדוק מחדש את האתרים הקיימים.",
   "@settings_language_placeNameOffer_body": {
     "placeholders": {
       "current": {

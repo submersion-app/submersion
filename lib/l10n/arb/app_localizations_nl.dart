@@ -36470,7 +36470,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_language_placeNameOffer_title(String language) {
-    return 'Plaatsnamen opslaan in het $language?';
+    return 'Plaatsnamen opslaan in $language?';
   }
 
   @override
@@ -36478,7 +36478,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String current,
     String language,
   ) {
-    return 'Namen van landen en regio\'s die voor je duikstekken worden opgezocht, worden opgeslagen in het $current. Overschakelen naar $language voor nieuwe zoekopdrachten? Daarna kun je je bestaande duikstekken opnieuw opzoeken.';
+    return 'Namen van landen en regio\'s die voor je duikstekken worden opgezocht, worden opgeslagen in $current. Overschakelen naar $language voor nieuwe zoekopdrachten? Daarna kun je je bestaande duikstekken opnieuw opzoeken.';
   }
 
   @override

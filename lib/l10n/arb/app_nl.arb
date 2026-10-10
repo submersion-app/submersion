@@ -11112,7 +11112,7 @@
   "settings_coordinateFormat_title": "Coördinaatformaat",
   "settings_placeNameLanguage_title": "Taal van plaatsnamen",
   "settings_placeNameLanguage_subtitle": "Gebruikt wanneer land, regio, plaats en water uit coördinaten worden opgezocht. Bestaande duikstekken worden niet gewijzigd.",
-  "settings_language_placeNameOffer_title": "Plaatsnamen opslaan in het {language}?",
+  "settings_language_placeNameOffer_title": "Plaatsnamen opslaan in {language}?",
   "@settings_language_placeNameOffer_title": {
     "placeholders": {
       "language": {
@@ -11120,7 +11120,7 @@
       }
     }
   },
-  "settings_language_placeNameOffer_body": "Namen van landen en regio's die voor je duikstekken worden opgezocht, worden opgeslagen in het {current}. Overschakelen naar {language} voor nieuwe zoekopdrachten? Daarna kun je je bestaande duikstekken opnieuw opzoeken.",
+  "settings_language_placeNameOffer_body": "Namen van landen en regio's die voor je duikstekken worden opgezocht, worden opgeslagen in {current}. Overschakelen naar {language} voor nieuwe zoekopdrachten? Daarna kun je je bestaande duikstekken opnieuw opzoeken.",
   "@settings_language_placeNameOffer_body": {
     "placeholders": {
       "current": {
