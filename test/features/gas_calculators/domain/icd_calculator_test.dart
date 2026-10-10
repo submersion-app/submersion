@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/gas_calculators/domain/icd_calculator.dart';
 
 IcdInputs _icdInputs({
@@ -8,24 +10,16 @@ IcdInputs _icdInputs({
   required double o2B,
   required double heB,
 }) => IcdInputs(
-  gasA: IcdGasInputs(o2Percent: o2A, hePercent: heA),
-  gasB: IcdGasInputs(o2Percent: o2B, hePercent: heB),
+  gasA: GasMix(o2: o2A, he: heA),
+  gasB: GasMix(o2: o2B, he: heB),
 );
-
-IcdGasInputs _gas({required double o2, required double he}) =>
-    IcdGasInputs(o2Percent: o2, hePercent: he);
 
 IcdResult _icd({
   required double o2A,
   required double heA,
   required double o2B,
   required double heB,
-}) => computeIcd(
-  IcdInputs(
-    gasA: _gas(o2: o2A, he: heA),
-    gasB: _gas(o2: o2B, he: heB),
-  ),
-);
+}) => computeIcd(_icdInputs(o2A: o2A, heA: heA, o2B: o2B, heB: heB));
 
 void main() {
   group('computeIcd', () {
@@ -40,10 +34,11 @@ void main() {
     });
 
     test('a starting gas without helium never triggers the rule', () {
-      // Air to EAN32: no He in gas A, so the check does not apply even
-      // though N2 falls (it does not rise here, but the guard must hold
-      // regardless of what N2 does).
-      final result = _icd(o2A: 21, heA: 0, o2B: 32, heB: 0);
+      // EAN32 to air: N2 rises 68 -> 79, but with no He in gas A there is
+      // nothing to counterdiffuse against, so the check does not apply.
+      final result = _icd(o2A: 32, heA: 0, o2B: 21, heB: 0);
+      expect(result.n2IncreasePercent, closeTo(11, 0.001));
+      expect(result.maxAllowedN2IncreasePercent, 0);
       expect(result.severity, IcdSeverity.ok);
     });
 
@@ -129,7 +124,7 @@ void main() {
 
     test('suggestions are clamped to a valid He% range', () {
       // Gas A (10/0, N2 90) to Gas B (90/0, N2 10): equalizing N2 on Gas B
-      // would need He of 0 + 10 - 90 = -80, not a valid mix -- clamp to 0.
+      // would need He of 0 + 10 - 90 = -80, not a valid mix, so clamp to 0.
       final suggestions = computeIcdFixSuggestions(
         _icdInputs(o2A: 10, heA: 0, o2B: 90, heB: 0),
       );

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/gas_calculators/domain/icd_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/icd_calculator_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -15,10 +18,9 @@ class IcdCalculator extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final o2A = ref.watch(icdO2AProvider);
-    final heA = ref.watch(icdHeAProvider);
-    final o2B = ref.watch(icdO2BProvider);
-    final heB = ref.watch(icdHeBProvider);
+    // The clamped pair the assessment uses, so the sliders and the N2 line
+    // show exactly the gases the verdict below was computed from.
+    final inputs = ref.watch(icdInputsProvider);
     final warningsEnabled = ref.watch(icdWarningsEnabledProvider);
     final result = ref.watch(icdResultProvider);
     final suggestions = ref.watch(icdFixSuggestionsProvider);
@@ -38,8 +40,7 @@ class IcdCalculator extends ConsumerWidget {
                 textTheme: textTheme,
                 colorScheme: colorScheme,
                 title: context.l10n.gasCalculators_icd_gasATitle,
-                o2: o2A,
-                he: heA,
+                gas: inputs.gasA,
                 onO2Changed: (value) {
                   ref.read(icdO2AProvider.notifier).state = value;
                   final maxHe = 100.0 - value;
@@ -56,8 +57,7 @@ class IcdCalculator extends ConsumerWidget {
                 textTheme: textTheme,
                 colorScheme: colorScheme,
                 title: context.l10n.gasCalculators_icd_gasBTitle,
-                o2: o2B,
-                he: heB,
+                gas: inputs.gasB,
                 onO2Changed: (value) {
                   ref.read(icdO2BProvider.notifier).state = value;
                   final maxHe = 100.0 - value;
@@ -100,13 +100,11 @@ class IcdCalculator extends ConsumerWidget {
     required TextTheme textTheme,
     required ColorScheme colorScheme,
     required String title,
-    required double o2,
-    required double he,
+    required GasMix gas,
     required ValueChanged<double> onO2Changed,
     required ValueChanged<double> onHeChanged,
   }) {
-    final heMax = 100.0 - o2;
-    final n2 = 100.0 - o2 - he;
+    final heMax = 100.0 - gas.o2;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -123,7 +121,7 @@ class IcdCalculator extends ConsumerWidget {
             _buildSliderSection(
               context,
               label: context.l10n.gasCalculators_icd_o2Percent,
-              value: o2,
+              value: gas.o2,
               unit: '%',
               min: 5,
               max: 100,
@@ -134,7 +132,7 @@ class IcdCalculator extends ConsumerWidget {
             _buildSliderSection(
               context,
               label: context.l10n.gasCalculators_icd_hePercent,
-              value: he.clamp(0, heMax),
+              value: gas.he,
               unit: '%',
               min: 0,
               max: heMax,
@@ -144,7 +142,7 @@ class IcdCalculator extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               '${context.l10n.gasCalculators_icd_n2Percent}: '
-              '${n2.toStringAsFixed(0)}%',
+              '${gas.n2.toStringAsFixed(0)}%',
               style: textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
@@ -205,8 +203,8 @@ class IcdCalculator extends ConsumerWidget {
         Icons.error,
         colorScheme.error,
         context.l10n.gasCalculators_icd_violation(
-          result.n2IncreasePercent.toStringAsFixed(1),
-          result.maxAllowedN2IncreasePercent.toStringAsFixed(1),
+          formatFixedForDisplay(result.n2IncreasePercent, 1),
+          formatFixedForDisplay(result.maxAllowedN2IncreasePercent, 1),
         ),
       ),
     };
@@ -240,7 +238,8 @@ class IcdCalculator extends ConsumerWidget {
                 ),
               ],
             ),
-            if (result.severity != IcdSeverity.ok) ...[
+            // Only a violation needs fixing; a caution already complies.
+            if (result.severity == IcdSeverity.violation) ...[
               const SizedBox(height: 16),
               Text(
                 context.l10n.gasCalculators_icd_suggestionsTitle,

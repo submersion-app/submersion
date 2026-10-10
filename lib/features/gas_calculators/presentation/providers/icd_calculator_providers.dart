@@ -1,4 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
 import 'package:submersion/features/gas_calculators/domain/icd_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -19,9 +21,9 @@ final icdO2BProvider = StateProvider<double>((ref) => 32.0);
 final icdHeBProvider = StateProvider<double>((ref) => 0.0);
 
 /// Whether the assessment is shown at all. The calculator has no control of
-/// its own for this -- it only ever reflects the Settings > Decompression
-/// toggle, so it is a plain derived provider rather than a `StateProvider`:
-/// it always follows the persisted setting, including a later change to it
+/// its own for this; it only ever reflects the Settings > Decompression
+/// toggle, so it is a plain derived provider rather than a `StateProvider`.
+/// It always follows the persisted setting, including a later change to it
 /// or the async settings load finishing after this provider was created.
 final icdWarningsEnabledProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.icdWarningsEnabled));
@@ -35,14 +37,8 @@ final icdInputsProvider = Provider<IcdInputs>((ref) {
   final o2B = ref.watch(icdO2BProvider);
   final heB = ref.watch(icdHeBProvider);
   return IcdInputs(
-    gasA: IcdGasInputs(
-      o2Percent: o2A,
-      hePercent: heA.clamp(0, 100 - o2A).toDouble(),
-    ),
-    gasB: IcdGasInputs(
-      o2Percent: o2B,
-      hePercent: heB.clamp(0, 100 - o2B).toDouble(),
-    ),
+    gasA: GasMix(o2: o2A, he: heA.clamp(0, 100 - o2A).toDouble()),
+    gasB: GasMix(o2: o2B, he: heB.clamp(0, 100 - o2B).toDouble()),
   );
 });
 
@@ -52,16 +48,18 @@ final icdResultProvider = Provider<IcdResult>((ref) {
 });
 
 /// Suggested He% fixes, one per gas kept unchanged. Shown beside the
-/// assessment whenever it is not [IcdSeverity.ok].
+/// assessment only for an [IcdSeverity.violation]: a caution already
+/// complies with the rule of fifths.
 final icdFixSuggestionsProvider = Provider<IcdFixSuggestions>((ref) {
   return computeIcdFixSuggestions(ref.watch(icdInputsProvider));
 });
 
-/// Reset the ICD calculator providers to defaults.
+/// Reset the ICD calculator providers to defaults. Invalidating rebuilds each
+/// from its own initial value, so the defaults live in one place.
 void resetIcdCalculator(WidgetRef ref) {
-  ref.read(icdO2AProvider.notifier).state = 18.0;
-  ref.read(icdHeAProvider.notifier).state = 45.0;
-  ref.read(icdO2BProvider.notifier).state = 32.0;
-  ref.read(icdHeBProvider.notifier).state = 0.0;
+  ref.invalidate(icdO2AProvider);
+  ref.invalidate(icdHeAProvider);
+  ref.invalidate(icdO2BProvider);
+  ref.invalidate(icdHeBProvider);
   // icdWarningsEnabled always reflects the settings value; nothing to reset.
 }

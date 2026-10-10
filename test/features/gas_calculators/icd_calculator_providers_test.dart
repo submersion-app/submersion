@@ -17,8 +17,8 @@ class _FixedSettings extends StateNotifier<AppSettings>
 void main() {
   // Regression test for a Copilot review finding on PR #3125: the provider
   // used to read settingsProvider once at creation (a StateProvider seeded
-  // via ref.read), so a later settings change -- the Settings page toggle,
-  // or sync adopting a peer's value -- never reached an already-built
+  // via ref.read), so a later settings change (the Settings page toggle,
+  // or sync adopting a peer's value) never reached an already-built
   // calculator. It is now a plain derived provider that watches the
   // setting, so it must follow every change, not just the first read.
   test('icdWarningsEnabledProvider follows a later settings change', () {

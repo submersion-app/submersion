@@ -8,23 +8,17 @@
 /// against, so the check never fires, whatever the new gas holds.
 library;
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show GasMix;
+
 /// How a gas switch reads against the rule of fifths.
 enum IcdSeverity { ok, caution, violation }
 
-/// One side of the comparison: a breathing gas, O2 and He in percent. The
-/// nitrogen fraction is always the remainder, never entered directly.
-class IcdGasInputs {
-  final double o2Percent;
-  final double hePercent;
-
-  const IcdGasInputs({required this.o2Percent, required this.hePercent});
-
-  double get n2Percent => 100.0 - o2Percent - hePercent;
-}
-
+/// The two sides of the comparison. Each is a plain [GasMix], O2 and He in
+/// percent, with nitrogen always the remainder.
 class IcdInputs {
-  final IcdGasInputs gasA;
-  final IcdGasInputs gasB;
+  final GasMix gasA;
+  final GasMix gasB;
 
   const IcdInputs({required this.gasA, required this.gasB});
 }
@@ -61,16 +55,17 @@ class IcdResult {
 const double icdCautionThreshold = 0.8;
 
 /// Rule of fifths: `5 * n2Increase > heDecrease` is a violation, matching
-/// Subsurface's `5 * dN2 > -dHe`. Only evaluated when the starting gas
-/// carries helium, helium actually falls, and nitrogen actually rises --
-/// the same three guards as the reference implementation.
+/// Subsurface's `5 * dN2 > -dHe`. Only evaluated when helium actually falls
+/// and nitrogen actually rises. Subsurface's third guard, helium in the
+/// starting gas, needs no check of its own: Gas B never holds negative
+/// helium, so a falling helium fraction already means Gas A carries some.
 IcdResult computeIcd(IcdInputs inputs) {
-  final n2A = inputs.gasA.n2Percent;
-  final n2B = inputs.gasB.n2Percent;
-  final heDecrease = inputs.gasA.hePercent - inputs.gasB.hePercent;
+  final n2A = inputs.gasA.n2;
+  final n2B = inputs.gasB.n2;
+  final heDecrease = inputs.gasA.he - inputs.gasB.he;
   final n2Increase = n2B - n2A;
 
-  final applies = inputs.gasA.hePercent > 0 && heDecrease > 0 && n2Increase > 0;
+  final applies = heDecrease > 0 && n2Increase > 0;
   final maxAllowed = applies ? heDecrease / 5.0 : 0.0;
 
   final severity = !applies
@@ -92,9 +87,9 @@ IcdResult computeIcd(IcdInputs inputs) {
 }
 
 /// Two ways to fix a flagged switch, each keeping one gas's O2 and He
-/// exactly as entered and adjusting only the He of the other -- the pairing
-/// the UI offers so a diver can pick whichever gas they are not free to
-/// change (e.g. a fixed deco gas already blended).
+/// exactly as entered and adjusting only the He of the other. The UI offers
+/// the pair so a diver can pick whichever gas they are not free to change
+/// (e.g. a fixed deco gas already blended).
 class IcdFixSuggestions {
   /// He% for Gas B that keeps Gas A unchanged, clamped to 0..100-O2(B).
   final double heBKeepingGasA;
@@ -120,13 +115,7 @@ IcdFixSuggestions computeIcdFixSuggestions(IcdInputs inputs) {
   double clampHe(double he, double o2) => he.clamp(0.0, 100.0 - o2).toDouble();
 
   return IcdFixSuggestions(
-    heBKeepingGasA: clampHe(
-      a.hePercent + a.o2Percent - b.o2Percent,
-      b.o2Percent,
-    ),
-    heAKeepingGasB: clampHe(
-      b.hePercent + b.o2Percent - a.o2Percent,
-      a.o2Percent,
-    ),
+    heBKeepingGasA: clampHe(a.he + a.o2 - b.o2, b.o2),
+    heAKeepingGasB: clampHe(b.he + b.o2 - a.o2, a.o2),
   );
 }
