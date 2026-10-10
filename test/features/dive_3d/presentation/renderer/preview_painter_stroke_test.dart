@@ -317,6 +317,83 @@ void main() {
           );
         }
       }
+      // The bound alone passes even unoriented, since the cap folds a
+      // wrong-signed miter back into range. Pin the actual point: pair 0
+      // is a lone pair (its "e == k" branch always writes the full miter
+      // on member 1, whichever way the turn goes), so its member 1 must
+      // be the true corner miter -- computed here independently, straight
+      // from the two legs' own normals and the same orient-against-150
+      // rule the fix applies, not by calling back into the function under
+      // test.
+      final abLen = math.sqrt(
+        (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y),
+      );
+      final abNx = -(b.y - a.y) / abLen, abNy = (b.x - a.x) / abLen;
+      final caLen = math.sqrt(
+        (a.x - c.x) * (a.x - c.x) + (a.y - c.y) * (a.y - c.y),
+      );
+      var caNx = -(a.y - c.y) / caLen, caNy = (a.x - c.x) / caLen;
+      if (caNx * abNx + caNy * abNy < -0.866) {
+        caNx = -caNx;
+        caNy = -caNy;
+      }
+      final mx = caNx + abNx, my = caNy + abNy;
+      final mLen = math.sqrt(mx * mx + my * my);
+      final cosHalf = (mx * abNx + my * abNy) / mLen;
+      final scale = math.min(mLen / (mx * abNx + my * abNy), math.sqrt2);
+      expect(cosHalf, greaterThan(0), reason: 'sanity: not past the cap');
+      expect(sx[1], closeTo(a.x + mx / mLen * scale, 1e-4));
+      expect(sy[1], closeTo(a.y + my / mLen * scale, 1e-4));
+
+      // The B->C->A corner at C (pairs 3, 4) must come out exactly as an
+      // ordinary 100-degree join would, independent of the seam fix: the
+      // fix must not touch nx[lastReal]/ny[lastReal] globally, only the
+      // seam's own two reads of it, or this corner's "out" side (which IS
+      // that same run) silently swaps which member carries the shared
+      // miter and which carries the leg-end square cut.
+      final bcLen = math.sqrt(
+        (c.x - b.x) * (c.x - b.x) + (c.y - b.y) * (c.y - b.y),
+      );
+      final bcNx = -(c.y - b.y) / bcLen, bcNy = (c.x - b.x) / bcLen;
+      // Deliberately the RAW C->A normal, not oriented against the first
+      // run: this is the ordinary chain value, unrelated to the seam.
+      final caRawNx = -(a.y - c.y) / caLen, caRawNy = (a.x - c.x) / caLen;
+      final cmx = bcNx + caRawNx, cmy = bcNy + caRawNy;
+      final cLen = math.sqrt(cmx * cmx + cmy * cmy);
+      final cScale = math.min(
+        cLen / (cmx * caRawNx + cmy * caRawNy),
+        math.sqrt2,
+      );
+      final cex = cmx / cLen * cScale, cey = cmy / cLen * cScale;
+      final cross = bcNx * caRawNy - bcNy * caRawNx;
+      final double p3x, p3y, p4x, p4y, p3x2, p3y2, p4x2, p4y2;
+      if (cross > 0) {
+        p3x = c.x - bcNx;
+        p3y = c.y - bcNy;
+        p3x2 = c.x + cex;
+        p3y2 = c.y + cey;
+        p4x = c.x - caRawNx;
+        p4y = c.y - caRawNy;
+        p4x2 = c.x + cex;
+        p4y2 = c.y + cey;
+      } else {
+        p3x = c.x - cex;
+        p3y = c.y - cey;
+        p3x2 = c.x + bcNx;
+        p3y2 = c.y + bcNy;
+        p4x = c.x - cex;
+        p4y = c.y - cey;
+        p4x2 = c.x + caRawNx;
+        p4y2 = c.y + caRawNy;
+      }
+      expect(sx[6], closeTo(p3x, 1e-4), reason: 'pair 3 member 0');
+      expect(sy[6], closeTo(p3y, 1e-4), reason: 'pair 3 member 0');
+      expect(sx[7], closeTo(p3x2, 1e-4), reason: 'pair 3 member 1');
+      expect(sy[7], closeTo(p3y2, 1e-4), reason: 'pair 3 member 1');
+      expect(sx[8], closeTo(p4x, 1e-4), reason: 'pair 4 member 0');
+      expect(sy[8], closeTo(p4y, 1e-4), reason: 'pair 4 member 0');
+      expect(sx[9], closeTo(p4x2, 1e-4), reason: 'pair 4 member 1');
+      expect(sy[9], closeTo(p4y2, 1e-4), reason: 'pair 4 member 1');
     });
 
     test('a doubled hairpin keeps each leg at full width with nothing '

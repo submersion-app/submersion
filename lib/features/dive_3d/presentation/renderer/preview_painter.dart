@@ -467,14 +467,18 @@ class Dive3dScenePainter extends CustomPainter {
         (sy[aN] - sy[a0]).abs() <= 1e-6;
     // The forward chain above only keeps each run within 150 degrees of
     // the one before it, which says nothing about how the last run
-    // compares to the first: orient it against the first run too, the
-    // same way, so the seam gets the same reversal handling every
-    // interior join already has.
+    // compares to the first. The seam needs that same comparison too, but
+    // nx[lastReal]/ny[lastReal] is ALSO the ordinary, already-correct
+    // value the run right before it (an interior corner, not the seam)
+    // reads as its OWN outgoing side: flipping it in place would fix the
+    // seam and break that unrelated corner. Orient a local copy instead,
+    // read only where a join genuinely crosses the seam.
+    var seamInX = closed ? nx[lastReal] : 0.0;
+    var seamInY = closed ? ny[lastReal] : 0.0;
     if (closed &&
-        nx[lastReal] * nx[firstReal] + ny[lastReal] * ny[firstReal] <
-            _reversalDot) {
-      nx[lastReal] = -nx[lastReal];
-      ny[lastReal] = -ny[lastReal];
+        seamInX * nx[firstReal] + seamInY * ny[firstReal] < _reversalDot) {
+      seamInX = -seamInX;
+      seamInY = -seamInY;
     }
     var k = 0;
     while (k < pairCount) {
@@ -484,14 +488,22 @@ class Dive3dScenePainter extends CustomPainter {
         e++;
       }
       // The arriving side: the previous run, or, for the group that opens
-      // the line, the last run wrapping across a closed line's seam.
-      var inReal = k > 0 && (nx[k - 1] != 0 || ny[k - 1] != 0);
-      var inX = inReal ? nx[k - 1] : 0.0, inY = inReal ? ny[k - 1] : 0.0;
-      if (k == 0 && closed) {
-        inReal = true;
-        inX = nx[lastReal];
-        inY = ny[lastReal];
-      }
+      // the line, or the group right after the last real run (which can
+      // only be the one that wraps to the first run, since no real run
+      // follows the last one), the oriented copy that crosses the seam.
+      final crossesSeam = closed && (k == 0 || k - 1 == lastReal);
+      final inReal =
+          crossesSeam || (k > 0 && (nx[k - 1] != 0 || ny[k - 1] != 0));
+      final inX = crossesSeam
+          ? seamInX
+          : inReal
+          ? nx[k - 1]
+          : 0.0;
+      final inY = crossesSeam
+          ? seamInY
+          : inReal
+          ? ny[k - 1]
+          : 0.0;
       // The leaving side: this run, or, for the group that closes the
       // line, the first run wrapping across the seam.
       var hasOut = e < runs;
