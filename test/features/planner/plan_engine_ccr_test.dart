@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -302,8 +304,8 @@ void main() {
       }
     });
 
-    test('END column matches GasMix.end() on the row\'s own gas and depth '
-        '(depth-matched rows only)', () {
+    test('END column matches GasMix.end() on the row\'s own gas and depth, '
+        'floored at 0 m (depth-matched rows only)', () {
       final outcome = engine.compute(_plan());
       // A computed travel row (kind == ascent) samples its fraction at the
       // leg's deeper end but is displayed at the shallower arrival depth,
@@ -322,10 +324,29 @@ void main() {
         ).end(row.depthMeters, o2Narcotic: true);
         expect(
           row.endMeters,
-          closeTo(expected, 1e-9),
+          closeTo(math.max(0.0, expected), 1e-9),
           reason: 'row at ${row.depthMeters} m (${row.kind})',
         );
       }
+    });
+
+    test('END never prints negative on the shallow stops of a helium-rich '
+        'diluent', () {
+      final outcome = engine.compute(_plan());
+      // 18/45 at 3 m: (1.3 x 0.55 - 1) x 10 = -2.85 m from GasMix.end()
+      // alone, so the shallow rows are exactly where the floor must act.
+      final shallow = outcome.schedule.where(
+        (r) => r.depthMeters > 0 && r.depthMeters <= 3.0,
+      );
+      expect(shallow, isNotEmpty);
+      for (final row in outcome.schedule) {
+        expect(
+          row.endMeters,
+          greaterThanOrEqualTo(0.0),
+          reason: 'row at ${row.depthMeters} m (${row.kind})',
+        );
+      }
+      expect(shallow.first.endMeters, 0.0);
     });
   });
 }

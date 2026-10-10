@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/deco_model.dart';
@@ -357,10 +359,15 @@ class BailoutSolver {
           tankId: leg.tankId,
           gasSwitch: switched,
           ppO2: ppO2,
-          endMeters: GasMix(
-            o2: fO2 * 100,
-            he: fHe * 100,
-          ).end(depth, o2Narcotic: config.o2Narcotic),
+          // Floored at 0 m, same as PlanEngine's END column: GasMix.end()
+          // goes negative for a helium-rich mix at shallow depth.
+          endMeters: math.max(
+            0.0,
+            GasMix(
+              o2: fO2 * 100,
+              he: fHe * 100,
+            ).end(depth, o2Narcotic: config.o2Narcotic),
+          ),
         ),
       );
       previousFO2 = fO2;
@@ -456,10 +463,14 @@ class BailoutSolver {
           tankId: tankForGas(fO2, fHe),
           gasSwitch: switched,
           ppO2: environment.pressureAtDepth(depth) * fO2,
-          endMeters: GasMix(
-            o2: fO2 * 100,
-            he: fHe * 100,
-          ).end(depth, o2Narcotic: config.o2Narcotic),
+          // Floored at 0 m, same as PlanEngine's END column.
+          endMeters: math.max(
+            0.0,
+            GasMix(
+              o2: fO2 * 100,
+              he: fHe * 100,
+            ).end(depth, o2Narcotic: config.o2Narcotic),
+          ),
         ),
       );
       previousFO2 = fO2;

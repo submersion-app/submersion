@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -1448,10 +1450,17 @@ class PlanEngine {
           gasSwitch: switched,
           airBreakSeconds: airBreakSeconds,
           ppO2: ppO2Override ?? environment.pressureAtDepth(pDepth) * fO2,
-          endMeters: GasMix(
-            o2: fO2 * 100,
-            he: fHe * 100,
-          ).end(pDepth, o2Narcotic: config.o2Narcotic),
+          // GasMix.end() goes negative once a helium-rich mix is shallower
+          // than the depth at which it is as narcotic as air at the surface;
+          // a negative depth is meaningless on a slate (a diver saw -6 m
+          // printed at 3 m on a 7/70 diluent), so the floor is 0 m.
+          endMeters: math.max(
+            0.0,
+            GasMix(
+              o2: fO2 * 100,
+              he: fHe * 100,
+            ).end(pDepth, o2Narcotic: config.o2Narcotic),
+          ),
         ),
       );
       previousFO2 = fO2;

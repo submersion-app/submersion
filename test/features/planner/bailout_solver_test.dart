@@ -193,6 +193,22 @@ void main() {
       );
     });
 
+    test('END is floored at 0 m on every row, same as the main table', () {
+      final outcome = solver.solve(_plan())!;
+      final rows = outcome.worstCaseRows;
+      // The surfacing row (0 m) on any mix, and the 18/45 diluent rows at
+      // shallow depth, would otherwise read negative from GasMix.end().
+      expect(rows.last.depthMeters, 0);
+      expect(rows.last.endMeters, 0.0);
+      for (final row in rows) {
+        expect(
+          row.endMeters,
+          greaterThanOrEqualTo(0.0),
+          reason: 'row at ${row.depthMeters} m (${row.kind})',
+        );
+      }
+    });
+
     test('only the first travel leg prints before a stop; later stops '
         'fold the travel time in, same as the main table (#3138)', () {
       final outcome = solver.solve(_plan())!;
