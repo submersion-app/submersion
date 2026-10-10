@@ -19,7 +19,8 @@ class WholeWebLayout {
     required List<ConnectionEdge> edges,
     Map<NodeRef, GraphPoint> initialPositions = const {},
     int maxIterations = 300,
-  }) {
+    double spacing = 1,
+  }) : _spacing = spacing {
     final order = {for (var i = 0; i < nodes.length; i++) nodes[i]: i};
     final comps = IslandPacker.components(nodes, edges);
     _singles = [
@@ -41,6 +42,7 @@ class WholeWebLayout {
               if (initialPositions[n] != null) n: initialPositions[n]!,
           },
           maxIterations: maxIterations,
+          spacing: spacing,
         ),
       );
     }
@@ -49,6 +51,9 @@ class WholeWebLayout {
   }
 
   final List<ForceLayout> _layouts = [];
+
+  /// Multiplies the gaps between islands and between single nodes.
+  final double _spacing;
 
   /// Nodes with no edge, in input order (the controller passes the busiest
   /// first). They need no simulation.
@@ -60,6 +65,10 @@ class WholeWebLayout {
 
   LayoutFrame get frame => _frame;
   bool get settled => _layouts.every((l) => l.settled);
+
+  /// True while any node, island member or single, is pinned by a drag.
+  bool get hasPins =>
+      _singlePins.isNotEmpty || _layouts.any((l) => l.pinned.isNotEmpty);
 
   void advance(int iterations) {
     for (final l in _layouts) {
@@ -95,7 +104,10 @@ class WholeWebLayout {
 
   void _recompose() {
     if (!_frozen) {
-      _offsets = IslandPacker.pack(_layouts.map((l) => l.frame).toList());
+      _offsets = IslandPacker.pack(
+        _layouts.map((l) => l.frame).toList(),
+        gap: 60 * _spacing,
+      );
       if (settled) _frozen = true;
     }
     final positions = <NodeRef, GraphPoint>{};
@@ -105,7 +117,7 @@ class WholeWebLayout {
       }
     }
     if (_singles.isNotEmpty) {
-      const gap = 90.0;
+      final gap = 90.0 * _spacing;
       final packed = GraphBounds.of(positions.values);
       final cols = math.max(1, (math.sqrt(_singles.length) * 1.6).ceil());
       final x0 = positions.isEmpty ? 0.0 : packed.left;

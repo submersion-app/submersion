@@ -25,6 +25,7 @@ class RadialLayout {
     double firstRing = 170,
     double ringGap = 120,
     double minArcSpacing = 36,
+    double spacing = 1,
   }) {
     final weightTo = <NodeRef, int>{};
     for (final e in edges) {
@@ -67,8 +68,11 @@ class RadialLayout {
         var placed = 0;
         var ring = 0;
         while (placed < group.length) {
-          final radius = firstRing + (ringBase + ring) * ringGap;
-          final capacity = math.max(1, (arc * radius / minArcSpacing).floor());
+          final radius = (firstRing + (ringBase + ring) * ringGap) * spacing;
+          final capacity = math.max(
+            1,
+            (arc * radius / (minArcSpacing * spacing)).floor(),
+          );
           final count = math.min(capacity, group.length - placed);
           for (var i = 0; i < count; i++) {
             final t = count == 1 ? 0.5 : (i + 0.5) / count;
