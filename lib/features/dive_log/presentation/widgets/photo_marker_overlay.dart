@@ -165,9 +165,17 @@ class _PhotoMarkerOverlayState extends State<PhotoMarkerOverlay> {
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            // Tap-away dismisses the preview card.
+            // Tap-away dismisses the preview card. It stops at the plot's
+            // bottom edge: the host may stack its own tap targets in the
+            // bottom gutter below this layer (the profile chart's safety
+            // lane chips, #3051), and an eager tap here would win their
+            // taps.
             if (selected != null)
-              Positioned.fill(
+              Positioned(
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: widget.insets.bottom,
                 child: _eagerTap(
                   behavior: HitTestBehavior.translucent,
                   onTap: () => setState(() => _selectedMediaId = null),

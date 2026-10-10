@@ -3918,6 +3918,27 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         playbackCursorTooltip?.cursorLocal ?? _lastPointerLocal;
     final tooltipRows = playbackCursorTooltip?.rows ?? _liveCursorTooltipRows;
 
+    // The safety lane and its callout render as two layers with the photo
+    // markers between them (#3051); both share this configuration.
+    SafetyFindingsOverlay safetyLayer({required bool lane}) =>
+        SafetyFindingsOverlay(
+          findings: widget.safetyFindings!,
+          selectedFindingId: widget.selectedSafetyFindingId,
+          visibleMinSeconds: visibleMinX,
+          visibleMaxSeconds: visibleMaxX,
+          insets: plotInsets,
+          laneHeight: DiveProfileChart.safetyLaneHeight,
+          laneBottomOffset:
+              DiveProfileChart._bottomAxisNameSize +
+              DiveProfileChart._bottomTickReservedSize,
+          units: units,
+          onFindingTap: widget.onSafetyFindingTap!,
+          onFindingDismiss: widget.onSafetyFindingDismiss ?? (_) {},
+          onFindingDetails: widget.onSafetyFindingDetails,
+          showLane: lane,
+          showCallout: !lane,
+        );
+
     return Stack(
       // Clip.none: with many active metrics the cursor tooltip's real
       // height can exceed the plot's own vertical space despite its text
@@ -4704,6 +4725,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               );
             },
           ),
+        // Safety findings lane: a widget layer like the photo markers,
+        // occupying the extra bottom reservation added by _hasSafetyLane,
+        // directly between the gas strip (or plot) and the tick labels.
+        // Below the photo markers, so a preview card opened from a deep
+        // photo paints over the lane strip rather than under it (#3051).
+        // Keyed, like the stateful layers around it, so that the lane and
+        // callout appearing or disappearing never shifts the photo or range
+        // overlay into another layer's element and resets it.
+        if (_hasSafetyLane)
+          Positioned.fill(
+            key: const ValueKey('safetyLaneLayer'),
+            child: safetyLayer(lane: true),
+          ),
         // Photo markers: tappable camera chips at each photo's (time, depth).
         // A widget layer (not an fl_chart element) so its taps never enter
         // the chart's gesture arena; positioned by the shared plot rect.
@@ -4711,6 +4745,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             widget.photoMarkers != null &&
             widget.photoMarkers!.isNotEmpty)
           Positioned.fill(
+            key: const ValueKey('photoMarkerLayer'),
             child: PhotoMarkerOverlay(
               markers: widget.photoMarkers!,
               visibleMinSeconds: visibleMinX,
@@ -4721,33 +4756,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               units: units,
             ),
           ),
-        // Safety findings lane + callout: a widget layer like the photo
-        // markers, occupying the extra bottom reservation added by
-        // _hasSafetyLane, directly between the gas strip (or plot) and the
-        // tick labels.
+        // Safety finding callout: its own layer above the photo markers, so
+        // camera chips never poke through the open card (#3051). Present
+        // whenever the lane is, even with nothing selected (it then renders
+        // nothing), so selecting a finding never reshapes the child list.
         if (_hasSafetyLane)
           Positioned.fill(
-            child: SafetyFindingsOverlay(
-              findings: widget.safetyFindings!,
-              selectedFindingId: widget.selectedSafetyFindingId,
-              visibleMinSeconds: visibleMinX,
-              visibleMaxSeconds: visibleMaxX,
-              insets: plotInsets,
-              laneHeight: DiveProfileChart.safetyLaneHeight,
-              laneBottomOffset:
-                  DiveProfileChart._bottomAxisNameSize +
-                  DiveProfileChart._bottomTickReservedSize,
-              units: units,
-              onFindingTap: widget.onSafetyFindingTap!,
-              onFindingDismiss: widget.onSafetyFindingDismiss ?? (_) {},
-              onFindingDetails: widget.onSafetyFindingDetails,
-            ),
+            key: const ValueKey('safetyCalloutLayer'),
+            child: safetyLayer(lane: false),
           ),
         // Range-statistics handles. Topmost so a handle wins the pointer
         // over the layers below it, and inside the chart so it shares the
         // plot rect and visible window (issue #1579).
         if (widget.rangeSelection != null)
           Positioned.fill(
+            key: const ValueKey('rangeSelectionLayer'),
             child: RangeSelectionOverlay(
               startSeconds: widget.rangeSelection!.startSeconds,
               endSeconds: widget.rangeSelection!.endSeconds,

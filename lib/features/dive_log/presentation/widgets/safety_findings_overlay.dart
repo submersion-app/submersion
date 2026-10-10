@@ -16,6 +16,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// (PhotoMarkerOverlay precedent). Stateless: selection lives with the
 /// caller, which passes [selectedFindingId] and receives toggle requests
 /// through [onFindingTap].
+///
+/// The lane and the callout can render as separate layers ([showLane],
+/// [showCallout]) so a host can stack other overlays between them: the
+/// profile chart puts photo markers above the lane, whose preview card
+/// otherwise sat under the lane strip, and the callout above both (#3051).
 class SafetyFindingsOverlay extends StatelessWidget {
   /// Lane findings, pre-filtered (chartSafetyFindings): non-dismissed,
   /// rule-enabled, start-timestamped, sorted by start time.
@@ -48,6 +53,12 @@ class SafetyFindingsOverlay extends StatelessWidget {
   /// no detail surface exists (fullscreen); the callout hides the link.
   final void Function(SafetyFinding finding)? onFindingDetails;
 
+  /// Whether to render the lane strip and its chips.
+  final bool showLane;
+
+  /// Whether to render the selected finding's callout card.
+  final bool showCallout;
+
   const SafetyFindingsOverlay({
     super.key,
     required this.findings,
@@ -61,6 +72,8 @@ class SafetyFindingsOverlay extends StatelessWidget {
     required this.onFindingTap,
     required this.onFindingDismiss,
     this.onFindingDetails,
+    this.showLane = true,
+    this.showCallout = true,
   });
 
   static const double _chipVerticalInset = 3.0;
@@ -68,6 +81,11 @@ class SafetyFindingsOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A callout-only layer with nothing selected renders nothing; skip the
+    // chip layout it would otherwise run on every chart rebuild.
+    if (!showLane && selectedFindingId == null) {
+      return const SizedBox.shrink();
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
         final laneWidth = constraints.maxWidth - insets.left - insets.right;
@@ -106,31 +124,36 @@ class SafetyFindingsOverlay extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             // Lane background strip.
-            Positioned(
-              left: insets.left,
-              top: laneTop,
-              width: laneWidth,
-              height: laneHeight,
-              child: IgnorePointer(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(4),
+            if (showLane)
+              Positioned(
+                key: const ValueKey('safetyLaneStrip'),
+                left: insets.left,
+                top: laneTop,
+                width: laneWidth,
+                height: laneHeight,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                 ),
               ),
-            ),
-            for (var i = 0; i < placements.length; i++)
-              Positioned(
-                key: ValueKey('safetyLaneChip-$i'),
-                left: insets.left + placements[i].left,
-                top: laneTop,
-                width: placements[i].width,
-                height: laneHeight,
-                child: _buildChip(context, placements[i]),
-              ),
-            if (selectedPlacement != null)
+            if (showLane)
+              for (var i = 0; i < placements.length; i++)
+                Positioned(
+                  key: ValueKey('safetyLaneChip-$i'),
+                  left: insets.left + placements[i].left,
+                  top: laneTop,
+                  width: placements[i].width,
+                  height: laneHeight,
+                  child: _buildChip(context, placements[i]),
+                ),
+            if (showCallout && selectedPlacement != null)
               _buildCallout(context, constraints, laneWidth),
           ],
         );
