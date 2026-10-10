@@ -243,9 +243,10 @@ class BackupService {
       try {
         cloudFileId = await _uploadToCloud(ref, storedName);
         // Only a real file id means a cloud copy exists: the upload also
-        // gives up (returning null) when the backup folder is unreachable,
-        // and history that claims `both` with no id sends restore looking
-        // for a file that was never written.
+        // gives up (returning null) when the backup folder is unreachable or
+        // sync encryption is locked on this device (issue #3089), and history
+        // that claims `both` with no id sends restore looking for a file that
+        // was never written.
         if (cloudFileId != null) {
           location = BackupLocation.both;
           _log.info('Backup uploaded to cloud: $cloudFileId');
@@ -1506,12 +1507,12 @@ class BackupService {
 
   /// The sync-encryption key and its keyslot mirror, or null when either is
   /// missing from this device's keychain.
-  Future<({UnlockedKey key, Uint8List keyslotBytes})?>
+  Future<({SecretKey mlk, String libraryKeyId, Uint8List keyslotBytes})?>
   _unlockedSyncKey() async {
     final key = await _encryptionKeyStore?.loadKey();
     final mirror = await _encryptionKeyStore?.loadKeyslotMirror();
     if (key == null || mirror == null) return null;
-    return (key: key, keyslotBytes: mirror);
+    return (mlk: key.mlk, libraryKeyId: key.libraryKeyId, keyslotBytes: mirror);
   }
 
   Future<String?> _uploadToCloud(String localPath, String filename) async {
@@ -1553,8 +1554,8 @@ class BackupService {
       await BackupCrypto.encryptFile(
         inPath: localPath,
         outPath: uploadPath,
-        mlk: unlocked.key.mlk,
-        libraryKeyId: unlocked.key.libraryKeyId,
+        mlk: unlocked.mlk,
+        libraryKeyId: unlocked.libraryKeyId,
         keyslotBytes: unlocked.keyslotBytes,
       );
       encryptedTemp = File(uploadPath);
