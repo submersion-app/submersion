@@ -490,11 +490,15 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   }
 
   /// Writes [mix] into the O2/He fields; the diver still saves the dialog.
+  /// A programmatic write fires no onChanged, so this rebuilds itself: the
+  /// offer follows the mix (a fill can make the cylinder the oxygen supply).
   /// Re-validates so an error left by an earlier save attempt on either
   /// field clears now that it holds a valid mix.
   void _fillGas(GasMix mix) {
-    _o2Controller.text = formatDecimalForInput(mix.o2);
-    _heController.text = formatDecimalForInput(mix.he);
+    setState(() {
+      _o2Controller.text = formatDecimalForInput(mix.o2);
+      _heController.text = formatDecimalForInput(mix.he);
+    });
     _formKey.currentState?.validate();
   }
 

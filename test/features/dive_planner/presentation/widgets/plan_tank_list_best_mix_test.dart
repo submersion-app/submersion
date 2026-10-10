@@ -256,6 +256,27 @@ void main() {
       expect(bestMixButton(), findsOneWidget);
     });
 
+    testWidgets('a fill that makes the cylinder the oxygen supply hides the '
+        'offer', (tester) async {
+      final container = await pumpList(tester);
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      // At 3 m the bottom ceiling allows pure O2, so the offer fills 100%.
+      notifier.addSimplePlan(maxDepth: 3, bottomTimeMinutes: 20);
+      notifier.updateMode(PlanMode.ccr);
+      await tester.pumpAndSettle();
+      await openAddTank(tester);
+
+      await tester.tap(bestMixButton());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(TextFormField, '100'),
+        findsOneWidget,
+        reason: 'the fill should have written 100% O2',
+      );
+      expect(bestMixButton(), findsNothing);
+    });
+
     testWidgets('the oxygen supply is never offered a mix to overwrite it', (
       tester,
     ) async {
