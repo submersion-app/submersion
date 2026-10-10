@@ -162,6 +162,27 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('a plan cleared mid-drag does not freeze the next plan', (
+    tester,
+  ) async {
+    final s = await setUpPlan(tester);
+    final gesture = await tester.startGesture(s.rect.topLeft + s.handle);
+    await gesture.moveBy(const Offset(60, 0));
+    await tester.pump();
+
+    final notifier = s.container.read(divePlanNotifierProvider.notifier);
+    notifier.newPlan();
+    await tester.pump();
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 30);
+    await tester.pump();
+    expect(
+      paintedGeometry(tester).maxTimeSeconds,
+      s.container.read(planCanvasSeriesProvider).maxTimeSeconds,
+    );
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('a cancelled drag releases the frozen axes', (tester) async {
     final s = await setUpPlan(tester);
     final gesture = await tester.startGesture(s.rect.topLeft + s.handle);
