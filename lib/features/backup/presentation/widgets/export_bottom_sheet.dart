@@ -71,7 +71,9 @@ class _ExportBottomSheetState extends State<ExportBottomSheet> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SafeArea(
-        child: Padding(
+        // Scrolls rather than overflows when the keyboard leaves less room
+        // than the note field and both actions need, as on a landscape phone.
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,

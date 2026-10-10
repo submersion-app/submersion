@@ -55,4 +55,28 @@ void main() {
     expect(find.text('Share'), findsNothing);
     expect(find.text('Note (optional)'), findsOneWidget);
   });
+
+  testWidgets('fits a landscape phone with the keyboard up', (tester) async {
+    tester.view.physicalSize = const Size(844, 390);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 170);
+    addTearDown(tester.view.reset);
+
+    String? shared = 'unset';
+    await tester.pumpWidget(
+      host(
+        ExportBottomSheet(
+          onSaveToFile: (_) {},
+          onShare: (note) => shared = note,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(find.text('Share'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
+    expect(shared, isNull);
+  });
 }
