@@ -69,14 +69,7 @@ class DivingLogSqliteParser implements ImportParser {
             // Every row may have been discarded in DiveMate, which is the
             // only other thing that empties a readable logbook.
             if (logbook.discardedDiveCount > 0)
-              ImportWarning(
-                severity: ImportWarningSeverity.info,
-                code: ImportWarningCode.diagnostic,
-                message:
-                    '${logbook.discardedDiveCount} dive(s) marked as discarded '
-                    'in DiveMate were left out.',
-                count: logbook.discardedDiveCount,
-              ),
+              DivingLogDiveMapper.discardedNotice(logbook.discardedDiveCount),
             for (final note in logbook.schemaNotes)
               ImportWarning(
                 severity: ImportWarningSeverity.info,

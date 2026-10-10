@@ -134,6 +134,15 @@ void main() {
       expect(s.heartRate, 72);
     });
 
+    test('a zero heart rate reads as not recorded', () {
+      final samples = DivingLogProfileCodec.decode(
+        intervalSeconds: 20,
+        profile: '004500000000',
+        profile3: '00000000000000',
+      );
+      expect(samples.single.heartRate, isNull);
+    });
+
     test('a zero pressure reads as not recorded (#3110)', () {
       // A 0000 field is the format's unset value, not an empty cylinder.
       final samples = DivingLogProfileCodec.decode(

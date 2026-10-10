@@ -108,7 +108,9 @@ class DivingLogProfileCodec {
               ? _scaledNonZero(p3, o3 + 4, 4, 10.0)
               : null,
           rbtSeconds: hasP2 ? _minutes(_int(p2, o2 + 8, 3)) : null,
-          heartRate: hasP3 ? _int(p3, o3 + 8, 3) : null,
+          // 000 is the unrecorded heart rate, written on every sample of a
+          // dive without a heart-rate strap; 0 bpm is not a reading.
+          heartRate: hasP3 ? _nonZero(_int(p3, o3 + 8, 3)) : null,
           ndlSeconds: inDeco ? null : _minutes(ndlOrTts),
           ttsSeconds: inDeco ? _minutes(ndlOrTts) : null,
           stopDepthMeters: hasP4

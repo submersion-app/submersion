@@ -192,16 +192,7 @@ class DivingLogDiveMapper {
     }
 
     if (logbook.discardedDiveCount > 0) {
-      warnings.add(
-        ImportWarning(
-          severity: ImportWarningSeverity.info,
-          code: ImportWarningCode.diagnostic,
-          message:
-              '${logbook.discardedDiveCount} dive(s) marked as discarded in '
-              'DiveMate were left out.',
-          count: logbook.discardedDiveCount,
-        ),
-      );
+      warnings.add(discardedNotice(logbook.discardedDiveCount));
     }
     if (sawOtu) {
       warnings.add(
@@ -370,6 +361,15 @@ class DivingLogDiveMapper {
         if (part.trim().isNotEmpty) part.trim(),
     ];
   }
+
+  /// The notice for [count] dives DiveMate marked discarded, shared with the
+  /// parser, which reports it when those were the only dives in the file.
+  static ImportWarning discardedNotice(int count) => ImportWarning(
+    severity: ImportWarningSeverity.info,
+    code: ImportWarningCode.diagnostic,
+    message: '$count dive(s) marked as discarded in DiveMate were left out.',
+    count: count,
+  );
 
   /// The free-text `Buddy` names on a dive that also links buddies by id,
   /// minus any that name a linked buddy.
