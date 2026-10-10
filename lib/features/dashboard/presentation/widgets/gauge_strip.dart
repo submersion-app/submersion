@@ -141,7 +141,7 @@ class GaugeStrip extends ConsumerWidget {
 
     final insurance = g.insurance;
     // Emptiness keys off the provider, not the expiry date: expiry is
-    // optional on InsuranceEditPage, so a DAN policy recorded without a
+    // optional on an insurance document, so a DAN policy recorded without a
     // renewal date is a complete record. This matches
     // DiverInsurance.isValid and the diver profile hub. Both isExpired and
     // isExpiringSoon return false when expiryDate is null, so such a policy
@@ -160,7 +160,7 @@ class GaugeStrip extends ConsumerWidget {
           icon: Icons.health_and_safety_outlined,
           label: l10n.dashboard_gauges_insuranceExpired,
           tone: _Tone.alert,
-          onTap: () => context.push('/settings/diver-profile/insurance'),
+          onTap: () => context.push('/documents?type=insurance'),
         ),
       );
     } else if (_shown(hidden, HomeChipType.insurance)) {
@@ -171,7 +171,7 @@ class GaugeStrip extends ConsumerWidget {
             icon: Icons.health_and_safety_outlined,
             label: l10n.dashboard_gauges_noInsurance,
             tone: _Tone.neutral,
-            onTap: () => context.push('/settings/diver-profile/insurance'),
+            onTap: () => context.push('/documents?type=insurance'),
           ),
         );
       } else if (policy.isExpiringSoon) {
@@ -183,7 +183,7 @@ class GaugeStrip extends ConsumerWidget {
               units.formatDate(policy.expiryDate),
             ),
             tone: _Tone.warn,
-            onTap: () => context.push('/settings/diver-profile/insurance'),
+            onTap: () => context.push('/documents?type=insurance'),
           ),
         );
       } else {
@@ -193,7 +193,7 @@ class GaugeStrip extends ConsumerWidget {
             icon: Icons.health_and_safety_outlined,
             label: l10n.dashboard_gauges_insuranceOk,
             tone: _Tone.ok,
-            onTap: () => context.push('/settings/diver-profile/insurance'),
+            onTap: () => context.push('/documents?type=insurance'),
           ),
         );
       }

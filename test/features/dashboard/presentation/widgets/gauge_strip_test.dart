@@ -151,8 +151,10 @@ Future<NavSpy> pumpStrip(
         builder: (_, _) => stub('/dives/quality'),
       ),
       GoRoute(
-        path: '/settings/diver-profile/insurance',
-        builder: (_, _) => stub('/settings/diver-profile/insurance'),
+        // Insurance is a document now (issue #2613); the chip opens the
+        // insurance documents.
+        path: '/documents',
+        builder: (_, state) => stub(state.uri.toString()),
       ),
     ],
   );
@@ -547,10 +549,10 @@ void main() {
       final spy = await pumpStrip(tester, _emptyGauges);
       expect(find.text('No insurance on file'), findsOneWidget);
       await tapChip(tester, 'No insurance on file');
-      expect(spy.location, '/settings/diver-profile/insurance');
+      expect(spy.location, '/documents?type=insurance');
     });
 
-    // Expiry is optional on InsuranceEditPage, so a DAN policy recorded
+    // Expiry is optional on an insurance document, so a DAN policy recorded
     // without a renewal date is a complete record, not a missing one. The
     // chip must agree with DiverInsurance.isValid, which keys off provider.
     testWidgets('a provider with no expiry date reads as insured', (
@@ -599,7 +601,7 @@ void main() {
       );
       expect(find.text('Insurance expired'), findsOneWidget);
       await tapChip(tester, 'Insurance expired');
-      expect(spy.location, '/settings/diver-profile/insurance');
+      expect(spy.location, '/documents?type=insurance');
     });
 
     testWidgets('expiring-soon insurance chip navigates to the record', (
@@ -622,7 +624,7 @@ void main() {
       expect(chip, findsOneWidget);
       await tester.tap(find.ancestor(of: chip, matching: find.byType(InkWell)));
       await tester.pumpAndSettle();
-      expect(spy.location, '/settings/diver-profile/insurance');
+      expect(spy.location, '/documents?type=insurance');
     });
 
     testWidgets('valid insurance chip navigates to the insurance record', (
@@ -642,7 +644,7 @@ void main() {
       );
       expect(find.text('Insurance OK'), findsOneWidget);
       await tapChip(tester, 'Insurance OK');
-      expect(spy.location, '/settings/diver-profile/insurance');
+      expect(spy.location, '/documents?type=insurance');
     });
   });
 

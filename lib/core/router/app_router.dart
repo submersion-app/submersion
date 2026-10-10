@@ -141,7 +141,6 @@ import 'package:submersion/features/settings/presentation/pages/diver_profile_hu
 import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/emergency_contacts_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
-import 'package:submersion/features/settings/presentation/pages/insurance_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/body_weight_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/prior_experience_edit_page.dart';
@@ -1581,9 +1580,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const MedicalInfoEditPage(),
                   ),
                   GoRoute(
+                    // Insurance is a document now (issue #2613); old links
+                    // land on the insurance documents.
                     path: 'insurance',
                     name: 'editInsurance',
-                    builder: (context, state) => const InsuranceEditPage(),
+                    redirect: (context, state) => '/documents?type=insurance',
                   ),
                   GoRoute(
                     path: 'notes',
