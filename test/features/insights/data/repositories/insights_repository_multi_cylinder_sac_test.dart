@@ -113,6 +113,16 @@ void main() {
       expect(trend.single.value, closeTo(1.5, 1e-9));
     });
 
+    test('sums unsized back-gas doubles logged as independents', () async {
+      await insertDive('bb');
+      await insertTank('bb', 0, 'backGas');
+      await insertTank('bb', 1, 'backGas', end: 137);
+
+      final trend = await repository.getSacPressurePerDive();
+      expect(trend.single.value, closeTo(1.5, 1e-9));
+      expect(await queryLanguageSac('bb'), closeTo(1.5, 1e-9));
+    });
+
     test('a rebreather dive keeps the single reference cylinder', () async {
       await insertDive('ccr', diveMode: 'ccr');
       await insertTank('ccr', 0, 'diluent', volume: 3);

@@ -33,9 +33,10 @@ double? consumptionVolume(DiveTank tank, List<DiveTank> tanks) {
 
 /// The pressure drop of [reference] plus that of every other breathed
 /// cylinder of [tanks], each converted into bar of [reference] by volume
-/// (`drop * V / Vref`). Two sidemount cylinders whose sizes are both
-/// unknown count one to one. A cylinder whose size cannot be related to
-/// the reference, or that was carried but not breathed, adds nothing.
+/// (`drop * V / Vref`). When either size is unknown, a cylinder of a
+/// matched pair with the reference (see [isMatchedPair]) counts one to one.
+/// A cylinder whose size cannot be related to the reference, or that was
+/// carried but not breathed, adds nothing.
 ///
 /// With [referenceOnly] (a rebreather dive, where diluent and oxygen
 /// drops are not breathing gas in one unit) only [reference] counts.
@@ -58,13 +59,19 @@ double? referencePressureDrop({
     final volume = consumptionVolume(tank, tanks);
     if (volume != null && referenceVolume != null) {
       total += drop * volume / referenceVolume;
-    } else if (sidemountRoles.contains(tank.role) &&
-        sidemountRoles.contains(reference.role)) {
+    } else if (isMatchedPair(tank, reference)) {
       total += drop;
     }
   }
   return total;
 }
+
+/// Whether [a] and [b] are a matched pair, assumed the same size when a
+/// size is missing: both sidemount cylinders, or both back gas (doubles
+/// logged as independents).
+bool isMatchedPair(DiveTank a, DiveTank b) =>
+    (sidemountRoles.contains(a.role) && sidemountRoles.contains(b.role)) ||
+    (a.role == TankRole.backGas && b.role == TankRole.backGas);
 
 double? _drop(DiveTank tank) {
   final start = tank.startPressure;

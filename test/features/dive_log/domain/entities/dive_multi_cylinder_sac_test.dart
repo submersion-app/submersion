@@ -49,6 +49,22 @@ void main() {
       expect(dive.sac, closeTo(1.5, 1e-9));
     });
 
+    test('sums unsized back-gas doubles logged as independents', () {
+      final dive = _dive([
+        _tank('a', TankRole.backGas),
+        _tank('b', TankRole.backGas, end: 140),
+      ]);
+      expect(dive.sac, closeTo(1.5, 1e-9));
+    });
+
+    test('does not pair an unsized back gas with an unsized stage', () {
+      final dive = _dive([
+        _tank('a', TankRole.backGas),
+        _tank('s', TankRole.stage, end: 140),
+      ]);
+      expect(dive.sac, closeTo(1.0, 1e-9));
+    });
+
     test('weights a sidemount pair of different sizes by volume', () {
       final dive = _dive([
         _tank('l', TankRole.sidemountLeft, volume: 12),
