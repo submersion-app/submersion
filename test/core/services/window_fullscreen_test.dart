@@ -98,6 +98,24 @@ void main() {
   });
 
   test(
+    'a late leave event from its own exit does not drop a new hold',
+    () async {
+      platform.deferLeaveEvents = true;
+      final first = Object();
+      await controller.request(first);
+      await controller.release(first);
+      // Fullscreen again before the first exit's event has arrived.
+      final second = Object();
+      await controller.request(second);
+      platform.deliverLeaveEvents();
+      await controller.release(second);
+
+      expect(platform.setCalls, [true, false, true, false]);
+      expect(platform.fullScreen, isFalse);
+    },
+  );
+
+  test(
     'a plugin failure is contained and the next request still runs',
     () async {
       platform.throwOnSet = true;

@@ -8,6 +8,11 @@ class FakeWindowFullscreenPlatform implements WindowFullscreenPlatform {
   bool fullScreen;
   final List<bool> setCalls = [];
   bool throwOnSet = false;
+
+  /// Holds leave events back until [deliverLeaveEvents], as macOS does until
+  /// its exit animation ends.
+  bool deferLeaveEvents = false;
+  int _deferredLeaves = 0;
   void Function()? _onLeave;
 
   @override
@@ -19,7 +24,19 @@ class FakeWindowFullscreenPlatform implements WindowFullscreenPlatform {
     setCalls.add(value);
     final wasFullScreen = fullScreen;
     fullScreen = value;
-    if (wasFullScreen && !value) _onLeave?.call();
+    if (wasFullScreen && !value) {
+      if (deferLeaveEvents) {
+        _deferredLeaves++;
+      } else {
+        _onLeave?.call();
+      }
+    }
+  }
+
+  void deliverLeaveEvents() {
+    for (; _deferredLeaves > 0; _deferredLeaves--) {
+      _onLeave?.call();
+    }
   }
 
   @override

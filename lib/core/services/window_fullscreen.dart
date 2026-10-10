@@ -84,14 +84,17 @@ class _NoWindowFullscreenPlatform implements WindowFullscreenPlatform {
 /// runs, which lets a release that overtakes its own request cancel it.
 class WindowFullscreenController {
   WindowFullscreenController(this._platform) {
-    // Once the window has left fullscreen, a later fullscreen is no longer
-    // this controller's to undo: the user may have gone back in themselves.
-    _platform.listenForLeave(() => _enteredByUs = false);
+    _platform.listenForLeave(_onLeave);
   }
 
   final WindowFullscreenPlatform _platform;
   final Set<Object> _owners = {};
   bool _enteredByUs = false;
+
+  /// Leaves this controller asked for whose event has not arrived yet. On
+  /// macOS the event follows the exit animation, so it can land after a new
+  /// request has already entered again.
+  int _ownLeavesPending = 0;
   Future<void> _queue = Future<void>.value();
 
   Future<void> request(Object owner) {
@@ -113,8 +116,20 @@ class WindowFullscreenController {
       // The user may already have left through the window itself (the
       // green button on macOS); toggling again would put them back in.
       if (!await _platform.isFullScreen()) return;
+      _ownLeavesPending++;
       await _platform.setFullScreen(false);
     });
+  }
+
+  /// Once the user has left fullscreen through the window itself, a later
+  /// fullscreen is no longer this controller's to undo: they may have gone
+  /// back in themselves. A leave this controller caused changes nothing.
+  void _onLeave() {
+    if (_ownLeavesPending > 0) {
+      _ownLeavesPending--;
+      return;
+    }
+    _enteredByUs = false;
   }
 
   Future<void> _enqueue(Future<void> Function() step) {
