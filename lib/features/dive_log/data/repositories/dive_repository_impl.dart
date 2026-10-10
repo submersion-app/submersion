@@ -1697,11 +1697,24 @@ class DiveRepository {
                 waterTemp: Value(dive.waterTemp),
                 airTemp: Value(dive.airTemp),
                 visibilityMeters: Value(dive.visibilityMeters),
-                // A measured distance supersedes the legacy bucket. Value(null)
-                // rather than Value.absent(): absent() preserves the existing
-                // column on a companion write, which would leave the dive
-                // carrying both a measurement and a contradicting bucket.
-                visibility: dive.visibilityMeters != null
+                // One visibility shape per dive (issue #3226): a measured distance
+                // wins over a range, and either supersedes the legacy bucket.
+                // Value(null) rather than Value.absent(): absent() preserves the
+                // existing column on a companion write, which would leave the dive
+                // carrying two shapes.
+                visibilityMinMeters: Value(
+                  dive.visibilityMeters == null
+                      ? dive.visibilityMinMeters
+                      : null,
+                ),
+                visibilityMaxMeters: Value(
+                  dive.visibilityMeters == null
+                      ? dive.visibilityMaxMeters
+                      : null,
+                ),
+                visibility:
+                    dive.visibilityMeters != null ||
+                        dive.visibilityRange != null
                     ? const Value(null)
                     : Value(dive.visibility?.name),
                 diveType: Value(dive.diveTypeId),
@@ -2023,11 +2036,19 @@ class DiveRepository {
             waterTemp: Value(dive.waterTemp),
             airTemp: Value(dive.airTemp),
             visibilityMeters: Value(dive.visibilityMeters),
-            // A measured distance supersedes the legacy bucket. Value(null)
-            // rather than Value.absent(): absent() preserves the existing column
-            // on a companion write, which would leave the dive carrying both a
-            // measurement and a contradicting bucket.
-            visibility: dive.visibilityMeters != null
+            // One visibility shape per dive (issue #3226): a measured distance
+            // wins over a range, and either supersedes the legacy bucket.
+            // Value(null) rather than Value.absent(): absent() preserves the
+            // existing column on a companion write, which would leave the dive
+            // carrying two shapes.
+            visibilityMinMeters: Value(
+              dive.visibilityMeters == null ? dive.visibilityMinMeters : null,
+            ),
+            visibilityMaxMeters: Value(
+              dive.visibilityMeters == null ? dive.visibilityMaxMeters : null,
+            ),
+            visibility:
+                dive.visibilityMeters != null || dive.visibilityRange != null
                 ? const Value(null)
                 : Value(dive.visibility?.name),
             diveType: Value(dive.diveTypeId),
@@ -3980,6 +4001,8 @@ class DiveRepository {
             )
           : null,
       visibilityMeters: row.visibilityMeters,
+      visibilityMinMeters: row.visibilityMinMeters,
+      visibilityMaxMeters: row.visibilityMaxMeters,
       diveTypeIds: diveTypeIds ?? [row.diveType],
       buddy: row.buddy,
       diveMaster: row.diveMaster,
@@ -4425,6 +4448,8 @@ class DiveRepository {
             )
           : null,
       visibilityMeters: row.visibilityMeters,
+      visibilityMinMeters: row.visibilityMinMeters,
+      visibilityMaxMeters: row.visibilityMaxMeters,
       diveTypeIds: diveTypeIds,
       buddy: row.buddy,
       diveMaster: row.diveMaster,

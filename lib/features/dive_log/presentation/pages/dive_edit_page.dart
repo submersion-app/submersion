@@ -22,6 +22,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_type_
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -309,6 +310,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// the types it adds are not lost to a quick tap on Save.
   Future<void>? _pendingDiveTypeSnap;
   Visibility _selectedVisibility = Visibility.unknown;
+
+  /// A stored visibility range (issue #3226), carried through a save
+  /// untouched. Replaced by the full range input in a later change.
+  VisibilityRange? _storedVisibilityRange;
   int _rating = 0;
   // Statistics exclusion (#526 / #1272). Kept independent: unticking the
   // master flag must restore the diver's own gas-only choice rather than
@@ -956,6 +961,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _selectedDiveTypeIds = List.from(dive.diveTypeIds);
           _loadedDiveTypeIds = List.unmodifiable(dive.diveTypeIds);
           _selectedVisibility = dive.visibility ?? Visibility.unknown;
+          _storedVisibilityRange = dive.visibilityRange;
           _visibilityController.text = dive.visibilityMeters != null
               ? _seedDecimal(units.convertDepth(dive.visibilityMeters!), 0)
               : '';
@@ -5913,6 +5919,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             ? _selectedVisibility
             : null,
         visibilityMeters: _visibilityMetersInput(units),
+        visibilityMinMeters: _storedVisibilityRange?.minM,
+        visibilityMaxMeters: _storedVisibilityRange?.maxM,
         diveTypeIds: _selectedDiveTypeIds,
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,
