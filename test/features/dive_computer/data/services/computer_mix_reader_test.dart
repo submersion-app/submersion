@@ -176,6 +176,49 @@ void main() {
     },
   );
 
+  test(
+    'never reads another download when the tank\'s own kept no bytes',
+    () async {
+      await insertSource(
+        's1',
+        computerId: 'dc1',
+        isPrimary: true,
+        withRawData: false,
+      );
+      await insertSource('s2', computerId: 'dc2', isPrimary: false);
+      parsedFor['s2'] = parsed([
+        pigeon.GasMix(index: 0, o2Percent: 36, hePercent: 0),
+      ]);
+
+      // A row naming neither source nor computer belongs to the primary.
+      final mix = await reader().recordedMix(
+        diveId: 'd1',
+        tank: const domain.DiveTank(id: 't', sourceTankIndex: 0),
+      );
+
+      expect(mix, isNull);
+      expect(parsedProducts, isEmpty);
+    },
+  );
+
+  test('a computer no source names falls back to the primary', () async {
+    await insertSource('s1', computerId: 'dc1', isPrimary: true);
+    parsedFor['s1'] = parsed([
+      pigeon.GasMix(index: 0, o2Percent: 32, hePercent: 0),
+    ]);
+
+    final mix = await reader().recordedMix(
+      diveId: 'd1',
+      tank: const domain.DiveTank(
+        id: 't',
+        computerId: 'dc2',
+        sourceTankIndex: 0,
+      ),
+    );
+
+    expect(mix, const domain.GasMix(o2: 32));
+  });
+
   test('is null for a hand-added tank, without parsing', () async {
     await insertSource('s1', computerId: 'dc1', isPrimary: true);
     parsedFor['s1'] = parsed([

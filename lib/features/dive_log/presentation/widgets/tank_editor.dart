@@ -453,6 +453,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // through edits; only consolidation/unlink flows may change them.
       computerId: widget.tank.computerId,
       transmitterSerial: widget.tank.transmitterSerial,
+      // Computer-owned like the two above: which download and parsed tank
+      // the row came from, so the computer-recorded mix note keeps reading
+      // the right one after an edit (issue #3021).
+      sourceId: widget.tank.sourceId,
+      sourceTankIndex: widget.tank.sourceTankIndex,
+      sharedComputerIds: widget.tank.sharedComputerIds,
       regulatorEquipmentId: _regulatorEquipmentId,
       // Only the trip cylinder picker changes the link; every other edit
       // carries it, or updateDive would wipe it on the next save.

@@ -155,6 +155,35 @@ void main() {
     expect(reader.reads, 1);
   });
 
+  testWidgets('an edit keeps the tank\'s source fields, so Restore still '
+      'reads its own download', (tester) async {
+    DiveTank? changed;
+    const reordered = DiveTank(
+      id: 'tank-1',
+      gasMix: GasMix(o2: 32),
+      order: 2,
+      sourceId: 'source-2',
+      sourceTankIndex: 0,
+      sharedComputerIds: ['dc3'],
+    );
+    final l10n = await pump(
+      tester,
+      reader: _FakeReader(const GasMix(o2: 32)),
+      tank: reordered,
+      onChanged: (t) => changed = t,
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, l10n.diveLog_tank_label_o2),
+      '28',
+    );
+    await tester.pumpAndSettle();
+
+    expect(changed!.sourceId, 'source-2');
+    expect(changed!.sourceTankIndex, 0);
+    expect(changed!.sharedComputerIds, ['dc3']);
+  });
+
   testWidgets('a hand-added tank shows nothing and reads nothing', (
     tester,
   ) async {

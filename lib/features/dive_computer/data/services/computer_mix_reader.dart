@@ -46,14 +46,17 @@ class ComputerMixReader {
     try {
       final sources = await (db.select(
         db.diveDataSources,
-      )..where((t) => t.diveId.equals(diveId) & t.rawData.isNotNull())).get();
+      )..where((t) => t.diveId.equals(diveId))).get();
+      // The tank's own download, chosen before looking at its bytes: one
+      // that kept none must not hand the tank another computer's mix.
       final source = _sourceFor(sources, tank);
-      if (source == null) return null;
+      final rawData = source?.rawData;
+      if (source == null || rawData == null) return null;
       final vendor = source.descriptorVendor;
       final product = source.descriptorProduct;
       final model = source.descriptorModel;
       if (vendor == null || product == null || model == null) return null;
-      final parsed = await parseFn(vendor, product, model, source.rawData!);
+      final parsed = await parseFn(vendor, product, model, rawData);
       final cylinder = resolveParsedTanks(
         parsed,
         vendor: vendor,
@@ -72,9 +75,10 @@ class ComputerMixReader {
     }
   }
 
-  /// The download [tank] came from: the source it names, else one from its
-  /// computer (the primary first), else the dive's primary source, which a
-  /// row naming no source belongs to.
+  /// The download [tank] came from: the source it names; else one from its
+  /// computer (the primary first); else the dive's primary source, which a
+  /// row naming no source belongs to, as does one whose computer no source
+  /// names (the source-family lookup in dive_repository_impl does the same).
   static DiveDataSourcesData? _sourceFor(
     List<DiveDataSourcesData> sources,
     domain.DiveTank tank,
@@ -82,10 +86,12 @@ class ComputerMixReader {
     if (tank.sourceId case final sourceId?) {
       return sources.where((s) => s.id == sourceId).firstOrNull;
     }
-    final candidates = tank.computerId == null
-        ? sources
-        : sources.where((s) => s.computerId == tank.computerId).toList();
-    return candidates.where((s) => s.isPrimary).firstOrNull ??
-        (candidates.length == 1 ? candidates.single : null);
+    final primary = sources.where((s) => s.isPrimary).firstOrNull;
+    final computerId = tank.computerId;
+    if (computerId == null) return primary;
+    final own = sources.where((s) => s.computerId == computerId).toList();
+    if (own.isEmpty) return primary;
+    return own.where((s) => s.isPrimary).firstOrNull ??
+        (own.length == 1 ? own.single : null);
   }
 }
