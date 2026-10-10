@@ -49342,7 +49342,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String plannerCanvas_issue_repeated(String message, int count) {
-    return '$message ($count مقاطع)';
+    return '$message (عدد المقاطع: $count)';
   }
 
   @override

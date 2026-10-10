@@ -20281,7 +20281,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_navCustomization_saveError =>
-      'Nem sikerült menteni a navigáció elrendezését. Próbáld újra.';
+      'Nem sikerült menteni a navigáció elrendezését. Próbálja újra.';
 
   @override
   String get settings_backToSettings_tooltip => 'Vissza a beállításokhoz';

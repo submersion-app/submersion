@@ -5615,7 +5615,7 @@
   "settings_navCustomization_moveUpLabel": "{destination} mozgatása felfelé",
   "settings_navCustomization_moveDownLabel": "{destination} mozgatása lefelé",
   "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
-  "settings_navCustomization_saveError": "Nem sikerült menteni a navigáció elrendezését. Próbáld újra.",
+  "settings_navCustomization_saveError": "Nem sikerült menteni a navigáció elrendezését. Próbálja újra.",
   "settings_backToSettings_tooltip": "Vissza a beállításokhoz",
   "settings_cloudSync_appBar_title": "Adatbázis felhő szinkronizálás",
   "settings_cloudSync_autoSync": "Automatikus szinkronizálás",

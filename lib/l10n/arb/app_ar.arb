@@ -14465,7 +14465,7 @@
   "gasCalculators_blender_invoiceArchiveDeleteBody": "لا يمكن التراجع عن هذا الإجراء.",
   "diveLog_detail_menu_whatIf": "إعادة تخطيط هذه الغطسة",
   "plannerCanvas_sourceCompare_title": "مقابل الغطسة الأصلية",
-  "plannerCanvas_issue_repeated": "{message} ({count} مقاطع)",
+  "plannerCanvas_issue_repeated": "{message} (عدد المقاطع: {count})",
   "@plannerCanvas_issue_repeated": {
     "placeholders": {
       "message": {

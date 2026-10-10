@@ -668,7 +668,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerMission_member_pickBuddy => 'Choisir un binôme';
 
   @override
-  String get plannerMission_member_sac => 'RMV au fond';
+  String get plannerMission_member_sac => 'Fond RMV';
 
   @override
   String get plannerMission_member_scooter => 'Scooter';
@@ -10228,7 +10228,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_gasOptions_title => 'Options de gaz';
 
   @override
-  String get divePlanner_gasOptions_sacBottom => 'RMV au fond';
+  String get divePlanner_gasOptions_sacBottom => 'Fond RMV';
 
   @override
   String get divePlanner_gasOptions_sacDeco => 'Déco RMV';
@@ -10241,7 +10241,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Temps de résolution du problème';
 
   @override
-  String get divePlanner_gasOptions_ppO2Bottom => 'ppO₂ au fond';
+  String get divePlanner_gasOptions_ppO2Bottom => 'Fond ppO₂';
 
   @override
   String get divePlanner_gasOptions_ppO2Deco => 'Déco ppO₂';

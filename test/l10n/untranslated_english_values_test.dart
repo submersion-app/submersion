@@ -60,6 +60,8 @@ void main() {
     return pairs;
   }
 
+  final pairs = englishPairs();
+
   bool isKept(String pair) {
     final key = pair.split('@').first;
     return keptEnglishValues.containsKey(key) ||
@@ -67,8 +69,7 @@ void main() {
   }
 
   test('no translated locale shows an English value it should translate', () {
-    final offenders = englishPairs().where((pair) => !isKept(pair)).toList()
-      ..sort();
+    final offenders = pairs.where((pair) => !isKept(pair)).toList()..sort();
     expect(
       offenders,
       isEmpty,
@@ -80,7 +81,6 @@ void main() {
   });
 
   test('every kept-English entry still names an English value', () {
-    final pairs = englishPairs();
     final stale = keptEnglishValues.keys.where((entry) {
       if (entry.contains('@')) return !pairs.contains(entry);
       return !pairs.any((pair) => pair.split('@').first == entry);
