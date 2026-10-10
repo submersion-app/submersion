@@ -20965,20 +20965,55 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'يحتفظ بنسخة $kept. تُتجاهل قيم $discarded لهذه الحقول: $fields.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$discarded',
+    });
+    return 'يحتفظ بنسخة $_temp0. تُتجاهل قيم $_temp1 لهذه الحقول: $fields.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'يحتفظ بنسخة $local ويضيف نسخة $remote كنسخة منفصلة.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$remote',
+    });
+    return 'يحتفظ بنسخة $_temp0 ويضيف نسخة $_temp1 كنسخة منفصلة.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'يحتفظ بالسجل بقيم $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$device',
+    });
+    return 'يحتفظ بالسجل بقيم $_temp0.';
   }
 
   @override
@@ -20995,8 +21030,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'السجل كما هو على $device:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$device',
+    });
+    return 'السجل كما هو على $_temp0:';
   }
 
   @override
@@ -22903,8 +22943,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_keepBoth => 'الاحتفاظ بكليهما';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'الاحتفاظ بـ $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'الاحتفاظ بنسخة هذا الجهاز',
+      'otherDevice': 'الاحتفاظ بنسخة الجهاز الآخر',
+      'other': 'الاحتفاظ بـ $device',
+    });
+    return '$_temp0';
   }
 
   @override

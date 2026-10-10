@@ -363,6 +363,28 @@ void main() {
     expect(find.text('Choose which version to keep.'), findsOneWidget);
   });
 
+  testWidgets('chips word generic labels as a phrase', (tester) async {
+    // A remote row from a device that published no name: the chips must not
+    // read "Keep Other device".
+    await pumpDialog(
+      tester,
+      SyncConflict(
+        entityType: diveConflict.entityType,
+        recordId: diveConflict.recordId,
+        localData: diveConflict.localData,
+        remoteData: {
+          ...diveConflict.remoteData,
+          'hlc': '1786556582600:0:unnamed-peer',
+        },
+        localModified: diveConflict.localModified,
+        remoteModified: diveConflict.remoteModified,
+      ),
+    );
+
+    expect(find.text('Keep Pixel 8'), findsOneWidget);
+    expect(find.text("Keep the other device's version"), findsOneWidget);
+  });
+
   testWidgets('picking a version states what it discards', (tester) async {
     await pumpDialog(tester, diveConflict);
     await tester.tap(find.text('Keep Pixel 8'));

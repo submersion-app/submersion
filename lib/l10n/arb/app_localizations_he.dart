@@ -20223,20 +20223,55 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'שומר את הגרסה של $kept. הערכים של $discarded עבור $fields נמחקים.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$discarded',
+    });
+    return 'שומר את הגרסה של $_temp0. הערכים של $_temp1 עבור $fields נמחקים.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'שומר את הגרסה של $local ומוסיף את הגרסה של $remote כעותק נפרד.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$remote',
+    });
+    return 'שומר את הגרסה של $_temp0 ומוסיף את הגרסה של $_temp1 כעותק נפרד.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'שומר את הרשומה, עם הערכים של $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$device',
+    });
+    return 'שומר את הרשומה, עם הערכים של $_temp0.';
   }
 
   @override
@@ -20253,8 +20288,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'הרשומה כפי שהיא ב-$device:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'במכשיר הזה',
+      'otherDevice': 'במכשיר האחר',
+      'other': 'ב-$device',
+    });
+    return 'הרשומה כפי שהיא $_temp0:';
   }
 
   @override
@@ -22144,8 +22184,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_keepBoth => 'שמור את שניהם';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'שמור את $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'שמור את הגרסה של המכשיר הזה',
+      'otherDevice': 'שמור את הגרסה של המכשיר האחר',
+      'other': 'שמור את $device',
+    });
+    return '$_temp0';
   }
 
   @override

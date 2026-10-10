@@ -20381,20 +20381,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Keeps $kept\'s version. $discarded\'s values for $fields are discarded.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'this device\'s',
+      'otherDevice': 'the other device\'s',
+      'other': '$kept\'s',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'This device\'s',
+      'otherDevice': 'The other device\'s',
+      'other': '$discarded\'s',
+    });
+    return 'Keeps $_temp0 version. $_temp1 values for $fields are discarded.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Keeps $local\'s version and adds $remote\'s version as a separate copy.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'this device\'s',
+      'otherDevice': 'the other device\'s',
+      'other': '$local\'s',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'this device\'s',
+      'otherDevice': 'the other device\'s',
+      'other': '$remote\'s',
+    });
+    return 'Keeps $_temp0 version and adds $_temp1 version as a separate copy.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Keeps the record, with $device\'s values.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'this device\'s',
+      'otherDevice': 'the other device\'s',
+      'other': '$device\'s',
+    });
+    return 'Keeps the record, with $_temp0 values.';
   }
 
   @override
@@ -20411,8 +20446,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'The record as $device has it:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'this device',
+      'otherDevice': 'the other device',
+      'other': '$device',
+    });
+    return 'The record as $_temp0 has it:';
   }
 
   @override
@@ -22334,8 +22374,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Keep Both';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'Keep $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Keep this device\'s version',
+      'otherDevice': 'Keep the other device\'s version',
+      'other': 'Keep $device',
+    });
+    return '$_temp0';
   }
 
   @override

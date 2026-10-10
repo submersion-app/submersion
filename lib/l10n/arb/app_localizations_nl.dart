@@ -20560,20 +20560,55 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Bewaart de versie van $kept. De waarden van $discarded voor $fields worden weggegooid.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'van dit apparaat',
+      'otherDevice': 'van het andere apparaat',
+      'other': 'van $kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'van dit apparaat',
+      'otherDevice': 'van het andere apparaat',
+      'other': 'van $discarded',
+    });
+    return 'Bewaart de versie $_temp0. De waarden $_temp1 voor $fields worden weggegooid.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Bewaart de versie van $local en voegt de versie van $remote toe als aparte kopie.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'van dit apparaat',
+      'otherDevice': 'van het andere apparaat',
+      'other': 'van $local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'van dit apparaat',
+      'otherDevice': 'van het andere apparaat',
+      'other': 'van $remote',
+    });
+    return 'Bewaart de versie $_temp0 en voegt de versie $_temp1 toe als aparte kopie.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Bewaart het record, met de waarden van $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'van dit apparaat',
+      'otherDevice': 'van het andere apparaat',
+      'other': 'van $device',
+    });
+    return 'Bewaart het record, met de waarden $_temp0.';
   }
 
   @override
@@ -20590,8 +20625,13 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'Het record zoals $device het heeft:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'dit apparaat',
+      'otherDevice': 'het andere apparaat',
+      'other': '$device',
+    });
+    return 'Het record zoals $_temp0 het heeft:';
   }
 
   @override
@@ -22575,8 +22615,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Beide bewaren';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return '$device bewaren';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Versie van dit apparaat bewaren',
+      'otherDevice': 'Versie van het andere apparaat bewaren',
+      'other': '$device bewaren',
+    });
+    return '$_temp0';
   }
 
   @override

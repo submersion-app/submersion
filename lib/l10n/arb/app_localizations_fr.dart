@@ -20757,20 +20757,55 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Conserve la version de $kept. Les valeurs de $discarded pour $fields sont abandonnées.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'de cet appareil',
+      'otherDevice': 'de l\'autre appareil',
+      'other': 'de $kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'de cet appareil',
+      'otherDevice': 'de l\'autre appareil',
+      'other': 'de $discarded',
+    });
+    return 'Conserve la version $_temp0. Les valeurs $_temp1 pour $fields sont abandonnées.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Conserve la version de $local et ajoute la version de $remote comme copie séparée.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'de cet appareil',
+      'otherDevice': 'de l\'autre appareil',
+      'other': 'de $local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'de cet appareil',
+      'otherDevice': 'de l\'autre appareil',
+      'other': 'de $remote',
+    });
+    return 'Conserve la version $_temp0 et ajoute la version $_temp1 comme copie séparée.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Conserve l\'enregistrement, avec les valeurs de $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'de cet appareil',
+      'otherDevice': 'de l\'autre appareil',
+      'other': 'de $device',
+    });
+    return 'Conserve l\'enregistrement, avec les valeurs $_temp0.';
   }
 
   @override
@@ -20787,8 +20822,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'L\'enregistrement tel que $device l\'a :';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'cet appareil',
+      'otherDevice': 'l\'autre appareil',
+      'other': '$device',
+    });
+    return 'L\'enregistrement tel que $_temp0 l\'a :';
   }
 
   @override
@@ -22797,8 +22837,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Conserver les deux';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'Conserver $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Conserver la version de cet appareil',
+      'otherDevice': 'Conserver la version de l\'autre appareil',
+      'other': 'Conserver $device',
+    });
+    return '$_temp0';
   }
 
   @override

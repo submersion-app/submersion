@@ -20633,20 +20633,55 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Megtartott verzió: $kept. Elvetett értékek ($discarded): $fields.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'ez az eszköz',
+      'otherDevice': 'a másik eszköz',
+      'other': '$kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'ez az eszköz',
+      'otherDevice': 'a másik eszköz',
+      'other': '$discarded',
+    });
+    return 'Megtartott verzió: $_temp0. Elvetett értékek ($_temp1): $fields.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Megtartott verzió: $local. A másik verzió ($remote) külön másolatként kerül mellé.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'ez az eszköz',
+      'otherDevice': 'a másik eszköz',
+      'other': '$local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'ez az eszköz',
+      'otherDevice': 'a másik eszköz',
+      'other': '$remote',
+    });
+    return 'Megtartott verzió: $_temp0. A másik verzió ($_temp1) külön másolatként kerül mellé.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Megtartja a rekordot ezekkel az értékekkel: $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Megtartja a rekordot ennek az eszköznek az értékeivel.',
+      'otherDevice': 'Megtartja a rekordot a másik eszköz értékeivel.',
+      'other': 'Megtartja a rekordot ezekkel az értékekkel: $device.',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -20663,8 +20698,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'A rekord így szerepel itt: $device';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'A rekord így szerepel ezen az eszközön:',
+      'otherDevice': 'A rekord így szerepel a másik eszközön:',
+      'other': 'A rekord így szerepel itt: $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -22628,8 +22668,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Mindkettő megtartása';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'Megtartás: $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Megtartás: ennek az eszköznek a verziója',
+      'otherDevice': 'Megtartás: a másik eszköz verziója',
+      'other': 'Megtartás: $device',
+    });
+    return '$_temp0';
   }
 
   @override

@@ -20699,20 +20699,55 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Mantém a versão de $kept. Os valores de $discarded para $fields são descartados.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'deste dispositivo',
+      'otherDevice': 'do outro dispositivo',
+      'other': 'de $kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'deste dispositivo',
+      'otherDevice': 'do outro dispositivo',
+      'other': 'de $discarded',
+    });
+    return 'Mantém a versão $_temp0. Os valores $_temp1 para $fields são descartados.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Mantém a versão de $local e adiciona a versão de $remote como uma cópia separada.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'deste dispositivo',
+      'otherDevice': 'do outro dispositivo',
+      'other': 'de $local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'deste dispositivo',
+      'otherDevice': 'do outro dispositivo',
+      'other': 'de $remote',
+    });
+    return 'Mantém a versão $_temp0 e adiciona a versão $_temp1 como uma cópia separada.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Mantém o registro, com os valores de $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'deste dispositivo',
+      'otherDevice': 'do outro dispositivo',
+      'other': 'de $device',
+    });
+    return 'Mantém o registro, com os valores $_temp0.';
   }
 
   @override
@@ -20729,8 +20764,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'O registro como $device o tem:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'este dispositivo',
+      'otherDevice': 'o outro dispositivo',
+      'other': '$device',
+    });
+    return 'O registro como $_temp0 o tem:';
   }
 
   @override
@@ -22729,8 +22769,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Manter Ambos';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'Manter $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Manter a versão deste dispositivo',
+      'otherDevice': 'Manter a versão do outro dispositivo',
+      'other': 'Manter $device',
+    });
+    return '$_temp0';
   }
 
   @override

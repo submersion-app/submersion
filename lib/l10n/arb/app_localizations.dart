@@ -33031,24 +33031,34 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_consequence_keep.
   ///
   /// In en, this message translates to:
-  /// **'Keeps {kept}\'s version. {discarded}\'s values for {fields} are discarded.'**
+  /// **'Keeps {keptKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{kept}\'s}} version. {discardedKind, select, thisDevice{This device\'s} otherDevice{The other device\'s} other{{discarded}\'s}} values for {fields} are discarded.'**
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   );
 
   /// No description provided for @settings_conflict_consequence_keepBoth.
   ///
   /// In en, this message translates to:
-  /// **'Keeps {local}\'s version and adds {remote}\'s version as a separate copy.'**
-  String settings_conflict_consequence_keepBoth(String local, String remote);
+  /// **'Keeps {localKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{local}\'s}} version and adds {remoteKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{remote}\'s}} version as a separate copy.'**
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  );
 
   /// No description provided for @settings_conflict_consequence_keepRecord.
   ///
   /// In en, this message translates to:
-  /// **'Keeps the record, with {device}\'s values.'**
-  String settings_conflict_consequence_keepRecord(String device);
+  /// **'Keeps the record, with {deviceKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{device}\'s}} values.'**
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  );
 
   /// No description provided for @settings_conflict_consequence_nothingLost.
   ///
@@ -33071,8 +33081,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_deletedValues.
   ///
   /// In en, this message translates to:
-  /// **'The record as {device} has it:'**
-  String settings_conflict_deletedValues(String device);
+  /// **'The record as {deviceKind, select, thisDevice{this device} otherDevice{the other device} other{{device}}} has it:'**
+  String settings_conflict_deletedValues(String device, String deviceKind);
 
   /// No description provided for @settings_conflict_errorLoading.
   ///
@@ -36605,8 +36615,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_keepDevice.
   ///
   /// In en, this message translates to:
-  /// **'Keep {device}'**
-  String settings_conflict_keepDevice(String device);
+  /// **'{deviceKind, select, thisDevice{Keep this device\'s version} otherDevice{Keep the other device\'s version} other{Keep {device}}}'**
+  String settings_conflict_keepDevice(String device, String deviceKind);
 
   /// No description provided for @settings_conflict_localDeleted.
   ///

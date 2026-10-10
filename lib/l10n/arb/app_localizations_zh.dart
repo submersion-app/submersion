@@ -19667,20 +19667,55 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return '保留 $kept 的版本。$discarded 中 $fields 的值将被舍弃。';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': ' $kept ',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': '$discarded ',
+    });
+    return '保留$_temp0的版本。$_temp1中 $fields 的值将被舍弃。';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return '保留 $local 的版本，并将 $remote 的版本添加为单独的副本。';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': ' $local ',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': ' $remote ',
+    });
+    return '保留$_temp0的版本，并将$_temp1的版本添加为单独的副本。';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return '保留该记录，使用 $device 的值。';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': ' $device ',
+    });
+    return '保留该记录，使用$_temp0的值。';
   }
 
   @override
@@ -19695,8 +19730,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return '$device 上的记录：';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': '$device ',
+    });
+    return '$_temp0上的记录：';
   }
 
   @override
@@ -21472,8 +21512,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_keepBoth => '保留两者';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return '保留 $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': '保留本设备的版本',
+      'otherDevice': '保留另一台设备的版本',
+      'other': '保留 $device',
+    });
+    return '$_temp0';
   }
 
   @override
