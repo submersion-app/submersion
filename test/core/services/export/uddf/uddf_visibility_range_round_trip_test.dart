@@ -6,10 +6,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:xml/xml.dart';
 
 /// A band-picked visibility range has no standard UDDF element, so both
-/// writers carry it in the private `<applicationdata><submersion>
-/// <visibilityranges>` block and the reader puts it back on the dive, while
-/// the standard `<visibility>` stays empty rather than holding an invented
-/// number (issue #3226).
+/// writers carry it in the private `visibilityranges` block inside
+/// Submersion's application data, and the reader puts it back on the dive,
+/// while the standard `<visibility>` stays empty rather than holding an
+/// invented number (issue #3226).
 void main() {
   Dive dive({double? min, double? max}) => Dive(
     id: 'dive-a',
