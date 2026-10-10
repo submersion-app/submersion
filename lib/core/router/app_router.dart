@@ -10,6 +10,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
+import 'package:submersion/features/gear_passports/presentation/pages/gear_passport_page.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -709,6 +711,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => PassportPage(
                       equipmentId: state.pathParameters['equipmentId']!,
                       scannedTag: scannedTagFrom(state.extra),
+                    ),
+                  ),
+                  // Any other gear's tag page (issue #2652).
+                  GoRoute(
+                    path: 'gear-passport',
+                    name: 'gearPassport',
+                    builder: (context, state) => GearPassportPage(
+                      equipmentId: state.pathParameters['equipmentId']!,
+                      scannedTag: scannedGearTagFrom(state.extra),
                     ),
                   ),
                 ],

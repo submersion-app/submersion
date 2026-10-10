@@ -60,6 +60,7 @@ import 'package:submersion/features/equipment/presentation/widgets/installed_in_
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
+import 'package:submersion/features/gear_passports/presentation/widgets/gear_passport_entry_card.dart';
 
 class EquipmentDetailPage extends ConsumerStatefulWidget {
   final String equipmentId;
@@ -224,6 +225,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
           if (equipment.type == EquipmentType.tank) ...[
             PassportEntryCard(equipment: equipment),
+            const SizedBox(height: 24),
+          ] else if (!equipment.isWanted) ...[
+            // Any other gear's tag (issue #2652).
+            GearPassportEntryCard(equipment: equipment),
             const SizedBox(height: 24),
           ],
           if (!equipment.isWanted) ...[
@@ -803,17 +808,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
     WidgetRef ref, {
     required String serviceKindId,
   }) {
-    showDialog(
-      context: context,
-      builder: (context) => ServiceRecordDialog(
-        equipmentId: equipmentId,
-        serviceKindId: serviceKindId,
-        onSave: (record) async {
-          await ref
-              .read(serviceRecordNotifierProvider(equipmentId).notifier)
-              .addRecord(record);
-        },
-      ),
+    showLogServiceDialog(
+      context,
+      ref,
+      equipmentId: equipmentId,
+      serviceKindId: serviceKindId,
     );
   }
 
