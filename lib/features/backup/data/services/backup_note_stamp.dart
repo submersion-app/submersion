@@ -98,7 +98,9 @@ Future<String?> readBackupNote(String path) async {
 /// `DatabaseService.backup` falls back to a raw byte copy exactly when the
 /// live file will not open, SQLite cannot open that copy either, and it may be
 /// the only copy of whatever survives. With a note the stamp is what the diver
-/// asked for, so a failure fails the backup.
+/// asked for, so a failure fails the backup, and the copy is deleted: the
+/// caller records nothing for a failed backup, so a file left behind would be
+/// an unexplained extra in the diver's export folder or the Backups folder.
 Future<void> exportAndStampBackup(
   String path, {
   required Future<void> Function(String path) export,
@@ -106,7 +108,17 @@ Future<void> exportAndStampBackup(
 }) async {
   await export(path);
   if (normalizeBackupNote(note) != null) {
-    stampBackupNote(path, note);
+    try {
+      stampBackupNote(path, note);
+    } catch (_) {
+      try {
+        final copy = File(path);
+        if (copy.existsSync()) copy.deleteSync();
+      } catch (_) {
+        // Best effort: the stamp failure below is what the caller reports.
+      }
+      rethrow;
+    }
     return;
   }
   try {

@@ -177,13 +177,20 @@ void main() {
       final raw = p.join(dir.path, 'unopenable.db');
       File(raw).writeAsBytesSync(List<int>.generate(8192, (i) => i % 251));
 
+      final dest = p.join(dir.path, 'noted.db');
+
       await expectLater(
         exportAndStampBackup(
-          p.join(dir.path, 'noted.db'),
+          dest,
           export: copyOf(raw),
           note: 'Typed by the diver',
         ),
         throwsA(anything),
+      );
+      expect(
+        File(dest).existsSync(),
+        isFalse,
+        reason: 'a failed backup leaves no unrecorded copy behind',
       );
     });
   });
