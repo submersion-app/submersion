@@ -27,6 +27,16 @@ const _diveSports = {Sport.diving};
 /// gas mixes, GPS, and dive-level summary fields. Returns null for non-dive
 /// activities and corrupt files. A dive with no depth samples still parses,
 /// with an empty profile.
+
+/// The manufacturer a FIT `file_id.manufacturer` code names, for the codes
+/// whose dive computers Submersion imports. Null for any other code, which
+/// leaves the computer's manufacturer blank as before (issue #3106).
+String? fitManufacturerName(int? id) => switch (id) {
+  1 => 'Garmin',
+  23 => 'Suunto',
+  _ => null,
+};
+
 class FitParserService {
   const FitParserService();
 
@@ -196,6 +206,7 @@ class FitParserService {
       decoModel: summary.decoModel,
       gfLow: summary.gfLow,
       gfHigh: summary.gfHigh,
+      computerManufacturer: fitManufacturerName(fileId?.manufacturer),
       computerModel: FitDeviceMapper.modelName(productCode),
       computerSerial: serial != 0 ? '$serial' : null,
       tanks: tanks,
