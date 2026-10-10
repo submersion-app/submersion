@@ -103,4 +103,12 @@ void main() {
       expect(fitted.typeCode, 'firstStage');
     });
   });
+
+  test('the documented NTAG213 example drops ls and mo (137 bytes)', () {
+    // Android reports 137 bytes of NDEF message for an NTAG213; the format
+    // doc's worked example is computed at that size.
+    final plan = planGearMessage(_full(), maxMessageBytes: 137)!;
+    expect(plan.droppedKeys, ['ls', 'mo']);
+    expect(plan.includesAndroidRecord, isFalse);
+  });
 }

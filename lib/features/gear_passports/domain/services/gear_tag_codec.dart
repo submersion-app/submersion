@@ -52,10 +52,6 @@ abstract final class GearTagCodec {
     'ls',
   ];
 
-  static final RegExp _uuid = RegExp(
-    r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-  );
-
   static const Set<String> _tagHosts = {'submersion.app', 'www.submersion.app'};
 
   static String? _cap(String? text, int max) => text == null || text.isEmpty
@@ -134,7 +130,7 @@ abstract final class GearTagCodec {
       return const GearTagRejected(GearTagRejectReason.missingId);
     }
     final id = rawId.toLowerCase();
-    if (!_uuid.hasMatch(id)) {
+    if (!PassportPayloadCodec.isPassportId(id)) {
       return const GearTagRejected(GearTagRejectReason.malformedId);
     }
     final typeCode = _cap(pairs['t'], GearTagPayload.maxTypeCodeLength);

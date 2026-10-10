@@ -9,6 +9,7 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -389,6 +390,31 @@ void main() {
       diverId: 'd1',
     );
     expect((await fills.getById('a'))!.equipmentId, isNull);
+  });
+
+  test('every stale holder an old import left gives the id up', () async {
+    for (final eq in ['old-1', 'old-2']) {
+      await seedEquipment(eq, type: 'regulator');
+      await (db.update(db.equipment)..where((t) => t.id.equals(eq))).write(
+        const EquipmentCompanion(status: Value('retired')),
+      );
+      // Written straight to the row, as an old import did, so both hold it.
+      await EquipmentRepository().saveAttributes(eq, [
+        EquipmentAttribute.curated(
+          equipmentId: eq,
+          key: EquipmentAttrKeys.passportId,
+          valueText: id,
+        ),
+      ]);
+    }
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    expect(await repo.getPassportId('eq-1'), id);
+    expect(await repo.getPassportId('old-1'), isNull);
+    expect(await repo.getPassportId('old-2'), isNull);
   });
 
   test('a retype undone keeps the tag', () async {

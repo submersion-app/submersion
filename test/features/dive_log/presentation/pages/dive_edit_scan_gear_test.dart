@@ -145,8 +145,9 @@ void main() {
     ) async {
       final l10n = await open(tester, width: 360, locale: locale);
       // Other parts of the editor already overflow at this width in German;
-      // this test is about the Equipment header only.
-      tester.takeException();
+      // this test is about the Equipment header only, which it measures
+      // below, so drain whatever the rest of the page reported.
+      while (tester.takeException() != null) {}
       for (final label in [
         l10n.diveLog_edit_useSet,
         l10n.diveLog_edit_add,

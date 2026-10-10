@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -20,6 +19,7 @@ import 'package:submersion/features/gear_passports/domain/services/gear_tag_rule
 import 'package:submersion/features/gear_passports/presentation/utils/gear_tag_write.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/tag_stale_banner.dart';
 
 /// QR of the current gear tag, print and link actions, NFC write, and the
 /// stale hint when a scanned tag no longer matches (gear tag spec 9).
@@ -40,9 +40,10 @@ class GearTagCard extends ConsumerWidget {
     final l10n = context.l10n;
     final units = UnitFormatter(ref.watch(settingsProvider));
     final passportId = ref.watch(passportIdProvider(equipment.id)).value;
-    final records =
-        ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
-        const <ServiceRecord>[];
+    final recordsState = ref.watch(
+      serviceRecordsForEquipmentProvider(equipment.id),
+    );
+    final records = recordsState.value ?? const <ServiceRecord>[];
     final last = lastServiceDate(records);
     // The NFC write starts from the full payload and lets the tag's capacity
     // decide; the QR and the printed label carry the label-bounded one.
@@ -55,12 +56,14 @@ class GearTagCard extends ConsumerWidget {
             lastService: last,
           );
     final nfc = ref.watch(nfcSupportProvider).value;
-    final canWriteNfc = payload != null && nfc == NfcSupport.enabled;
+    // A tag carries the last service date, so the write waits for the
+    // records; one that failed to load is written without it.
+    final canWriteNfc =
+        payload != null && nfc == NfcSupport.enabled && !recordsState.isLoading;
     final scanned = scannedTag;
     final stale =
         scanned != null &&
         gearTagIsStale(tag: scanned, item: equipment, lastService: last);
-    final warn = StatusColors.of(context).warn;
     void write() =>
         showTagWriteSheet(context, request: gearTagWriteRequest(payload!));
     return Card(
@@ -88,49 +91,13 @@ class GearTagCard extends ConsumerWidget {
             ],
             if (stale) ...[
               const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: warn.container,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.history, color: warn.onContainer),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            l10n.passport_tag_stale,
-                            style: TextStyle(color: warn.onContainer),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        TextButton(
-                          key: const Key('gearTag_rewrite'),
-                          onPressed: canWriteNfc ? write : null,
-                          child: Text(l10n.passport_nfc_rewrite),
-                        ),
-                        Builder(
-                          builder: (b) => TextButton(
-                            key: const Key('gearTag_reprint'),
-                            onPressed: payload == null || onPrintLabel == null
-                                ? null
-                                : () => onPrintLabel!(b),
-                            child: Text(l10n.passport_nfc_reprint),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              TagStaleBanner(
+                rewriteKey: const Key('gearTag_rewrite'),
+                reprintKey: const Key('gearTag_reprint'),
+                onRewrite: canWriteNfc ? write : null,
+                onReprint: payload == null || onPrintLabel == null
+                    ? null
+                    : onPrintLabel,
               ),
             ],
             const SizedBox(height: 12),

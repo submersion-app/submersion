@@ -63,6 +63,20 @@ class CylinderPassportRepository {
     String? diverId,
     EquipmentType? type,
   }) async {
+    final holders = await _holdersOf(passportId, diverId: diverId, type: type);
+    if (holders.isEmpty) return null;
+    final row = holders.first;
+    return (equipmentId: row.id, type: _typeOf(row.type));
+  }
+
+  /// Every item holding [passportId], in the order a lookup prefers them.
+  /// One id should have one holder, but an old import could have written
+  /// two. Resolve the same way every time: in service, oldest, then id.
+  Future<List<EquipmentData>> _holdersOf(
+    String passportId, {
+    String? diverId,
+    EquipmentType? type,
+  }) async {
     final attrs = _db.equipmentAttributes;
     final eq = _db.equipment;
     final query =
@@ -76,19 +90,12 @@ class CylinderPassportRepository {
     if (type != null) query.where(eq.type.equals(type.name));
     final visible = VisibilityFilter.equipmentVisibleTo(_db, eq, diverId);
     if (visible != null) query.where(visible);
-    final holders = [for (final r in await query.get()) r.readTable(eq)];
-    if (holders.isEmpty) return null;
-    // One id should have one holder, but an old import could have written
-    // two. Resolve the same way every time: in service, oldest, then id.
-    final sorted = [...holders]
-      ..sort((a, b) {
-        final byFitted = (_isFitted(a) ? 0 : 1) - (_isFitted(b) ? 0 : 1);
-        if (byFitted != 0) return byFitted;
-        final byAge = a.createdAt.compareTo(b.createdAt);
-        return byAge != 0 ? byAge : a.id.compareTo(b.id);
-      });
-    final row = sorted.first;
-    return (equipmentId: row.id, type: _typeOf(row.type));
+    return [for (final r in await query.get()) r.readTable(eq)]..sort((a, b) {
+      final byFitted = (_isFitted(a) ? 0 : 1) - (_isFitted(b) ? 0 : 1);
+      if (byFitted != 0) return byFitted;
+      final byAge = a.createdAt.compareTo(b.createdAt);
+      return byAge != 0 ? byAge : a.id.compareTo(b.id);
+    });
   }
 
   Future<String?> findEquipmentIdByPassportId(
@@ -141,26 +148,28 @@ class CylinderPassportRepository {
     // transactions one at a time, so two links of the same tag cannot both
     // pass the check, and a failure part-way rolls every step back.
     await _db.transaction(() async {
-      final holder = await findEquipmentIdByPassportId(
-        passportId,
-        diverId: diverId,
-      );
-      if (holder != null && holder != equipmentId) {
-        final row = await (_db.select(
-          _db.equipment,
-        )..where((t) => t.id.equals(holder))).getSingle();
-        // A cylinder still in service keeps its tag; a retired, sold or
-        // inactive one gives it up to the cylinder being linked.
-        if (_isFitted(row)) throw PassportIdInUse(holder);
-        await _releasePassportId(holder);
+      final holders = await _holdersOf(passportId, diverId: diverId);
+      final others = [
+        for (final row in holders)
+          if (row.id != equipmentId) row,
+      ];
+      // An item still in service keeps its tag; retired, sold or inactive
+      // ones give it up to the item being linked, every one of them, so the
+      // id never stays on two rows.
+      for (final row in others) {
+        if (_isFitted(row)) throw PassportIdInUse(row.id);
       }
+      for (final row in others) {
+        await _releasePassportId(row.id);
+      }
+      final alreadyHeld = holders.any((row) => row.id == equipmentId);
       final target = await (_db.select(
         _db.equipment,
       )..where((t) => t.id.equals(equipmentId))).getSingleOrNull();
       // Fills belong to cylinders; other gear never collects them.
       final holdsFills = target?.type == EquipmentType.tank.name;
       final previous = await getPassportId(equipmentId);
-      if (holder != equipmentId) {
+      if (!alreadyHeld) {
         final existing = await _equipment.getAttributesForEquipment(
           equipmentId,
         );

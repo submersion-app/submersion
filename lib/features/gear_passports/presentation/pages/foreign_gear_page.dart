@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payload.dart';
+import 'package:submersion/features/gear_passports/domain/services/gear_tag_codec.dart';
 import 'package:submersion/features/gear_passports/presentation/providers/gear_passport_providers.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -23,6 +24,18 @@ class ForeignGearPage extends ConsumerStatefulWidget {
     required this.tag,
     this.newerFormat = false,
   });
+
+  /// The page for a foreign gear route's query, decoding it once.
+  factory ForeignGearPage.fromQuery(String? t, {Key? key}) {
+    final decoded = t == null ? null : GearTagCodec.decode(t);
+    return decoded is GearTagDecoded
+        ? ForeignGearPage(
+            key: key,
+            tag: decoded.payload,
+            newerFormat: decoded.newerFormat,
+          )
+        : ForeignGearPage(key: key, tag: null);
+  }
 
   final GearTagPayload? tag;
   final bool newerFormat;

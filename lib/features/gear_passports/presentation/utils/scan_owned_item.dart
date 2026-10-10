@@ -37,18 +37,20 @@ Future<EquipmentItem?> scanOwnedItem(
     if (!context.mounted) return null;
     switch (resolution) {
       case OwnTaggedItem(:final equipmentId, :final type, :final link):
-        if (type == EquipmentType.tank && link is CylinderTagLink) {
-          await importTagFill(ref, tag: link.payload, equipmentId: equipmentId);
-        }
         final item = await ref
             .read(equipmentRepositoryProvider)
             .getEquipmentById(equipmentId);
         if (item == null || !context.mounted) return null;
+        // Refused before anything is written: a wanted item gains no fill.
         if (item.isWanted) {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.gearPassport_scan_wishlist(item.name))),
           );
           return null;
+        }
+        if (type == EquipmentType.tank && link is CylinderTagLink) {
+          await importTagFill(ref, tag: link.payload, equipmentId: equipmentId);
+          if (!context.mounted) return null;
         }
         return item;
       case ForeignCylinderTag(:final tag):

@@ -697,13 +697,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'gear-tag',
                 name: 'foreignGearTag',
-                builder: (context, state) {
-                  final t = state.uri.queryParameters['t'];
-                  return ForeignGearPage(
-                    tag: foreignGearTagFromQuery(t),
-                    newerFormat: foreignGearNewerFormat(t),
-                  );
-                },
+                builder: (context, state) =>
+                    ForeignGearPage.fromQuery(state.uri.queryParameters['t']),
               ),
               GoRoute(
                 path: ':equipmentId',

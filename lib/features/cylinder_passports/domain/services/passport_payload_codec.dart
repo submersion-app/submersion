@@ -67,6 +67,10 @@ abstract final class PassportPayloadCodec {
   static final RegExp _uuid = RegExp(
     r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
   );
+
+  /// Whether [id] is a passport id as tags spell it: a lower-case UUID of
+  /// any version. Shared by every tag kind (cylinder and gear).
+  static bool isPassportId(String id) => _uuid.hasMatch(id);
   static final RegExp _date = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
 
   /// [text] cut to at most [max] characters, counting whole code points so

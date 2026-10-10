@@ -19,6 +19,7 @@ const regId = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
 const wishId = '11111111-2222-4333-8444-555555555555';
 const tankId = '22222222-3333-4444-8555-666666666666';
 const otherId = '33333333-4444-4555-8666-777777777777';
+const wishTankId = '44444444-5555-4666-8777-888888888888';
 
 void main() {
   late AppDatabase db;
@@ -54,6 +55,7 @@ void main() {
     await seed('reg', 'Primary', 'regulator', regId);
     await seed('wish', 'Wish', 'regulator', wishId, status: 'wanted');
     await seed('tank', 'Faber 12', 'tank', tankId);
+    await seed('wishTank', 'Wish tank', 'tank', wishTankId, status: 'wanted');
   });
   tearDown(tearDownTestDatabase);
 
@@ -161,5 +163,25 @@ void main() {
     final (item, l10n) = await scan(tester, null);
     expect(item, isNull);
     expect(find.byType(SnackBar), findsNothing);
+  });
+
+  testWidgets('a wanted tank is refused before its tag fill is stored', (
+    tester,
+  ) async {
+    final (item, l10n) = await scan(
+      tester,
+      'https://submersion.app/c#f=1&p=$wishTankId'
+      '&fi=55555555-6666-4777-8888-999999999999'
+      '&ft=2026-10-01T09%3A30%3A00Z&fo=32',
+    );
+    expect(item, isNull);
+    expect(
+      find.text(l10n.gearPassport_scan_wishlist('Wish tank')),
+      findsOneWidget,
+    );
+    final fills = await tester.runAsync(
+      () => db.select(db.cylinderFills).get(),
+    );
+    expect(fills, isEmpty);
   });
 }
