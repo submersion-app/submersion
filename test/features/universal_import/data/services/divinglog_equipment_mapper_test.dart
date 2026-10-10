@@ -36,6 +36,57 @@ void main() {
       expect(item['type'], 'fins');
     });
 
+    group('DiveMate rows (#3110)', () {
+      test('a row with only Name imports, named from it', () {
+        final book = logbook({
+          1: const DivingLogRawEquipment(id: 1, name: 'Main regulator'),
+        });
+        final item = DivingLogEquipmentMapper.entities(book).values.single;
+        expect(item['name'], 'Main regulator');
+        expect(item.containsKey('model'), isFalse);
+      });
+
+      test('the category types an item its name does not', () {
+        final book = logbook({
+          1: const DivingLogRawEquipment(
+            id: 1,
+            name: 'Left',
+            object: 'Apeks MTX-R',
+            category: 'Regulator',
+          ),
+        });
+        final item = DivingLogEquipmentMapper.entities(book).values.single;
+        expect(item['name'], 'Left');
+        expect(item['model'], 'Apeks MTX-R');
+        expect(item['type'], 'regulator');
+      });
+
+      test('a set is not gear; a dive using it gets its members', () {
+        const dive = DivingLogRawDive(id: 1, equipmentIds: [10, 3]);
+        final book = logbook(
+          {
+            3: const DivingLogRawEquipment(id: 3, name: 'Fins'),
+            4: const DivingLogRawEquipment(id: 4, name: 'Mask'),
+            10: const DivingLogRawEquipment(
+              id: 10,
+              name: 'Basic set',
+              setMemberIds: [3, 4],
+            ),
+          },
+          dives: [dive],
+        );
+        final names = DivingLogEquipmentMapper.entities(
+          book,
+        ).values.map((e) => e['name']);
+        expect(names, unorderedEquals(['Fins', 'Mask']));
+        expect(DivingLogEquipmentMapper.refsFor(book, dive), [
+          'divinglog_gear_3',
+          'divinglog_gear_4',
+        ]);
+        expect(DivingLogEquipmentMapper.unresolvedCount(book, dive), 0);
+      });
+    });
+
     test('falls back to other when the name says nothing', () {
       final book = logbook({
         1: const DivingLogRawEquipment(id: 1, object: 'Teric'),

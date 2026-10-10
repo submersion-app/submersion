@@ -106,6 +106,59 @@ void main() {
       expect(samples.single.heartRate, 72);
     });
 
+    test('reads both transmitter pressures from Profile3 (#3110)', () {
+      // DiveMate: tank 1 at 199.5 bar, tank 2 at 200.0 bar, heart rate 72.
+      final samples = DivingLogProfileCodec.decode(
+        intervalSeconds: 20,
+        profile: '004500000000',
+        profile3: '19952000072000',
+        diveMateTransmitters: true,
+      );
+      final s = samples.single;
+      expect(s.tank1PressureBar, closeTo(199.5, 1e-9));
+      expect(s.tank2PressureBar, closeTo(200.0, 1e-9));
+      expect(s.heartRate, 72);
+    });
+
+    test('a non-DiveMate Profile3 yields no transmitter pressures', () {
+      // Diving Log's own layout for this span is unconfirmed, so it is not
+      // read as DiveMate's tank 1 and tank 2.
+      final samples = DivingLogProfileCodec.decode(
+        intervalSeconds: 20,
+        profile: '004500000000',
+        profile3: '19952000072000',
+      );
+      final s = samples.single;
+      expect(s.tank1PressureBar, isNull);
+      expect(s.tank2PressureBar, isNull);
+      expect(s.heartRate, 72);
+    });
+
+    test('a zero heart rate reads as not recorded', () {
+      final samples = DivingLogProfileCodec.decode(
+        intervalSeconds: 20,
+        profile: '004500000000',
+        profile3: '00000000000000',
+      );
+      expect(samples.single.heartRate, isNull);
+    });
+
+    test('a zero pressure reads as not recorded (#3110)', () {
+      // A 0000 field is the format's unset value, not an empty cylinder.
+      final samples = DivingLogProfileCodec.decode(
+        intervalSeconds: 20,
+        profile: '004500000000',
+        profile2: '20000001000',
+        profile3: '00000000072000',
+        diveMateTransmitters: true,
+      );
+      final s = samples.single;
+      expect(s.pressureBar, isNull);
+      expect(s.tank1PressureBar, isNull);
+      expect(s.tank2PressureBar, isNull);
+      expect(s.temperatureCelsius, closeTo(20.0, 1e-9));
+    });
+
     test('treats zero-padded Profile5 fields as absent', () {
       // The real export writes 0230000000000000000 on open-circuit dives:
       // one calculated ppO2 and the rest padding. Emitting those zeros as
