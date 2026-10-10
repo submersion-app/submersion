@@ -14662,20 +14662,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'Wijzigingen opslaan';
-
-  @override
-  String get equipment_edit_saveButton_new => 'Uitrusting toevoegen';
-
-  @override
-  String get equipment_edit_saveTooltip_edit =>
-      'Wijzigingen in uitrusting opslaan';
-
-  @override
-  String get equipment_edit_saveTooltip_new =>
-      'Nieuw uitrustingsonderdeel toevoegen';
-
-  @override
   String get equipment_edit_selectDate => 'Selecteer datum';
 
   @override
@@ -15620,12 +15606,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => 'Set niet gevonden';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => 'Wijzigingen opslaan';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'Set aanmaken';
 
   @override
   String get equipment_setEdit_saveTooltip_edit =>
@@ -27932,16 +27912,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_edit_appBar_edit => 'Reis bewerken';
 
   @override
-  String get trips_edit_button_add => 'Reis toevoegen';
-
-  @override
   String get trips_edit_button_cancel => 'Annuleren';
 
   @override
   String get trips_edit_button_save => 'Opslaan';
-
-  @override
-  String get trips_edit_button_update => 'Reis bijwerken';
 
   @override
   String get trips_edit_dialog_discard => 'Verwerpen';

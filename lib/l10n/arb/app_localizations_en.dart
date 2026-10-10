@@ -14545,18 +14545,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'Save Changes';
-
-  @override
-  String get equipment_edit_saveButton_new => 'Add Equipment';
-
-  @override
-  String get equipment_edit_saveTooltip_edit => 'Save equipment changes';
-
-  @override
-  String get equipment_edit_saveTooltip_new => 'Add new equipment item';
-
-  @override
   String get equipment_edit_selectDate => 'Select Date';
 
   @override
@@ -15486,12 +15474,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => 'Set Not Found';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => 'Save Changes';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'Create Set';
 
   @override
   String get equipment_setEdit_saveTooltip_edit => 'Save equipment set changes';
@@ -27644,16 +27626,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_appBar_edit => 'Edit Trip';
 
   @override
-  String get trips_edit_button_add => 'Add Trip';
-
-  @override
   String get trips_edit_button_cancel => 'Cancel';
 
   @override
   String get trips_edit_button_save => 'Save';
-
-  @override
-  String get trips_edit_button_update => 'Update Trip';
 
   @override
   String get trips_edit_dialog_discard => 'Discard';

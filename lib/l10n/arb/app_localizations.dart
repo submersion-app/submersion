@@ -23891,30 +23891,6 @@ abstract class AppLocalizations {
   /// **'{days} days'**
   String equipment_edit_reminderDays(Object days);
 
-  /// No description provided for @equipment_edit_saveButton_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get equipment_edit_saveButton_edit;
-
-  /// No description provided for @equipment_edit_saveButton_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Equipment'**
-  String get equipment_edit_saveButton_new;
-
-  /// No description provided for @equipment_edit_saveTooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save equipment changes'**
-  String get equipment_edit_saveTooltip_edit;
-
-  /// No description provided for @equipment_edit_saveTooltip_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Add new equipment item'**
-  String get equipment_edit_saveTooltip_new;
-
   /// No description provided for @equipment_edit_selectDate.
   ///
   /// In en, this message translates to:
@@ -25399,18 +25375,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set Not Found'**
   String get equipment_setEdit_notFoundTitle;
-
-  /// No description provided for @equipment_setEdit_saveButton_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get equipment_setEdit_saveButton_edit;
-
-  /// No description provided for @equipment_setEdit_saveButton_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Set'**
-  String get equipment_setEdit_saveButton_new;
 
   /// No description provided for @equipment_setEdit_saveTooltip_edit.
   ///
@@ -44849,12 +44813,6 @@ abstract class AppLocalizations {
   /// **'Edit Trip'**
   String get trips_edit_appBar_edit;
 
-  /// No description provided for @trips_edit_button_add.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Trip'**
-  String get trips_edit_button_add;
-
   /// No description provided for @trips_edit_button_cancel.
   ///
   /// In en, this message translates to:
@@ -44866,12 +44824,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get trips_edit_button_save;
-
-  /// No description provided for @trips_edit_button_update.
-  ///
-  /// In en, this message translates to:
-  /// **'Update Trip'**
-  String get trips_edit_button_update;
 
   /// No description provided for @trips_edit_dialog_discard.
   ///

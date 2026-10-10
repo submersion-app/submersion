@@ -14945,18 +14945,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'حفظ التغييرات';
-
-  @override
-  String get equipment_edit_saveButton_new => 'إضافة معدات';
-
-  @override
-  String get equipment_edit_saveTooltip_edit => 'حفظ تغييرات المعدات';
-
-  @override
-  String get equipment_edit_saveTooltip_new => 'إضافة عنصر معدات جديد';
-
-  @override
   String get equipment_edit_selectDate => 'اختر التاريخ';
 
   @override
@@ -15925,12 +15913,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => 'المجموعة غير موجودة';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => 'حفظ التغييرات';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'إنشاء مجموعة';
 
   @override
   String get equipment_setEdit_saveTooltip_edit => 'حفظ تغييرات مجموعة المعدات';
@@ -28447,16 +28429,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_appBar_edit => 'تعديل الرحلة';
 
   @override
-  String get trips_edit_button_add => 'إضافة رحلة';
-
-  @override
   String get trips_edit_button_cancel => 'إلغاء';
 
   @override
   String get trips_edit_button_save => 'حفظ';
-
-  @override
-  String get trips_edit_button_update => 'تحديث الرحلة';
 
   @override
   String get trips_edit_dialog_discard => 'تجاهل';

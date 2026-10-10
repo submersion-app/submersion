@@ -14090,18 +14090,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => '保存更改';
-
-  @override
-  String get equipment_edit_saveButton_new => '添加装备';
-
-  @override
-  String get equipment_edit_saveTooltip_edit => '保存装备更改';
-
-  @override
-  String get equipment_edit_saveTooltip_new => '添加新装备';
-
-  @override
   String get equipment_edit_selectDate => '选择日期';
 
   @override
@@ -14980,12 +14968,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => '未找到套装';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => '保存更改';
-
-  @override
-  String get equipment_setEdit_saveButton_new => '创建套装';
 
   @override
   String get equipment_setEdit_saveTooltip_edit => '保存装备套装更改';
@@ -26561,16 +26543,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_appBar_edit => '编辑旅行';
 
   @override
-  String get trips_edit_button_add => '添加旅行';
-
-  @override
   String get trips_edit_button_cancel => '取消';
 
   @override
   String get trips_edit_button_save => '保存';
-
-  @override
-  String get trips_edit_button_update => '更新旅行';
 
   @override
   String get trips_edit_dialog_discard => '丢弃';

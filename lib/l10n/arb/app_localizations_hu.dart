@@ -14715,19 +14715,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'Változások mentése';
-
-  @override
-  String get equipment_edit_saveButton_new => 'Felszerelés hozzáadása';
-
-  @override
-  String get equipment_edit_saveTooltip_edit =>
-      'Felszerelés változásainak mentése';
-
-  @override
-  String get equipment_edit_saveTooltip_new => 'Új felszerelés hozzáadása';
-
-  @override
   String get equipment_edit_selectDate => 'Dátum kiválasztása';
 
   @override
@@ -15672,12 +15659,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => 'Csoport nem található';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => 'Változások mentése';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'Csoport létrehozása';
 
   @override
   String get equipment_setEdit_saveTooltip_edit =>
@@ -27996,16 +27977,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_edit_appBar_edit => 'Út szerkesztése';
 
   @override
-  String get trips_edit_button_add => 'Út hozzáadása';
-
-  @override
   String get trips_edit_button_cancel => 'Mégse';
 
   @override
   String get trips_edit_button_save => 'Mentés';
-
-  @override
-  String get trips_edit_button_update => 'Út frissítése';
 
   @override
   String get trips_edit_dialog_discard => 'Elvetés';
