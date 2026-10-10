@@ -11279,7 +11279,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogContent(Object name) {
-    return 'This will permanently delete $name and all associated data including dive logs, dive computers, equipment, certifications, and sites.';
+    return '这将永久删除 $name 及所有相关数据，包括潜水日志、潜水电脑、装备、证书和潜水点。';
   }
 
   @override
@@ -11415,12 +11415,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
-    return 'Type \"Delete $name\" to confirm';
+    return '输入「删除 $name」以确认';
   }
 
   @override
   String divers_detail_deleteDialogConfirmText(String name) {
-    return 'Delete $name';
+    return '删除 $name';
   }
 
   @override
