@@ -171,4 +171,12 @@ void main() {
     await send(tag);
     expect(seen, isEmpty);
   });
+
+  test('a gear tag opens too (issue #2652)', () async {
+    const gearTag =
+        'https://submersion.app/g#f=1&p=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab&t=bcd';
+    dispatcher.setReady(true);
+    await send(gearTag);
+    expect(opened, [gearTag]);
+  });
 }

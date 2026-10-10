@@ -6,6 +6,7 @@ import 'package:ndef_record/ndef_record.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/ndef_fit.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
+import 'package:submersion/features/gear_passports/domain/services/tag_link_codec.dart';
 
 /// The package an Android Application Record names, so a tap opens
 /// Submersion rather than asking which app should (spec 6.4).
@@ -146,13 +147,13 @@ fitUriMessage<T>(
   }
 }
 
-/// The first passport tag URI in [message], in record order. The Android
+/// The first tag URI in [message], cylinder or gear, in record order. The Android
 /// record, a fill record and another app's data are skipped (spec 6.4:
 /// readers ignore records they do not know).
 String? firstPassportUri(NdefMessage message) {
   for (final record in message.records) {
     final uri = uriOf(record);
-    if (uri != null && PassportPayloadCodec.extractQuery(uri) != null) {
+    if (uri != null && TagLinkCodec.isTagLink(uri)) {
       return uri;
     }
   }

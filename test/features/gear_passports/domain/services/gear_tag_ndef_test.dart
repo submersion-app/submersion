@@ -85,5 +85,5 @@ void main() {
   test('firstPassportUri finds a gear link', () {
     final plan = planGearMessage(_full(), maxMessageBytes: 500)!;
     expect(firstPassportUri(plan.message), plan.url);
-  }, skip: 'Task 4');
+  });
 }
