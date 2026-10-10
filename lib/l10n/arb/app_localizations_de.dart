@@ -532,7 +532,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerMission_environment_openWater => 'Freiwasser';
 
   @override
-  String get plannerMission_environment_overhead => 'Overhead';
+  String get plannerMission_environment_overhead => 'Überkopfumgebung';
 
   @override
   String get plannerMission_factor_battery => 'Akkureserve';
@@ -10049,13 +10049,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_hint_tankName => 'Flaschenname eingeben';
 
   @override
-  String get divePlanner_label_airBreaks => 'Air breaks';
+  String get divePlanner_label_airBreaks => 'Luftpausen';
 
   @override
-  String get divePlanner_label_airBreaksBreak => 'Break (min)';
+  String get divePlanner_label_airBreaksBreak => 'Pause (Min.)';
 
   @override
-  String get divePlanner_label_airBreaksOnO2 => 'On O2 (min)';
+  String get divePlanner_label_airBreaksOnO2 => 'Auf O2 (Min.)';
 
   @override
   String get divePlanner_label_altitude => 'Höhe:';
@@ -10105,7 +10105,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_label_salinity => 'Salzgehalt';
 
   @override
-  String get divePlanner_gasOptions_title => 'Gas options';
+  String get divePlanner_gasOptions_title => 'Gas-Optionen';
 
   @override
   String get divePlanner_gasOptions_sacBottom => 'Grund-AMV';
@@ -10117,17 +10117,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_gasOptions_sacFactor => 'AMV-Faktor';
 
   @override
-  String get divePlanner_gasOptions_problemSolvingMinutes =>
-      'Problem solving time';
+  String get divePlanner_gasOptions_problemSolvingMinutes => 'Problemlösezeit';
 
   @override
-  String get divePlanner_gasOptions_ppO2Bottom => 'Bottom ppO₂';
+  String get divePlanner_gasOptions_ppO2Bottom => 'Grund-ppO₂';
 
   @override
-  String get divePlanner_gasOptions_ppO2Deco => 'Deco ppO₂';
+  String get divePlanner_gasOptions_ppO2Deco => 'Deko-ppO₂';
 
   @override
-  String get divePlanner_gasOptions_bestMixEnd => 'Best mix END';
+  String get divePlanner_gasOptions_bestMixEnd => 'Best-Mix END';
 
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
@@ -18768,7 +18767,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_planning => 'Planung';
 
   @override
-  String get nav_planningSubtitle => 'Tauchplaner, Rechner';
+  String get nav_planningSubtitle => 'Tauchplan, Rechner';
 
   @override
   String get nav_settings => 'Einstellungen';
@@ -19135,7 +19134,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Mehrstufige Tauchpläne erstellen';
 
   @override
-  String get planning_card_divePlanner_title => 'Tauchplaner';
+  String get planning_card_divePlanner_title => 'Tauchplan';
 
   @override
   String get planning_card_gasCalculators_subtitle =>
@@ -48300,26 +48299,26 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
-  String get plannerCanvas_sourceCompare_title => 'vs. original dive';
+  String get plannerCanvas_sourceCompare_title => 'vs. Originaltauchgang';
 
   @override
   String plannerCanvas_issue_repeated(String message, int count) {
-    return '$message ($count legs)';
+    return '$message ($count Abschnitte)';
   }
 
   @override
   String plannerCanvas_stopMinimum_dialogTitle(String depth) {
-    return 'Minimum stop time at $depth';
+    return 'Mindest-Stoppzeit bei $depth';
   }
 
   @override
-  String get plannerCanvas_stopMinimum_minutesLabel => 'Minutes';
+  String get plannerCanvas_stopMinimum_minutesLabel => 'Minuten';
 
   @override
-  String get plannerCanvas_stopMinimum_apply => 'Apply';
+  String get plannerCanvas_stopMinimum_apply => 'Anwenden';
 
   @override
-  String get plannerCanvas_stopMinimum_clear => 'Clear minimum';
+  String get plannerCanvas_stopMinimum_clear => 'Minimum löschen';
 
   @override
   String get diveLog_whatIf_title => 'Replan this dive';
@@ -48343,13 +48342,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_compare_runtime => 'Runtime';
+  String get plannerCanvas_compare_runtime => 'Laufzeit';
 
   @override
-  String get plannerCanvas_compare_maxDepth => 'Max depth';
+  String get plannerCanvas_compare_maxDepth => 'Max. Tiefe';
 
   @override
-  String get plannerCanvas_compare_deco => 'Deco time';
+  String get plannerCanvas_compare_deco => 'Dekozeit';
 
   @override
   String plannerCanvas_compare_gas(String tank) {
@@ -48363,10 +48362,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_compare_planned => 'Plan';
 
   @override
-  String get plannerCanvas_compare_actual => 'Actual';
+  String get plannerCanvas_compare_actual => 'Tatsächlich';
 
   @override
-  String get plannerCanvas_compare_showOnChart => 'Show on chart';
+  String get plannerCanvas_compare_showOnChart => 'Im Diagramm anzeigen';
 
   @override
   String numberInput_invalidNumber(String separator) {
