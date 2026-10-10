@@ -13273,6 +13273,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tagScan_title => 'סריקת תג';
 
   @override
+  String get tagScan_linkInvalid => 'זה לא תג של Submersion';
+
+  @override
   String get gearPassport_title => 'דרכון הציוד';
 
   @override
@@ -13307,6 +13310,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gearPassport_field_lastService => 'תאריך הטיפול האחרון';
+
+  @override
+  String get gearPassport_tag_linkInvalid => 'זה לא תג ציוד';
 
   @override
   String get gearPassport_scan_action => 'סריקה';

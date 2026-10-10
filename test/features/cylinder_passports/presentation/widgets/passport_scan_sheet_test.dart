@@ -178,7 +178,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('passportScan_nfc')));
     await tester.pumpAndSettle();
-    expect(find.text(l10n.passport_tag_linkInvalid), findsOneWidget);
+    expect(find.text(l10n.tagScan_linkInvalid), findsOneWidget);
     expect(results, isEmpty);
   });
 
@@ -249,7 +249,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('passportScan_nfc')));
     await tester.pumpAndSettle();
-    expect(nfc.lastIosEnd?.error, l10n.passport_tag_linkInvalid);
+    expect(nfc.lastIosEnd?.error, l10n.tagScan_linkInvalid);
   });
 
   testWidgets('a tag read here is remembered, so its re-dispatch is dropped', (
@@ -284,7 +284,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('passportScan_nfc')));
     await tester.pumpAndSettle();
-    expect(find.text(l10n.passport_tag_linkInvalid), findsOneWidget);
+    expect(find.text(l10n.tagScan_linkInvalid), findsOneWidget);
     expect(results, isEmpty);
   });
 

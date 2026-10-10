@@ -290,7 +290,7 @@ void main() {
 
   testWidgets('text that is not a tag says so and stays put', (tester) async {
     final l10n = await pump(tester, text: 'hello');
-    expect(find.text(l10n.passport_tag_linkInvalid), findsOneWidget);
+    expect(find.text(l10n.tagScan_linkInvalid), findsOneWidget);
     expect(find.text('go'), findsOneWidget);
   });
 

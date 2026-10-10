@@ -55,6 +55,7 @@ void main() {
     CylinderPassportRepository? repository,
     String equipmentId = 'eq-1',
     String? Function(String text) passportIdOf = cylinderPassportIdOf,
+    String Function(AppLocalizations l10n)? invalidText,
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -71,6 +72,7 @@ void main() {
               equipmentId: equipmentId,
               diverId: 'd1',
               passportIdOf: passportIdOf,
+              invalidText: invalidText,
             ),
             child: const Text('open'),
           ),
@@ -189,9 +191,10 @@ void main() {
         tester,
         equipmentId: 'reg-1',
         passportIdOf: gearPassportIdOf,
+        invalidText: (l10n) => l10n.gearPassport_tag_linkInvalid,
       );
       await submit(tester, l10n, 'https://submersion.app/c#f=1&p=$pid');
-      expect(find.text(l10n.passport_tag_linkInvalid), findsOneWidget);
+      expect(find.text(l10n.gearPassport_tag_linkInvalid), findsOneWidget);
     });
   });
 }

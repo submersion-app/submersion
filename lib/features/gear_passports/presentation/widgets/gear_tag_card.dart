@@ -158,6 +158,7 @@ class GearTagCard extends ConsumerWidget {
                       equipmentId: equipment.id,
                       diverId: diverId,
                       passportIdOf: gearPassportIdOf,
+                      invalidText: (l10n) => l10n.gearPassport_tag_linkInvalid,
                     );
                     if (linked != null && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(

@@ -13530,6 +13530,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tagScan_title => 'Címke beolvasása';
 
   @override
+  String get tagScan_linkInvalid => 'Ez nem Submersion-címke';
+
+  @override
   String get gearPassport_title => 'Felszerelés-útlevél';
 
   @override
@@ -13565,6 +13568,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gearPassport_field_lastService => 'Utolsó szerviz dátuma';
+
+  @override
+  String get gearPassport_tag_linkInvalid => 'Ez nem felszerelés-címke';
 
   @override
   String get gearPassport_scan_action => 'Beolvasás';

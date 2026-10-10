@@ -5,6 +5,7 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The passport id of a cylinder tag link, or null for anything else.
@@ -24,12 +25,14 @@ Future<String?> showLinkExistingTagDialog(
   required String equipmentId,
   String? diverId,
   String? Function(String text) passportIdOf = cylinderPassportIdOf,
+  String Function(AppLocalizations l10n)? invalidText,
 }) => showDialog<String>(
   context: context,
   builder: (context) => _LinkExistingTagDialog(
     equipmentId: equipmentId,
     diverId: diverId,
     passportIdOf: passportIdOf,
+    invalidText: invalidText,
   ),
 );
 
@@ -38,11 +41,16 @@ class _LinkExistingTagDialog extends ConsumerStatefulWidget {
     required this.equipmentId,
     this.diverId,
     required this.passportIdOf,
+    this.invalidText,
   });
 
   final String equipmentId;
   final String? diverId;
   final String? Function(String text) passportIdOf;
+
+  /// What a link [passportIdOf] refuses is called; the cylinder wording
+  /// when null.
+  final String Function(AppLocalizations l10n)? invalidText;
 
   @override
   ConsumerState<_LinkExistingTagDialog> createState() =>
@@ -65,7 +73,10 @@ class _LinkExistingTagDialogState
     final l10n = context.l10n;
     final passportId = widget.passportIdOf(_controller.text);
     if (passportId == null) {
-      setState(() => _error = l10n.passport_tag_linkInvalid);
+      setState(
+        () => _error =
+            widget.invalidText?.call(l10n) ?? l10n.passport_tag_linkInvalid,
+      );
       return;
     }
     setState(() => _busy = true);

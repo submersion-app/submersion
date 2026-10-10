@@ -13359,6 +13359,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tagScan_title => 'Scan a tag';
 
   @override
+  String get tagScan_linkInvalid => 'That is not a Submersion tag';
+
+  @override
   String get gearPassport_title => 'Gear passport';
 
   @override
@@ -13394,6 +13397,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gearPassport_field_lastService => 'Last service date';
+
+  @override
+  String get gearPassport_tag_linkInvalid => 'That is not a gear tag';
 
   @override
   String get gearPassport_scan_action => 'Scan';

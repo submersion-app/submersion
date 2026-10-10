@@ -88,7 +88,7 @@ class _ForeignGearPageState extends ConsumerState<ForeignGearPage> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.gearPassport_foreign_title)),
       body: tag == null
-          ? Center(child: Text(l10n.passport_tag_linkInvalid))
+          ? Center(child: Text(l10n.gearPassport_tag_linkInvalid))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(

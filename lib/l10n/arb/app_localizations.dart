@@ -22051,6 +22051,12 @@ abstract class AppLocalizations {
   /// **'Scan a tag'**
   String get tagScan_title;
 
+  /// No description provided for @tagScan_linkInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not a Submersion tag'**
+  String get tagScan_linkInvalid;
+
   /// No description provided for @gearPassport_title.
   ///
   /// In en, this message translates to:
@@ -22116,6 +22122,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last service date'**
   String get gearPassport_field_lastService;
+
+  /// No description provided for @gearPassport_tag_linkInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not a gear tag'**
+  String get gearPassport_tag_linkInvalid;
 
   /// No description provided for @gearPassport_scan_action.
   ///

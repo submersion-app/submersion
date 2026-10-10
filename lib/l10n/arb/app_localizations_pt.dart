@@ -13565,6 +13565,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tagScan_title => 'Ler etiqueta';
 
   @override
+  String get tagScan_linkInvalid => 'Não é uma etiqueta do Submersion';
+
+  @override
   String get gearPassport_title => 'Passaporte do equipamento';
 
   @override
@@ -13600,6 +13603,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gearPassport_field_lastService => 'Data da última manutenção';
+
+  @override
+  String get gearPassport_tag_linkInvalid =>
+      'Não é uma etiqueta de equipamento';
 
   @override
   String get gearPassport_scan_action => 'Ler';

@@ -975,5 +975,21 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets('a failed pack says so and never says added', (tester) async {
+      await seedTagged(tester);
+      final h = await _pumpTab(tester, gear: const [fins], scanned: regLink);
+      h.packs.failing = true;
+      final l10n = await scanFromChooser(tester);
+      expect(find.text(l10n.trips_gear_failed), findsOneWidget);
+      // Snack bars queue: let the failure go, then look for a second one.
+      await tester.pump(const Duration(seconds: 10));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
+      expect(
+        find.text(l10n.gearPassport_scan_added('Regulator')),
+        findsNothing,
+      );
+    });
   });
 }

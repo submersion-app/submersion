@@ -69,7 +69,7 @@ Future<EquipmentItem?> scanOwnedItem(
         );
       case UnreadableTag():
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.passport_tag_linkInvalid)),
+          SnackBar(content: Text(l10n.tagScan_linkInvalid)),
         );
     }
   } catch (e, stackTrace) {

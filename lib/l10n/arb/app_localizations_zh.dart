@@ -12936,6 +12936,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tagScan_title => '扫描标签';
 
   @override
+  String get tagScan_linkInvalid => '这不是 Submersion 标签';
+
+  @override
   String get gearPassport_title => '装备护照';
 
   @override
@@ -12969,6 +12972,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gearPassport_field_lastService => '上次保养日期';
+
+  @override
+  String get gearPassport_tag_linkInvalid => '这不是装备标签';
 
   @override
   String get gearPassport_scan_action => '扫描';

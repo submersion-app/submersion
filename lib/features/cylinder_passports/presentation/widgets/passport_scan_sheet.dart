@@ -104,9 +104,7 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
         },
         iosEnd: (result) => switch (result) {
           TagReadText() => const IosSheetEnd.success(),
-          TagHasNoPassport() => IosSheetEnd.failure(
-            l10n.passport_tag_linkInvalid,
-          ),
+          TagHasNoPassport() => IosSheetEnd.failure(l10n.tagScan_linkInvalid),
         },
         iosFailure: l10n.passport_nfc_readFailed,
       );
@@ -115,7 +113,7 @@ class _PassportScanSheetState extends ConsumerState<PassportScanSheet> {
         case TagReadText(:final text):
           _finish(text);
         case TagHasNoPassport():
-          setState(() => _nfcError = l10n.passport_tag_linkInvalid);
+          setState(() => _nfcError = l10n.tagScan_linkInvalid);
       }
     } on NfcSessionCancelled {
       // The diver closed the system sheet: nothing to report.

@@ -13608,6 +13608,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tagScan_title => 'Scanner une étiquette';
 
   @override
+  String get tagScan_linkInvalid => 'Ce n\'est pas une étiquette Submersion';
+
+  @override
   String get gearPassport_title => 'Passeport de l\'équipement';
 
   @override
@@ -13644,6 +13647,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gearPassport_field_lastService => 'Date du dernier entretien';
+
+  @override
+  String get gearPassport_tag_linkInvalid =>
+      'Ce n\'est pas une étiquette d\'équipement';
 
   @override
   String get gearPassport_scan_action => 'Scanner';

@@ -154,7 +154,7 @@ void main() {
   testWidgets('text that is no tag says so', (tester) async {
     final (item, l10n) = await scan(tester, 'hello');
     expect(item, isNull);
-    expect(find.text(l10n.passport_tag_linkInvalid), findsOneWidget);
+    expect(find.text(l10n.tagScan_linkInvalid), findsOneWidget);
   });
 
   testWidgets('a closed scan sheet returns nothing quietly', (tester) async {

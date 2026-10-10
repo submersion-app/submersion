@@ -96,8 +96,9 @@ Future<void> openScannedTag(
       case ForeignGearTag(:final tag):
         router.push(foreignGearLocation(tag));
       case UnreadableTag():
+        // Any tag kind is welcome here, so the message names none.
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.passport_tag_linkInvalid)),
+          SnackBar(content: Text(l10n.tagScan_linkInvalid)),
         );
     }
   } catch (e, stackTrace) {

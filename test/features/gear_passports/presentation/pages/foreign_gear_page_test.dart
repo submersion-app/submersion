@@ -204,7 +204,7 @@ void main() {
       location: '/equipment/gear-tag?t=nope',
       adoption: _FakeAdoption(),
     );
-    expect(find.text(l10n.passport_tag_linkInvalid), findsOneWidget);
+    expect(find.text(l10n.gearPassport_tag_linkInvalid), findsOneWidget);
     expect(find.text(l10n.passport_foreign_addToGear), findsNothing);
   });
 }

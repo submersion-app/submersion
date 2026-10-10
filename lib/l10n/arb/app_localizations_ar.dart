@@ -13715,6 +13715,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tagScan_title => 'مسح بطاقة';
 
   @override
+  String get tagScan_linkInvalid => 'هذه ليست بطاقة Submersion';
+
+  @override
   String get gearPassport_title => 'جواز المعدات';
 
   @override
@@ -13749,6 +13752,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gearPassport_field_lastService => 'تاريخ آخر صيانة';
+
+  @override
+  String get gearPassport_tag_linkInvalid => 'هذه ليست بطاقة معدات';
 
   @override
   String get gearPassport_scan_action => 'مسح';
