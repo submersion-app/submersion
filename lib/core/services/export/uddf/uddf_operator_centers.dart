@@ -18,8 +18,9 @@ class UddfOperatorCenters {
   ///
   /// Names match ignoring case and surrounding space. A name that matches a
   /// center the file declares links to that center instead of creating a
-  /// second one. A new center takes the country of the first site its
-  /// operator was used at, the only geography an operator comes with.
+  /// second one. A new center takes the country of the first of its
+  /// operator's dives whose site names one, the only geography an operator
+  /// comes with.
   static void harvest(
     List<Map<String, dynamic>> dives,
     List<Map<String, dynamic>> diveCenters,

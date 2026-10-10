@@ -18,7 +18,7 @@ String _uddf(
       <informationbeforedive>
         ${siteCountry != null ? '<link ref="site-1" />' : ''}
         ${centerLink != null ? '<link ref="$centerLink" />' : ''}
-        <datetime>2024-06-0${i + 1}T09:00:00</datetime>
+        <datetime>2024-06-${'${i + 1}'.padLeft(2, '0')}T09:00:00</datetime>
       </informationbeforedive>
       <informationafterdive>
         <greatestdepth>18</greatestdepth>
