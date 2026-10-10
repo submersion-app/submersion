@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -191,14 +192,12 @@ void main() {
       expect(sy.sublist(8), sy.sublist(0, 2));
     });
 
-    test('folds an obtuse corner instead of spiking: the flip is the '
-        'miter limit', () {
-      // East, then a 135 degree turn back up-left. A true miter here would
-      // reach 1 / cos(67.5) = 2.6 widths out of the corner. The folded
-      // corner stays within sqrt(2) of the width, keeps both legs at full
-      // width, and its edges stay on the same side of each leg as that
-      // leg's own edges, so nothing crosses or detaches.
-      const s = 7.0710678;
+    test('bevels a sharp corner: the miter is capped at sqrt(2) widths', () {
+      // East, then a 135 degree turn back up-left. A true miter would
+      // reach 1 / cos(67.5) = 2.6 widths out of the corner; the cap holds
+      // the corner edge at sqrt(2) along the outer bisector of the two
+      // normals (0, 1) and (-sqrt1_2, -sqrt1_2).
+      const s = 10 * math.sqrt1_2;
       final sx = Float32List.fromList([0, 0, 10, 10, 10 - s, 10 - s]);
       final sy = Float32List.fromList([0, 0, 0, 0, s, s]);
       Dive3dScenePainter.strokeScreenEdges(
@@ -208,24 +207,83 @@ void main() {
         pairCount: 3,
         halfWidthPx: 1,
       );
-      // Full width across the east leg: the corner edge ends exactly on
-      // that leg's two edge lines (y = -1 and y = 1).
-      expect(sy[2], closeTo(-1, 1e-5));
-      expect(sy[3], closeTo(1, 1e-5));
-      // Bounded corner: within sqrt(2) of the point.
-      final reach = (sx[2] - 10) * (sx[2] - 10) + sy[2] * sy[2];
-      expect(reach, lessThanOrEqualTo(2 + 1e-5));
-      // Full width across the second leg, and on consistent sides: the
-      // signed distance of each corner edge to that leg's centerline
-      // matches the far pair's edge on the same index.
-      const dx = -s / 10, dy = s / 10;
-      double side(double x, double y) => dx * (y - 0) - dy * (x - 10);
-      for (final v in [0, 1]) {
-        final atCorner = side(sx[2 + v], sy[2 + v]);
-        final atEnd = side(sx[4 + v], sy[4 + v]);
-        expect(atCorner, closeTo(atEnd, 1e-5), reason: 'edge $v');
-        expect(atCorner.abs(), closeTo(1, 1e-5), reason: 'edge $v');
+      const mx = -math.sqrt1_2, my = 1 - math.sqrt1_2;
+      final len = math.sqrt(mx * mx + my * my);
+      final ex = mx / len * math.sqrt2, ey = my / len * math.sqrt2;
+      expect(sx[2], closeTo(10 - ex, 1e-5));
+      expect(sy[2], closeTo(-ey, 1e-5));
+      expect(sx[3], closeTo(10 + ex, 1e-5));
+      expect(sy[3], closeTo(ey, 1e-5));
+    });
+
+    test('keeps every corner bounded, inside both legs and on consistent '
+        'sides, from just past a right angle to a near hairpin', () {
+      for (final deg in [91.0, 135.0, 170.0]) {
+        final rad = deg * math.pi / 180;
+        final dx = math.cos(rad), dy = math.sin(rad);
+        final sx = Float32List.fromList([
+          0,
+          0,
+          10,
+          10,
+          10 + 10 * dx,
+          10 + 10 * dx,
+        ]);
+        final sy = Float32List.fromList([0, 0, 0, 0, 10 * dy, 10 * dy]);
+        Dive3dScenePainter.strokeScreenEdges(
+          sx,
+          sy,
+          start: 0,
+          pairCount: 3,
+          halfWidthPx: 1,
+        );
+        // Signed distance to the second leg's centerline.
+        double side(double x, double y) => dx * y - dy * (x - 10);
+        for (final v in [2, 3]) {
+          final reach = (sx[v] - 10) * (sx[v] - 10) + sy[v] * sy[v];
+          expect(reach, lessThanOrEqualTo(2 + 1e-5), reason: '$deg: reach');
+          expect(sy[v].abs(), lessThanOrEqualTo(1 + 1e-5), reason: '$deg');
+          expect(
+            side(sx[v], sy[v]).abs(),
+            lessThanOrEqualTo(1 + 1e-5),
+            reason: '$deg',
+          );
+        }
+        for (final v in [0, 1]) {
+          final atCorner = side(sx[2 + v], sy[2 + v]);
+          final atEnd = side(sx[4 + v], sy[4 + v]);
+          expect(atEnd.abs(), closeTo(1, 1e-5), reason: '$deg: edge $v');
+          expect(atCorner.sign, atEnd.sign, reason: '$deg: edge $v');
+        }
       }
+    });
+
+    test('joins a sharp seam like an interior corner', () {
+      // A closed triangle: the seam at (0, 0) turns 112.5 degrees between
+      // the arriving run and the leaving east run, a capped miter like
+      // any interior corner, identical at both ends.
+      const s = 10 * math.sqrt1_2;
+      final sx = Float32List.fromList([0, 0, 10, 10, 10 - s, 10 - s, 0, 0]);
+      final sy = Float32List.fromList([0, 0, 0, 0, s, s, 0, 0]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 4,
+        halfWidthPx: 1,
+      );
+      const lx = -(10 - s), ly = -s;
+      final ll = math.sqrt(lx * lx + ly * ly);
+      final mx = -ly / ll, my = lx / ll + 1;
+      final len = math.sqrt(mx * mx + my * my);
+      final scale = math.min(len / my, math.sqrt2);
+      final ex = mx / len * scale, ey = my / len * scale;
+      expect(sx[0], closeTo(-ex, 1e-5));
+      expect(sy[0], closeTo(-ey, 1e-5));
+      expect(sx[1], closeTo(ex, 1e-5));
+      expect(sy[1], closeTo(ey, 1e-5));
+      expect(sx.sublist(6), sx.sublist(0, 2));
+      expect(sy.sublist(6), sy.sublist(0, 2));
     });
 
     test('a stroke that never moves still gets a width', () {

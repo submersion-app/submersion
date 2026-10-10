@@ -370,23 +370,51 @@ class Dive3dScenePainter extends CustomPainter {
     }
   }
 
+  /// Dot product of two run normals past which a turn counts as a
+  /// reversal: cos 150 degrees.
+  static const double _reversalDot = -0.866;
+
+  /// Longest corner edge, in half-widths: the miter of a right angle.
+  static const double _miterLimit = math.sqrt2;
+
+  /// The side vector of a corner between the arriving normal [inX]/[inY]
+  /// and the leaving normal [outX]/[outY]: the miter along their mean,
+  /// capped at [_miterLimit]. Across a closed line's seam the two were
+  /// never oriented against each other, so a hairpin seam folds the
+  /// leaving normal here the way the orientation pass does inside.
+  static (double, double) _joinSide(
+    double inX,
+    double inY,
+    double outX,
+    double outY,
+  ) {
+    if (inX * outX + inY * outY < _reversalDot) {
+      outX = -outX;
+      outY = -outY;
+    }
+    // Never shorter than 2 cos 75 degrees after the fold, so never zero.
+    final mx = inX + outX, my = inY + outY;
+    final len = math.sqrt(mx * mx + my * my);
+    final cosHalf = (mx * outX + my * outY) / len;
+    final scale = math.min(1 / cosHalf, _miterLimit);
+    return (mx / len * scale, my / len * scale);
+  }
+
   /// Widens a stroke mesh on the canvas: each vertex pair moves
   /// [halfWidthPx] to either side of its point, along the miter between
   /// the nearest real run arriving at it and the nearest real run leaving
   /// it, so the quads on both sides of a turn share that edge instead of
   /// leaving a notch, and the stroke keeps its width through the corner.
   /// Zero-length runs (a stationary stretch) have no direction and are
-  /// looked past, so a stop at a turn joins like the turn itself. Each
-  /// run's normal is flipped to agree with the one before, which keeps the
-  /// two edges on the same sides through a reversal (an out-and-back leg)
-  /// rather than crossing into a bow-tie. The flip fires for every turn
-  /// past a right angle, on purpose: it doubles as the miter limit. A true
-  /// miter grows as 1 / cos(turn / 2), so a 150 degree hairpin would spike
-  /// to almost four widths; folding the corner instead keeps every corner
-  /// edge within sqrt(2) of the width, and the strip stays continuous
-  /// because the folded edge lies within 45 degrees of both runs'
-  /// normals, never crossing either leg. A polyline whose last point lies
-  /// on its first (a closed isobath) joins across that seam too. [sx]/[sy]
+  /// looked past, so a stop at a turn joins like the turn itself. The
+  /// miter is capped at [_miterLimit] widths, so a sharp bend is beveled
+  /// rather than spiked (a true miter grows as 1 / cos(turn / 2)). A run
+  /// that turns back past a hairpin ([_reversalDot]: an out-and-back leg)
+  /// has its normal flipped to agree with the one before, which keeps the
+  /// two edges on their sides through the reversal rather than crossing
+  /// into a bow-tie; the mean of two near-opposite normals would also be
+  /// too short to give a direction. A polyline whose last point lies on
+  /// its first (a closed isobath) joins across that seam too. [sx]/[sy]
   /// are the projected canvas positions of every vertex in the soup;
   /// [start] is this mesh's first vertex. Both members of a pair sit on the
   /// same point (see [MeshData.strokeHalfWidthPx]), so the first member is
@@ -433,13 +461,16 @@ class Dive3dScenePainter extends CustomPainter {
       }
       return;
     }
+    // Orient the normals consistently along the line: a run that turns
+    // back past a hairpin has its normal flipped to agree with the one
+    // before it.
     for (
       var j = firstReal + 1, px = nx[firstReal], py = ny[firstReal];
       j < runs;
       j++
     ) {
       if (nx[j] == 0 && ny[j] == 0) continue;
-      if (nx[j] * px + ny[j] * py < 0) {
+      if (nx[j] * px + ny[j] * py < _reversalDot) {
         nx[j] = -nx[j];
         ny[j] = -ny[j];
       }
@@ -450,8 +481,7 @@ class Dive3dScenePainter extends CustomPainter {
     final closed =
         pairCount > 2 &&
         (sx[aN] - sx[a0]).abs() <= 1e-6 &&
-        (sy[aN] - sy[a0]).abs() <= 1e-6 &&
-        nx[lastReal] * nx[firstReal] + ny[lastReal] * ny[firstReal] >= 0;
+        (sy[aN] - sy[a0]).abs() <= 1e-6;
 
     int nextRealFrom(int j) {
       for (var i = j; i < runs; i++) {
@@ -474,14 +504,7 @@ class Dive3dScenePainter extends CustomPainter {
       final outY = next >= 0 ? ny[next] : ny[firstReal];
       double ex, ey;
       if (hasIn && hasOut) {
-        // The flip above keeps the angle between the two normals at or
-        // below a right angle, so their sum is never zero and the miter
-        // scale 1 / cos(half-angle) never exceeds sqrt(2).
-        final mx = inX + outX, my = inY + outY;
-        final len = math.sqrt(mx * mx + my * my);
-        final cosHalf = (mx * outX + my * outY) / len;
-        ex = mx / len / cosHalf;
-        ey = my / len / cosHalf;
+        (ex, ey) = _joinSide(inX, inY, outX, outY);
       } else if (hasOut) {
         ex = outX;
         ey = outY;
