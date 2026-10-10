@@ -126,15 +126,22 @@ class SliverStatSectionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final cardTheme = CardTheme.of(context);
     final shadowColor = cardTheme.shadowColor ?? theme.colorScheme.shadow;
+    final elevation = cardTheme.elevation ?? 1;
     return SliverPadding(
       padding: cardTheme.margin ?? const EdgeInsets.all(4),
       sliver: DecoratedSliver(
         decoration: ShapeDecoration(
-          color: cardTheme.color ?? theme.colorScheme.surfaceContainerLow,
+          // Card's Material tints its colour by elevation when the theme sets
+          // a surface tint (Card's own default is transparent, so no tint).
+          color: ElevationOverlay.applySurfaceTint(
+            cardTheme.color ?? theme.colorScheme.surfaceContainerLow,
+            cardTheme.surfaceTintColor,
+            elevation,
+          ),
           shape:
               cardTheme.shape ??
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          shadows: _cardShadows(cardTheme.elevation ?? 1, shadowColor),
+          shadows: _cardShadows(elevation, shadowColor),
         ),
         sliver: SliverPadding(
           padding: const EdgeInsets.all(16),

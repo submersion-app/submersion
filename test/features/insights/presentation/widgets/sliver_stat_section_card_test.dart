@@ -75,6 +75,41 @@ void main() {
     expect(decoration.shadows, hasLength(kElevationToShadow[1]!.length));
   });
 
+  testWidgets('tints its colour by elevation, as Card does', (tester) async {
+    final theme = ThemeData(
+      cardTheme: const CardThemeData(
+        color: Colors.white,
+        surfaceTintColor: Colors.blue,
+        elevation: 3,
+      ),
+    );
+    await pump(tester, theme);
+    final tinted = decorationOf(tester).color;
+    expect(tinted, isNot(Colors.white));
+    expect(
+      tinted,
+      ElevationOverlay.applySurfaceTint(Colors.white, Colors.blue, 3),
+    );
+    // A real Card under the same theme paints the same colour.
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: theme,
+        home: const Card(child: SizedBox(width: 10, height: 10)),
+      ),
+    );
+    final material = tester.widget<Material>(
+      find.descendant(of: find.byType(Card), matching: find.byType(Material)),
+    );
+    expect(
+      ElevationOverlay.applySurfaceTint(
+        material.color!,
+        material.surfaceTintColor,
+        material.elevation,
+      ),
+      tinted,
+    );
+  });
+
   testWidgets('a flat card theme draws no shadow', (tester) async {
     await pump(tester, ThemeData(cardTheme: const CardThemeData(elevation: 0)));
     expect(decorationOf(tester).shadows, isEmpty);
