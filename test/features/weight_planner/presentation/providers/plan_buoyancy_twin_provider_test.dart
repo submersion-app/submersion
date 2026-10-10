@@ -187,6 +187,71 @@ void main() {
     expect(outcome, isNotNull);
     expect(outcome!.result.input.leadKg, closeTo(6.0, 1e-9));
   });
+
+  test('a fresh-water plan feeds the twin a fresh-water predicted lead '
+      '(issue #3090)', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        allEquipmentProvider.overrideWith((ref) async => const []),
+        latestDiverWeightProvider.overrideWith((ref) async => null),
+        weightCalibrationProvider.overrideWith(
+          (ref) async => WeightPredictionEngine.fit(
+            observations: const [],
+            gearById: (_) => null,
+            bodyWeightKg: 75,
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(allEquipmentProvider.future);
+    await container.read(weightCalibrationProvider.future);
+    await container.read(latestDiverWeightProvider.future);
+
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addTank(
+      const DiveTank(
+        id: 't1',
+        volume: 11,
+        workingPressure: 207,
+        startPressure: 200,
+        material: TankMaterial.aluminum,
+        presetName: 'al80',
+        gasMix: GasMix(o2: 21),
+      ),
+    );
+    for (final s in plan) {
+      notifier.addSegment(s);
+    }
+
+    notifier.updateWaterType(WaterType.salt);
+    final saltLead = container
+        .read(planBuoyancyTwinProvider)!
+        .result
+        .input
+        .leadKg;
+
+    notifier.updateWaterType(WaterType.fresh);
+    final outcome = container.read(planBuoyancyTwinProvider)!;
+    final freshPrediction = container.read(planWeightPredictionProvider)!;
+    // With no planned weight copied, the twin's lead is the live prediction,
+    // and both now use the plan's fresh water.
+    expect(outcome.result.input.leadKg, closeTo(freshPrediction.totalKg, 1e-9));
+    expect(
+      outcome.result.input.environment.waterDensityKgM3,
+      DiveEnvironment.forConditions(
+        waterType: WaterType.fresh,
+      ).waterDensityKgM3,
+    );
+    expect(saltLead - outcome.result.input.leadKg, greaterThan(1.5));
+  });
 }
 
 // Minimal rig terms with no suit so the test does not depend on gear.
