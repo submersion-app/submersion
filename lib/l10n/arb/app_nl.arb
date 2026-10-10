@@ -1224,7 +1224,7 @@
   "checklists_template_descriptionLabel": "Beschrijving",
   "checklists_template_itemsHeader": "Items",
   "checklists_template_addItem": "Item toevoegen",
-  "preDive_templates_title": "Checklists voor de duik",
+  "preDive_templates_title": "Pre-dive checklists",
   "preDive_templates_empty": "Nog geen pre-dive checklists",
   "preDive_templates_builtInBadge": "Ingebouwd",
   "preDive_templates_clone": "Dupliceren",
@@ -1334,7 +1334,7 @@
     }
   },
   "preDive_runner_locked": "Deze checklist is vergrendeld",
-  "preDive_sessions_title": "Checklists voor de duik",
+  "preDive_sessions_title": "Pre-dive checklists",
   "preDive_sessions_empty": "Nog geen uitgevoerde checklists",
   "preDive_sessions_resume": "Hervatten",
   "preDive_sessions_start": "Checklist starten",
@@ -1405,7 +1405,7 @@
   "preDive_edit_titleView": "Pre-dive checklist bekijken",
   "preDive_edit_builtInNotice": "Ingebouwde checklist. Dupliceer deze voor een bewerkbare kopie.",
   "dashboard_checklists_title": "Checklists",
-  "dashboard_checklists_preDiveLabel": "Voor de duik",
+  "dashboard_checklists_preDiveLabel": "Pre-dive",
   "dashboard_checklists_tripLabel": "Reis: {name}",
   "@dashboard_checklists_tripLabel": {
     "placeholders": {
@@ -1438,8 +1438,8 @@
       }
     }
   },
-  "trips_detail_preDive_action": "Checklist voor de duik",
-  "settings_manage_preDiveChecklists": "Checklists voor de duik",
+  "trips_detail_preDive_action": "Pre-dive checklist",
+  "settings_manage_preDiveChecklists": "Pre-dive checklists",
   "settings_manage_preDiveChecklists_subtitle": "Buddychecks, CCR-opbouwlijsten, uitrusting inpakken",
   "common_action_back": "Terug",
   "common_action_cancel": "Annuleren",

@@ -4272,7 +4272,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get checklists_template_addItem => 'Item toevoegen';
 
   @override
-  String get preDive_templates_title => 'Checklists voor de duik';
+  String get preDive_templates_title => 'Pre-dive checklists';
 
   @override
   String get preDive_templates_empty => 'Nog geen pre-dive checklists';
@@ -4462,7 +4462,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get preDive_runner_locked => 'Deze checklist is vergrendeld';
 
   @override
-  String get preDive_sessions_title => 'Checklists voor de duik';
+  String get preDive_sessions_title => 'Pre-dive checklists';
 
   @override
   String get preDive_sessions_empty => 'Nog geen uitgevoerde checklists';
@@ -4641,7 +4641,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_checklists_title => 'Checklists';
 
   @override
-  String get dashboard_checklists_preDiveLabel => 'Voor de duik';
+  String get dashboard_checklists_preDiveLabel => 'Pre-dive';
 
   @override
   String dashboard_checklists_tripLabel(String name) {
@@ -4664,10 +4664,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get trips_detail_preDive_action => 'Checklist voor de duik';
+  String get trips_detail_preDive_action => 'Pre-dive checklist';
 
   @override
-  String get settings_manage_preDiveChecklists => 'Checklists voor de duik';
+  String get settings_manage_preDiveChecklists => 'Pre-dive checklists';
 
   @override
   String get settings_manage_preDiveChecklists_subtitle =>
