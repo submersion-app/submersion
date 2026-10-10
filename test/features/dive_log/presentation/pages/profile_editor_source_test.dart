@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,7 +55,26 @@ void main() {
     ).thenAnswer((_) async {});
   });
 
-  Future<void> pumpEditor(WidgetTester tester, {String? sourceId}) async {
+  const sourceProfiles = {
+    'src-a': SourceProfile(
+      sourceId: 'src-a',
+      computerId: 'dc-a',
+      isEdited: false,
+      points: primaryPoints,
+    ),
+    'src-b': SourceProfile(
+      sourceId: 'src-b',
+      computerId: 'dc-b',
+      isEdited: false,
+      points: secondPoints,
+    ),
+  };
+
+  Future<void> pumpEditor(
+    WidgetTester tester, {
+    String? sourceId,
+    Future<Map<String, SourceProfile>> Function()? loadProfiles,
+  }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
       ProviderScope(
@@ -62,20 +83,7 @@ void main() {
           diveRepositoryProvider.overrideWithValue(mockRepo),
           diveProvider(dive.id).overrideWith((ref) async => dive),
           sourceProfilesProvider(dive.id).overrideWith(
-            (ref) async => {
-              'src-a': const SourceProfile(
-                sourceId: 'src-a',
-                computerId: 'dc-a',
-                isEdited: false,
-                points: primaryPoints,
-              ),
-              'src-b': const SourceProfile(
-                sourceId: 'src-b',
-                computerId: 'dc-b',
-                isEdited: false,
-                points: secondPoints,
-              ),
-            },
+            (ref) => loadProfiles?.call() ?? Future.value(sourceProfiles),
           ),
           profileSeriesHistoryProvider(dive.id).overrideWith(
             (ref) async => [
@@ -189,5 +197,36 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.byIcon(Icons.history), findsNothing);
+  });
+
+  group('while the chosen source loads or is missing', () {
+    testWidgets('shows a spinner until the sources load', (tester) async {
+      final pending = Completer<Map<String, SourceProfile>>();
+      await pumpEditor(
+        tester,
+        sourceId: 'src-b',
+        loadProfiles: () => pending.future,
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(ProfileEditorChart), findsNothing);
+    });
+
+    testWidgets('reports a failure to load the sources', (tester) async {
+      await pumpEditor(
+        tester,
+        sourceId: 'src-b',
+        loadProfiles: () => Future.error(StateError('db closed')),
+      );
+      expect(find.textContaining('Error loading dive'), findsOneWidget);
+      expect(find.byType(ProfileEditorChart), findsNothing);
+    });
+
+    testWidgets('a source the dive does not have has no profile', (
+      tester,
+    ) async {
+      await pumpEditor(tester, sourceId: 'src-gone');
+      expect(find.text('No profile data available'), findsOneWidget);
+      expect(find.byType(ProfileEditorChart), findsNothing);
+    });
   });
 }
