@@ -30527,6 +30527,40 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'Wi-Fi';
 
   @override
+  String get diveComputer_connections_title => 'Connessioni';
+
+  @override
+  String get diveComputer_connections_empty =>
+      'Nessun download o importazione registrato';
+
+  @override
+  String diveComputer_connections_lastUsed(String when) {
+    return 'Ultimo utilizzo $when';
+  }
+
+  @override
+  String get diveComputer_connections_thisDevice => 'Questo dispositivo';
+
+  @override
+  String diveComputer_connections_downloadVia(String connection) {
+    return 'Scarica tramite $connection';
+  }
+
+  @override
+  String diveComputer_connections_fileFormat(String format) {
+    return 'File $format';
+  }
+
+  @override
+  String get diveComputer_connections_cloudGarmin => 'Garmin Connect';
+
+  @override
+  String get diveComputer_connections_cloudSuunto => 'App Suunto';
+
+  @override
+  String get diveComputer_connections_cloudOther => 'Importazione dal cloud';
+
+  @override
   String diveComputer_detail_deleteDialogContent(String name) {
     return 'Vuoi davvero rimuovere \"$name\"? Le immersioni importate da questo computer non verranno eliminate.';
   }
@@ -30548,9 +30582,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_detail_editNotesHint => 'Note facoltative';
-
-  @override
-  String get diveComputer_detail_labelConnection => 'Connessione';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'Produttore';

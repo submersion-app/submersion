@@ -18518,6 +18518,36 @@
   "diveComputer_connectionType_unknown": "Unknown",
   "diveComputer_connectionType_usb": "USB",
   "diveComputer_connectionType_wifi": "Wi-Fi",
+  "diveComputer_connections_title": "Connections",
+  "diveComputer_connections_empty": "No downloads or imports recorded yet",
+  "diveComputer_connections_lastUsed": "Last used {when}",
+  "@diveComputer_connections_lastUsed": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "diveComputer_connections_thisDevice": "This device",
+  "diveComputer_connections_downloadVia": "Download via {connection}",
+  "@diveComputer_connections_downloadVia": {
+    "placeholders": {
+      "connection": {
+        "type": "String"
+      }
+    }
+  },
+  "diveComputer_connections_fileFormat": "{format} file",
+  "@diveComputer_connections_fileFormat": {
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "diveComputer_connections_cloudGarmin": "Garmin Connect",
+  "diveComputer_connections_cloudSuunto": "Suunto app",
+  "diveComputer_connections_cloudOther": "Cloud import",
   "diveComputer_detail_deleteDialogContent": "Are you sure you want to remove \"{name}\"? This will not delete any dives that were imported from this computer.",
   "@diveComputer_detail_deleteDialogContent": {
     "placeholders": {
@@ -18532,7 +18562,6 @@
   "diveComputer_detail_editDialogTitle": "Edit Computer",
   "diveComputer_detail_editNameHint": "e.g., My Perdix",
   "diveComputer_detail_editNotesHint": "Optional notes",
-  "diveComputer_detail_labelConnection": "Connection",
   "diveComputer_detail_labelManufacturer": "Manufacturer",
   "diveComputer_detail_labelModel": "Model",
   "diveComputer_detail_labelName": "Name",

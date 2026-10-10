@@ -28769,6 +28769,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'Wi-Fi';
 
   @override
+  String get diveComputer_connections_title => '连接';
+
+  @override
+  String get diveComputer_connections_empty => '尚未记录任何下载或导入';
+
+  @override
+  String diveComputer_connections_lastUsed(String when) {
+    return '最近使用 $when';
+  }
+
+  @override
+  String get diveComputer_connections_thisDevice => '此设备';
+
+  @override
+  String diveComputer_connections_downloadVia(String connection) {
+    return '通过 $connection 下载';
+  }
+
+  @override
+  String diveComputer_connections_fileFormat(String format) {
+    return '$format 文件';
+  }
+
+  @override
+  String get diveComputer_connections_cloudGarmin => 'Garmin Connect';
+
+  @override
+  String get diveComputer_connections_cloudSuunto => 'Suunto 应用';
+
+  @override
+  String get diveComputer_connections_cloudOther => '云端导入';
+
+  @override
   String diveComputer_detail_deleteDialogContent(String name) {
     return '确定要移除“$name”吗?这不会删除从此电脑导入的任何潜水记录。';
   }
@@ -28790,9 +28823,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_detail_editNotesHint => '可选备注';
-
-  @override
-  String get diveComputer_detail_labelConnection => '连接';
 
   @override
   String get diveComputer_detail_labelManufacturer => '制造商';

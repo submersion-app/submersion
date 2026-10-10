@@ -29761,6 +29761,40 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'Wi-Fi';
 
   @override
+  String get diveComputer_connections_title => 'חיבורים';
+
+  @override
+  String get diveComputer_connections_empty =>
+      'עדיין לא נרשמו הורדות או ייבואים';
+
+  @override
+  String diveComputer_connections_lastUsed(String when) {
+    return 'שימוש אחרון $when';
+  }
+
+  @override
+  String get diveComputer_connections_thisDevice => 'מכשיר זה';
+
+  @override
+  String diveComputer_connections_downloadVia(String connection) {
+    return 'הורדה דרך $connection';
+  }
+
+  @override
+  String diveComputer_connections_fileFormat(String format) {
+    return 'קובץ $format';
+  }
+
+  @override
+  String get diveComputer_connections_cloudGarmin => 'Garmin Connect';
+
+  @override
+  String get diveComputer_connections_cloudSuunto => 'אפליקציית Suunto';
+
+  @override
+  String get diveComputer_connections_cloudOther => 'ייבוא מהענן';
+
+  @override
   String diveComputer_detail_deleteDialogContent(String name) {
     return 'האם אתה בטוח שברצונך להסיר את \"$name\"? פעולה זו לא תמחק צלילות שיובאו ממחשב זה.';
   }
@@ -29782,9 +29816,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_detail_editNotesHint => 'הערות אופציונליות';
-
-  @override
-  String get diveComputer_detail_labelConnection => 'חיבור';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'יצרן';

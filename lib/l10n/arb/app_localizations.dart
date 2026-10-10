@@ -48206,6 +48206,60 @@ abstract class AppLocalizations {
   /// **'Wi-Fi'**
   String get diveComputer_connectionType_wifi;
 
+  /// No description provided for @diveComputer_connections_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get diveComputer_connections_title;
+
+  /// No description provided for @diveComputer_connections_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No downloads or imports recorded yet'**
+  String get diveComputer_connections_empty;
+
+  /// No description provided for @diveComputer_connections_lastUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used {when}'**
+  String diveComputer_connections_lastUsed(String when);
+
+  /// No description provided for @diveComputer_connections_thisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get diveComputer_connections_thisDevice;
+
+  /// No description provided for @diveComputer_connections_downloadVia.
+  ///
+  /// In en, this message translates to:
+  /// **'Download via {connection}'**
+  String diveComputer_connections_downloadVia(String connection);
+
+  /// No description provided for @diveComputer_connections_fileFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{format} file'**
+  String diveComputer_connections_fileFormat(String format);
+
+  /// No description provided for @diveComputer_connections_cloudGarmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin Connect'**
+  String get diveComputer_connections_cloudGarmin;
+
+  /// No description provided for @diveComputer_connections_cloudSuunto.
+  ///
+  /// In en, this message translates to:
+  /// **'Suunto app'**
+  String get diveComputer_connections_cloudSuunto;
+
+  /// No description provided for @diveComputer_connections_cloudOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud import'**
+  String get diveComputer_connections_cloudOther;
+
   /// No description provided for @diveComputer_detail_deleteDialogContent.
   ///
   /// In en, this message translates to:
@@ -48247,12 +48301,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional notes'**
   String get diveComputer_detail_editNotesHint;
-
-  /// No description provided for @diveComputer_detail_labelConnection.
-  ///
-  /// In en, this message translates to:
-  /// **'Connection'**
-  String get diveComputer_detail_labelConnection;
 
   /// No description provided for @diveComputer_detail_labelManufacturer.
   ///
