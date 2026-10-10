@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -9,10 +8,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
-import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -279,12 +278,7 @@ class _PlanTile extends ConsumerWidget {
                     shareAnchor: anchor,
                     build: () async {
                       final plan = await repository.getPlan(summary.id);
-                      if (plan == null) return null;
-                      return (
-                        bytes: utf8.encode(planToSubplanJson(plan)),
-                        fileName: subplanFileName(plan.name),
-                        mimeType: 'application/json',
-                      );
+                      return plan == null ? null : subplanExport(plan);
                     },
                   );
                 }

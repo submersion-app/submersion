@@ -253,7 +253,7 @@ Future<String?> saveBytesToFile(
     dialogTitle: dialogTitle,
     fileName: fileName,
     type: FileType.custom,
-    bytes: Uint8List.fromList(bytes),
+    bytes: bytes is Uint8List ? bytes : Uint8List.fromList(bytes),
     mimeType: mimeType,
   );
 
@@ -265,15 +265,10 @@ Future<String?> saveBytesToFile(
 ///
 /// Opens a file picker dialog allowing the user to choose where to save.
 /// Returns the saved file path, or null if the user cancelled.
-Future<String?> savePdfToFile(List<int> pdfBytes, String fileName) async {
-  final result = await FilePicker.saveFile(
-    dialogTitle: 'Save PDF',
-    fileName: fileName,
-    type: FileType.custom,
-    bytes: Uint8List.fromList(pdfBytes),
-    mimeType: 'application/pdf',
-  );
-
-  if (result == null) return null;
-  return savedFileLocation(result);
-}
+Future<String?> savePdfToFile(List<int> pdfBytes, String fileName) =>
+    saveBytesToFile(
+      pdfBytes,
+      fileName,
+      dialogTitle: 'Save PDF',
+      mimeType: 'application/pdf',
+    );

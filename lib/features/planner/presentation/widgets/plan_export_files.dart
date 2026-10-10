@@ -7,21 +7,23 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
 import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/data/services/plan_slate_pdf_service.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+/// [plan] as a `.subplan` file.
+PlanExportFile subplanExport(DivePlan plan) => (
+  bytes: utf8.encode(planToSubplanJson(plan)),
+  fileName: subplanFileName(plan.name),
+  mimeType: 'application/json',
+);
+
 /// The open plan as a `.subplan` file, read from the plan as it is now.
-PlanExportFile planFileExport(WidgetRef ref) {
-  final state = ref.read(divePlanNotifierProvider);
-  return (
-    bytes: utf8.encode(planToSubplanJson(divePlanFromState(state))),
-    fileName: subplanFileName(state.name),
-    mimeType: 'application/json',
-  );
-}
+PlanExportFile planFileExport(WidgetRef ref) =>
+    subplanExport(divePlanFromState(ref.read(divePlanNotifierProvider)));
 
 /// The slate's headings in the active locale. Read before the destination
 /// sheet opens, since the export builds after it closes and must not reach
