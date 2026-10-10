@@ -1,0 +1,470 @@
+import 'package:collection/collection.dart';
+import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
+
+import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/documents/data/repositories/document_row_mapper.dart';
+import 'package:submersion/features/documents/domain/document_ids.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/domain/entities/document_page.dart';
+
+/// A document as the global list shows it.
+class DocumentListEntry {
+  final Document document;
+
+  /// Name of the record the document is filed under; null when personal.
+  final String? ownerLabel;
+  final int pageCount;
+
+  const DocumentListEntry(this.document, this.ownerLabel, this.pageCount);
+}
+
+typedef CardImages = ({Uint8List? front, Uint8List? back});
+
+/// The documents store (issue #2613): documents, their pages, and the two
+/// read models other features build on (a diver's primary insurance and
+/// latest clearance, a certification's card images).
+class DocumentRepository {
+  AppDatabase get _db => DatabaseService.instance.database;
+  final SyncRepository _syncRepository = SyncRepository();
+  final _uuid = const Uuid();
+  final _log = LoggerService.forClass(DocumentRepository);
+
+  static const _docEntity = 'documents';
+  static const _pageEntity = 'documentPages';
+
+  Stream<void> watchChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.documents),
+      TableUpdateQuery.onTable(_db.documentPages),
+    ]),
+  );
+
+  Future<Document?> getById(String id) async {
+    final row = await (_db.select(
+      _db.documents,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    return row == null ? null : documentFromRow(row);
+  }
+
+  /// The documents [owner] holds, optionally only [diverId]'s.
+  Future<List<Document>> getForOwner(
+    DocumentOwner owner, {
+    String? diverId,
+  }) async {
+    if (!owner.isPersonal) {
+      // Drift has no dynamic column lookup on the typed table; use SQL.
+      final column = kDocumentOwnerColumns[owner.kind]!;
+      return _db
+          .customSelect(
+            'SELECT * FROM documents WHERE $column = ? '
+            '${diverId == null ? '' : 'AND diver_id = ? '}'
+            'ORDER BY type, title, created_at',
+            variables: [
+              Variable.withString(owner.id!),
+              if (diverId != null) Variable.withString(diverId),
+            ],
+            readsFrom: {_db.documents},
+          )
+          .map((r) => documentFromRow(_db.documents.map(r.data)))
+          .get();
+    }
+    final q = _db.select(_db.documents)
+      ..where(
+        (t) =>
+            t.diveId.isNull() &
+            t.siteId.isNull() &
+            t.tripId.isNull() &
+            t.equipmentId.isNull() &
+            t.courseId.isNull() &
+            t.certificationId.isNull() &
+            t.buddyId.isNull() &
+            t.diveCenterId.isNull(),
+      )
+      ..orderBy([
+        (t) => OrderingTerm(expression: t.type),
+        (t) => OrderingTerm(expression: t.title),
+        (t) => OrderingTerm(expression: t.createdAt),
+      ]);
+    if (diverId != null) q.where((t) => t.diverId.equals(diverId));
+    return (await q.get()).map(documentFromRow).toList();
+  }
+
+  /// Every document of [diverId], with a display label for its owner.
+  Future<List<DocumentListEntry>> getAllForDiver(String diverId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT d.*, '
+          '(SELECT COUNT(*) FROM document_pages p WHERE p.document_id = d.id) '
+          'AS page_count, '
+          'COALESCE(s.name, t.name, e.name, c.name, cert.name, b.name, '
+          "dc.name, dv.name, '#' || dv.dive_number) AS owner_label "
+          'FROM documents d '
+          'LEFT JOIN dive_sites s ON s.id = d.site_id '
+          'LEFT JOIN trips t ON t.id = d.trip_id '
+          'LEFT JOIN equipment e ON e.id = d.equipment_id '
+          'LEFT JOIN courses c ON c.id = d.course_id '
+          'LEFT JOIN certifications cert ON cert.id = d.certification_id '
+          'LEFT JOIN buddies b ON b.id = d.buddy_id '
+          'LEFT JOIN dive_centers dc ON dc.id = d.dive_center_id '
+          'LEFT JOIN dives dv ON dv.id = d.dive_id '
+          'WHERE d.diver_id = ? '
+          'ORDER BY d.type, d.title, d.created_at',
+          variables: [Variable.withString(diverId)],
+          readsFrom: {_db.documents, _db.documentPages},
+        )
+        .get();
+    return [
+      for (final r in rows)
+        DocumentListEntry(
+          documentFromRow(_db.documents.map(r.data)),
+          r.readNullable<String>('owner_label'),
+          r.read<int>('page_count'),
+        ),
+    ];
+  }
+
+  Future<List<DocumentPage>> getPages(
+    String documentId, {
+    bool withBytes = true,
+  }) async {
+    final rows =
+        await (_db.select(_db.documentPages)
+              ..where((t) => t.documentId.equals(documentId))
+              ..orderBy([(t) => OrderingTerm(expression: t.pageIndex)]))
+            .get();
+    return [
+      for (final r in rows)
+        withBytes ? pageFromRow(r) : pageFromRow(r).withoutBytes(),
+    ];
+  }
+
+  Future<DocumentPage?> getFirstPage(String documentId) async {
+    final row =
+        await (_db.select(_db.documentPages)
+              ..where((t) => t.documentId.equals(documentId))
+              ..orderBy([(t) => OrderingTerm(expression: t.pageIndex)])
+              ..limit(1))
+            .getSingleOrNull();
+    return row == null ? null : pageFromRow(row);
+  }
+
+  /// Saves [document] and makes [pages] its exact page list, in order: new
+  /// pages (empty id) are inserted, kept pages updated only when changed,
+  /// missing ones deleted and tombstoned. A page with no bytes keeps its
+  /// stored content. One transaction.
+  Future<Document> save(Document document, List<DocumentPage> pages) async {
+    final now = DateTime.now();
+    final nowMs = now.millisecondsSinceEpoch;
+    final isNew = document.id.isEmpty;
+    final id = isNew ? _uuid.v4() : document.id;
+    final doc = document.copyWith(
+      id: id,
+      createdAt: isNew ? now : document.createdAt,
+      updatedAt: now,
+      isPrimary: document.type == DocumentType.insurance && document.isPrimary,
+    );
+    try {
+      await _db.transaction(() async {
+        if (doc.isPrimary) {
+          await _clearOtherPrimaries(doc.diverId, id, nowMs);
+        }
+        await _db
+            .into(_db.documents)
+            .insertOnConflictUpdate(documentCompanion(doc, updatedAt: nowMs));
+        await _syncRepository.markRecordPending(
+          entityType: _docEntity,
+          recordId: id,
+          localUpdatedAt: nowMs,
+        );
+        await _replacePages(id, pages, nowMs);
+      });
+      SyncEventBus.notifyLocalChange();
+      return doc;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to save document $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> _clearOtherPrimaries(
+    String diverId,
+    String keepId,
+    int now,
+  ) async {
+    final others =
+        await (_db.select(_db.documents)..where(
+              (t) =>
+                  t.diverId.equals(diverId) &
+                  t.type.equals(DocumentType.insurance.storage) &
+                  t.isPrimary.equals(true) &
+                  t.id.equals(keepId).not(),
+            ))
+            .get();
+    for (final o in others) {
+      await (_db.update(_db.documents)..where((t) => t.id.equals(o.id))).write(
+        DocumentsCompanion(
+          isPrimary: const Value(false),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: _docEntity,
+        recordId: o.id,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
+  Future<void> _replacePages(
+    String documentId,
+    List<DocumentPage> pages,
+    int now,
+  ) async {
+    final existing = {for (final p in await getPages(documentId)) p.id: p};
+    final keptIds = <String>{};
+    for (final (index, page) in pages.indexed) {
+      final pageId = page.id.isEmpty ? _uuid.v4() : page.id;
+      keptIds.add(pageId);
+      final old = existing[pageId];
+      final bytes = page.bytes ?? old?.bytes;
+      if (bytes == null) {
+        throw ArgumentError('page $pageId has no content');
+      }
+      final unchanged =
+          old != null &&
+          old.pageIndex == index &&
+          old.side == page.side &&
+          const ListEquality<int>().equals(old.bytes, bytes);
+      if (unchanged) continue;
+      await _db
+          .into(_db.documentPages)
+          .insertOnConflictUpdate(
+            DocumentPagesCompanion(
+              id: Value(pageId),
+              documentId: Value(documentId),
+              pageIndex: Value(index),
+              side: Value(page.side?.name),
+              fileName: Value(page.fileName),
+              mimeType: Value(page.mimeType),
+              sizeBytes: Value(bytes.length),
+              bytes: Value(bytes),
+              createdAt: Value(old?.createdAt.millisecondsSinceEpoch ?? now),
+              updatedAt: Value(now),
+            ),
+          );
+      await _syncRepository.markRecordPending(
+        entityType: _pageEntity,
+        recordId: pageId,
+        localUpdatedAt: now,
+      );
+    }
+    final gone = [
+      for (final id in existing.keys)
+        if (!keptIds.contains(id)) id,
+    ];
+    if (gone.isEmpty) return;
+    await (_db.delete(_db.documentPages)..where((t) => t.id.isIn(gone))).go();
+    await _syncRepository.logDeletions(
+      entityType: _pageEntity,
+      recordIds: gone,
+    );
+  }
+
+  Future<void> delete(String id) async {
+    await _db.transaction(() => _deleteIds([id]));
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Deletes and tombstones every document an owner holds. Owner delete
+  /// paths call this inside their own transaction, before deleting the
+  /// owner: the schema's SET NULL would otherwise turn the documents into
+  /// personal ones, and no cascade writes a tombstone.
+  Future<void> deleteForOwner(DocumentOwnerKind kind, String ownerId) =>
+      deleteForOwners(kind, [ownerId]);
+
+  Future<void> deleteForOwners(
+    DocumentOwnerKind kind,
+    List<String> ownerIds,
+  ) async {
+    final column = kDocumentOwnerColumns[kind];
+    if (column == null) {
+      throw ArgumentError.value(kind, 'kind', 'needs an owner kind');
+    }
+    if (ownerIds.isEmpty) return;
+    final placeholders = List.filled(ownerIds.length, '?').join(', ');
+    final rows = await _db
+        .customSelect(
+          'SELECT id FROM documents WHERE $column IN ($placeholders)',
+          variables: [for (final o in ownerIds) Variable.withString(o)],
+        )
+        .get();
+    await _deleteIds([for (final r in rows) r.read<String>('id')]);
+  }
+
+  Future<void> _deleteIds(List<String> ids) async {
+    if (ids.isEmpty) return;
+    final pageIds =
+        await (_db.selectOnly(_db.documentPages)
+              ..addColumns([_db.documentPages.id])
+              ..where(_db.documentPages.documentId.isIn(ids)))
+            .map((r) => r.read(_db.documentPages.id)!)
+            .get();
+    await (_db.delete(
+      _db.documentPages,
+    )..where((t) => t.documentId.isIn(ids))).go();
+    await (_db.delete(_db.documents)..where((t) => t.id.isIn(ids))).go();
+    await _syncRepository.logDeletions(
+      entityType: _pageEntity,
+      recordIds: pageIds,
+    );
+    await _syncRepository.logDeletions(entityType: _docEntity, recordIds: ids);
+  }
+
+  /// Each diver's primary insurance. Two primaries (a sync merge of two
+  /// devices' edits) resolve to the most recently updated, then by id.
+  Future<Map<String, Document>> primaryInsuranceByDiver({
+    String? diverId,
+  }) async {
+    final q = _db.select(_db.documents)
+      ..where(
+        (t) =>
+            t.type.equals(DocumentType.insurance.storage) &
+            t.isPrimary.equals(true),
+      )
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.updatedAt),
+        (t) => OrderingTerm.desc(t.id),
+      ]);
+    if (diverId != null) q.where((t) => t.diverId.equals(diverId));
+    final out = <String, Document>{};
+    for (final row in await q.get()) {
+      out.putIfAbsent(row.diverId, () => documentFromRow(row));
+    }
+    return out;
+  }
+
+  /// The latest medical clearance expiry per diver.
+  Future<Map<String, DateTime>> latestClearanceExpiryByDiver({
+    String? diverId,
+  }) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT diver_id, MAX(expiry_date) AS e FROM documents '
+          "WHERE type = 'medicalClearance' AND expiry_date IS NOT NULL "
+          '${diverId == null ? '' : 'AND diver_id = ? '}'
+          'GROUP BY diver_id',
+          variables: [if (diverId != null) Variable.withString(diverId)],
+          readsFrom: {_db.documents},
+        )
+        .get();
+    return {
+      for (final r in rows)
+        r.read<String>('diver_id'): DateTime.fromMillisecondsSinceEpoch(
+          r.read<int>('e'),
+        ),
+    };
+  }
+
+  /// The front and back images of each certification's card document.
+  Future<Map<String, CardImages>> cardImagesFor(
+    List<String> certificationIds,
+  ) async {
+    if (certificationIds.isEmpty) return const {};
+    final docIds = {
+      for (final c in certificationIds) documentCertificationCardId(c): c,
+    };
+    final pages = await (_db.select(
+      _db.documentPages,
+    )..where((t) => t.documentId.isIn(docIds.keys))).get();
+    final out = <String, CardImages>{};
+    for (final p in pages) {
+      final certId = docIds[p.documentId]!;
+      final current = out[certId] ?? (front: null, back: null);
+      out[certId] = switch (DocumentPageSide.fromStorage(p.side)) {
+        DocumentPageSide.front => (front: p.bytes, back: current.back),
+        DocumentPageSide.back => (front: current.front, back: p.bytes),
+        null => current,
+      };
+    }
+    return out;
+  }
+
+  /// Writes a certification's card images. Null clears that side; both
+  /// null deletes the card document. Unchanged bytes write nothing, so a
+  /// rename of the certification does not re-stamp its pages.
+  Future<void> saveCardImages({
+    required String certificationId,
+    required String diverId,
+    required Uint8List? front,
+    required Uint8List? back,
+  }) async {
+    final docId = documentCertificationCardId(certificationId);
+    final existing = await getById(docId);
+    if (front == null && back == null) {
+      if (existing != null) {
+        await _db.transaction(() => _deleteIds([docId]));
+        SyncEventBus.notifyLocalChange();
+      }
+      return;
+    }
+    if (existing != null) {
+      final current = (await cardImagesFor([certificationId]))[certificationId];
+      const eq = ListEquality<int>();
+      if (eq.equals(current?.front, front) && eq.equals(current?.back, back)) {
+        return;
+      }
+    }
+    final now = DateTime.now();
+    final doc =
+        existing ??
+        Document(
+          id: docId,
+          diverId: diverId,
+          owner: DocumentOwner(
+            DocumentOwnerKind.certification,
+            certificationId,
+          ),
+          type: DocumentType.certificationCard,
+          createdAt: now,
+          updatedAt: now,
+        );
+    DocumentPage side(DocumentPageSide s, Uint8List bytes) => DocumentPage(
+      id: documentCardPageId(docId, s),
+      documentId: docId,
+      pageIndex: 0,
+      side: s,
+      fileName: '${s.name}.jpg',
+      mimeType: 'image/jpeg',
+      sizeBytes: bytes.length,
+      bytes: bytes,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await save(doc, [
+      if (front != null) side(DocumentPageSide.front, front),
+      if (back != null) side(DocumentPageSide.back, back),
+    ]);
+  }
+
+  /// [diverId]'s documents that can remind: an expiry date, not a card.
+  Future<List<Document>> getRemindingForDiver(String diverId) async {
+    final rows =
+        await (_db.select(_db.documents)..where(
+              (t) =>
+                  t.diverId.equals(diverId) &
+                  t.expiryDate.isNotNull() &
+                  t.type.equals(DocumentType.certificationCard.storage).not(),
+            ))
+            .get();
+    return rows.map(documentFromRow).toList();
+  }
+}
