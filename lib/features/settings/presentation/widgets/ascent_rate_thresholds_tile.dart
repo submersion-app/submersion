@@ -70,9 +70,17 @@ class AscentRateThresholdsTile extends ConsumerWidget {
           initialWarning: settings.ascentRateWarning,
           initialCritical: settings.ascentRateCritical,
           formatRate: (rate) => units.formatDepthRate(rate, decimals: 0),
-          onSave: (warning, critical) => ref
-              .read(settingsProvider.notifier)
-              .setAscentRateThresholds(warning: warning, critical: critical),
+          onSave: (warning, critical) {
+            // Saving what is already stored is not a change: writing it
+            // anyway would queue the synced settings row for nothing.
+            if (warning == settings.ascentRateWarning &&
+                critical == settings.ascentRateCritical) {
+              return;
+            }
+            ref
+                .read(settingsProvider.notifier)
+                .setAscentRateThresholds(warning: warning, critical: critical);
+          },
         ),
       ),
     );

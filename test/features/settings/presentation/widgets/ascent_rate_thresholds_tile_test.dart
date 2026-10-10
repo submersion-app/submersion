@@ -113,6 +113,19 @@ void main() {
     expect(settings.state.ascentRateCritical, 14);
   });
 
+  testWidgets('saving unchanged thresholds writes nothing', (tester) async {
+    final settings = await pump(tester);
+    var writes = 0;
+    settings.addListener((_) => writes++, fireImmediately: false);
+
+    await tester.tap(find.text('Ascent rate thresholds'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(writes, 0);
+  });
+
   testWidgets('cancel changes nothing', (tester) async {
     final settings = await pump(tester);
 
