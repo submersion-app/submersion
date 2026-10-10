@@ -685,69 +685,70 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
         height: 200,
         child: Stack(
           children: [
-            TrackpadZoomMap(
-              controller: _previewController,
-              child: FlutterMap(
-                mapController: _previewController,
-                key: ValueKey(
-                  '${site.location!.latitude}_${site.location!.longitude}',
+            FlutterMap(
+              mapController: _previewController,
+              key: ValueKey(
+                '${site.location!.latitude}_${site.location!.longitude}',
+              ),
+              options: MapOptions(
+                initialCenter: siteLocation,
+                initialZoom: 14.0,
+                minZoom: 2.0,
+                maxZoom: 18.0,
+                // Locked: the preview sits in the scrolling detail page, and
+                // a map that takes gestures there catches the wheel or drag
+                // as soon as it scrolls under the pointer (issue #3156). The
+                // fullscreen button opens the interactive map.
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
                 ),
-                options: MapOptions(
-                  initialCenter: siteLocation,
-                  initialZoom: 14.0,
-                  minZoom: 2.0,
-                  maxZoom: 18.0,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                  ),
-                ),
-                children: [
-                  TileLayer(
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: ref.watch(mapTileUrlProvider),
+                  userAgentPackageName: 'app.submersion',
+                  maxZoom: ref.watch(mapTileMaxZoomProvider),
+                  tileProvider: TileCacheService.instance.tileProviderFor(
                     urlTemplate: ref.watch(mapTileUrlProvider),
-                    userAgentPackageName: 'app.submersion',
-                    maxZoom: ref.watch(mapTileMaxZoomProvider),
-                    tileProvider: TileCacheService.instance.tileProviderFor(
-                      urlTemplate: ref.watch(mapTileUrlProvider),
-                    ),
                   ),
-                  BathymetryDepthOverlayLayer(location: site.location),
-                  SiteFeatureMarkerLayer(siteId: site.id),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: siteLocation,
-                        width: 50,
-                        height: 50,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.onPrimary,
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                ),
+                BathymetryDepthOverlayLayer(location: site.location),
+                SiteFeatureMarkerLayer(siteId: site.id),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: siteLocation,
+                      width: 50,
+                      height: 50,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: colorScheme.onPrimary,
+                            width: 2,
                           ),
-                          child: Center(
-                            child: Icon(
-                              Icons.scuba_diving,
-                              size: 24,
-                              color: colorScheme.onPrimary,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.scuba_diving,
+                            size: 24,
+                            color: colorScheme.onPrimary,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                  const MapAttribution(),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+                const MapAttribution(),
+              ],
             ),
             Positioned(
               right: 8,

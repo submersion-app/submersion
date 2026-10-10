@@ -16,6 +16,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
@@ -1079,6 +1080,38 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       expect(find.byType(FlutterMap), findsWidgets);
     });
+
+    testWidgets(
+      'the inline preview is locked so the page scrolls over it (#3156)',
+      (tester) async {
+        _setMobileTestSurfaceSize(tester);
+        final overrides = await getBaseOverrides();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              siteProvider(
+                locatedSite.id,
+              ).overrideWith((_) async => locatedSite),
+              siteDiveCountProvider(
+                locatedSite.id,
+              ).overrideWith((_) async => 0),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: SiteDetailPage(siteId: locatedSite.id),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        final map = tester.widget<FlutterMap>(find.byType(FlutterMap).first);
+        expect(map.options.interactionOptions.flags, InteractiveFlag.none);
+        expect(find.byType(TrackpadZoomMap), findsNothing);
+      },
+    );
 
     testWidgets('opens fullscreen map when fullscreen button tapped', (
       tester,

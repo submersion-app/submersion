@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -84,6 +85,33 @@ void main() {
 
     final tileLayer = tester.widget<TileLayer>(find.byType(TileLayer));
     expect(tileLayer.tileDisplay, const TileDisplay.instantaneous());
+  });
+
+  testWidgets('a locked map takes no gestures, trackpad included (#3156)', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const DiveLocationsMap(entry: GeoPoint(12.34567, 98.76543)),
+    );
+
+    final map = tester.widget<FlutterMap>(find.byType(FlutterMap));
+    expect(map.options.interactionOptions.flags, InteractiveFlag.none);
+    // The trackpad recognizer wins the arena against an enclosing scrollable,
+    // so wrapping a locked map would still zoom it on a trackpad scroll.
+    expect(find.byType(TrackpadZoomMap), findsNothing);
+  });
+
+  testWidgets('an interactive map keeps trackpad zoom', (tester) async {
+    await _pump(
+      tester,
+      const DiveLocationsMap(
+        entry: GeoPoint(12.34567, 98.76543),
+        interactive: true,
+      ),
+    );
+
+    expect(find.byType(TrackpadZoomMap), findsOneWidget);
   });
 
   testWidgets('an interactive map keeps the default tile fade', (tester) async {

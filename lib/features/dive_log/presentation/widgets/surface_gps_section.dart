@@ -25,8 +25,13 @@ import 'package:submersion/l10n/l10n_extension.dart';
 const double _kFocusZoom = 16.0;
 const double _kMapHeight = 180.0;
 
-/// The dive detail location section: an interactive map of the entry/exit
-/// GPS fixes and the associated dive site, plus copyable coordinate rows.
+/// The dive detail location section: a map of the entry/exit GPS fixes and
+/// the associated dive site, plus copyable coordinate rows.
+///
+/// The inline map is locked: it sits in the scrolling detail pane, and a map
+/// that takes gestures there catches the mouse wheel, trackpad or drag the
+/// moment it scrolls under the pointer (issue #3156). Tapping a coordinate row
+/// still recenters it, and the fullscreen button opens an interactive copy.
 ///
 /// Titled "Surface GPS" when the dive has a GPS fix. A dive with no fix but a
 /// site with coordinates gets the same card titled "Location", mapping the
@@ -185,7 +190,6 @@ class _SurfaceGpsSectionState extends ConsumerState<SurfaceGpsSection> {
                       entry: entry,
                       exit: exit,
                       site: site,
-                      interactive: true,
                       controller: _controller,
                       trackRuns: runs,
                       fitToTrack: runs != null && runs.isNotEmpty,

@@ -625,65 +625,66 @@ class _MapSectionState extends ConsumerState<_MapSection> {
         height: 200,
         child: Stack(
           children: [
-            TrackpadZoomMap(
-              controller: _previewController,
-              child: FlutterMap(
-                mapController: _previewController,
-                key: ValueKey('${center.latitude}_${center.longitude}'),
-                options: MapOptions(
-                  initialCenter: centerLocation,
-                  initialZoom: 14.0,
-                  minZoom: 2.0,
-                  maxZoom: 18.0,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+            FlutterMap(
+              mapController: _previewController,
+              key: ValueKey('${center.latitude}_${center.longitude}'),
+              options: MapOptions(
+                initialCenter: centerLocation,
+                initialZoom: 14.0,
+                minZoom: 2.0,
+                maxZoom: 18.0,
+                // Locked: the preview sits in the scrolling detail page, and
+                // a map that takes gestures there catches the wheel or drag
+                // as soon as it scrolls under the pointer (issue #3156). The
+                // fullscreen button opens the interactive map.
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: ref.watch(mapTileUrlProvider),
+                  userAgentPackageName: 'app.submersion',
+                  maxZoom: ref.watch(mapTileMaxZoomProvider),
+                  tileProvider: TileCacheService.instance.tileProviderFor(
+                    urlTemplate: ref.watch(mapTileUrlProvider),
                   ),
                 ),
-                children: [
-                  TileLayer(
-                    urlTemplate: ref.watch(mapTileUrlProvider),
-                    userAgentPackageName: 'app.submersion',
-                    maxZoom: ref.watch(mapTileMaxZoomProvider),
-                    tileProvider: TileCacheService.instance.tileProviderFor(
-                      urlTemplate: ref.watch(mapTileUrlProvider),
-                    ),
-                  ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: centerLocation,
-                        width: 50,
-                        height: 50,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: colorScheme.onPrimary,
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: centerLocation,
+                      width: 50,
+                      height: 50,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: colorScheme.onPrimary,
+                            width: 2,
                           ),
-                          child: Center(
-                            child: Icon(
-                              Icons.store,
-                              size: 24,
-                              color: colorScheme.onPrimary,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.store,
+                            size: 24,
+                            color: colorScheme.onPrimary,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                  const MapAttribution(),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+                const MapAttribution(),
+              ],
             ),
             Positioned(
               right: 8,
