@@ -27037,14 +27037,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags_manage_title => 'Étiquettes';
 
   @override
-  String get tags_manage_importsSection => 'Imports';
-
-  @override
-  String get tags_manage_autoTagImports =>
+  String get settings_autoTagImports_title =>
       'Étiqueter automatiquement les imports';
 
   @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'Chaque nouvel import commence avec une étiquette indiquant la source et la date. Vous pouvez modifier cela pour un import donné dans ses options.';
 
   @override

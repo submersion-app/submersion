@@ -2343,7 +2343,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   /// Waits for [settingsLoaded] first: until the diver's row lands, [state]
   /// holds the defaults (or, after a diver switch, the previous diver's
-  /// settings), and a switch flipped on the tag management screen in that
+  /// settings), and a switch flipped in Settings > Data > Import in that
   /// window would be overwritten when the load replaces [state], silently
   /// undoing the diver's choice (issues #998, #2564). A failed load is
   /// already logged by the constructor and leaves the defaults in place,

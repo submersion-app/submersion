@@ -26472,13 +26472,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags_manage_title => 'Tags';
 
   @override
-  String get tags_manage_importsSection => 'Imports';
+  String get settings_autoTagImports_title => 'Tag imports automatically';
 
   @override
-  String get tags_manage_autoTagImports => 'Tag imports automatically';
-
-  @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'Every new import starts with a tag naming the source and date. You can change this for a single import in that import\'s options.';
 
   @override

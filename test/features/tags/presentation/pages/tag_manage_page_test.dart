@@ -156,7 +156,6 @@ TagStatistic _scopedStat(
 Widget _buildTestWidget({
   List<TagStatistic> stats = const [],
   _MockTagListNotifier? notifier,
-  MockSettingsNotifier? settingsNotifier,
   TagRepository? repository,
 }) {
   return ProviderScope(
@@ -168,9 +167,7 @@ Widget _buildTestWidget({
       tagRepositoryProvider.overrideWithValue(
         repository ?? _MockTagRepository(),
       ),
-      settingsProvider.overrideWith(
-        (ref) => settingsNotifier ?? MockSettingsNotifier(),
-      ),
+      settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     ],
     child: const MaterialApp(
       // flutter_test resolves against the HOST machine's locale list, so an
@@ -240,56 +237,16 @@ Widget _buildRoutedTestWidget({
 // ---------------------------------------------------------------------------
 
 void main() {
-  group('auto-tag imports switch', () {
-    testWidgets('reflects the on default from settings', (tester) async {
+  testWidgets(
+    'shows no auto-tag imports switch; it lives on Settings > Data (#3193)',
+    (tester) async {
       await tester.pumpWidget(_buildTestWidget(stats: _testStats));
-      await tester.pumpAndSettle();
-
-      final switchTile = tester.widget<SwitchListTile>(
-        find.byType(SwitchListTile),
-      );
-      expect(switchTile.value, isTrue);
-    });
-
-    testWidgets('reflects an off value from settings', (tester) async {
-      final settingsNotifier = MockSettingsNotifier(
-        const AppSettings(autoTagImports: false),
-      );
-      await tester.pumpWidget(
-        _buildTestWidget(stats: _testStats, settingsNotifier: settingsNotifier),
-      );
-      await tester.pumpAndSettle();
-
-      final switchTile = tester.widget<SwitchListTile>(
-        find.byType(SwitchListTile),
-      );
-      expect(switchTile.value, isFalse);
-    });
-
-    testWidgets('toggling it updates settings', (tester) async {
-      final settingsNotifier = MockSettingsNotifier();
-      await tester.pumpWidget(
-        _buildTestWidget(stats: _testStats, settingsNotifier: settingsNotifier),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(SwitchListTile));
-      await tester.pumpAndSettle();
-
-      expect(settingsNotifier.state.autoTagImports, isFalse);
-    });
-
-    testWidgets('is hidden while a bulk selection is active', (tester) async {
-      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
-      await tester.pumpAndSettle();
-      expect(find.byType(SwitchListTile), findsOneWidget);
-
-      await tester.tap(find.byKey(const ValueKey('enter_selection')));
       await tester.pumpAndSettle();
 
       expect(find.byType(SwitchListTile), findsNothing);
-    });
-  });
+      expect(find.text('Tag imports automatically'), findsNothing);
+    },
+  );
 
   group('selection contract', () {
     testWidgets('satisfies the shared selection contract', (tester) async {

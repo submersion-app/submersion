@@ -26254,13 +26254,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_title => 'תגיות';
 
   @override
-  String get tags_manage_importsSection => 'ייבוא';
+  String get settings_autoTagImports_title => 'תיוג אוטומטי של ייבואים';
 
   @override
-  String get tags_manage_autoTagImports => 'תיוג אוטומטי של ייבואים';
-
-  @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'כל ייבוא חדש מתחיל עם תגית הנושאת את שם המקור והתאריך. אפשר לשנות זאת לייבוא בודד באפשרויות אותו ייבוא.';
 
   @override

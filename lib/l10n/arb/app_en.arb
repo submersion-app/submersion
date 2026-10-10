@@ -15953,17 +15953,13 @@
   },
   "tags_hint_addTags": "Add tags...",
   "tags_manage_title": "Tags",
-  "tags_manage_importsSection": "Imports",
-  "@tags_manage_importsSection": {
-    "description": "Section header above the auto-tag-imports switch on the tag management screen"
+  "settings_autoTagImports_title": "Tag imports automatically",
+  "@settings_autoTagImports_title": {
+    "description": "Switch title, in the Import card on Settings > Data, for auto-tagging every new import session"
   },
-  "tags_manage_autoTagImports": "Tag imports automatically",
-  "@tags_manage_autoTagImports": {
-    "description": "Switch title for auto-tagging every new import session"
-  },
-  "tags_manage_autoTagImports_subtitle": "Every new import starts with a tag naming the source and date. You can change this for a single import in that import's options.",
-  "@tags_manage_autoTagImports_subtitle": {
-    "description": "Switch subtitle for auto-tagging every new import session"
+  "settings_autoTagImports_subtitle": "Every new import starts with a tag naming the source and date. You can change this for a single import in that import's options.",
+  "@settings_autoTagImports_subtitle": {
+    "description": "Switch subtitle, in the Import card on Settings > Data, for auto-tagging every new import session"
   },
   "tags_manage_searchHint": "Search tags...",
   "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",

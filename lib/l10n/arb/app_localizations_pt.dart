@@ -26945,13 +26945,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get tags_manage_title => 'Etiquetas';
 
   @override
-  String get tags_manage_importsSection => 'Importações';
+  String get settings_autoTagImports_title =>
+      'Marcar importações automaticamente';
 
   @override
-  String get tags_manage_autoTagImports => 'Marcar importações automaticamente';
-
-  @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'Cada nova importação começa com uma etiqueta que indica a origem e a data. Pode alterar isto para uma única importação nas opções dessa importação.';
 
   @override

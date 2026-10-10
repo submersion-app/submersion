@@ -8,7 +8,7 @@ import '../../../../helpers/test_database.dart';
 
 /// The auto-tag-imports opt-out (issue #998) must survive a real write and
 /// read through SQLite: a missing companion or row mapping would leave the
-/// tag management switch working only in memory, and the saved "off" would
+/// auto-tag imports switch working only in memory, and the saved "off" would
 /// silently revert to on at the next load.
 void main() {
   group('DiverSettingsRepository autoTagImports persistence', () {
