@@ -74,6 +74,11 @@ void main() {
       expect(metric.formatTideRate(0), '0.00m/hr');
     });
 
+    test('a rate that rounds to zero carries no sign', () {
+      expect(metric.formatTideRate(0.001), '0.00m/hr');
+      expect(metric.formatTideRate(-0.001), '0.00m/hr');
+    });
+
     test('converts to the diver depth unit', () {
       // 0.3048 m/hr is 1 ft/hr.
       expect(imperial.formatTideRate(0.3048), '+1.00ft/hr');
