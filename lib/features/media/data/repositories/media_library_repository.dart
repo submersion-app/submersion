@@ -312,8 +312,8 @@ class MediaLibraryRepository {
   }
 
   /// Gallery rows whose persisted orphan flag is set. Backs the badge on the
-  /// Media section's Library tab, so it counts only what the Missing filter
-  /// would show.
+  /// Media section's Library tab, so like the Missing filter it leaves
+  /// documents out.
   Future<int> countMissing() async {
     final m = _db.media;
     final count = countAll(filter: m.isOrphaned.equals(true) & _galleryRow);
