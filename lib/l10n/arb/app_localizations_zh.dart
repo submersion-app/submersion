@@ -18229,7 +18229,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_card_divePlanner_title => '潜水计划器';
 
   @override
-  String get planning_card_gasCalculators_subtitle => '最大作业深度、最佳混合气、耗气量、底限储备';
+  String get planning_card_gasCalculators_subtitle => '深度限制、混合气、耗气量与配气';
 
   @override
   String get planning_card_gasCalculators_title => '气体计算器';

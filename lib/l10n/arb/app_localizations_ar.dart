@@ -19389,7 +19389,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD، أفضل خليط، الاستهلاك، الاحتياطي الأدنى';
+      'حدود العمق، الخلائط، استهلاك الغاز والتعبئة';
 
   @override
   String get planning_card_gasCalculators_title => 'حاسبات الغاز';

@@ -5726,7 +5726,7 @@
   "planning_card_decoCalculator_title": "减压计算器",
   "planning_card_divePlanner_subtitle": "创建多层潜水计划",
   "planning_card_divePlanner_title": "潜水计划器",
-  "planning_card_gasCalculators_subtitle": "最大作业深度、最佳混合气、耗气量、底限储备",
+  "planning_card_gasCalculators_subtitle": "深度限制、混合气、耗气量与配气",
   "planning_card_gasCalculators_title": "气体计算器",
   "planning_card_surfaceInterval_subtitle": "规划重复潜水间隔",
   "planning_card_surfaceInterval_title": "水面间隔",

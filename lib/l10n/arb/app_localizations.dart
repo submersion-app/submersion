@@ -30664,7 +30664,7 @@ abstract class AppLocalizations {
   /// No description provided for @planning_card_gasCalculators_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'MOD, Best Mix, Consumption, Rock Bottom'**
+  /// **'Depth limits, mixes, gas use and blending'**
   String get planning_card_gasCalculators_subtitle;
 
   /// No description provided for @planning_card_gasCalculators_title.

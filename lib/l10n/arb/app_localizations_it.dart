@@ -19142,7 +19142,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Best Mix, Consumo, Rock Bottom';
+      'Limiti di profondità, miscele, consumo di gas e ricarica';
 
   @override
   String get planning_card_gasCalculators_title => 'Calcolatori gas';

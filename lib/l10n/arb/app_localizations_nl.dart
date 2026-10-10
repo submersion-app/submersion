@@ -19016,7 +19016,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Beste mix, Verbruik, Noodreserve';
+      'Dieptelimieten, mengsels, gasverbruik en vullen';
 
   @override
   String get planning_card_gasCalculators_title => 'Gascalculators';

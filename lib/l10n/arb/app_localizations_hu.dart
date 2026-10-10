@@ -19078,7 +19078,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get planning_card_gasCalculators_subtitle =>
-      'MOD, Legjobb keverék, Fogyasztás, Rock Bottom';
+      'Mélységhatárok, keverékek, gázfogyasztás és töltés';
 
   @override
   String get planning_card_gasCalculators_title => 'Gáz kalkulátorok';
