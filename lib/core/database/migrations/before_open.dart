@@ -729,6 +729,11 @@ extension BeforeOpenBackstops on AppDatabase {
     // the backfill above.
     await _backfillDiveComputerIds();
 
+    // Data self-heal (issue #3106): store downloaded Shearwater serials in
+    // the hex the computer shows, before the #1288 pass below matches file
+    // imports against them. Local-only, no HLC bump.
+    await _healShearwaterDownloadSerials();
+
     // Data self-heal (issue #1288): register the computers that
     // file-imported dives name, so they reach the filter at all. AFTER
     // the #1064 heal above, which resolves the same column from the
