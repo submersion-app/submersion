@@ -122,6 +122,16 @@ void main() {
       expect(trend.single.value, closeTo(1.0, 1e-9));
       expect(await queryLanguageSac('ccr'), closeTo(1.0, 1e-9));
     });
+
+    test('a first cylinder with no drop gives no SAC, as Dive.sac', () async {
+      await insertDive('nodrop');
+      await insertTank('nodrop', 0, 'sidemountLeft', end: 200);
+      await insertTank('nodrop', 1, 'sidemountRight');
+
+      expect(await repository.getSacPressurePerDive(), isEmpty);
+      expect((await repository.getSacPressureRecords()).best, isNull);
+      expect(await queryLanguageSac('nodrop'), isNull);
+    });
   });
 
   group('RMV borrows a sidemount partner volume', () {

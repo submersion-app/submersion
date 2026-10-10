@@ -21,12 +21,13 @@ String consumptionVolumeSql(String tank) {
 }
 
 /// SAC in bar per minute at the surface of the `dives` row aliased [dive]:
-/// the reference cylinder's drop (the first back gas with a drop, else the
-/// first cylinder with a drop when the dive has no back gas) plus every
-/// other breathed cylinder's drop converted to the reference by volume, or
-/// one to one between two unsized sidemount cylinders. A rebreather dive
-/// reads the reference alone. NULL with no reference drop; the caller
-/// guards the runtime and average depth. Mirrors `Dive.sac`.
+/// the reference cylinder's drop (the first back gas, else the first
+/// cylinder, as `Dive.sacReferenceTank` picks it) plus every other breathed
+/// cylinder's drop converted to the reference by volume, or one to one
+/// between two unsized sidemount cylinders. A rebreather dive reads the
+/// reference alone. NULL when the reference has no drop, since only
+/// breathed cylinders join; the caller guards the runtime and average
+/// depth. Mirrors `Dive.sac`.
 String diveSacPressureSql(String dive) {
   // Each breathed cylinder once, with its consumption volume computed once.
   final breathed =
@@ -46,7 +47,6 @@ String diveSacPressureSql(String dive) {
       'ON sac_r.id = ('
       'SELECT t2.id FROM dive_tanks t2 '
       'WHERE t2.dive_id = $dive.id '
-      'AND t2.start_pressure > t2.end_pressure '
       "AND (t2.tank_role = 'backGas' OR NOT EXISTS ("
       'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = $dive.id '
       "AND t3.tank_role = 'backGas')) "
