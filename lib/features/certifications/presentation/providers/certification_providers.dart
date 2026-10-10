@@ -87,9 +87,9 @@ List<Certification> applyCertificationSorting(
   final titles = sort.field == CertificationSortField.name
       ? {
           for (final c in certifications)
-            c.id: certificationTitle(c, catalog: cat).toLowerCase(),
+            c: certificationTitle(c, catalog: cat).toLowerCase(),
         }
-      : const <String, String>{};
+      : const <Certification, String>{};
 
   sorted.sort((a, b) {
     int comparison;
@@ -100,7 +100,7 @@ List<Certification> applyCertificationSorting(
 
     switch (sort.field) {
       case CertificationSortField.name:
-        comparison = titles[a.id]!.compareTo(titles[b.id]!);
+        comparison = titles[a]!.compareTo(titles[b]!);
       case CertificationSortField.dateIssued:
         comparison = (a.issueDate ?? DateTime(1900)).compareTo(
           b.issueDate ?? DateTime(1900),
