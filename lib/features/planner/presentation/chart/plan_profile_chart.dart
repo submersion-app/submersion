@@ -32,6 +32,11 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   final _focusNode = FocusNode();
   int? _dragVertex;
 
+  /// The segment under the drag, so a plan edited mid-drag (a segment
+  /// removed before it, or the plan replaced) never redirects the drag to
+  /// whichever waypoint now sits at the old index.
+  String? _dragSegmentId;
+
   /// Axis extents captured when a waypoint drag starts and held until it
   /// ends. Mapping the pointer through axes that rescale as the plan grows
   /// turned each small move into a large jump in dive time (issue #3113),
@@ -67,10 +72,18 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   void _clearScrub() => ref.read(scrubTimeProvider.notifier).state = null;
 
   void _applyDrag(PlanChartGeometry geometry, Offset local) {
-    final vertexIndex = _dragVertex;
-    if (vertexIndex == null) return;
+    final dragId = _dragSegmentId;
+    if (dragId == null) return;
     final ordered = _orderedSegments;
-    if (vertexIndex >= ordered.length) return;
+    final vertexIndex = ordered.indexWhere((s) => s.id == dragId);
+    if (vertexIndex < 0) {
+      // The dragged waypoint is gone: end the drag instead of editing
+      // another one.
+      _dragVertex = null;
+      _dragSegmentId = null;
+      return;
+    }
+    _dragVertex = vertexIndex;
     final result = dragVertex(
       ordered: ordered,
       vertexIndex: vertexIndex,
@@ -239,6 +252,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
       // The Listener goes with the chart, so a drag in progress never sees
       // its pointer-up; drop it rather than freeze the next plan's axes.
       _dragVertex = null;
+      _dragSegmentId = null;
       _hoverVertex = null;
       _frozenAxes = null;
       return _EmptyState(theme: theme);
@@ -340,7 +354,9 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
             geometry: geometry,
             position: event.localPosition,
           );
-          if (_dragVertex == null) {
+          final hit = _dragVertex;
+          _dragSegmentId = hit == null ? null : vertices[hit].segmentId;
+          if (hit == null) {
             _scrubTo(geometry, event.localPosition);
           } else {
             _frozenAxes = (time: maxTime, depth: maxDepth);
@@ -349,6 +365,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
 
         void endDrag() {
           _dragVertex = null;
+          _dragSegmentId = null;
           if (_frozenAxes != null) setState(() => _frozenAxes = null);
         }
 

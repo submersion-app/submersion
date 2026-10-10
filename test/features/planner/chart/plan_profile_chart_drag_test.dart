@@ -222,6 +222,50 @@ void main() {
     expect(s.container.read(divePlanNotifierProvider).segments.length, before);
   });
 
+  testWidgets('a segment removed mid-drag does not redirect the drag', (
+    tester,
+  ) async {
+    final s = await setUpPlan(tester);
+    final notifier = s.container.read(divePlanNotifierProvider.notifier);
+    // Give the dragged waypoint a successor to be redirected onto.
+    notifier.addSegment(
+      s.bottom.copyWith(id: 'after', targetDepth: 10, order: 99),
+    );
+    await tester.pumpAndSettle();
+    final ordered = List<PlanSegment>.from(
+      s.container.read(divePlanNotifierProvider).segments,
+    )..sort((a, b) => a.order.compareTo(b.order));
+    final first = ordered.first;
+    expect(first.id, isNot(s.bottom.id));
+    final vertex = planVertices(
+      ordered,
+    ).firstWhere((v) => v.segmentId == s.bottom.id);
+    final handle = paintedGeometry(
+      tester,
+    ).toPixel(vertex.timeSeconds, vertex.depth);
+
+    final gesture = await tester.startGesture(s.rect.topLeft + handle);
+    await gesture.moveBy(const Offset(10, 0));
+    await tester.pump();
+    notifier.removeSegment(first.id);
+    await tester.pump();
+    final after = s.container
+        .read(divePlanNotifierProvider)
+        .segments
+        .firstWhere((x) => x.id == 'after');
+    await gesture.moveBy(const Offset(60, 0));
+    await tester.pump();
+
+    final segments = s.container.read(divePlanNotifierProvider).segments;
+    expect(segments.firstWhere((x) => x.id == 'after'), after);
+    expect(
+      segments.firstWhere((x) => x.id == s.bottom.id).durationSeconds,
+      greaterThan(s.bottom.durationSeconds),
+    );
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('a cancelled drag releases the frozen axes', (tester) async {
     final s = await setUpPlan(tester);
     final gesture = await tester.startGesture(s.rect.topLeft + s.handle);
