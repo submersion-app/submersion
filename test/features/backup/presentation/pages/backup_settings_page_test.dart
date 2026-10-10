@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
@@ -524,6 +527,26 @@ void main() {
         expect(service.lastMode, RestoreMode.merge);
       },
     );
+
+    testWidgets('restore-from-file shows the note inside the picked file', (
+      tester,
+    ) async {
+      // Built synchronously: real file IO in a testWidgets body never
+      // completes (fake-async zone).
+      final noted = p.join(tempDir.path, 'noted.db');
+      final db = sqlite3.sqlite3.open(noted);
+      db.execute('CREATE TABLE dives (id TEXT)');
+      db.close();
+      stampBackupNote(noted, 'Before the Cozumel trip');
+      mockPicker.pickFilesResult = [FakePlatformFile(noted, name: 'noted.db')];
+
+      await tester.pumpWidget(buildApp());
+      await tester.pumpAndSettle();
+      await tapImportCard(tester);
+
+      expect(find.text('Restore Backup'), findsOneWidget);
+      expect(find.text('Before the Cozumel trip'), findsOneWidget);
+    });
 
     testWidgets('cancelling the file-restore dialog restores nothing', (
       tester,

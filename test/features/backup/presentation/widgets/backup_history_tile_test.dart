@@ -16,6 +16,7 @@ BackupRecord _manual({
   bool isAutomatic = false,
   int? diveCount = 5,
   int? siteCount = 3,
+  String? note,
 }) {
   return BackupRecord(
     id: 'm',
@@ -28,6 +29,7 @@ BackupRecord _manual({
     isAutomatic: isAutomatic,
     diveCount: diveCount,
     siteCount: siteCount,
+    note: note,
   );
 }
 
@@ -92,6 +94,48 @@ Widget _wrap(Widget child) {
 
 void main() {
   group('BackupHistoryTile rendering', () {
+    testWidgets('a noted backup shows its note above the counts', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(note: 'Before the Cozumel trip'),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onDelete: () {},
+          ),
+        ),
+      );
+      expect(find.text('Before the Cozumel trip'), findsOneWidget);
+      expect(find.textContaining('5 dives, 3 sites'), findsOneWidget);
+      final noteY = tester.getTopLeft(find.text('Before the Cozumel trip')).dy;
+      final countsY = tester.getTopLeft(find.textContaining('5 dives')).dy;
+      expect(noteY, lessThan(countsY));
+    });
+
+    testWidgets('a backup without a note shows only the counts', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: _manual(),
+            leadingIcon: Icons.phone_android,
+            onPinToggle: () {},
+            onRestore: () {},
+            onDelete: () {},
+          ),
+        ),
+      );
+      expect(
+        find.byWidgetPredicate((w) => w is Text && w.maxLines == 2),
+        findsNothing,
+        reason: 'only a note line is capped at two lines',
+      );
+    });
+
     testWidgets('manual record shows dive/site counts + optional (auto)', (
       tester,
     ) async {
