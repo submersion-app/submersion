@@ -568,6 +568,19 @@ void main() {
       expect(find.text('Change region'), findsOneWidget);
     });
 
+    testWidgets('says when the region is unknown', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pump(tester, countryCode: null);
+
+      expect(
+        find.text('Region unknown - using worldwide hotline'),
+        findsOneWidget,
+      );
+      expect(find.text('Change region'), findsOneWidget);
+    });
+
     testWidgets('says when the region was set by hand', (tester) async {
       await tester.binding.setSurfaceSize(const Size(500, 1800));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -636,6 +649,12 @@ void main() {
       await tester.enterText(find.byType(TextField), 'de');
       await tester.pumpAndSettle();
       expect(find.text('Germany (DE)'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField), 'zzz');
+      await tester.pumpAndSettle();
+      expect(find.text('No matching countries'), findsOneWidget);
+      // Automatic stays offered whatever the search.
+      expect(find.text('Automatic (most recent dive)'), findsOneWidget);
     });
   });
 }

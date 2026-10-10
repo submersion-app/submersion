@@ -178,6 +178,19 @@ void main() {
     expect(settings.state.defaultStartPressure, 200);
   });
 
+  testWidgets('cancel changes nothing', (tester) async {
+    final settings = await pump(tester);
+
+    await tester.tap(find.text('Default start pressure'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), '300');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(settings.state.defaultStartPressure, 200);
+  });
+
   testWidgets('refuses unreadable text', (tester) async {
     final settings = await pump(tester);
 
