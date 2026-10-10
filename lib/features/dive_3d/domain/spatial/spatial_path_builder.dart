@@ -30,8 +30,12 @@ class SpatialPathBuilder {
         colors: Float32List(0),
       );
     }
-    final positions = Float32List(n * 6);
-    final colors = Float32List(n * 6);
+    // Two pairs on every interior point, one per leg meeting there (see
+    // MeshData.strokeHalfWidthPx).
+    final pairCount = 2 * n - 2;
+    final positions = Float32List(pairCount * 6);
+    final colors = Float32List(pairCount * 6);
+    var pair = 0;
     for (var i = 0; i < n; i++) {
       final p = pts[i];
       final x = proj.xOf(p.east);
@@ -41,19 +45,22 @@ class SpatialPathBuilder {
           ? 0.0
           : (p.depth / proj.maxDepth).clamp(0.0, 1.0);
       final color = Color.lerp(_shallowPath, _deepPath, t)!;
-      for (var s = 0; s < 2; s++) {
-        final vi = i * 6 + s * 3;
-        positions[vi] = x;
-        positions[vi + 1] = y;
-        positions[vi + 2] = z;
-        colors[vi] = color.r;
-        colors[vi + 1] = color.g;
-        colors[vi + 2] = color.b;
+      final copies = i == 0 || i == n - 1 ? 1 : 2;
+      for (var c = 0; c < copies; c++, pair++) {
+        for (var s = 0; s < 2; s++) {
+          final vi = pair * 6 + s * 3;
+          positions[vi] = x;
+          positions[vi + 1] = y;
+          positions[vi + 2] = z;
+          colors[vi] = color.r;
+          colors[vi + 1] = color.g;
+          colors[vi + 2] = color.b;
+        }
       }
     }
     return MeshData(
       positions: positions,
-      indices: _stripIndices(n),
+      indices: _stripIndices(pairCount),
       colors: colors,
       strokeHalfWidthPx: strokeHalfWidthPx,
     );

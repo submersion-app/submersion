@@ -149,10 +149,11 @@ void main() {
       expect(sx.sublist(4), [11, 9]);
     });
 
-    test('a stop at a turn joins like the turn itself', () {
-      // Two copies of the corner point (a stationary sample at the turn):
-      // both look past the zero-length run to the north leg, so the quad
-      // before the stop and the quad after it meet at the same edge.
+    test('butts both legs at a doubled corner point: the bevel is the quad '
+        'between the two pairs', () {
+      // Two pairs on the corner, the way the builders emit them. The first
+      // ends the east leg at full width, the second starts the north leg
+      // at full width; the quad between them covers the outer corner.
       final sx = Float32List.fromList([0, 0, 10, 10, 10, 10, 10, 10]);
       final sy = Float32List.fromList([0, 0, 0, 0, 0, 0, 10, 10]);
       Dive3dScenePainter.strokeScreenEdges(
@@ -162,34 +163,30 @@ void main() {
         pairCount: 4,
         halfWidthPx: 1,
       );
-      for (final k in [1, 2]) {
-        expect(sx[k * 2], closeTo(11, 1e-5), reason: 'pair $k');
-        expect(sy[k * 2], closeTo(-1, 1e-5), reason: 'pair $k');
-        expect(sx[k * 2 + 1], closeTo(9, 1e-5), reason: 'pair $k');
-        expect(sy[k * 2 + 1], closeTo(1, 1e-5), reason: 'pair $k');
-      }
+      expect(sx.sublist(2, 4), [10, 10]);
+      expect(sy.sublist(2, 4), [-1, 1]);
+      expect(sx.sublist(4, 6), [11, 9]);
+      expect(sy.sublist(4, 6), [0, 0]);
       expect(sx.sublist(6), [11, 9]);
     });
 
-    test('joins a closed line across its seam', () {
-      // A square whose last point is its first: the seam pair is a corner
-      // like any other, offset along the miter of the last and first run,
-      // identically at both ends.
-      final sx = Float32List.fromList([0, 0, 10, 10, 10, 10, 0, 0, 0, 0]);
-      final sy = Float32List.fromList([0, 0, 0, 0, 10, 10, 10, 10, 0, 0]);
+    test('a doubled hairpin keeps each leg at full width with nothing '
+        'crossing', () {
+      // Out east and straight back, the corner point doubled: the first
+      // corner pair ends the outbound leg, the second starts the return
+      // leg on the flipped normal, so the return leg's quad keeps edge 0
+      // and edge 1 on their own sides and the filler between the two
+      // corner pairs has no area.
+      final sx = Float32List.fromList([0, 0, 10, 10, 10, 10, 0, 0]);
+      final sy = Float32List.fromList([5, 5, 5, 5, 5, 5, 5, 5]);
       Dive3dScenePainter.strokeScreenEdges(
         sx,
         sy,
         start: 0,
-        pairCount: 5,
+        pairCount: 4,
         halfWidthPx: 1,
       );
-      expect(sx[0], closeTo(-1, 1e-5));
-      expect(sy[0], closeTo(-1, 1e-5));
-      expect(sx[1], closeTo(1, 1e-5));
-      expect(sy[1], closeTo(1, 1e-5));
-      expect(sx.sublist(8), sx.sublist(0, 2));
-      expect(sy.sublist(8), sy.sublist(0, 2));
+      expect(sy, [4, 6, 4, 6, 4, 6, 4, 6]);
     });
 
     test('bevels a sharp corner: the miter is capped at sqrt(2) widths', () {
@@ -256,34 +253,6 @@ void main() {
           expect(atCorner.sign, atEnd.sign, reason: '$deg: edge $v');
         }
       }
-    });
-
-    test('joins a sharp seam like an interior corner', () {
-      // A closed triangle: the seam at (0, 0) turns 112.5 degrees between
-      // the arriving run and the leaving east run, a capped miter like
-      // any interior corner, identical at both ends.
-      const s = 10 * math.sqrt1_2;
-      final sx = Float32List.fromList([0, 0, 10, 10, 10 - s, 10 - s, 0, 0]);
-      final sy = Float32List.fromList([0, 0, 0, 0, s, s, 0, 0]);
-      Dive3dScenePainter.strokeScreenEdges(
-        sx,
-        sy,
-        start: 0,
-        pairCount: 4,
-        halfWidthPx: 1,
-      );
-      const lx = -(10 - s), ly = -s;
-      final ll = math.sqrt(lx * lx + ly * ly);
-      final mx = -ly / ll, my = lx / ll + 1;
-      final len = math.sqrt(mx * mx + my * my);
-      final scale = math.min(len / my, math.sqrt2);
-      final ex = mx / len * scale, ey = my / len * scale;
-      expect(sx[0], closeTo(-ex, 1e-5));
-      expect(sy[0], closeTo(-ey, 1e-5));
-      expect(sx[1], closeTo(ex, 1e-5));
-      expect(sy[1], closeTo(ey, 1e-5));
-      expect(sx.sublist(6), sx.sublist(0, 2));
-      expect(sy.sublist(6), sy.sublist(0, 2));
     });
 
     test('a stroke that never moves still gets a width', () {

@@ -377,48 +377,25 @@ class Dive3dScenePainter extends CustomPainter {
   /// Longest corner edge, in half-widths: the miter of a right angle.
   static const double _miterLimit = math.sqrt2;
 
-  /// The side vector of a corner between the arriving normal [inX]/[inY]
-  /// and the leaving normal [outX]/[outY]: the miter along their mean,
-  /// capped at [_miterLimit]. Across a closed line's seam the two were
-  /// never oriented against each other, so a hairpin seam folds the
-  /// leaving normal here the way the orientation pass does inside.
-  static (double, double) _joinSide(
-    double inX,
-    double inY,
-    double outX,
-    double outY,
-  ) {
-    if (inX * outX + inY * outY < _reversalDot) {
-      outX = -outX;
-      outY = -outY;
-    }
-    // Never shorter than 2 cos 75 degrees after the fold, so never zero.
-    final mx = inX + outX, my = inY + outY;
-    final len = math.sqrt(mx * mx + my * my);
-    final cosHalf = (mx * outX + my * outY) / len;
-    final scale = math.min(1 / cosHalf, _miterLimit);
-    return (mx / len * scale, my / len * scale);
-  }
-
   /// Widens a stroke mesh on the canvas: each vertex pair moves
-  /// [halfWidthPx] to either side of its point, along the miter between
-  /// the nearest real run arriving at it and the nearest real run leaving
-  /// it, so the quads on both sides of a turn share that edge instead of
-  /// leaving a notch, and the stroke keeps its width through the corner.
-  /// Zero-length runs (a stationary stretch) have no direction and are
-  /// looked past, so a stop at a turn joins like the turn itself. The
-  /// miter is capped at [_miterLimit] widths, so a sharp bend is beveled
-  /// rather than spiked (a true miter grows as 1 / cos(turn / 2)). A run
-  /// that turns back past a hairpin ([_reversalDot]: an out-and-back leg)
-  /// has its normal flipped to agree with the one before, which keeps the
-  /// two edges on their sides through the reversal rather than crossing
-  /// into a bow-tie; the mean of two near-opposite normals would also be
-  /// too short to give a direction. A polyline whose last point lies on
-  /// its first (a closed isobath) joins across that seam too. [sx]/[sy]
-  /// are the projected canvas positions of every vertex in the soup;
-  /// [start] is this mesh's first vertex. Both members of a pair sit on the
-  /// same point (see [MeshData.strokeHalfWidthPx]), so the first member is
-  /// read as the point.
+  /// [halfWidthPx] to either side of its point, along the normal of the
+  /// real run on its own side of the point: the arriving run for the pair
+  /// that ends a leg, the leaving run for the pair that starts one.
+  /// Builders put two pairs on every interior point, so each leg keeps its
+  /// full width right up to the corner, and the quad between the two pairs
+  /// is the bevel that fills the corner. A pair between two zero-length
+  /// runs (a stationary stretch) keeps the side last used, and before the
+  /// first real run it faces that run, so a stop never pinches the stroke.
+  /// A run that turns back past a hairpin ([_reversalDot]) has its normal
+  /// flipped to agree with the one before, which keeps the leaving leg's
+  /// two edges on the same sides as the arriving leg's rather than
+  /// crossing into a bow-tie. A pair with a real run on both sides (a
+  /// stroke built without the doubled points) gets the miter of the two
+  /// normals, capped at [_miterLimit]. [sx]/[sy] are the projected canvas
+  /// positions of every vertex in the soup; [start] is this mesh's first
+  /// vertex. Both members of a pair sit on the same point (see
+  /// [MeshData.strokeHalfWidthPx]), so the first member is read as the
+  /// point.
   @visibleForTesting
   static void strokeScreenEdges(
     Float32List sx,
@@ -433,7 +410,7 @@ class Dive3dScenePainter extends CustomPainter {
     // zero-length one.
     final nx = Float32List(runs);
     final ny = Float32List(runs);
-    var firstReal = -1, lastReal = -1;
+    var firstReal = -1;
     for (var j = 0; j < runs; j++) {
       final a = start + j * 2;
       final dx = sx[a + 2] - sx[a];
@@ -443,7 +420,6 @@ class Dive3dScenePainter extends CustomPainter {
       nx[j] = -dy / len;
       ny[j] = dx / len;
       if (firstReal < 0) firstReal = j;
-      lastReal = j;
     }
     void offset(int k, double ex, double ey) {
       final a = start + k * 2;
@@ -477,47 +453,28 @@ class Dive3dScenePainter extends CustomPainter {
       px = nx[j];
       py = ny[j];
     }
-    final a0 = start, aN = start + runs * 2;
-    final closed =
-        pairCount > 2 &&
-        (sx[aN] - sx[a0]).abs() <= 1e-6 &&
-        (sy[aN] - sy[a0]).abs() <= 1e-6;
-
-    int nextRealFrom(int j) {
-      for (var i = j; i < runs; i++) {
-        if (nx[i] != 0 || ny[i] != 0) return i;
-      }
-      return -1;
-    }
-
-    // The arriving side: the last real run before pair k (across the seam
-    // for a closed line). The leaving side: the next real run at or after
-    // pair k (across the seam again).
-    var hasIn = closed;
-    var inX = closed ? nx[lastReal] : 0.0;
-    var inY = closed ? ny[lastReal] : 0.0;
-    var next = firstReal;
+    var px = nx[firstReal], py = ny[firstReal];
     for (var k = 0; k < pairCount; k++) {
-      if (next >= 0 && next < k) next = nextRealFrom(k);
-      final hasOut = next >= 0 || closed;
-      final outX = next >= 0 ? nx[next] : nx[firstReal];
-      final outY = next >= 0 ? ny[next] : ny[firstReal];
-      double ex, ey;
-      if (hasIn && hasOut) {
-        (ex, ey) = _joinSide(inX, inY, outX, outY);
-      } else if (hasOut) {
-        ex = outX;
-        ey = outY;
-      } else {
-        ex = inX;
-        ey = inY;
+      final inReal = k > 0 && (nx[k - 1] != 0 || ny[k - 1] != 0);
+      final outReal = k < runs && (nx[k] != 0 || ny[k] != 0);
+      if (inReal && outReal) {
+        final inX = nx[k - 1], inY = ny[k - 1];
+        final outX = nx[k], outY = ny[k];
+        // The orientation pass keeps the two within 150 degrees, so their
+        // mean is never shorter than 2 cos 75 degrees.
+        final mx = inX + outX, my = inY + outY;
+        final len = math.sqrt(mx * mx + my * my);
+        final scale = math.min(len / (mx * outX + my * outY), _miterLimit);
+        px = mx / len * scale;
+        py = my / len * scale;
+      } else if (outReal) {
+        px = nx[k];
+        py = ny[k];
+      } else if (inReal) {
+        px = nx[k - 1];
+        py = ny[k - 1];
       }
-      offset(k, ex, ey);
-      if (k < runs && (nx[k] != 0 || ny[k] != 0)) {
-        inX = nx[k];
-        inY = ny[k];
-        hasIn = true;
-      }
+      offset(k, px, py);
     }
   }
 

@@ -341,6 +341,44 @@ void main() {
       expect(widthOf(result.layers[3]), greaterThan(widthOf(result.layers[0])));
     });
 
+    test('a closed isobath runs on through its seam to its second point', () {
+      // A shallow bump in the middle of a deep plateau: every level loops
+      // around the centre cell, ending back on its first point. The stroke
+      // continues to the second point so the seam is a corner between two
+      // pairs like any other, not two butt ends.
+      final grid = gridOf([
+        [45.0, 45.0, 45.0],
+        [45.0, 5.0, 45.0],
+        [45.0, 45.0, 45.0],
+      ]);
+      final result = buildContourLayers(
+        grid: grid,
+        center: center,
+        projection: projFor(grid),
+        appearance: const SeascapeAppearance(),
+        displayUnitInMeters: 1.0,
+        depthSymbol: 'm',
+      );
+      expect(result.layers, isNotEmpty);
+      for (final layer in result.layers) {
+        final p = layer.mesh.positions;
+        final pairCount = layer.mesh.vertexCount ~/ 2;
+        // P loop points (last == first) plus the second point again make
+        // 2 * (P + 1) - 2 = 2P pairs.
+        expect(pairCount.isEven, isTrue);
+        List<double> pointOf(int pair) => p.sublist(pair * 6, pair * 6 + 3);
+        // The extra last pair sits on the second point (pairs 1 and 2).
+        expect(pointOf(pairCount - 1), pointOf(1));
+        expect(pointOf(2), pointOf(1));
+        // The closing point carries two pairs before the extra one, and
+        // it is the first point again (to within the join's tolerance).
+        expect(pointOf(pairCount - 3), pointOf(pairCount - 2));
+        for (var c = 0; c < 3; c++) {
+          expect(pointOf(pairCount - 2)[c], closeTo(pointOf(0)[c], 1e-6));
+        }
+      }
+    });
+
     test('custom level color overrides the ink', () {
       final grid = gridOf([
         [5.0, 5.0],

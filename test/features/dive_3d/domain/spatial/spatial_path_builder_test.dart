@@ -44,16 +44,33 @@ void main() {
         proj,
       );
       expect(mesh.strokeHalfWidthPx, SpatialPathBuilder.strokeHalfWidthPx);
-      expect(mesh.positions, hasLength(3 * 6));
-      expect(mesh.indices, hasLength(2 * 6));
+      // One pair at each end, two on the interior point: 4 pairs.
+      expect(mesh.positions, hasLength(4 * 6));
+      expect(mesh.indices, hasLength(3 * 6));
     });
 
-    test('puts both members of every pair on the projected route point', () {
-      final pts = [(0.0, 0.0, 5.0), (10.0, 10.0, 5.0), (20.0, 10.0, 8.0)];
+    test('puts both members of every pair on the projected route point, '
+        'two pairs on each interior point', () {
+      final pts = [
+        (0.0, 0.0, 5.0),
+        (10.0, 10.0, 5.0),
+        (20.0, 10.0, 8.0),
+        (30.0, 0.0, 2.0),
+      ];
       final mesh = SpatialPathBuilder.buildRibbon(_path(pts), proj);
-      for (final (i, p) in pts.indexed) {
+      expect(mesh.vertexCount, 2 * (2 * pts.length - 2));
+      // Pair k sits on point 0 (k = 0), the last point (last k), else on
+      // point (k + 1) ~/ 2.
+      final pairCount = mesh.vertexCount ~/ 2;
+      for (var k = 0; k < pairCount; k++) {
+        final i = k == 0
+            ? 0
+            : k == pairCount - 1
+            ? pts.length - 1
+            : (k + 1) ~/ 2;
+        final p = pts[i];
         for (var s = 0; s < 2; s++) {
-          final vi = i * 6 + s * 3;
+          final vi = k * 6 + s * 3;
           expect(mesh.positions[vi], closeTo(proj.xOf(p.$1), 1e-6));
           expect(mesh.positions[vi + 1], closeTo(proj.yOf(p.$3), 1e-6));
           expect(mesh.positions[vi + 2], closeTo(proj.zOf(p.$2), 1e-6));

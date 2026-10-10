@@ -35,6 +35,10 @@ class MeshData {
   /// A width in scene units is a real-world distance: it grew with the
   /// terrain when zooming in and, on a hillside, one edge ended up under
   /// the surface (issue #3215). Null draws the mesh as given.
+  ///
+  /// Builders put two pairs on every interior point: the renderer ends the
+  /// arriving leg and starts the leaving one at full width, and the quad
+  /// between the two pairs fills the corner as a bevel.
   final double? strokeHalfWidthPx;
 
   // Not const: typed-data lists never are, and the stroke assert below
