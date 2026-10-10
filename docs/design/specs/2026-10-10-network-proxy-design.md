@@ -42,14 +42,21 @@ and every `HttpClient()` constructor consults `HttpOverrides.global`. The app
 already installs one on Windows (`TrustedHttpOverrides`, for certificate
 trust). This feature generalizes it into `AppHttpOverrides`, installed on every
 platform in `main()` before the first request. Its `createHttpClient` keeps the
-Windows `SecurityContext` behaviour and sets three callbacks on each client:
+Windows `SecurityContext` behaviour and sets two callbacks on each client:
 
-- `findProxy`: returns `PROXY host:port` in HTTP mode, otherwise `DIRECT`.
+- `findProxy`: returns `PROXY [user:pass@]host:port` in HTTP mode, otherwise
+  `DIRECT`.
 - `connectionFactory`: opens a SOCKS5 tunnel in SOCKS5 mode; otherwise it does
   exactly what `dart:io` does without a factory (a plain socket to the proxy,
   or a direct plain or TLS socket).
-- `authenticateProxy`: on a 407, adds the current manual credentials and
-  retries.
+
+Credentials: `dart:io` authenticates a CONNECT tunnel (HTTPS through an HTTP
+proxy) only with credentials embedded in the `findProxy` directive, sent up
+front as Basic; it never calls `authenticateProxy` for a tunnel. So the
+directive carries them, and the manual form rejects values that directive
+cannot represent: for HTTP, a username with `:`, a password with `;` or with
+leading or trailing spaces; for SOCKS5 (RFC 1929), more than 255 bytes; for
+both, a username without a password. Approved in review, 2026-10-10.
 
 Each callback reads an immutable `EffectiveProxy` snapshot from a process-wide
 holder at connection time. A settings change or a network change therefore
@@ -81,7 +88,7 @@ New code lives in `lib/core/network/proxy/`, one purpose per file.
 | `ProxyController` | Holds the current snapshot. Recomputes on startup, settings change, app resume, connectivity change (the existing `connectivity_plus` stream), opening the Network page and Test. Exposed to the UI through a Riverpod notifier. |
 | `ProxyRouting` | Pure per-request decision for a `Uri` and a snapshot: direct or proxy. |
 | `Socks5Connector` | TCP to the SOCKS server, RFC 1928 handshake (no auth, or RFC 1929 username and password), CONNECT by hostname so the proxy resolves DNS, then TLS for `https` with the client's `SecurityContext`. |
-| `AppHttpOverrides` | Replaces `TrustedHttpOverrides`, wiring the three callbacks to `ProxyController`. |
+| `AppHttpOverrides` | Replaces `TrustedHttpOverrides`, wiring the two callbacks to `ProxyController`. |
 | `ProxyConnectionTester` | Runs one test request with a throwaway client built from given (possibly unsaved) settings and classifies the outcome. |
 
 Data flow: `ProxySettingsStore` and `SystemProxyResolver` feed
