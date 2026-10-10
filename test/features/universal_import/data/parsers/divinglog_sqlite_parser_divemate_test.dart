@@ -246,5 +246,8 @@ void main() {
     expect(notes, isNot(contains('DepthAvg')));
     expect(notes, isNot(contains('TypeOfDive')));
     expect(notes, isNot(contains('Status')));
+    // TypeOfDive stands in for it, so Divetype is not missing either.
+    expect(notes, contains('Logbook is missing'));
+    expect(notes, isNot(contains('Divetype')));
   });
 }

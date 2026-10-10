@@ -164,7 +164,15 @@ class DivingLogDbReader {
         }
 
         final notes = <String>[];
-        final missing = caps.missingColumns('Logbook', _logbookColumns);
+        // DiveMate's TypeOfDive carries the dive type, so its file lacks
+        // nothing when Divetype is absent.
+        final missing = caps
+            .missingColumns('Logbook', _logbookColumns)
+            .where(
+              (c) =>
+                  c != 'Divetype' || !caps.hasColumn('Logbook', 'TypeOfDive'),
+            )
+            .toList();
         if (missing.isNotEmpty) {
           notes.add('Logbook is missing: ${missing.join(', ')}');
         }
