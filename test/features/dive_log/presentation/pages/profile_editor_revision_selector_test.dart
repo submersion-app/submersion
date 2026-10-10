@@ -214,6 +214,26 @@ void main() {
       expect(find.text('Teric'), findsOneWidget);
     });
 
+    testWidgets('tell apart two sources that share a name by their file', (
+      tester,
+    ) async {
+      DiveDataSource file(String id, String fileName) => DiveDataSource(
+        id: id,
+        diveId: 'd',
+        isPrimary: id == 'src-1',
+        sourceFileName: fileName,
+        importedAt: DateTime(2026),
+        createdAt: DateTime(2026),
+      );
+      await openMenu(tester, [file('src-1', 'a.fit'), file('src-2', 'b.fit')]);
+
+      // The legacy entry has neither source nor computer, so it belongs to
+      // the primary source with no computer too.
+      expect(find.text('a.fit'), findsNWidgets(2));
+      expect(find.text('b.fit'), findsOneWidget);
+      expect(find.text('Imported File'), findsNothing);
+    });
+
     testWidgets('name no computer on a single-computer dive', (tester) async {
       await openMenu(tester, [source('src-1', 'comp-1', 'Perdix')]);
 

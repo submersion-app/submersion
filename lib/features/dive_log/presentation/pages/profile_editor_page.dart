@@ -271,6 +271,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     final historyAsync = ref.watch(profileSeriesHistoryProvider(diveId));
     final sources =
         ref.watch(diveDataSourcesProvider(diveId)).value ?? const [];
+    final sourceLabels = sourceNameLabelsFor(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     return historyAsync.when(
@@ -343,6 +344,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
                       context,
                       revision,
                       sources,
+                      sourceLabels,
                     ))
                       Text(
                         detail,
@@ -392,13 +394,15 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
     );
   }
 
-  /// Extra lines under a revision entry: the computer it belongs to when
-  /// the dive has more than one source, so two "Computer Import" entries
-  /// can be told apart, and what a legacy entry is.
+  /// Extra lines under a revision entry: the source it belongs to when the
+  /// dive has more than one, so two "Computer Import" entries can be told
+  /// apart, and what a legacy entry is. Sources sharing a name are told
+  /// apart by file, as the cylinder rows do ([tankSourceName]).
   List<String> _revisionDetails(
     BuildContext context,
     ProfileSeriesRevision revision,
     List<DiveDataSource> sources,
+    SourceNameLabels labels,
   ) {
     final owner = sources.length > 1
         ? owningDataSource(
@@ -407,8 +411,16 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
             sources: sources,
           )
         : null;
+    final ownerName = owner == null
+        ? null
+        : tankSourceName(
+            computerId: owner.computerId,
+            sourceId: owner.id,
+            sources: sources,
+            labels: labels,
+          );
     return [
-      if (owner != null) resolveSourceName(owner, sourceNameLabelsFor(context)),
+      ?ownerName,
       if (revision.revisionKind == 'legacy')
         context.l10n.diveLog_profileEditor_revisionLegacyHint,
     ];

@@ -1440,19 +1440,28 @@ class DiveRepository {
   /// as "Set as primary" does, so the live profile and the primary source
   /// never name two different computers (issue #3067).
   Future<void> setActiveProfileSeries(String diveId, String seriesId) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await _db.transaction(() async {
-      final newPrimary = await _sourceToPromoteForSeries(diveId, seriesId);
-      if (newPrimary != null) {
-        await _makeDataSourcePrimary(diveId, newPrimary, now: now);
-      }
-      await _profileSeries.activateSeriesForDive(
-        diveId: diveId,
-        seriesId: seriesId,
-        now: now,
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await _db.transaction(() async {
+        final newPrimary = await _sourceToPromoteForSeries(diveId, seriesId);
+        if (newPrimary != null) {
+          await _makeDataSourcePrimary(diveId, newPrimary, now: now);
+        }
+        await _profileSeries.activateSeriesForDive(
+          diveId: diveId,
+          seriesId: seriesId,
+          now: now,
+        );
+      });
+      await _refreshDiveAfterProfileSwitch(diveId, now: now);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to activate profile series $seriesId for dive $diveId',
+        error: e,
+        stackTrace: stackTrace,
       );
-    });
-    await _refreshDiveAfterProfileSwitch(diveId, now: now);
+      rethrow;
+    }
   }
 
   /// The source row that must become primary for [seriesId] to go live, or
