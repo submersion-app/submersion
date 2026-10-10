@@ -23223,6 +23223,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_cardSide => 'Kártya oldala';
 
   @override
+  String get diveDetailSection_documents_description =>
+      'A merüléshez tartozó engedélyek, nyugták és egyéb dokumentumok';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'A merülőhely térképei, engedélyei és egyéb dokumentumai';
+
+  @override
   String get settings_conflict_ref_document => 'Dokumentum';
 
   @override

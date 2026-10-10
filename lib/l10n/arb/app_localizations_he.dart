@@ -22736,6 +22736,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_cardSide => 'צד הכרטיס';
 
   @override
+  String get diveDetailSection_documents_description =>
+      'היתרים, קבלות ומסמכים נוספים שמתויקים תחת הצלילה';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'מפות, היתרים ומסמכים נוספים של האתר';
+
+  @override
   String get settings_conflict_ref_document => 'מסמך';
 
   @override

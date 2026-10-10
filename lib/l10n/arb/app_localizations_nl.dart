@@ -23169,6 +23169,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_cardSide => 'Kaartzijde';
 
   @override
+  String get diveDetailSection_documents_description =>
+      'Vergunningen, bonnen en andere documenten bij de duik';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'Kaarten, vergunningen en andere documenten van de duikstek';
+
+  @override
   String get settings_conflict_ref_document => 'Document';
 
   @override

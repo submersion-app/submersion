@@ -23515,6 +23515,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_cardSide => 'وجه البطاقة';
 
   @override
+  String get diveDetailSection_documents_description =>
+      'التصاريح والإيصالات والمستندات الأخرى المحفوظة مع الغطسة';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'الخرائط والتصاريح والمستندات الأخرى الخاصة بالموقع';
+
+  @override
   String get settings_conflict_ref_document => 'مستند';
 
   @override

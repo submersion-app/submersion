@@ -23284,6 +23284,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_cardSide => 'Kartenseite';
 
   @override
+  String get diveDetailSection_documents_description =>
+      'Genehmigungen, Belege und weitere Dokumente zum Tauchgang';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'Karten, Genehmigungen und weitere Dokumente zum Tauchplatz';
+
+  @override
   String get settings_conflict_ref_document => 'Dokument';
 
   @override

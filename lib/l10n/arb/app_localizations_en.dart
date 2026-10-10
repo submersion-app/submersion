@@ -22928,6 +22928,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_cardSide => 'Card side';
 
   @override
+  String get diveDetailSection_documents_description =>
+      'Permits, receipts and other papers filed under the dive';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'Maps, permits and other papers for the site';
+
+  @override
   String get settings_conflict_ref_document => 'Document';
 
   @override

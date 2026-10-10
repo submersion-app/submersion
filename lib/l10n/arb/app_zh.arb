@@ -6075,6 +6075,8 @@
   "notifications_document_expiresToday_body": "请在下次潜水前续期。",
   "settings_conflict_field_pageOrder": "页面顺序",
   "settings_conflict_field_cardSide": "卡片面",
+  "diveDetailSection_documents_description": "归档于此次潜水的许可证、收据和其他文档",
+  "siteDetailSection_documents_description": "此潜点的地图、许可证和其他文档",
   "settings_conflict_ref_document": "文档",
   "settings_conflict_ref_certification": "证书",
   "settings_conflict_ref_checklistTemplate": "清单模板",

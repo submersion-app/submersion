@@ -5923,6 +5923,8 @@
   "notifications_document_expiresToday_body": "جدّده قبل غطستك القادمة.",
   "settings_conflict_field_pageOrder": "ترتيب الصفحة",
   "settings_conflict_field_cardSide": "وجه البطاقة",
+  "diveDetailSection_documents_description": "التصاريح والإيصالات والمستندات الأخرى المحفوظة مع الغطسة",
+  "siteDetailSection_documents_description": "الخرائط والتصاريح والمستندات الأخرى الخاصة بالموقع",
   "settings_conflict_ref_document": "مستند",
   "settings_conflict_ref_certification": "الشهادة",
   "settings_conflict_ref_checklistTemplate": "قالب قائمة التحقق",

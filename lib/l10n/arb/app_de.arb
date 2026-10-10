@@ -6040,6 +6040,8 @@
   "notifications_document_expiresToday_body": "Erneuere es vor deinem nächsten Tauchgang.",
   "settings_conflict_field_pageOrder": "Seitenreihenfolge",
   "settings_conflict_field_cardSide": "Kartenseite",
+  "diveDetailSection_documents_description": "Genehmigungen, Belege und weitere Dokumente zum Tauchgang",
+  "siteDetailSection_documents_description": "Karten, Genehmigungen und weitere Dokumente zum Tauchplatz",
   "settings_conflict_ref_document": "Dokument",
   "settings_conflict_ref_certification": "Zertifizierung",
   "settings_conflict_ref_checklistTemplate": "Checklisten-Vorlage",

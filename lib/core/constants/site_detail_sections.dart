@@ -36,7 +36,10 @@ enum SiteDetailSectionId {
   rating,
   hazards,
   access,
-  notes;
+  notes,
+
+  /// Documents filed under the site (issue #2613).
+  documents;
 
   /// Icon standing in for the card in the display-options menu and, in the
   /// list layout, on the card's folded header row.
@@ -59,6 +62,7 @@ enum SiteDetailSectionId {
       hazards => Icons.warning_amber,
       access => Icons.directions,
       notes => Icons.notes,
+      documents => Icons.folder_copy_outlined,
     };
   }
 
@@ -82,6 +86,7 @@ enum SiteDetailSectionId {
       hazards => l10n.diveSites_detail_section_hazards,
       access => l10n.diveSites_detail_section_access,
       notes => l10n.diveSites_detail_section_notes,
+      documents => l10n.documents_section_title,
     };
   }
 
@@ -105,6 +110,7 @@ enum SiteDetailSectionId {
       hazards => l10n.siteDetailSection_hazards_description,
       access => l10n.siteDetailSection_access_description,
       notes => l10n.siteDetailSection_notes_description,
+      documents => l10n.siteDetailSection_documents_description,
     };
   }
 }
@@ -183,6 +189,7 @@ class SiteDetailSectionConfig {
     SiteDetailSectionConfig(id: SiteDetailSectionId.hazards, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.access, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.notes, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.documents, visible: true),
   ];
 
   /// [sections] reordered as if [rendered] had its [oldIndex] entry dropped

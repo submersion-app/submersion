@@ -5923,6 +5923,8 @@
   "notifications_document_expiresToday_body": "Renove antes do seu próximo mergulho.",
   "settings_conflict_field_pageOrder": "Ordem da página",
   "settings_conflict_field_cardSide": "Lado do cartão",
+  "diveDetailSection_documents_description": "Licenças, recibos e outros documentos do mergulho",
+  "siteDetailSection_documents_description": "Mapas, licenças e outros documentos do local",
   "settings_conflict_ref_document": "Documento",
   "settings_conflict_ref_certification": "Certificação",
   "settings_conflict_ref_checklistTemplate": "Modelo de lista de verificação",

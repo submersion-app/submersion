@@ -5821,6 +5821,8 @@
   "notifications_document_expiresToday_body": "Renouvelez-le avant votre prochaine plongée.",
   "settings_conflict_field_pageOrder": "Ordre des pages",
   "settings_conflict_field_cardSide": "Face de la carte",
+  "diveDetailSection_documents_description": "Permis, reçus et autres documents liés à la plongée",
+  "siteDetailSection_documents_description": "Cartes, permis et autres documents du site",
   "settings_conflict_ref_document": "Document",
   "settings_conflict_ref_certification": "Certification",
   "settings_conflict_ref_checklistTemplate": "Modèle de liste de contrôle",

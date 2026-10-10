@@ -23336,6 +23336,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_cardSide => 'Cara de la tarjeta';
 
   @override
+  String get diveDetailSection_documents_description =>
+      'Permisos, recibos y otros documentos de la inmersión';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'Mapas, permisos y otros documentos del sitio';
+
+  @override
   String get settings_conflict_ref_document => 'Documento';
 
   @override

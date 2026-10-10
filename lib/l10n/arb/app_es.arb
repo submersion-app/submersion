@@ -5923,6 +5923,8 @@
   "notifications_document_expiresToday_body": "Renuévalo antes de tu próxima inmersión.",
   "settings_conflict_field_pageOrder": "Orden de página",
   "settings_conflict_field_cardSide": "Cara de la tarjeta",
+  "diveDetailSection_documents_description": "Permisos, recibos y otros documentos de la inmersión",
+  "siteDetailSection_documents_description": "Mapas, permisos y otros documentos del sitio",
   "settings_conflict_ref_document": "Documento",
   "settings_conflict_ref_certification": "Certificación",
   "settings_conflict_ref_checklistTemplate": "Plantilla de lista de verificación",

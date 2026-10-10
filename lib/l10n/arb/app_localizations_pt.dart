@@ -23323,6 +23323,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_cardSide => 'Lado do cartão';
 
   @override
+  String get diveDetailSection_documents_description =>
+      'Licenças, recibos e outros documentos do mergulho';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'Mapas, licenças e outros documentos do local';
+
+  @override
   String get settings_conflict_ref_document => 'Documento';
 
   @override

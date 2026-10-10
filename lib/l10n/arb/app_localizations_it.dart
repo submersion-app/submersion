@@ -23342,6 +23342,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_cardSide => 'Lato della tessera';
 
   @override
+  String get diveDetailSection_documents_description =>
+      'Permessi, ricevute e altri documenti dell\'immersione';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'Mappe, permessi e altri documenti del sito';
+
+  @override
   String get settings_conflict_ref_document => 'Documento';
 
   @override

@@ -46,6 +46,8 @@ import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart'
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 typedef Override = riverpod.Override;
 
@@ -756,6 +758,7 @@ Future<List<Override>> getBaseOverrides({
   NavTrack? primaryNavTrack,
   IncomingLinkSource? incomingLinks,
   NfcTagService? nfcTagService,
+  List<Document> ownerDocuments = const [],
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -805,6 +808,11 @@ Future<List<Override>> getBaseOverrides({
     // exercise the nav-track branch.
     primaryNavTrackForDiveProvider.overrideWith(
       (ref, diveId) async => primaryNavTrack,
+    ),
+    // Every owner detail page shows a Documents section (issue #2613); it
+    // reaches the real repository and a database widget tests do not have.
+    documentsForOwnerProvider.overrideWith(
+      (ref, owner) async => ownerDocuments,
     ),
     // Weather/elevation lookups must never hit the network in widget tests;
     // the default stub fails fast so altitude auto-fill resolves to null.

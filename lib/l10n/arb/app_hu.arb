@@ -5821,6 +5821,8 @@
   "notifications_document_expiresToday_body": "Újítsd meg a következő merülés előtt.",
   "settings_conflict_field_pageOrder": "Oldalsorrend",
   "settings_conflict_field_cardSide": "Kártya oldala",
+  "diveDetailSection_documents_description": "A merüléshez tartozó engedélyek, nyugták és egyéb dokumentumok",
+  "siteDetailSection_documents_description": "A merülőhely térképei, engedélyei és egyéb dokumentumai",
   "settings_conflict_ref_document": "Dokumentum",
   "settings_conflict_ref_certification": "Képesítés",
   "settings_conflict_ref_checklistTemplate": "Ellenőrzőlista sablon",

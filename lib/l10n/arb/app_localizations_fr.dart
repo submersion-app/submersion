@@ -23393,6 +23393,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_cardSide => 'Face de la carte';
 
   @override
+  String get diveDetailSection_documents_description =>
+      'Permis, reçus et autres documents liés à la plongée';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'Cartes, permis et autres documents du site';
+
+  @override
   String get settings_conflict_ref_document => 'Document';
 
   @override

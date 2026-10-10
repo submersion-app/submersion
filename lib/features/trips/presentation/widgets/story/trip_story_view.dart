@@ -14,6 +14,8 @@ import 'package:submersion/features/trips/presentation/widgets/story/trip_story_
 import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// The assembled trip story, one plain scroll (#2845): hero, stat strip, the
 /// cylinders line while under way, and one chapter per day, each with its
@@ -173,6 +175,14 @@ class TripStoryView extends ConsumerWidget {
             ),
           ),
         ),
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        sliver: SliverToBoxAdapter(
+          child: DocumentsSection(
+            owner: DocumentOwner(DocumentOwnerKind.trip, trip.id),
+          ),
+        ),
+      ),
       const SliverToBoxAdapter(child: SizedBox(height: 32)),
     ];
   }

@@ -29,6 +29,7 @@ void main() {
         SiteDetailSectionId.hazards,
         SiteDetailSectionId.access,
         SiteDetailSectionId.notes,
+        SiteDetailSectionId.documents,
       ]);
     });
 
@@ -57,6 +58,7 @@ void main() {
           SiteDetailSectionId.hazards: 'Hazards & Safety',
           SiteDetailSectionId.access: 'Access & Logistics',
           SiteDetailSectionId.notes: 'Notes',
+          SiteDetailSectionId.documents: 'Documents',
         },
       );
     });

@@ -13669,6 +13669,8 @@
   "notifications_document_expiresToday_body": "Renew it before your next dive.",
   "settings_conflict_field_pageOrder": "Page order",
   "settings_conflict_field_cardSide": "Card side",
+  "diveDetailSection_documents_description": "Permits, receipts and other papers filed under the dive",
+  "siteDetailSection_documents_description": "Maps, permits and other papers for the site",
   "settings_conflict_ref_document": "Document",
   "settings_conflict_ref_certification": "Certification",
   "settings_conflict_ref_checklistTemplate": "Checklist template",

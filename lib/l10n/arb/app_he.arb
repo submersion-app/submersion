@@ -5927,6 +5927,8 @@
   "notifications_document_expiresToday_body": "חדשו אותו לפני הצלילה הבאה.",
   "settings_conflict_field_pageOrder": "סדר העמודים",
   "settings_conflict_field_cardSide": "צד הכרטיס",
+  "diveDetailSection_documents_description": "היתרים, קבלות ומסמכים נוספים שמתויקים תחת הצלילה",
+  "siteDetailSection_documents_description": "מפות, היתרים ומסמכים נוספים של האתר",
   "settings_conflict_ref_document": "מסמך",
   "settings_conflict_ref_certification": "הסמכה",
   "settings_conflict_ref_checklistTemplate": "תבנית רשימת משימות",

@@ -5923,6 +5923,8 @@
   "notifications_document_expiresToday_body": "Vernieuw het vóór je volgende duik.",
   "settings_conflict_field_pageOrder": "Paginavolgorde",
   "settings_conflict_field_cardSide": "Kaartzijde",
+  "diveDetailSection_documents_description": "Vergunningen, bonnen en andere documenten bij de duik",
+  "siteDetailSection_documents_description": "Kaarten, vergunningen en andere documenten van de duikstek",
   "settings_conflict_ref_document": "Document",
   "settings_conflict_ref_certification": "Certificering",
   "settings_conflict_ref_checklistTemplate": "Checklistsjabloon",

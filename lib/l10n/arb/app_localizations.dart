@@ -37482,6 +37482,18 @@ abstract class AppLocalizations {
   /// **'Card side'**
   String get settings_conflict_field_cardSide;
 
+  /// No description provided for @diveDetailSection_documents_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Permits, receipts and other papers filed under the dive'**
+  String get diveDetailSection_documents_description;
+
+  /// No description provided for @siteDetailSection_documents_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Maps, permits and other papers for the site'**
+  String get siteDetailSection_documents_description;
+
   /// No description provided for @settings_conflict_ref_document.
   ///
   /// In en, this message translates to:

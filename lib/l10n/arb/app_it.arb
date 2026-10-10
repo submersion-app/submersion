@@ -5821,6 +5821,8 @@
   "notifications_document_expiresToday_body": "Rinnovalo prima della prossima immersione.",
   "settings_conflict_field_pageOrder": "Ordine delle pagine",
   "settings_conflict_field_cardSide": "Lato della tessera",
+  "diveDetailSection_documents_description": "Permessi, ricevute e altri documenti dell'immersione",
+  "siteDetailSection_documents_description": "Mappe, permessi e altri documenti del sito",
   "settings_conflict_ref_document": "Documento",
   "settings_conflict_ref_certification": "Certificazione",
   "settings_conflict_ref_checklistTemplate": "Modello di lista di controllo",

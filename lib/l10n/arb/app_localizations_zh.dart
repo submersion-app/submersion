@@ -22046,6 +22046,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_cardSide => '卡片面';
 
   @override
+  String get diveDetailSection_documents_description => '归档于此次潜水的许可证、收据和其他文档';
+
+  @override
+  String get siteDetailSection_documents_description => '此潜点的地图、许可证和其他文档';
+
+  @override
   String get settings_conflict_ref_document => '文档';
 
   @override
