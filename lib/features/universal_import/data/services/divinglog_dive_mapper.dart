@@ -59,6 +59,7 @@ class DivingLogDiveMapper {
       if (raw.uuid != null) map['sourceUuid'] = raw.uuid;
       if (raw.number != null) map['diveNumber'] = raw.number;
       if (raw.depthMeters != null) map['maxDepth'] = raw.depthMeters;
+      if (raw.avgDepthMeters != null) map['avgDepth'] = raw.avgDepthMeters;
       if (raw.diveTimeMinutes != null) {
         // Divetime is fractional minutes in real files (393 of 444 dives in
         // the reference logbook), so truncating to whole minutes would drop
@@ -123,7 +124,13 @@ class DivingLogDiveMapper {
       // duplicates exactly when the relational data is incomplete.
       final buddyRefs = raw.buddyIds.isEmpty
           ? _refs(_names(raw.buddy), buddiesByName)
-          : idBuddyRefs;
+          : [
+              ...idBuddyRefs,
+              ..._refs(
+                _unlinkedNames(logbook, raw, idBuddyRefs),
+                buddiesByName,
+              ),
+            ];
       final guideRefs = _refs(_names(raw.divemaster), buddiesByName);
       if (buddyRefs.isNotEmpty) map['buddyRefs'] = buddyRefs;
       if (guideRefs.isNotEmpty) map['diveGuideRefs'] = guideRefs;
@@ -184,6 +191,18 @@ class DivingLogDiveMapper {
       dives.add(map);
     }
 
+    if (logbook.discardedDiveCount > 0) {
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.diagnostic,
+          message:
+              '${logbook.discardedDiveCount} dive(s) marked as discarded in '
+              'DiveMate were left out.',
+          count: logbook.discardedDiveCount,
+        ),
+      );
+    }
     if (sawOtu) {
       warnings.add(
         const ImportWarning(
@@ -352,6 +371,32 @@ class DivingLogDiveMapper {
     ];
   }
 
+  /// The free-text `Buddy` names on a dive that also links buddies by id,
+  /// minus any that name a linked buddy.
+  ///
+  /// DiveMate keeps people the diver never saved as a buddy record, often a
+  /// first name met once at a dive center, in the text column beside the
+  /// linked ones (#3110). Ids still win for anyone they cover: a name equal
+  /// to a linked buddy's full or first name is that buddy, so it is not
+  /// imported a second time under another spelling.
+  static List<String> _unlinkedNames(
+    DivingLogLogbook book,
+    DivingLogRawDive dive,
+    List<String> linkedNames,
+  ) {
+    final known = <String>{
+      for (final name in linkedNames) name.toLowerCase(),
+      for (final id in dive.buddyIds)
+        if (book.buddiesById[id]?.firstName?.trim() case final String first
+            when first.isNotEmpty)
+          first.toLowerCase(),
+    };
+    return [
+      for (final name in _names(dive.buddy))
+        if (!known.contains(name.toLowerCase())) name,
+    ];
+  }
+
   /// 1 good, 2 medium, 3 bad. 0 and null mean unset.
   static String? _visibility(int? code) => switch (code) {
     1 => 'good',
@@ -467,13 +512,33 @@ class DivingLogDiveMapper {
         // covariance. Spelling it out removes the dependence.
         // tankIndex is read as a position in the tanks list, not as the
         // source's tank id, so it is resolved the same way the gas switch is.
-        if (s.pressureBar != null)
-          'allTankPressures': <Map<String, dynamic>>[
-            {
-              'pressure': s.pressureBar,
-              'tankIndex': _tankPosition(s.tankId ?? 0, tanks) ?? 0,
-            },
-          ],
+        if (_pressures(s, tanks) case final pressures when pressures.isNotEmpty)
+          'allTankPressures': pressures,
       },
   ];
+
+  /// Every cylinder pressure [s] records, at most one per cylinder.
+  ///
+  /// The `Profile3` transmitters come first, tank 1 and tank 2 in cylinder
+  /// order, since each names its own cylinder. `Profile2` holds only the
+  /// cylinder in use and is added when no transmitter already covered it,
+  /// which is all a file without transmitters has. A second transmitter on
+  /// a single-cylinder dive has no cylinder to land on and is dropped.
+  static List<Map<String, dynamic>> _pressures(
+    DivingLogRawSample s,
+    List<Map<String, dynamic>> tanks,
+  ) {
+    final readings = <(double?, int)>[
+      (s.tank1PressureBar, 0),
+      if (tanks.length > 1) (s.tank2PressureBar, 1),
+      (s.pressureBar, _tankPosition(s.tankId ?? 0, tanks) ?? 0),
+    ];
+    final out = <Map<String, dynamic>>[];
+    for (final (pressure, tankIndex) in readings) {
+      if (pressure == null) continue;
+      if (out.any((p) => p['tankIndex'] == tankIndex)) continue;
+      out.add({'pressure': pressure, 'tankIndex': tankIndex});
+    }
+    return out;
+  }
 }

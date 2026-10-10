@@ -79,6 +79,12 @@ class DivingLogRawSample {
   final double? temperatureCelsius;
   final double? pressureBar;
   final int? tankId;
+
+  /// Transmitter readings from `Profile3`, one per cylinder, in bar. DiveMate
+  /// records both transmitters here while `Profile2` carries only the
+  /// cylinder in use (#3110).
+  final double? tank1PressureBar;
+  final double? tank2PressureBar;
   final int? rbtSeconds;
   final int? heartRate;
   final int? ndlSeconds;
@@ -99,6 +105,8 @@ class DivingLogRawSample {
     this.temperatureCelsius,
     this.pressureBar,
     this.tankId,
+    this.tank1PressureBar,
+    this.tank2PressureBar,
     this.rbtSeconds,
     this.heartRate,
     this.ndlSeconds,
@@ -156,6 +164,9 @@ class DivingLogRawDive {
   final String? divemaster;
   final String? comments;
   final double? depthMeters;
+
+  /// `DepthAvg`, written by DiveMate.
+  final double? avgDepthMeters;
   final double? diveTimeMinutes;
   final double? airTempCelsius;
   final double? waterTempCelsius;
@@ -194,6 +205,7 @@ class DivingLogRawDive {
     this.divemaster,
     this.comments,
     this.depthMeters,
+    this.avgDepthMeters,
     this.diveTimeMinutes,
     this.airTempCelsius,
     this.waterTempCelsius,
@@ -241,6 +253,9 @@ class DivingLogLogbook {
   /// Dive `Logbook.ID` to its `Pictures` rows.
   final Map<int, List<DivingLogRawPicture>> picturesByLogId;
 
+  /// Rows DiveMate marks discarded (`Status` 2), left out of [dives].
+  final int discardedDiveCount;
+
   const DivingLogLogbook({
     required this.dives,
     required this.capabilities,
@@ -257,6 +272,7 @@ class DivingLogLogbook {
     this.speciesById = const {},
     this.speciesIdsByLogId = const {},
     this.picturesByLogId = const {},
+    this.discardedDiveCount = 0,
   });
 }
 
@@ -296,6 +312,11 @@ class DivingLogRawBuddy {
 class DivingLogRawPlace {
   final int id;
   final int? countryId;
+
+  /// The country and region as text. DiveMate writes these on the row
+  /// instead of a `CountryID` (#3110).
+  final String? country;
+  final String? region;
   final String? place;
   final double? latitude;
   final double? longitude;
@@ -316,6 +337,8 @@ class DivingLogRawPlace {
   const DivingLogRawPlace({
     required this.id,
     this.countryId,
+    this.country,
+    this.region,
     this.place,
     this.latitude,
     this.longitude,
@@ -331,9 +354,19 @@ class DivingLogRawPlace {
 
 /// A row of the `Equipment` table. There is no type column: [object] is a
 /// free-text name and the type has to be read from it.
+///
+/// DiveMate writes the same table with a [name] beside it, where [object] is
+/// then the model and is often blank, plus [category] and its own sets
+/// (#3110).
 class DivingLogRawEquipment {
   final int id;
+  final String? name;
   final String? object;
+  final String? category;
+
+  /// The member ids of a DiveMate equipment set, or null for a real item.
+  /// A set is a named group of gear, not gear itself.
+  final List<int>? setMemberIds;
   final String? manufacturer;
   final String? serial;
   final DateTime? purchaseDate;
@@ -345,7 +378,10 @@ class DivingLogRawEquipment {
 
   const DivingLogRawEquipment({
     required this.id,
+    this.name,
     this.object,
+    this.category,
+    this.setMemberIds,
     this.manufacturer,
     this.serial,
     this.purchaseDate,

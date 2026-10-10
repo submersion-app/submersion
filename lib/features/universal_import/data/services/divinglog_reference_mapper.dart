@@ -52,16 +52,27 @@ class DivingLogReferenceMapper {
       (dive.placeId == null ? null : book.placesById[dive.placeId]?.place) ??
       dive.place;
 
+  /// Falls back last to DiveMate's `Place.Region`, the only area name its
+  /// files carry.
   static String? cityNameFor(DivingLogLogbook book, DivingLogRawDive dive) =>
       (dive.cityId == null ? null : book.cityNamesById[dive.cityId]) ??
-      dive.city;
+      dive.city ??
+      _placeOf(book, dive)?.region;
+
+  static DivingLogRawPlace? _placeOf(
+    DivingLogLogbook book,
+    DivingLogRawDive dive,
+  ) => dive.placeId == null ? null : book.placesById[dive.placeId];
 
   /// The dive's own country id first, then the one its `Place` carries,
-  /// then the free text.
+  /// then the country text on the `Place` row, then the dive's free text.
   ///
   /// A `Place` row names its country, so a dive whose `CountryID` is absent
   /// or dangling still has a relational answer available and should not
-  /// drop straight to the text column.
+  /// drop straight to the text column. DiveMate writes that country as text
+  /// on the `Place` row and has no `CountryID`; leaving it unread let the
+  /// importer reverse-geocode the coordinates instead, which put an Austrian
+  /// lake in Italy (#3110).
   static String? countryNameFor(DivingLogLogbook book, DivingLogRawDive dive) {
     final direct = dive.countryId == null
         ? null
@@ -73,7 +84,7 @@ class DivingLogReferenceMapper {
     final viaPlace = placeCountryId == null
         ? null
         : book.countryNamesById[placeCountryId];
-    return viaPlace ?? dive.country;
+    return viaPlace ?? _placeOf(book, dive)?.country ?? dive.country;
   }
 
   /// Sites, built from the dives so a `Place` nobody dived is left out and

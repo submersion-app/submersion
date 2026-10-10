@@ -21,10 +21,12 @@ class DivingLogEquipmentMapper {
     final computers = _computerNames(book);
     final out = <String, Map<String, dynamic>>{};
     for (final item in book.equipmentById.values) {
-      final name = item.object?.trim();
-      if (name == null || name.isEmpty) continue;
+      if (!_isImportable(item)) continue;
+      final name = _nameOf(item)!;
       final key = _uddfId(item.id);
-      final model = _modelFrom(name, item.manufacturer);
+      // DiveMate names the item and keeps the model in `Object`; Diving Log
+      // has only `Object`, so the model is read out of the name.
+      final model = _diveMateModel(item) ?? _modelFrom(name, item.manufacturer);
       final isComputer = computers.any(
         (c) => computerNamesAgree(
           brandA: null,
@@ -33,7 +35,7 @@ class DivingLogEquipmentMapper {
           modelB: model,
         ),
       );
-      final read = isComputer ? null : typeFromName(name);
+      final read = isComputer ? null : _typeOf(item, name);
       final map = <String, dynamic>{
         'name': name,
         'uddfId': key,
@@ -41,7 +43,7 @@ class DivingLogEquipmentMapper {
             ? EquipmentType.computer.name
             : (read?.type ?? EquipmentType.other).name,
       };
-      if (isComputer) map['model'] = model;
+      if (isComputer || _diveMateModel(item) != null) map['model'] = model;
       if (read?.thickness != null) map['thickness'] = read!.thickness;
       if (item.manufacturer != null) map['brand'] = item.manufacturer;
       if (item.serial != null) map['serialNumber'] = item.serial;
@@ -109,18 +111,60 @@ class DivingLogEquipmentMapper {
     return rest.isEmpty ? name : rest;
   }
 
+  /// The item's display name: DiveMate's `Name`, else Diving Log's
+  /// `Object`. Null when both are blank.
+  static String? _nameOf(DivingLogRawEquipment item) {
+    for (final candidate in [item.name, item.object]) {
+      final trimmed = candidate?.trim();
+      if (trimmed != null && trimmed.isNotEmpty) return trimmed;
+    }
+    return null;
+  }
+
+  /// DiveMate's model: `Object` when the row also has a `Name` that differs
+  /// from it. Null for a Diving Log row, whose `Object` is the name.
+  static String? _diveMateModel(DivingLogRawEquipment item) {
+    final name = item.name?.trim();
+    final object = item.object?.trim();
+    if (name == null || name.isEmpty) return null;
+    if (object == null || object.isEmpty || object == name) return null;
+    return object;
+  }
+
+  /// The type read from the name, then from DiveMate's category when the
+  /// name says nothing: an item called "Main" filed under "Regulators".
+  static TypeFromName? _typeOf(DivingLogRawEquipment item, String name) {
+    final category = item.category?.trim();
+    return typeFromName(name) ??
+        (category == null || category.isEmpty ? null : typeFromName(category));
+  }
+
   /// Whether [item] becomes an entity, which is also what decides whether a
   /// dive may reference it. [entities] drops a row with a blank name, so a
   /// ref to one would dangle: the importer skips it in silence and the
-  /// unresolved count never sees it.
+  /// unresolved count never sees it. A DiveMate set is not gear; a dive's
+  /// ref to one is expanded to its members by [_expand].
   static bool _isImportable(DivingLogRawEquipment item) =>
-      (item.object?.trim().isNotEmpty) ?? false;
+      item.setMemberIds == null && _nameOf(item) != null;
+
+  /// [dive]'s equipment ids with every DiveMate set replaced by its members,
+  /// in order, each id once.
+  static List<int> _expand(DivingLogLogbook book, DivingLogRawDive dive) {
+    final out = <int>[];
+    for (final id in dive.equipmentIds) {
+      final members = book.equipmentById[id]?.setMemberIds;
+      for (final member in members ?? [id]) {
+        if (!out.contains(member)) out.add(member);
+      }
+    }
+    return out;
+  }
 
   /// The `equipmentRefs` for [dive], in the order the source listed them.
   /// An id with no importable row is skipped and counted by
   /// [unresolvedCount].
   static List<String> refsFor(DivingLogLogbook book, DivingLogRawDive dive) => [
-    for (final id in dive.equipmentIds)
+    for (final id in _expand(book, dive))
       if (book.equipmentById[id] case final item? when _isImportable(item))
         _uddfId(id),
   ];
@@ -131,7 +175,7 @@ class DivingLogEquipmentMapper {
   /// by subtracting the number of refs: the two must agree, and a count
   /// derived from list lengths would also report deduplication as a gap.
   static int unresolvedCount(DivingLogLogbook book, DivingLogRawDive dive) =>
-      dive.equipmentIds.where((id) {
+      _expand(book, dive).where((id) {
         final item = book.equipmentById[id];
         return item == null || !_isImportable(item);
       }).length;
