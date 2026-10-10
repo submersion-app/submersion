@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_codec.dart';
+import 'package:submersion/features/gear_passports/domain/services/gear_tag_fit.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_rules.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -41,11 +42,13 @@ class GearPassportEntryCard extends ConsumerWidget {
               if (passportId != null)
                 PassportQrView(
                   data: GearTagCodec.httpsUrl(
-                    gearPayloadForItem(
-                      item: equipment,
-                      passportId: passportId,
-                      now: DateTime.now(),
-                      lastService: last,
+                    GearTagFit.fitForLabel(
+                      gearPayloadForItem(
+                        item: equipment,
+                        passportId: passportId,
+                        now: DateTime.now(),
+                        lastService: last,
+                      ),
                     ),
                   ),
                   semanticLabel: l10n.passport_tag_qrSemantics,

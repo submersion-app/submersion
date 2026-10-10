@@ -86,4 +86,21 @@ void main() {
     final plan = planGearMessage(_full(), maxMessageBytes: 500)!;
     expect(firstPassportUri(plan.message), plan.url);
   });
+
+  group('labels (issue #2652)', () {
+    test('a typical payload prints whole', () {
+      expect(GearTagFit.fitForLabel(_full()), _full());
+    });
+
+    test('a long non-ASCII name drops keys until the link fits a label', () {
+      final name = String.fromCharCodes(List.filled(40, 0x05D0));
+      final fitted = GearTagFit.fitForLabel(_full(name: name));
+      expect(
+        GearTagCodec.httpsUrl(fitted).length,
+        lessThanOrEqualTo(NdefFit.labelMaxUrlLength),
+      );
+      expect(fitted.passportId, _id);
+      expect(fitted.typeCode, 'firstStage');
+    });
+  });
 }

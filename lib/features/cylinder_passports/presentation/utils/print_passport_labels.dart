@@ -18,6 +18,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payload.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_codec.dart';
+import 'package:submersion/features/gear_passports/domain/services/gear_tag_fit.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_rules.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -104,11 +105,13 @@ Future<void> printPassportLabels(
         _gearLabel(
           l10n,
           item,
-          gearPayloadForItem(
-            item: item,
-            passportId: passportId,
-            now: now,
-            lastService: lastServiceDate(recordsById[item.id] ?? const []),
+          GearTagFit.fitForLabel(
+            gearPayloadForItem(
+              item: item,
+              passportId: passportId,
+              now: now,
+              lastService: lastServiceDate(recordsById[item.id] ?? const []),
+            ),
           ),
         ),
       );

@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/domain/entities/service_record.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payload.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_codec.dart';
+import 'package:submersion/features/gear_passports/domain/services/gear_tag_fit.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_rules.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/gear_tag_write.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -43,6 +44,8 @@ class GearTagCard extends ConsumerWidget {
         ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
         const <ServiceRecord>[];
     final last = lastServiceDate(records);
+    // The NFC write starts from the full payload and lets the tag's capacity
+    // decide; the QR and the printed label carry the label-bounded one.
     final payload = passportId == null
         ? null
         : gearPayloadForItem(
@@ -74,7 +77,7 @@ class GearTagCard extends ConsumerWidget {
             if (payload != null)
               Center(
                 child: PassportQrView(
-                  data: GearTagCodec.httpsUrl(payload),
+                  data: GearTagCodec.httpsUrl(GearTagFit.fitForLabel(payload)),
                   semanticLabel: l10n.passport_tag_qrSemantics,
                   size: 200,
                 ),
