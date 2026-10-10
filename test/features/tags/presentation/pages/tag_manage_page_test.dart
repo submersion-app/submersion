@@ -156,7 +156,6 @@ TagStatistic _scopedStat(
 Widget _buildTestWidget({
   List<TagStatistic> stats = const [],
   _MockTagListNotifier? notifier,
-  MockSettingsNotifier? settingsNotifier,
   TagRepository? repository,
 }) {
   return ProviderScope(
@@ -168,9 +167,7 @@ Widget _buildTestWidget({
       tagRepositoryProvider.overrideWithValue(
         repository ?? _MockTagRepository(),
       ),
-      settingsProvider.overrideWith(
-        (ref) => settingsNotifier ?? MockSettingsNotifier(),
-      ),
+      settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     ],
     child: const MaterialApp(
       // flutter_test resolves against the HOST machine's locale list, so an
