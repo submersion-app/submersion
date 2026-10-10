@@ -10,6 +10,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
+import 'package:submersion/features/gear_passports/presentation/pages/foreign_gear_page.dart';
 import 'package:submersion/features/gear_passports/presentation/pages/gear_passport_page.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
@@ -690,6 +691,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => ForeignPassportPage(
                   tag: foreignTagFromQuery(state.uri.queryParameters['t']),
                 ),
+              ),
+              // A scanned gear tag the diver does not hold (issue #2652).
+              // Before ':equipmentId' so 'gear-tag' is never read as an id.
+              GoRoute(
+                path: 'gear-tag',
+                name: 'foreignGearTag',
+                builder: (context, state) {
+                  final t = state.uri.queryParameters['t'];
+                  return ForeignGearPage(
+                    tag: foreignGearTagFromQuery(t),
+                    newerFormat: foreignGearNewerFormat(t),
+                  );
+                },
               ),
               GoRoute(
                 path: ':equipmentId',

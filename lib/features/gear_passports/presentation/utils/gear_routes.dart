@@ -20,3 +20,10 @@ GearTagPayload? foreignGearTagFromQuery(String? t) {
 /// The scanned gear tag a route carried, or null for any other extra.
 GearTagPayload? scannedGearTagFrom(Object? extra) =>
     extra is GearTagPayload ? extra : null;
+
+/// Whether the tag in a foreign gear route was written by a newer format.
+bool foreignGearNewerFormat(String? t) {
+  if (t == null) return false;
+  final decoded = GearTagCodec.decode(t);
+  return decoded is GearTagDecoded && decoded.newerFormat;
+}
