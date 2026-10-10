@@ -144,7 +144,7 @@ class InsightsGasPage extends ConsumerWidget {
           barColor: Colors.blue.shade400,
         ),
         loading: () => const SizedBox(
-          height: 200,
+          height: 120,
           child: Center(child: CircularProgressIndicator()),
         ),
         error: (_, _) => StatEmptyState(
