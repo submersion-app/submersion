@@ -9,7 +9,10 @@ import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.da
 /// Builds the swim path as a bright 3D ribbon threading the seascape, plus
 /// entry/exit "pins" dropped from the water surface to the path ends.
 class SpatialPathBuilder {
-  static const double _halfWidth = 0.08;
+  /// Scene units to either side of the path. Matches the major contour
+  /// ribbon in contour_builder.dart; at 0.08 the track read as a band
+  /// rather than a line next to the isobaths (issue #3215).
+  static const double ribbonHalfWidth = 0.03;
   static const Color _shallowPath = Color(0xFFFDE047); // yellow
   static const Color _deepPath = Color(0xFFF97316); // orange
   static const Color _entryColor = Color(0xFF22C55E); // green
@@ -51,12 +54,12 @@ class SpatialPathBuilder {
           : (pts[i].depth / proj.maxDepth).clamp(0.0, 1.0);
       final color = Color.lerp(_shallowPath, _deepPath, t)!;
       final vi = i * 6;
-      positions[vi] = xs[i] - px * _halfWidth;
+      positions[vi] = xs[i] - px * ribbonHalfWidth;
       positions[vi + 1] = ys[i];
-      positions[vi + 2] = zs[i] - pz * _halfWidth;
-      positions[vi + 3] = xs[i] + px * _halfWidth;
+      positions[vi + 2] = zs[i] - pz * ribbonHalfWidth;
+      positions[vi + 3] = xs[i] + px * ribbonHalfWidth;
       positions[vi + 4] = ys[i];
-      positions[vi + 5] = zs[i] + pz * _halfWidth;
+      positions[vi + 5] = zs[i] + pz * ribbonHalfWidth;
       for (var s = 0; s < 2; s++) {
         colors[vi + s * 3] = color.r;
         colors[vi + s * 3 + 1] = color.g;
