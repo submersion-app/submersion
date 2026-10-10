@@ -128,6 +128,44 @@ void main() {
       expect(r.dives.single['diveCenterRef'], r.diveCenters.single['uddfId']);
     });
 
+    test('a new center never reuses the id of a declared one', () async {
+      // The file declares a center whose id looks like a synthesized one but
+      // whose name differs, so the operator still needs a center of its own.
+      // Two centers sharing an id would leave the importer's id mapping
+      // pointing at only one of them.
+      const uddf = '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1">
+  <generator><name>MacDive</name></generator>
+  <applicationdata><submersion><divecenters>
+    <center id="diveoperator:blue dive"><name>Other Shop</name></center>
+  </divecenters></submersion></applicationdata>
+  <profiledata><repetitiongroup id="rg-1">
+    <dive id="d-0">
+      <informationbeforedive><datetime>2024-06-01T09:00:00</datetime></informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>18</greatestdepth><diveduration>2400</diveduration>
+      </informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+    <dive id="d-1">
+      <informationbeforedive><datetime>2024-06-02T09:00:00</datetime></informationbeforedive>
+      <informationafterdive>
+        <greatestdepth>18</greatestdepth><diveduration>2400</diveduration>
+        <diveoperator>Blue Dive</diveoperator>
+      </informationafterdive>
+      <samples><waypoint><divetime>0</divetime><depth>0</depth></waypoint></samples>
+    </dive>
+  </repetitiongroup></profiledata>
+</uddf>''';
+      final r = await service.importAllDataFromUddf(uddf);
+
+      final ids = r.diveCenters.map((c) => c['uddfId']).toList();
+      expect(ids, hasLength(2));
+      expect(ids.toSet(), hasLength(2), reason: 'ids must stay unique');
+      final blue = r.diveCenters.singleWhere((c) => c['name'] == 'Blue Dive');
+      expect(r.dives[1]['diveCenterRef'], blue['uddfId']);
+    });
+
     test('an operator named like a declared center links to it', () async {
       final r = await service.importAllDataFromUddf(
         _uddf(['Declared Center'], declaredCenter: 'Declared Center'),

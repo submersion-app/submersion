@@ -8,8 +8,9 @@
 class UddfOperatorCenters {
   UddfOperatorCenters._();
 
-  /// Prefix on the `uddfId` of a center made from an operator name, so it
-  /// cannot collide with the id of a center the file declares itself.
+  /// Prefix on the `uddfId` of a center made from an operator name. A file
+  /// can still declare an id that looks the same, so a taken id gets a
+  /// numeric suffix as well.
   static const refPrefix = 'diveoperator:';
 
   /// Points every dive that names an operator, and links no declared center,
@@ -34,6 +35,7 @@ class UddfOperatorCenters {
       for (final center in diveCenters)
         if (center['uddfId'] case final String id) id,
     };
+    final takenIds = {...declaredIds};
     final created = <String, Map<String, dynamic>>{};
 
     for (final dive in dives) {
@@ -48,7 +50,7 @@ class UddfOperatorCenters {
       final ref = refsByKey.putIfAbsent(key, () {
         final center = <String, dynamic>{
           'name': name,
-          'uddfId': '$refPrefix$key',
+          'uddfId': _uniqueId('$refPrefix$key', takenIds),
         };
         created[key] = center;
         diveCenters.add(center);
@@ -61,6 +63,16 @@ class UddfOperatorCenters {
         center['country'] = country;
       }
     }
+  }
+
+  /// [base], or [base] with the lowest `#n` suffix not in [taken], which
+  /// then holds it.
+  static String _uniqueId(String base, Set<String> taken) {
+    var id = base;
+    for (var n = 2; !taken.add(id); n++) {
+      id = '$base#$n';
+    }
+    return id;
   }
 
   static String? _key(Object? name) {
