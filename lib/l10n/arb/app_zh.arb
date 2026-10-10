@@ -2507,6 +2507,8 @@
   "diveLog_edit_label_swellHeight": "涌浪高度",
   "diveLog_edit_label_type": "类型",
   "diveLog_edit_label_visibility": "能见度",
+  "diveLog_edit_visibility_modeRange": "范围",
+  "diveLog_edit_visibility_modePrecise": "精确",
   "diveLog_edit_label_waterTemp": "水温",
   "diveLog_edit_label_waterType": "水类型",
   "diveLog_edit_label_weightName": "名称（可选）",

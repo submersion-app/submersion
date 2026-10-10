@@ -2298,6 +2298,8 @@
   "diveLog_edit_label_swellHeight": "Altezza onde",
   "diveLog_edit_label_type": "Tipo",
   "diveLog_edit_label_visibility": "Visibilità",
+  "diveLog_edit_visibility_modeRange": "Intervallo",
+  "diveLog_edit_visibility_modePrecise": "Preciso",
   "diveLog_edit_label_waterTemp": "Temp. acqua",
   "diveLog_edit_label_waterType": "Tipo di acqua",
   "diveLog_edit_label_weightName": "Nome (facoltativo)",

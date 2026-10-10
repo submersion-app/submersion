@@ -4407,6 +4407,8 @@
   "diveLog_edit_label_swellHeight": "Swell Height",
   "diveLog_edit_label_type": "Type",
   "diveLog_edit_label_visibility": "Visibility",
+  "diveLog_edit_visibility_modeRange": "Range",
+  "diveLog_edit_visibility_modePrecise": "Precise",
   "diveLog_edit_label_waterTemp": "Water Temp",
   "diveLog_edit_label_waterType": "Water Type",
   "diveLog_edit_label_weightName": "Name (optional)",

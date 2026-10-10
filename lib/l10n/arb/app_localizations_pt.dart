@@ -7299,6 +7299,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_label_visibility => 'Visibilidade';
 
   @override
+  String get diveLog_edit_visibility_modeRange => 'Faixa';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'Preciso';
+
+  @override
   String get diveLog_edit_label_waterTemp => 'Temp da Água';
 
   @override

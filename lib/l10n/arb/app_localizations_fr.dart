@@ -7320,6 +7320,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_label_visibility => 'Visibilité';
 
   @override
+  String get diveLog_edit_visibility_modeRange => 'Plage';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'Précis';
+
+  @override
   String get diveLog_edit_label_waterTemp => 'Temp eau';
 
   @override

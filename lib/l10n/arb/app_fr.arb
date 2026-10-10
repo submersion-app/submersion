@@ -2298,6 +2298,8 @@
   "diveLog_edit_label_swellHeight": "Hauteur de houle",
   "diveLog_edit_label_type": "Type",
   "diveLog_edit_label_visibility": "Visibilité",
+  "diveLog_edit_visibility_modeRange": "Plage",
+  "diveLog_edit_visibility_modePrecise": "Précis",
   "diveLog_edit_label_waterTemp": "Temp eau",
   "diveLog_edit_label_waterType": "Type d'eau",
   "diveLog_edit_label_weightName": "Nom (facultatif)",

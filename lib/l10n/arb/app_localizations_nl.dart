@@ -7256,6 +7256,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_label_visibility => 'Zicht';
 
   @override
+  String get diveLog_edit_visibility_modeRange => 'Bereik';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'Exact';
+
+  @override
   String get diveLog_edit_label_waterTemp => 'Watertemp.';
 
   @override

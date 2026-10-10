@@ -2425,6 +2425,8 @@
   "diveLog_edit_label_swellHeight": "Wellenhöhe",
   "diveLog_edit_label_type": "Typ",
   "diveLog_edit_label_visibility": "Sichtweite",
+  "diveLog_edit_visibility_modeRange": "Bereich",
+  "diveLog_edit_visibility_modePrecise": "Genau",
   "diveLog_edit_label_waterTemp": "Wassertemp.",
   "diveLog_edit_label_waterType": "Wasserart",
   "diveLog_edit_label_weightName": "Name (optional)",

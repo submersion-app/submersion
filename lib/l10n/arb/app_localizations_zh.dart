@@ -6938,6 +6938,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_label_visibility => '能见度';
 
   @override
+  String get diveLog_edit_visibility_modeRange => '范围';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => '精确';
+
+  @override
   String get diveLog_edit_label_waterTemp => '水温';
 
   @override

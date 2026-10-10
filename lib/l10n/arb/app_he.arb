@@ -2298,6 +2298,8 @@
   "diveLog_edit_label_swellHeight": "גובה גלים",
   "diveLog_edit_label_type": "סוג",
   "diveLog_edit_label_visibility": "ראות",
+  "diveLog_edit_visibility_modeRange": "טווח",
+  "diveLog_edit_visibility_modePrecise": "מדויק",
   "diveLog_edit_label_waterTemp": "טמפ' מים",
   "diveLog_edit_label_waterType": "סוג מים",
   "diveLog_edit_label_weightName": "שם (אופציונלי)",

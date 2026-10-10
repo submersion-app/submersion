@@ -7146,6 +7146,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_label_visibility => 'ראות';
 
   @override
+  String get diveLog_edit_visibility_modeRange => 'טווח';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'מדויק';
+
+  @override
   String get diveLog_edit_label_waterTemp => 'טמפ\' מים';
 
   @override

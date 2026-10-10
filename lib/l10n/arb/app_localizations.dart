@@ -11575,6 +11575,18 @@ abstract class AppLocalizations {
   /// **'Visibility'**
   String get diveLog_edit_label_visibility;
 
+  /// No description provided for @diveLog_edit_visibility_modeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Range'**
+  String get diveLog_edit_visibility_modeRange;
+
+  /// No description provided for @diveLog_edit_visibility_modePrecise.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise'**
+  String get diveLog_edit_visibility_modePrecise;
+
   /// No description provided for @diveLog_edit_label_waterTemp.
   ///
   /// In en, this message translates to:

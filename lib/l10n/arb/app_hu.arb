@@ -2298,6 +2298,8 @@
   "diveLog_edit_label_swellHeight": "Hullámmagasság",
   "diveLog_edit_label_type": "Típus",
   "diveLog_edit_label_visibility": "Látásviszonyok",
+  "diveLog_edit_visibility_modeRange": "Tartomány",
+  "diveLog_edit_visibility_modePrecise": "Pontos",
   "diveLog_edit_label_waterTemp": "Víz hőm.",
   "diveLog_edit_label_waterType": "Víz típusa",
   "diveLog_edit_label_weightName": "Név (nem kötelező)",

@@ -7284,6 +7284,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_label_visibility => 'Látásviszonyok';
 
   @override
+  String get diveLog_edit_visibility_modeRange => 'Tartomány';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'Pontos';
+
+  @override
   String get diveLog_edit_label_waterTemp => 'Víz hőm.';
 
   @override

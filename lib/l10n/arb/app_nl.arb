@@ -2400,6 +2400,8 @@
   "diveLog_edit_label_swellHeight": "Deiningshoogte",
   "diveLog_edit_label_type": "Type",
   "diveLog_edit_label_visibility": "Zicht",
+  "diveLog_edit_visibility_modeRange": "Bereik",
+  "diveLog_edit_visibility_modePrecise": "Exact",
   "diveLog_edit_label_waterTemp": "Watertemp.",
   "diveLog_edit_label_waterType": "Watertype",
   "diveLog_edit_label_weightName": "Naam (optioneel)",

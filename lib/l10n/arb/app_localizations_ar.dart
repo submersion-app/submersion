@@ -7394,6 +7394,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_label_visibility => 'الرؤية';
 
   @override
+  String get diveLog_edit_visibility_modeRange => 'نطاق';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'دقيق';
+
+  @override
   String get diveLog_edit_label_waterTemp => 'درجة حرارة الماء';
 
   @override

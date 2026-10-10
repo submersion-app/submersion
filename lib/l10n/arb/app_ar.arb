@@ -2400,6 +2400,8 @@
   "diveLog_edit_label_swellHeight": "ارتفاع الموج",
   "diveLog_edit_label_type": "النوع",
   "diveLog_edit_label_visibility": "الرؤية",
+  "diveLog_edit_visibility_modeRange": "نطاق",
+  "diveLog_edit_visibility_modePrecise": "دقيق",
   "diveLog_edit_label_waterTemp": "درجة حرارة الماء",
   "diveLog_edit_label_waterType": "نوع المياه",
   "diveLog_edit_label_weightName": "الاسم (اختياري)",
