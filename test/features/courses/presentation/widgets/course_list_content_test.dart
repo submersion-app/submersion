@@ -838,6 +838,8 @@ void main() {
       await tester.pumpWidget(
         testApp(
           overrides: overrides,
+          // The assertions match English button labels.
+          locale: const Locale('en'),
           child: MasterDetailFormScope(
             isFormOpen: isFormOpen,
             child: const CourseListContent(showAppBar: true),
