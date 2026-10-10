@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -148,5 +149,31 @@ void main() {
     // Let the MOD and Best Mix calculators' debounced saves run out.
     await tester.pump(ModCalculatorNotifier.saveDelay);
     await tester.pump(BestMixCalculatorNotifier.saveDelay);
+  });
+
+  testWidgets('beside the pane, Down opens the next calculator (#3065)', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final opened = <String?>[];
+    await tester.pumpWidget(
+      testApp(
+        overrides: base.cast(),
+        child: GasCalculatorsListContent(
+          showAppBar: false,
+          onToolSelected: opened.add,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byType(PlanningTile).first);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
+
+    expect(opened, [kGasCalculatorIds[0], kGasCalculatorIds[1]]);
   });
 }

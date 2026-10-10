@@ -28,6 +28,7 @@ class TankRow extends StatefulWidget {
     this.tripCylinderStates,
     this.takenTripCylinderIds = const {},
     this.suggested = false,
+    this.diveId,
   });
 
   final DiveTank tank;
@@ -53,6 +54,9 @@ class TankRow extends StatefulWidget {
 
   /// Forwarded to [TankEditor.suggested].
   final bool suggested;
+
+  /// Forwarded to [TankEditor.diveId].
+  final String? diveId;
 
   @override
   State<TankRow> createState() => _TankRowState();
@@ -132,6 +136,7 @@ class _TankRowState extends State<TankRow> {
               tripCylinderStates: widget.tripCylinderStates,
               takenTripCylinderIds: widget.takenTripCylinderIds,
               suggested: widget.suggested,
+              diveId: widget.diveId,
             ),
             Align(
               alignment: Alignment.centerRight,

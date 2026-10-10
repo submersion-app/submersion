@@ -10,7 +10,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 Map<String, dynamic> applyTankDefaults(
   Map<String, dynamic> tank, {
   required TankPresetEntity? defaultPreset,
-  required int defaultStartPressure,
+  required double defaultStartPressure,
 }) {
   final result = Map<String, dynamic>.of(tank);
 
@@ -53,7 +53,7 @@ Map<String, dynamic> applyTankDefaults(
 List<Map<String, dynamic>> applyTankDefaultsToList(
   List<Map<String, dynamic>> tanks, {
   required TankPresetEntity? defaultPreset,
-  required int defaultStartPressure,
+  required double defaultStartPressure,
 }) {
   return tanks
       .map(

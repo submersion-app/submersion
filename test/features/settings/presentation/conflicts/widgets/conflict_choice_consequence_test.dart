@@ -129,6 +129,85 @@ void main() {
     );
   });
 
+  group('generic device labels read as part of the sentence', () {
+    const generic = ConflictDeviceLabels(
+      local: 'This device',
+      remote: 'Other device',
+      localKind: ConflictDeviceKind.thisDevice,
+      remoteKind: ConflictDeviceKind.otherDevice,
+    );
+
+    String genericText(
+      ConflictComparison c,
+      ConflictResolution choice, {
+      ConflictDeviceLabels devices = generic,
+    }) => conflictConsequence(
+      l10n: l10n,
+      comparison: c,
+      devices: devices,
+      choice: choice,
+    );
+
+    test('keep local', () {
+      expect(
+        genericText(differing, ConflictResolution.keepLocal),
+        "Keeps this device's version. The other device's values for Water "
+        'temp, Notes are discarded.',
+      );
+    });
+
+    test('keep remote', () {
+      expect(
+        genericText(differing, ConflictResolution.keepRemote),
+        "Keeps the other device's version. This device's values for Water "
+        'temp, Notes are discarded.',
+      );
+    });
+
+    test('keep both', () {
+      expect(
+        genericText(differing, ConflictResolution.keepBoth),
+        "Keeps this device's version and adds the other device's version as "
+        'a separate copy.',
+      );
+    });
+
+    test('keep the surviving record', () {
+      expect(
+        genericText(
+          const ConflictComparison(
+            state: ConflictComparisonState.remoteDeleted,
+          ),
+          ConflictResolution.keepLocal,
+        ),
+        "Keeps the record, with this device's values.",
+      );
+      expect(
+        genericText(
+          const ConflictComparison(state: ConflictComparisonState.localDeleted),
+          ConflictResolution.keepRemote,
+        ),
+        "Keeps the record, with the other device's values.",
+      );
+    });
+
+    test('a named side next to a generic one keeps its name', () {
+      expect(
+        genericText(
+          differing,
+          ConflictResolution.keepLocal,
+          devices: const ConflictDeviceLabels(
+            local: 'Pixel 8',
+            remote: 'Other device',
+            remoteKind: ConflictDeviceKind.otherDevice,
+          ),
+        ),
+        "Keeps Pixel 8's version. The other device's values for Water temp, "
+        'Notes are discarded.',
+      );
+    });
+  });
+
   group('canKeepBoth', () {
     SyncConflict c(
       Map<String, dynamic> local,

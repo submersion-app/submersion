@@ -55,11 +55,13 @@ class ConflictComparisonView extends StatelessWidget {
             context,
             l10n.settings_conflict_remoteDeleted(devices.remote),
             devices.local,
+            devices.localKind,
           ),
           ConflictComparisonState.localDeleted => _deleted(
             context,
             l10n.settings_conflict_localDeleted(devices.local),
             devices.remote,
+            devices.remoteKind,
           ),
         },
         if (c.unchanged.isNotEmpty)
@@ -123,7 +125,12 @@ class ConflictComparisonView extends StatelessWidget {
     );
   }
 
-  Widget _deleted(BuildContext context, String message, String survivor) {
+  Widget _deleted(
+    BuildContext context,
+    String message,
+    String survivor,
+    ConflictDeviceKind survivorKind,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -131,7 +138,10 @@ class ConflictComparisonView extends StatelessWidget {
         if (comparison.survivingValues.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
-            context.l10n.settings_conflict_deletedValues(survivor),
+            context.l10n.settings_conflict_deletedValues(
+              survivor,
+              survivorKind.name,
+            ),
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 4),

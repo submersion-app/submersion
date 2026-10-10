@@ -28,6 +28,7 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/select_items_menu.dart';
+import '../../../../helpers/keyboard_navigation_contract.dart';
 import '../../../../helpers/selection_contract.dart';
 
 // ---------------------------------------------------------------------------
@@ -274,6 +275,37 @@ void main() {
           notifier.showOnly([all.first]);
         },
         visibleAfterFilter: 1,
+      );
+
+      List<Override> keyboardOverrides() => [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
+        courseListNotifierProvider.overrideWith(
+          (ref) => _MockCourseListNotifier(all),
+        ),
+        courseListViewModeProvider.overrideWith((ref) => ListViewMode.detailed),
+        courseTableConfigProvider.overrideWith(
+          (ref) => _TestCourseTableConfigNotifier(_testConfig),
+        ),
+        highlightedCourseIdProvider.overrideWith((ref) => null),
+      ];
+
+      // The keyboard contract mounts the list twice, and a ProviderScope
+      // disposes the notifier it was handed, so each mount gets its own.
+      await verifyKeyboardNavigationContract(
+        tester,
+        build: (onItemSelected) => testApp(
+          overrides: keyboardOverrides(),
+          locale: const Locale('en'),
+          child: CourseListContent(
+            showAppBar: true,
+            onItemSelected: onItemSelected,
+          ),
+        ),
+        firstRow: find.text('Aaa Course'),
       );
     });
   });

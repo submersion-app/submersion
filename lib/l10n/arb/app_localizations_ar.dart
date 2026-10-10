@@ -9871,6 +9871,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'خليط الغاز';
 
   @override
+  String get diveLog_tank_computerMix_matches => 'سجّله كمبيوتر الغوص الخاص بك';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'سجّل كمبيوتر الغوص الخاص بك $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'استعادة';
+
+  @override
   String get diveLog_tank_selectPreset => 'اختر إعداداً مسبقاً...';
 
   @override
@@ -15011,18 +15022,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'حفظ التغييرات';
-
-  @override
-  String get equipment_edit_saveButton_new => 'إضافة معدات';
-
-  @override
-  String get equipment_edit_saveTooltip_edit => 'حفظ تغييرات المعدات';
-
-  @override
-  String get equipment_edit_saveTooltip_new => 'إضافة عنصر معدات جديد';
-
-  @override
   String get equipment_edit_selectDate => 'اختر التاريخ';
 
   @override
@@ -15035,6 +15034,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return 'خطأ في حفظ المعدات: $error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'تم الحفظ، لكن عرض القائمة الحالي يخفيه';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'عرض';
 
   @override
   String get equipment_edit_snackbar_updated => 'تم تحديث المعدات';
@@ -15991,12 +15997,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => 'المجموعة غير موجودة';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => 'حفظ التغييرات';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'إنشاء مجموعة';
 
   @override
   String get equipment_setEdit_saveTooltip_edit => 'حفظ تغييرات مجموعة المعدات';
@@ -21110,20 +21110,55 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'يحتفظ بنسخة $kept. تُتجاهل قيم $discarded لهذه الحقول: $fields.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$discarded',
+    });
+    return 'يحتفظ بنسخة $_temp0. تُتجاهل قيم $_temp1 لهذه الحقول: $fields.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'يحتفظ بنسخة $local ويضيف نسخة $remote كنسخة منفصلة.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$remote',
+    });
+    return 'يحتفظ بنسخة $_temp0 ويضيف نسخة $_temp1 كنسخة منفصلة.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'يحتفظ بالسجل بقيم $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$device',
+    });
+    return 'يحتفظ بالسجل بقيم $_temp0.';
   }
 
   @override
@@ -21140,8 +21175,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'السجل كما هو على $device:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'هذا الجهاز',
+      'otherDevice': 'الجهاز الآخر',
+      'other': '$device',
+    });
+    return 'السجل كما هو على $_temp0:';
   }
 
   @override
@@ -23051,8 +23091,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_keepBoth => 'الاحتفاظ بكليهما';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'الاحتفاظ بـ $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'الاحتفاظ بنسخة هذا الجهاز',
+      'otherDevice': 'الاحتفاظ بنسخة الجهاز الآخر',
+      'other': 'الاحتفاظ بـ $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -26484,10 +26529,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'توزيع العمق';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'مخطط دائري يعرض توزيع أنواع الغوص';
-
-  @override
   String get insights_summary_diveTypes_title => 'أنواع الغوص';
 
   @override
@@ -28612,16 +28653,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_edit_appBar_edit => 'تعديل الرحلة';
 
   @override
-  String get trips_edit_button_add => 'إضافة رحلة';
-
-  @override
   String get trips_edit_button_cancel => 'إلغاء';
 
   @override
   String get trips_edit_button_save => 'حفظ';
-
-  @override
-  String get trips_edit_button_update => 'تحديث الرحلة';
 
   @override
   String get trips_edit_dialog_discard => 'تجاهل';
@@ -32241,6 +32276,18 @@ class AppLocalizationsAr extends AppLocalizations {
       'ملء بيانات الخزان المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
 
   @override
+  String get tankPresets_defaultStartPressure => 'ضغط البداية الافتراضي';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'يُملأ في الخزانات الجديدة، وفي الخزانات المستوردة التي ليس لها ضغط بداية عند تطبيق الخزان الافتراضي على الاستيراد';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'أدخل ضغطًا من $min إلى $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'إعداد أسطوانة جديد';
 
   @override
@@ -35463,6 +35510,26 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'المنطقة غير معروفة - يُستخدم الخط العالمي';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'المنطقة: $region، محددة يدويًا';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'تغيير المنطقة';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'منطقة الطوارئ';
+
+  @override
+  String get emergencyCard_regionPicker_automatic => 'تلقائي (أحدث غطسة)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'البحث عن الدول';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'لا توجد دول مطابقة';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -44588,6 +44655,30 @@ class AppLocalizationsAr extends AppLocalizations {
       'أي الأسطوانات المحمولة يمكن للصعود المحاكى (TTS والسقف والمحطات) التبديل إليها عند كل عمق. تؤخذ في الاعتبار الغازات المسجَّلة في الغوصة فقط.';
 
   @override
+  String get settings_decompression_header_ascentRate => 'سرعة الصعود';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'الحدود التي تستخدمها ألوان وأحداث سرعة الصعود في الملف. تحتفظ مراجعة السلامة بحدودها الثابتة الخاصة، لذا لا يؤدي تغيير هذه القيم أبدًا إلى تعديل الغطسات التي تمت مراجعتها.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds => 'حدود سرعة الصعود';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'تحذير $warning، حرج $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'تحذير';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'حرج';
+
+  @override
   String get settings_decompression_header_dataSources =>
       'تفضيلات مصدر البيانات';
 
@@ -46522,6 +46613,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'تعذر تبديل مراجعة الملف الشخصي.';
+
+  @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'حُفظ قبل سجل المراجعات؛ غير مرتبط بأي حاسوب غوص';
 
   @override
   String diveLog_sources_sectionTitle(int count) {

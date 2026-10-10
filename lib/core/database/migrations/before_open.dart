@@ -11,6 +11,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // database that reached 261 without the rung.
     await _dropDefaultCeilingSourceColumn();
 
+    // v275 backstop: the REAL default start pressure.
+    await _retypeDefaultStartPressureColumn();
+
     // v257 backstop: metadata-only profile revision history over existing
     // dive_profile_series rows. Safe to re-run: INSERT OR IGNORE keeps
     // existing revisions untouched and only fills missing pointer rows.
@@ -56,7 +59,7 @@ extension BeforeOpenBackstops on AppDatabase {
     // default_show_late_gas_switches.
     await _assertAutoTagImportsColumn();
     await _assertLateGasSwitchSettingColumn();
-    // v275 backstop: diver_settings.icd_warnings_enabled.
+    // v276 backstop: diver_settings.icd_warnings_enabled.
     await _assertIcdWarningsColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.

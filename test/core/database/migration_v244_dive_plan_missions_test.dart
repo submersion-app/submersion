@@ -66,7 +66,11 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(244));
     expect(AppDatabase.migrationStepCount(242), greaterThanOrEqualTo(1));
     // Table-only rung: the sync compatibility floor must not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('a database from a v240 build gains the three tables', () async {

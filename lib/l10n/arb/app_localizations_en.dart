@@ -9598,6 +9598,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'Gas Mix';
 
   @override
+  String get diveLog_tank_computerMix_matches =>
+      'Recorded by your dive computer';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'Your dive computer recorded $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'Restore';
+
+  @override
   String get diveLog_tank_selectPreset => 'Select Preset...';
 
   @override
@@ -14611,18 +14623,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'Save Changes';
-
-  @override
-  String get equipment_edit_saveButton_new => 'Add Equipment';
-
-  @override
-  String get equipment_edit_saveTooltip_edit => 'Save equipment changes';
-
-  @override
-  String get equipment_edit_saveTooltip_new => 'Add new equipment item';
-
-  @override
   String get equipment_edit_selectDate => 'Select Date';
 
   @override
@@ -14635,6 +14635,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return 'Error saving equipment: $error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Saved, but the current list view hides it';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Show';
 
   @override
   String get equipment_edit_snackbar_updated => 'Equipment updated';
@@ -15552,12 +15559,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => 'Set Not Found';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => 'Save Changes';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'Create Set';
 
   @override
   String get equipment_setEdit_saveTooltip_edit => 'Save equipment set changes';
@@ -20525,20 +20526,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Keeps $kept\'s version. $discarded\'s values for $fields are discarded.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'this device\'s',
+      'otherDevice': 'the other device\'s',
+      'other': '$kept\'s',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'This device\'s',
+      'otherDevice': 'The other device\'s',
+      'other': '$discarded\'s',
+    });
+    return 'Keeps $_temp0 version. $_temp1 values for $fields are discarded.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Keeps $local\'s version and adds $remote\'s version as a separate copy.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'this device\'s',
+      'otherDevice': 'the other device\'s',
+      'other': '$local\'s',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'this device\'s',
+      'otherDevice': 'the other device\'s',
+      'other': '$remote\'s',
+    });
+    return 'Keeps $_temp0 version and adds $_temp1 version as a separate copy.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Keeps the record, with $device\'s values.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'this device\'s',
+      'otherDevice': 'the other device\'s',
+      'other': '$device\'s',
+    });
+    return 'Keeps the record, with $_temp0 values.';
   }
 
   @override
@@ -20555,8 +20591,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'The record as $device has it:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'this device',
+      'otherDevice': 'the other device',
+      'other': '$device',
+    });
+    return 'The record as $_temp0 has it:';
   }
 
   @override
@@ -22482,8 +22523,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Keep Both';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'Keep $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Keep this device\'s version',
+      'otherDevice': 'Keep the other device\'s version',
+      'other': 'Keep $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -25864,10 +25910,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'Depth Distribution';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'Pie chart showing dive type distribution';
-
-  @override
   String get insights_summary_diveTypes_title => 'Dive Types';
 
   @override
@@ -27808,16 +27850,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_edit_appBar_edit => 'Edit Trip';
 
   @override
-  String get trips_edit_button_add => 'Add Trip';
-
-  @override
   String get trips_edit_button_cancel => 'Cancel';
 
   @override
   String get trips_edit_button_save => 'Save';
-
-  @override
-  String get trips_edit_button_update => 'Update Trip';
 
   @override
   String get trips_edit_dialog_discard => 'Discard';
@@ -31286,6 +31322,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Fill in missing tank data on imported dives using the default preset';
 
   @override
+  String get tankPresets_defaultStartPressure => 'Default start pressure';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Filled in on new tanks, and on imported tanks with no start pressure when the default tank is applied to imports';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Enter a pressure from $min to $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'New Tank Preset';
 
   @override
@@ -34432,6 +34480,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Region unknown - using worldwide hotline';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Region: $region, set manually';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Change region';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Emergency region';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automatic (most recent dive)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Search countries';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'No matching countries';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43396,6 +43465,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Which carried cylinders the simulated ascent (TTS, ceiling and stops) may switch to at each depth. Only gases recorded on the dive are considered.';
 
   @override
+  String get settings_decompression_header_ascentRate => 'Ascent rate';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'The rates the profile\'s ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Ascent rate thresholds';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Warning $warning, critical $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Warning';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Critical';
+
+  @override
   String get settings_decompression_header_dataSources =>
       'Data Source Preferences';
 
@@ -45194,6 +45288,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Could not switch profile revision.';
+
+  @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Saved before revision history; not linked to a computer';
 
   @override
   String diveLog_sources_sectionTitle(int count) {

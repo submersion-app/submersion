@@ -147,6 +147,10 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final mockSettings = MockSettingsNotifier();
+      // Tall enough that the lazily built list reaches the built-in row
+      // below the default-tank settings.
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final router = GoRouter(
         routes: [

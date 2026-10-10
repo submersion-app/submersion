@@ -20,7 +20,11 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(242));
     expect(AppDatabase.migrationStepCount(240), greaterThanOrEqualTo(1));
     // A local cache: the sync compatibility floor must not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('a fresh database has the cache table and no hlc column', () async {

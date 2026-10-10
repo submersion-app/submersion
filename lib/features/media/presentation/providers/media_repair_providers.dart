@@ -9,7 +9,6 @@ import 'package:submersion/features/media/data/services/repair/photo_library_can
 import 'package:submersion/features/media/data/services/repair/store_candidate_source.dart';
 import 'package:submersion/features/media/data/services/volume_status.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/services/media_repair_matcher.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
@@ -220,27 +219,11 @@ final repairWizardProvider =
       ref,
     ) {
       return RepairWizardNotifier(
-        loadMissingRows: () async {
-          final repo = ref.read(mediaLibraryRepositoryProvider);
-          final diverId = ref.read(currentDiverIdProvider);
-          final rows = <MediaItem>[];
-          MediaLibraryCursor? cursor;
-          // Page through every missing row: repairs operate on the full set,
-          // not the first screenful.
-          do {
-            final page = await repo.getPage(
-              diverId: diverId,
-              filter: const MediaLibraryFilter(
-                health: MediaHealthFilter.missing,
-              ),
-              after: cursor,
-              limit: 200,
-            );
-            rows.addAll(page.entries.map((e) => e.item));
-            cursor = page.nextCursor;
-          } while (cursor != null);
-          return rows;
-        },
+        // Every missing row, documents included: repairs operate on the
+        // full set, not the gallery's view of it.
+        loadMissingRows: () => ref
+            .read(mediaLibraryRepositoryProvider)
+            .getMissingRows(diverId: ref.read(currentDiverIdProvider)),
         buildSources: (config) => [
           if (config.folderRoots.isNotEmpty)
             FolderCandidateSource(roots: config.folderRoots),

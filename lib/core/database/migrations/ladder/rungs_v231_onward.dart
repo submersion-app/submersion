@@ -295,11 +295,17 @@ extension RungsFromV231 on AppDatabase {
       await _assertHasAcceptedPlanningDisclaimerColumn();
     }
     if (from < 274) await reportProgress();
-    // v275: diver_settings.icd_warnings_enabled (issue #3121). Column
-    // only, defaulting on; re-asserted in beforeOpen.
+    // v275: diver_settings.default_start_pressure retyped INTEGER to REAL
+    // (issue #3091). Re-asserted in beforeOpen.
     if (from < 275) {
-      await _assertIcdWarningsColumn();
+      await _retypeDefaultStartPressureColumn();
     }
     if (from < 275) await reportProgress();
+    // v276: diver_settings.icd_warnings_enabled (issue #3121). Column
+    // only, defaulting on; re-asserted in beforeOpen.
+    if (from < 276) {
+      await _assertIcdWarningsColumn();
+    }
+    if (from < 276) await reportProgress();
   }
 }

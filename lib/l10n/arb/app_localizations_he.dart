@@ -9536,6 +9536,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'תערובת גזים';
 
   @override
+  String get diveLog_tank_computerMix_matches => 'נרשם על ידי מחשב הצלילה שלך';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'מחשב הצלילה שלך רשם $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'שחזור';
+
+  @override
   String get diveLog_tank_selectPreset => 'בחר תבנית...';
 
   @override
@@ -14519,18 +14530,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'שמור שינויים';
-
-  @override
-  String get equipment_edit_saveButton_new => 'הוסף ציוד';
-
-  @override
-  String get equipment_edit_saveTooltip_edit => 'שמור שינויי ציוד';
-
-  @override
-  String get equipment_edit_saveTooltip_new => 'הוסף פריט ציוד חדש';
-
-  @override
   String get equipment_edit_selectDate => 'בחר תאריך';
 
   @override
@@ -14543,6 +14542,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return 'שגיאה בשמירת ציוד: $error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'נשמר, אך תצוגת הרשימה הנוכחית מסתירה אותו';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'הצג';
 
   @override
   String get equipment_edit_snackbar_updated => 'הציוד עודכן';
@@ -15446,12 +15452,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => 'הסט לא נמצא';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => 'שמור שינויים';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'צור סט';
 
   @override
   String get equipment_setEdit_saveTooltip_edit => 'שמור שינויי סט ציוד';
@@ -20367,20 +20367,55 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'שומר את הגרסה של $kept. הערכים של $discarded עבור $fields נמחקים.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$discarded',
+    });
+    return 'שומר את הגרסה של $_temp0. הערכים של $_temp1 עבור $fields נמחקים.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'שומר את הגרסה של $local ומוסיף את הגרסה של $remote כעותק נפרד.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$remote',
+    });
+    return 'שומר את הגרסה של $_temp0 ומוסיף את הגרסה של $_temp1 כעותק נפרד.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'שומר את הרשומה, עם הערכים של $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'המכשיר הזה',
+      'otherDevice': 'המכשיר האחר',
+      'other': '$device',
+    });
+    return 'שומר את הרשומה, עם הערכים של $_temp0.';
   }
 
   @override
@@ -20397,8 +20432,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'הרשומה כפי שהיא ב-$device:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'במכשיר הזה',
+      'otherDevice': 'במכשיר האחר',
+      'other': 'ב-$device',
+    });
+    return 'הרשומה כפי שהיא $_temp0:';
   }
 
   @override
@@ -22291,8 +22331,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_keepBoth => 'שמור את שניהם';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'שמור את $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'שמור את הגרסה של המכשיר הזה',
+      'otherDevice': 'שמור את הגרסה של המכשיר האחר',
+      'other': 'שמור את $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -25649,10 +25694,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'התפלגות עומק';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'תרשים עוגה המציג התפלגות סוגי צלילה';
-
-  @override
   String get insights_summary_diveTypes_title => 'סוגי צלילה';
 
   @override
@@ -27582,16 +27623,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_appBar_edit => 'ערוך טיול';
 
   @override
-  String get trips_edit_button_add => 'הוסף טיול';
-
-  @override
   String get trips_edit_button_cancel => 'ביטול';
 
   @override
   String get trips_edit_button_save => 'שמירה';
-
-  @override
-  String get trips_edit_button_update => 'עדכן טיול';
 
   @override
   String get trips_edit_dialog_discard => 'מחיקה';
@@ -31041,6 +31076,18 @@ class AppLocalizationsHe extends AppLocalizations {
       'השלם נתוני מיכל חסרים בצלילות מיובאות באמצעות תבנית ברירת המחדל';
 
   @override
+  String get tankPresets_defaultStartPressure => 'לחץ התחלתי ברירת מחדל';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'ממולא במיכלים חדשים, ובמיכלים מיובאים ללא לחץ התחלתי כאשר מיכל ברירת המחדל מוחל על ייבוא';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'הזן לחץ בין $min ל-$max';
+  }
+
+  @override
   String get tankPresets_new_title => 'תבנית מיכל חדשה';
 
   @override
@@ -34156,6 +34203,26 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'אזור לא ידוע - נעשה שימוש בקו העולמי';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'אזור: $region, הוגדר ידנית';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'שינוי אזור';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'אזור חירום';
+
+  @override
+  String get emergencyCard_regionPicker_automatic => 'אוטומטי (הצלילה האחרונה)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'חיפוש מדינות';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'אין מדינות תואמות';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43111,6 +43178,30 @@ class AppLocalizationsHe extends AppLocalizations {
       'לאילו בלונים נישאים העלייה המדומה (TTS, תקרה ועצירות) יכולה לעבור בכל עומק. נלקחים בחשבון רק גזים שנרשמו בצלילה.';
 
   @override
+  String get settings_decompression_header_ascentRate => 'קצב עלייה';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'הספים שבהם משתמשים הצבעים והאירועים של קצב העלייה בפרופיל. סקירת הבטיחות שומרת על מגבלות קבועות משלה, כך ששינוי ערכים אלה אינו משנה צלילות שכבר נסקרו.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds => 'ספי קצב עלייה';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'אזהרה $warning, קריטי $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'אזהרה';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'קריטי';
+
+  @override
   String get settings_decompression_header_dataSources => 'העדפות מקור נתונים';
 
   @override
@@ -44956,6 +45047,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'לא ניתן להחליף את גרסת הפרופיל.';
+
+  @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'נשמר לפני היסטוריית הגרסאות; לא מקושר למחשב צלילה';
 
   @override
   String diveLog_sources_sectionTitle(int count) {

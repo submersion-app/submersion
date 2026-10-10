@@ -276,7 +276,10 @@ class _ConflictResolutionDialogState
             children: [
               ChoiceChip(
                 label: Text(
-                  context.l10n.settings_conflict_keepDevice(devices.local),
+                  context.l10n.settings_conflict_keepDevice(
+                    devices.local,
+                    devices.localKind.name,
+                  ),
                 ),
                 selected: selected == ConflictResolution.keepLocal,
                 onSelected: (_) =>
@@ -285,7 +288,10 @@ class _ConflictResolutionDialogState
               ),
               ChoiceChip(
                 label: Text(
-                  context.l10n.settings_conflict_keepDevice(devices.remote),
+                  context.l10n.settings_conflict_keepDevice(
+                    devices.remote,
+                    devices.remoteKind.name,
+                  ),
                 ),
                 selected: selected == ConflictResolution.keepRemote,
                 onSelected: (_) =>

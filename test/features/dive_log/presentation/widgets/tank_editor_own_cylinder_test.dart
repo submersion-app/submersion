@@ -134,6 +134,7 @@ void main() {
     Future<void> Function(EquipmentItem)? onOwnCylinderUsed,
     List<EquipmentItem>? gear,
     List<dynamic> extra = const [],
+    DiveTank tank = const DiveTank(id: 'tank-1'),
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -161,7 +162,7 @@ void main() {
           home: Scaffold(
             body: SingleChildScrollView(
               child: TankEditor(
-                tank: const DiveTank(id: 'tank-1'),
+                tank: tank,
                 tankNumber: 1,
                 onChanged: onChanged,
                 onOwnCylinderUsed: onOwnCylinderUsed,
@@ -219,6 +220,29 @@ void main() {
     expect(changed!.volume, 11.1);
     expect(changed!.workingPressure, 207);
     expect(changed!.gasMix.o2, 21);
+  });
+
+  testWidgets('a tank the dive computer recorded keeps its mix (#3021)', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+      tank: const DiveTank(
+        id: 'tank-1',
+        gasMix: GasMix(o2: 28),
+        computerId: 'dc1',
+        sourceTankIndex: 0,
+      ),
+    );
+    await pick(tester, faber);
+
+    // The spec fills from the cylinder; the fill's EAN32 does not replace
+    // the EAN28 the computer logged.
+    expect(changed!.volume, 12);
+    expect(changed!.gasMix.o2, 28);
   });
 
   testWidgets('offers only the tank gear in use, and says what picking does', (

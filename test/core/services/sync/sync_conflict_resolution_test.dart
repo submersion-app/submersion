@@ -347,6 +347,49 @@ void main() {
       },
     );
 
+    // Issue #3025. Keep remote overlays the remote row onto the local one;
+    // a peer below the compatibility floor spells the category the old way,
+    // and its value must still replace ours.
+    test("keepRemote applies an older peer's legacy service key", () async {
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "INSERT INTO equipment (id, name, type, purchase_currency, "
+        "custom_reminder_enabled, custom_reminder_days, created_at, "
+        "updated_at) VALUES ('e1', 'Reg', 'regulator', 'USD', 0, '', 1, 1)",
+      );
+      final record = {
+        'id': 'svc-1',
+        'equipmentId': 'e1',
+        'serviceDate': 1700000000000,
+        'currency': 'USD',
+        'notes': '',
+        'createdAt': 1700000000000,
+        'updatedAt': 1700000000000,
+      };
+      await SyncDataSerializer().upsertRecord('serviceRecords', {
+        ...record,
+        'serviceCategory': 'cleaning',
+      });
+      await raiseConflict('serviceRecords', 'svc-1', {
+        ...record,
+        'serviceType': 'repair',
+        'updatedAt': 1700000005000,
+      });
+
+      await buildService().resolveConflict(
+        'serviceRecords',
+        'svc-1',
+        ConflictResolution.keepRemote,
+      );
+
+      final row = await db
+          .customSelect(
+            "SELECT service_category FROM service_records WHERE id = 'svc-1'",
+          )
+          .getSingle();
+      expect(row.read<String>('service_category'), 'repair');
+    });
+
     group('a route from a peer below v252 (no diverId)', () {
       late String routeId;
       late Map<String, dynamic> fromOlderPeer;

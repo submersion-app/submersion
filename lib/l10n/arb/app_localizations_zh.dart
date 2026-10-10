@@ -9277,6 +9277,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_section_gasMix => '气体混合';
 
   @override
+  String get diveLog_tank_computerMix_matches => '由潜水电脑记录';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return '潜水电脑记录的是 $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => '恢复';
+
+  @override
   String get diveLog_tank_selectPreset => '选择预设...';
 
   @override
@@ -14151,18 +14162,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => '保存更改';
-
-  @override
-  String get equipment_edit_saveButton_new => '添加装备';
-
-  @override
-  String get equipment_edit_saveTooltip_edit => '保存装备更改';
-
-  @override
-  String get equipment_edit_saveTooltip_new => '添加新装备';
-
-  @override
   String get equipment_edit_selectDate => '选择日期';
 
   @override
@@ -14175,6 +14174,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return '保存装备出错：$error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView => '已保存，但当前列表视图将其隐藏';
+
+  @override
+  String get equipment_edit_snackbar_showAction => '显示';
 
   @override
   String get equipment_edit_snackbar_updated => '装备已更新';
@@ -15041,12 +15046,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => '未找到套装';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => '保存更改';
-
-  @override
-  String get equipment_setEdit_saveButton_new => '创建套装';
 
   @override
   String get equipment_setEdit_saveTooltip_edit => '保存装备套装更改';
@@ -19802,20 +19801,55 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return '保留 $kept 的版本。$discarded 中 $fields 的值将被舍弃。';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': ' $kept ',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': '$discarded ',
+    });
+    return '保留$_temp0的版本。$_temp1中 $fields 的值将被舍弃。';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return '保留 $local 的版本，并将 $remote 的版本添加为单独的副本。';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': ' $local ',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': ' $remote ',
+    });
+    return '保留$_temp0的版本，并将$_temp1的版本添加为单独的副本。';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return '保留该记录，使用 $device 的值。';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': ' $device ',
+    });
+    return '保留该记录，使用$_temp0的值。';
   }
 
   @override
@@ -19830,8 +19864,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return '$device 上的记录：';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': '本设备',
+      'otherDevice': '另一台设备',
+      'other': '$device ',
+    });
+    return '$_temp0上的记录：';
   }
 
   @override
@@ -21610,8 +21649,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_keepBoth => '保留两者';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return '保留 $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': '保留本设备的版本',
+      'otherDevice': '保留另一台设备的版本',
+      'other': '保留 $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -24841,9 +24885,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_summary_depthDistribution_title => '深度分布';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel => '显示潜水类型分布的饼图';
-
-  @override
   String get insights_summary_diveTypes_title => '潜水类型';
 
   @override
@@ -26715,16 +26756,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_edit_appBar_edit => '编辑旅行';
 
   @override
-  String get trips_edit_button_add => '添加旅行';
-
-  @override
   String get trips_edit_button_cancel => '取消';
 
   @override
   String get trips_edit_button_save => '保存';
-
-  @override
-  String get trips_edit_button_update => '更新旅行';
 
   @override
   String get trips_edit_dialog_discard => '丢弃';
@@ -30017,6 +30052,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tankPresets_applyToImports_subtitle => '使用默认预设为导入的潜水填充缺失的气瓶数据';
 
   @override
+  String get tankPresets_defaultStartPressure => '默认起始压力';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      '用于新气瓶，以及在将默认气瓶应用于导入时没有起始压力的导入气瓶';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return '请输入 $min 至 $max 之间的压力';
+  }
+
+  @override
   String get tankPresets_new_title => '新建气瓶预设';
 
   @override
@@ -33031,6 +33078,26 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get emergencyCard_regionUnknown => '区域未知 - 使用全球热线';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return '区域:$region，手动设置';
+  }
+
+  @override
+  String get emergencyCard_regionChange => '更改区域';
+
+  @override
+  String get emergencyCard_regionPicker_title => '紧急救援地区';
+
+  @override
+  String get emergencyCard_regionPicker_automatic => '自动（最近一次潜水）';
+
+  @override
+  String get emergencyCard_regionPicker_search => '搜索国家/地区';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => '没有匹配的国家/地区';
 
   @override
   String get emergencyCard_noDiverData => '无潜水员资料。请在潜水员资料设置中添加紧急联系人、医疗和保险信息。';
@@ -41426,6 +41493,30 @@ class AppLocalizationsZh extends AppLocalizations {
       '模拟上升（TTS、天花板和停留）在各深度可切换到哪些携带的气瓶。仅考虑本次潜水中记录的气体。';
 
   @override
+  String get settings_decompression_header_ascentRate => '上升速度';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      '剖面图中上升速度颜色和事件所用的阈值。安全回顾使用自己固定的限值，因此修改这些值不会改变已回顾的潜水。';
+
+  @override
+  String get settings_decompression_ascentRateThresholds => '上升速度阈值';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return '警告 $warning，危险 $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => '警告';
+
+  @override
+  String get settings_decompression_ascentRateCritical => '危险';
+
+  @override
   String get settings_decompression_header_dataSources => '数据来源首选项';
 
   @override
@@ -43107,6 +43198,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_profileEditor_revisionSwitchFailed => '无法切换剖面版本。';
+
+  @override
+  String get diveLog_profileEditor_revisionLegacyHint => '保存于版本历史之前；未关联潜水电脑';
 
   @override
   String diveLog_sources_sectionTitle(int count) {

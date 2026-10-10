@@ -24,6 +24,10 @@ class PhotoLibraryCandidateSource implements CandidateSource {
     final byFilename = <String, List<RepairCandidate>>{};
 
     for (final item in brokenRows) {
+      // Gallery assets are photos and videos. Any asset in the window is a
+      // candidate, so a document here would be offered an unrelated photo,
+      // and accepting it would turn the row into a gallery link.
+      if (item.isDocument || item.isSignature) continue;
       final filename = item.originalFilename?.toLowerCase();
       if (filename == null || filename.isEmpty) continue;
 

@@ -9691,6 +9691,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'Gasmengsel';
 
   @override
+  String get diveLog_tank_computerMix_matches =>
+      'Vastgelegd door je duikcomputer';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'Je duikcomputer heeft $mix vastgelegd';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'Herstellen';
+
+  @override
   String get diveLog_tank_selectPreset => 'Selecteer voorinstelling...';
 
   @override
@@ -14728,20 +14740,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'Wijzigingen opslaan';
-
-  @override
-  String get equipment_edit_saveButton_new => 'Uitrusting toevoegen';
-
-  @override
-  String get equipment_edit_saveTooltip_edit =>
-      'Wijzigingen in uitrusting opslaan';
-
-  @override
-  String get equipment_edit_saveTooltip_new =>
-      'Nieuw uitrustingsonderdeel toevoegen';
-
-  @override
   String get equipment_edit_selectDate => 'Selecteer datum';
 
   @override
@@ -14754,6 +14752,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return 'Fout bij opslaan van uitrusting: $error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Opgeslagen, maar de huidige lijstweergave verbergt het';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Tonen';
 
   @override
   String get equipment_edit_snackbar_updated => 'Uitrusting bijgewerkt';
@@ -15686,12 +15691,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => 'Set niet gevonden';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => 'Wijzigingen opslaan';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'Set aanmaken';
 
   @override
   String get equipment_setEdit_saveTooltip_edit =>
@@ -20705,20 +20704,55 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Bewaart de versie van $kept. De waarden van $discarded voor $fields worden weggegooid.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'van dit apparaat',
+      'otherDevice': 'van het andere apparaat',
+      'other': 'van $kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'van dit apparaat',
+      'otherDevice': 'van het andere apparaat',
+      'other': 'van $discarded',
+    });
+    return 'Bewaart de versie $_temp0. De waarden $_temp1 voor $fields worden weggegooid.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Bewaart de versie van $local en voegt de versie van $remote toe als aparte kopie.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'van dit apparaat',
+      'otherDevice': 'van het andere apparaat',
+      'other': 'van $local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'van dit apparaat',
+      'otherDevice': 'van het andere apparaat',
+      'other': 'van $remote',
+    });
+    return 'Bewaart de versie $_temp0 en voegt de versie $_temp1 toe als aparte kopie.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Bewaart het record, met de waarden van $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'van dit apparaat',
+      'otherDevice': 'van het andere apparaat',
+      'other': 'van $device',
+    });
+    return 'Bewaart het record, met de waarden $_temp0.';
   }
 
   @override
@@ -20735,8 +20769,13 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'Het record zoals $device het heeft:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'dit apparaat',
+      'otherDevice': 'het andere apparaat',
+      'other': '$device',
+    });
+    return 'Het record zoals $_temp0 het heeft:';
   }
 
   @override
@@ -22724,8 +22763,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Beide bewaren';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return '$device bewaren';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Versie van dit apparaat bewaren',
+      'otherDevice': 'Versie van het andere apparaat bewaren',
+      'other': '$device bewaren',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -26135,10 +26179,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'Diepteverdeling';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'Cirkeldiagram met duiktypeverdeling';
-
-  @override
   String get insights_summary_diveTypes_title => 'Duiktypes';
 
   @override
@@ -28097,16 +28137,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_edit_appBar_edit => 'Reis bewerken';
 
   @override
-  String get trips_edit_button_add => 'Reis toevoegen';
-
-  @override
   String get trips_edit_button_cancel => 'Annuleren';
 
   @override
   String get trips_edit_button_save => 'Opslaan';
-
-  @override
-  String get trips_edit_button_update => 'Reis bijwerken';
 
   @override
   String get trips_edit_dialog_discard => 'Verwerpen';
@@ -31600,6 +31634,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ontbrekende flesgegevens bij geïmporteerde duiken aanvullen met de standaardpreset';
 
   @override
+  String get tankPresets_defaultStartPressure => 'Standaard begindruk';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Ingevuld bij nieuwe flessen, en bij geïmporteerde flessen zonder begindruk wanneer de standaardfles op imports wordt toegepast';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Voer een druk in van $min tot $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'Nieuwe flesinstelling';
 
   @override
@@ -34776,6 +34822,28 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Regio onbekend - wereldwijde noodlijn wordt gebruikt';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Regio: $region, handmatig ingesteld';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Regio wijzigen';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Noodregio';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automatisch (meest recente duik)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Landen zoeken';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches =>
+      'Geen overeenkomende landen';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43764,6 +43832,31 @@ class AppLocalizationsNl extends AppLocalizations {
       'Naar welke meegenomen flessen de gesimuleerde opstijging (TTS, plafond en stops) op elke diepte mag overschakelen. Alleen gassen die bij de duik zijn vastgelegd, worden meegenomen.';
 
   @override
+  String get settings_decompression_header_ascentRate => 'Opstijgsnelheid';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'De grenzen die de kleuren en gebeurtenissen voor opstijgsnelheid in het profiel gebruiken. De veiligheidscontrole houdt haar eigen vaste grenzen aan, dus deze wijzigen verandert nooit al gecontroleerde duiken.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Grenzen voor opstijgsnelheid';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Waarschuwing $warning, kritiek $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Waarschuwing';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Kritiek';
+
+  @override
   String get settings_decompression_header_dataSources =>
       'Voorkeuren voor gegevensbron';
 
@@ -45602,6 +45695,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Kan niet wisselen van profielrevisie.';
+
+  @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Opgeslagen vóór de revisiegeschiedenis; niet gekoppeld aan een computer';
 
   @override
   String diveLog_sources_sectionTitle(int count) {

@@ -28,39 +28,11 @@ class StatSectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle!,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                ?trailing,
-                if (onTap != null && trailing == null)
-                  Icon(
-                    Icons.chevron_right,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-              ],
+            StatSectionHeader(
+              title: title,
+              subtitle: subtitle,
+              trailing: trailing,
+              showChevron: onTap != null && trailing == null,
             ),
             const SizedBox(height: 12),
             child,
@@ -83,6 +55,124 @@ class StatSectionCard extends StatelessWidget {
 
     return content;
   }
+}
+
+/// The title row of a [StatSectionCard]: title, optional subtitle, and an
+/// optional trailing widget or chevron. Shared with [SliverStatSectionCard].
+class StatSectionHeader extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final bool showChevron;
+
+  const StatSectionHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    this.showChevron = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: theme.textTheme.titleMedium),
+              if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        ?trailing,
+        if (showChevron)
+          Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+      ],
+    );
+  }
+}
+
+/// A [StatSectionCard] whose body is a sliver, for content that must be built
+/// lazily inside a [CustomScrollView], such as a list of thousands of dives.
+///
+/// [DecoratedSliver] paints the card from the ambient [CardThemeData] with
+/// Material 3's [Card] defaults, so it matches the box cards around it.
+/// Ink from rows inside it only shows if each row brings its own transparent
+/// [Material]: the decoration is painted over the page's Material.
+class SliverStatSectionCard extends StatelessWidget {
+  final String title;
+  final Widget sliver;
+
+  const SliverStatSectionCard({
+    super.key,
+    required this.title,
+    required this.sliver,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cardTheme = CardTheme.of(context);
+    final shadowColor = cardTheme.shadowColor ?? theme.colorScheme.shadow;
+    final elevation = cardTheme.elevation ?? 1;
+    return SliverPadding(
+      padding: cardTheme.margin ?? const EdgeInsets.all(4),
+      sliver: DecoratedSliver(
+        decoration: ShapeDecoration(
+          // Card's Material tints its colour by elevation when the theme sets
+          // a surface tint (Card's own default is transparent, so no tint).
+          color: ElevationOverlay.applySurfaceTint(
+            cardTheme.color ?? theme.colorScheme.surfaceContainerLow,
+            cardTheme.surfaceTintColor,
+            elevation,
+          ),
+          shape:
+              cardTheme.shape ??
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shadows: _cardShadows(elevation, shadowColor),
+        ),
+        sliver: SliverPadding(
+          padding: const EdgeInsets.all(16),
+          sliver: SliverMainAxisGroup(
+            slivers: [
+              SliverToBoxAdapter(child: StatSectionHeader(title: title)),
+              const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              sliver,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The Material shadow for the highest standard elevation at or below
+/// [elevation], in [color] at each layer's own opacity.
+List<BoxShadow> _cardShadows(double elevation, Color color) {
+  final key = kElevationToShadow.keys
+      .where((k) => k <= elevation)
+      .fold<int>(0, (best, k) => k > best ? k : best);
+  return [
+    for (final shadow in kElevationToShadow[key]!)
+      BoxShadow(
+        color: color.withValues(alpha: shadow.color.a),
+        offset: shadow.offset,
+        blurRadius: shadow.blurRadius,
+        spreadRadius: shadow.spreadRadius,
+      ),
+  ];
 }
 
 /// A compact stat card showing a single value with label

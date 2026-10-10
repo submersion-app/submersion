@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -588,26 +589,42 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
       onRefresh: () async {
         ref.read(courseListNotifierProvider.notifier).refresh();
       },
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: courses.length,
-        itemBuilder: (context, index) {
-          final course = courses[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: CourseCard(
-              course: course,
-              isSelected:
-                  widget.selectedId == course.id ||
-                  ref.watch(highlightedCourseIdProvider) == course.id,
-              onTap: () => _handleRowTap(course),
-              isSelectionMode: _isSelectionMode,
-              isChecked: _selectedIds.contains(course.id),
-              onCheckChanged: (_) => _selection.toggle(course.id),
-            ),
-          );
-        },
+      child: KeyboardListNavigator(
+        keys: [for (final c in courses) c.id],
+        currentKey: widget.selectedId ?? ref.watch(highlightedCourseIdProvider),
+        onMove: (id) => moveListCursor(
+          context,
+          canOpen: !_isSelectionMode && widget.onItemSelected != null,
+          open: () => _handleRowTap(courses.firstWhere((c) => c.id == id)),
+          highlight: () =>
+              ref.read(highlightedCourseIdProvider.notifier).state = id,
+        ),
+        onActivate: (id) =>
+            _handleRowTap(courses.firstWhere((c) => c.id == id)),
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          itemCount: courses.length,
+          itemBuilder: (context, index) {
+            final course = courses[index];
+            return KeyboardListItem(
+              navigationKey: course.id,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: CourseCard(
+                  course: course,
+                  isSelected:
+                      widget.selectedId == course.id ||
+                      ref.watch(highlightedCourseIdProvider) == course.id,
+                  onTap: () => _handleRowTap(course),
+                  isSelectionMode: _isSelectionMode,
+                  isChecked: _selectedIds.contains(course.id),
+                  onCheckChanged: (_) => _selection.toggle(course.id),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

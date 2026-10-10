@@ -236,6 +236,54 @@ void main() {
       expect(container.read(settingsProvider).emergencyRegion, isNull);
     });
 
+    test('setAscentRateThresholds stores both rates', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      await container
+          .read(settingsProvider.notifier)
+          .setAscentRateThresholds(warning: 10, critical: 15);
+      final settings = container.read(settingsProvider);
+      expect(settings.ascentRateWarning, 10);
+      expect(settings.ascentRateCritical, 15);
+    });
+
+    test('setAscentRateThresholds clamps and keeps critical at or above '
+        'warning', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+      final notifier = container.read(settingsProvider.notifier);
+
+      await notifier.setAscentRateThresholds(warning: 1, critical: 50);
+      expect(container.read(settingsProvider).ascentRateWarning, 3);
+      expect(container.read(settingsProvider).ascentRateCritical, 20);
+
+      await notifier.setAscentRateThresholds(warning: 15, critical: 8);
+      expect(container.read(settingsProvider).ascentRateWarning, 15);
+      expect(container.read(settingsProvider).ascentRateCritical, 15);
+    });
+
+    test(
+      'setDefaultStartPressure keeps a decimal and clamps the range',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+        final notifier = container.read(settingsProvider.notifier);
+
+        await notifier.setDefaultStartPressure(206.8428);
+        expect(container.read(settingsProvider).defaultStartPressure, 206.8428);
+
+        await notifier.setDefaultStartPressure(0);
+        expect(container.read(settingsProvider).defaultStartPressure, 1);
+
+        await notifier.setDefaultStartPressure(900);
+        expect(container.read(settingsProvider).defaultStartPressure, 400);
+
+        await notifier.setDefaultStartPressure(double.nan);
+        expect(container.read(settingsProvider).defaultStartPressure, 400);
+      },
+    );
+
     test('sets siteMatchSensitivity', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

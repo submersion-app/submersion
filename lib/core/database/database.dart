@@ -253,7 +253,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 275;
+  static const int currentSchemaVersion = 276;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -339,7 +339,16 @@ class AppDatabase extends _$AppDatabase {
   /// prevent. Peers below 240 are held until they update; their own payloads
   /// still arrive here, and the merge's scope guard keeps their copies of
   /// deleted events from coming back.
-  static const int minimumCompatibleSchemaVersion = 240;
+  ///
+  /// Raised 240 -> 275 by the decimal start pressure (#3091): v275 retypes
+  /// the synced column diver_settings.default_start_pressure from INTEGER
+  /// to REAL, which the first rule above classifies as breaking. An older
+  /// reader decodes the field with a hard int cast in DiverSetting.fromJson,
+  /// so a start pressure entered in psi (206.84 bar for 3000 psi) would
+  /// throw there. Peers below 275 are held until they update. Their own
+  /// payloads still arrive here and decode cleanly: drift's fromJson widens
+  /// an int to a double.
+  static const int minimumCompatibleSchemaVersion = 275;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1162,8 +1171,13 @@ class AppDatabase extends _$AppDatabase {
     273,
     // v274: diver_settings.has_accepted_planning_disclaimer (issue #3120).
     274,
-    // v275: diver_settings.icd_warnings_enabled (issue #3121).
+    // v275: diver_settings.default_start_pressure retyped INTEGER to REAL
+    // (issue #3091), so a start pressure entered in psi is kept exactly.
+    // Retyping a synced column raises the floor to 275; see
+    // minimumCompatibleSchemaVersion.
     275,
+    // v276: diver_settings.icd_warnings_enabled (issue #3121).
+    276,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

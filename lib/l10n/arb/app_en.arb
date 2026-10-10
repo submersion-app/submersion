@@ -5517,6 +5517,10 @@
   "diveLog_tank_gasUsed": "({amount} used)",
   "diveLog_tank_modMndInfo": "MOD: {mod} (ppO₂ {ppO2}) | MND: {mnd}",
   "diveLog_tank_section_gasMix": "Gas Mix",
+  "diveLog_tank_computerMix_matches": "Recorded by your dive computer",
+  "diveLog_tank_computerMix_differs": "Your dive computer recorded {mix}",
+  "@diveLog_tank_computerMix_differs": {"placeholders": {"mix": {"type": "String"}}},
+  "diveLog_tank_computerMix_restore": "Restore",
   "diveLog_tank_selectPreset": "Select Preset...",
   "diveLog_tank_saveAsPreset": "Save as preset",
   "diveLog_tank_saveAsPreset_needSpecs": "Enter a volume and working pressure first",
@@ -8801,14 +8805,12 @@
   "equipment_edit_expectedPriceLabel": "Expected Price",
   "equipment_edit_remindMeBeforeServiceDue": "Remind me before service is due:",
   "equipment_edit_reminderDays": "{days} days",
-  "equipment_edit_saveButton_edit": "Save Changes",
-  "equipment_edit_saveButton_new": "Add Equipment",
-  "equipment_edit_saveTooltip_edit": "Save equipment changes",
-  "equipment_edit_saveTooltip_new": "Add new equipment item",
   "equipment_edit_selectDate": "Select Date",
   "equipment_edit_serialNumberLabel": "Serial Number",
   "equipment_edit_snackbar_added": "Equipment added",
   "equipment_edit_snackbar_error": "Error saving equipment: {error}",
+  "equipment_edit_snackbar_hiddenByView": "Saved, but the current list view hides it",
+  "equipment_edit_snackbar_showAction": "Show",
   "equipment_edit_snackbar_updated": "Equipment updated",
   "equipment_edit_statusLabel": "Status",
   "equipment_edit_tagsLabel": "Tags",
@@ -9248,8 +9250,6 @@
   "equipment_setEdit_noEquipmentAvailable": "No equipment available",
   "equipment_setEdit_notFoundMessage": "This equipment set no longer exists.",
   "equipment_setEdit_notFoundTitle": "Set Not Found",
-  "equipment_setEdit_saveButton_edit": "Save Changes",
-  "equipment_setEdit_saveButton_new": "Create Set",
   "equipment_setEdit_saveTooltip_edit": "Save equipment set changes",
   "equipment_setEdit_saveTooltip_new": "Create new equipment set",
   "equipment_setEdit_selectEquipmentSubtitle": "Choose the equipment items to include in this set.",
@@ -9410,6 +9410,12 @@
         "type": "Object"
       }
     }
+  },
+  "@equipment_edit_snackbar_hiddenByView": {
+    "description": "Snackbar after saving equipment that the list's current filter hides, e.g. a Wanted item under the default view"
+  },
+  "@equipment_edit_snackbar_showAction": {
+    "description": "Snackbar action that switches the equipment list to a view showing the item just saved"
   },
   "@equipment_list_emptyState_filterText_status": {
     "placeholders": {
@@ -12838,17 +12844,17 @@
   "settings_conflict_close": "Close",
   "settings_conflict_close_tooltip": "Close conflict dialog",
   "settings_conflict_consequence_deleteHere": "Deletes the record on this device too.",
-  "settings_conflict_consequence_keep": "Keeps {kept}'s version. {discarded}'s values for {fields} are discarded.",
-  "@settings_conflict_consequence_keep": {"placeholders": {"kept": {"type": "String"}, "discarded": {"type": "String"}, "fields": {"type": "String"}}},
-  "settings_conflict_consequence_keepBoth": "Keeps {local}'s version and adds {remote}'s version as a separate copy.",
-  "@settings_conflict_consequence_keepBoth": {"placeholders": {"local": {"type": "String"}, "remote": {"type": "String"}}},
-  "settings_conflict_consequence_keepRecord": "Keeps the record, with {device}'s values.",
-  "@settings_conflict_consequence_keepRecord": {"placeholders": {"device": {"type": "String"}}},
+  "settings_conflict_consequence_keep": "Keeps {keptKind, select, thisDevice{this device's} otherDevice{the other device's} other{{kept}'s}} version. {discardedKind, select, thisDevice{This device's} otherDevice{The other device's} other{{discarded}'s}} values for {fields} are discarded.",
+  "@settings_conflict_consequence_keep": {"placeholders": {"kept": {"type": "String"}, "keptKind": {"type": "String"}, "discarded": {"type": "String"}, "discardedKind": {"type": "String"}, "fields": {"type": "String"}}},
+  "settings_conflict_consequence_keepBoth": "Keeps {localKind, select, thisDevice{this device's} otherDevice{the other device's} other{{local}'s}} version and adds {remoteKind, select, thisDevice{this device's} otherDevice{the other device's} other{{remote}'s}} version as a separate copy.",
+  "@settings_conflict_consequence_keepBoth": {"placeholders": {"local": {"type": "String"}, "localKind": {"type": "String"}, "remote": {"type": "String"}, "remoteKind": {"type": "String"}}},
+  "settings_conflict_consequence_keepRecord": "Keeps the record, with {deviceKind, select, thisDevice{this device's} otherDevice{the other device's} other{{device}'s}} values.",
+  "@settings_conflict_consequence_keepRecord": {"placeholders": {"device": {"type": "String"}, "deviceKind": {"type": "String"}}},
   "settings_conflict_consequence_nothingLost": "Both versions match, so nothing is lost.",
   "settings_conflict_consequence_staysDeleted": "The record stays deleted on this device.",
   "settings_conflict_counterLabel": "Conflict {current} of {total}",
-  "settings_conflict_deletedValues": "The record as {device} has it:",
-  "@settings_conflict_deletedValues": {"placeholders": {"device": {"type": "String"}}},
+  "settings_conflict_deletedValues": "The record as {deviceKind, select, thisDevice{this device} otherDevice{the other device} other{{device}}} has it:",
+  "@settings_conflict_deletedValues": {"placeholders": {"device": {"type": "String"}, "deviceKind": {"type": "String"}}},
   "settings_conflict_errorLoading": "Error loading conflicts: {error}",
   "settings_conflict_fieldHeader": "Field",
   "settings_conflict_field_accentListIcons": "Colored list icons",
@@ -13444,8 +13450,8 @@
   "settings_conflict_field_workingPressureBar": "Working pressure",
   "settings_conflict_finerThanShown": "The difference is finer than this display shows.",
   "settings_conflict_keepBoth": "Keep Both",
-  "settings_conflict_keepDevice": "Keep {device}",
-  "@settings_conflict_keepDevice": {"placeholders": {"device": {"type": "String"}}},
+  "settings_conflict_keepDevice": "{deviceKind, select, thisDevice{Keep this device's version} otherDevice{Keep the other device's version} other{Keep {device}}}",
+  "@settings_conflict_keepDevice": {"placeholders": {"device": {"type": "String"}, "deviceKind": {"type": "String"}}},
   "settings_conflict_localDeleted": "{device} deleted this record.",
   "@settings_conflict_localDeleted": {"placeholders": {"device": {"type": "String"}}},
   "settings_conflict_modifiedBy": "{device} · modified {time}",
@@ -15121,7 +15127,6 @@
   "insights_summary_avgDepth": "Avg Depth",
   "insights_summary_depthDistribution_semanticLabel": "Pie chart showing depth distribution",
   "insights_summary_depthDistribution_title": "Depth Distribution",
-  "insights_summary_diveTypes_semanticLabel": "Pie chart showing dive type distribution",
   "insights_summary_diveTypes_title": "Dive Types",
   "insights_summary_maxDepth": "Max Depth",
   "insights_summary_sitesVisited": "Sites Visited",
@@ -16630,10 +16635,8 @@
   "trips_diveScan_unknownSite": "Unknown Site",
   "trips_edit_appBar_add": "Add Trip",
   "trips_edit_appBar_edit": "Edit Trip",
-  "trips_edit_button_add": "Add Trip",
   "trips_edit_button_cancel": "Cancel",
   "trips_edit_button_save": "Save",
-  "trips_edit_button_update": "Update Trip",
   "trips_edit_dialog_discard": "Discard",
   "trips_edit_dialog_discardContent": "You have unsaved changes. Are you sure you want to leave?",
   "trips_edit_dialog_discardTitle": "Discard Changes?",
@@ -19512,6 +19515,19 @@
   },
   "tankPresets_applyToImports": "Also apply to imported dives",
   "tankPresets_applyToImports_subtitle": "Fill in missing tank data on imported dives using the default preset",
+  "tankPresets_defaultStartPressure": "Default start pressure",
+  "tankPresets_defaultStartPressure_subtitle": "Filled in on new tanks, and on imported tanks with no start pressure when the default tank is applied to imports",
+  "tankPresets_defaultStartPressure_range": "Enter a pressure from {min} to {max}",
+  "@tankPresets_defaultStartPressure_range": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      }
+    }
+  },
   "tankPresets_new_title": "New Tank Preset",
   "tankPresets_noPresets": "No tank presets available",
   "tankPresets_setAsDefault": "Set as default",
@@ -21594,6 +21610,19 @@
     }
   },
   "emergencyCard_regionUnknown": "Region unknown - using worldwide hotline",
+  "emergencyCard_regionManual": "Region: {region}, set manually",
+  "@emergencyCard_regionManual": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "emergencyCard_regionChange": "Change region",
+  "emergencyCard_regionPicker_title": "Emergency region",
+  "emergencyCard_regionPicker_automatic": "Automatic (most recent dive)",
+  "emergencyCard_regionPicker_search": "Search countries",
+  "emergencyCard_regionPicker_noMatches": "No matching countries",
   "emergencyCard_noDiverData": "No diver profile data. Add emergency contacts, medical and insurance details in Diver Profile settings.",
   "addChamber_title": "Add chamber",
   "addChamber_name": "Name",
@@ -25687,6 +25716,22 @@
   "settings_decompression_decoStopSource": "Deco Stop Source",
   "settings_decompression_header_ascent": "Ascent planning",
   "settings_decompression_header_ascent_subtitle": "Which carried cylinders the simulated ascent (TTS, ceiling and stops) may switch to at each depth. Only gases recorded on the dive are considered.",
+  "settings_decompression_header_ascentRate": "Ascent rate",
+  "settings_decompression_header_ascentRate_subtitle": "The rates the profile's ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.",
+  "settings_decompression_ascentRateThresholds": "Ascent rate thresholds",
+  "settings_decompression_ascentRateThresholds_subtitle": "Warning {warning}, critical {critical}",
+  "@settings_decompression_ascentRateThresholds_subtitle": {
+    "placeholders": {
+      "critical": {
+        "type": "String"
+      },
+      "warning": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_decompression_ascentRateWarning": "Warning",
+  "settings_decompression_ascentRateCritical": "Critical",
   "settings_decompression_header_dataSources": "Data Source Preferences",
   "settings_decompression_header_dataSources_subtitle": "When set to Dive Computer, the app uses data reported by the dive computer when available. Falls back to calculated values when computer data is not present.",
   "settings_decompression_ndlSource": "NDL Source",
@@ -26908,6 +26953,7 @@
   "diveLog_profileEditor_mode_trim": "Trim",
   "diveLog_profileEditor_revisionSelectorTooltip": "Switch active revision. This takes effect immediately and all future edits will be based on this revision.",
   "diveLog_profileEditor_revisionSwitchFailed": "Could not switch profile revision.",
+  "diveLog_profileEditor_revisionLegacyHint": "Saved before revision history; not linked to a computer",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Data Source} =1{Data Source} other{Data Sources}}",
   "diveLog_sources_badge_manual": "Manual",
   "diveLog_sources_badge_viewing": "Viewing",

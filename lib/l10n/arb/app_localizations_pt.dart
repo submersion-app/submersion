@@ -9754,6 +9754,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'Mistura de Gás';
 
   @override
+  String get diveLog_tank_computerMix_matches =>
+      'Registrado pelo seu computador de mergulho';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'Seu computador de mergulho registrou $mix';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'Restaurar';
+
+  @override
   String get diveLog_tank_selectPreset => 'Selecionar Preset...';
 
   @override
@@ -14824,20 +14836,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'Salvar Alterações';
-
-  @override
-  String get equipment_edit_saveButton_new => 'Adicionar Equipamento';
-
-  @override
-  String get equipment_edit_saveTooltip_edit =>
-      'Salvar alterações do equipamento';
-
-  @override
-  String get equipment_edit_saveTooltip_new =>
-      'Adicionar novo item de equipamento';
-
-  @override
   String get equipment_edit_selectDate => 'Selecionar Data';
 
   @override
@@ -14850,6 +14848,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return 'Erro ao salvar equipamento: $error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Salvo, mas a visualização atual da lista o oculta';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Mostrar';
 
   @override
   String get equipment_edit_snackbar_updated => 'Equipamento atualizado';
@@ -15787,12 +15792,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => 'Conjunto Não Encontrado';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => 'Salvar Alterações';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'Criar Conjunto';
 
   @override
   String get equipment_setEdit_saveTooltip_edit =>
@@ -20844,20 +20843,55 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Mantém a versão de $kept. Os valores de $discarded para $fields são descartados.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'deste dispositivo',
+      'otherDevice': 'do outro dispositivo',
+      'other': 'de $kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'deste dispositivo',
+      'otherDevice': 'do outro dispositivo',
+      'other': 'de $discarded',
+    });
+    return 'Mantém a versão $_temp0. Os valores $_temp1 para $fields são descartados.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Mantém a versão de $local e adiciona a versão de $remote como uma cópia separada.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'deste dispositivo',
+      'otherDevice': 'do outro dispositivo',
+      'other': 'de $local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'deste dispositivo',
+      'otherDevice': 'do outro dispositivo',
+      'other': 'de $remote',
+    });
+    return 'Mantém a versão $_temp0 e adiciona a versão $_temp1 como uma cópia separada.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Mantém o registro, com os valores de $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'deste dispositivo',
+      'otherDevice': 'do outro dispositivo',
+      'other': 'de $device',
+    });
+    return 'Mantém o registro, com os valores $_temp0.';
   }
 
   @override
@@ -20874,8 +20908,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'O registro como $device o tem:';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'este dispositivo',
+      'otherDevice': 'o outro dispositivo',
+      'other': '$device',
+    });
+    return 'O registro como $_temp0 o tem:';
   }
 
   @override
@@ -22878,8 +22917,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Manter Ambos';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'Manter $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Manter a versão deste dispositivo',
+      'otherDevice': 'Manter a versão do outro dispositivo',
+      'other': 'Manter $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -26333,10 +26377,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Distribuição de Profundidade';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'Gráfico de pizza mostrando distribuição de tipos de mergulho';
-
-  @override
   String get insights_summary_diveTypes_title => 'Tipos de Mergulho';
 
   @override
@@ -28301,16 +28341,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_edit_appBar_edit => 'Editar Viagem';
 
   @override
-  String get trips_edit_button_add => 'Adicionar Viagem';
-
-  @override
   String get trips_edit_button_cancel => 'Cancelar';
 
   @override
   String get trips_edit_button_save => 'Salvar';
-
-  @override
-  String get trips_edit_button_update => 'Atualizar Viagem';
 
   @override
   String get trips_edit_dialog_discard => 'Descartar';
@@ -31827,6 +31861,18 @@ class AppLocalizationsPt extends AppLocalizations {
       'Preencher dados de cilindro ausentes em mergulhos importados usando o preset padrão';
 
   @override
+  String get tankPresets_defaultStartPressure => 'Pressão inicial padrão';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Usada em cilindros novos e em cilindros importados sem pressão inicial quando o cilindro padrão é aplicado às importações';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Digite uma pressão de $min a $max';
+  }
+
+  @override
   String get tankPresets_new_title => 'Novo Preset de Cilindro';
 
   @override
@@ -35013,6 +35059,28 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Região desconhecida - usando a linha mundial';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Região: $region, definida manualmente';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Alterar região';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Região de emergência';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automática (mergulho mais recente)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Pesquisar países';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches =>
+      'Nenhum país correspondente';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -44068,6 +44136,31 @@ class AppLocalizationsPt extends AppLocalizations {
       'Quais cilindros transportados a subida simulada (TTS, teto e paradas) pode usar em cada profundidade. Somente os gases registrados no mergulho são considerados.';
 
   @override
+  String get settings_decompression_header_ascentRate => 'Velocidade de subida';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'Os limites usados pelas cores e eventos de velocidade de subida do perfil. A revisão de segurança mantém seus próprios limites fixos, então alterá-los nunca muda mergulhos já revisados.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Limites de velocidade de subida';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Aviso $warning, crítico $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Aviso';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Crítico';
+
+  @override
   String get settings_decompression_header_dataSources =>
       'Preferências de fonte de dados';
 
@@ -45909,6 +46002,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Não foi possível alternar a revisão do perfil.';
+
+  @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Guardado antes do histórico de revisões; sem ligação a um computador';
 
   @override
   String diveLog_sources_sectionTitle(int count) {

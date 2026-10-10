@@ -15601,6 +15601,24 @@ abstract class AppLocalizations {
   /// **'Gas Mix'**
   String get diveLog_tank_section_gasMix;
 
+  /// No description provided for @diveLog_tank_computerMix_matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded by your dive computer'**
+  String get diveLog_tank_computerMix_matches;
+
+  /// No description provided for @diveLog_tank_computerMix_differs.
+  ///
+  /// In en, this message translates to:
+  /// **'Your dive computer recorded {mix}'**
+  String diveLog_tank_computerMix_differs(String mix);
+
+  /// No description provided for @diveLog_tank_computerMix_restore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get diveLog_tank_computerMix_restore;
+
   /// No description provided for @diveLog_tank_selectPreset.
   ///
   /// In en, this message translates to:
@@ -23999,30 +24017,6 @@ abstract class AppLocalizations {
   /// **'{days} days'**
   String equipment_edit_reminderDays(Object days);
 
-  /// No description provided for @equipment_edit_saveButton_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get equipment_edit_saveButton_edit;
-
-  /// No description provided for @equipment_edit_saveButton_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Equipment'**
-  String get equipment_edit_saveButton_new;
-
-  /// No description provided for @equipment_edit_saveTooltip_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save equipment changes'**
-  String get equipment_edit_saveTooltip_edit;
-
-  /// No description provided for @equipment_edit_saveTooltip_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Add new equipment item'**
-  String get equipment_edit_saveTooltip_new;
-
   /// No description provided for @equipment_edit_selectDate.
   ///
   /// In en, this message translates to:
@@ -24046,6 +24040,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error saving equipment: {error}'**
   String equipment_edit_snackbar_error(Object error);
+
+  /// Snackbar after saving equipment that the list's current filter hides, e.g. a Wanted item under the default view
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, but the current list view hides it'**
+  String get equipment_edit_snackbar_hiddenByView;
+
+  /// Snackbar action that switches the equipment list to a view showing the item just saved
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get equipment_edit_snackbar_showAction;
 
   /// No description provided for @equipment_edit_snackbar_updated.
   ///
@@ -25507,18 +25513,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set Not Found'**
   String get equipment_setEdit_notFoundTitle;
-
-  /// No description provided for @equipment_setEdit_saveButton_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get equipment_setEdit_saveButton_edit;
-
-  /// No description provided for @equipment_setEdit_saveButton_new.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Set'**
-  String get equipment_setEdit_saveButton_new;
 
   /// No description provided for @equipment_setEdit_saveTooltip_edit.
   ///
@@ -33271,24 +33265,34 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_consequence_keep.
   ///
   /// In en, this message translates to:
-  /// **'Keeps {kept}\'s version. {discarded}\'s values for {fields} are discarded.'**
+  /// **'Keeps {keptKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{kept}\'s}} version. {discardedKind, select, thisDevice{This device\'s} otherDevice{The other device\'s} other{{discarded}\'s}} values for {fields} are discarded.'**
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   );
 
   /// No description provided for @settings_conflict_consequence_keepBoth.
   ///
   /// In en, this message translates to:
-  /// **'Keeps {local}\'s version and adds {remote}\'s version as a separate copy.'**
-  String settings_conflict_consequence_keepBoth(String local, String remote);
+  /// **'Keeps {localKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{local}\'s}} version and adds {remoteKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{remote}\'s}} version as a separate copy.'**
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  );
 
   /// No description provided for @settings_conflict_consequence_keepRecord.
   ///
   /// In en, this message translates to:
-  /// **'Keeps the record, with {device}\'s values.'**
-  String settings_conflict_consequence_keepRecord(String device);
+  /// **'Keeps the record, with {deviceKind, select, thisDevice{this device\'s} otherDevice{the other device\'s} other{{device}\'s}} values.'**
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  );
 
   /// No description provided for @settings_conflict_consequence_nothingLost.
   ///
@@ -33311,8 +33315,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_deletedValues.
   ///
   /// In en, this message translates to:
-  /// **'The record as {device} has it:'**
-  String settings_conflict_deletedValues(String device);
+  /// **'The record as {deviceKind, select, thisDevice{this device} otherDevice{the other device} other{{device}}} has it:'**
+  String settings_conflict_deletedValues(String device, String deviceKind);
 
   /// No description provided for @settings_conflict_errorLoading.
   ///
@@ -36851,8 +36855,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_keepDevice.
   ///
   /// In en, this message translates to:
-  /// **'Keep {device}'**
-  String settings_conflict_keepDevice(String device);
+  /// **'{deviceKind, select, thisDevice{Keep this device\'s version} otherDevice{Keep the other device\'s version} other{Keep {device}}}'**
+  String settings_conflict_keepDevice(String device, String deviceKind);
 
   /// No description provided for @settings_conflict_localDeleted.
   ///
@@ -42554,12 +42558,6 @@ abstract class AppLocalizations {
   /// **'Depth Distribution'**
   String get insights_summary_depthDistribution_title;
 
-  /// No description provided for @insights_summary_diveTypes_semanticLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Pie chart showing dive type distribution'**
-  String get insights_summary_diveTypes_semanticLabel;
-
   /// No description provided for @insights_summary_diveTypes_title.
   ///
   /// In en, this message translates to:
@@ -45125,12 +45123,6 @@ abstract class AppLocalizations {
   /// **'Edit Trip'**
   String get trips_edit_appBar_edit;
 
-  /// No description provided for @trips_edit_button_add.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Trip'**
-  String get trips_edit_button_add;
-
   /// No description provided for @trips_edit_button_cancel.
   ///
   /// In en, this message translates to:
@@ -45142,12 +45134,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get trips_edit_button_save;
-
-  /// No description provided for @trips_edit_button_update.
-  ///
-  /// In en, this message translates to:
-  /// **'Update Trip'**
-  String get trips_edit_button_update;
 
   /// No description provided for @trips_edit_dialog_discard.
   ///
@@ -50355,6 +50341,24 @@ abstract class AppLocalizations {
   /// **'Fill in missing tank data on imported dives using the default preset'**
   String get tankPresets_applyToImports_subtitle;
 
+  /// No description provided for @tankPresets_defaultStartPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Default start pressure'**
+  String get tankPresets_defaultStartPressure;
+
+  /// No description provided for @tankPresets_defaultStartPressure_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled in on new tanks, and on imported tanks with no start pressure when the default tank is applied to imports'**
+  String get tankPresets_defaultStartPressure_subtitle;
+
+  /// No description provided for @tankPresets_defaultStartPressure_range.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a pressure from {min} to {max}'**
+  String tankPresets_defaultStartPressure_range(String max, String min);
+
   /// No description provided for @tankPresets_new_title.
   ///
   /// In en, this message translates to:
@@ -55559,6 +55563,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Region unknown - using worldwide hotline'**
   String get emergencyCard_regionUnknown;
+
+  /// No description provided for @emergencyCard_regionManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Region: {region}, set manually'**
+  String emergencyCard_regionManual(String region);
+
+  /// No description provided for @emergencyCard_regionChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change region'**
+  String get emergencyCard_regionChange;
+
+  /// No description provided for @emergencyCard_regionPicker_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency region'**
+  String get emergencyCard_regionPicker_title;
+
+  /// No description provided for @emergencyCard_regionPicker_automatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic (most recent dive)'**
+  String get emergencyCard_regionPicker_automatic;
+
+  /// No description provided for @emergencyCard_regionPicker_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search countries'**
+  String get emergencyCard_regionPicker_search;
+
+  /// No description provided for @emergencyCard_regionPicker_noMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching countries'**
+  String get emergencyCard_regionPicker_noMatches;
 
   /// No description provided for @emergencyCard_noDiverData.
   ///
@@ -70408,6 +70448,45 @@ abstract class AppLocalizations {
   /// **'Which carried cylinders the simulated ascent (TTS, ceiling and stops) may switch to at each depth. Only gases recorded on the dive are considered.'**
   String get settings_decompression_header_ascent_subtitle;
 
+  /// No description provided for @settings_decompression_header_ascentRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate'**
+  String get settings_decompression_header_ascentRate;
+
+  /// No description provided for @settings_decompression_header_ascentRate_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The rates the profile\'s ascent-rate colours and events use. The safety review keeps its own fixed limits, so changing these never alters reviewed dives.'**
+  String get settings_decompression_header_ascentRate_subtitle;
+
+  /// No description provided for @settings_decompression_ascentRateThresholds.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent rate thresholds'**
+  String get settings_decompression_ascentRateThresholds;
+
+  /// No description provided for @settings_decompression_ascentRateThresholds_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning {warning}, critical {critical}'**
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  );
+
+  /// No description provided for @settings_decompression_ascentRateWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Warning'**
+  String get settings_decompression_ascentRateWarning;
+
+  /// No description provided for @settings_decompression_ascentRateCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get settings_decompression_ascentRateCritical;
+
   /// No description provided for @settings_decompression_header_dataSources.
   ///
   /// In en, this message translates to:
@@ -72990,6 +73069,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not switch profile revision.'**
   String get diveLog_profileEditor_revisionSwitchFailed;
+
+  /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved before revision history; not linked to a computer'**
+  String get diveLog_profileEditor_revisionLegacyHint;
 
   /// Header of the dive-detail section listing where a dive's data came from (dive computers, imported files, manual entry).
   ///

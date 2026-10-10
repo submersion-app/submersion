@@ -216,14 +216,17 @@ How it works, in brief:
 The **Ascent Rate** overlay colours the depth line against two thresholds,
 applied to a short smoothed window of the ascent so brief blips do not dominate:
 
-- At or below the **warning** rate (**9&nbsp;m/min**, ~30&nbsp;ft/min):
-  green.
+- At or below the **warning** rate (**9&nbsp;m/min**, ~30&nbsp;ft/min, by
+  default): green.
 - Above warning up to the **critical** rate (**12&nbsp;m/min**,
-  ~40&nbsp;ft/min): orange.
+  ~40&nbsp;ft/min, by default): orange.
 - Above critical: red.
 
 Sustained stretches above the warning rate are also flagged as ascent-rate
 **events**.
+
+Change both rates in **Settings > Decompression > Ascent rate thresholds**.
+The [safety review](safety.md)'s rapid-ascent rule keeps its own fixed limits.
 
 ## Tissue loading
 

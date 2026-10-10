@@ -30,6 +30,7 @@ Future<void> _pump(
   WidgetTester tester,
   ConflictComparison c, {
   double width = 700,
+  ConflictDeviceLabels devices = _devices,
 }) async {
   await tester.binding.setSurfaceSize(Size(width, 1200));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -42,7 +43,7 @@ Future<void> _pump(
         body: SingleChildScrollView(
           child: ConflictComparisonView(
             comparison: c,
-            devices: _devices,
+            devices: devices,
             localModified: '2 hours ago',
             remoteModified: '5 hours ago',
           ),
@@ -261,6 +262,45 @@ void main() {
     expect(find.text('Windows PC deleted this record.'), findsOneWidget);
     expect(find.text('Blue Hole'), findsOneWidget);
     expect(find.textContaining('What differs'), findsNothing);
+  });
+
+  testWidgets('a generic survivor reads as part of the heading', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const ConflictComparison(
+        state: ConflictComparisonState.remoteDeleted,
+        survivingValues: [
+          ShownField(key: 'name', label: 'Name', display: 'Blue Hole'),
+        ],
+      ),
+      devices: const ConflictDeviceLabels(
+        local: 'This device',
+        remote: 'Other device',
+        localKind: ConflictDeviceKind.thisDevice,
+        remoteKind: ConflictDeviceKind.otherDevice,
+      ),
+    );
+    expect(find.text('The record as this device has it:'), findsOneWidget);
+  });
+
+  testWidgets('a generic remote survivor is the other device', (tester) async {
+    await _pump(
+      tester,
+      const ConflictComparison(
+        state: ConflictComparisonState.localDeleted,
+        survivingValues: [
+          ShownField(key: 'name', label: 'Name', display: 'Blue Hole'),
+        ],
+      ),
+      devices: const ConflictDeviceLabels(
+        local: 'Pixel 8',
+        remote: 'Other device',
+        remoteKind: ConflictDeviceKind.otherDevice,
+      ),
+    );
+    expect(find.text('The record as the other device has it:'), findsOneWidget);
   });
 
   testWidgets('a local deletion names this device', (tester) async {

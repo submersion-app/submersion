@@ -60,6 +60,48 @@ extension DiverMigrations on AppDatabase {
     await _assertShowDiveFigureColumn();
   }
 
+  /// v275: retypes diver_settings.default_start_pressure from INTEGER to
+  /// REAL (issue #3091), so a start pressure entered in psi is stored
+  /// exactly rather than rounded to whole bar. SQLite has no ALTER COLUMN,
+  /// so the value moves through a REAL twin that then takes the old name.
+  /// No index, trigger or view names the column. Idempotent, and a no-op
+  /// when the table is absent or the column is already REAL, so it is safe
+  /// to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _retypeDefaultStartPressureColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final type = [
+      for (final c in cols)
+        if (c.read<String>('name') == 'default_start_pressure')
+          c.read<String>('type').toUpperCase(),
+    ];
+    if (type.isEmpty) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN default_start_pressure '
+        'REAL NOT NULL DEFAULT 200.0',
+      );
+      return;
+    }
+    if (type.single == 'REAL') return;
+    await customStatement(
+      'ALTER TABLE diver_settings ADD COLUMN default_start_pressure_v275 '
+      'REAL NOT NULL DEFAULT 200.0',
+    );
+    await customStatement(
+      'UPDATE diver_settings SET default_start_pressure_v275 = '
+      'CAST(default_start_pressure AS REAL)',
+    );
+    await customStatement(
+      'ALTER TABLE diver_settings DROP COLUMN default_start_pressure',
+    );
+    await customStatement(
+      'ALTER TABLE diver_settings '
+      'RENAME COLUMN default_start_pressure_v275 TO default_start_pressure',
+    );
+  }
+
   /// v261: drops diver_settings.default_ceiling_source (issue #767). The
   /// ceiling line lost its source toggle at v137 (#755), and nothing has
   /// read the column since. No index, trigger or view names it, so SQLite's
@@ -659,7 +701,7 @@ extension DiverMigrations on AppDatabase {
     }
   }
 
-  /// v275: diver_settings.icd_warnings_enabled (issue #3121). Column only,
+  /// v276: diver_settings.icd_warnings_enabled (issue #3121). Column only,
   /// defaulting on; re-asserted in beforeOpen.
   Future<void> _assertIcdWarningsColumn() async {
     final cols = await customSelect(

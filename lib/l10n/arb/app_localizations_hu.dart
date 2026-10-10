@@ -9739,6 +9739,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_section_gasMix => 'Gázkeverék';
 
   @override
+  String get diveLog_tank_computerMix_matches => 'A búvárkomputered rögzítette';
+
+  @override
+  String diveLog_tank_computerMix_differs(String mix) {
+    return 'A búvárkomputered $mix keveréket rögzített';
+  }
+
+  @override
+  String get diveLog_tank_computerMix_restore => 'Visszaállítás';
+
+  @override
   String get diveLog_tank_selectPreset => 'Válasszon előre beállítást...';
 
   @override
@@ -14781,19 +14792,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get equipment_edit_saveButton_edit => 'Változások mentése';
-
-  @override
-  String get equipment_edit_saveButton_new => 'Felszerelés hozzáadása';
-
-  @override
-  String get equipment_edit_saveTooltip_edit =>
-      'Felszerelés változásainak mentése';
-
-  @override
-  String get equipment_edit_saveTooltip_new => 'Új felszerelés hozzáadása';
-
-  @override
   String get equipment_edit_selectDate => 'Dátum kiválasztása';
 
   @override
@@ -14806,6 +14804,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String equipment_edit_snackbar_error(Object error) {
     return 'Hiba a felszerelés mentésekor: $error';
   }
+
+  @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Mentve, de a jelenlegi listanézet elrejti';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Megjelenítés';
 
   @override
   String get equipment_edit_snackbar_updated => 'Felszerelés frissítve';
@@ -15738,12 +15743,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundTitle => 'Csoport nem található';
-
-  @override
-  String get equipment_setEdit_saveButton_edit => 'Változások mentése';
-
-  @override
-  String get equipment_setEdit_saveButton_new => 'Csoport létrehozása';
 
   @override
   String get equipment_setEdit_saveTooltip_edit =>
@@ -20779,20 +20778,55 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String settings_conflict_consequence_keep(
     String kept,
+    String keptKind,
     String discarded,
+    String discardedKind,
     String fields,
   ) {
-    return 'Megtartott verzió: $kept. Elvetett értékek ($discarded): $fields.';
+    String _temp0 = intl.Intl.selectLogic(keptKind, {
+      'thisDevice': 'ez az eszköz',
+      'otherDevice': 'a másik eszköz',
+      'other': '$kept',
+    });
+    String _temp1 = intl.Intl.selectLogic(discardedKind, {
+      'thisDevice': 'ez az eszköz',
+      'otherDevice': 'a másik eszköz',
+      'other': '$discarded',
+    });
+    return 'Megtartott verzió: $_temp0. Elvetett értékek ($_temp1): $fields.';
   }
 
   @override
-  String settings_conflict_consequence_keepBoth(String local, String remote) {
-    return 'Megtartott verzió: $local. A másik verzió ($remote) külön másolatként kerül mellé.';
+  String settings_conflict_consequence_keepBoth(
+    String local,
+    String localKind,
+    String remote,
+    String remoteKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(localKind, {
+      'thisDevice': 'ez az eszköz',
+      'otherDevice': 'a másik eszköz',
+      'other': '$local',
+    });
+    String _temp1 = intl.Intl.selectLogic(remoteKind, {
+      'thisDevice': 'ez az eszköz',
+      'otherDevice': 'a másik eszköz',
+      'other': '$remote',
+    });
+    return 'Megtartott verzió: $_temp0. A másik verzió ($_temp1) külön másolatként kerül mellé.';
   }
 
   @override
-  String settings_conflict_consequence_keepRecord(String device) {
-    return 'Megtartja a rekordot ezekkel az értékekkel: $device.';
+  String settings_conflict_consequence_keepRecord(
+    String device,
+    String deviceKind,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Megtartja a rekordot ennek az eszköznek az értékeivel.',
+      'otherDevice': 'Megtartja a rekordot a másik eszköz értékeivel.',
+      'other': 'Megtartja a rekordot ezekkel az értékekkel: $device.',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -20809,8 +20843,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String settings_conflict_deletedValues(String device) {
-    return 'A rekord így szerepel itt: $device';
+  String settings_conflict_deletedValues(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'A rekord így szerepel ezen az eszközön:',
+      'otherDevice': 'A rekord így szerepel a másik eszközön:',
+      'other': 'A rekord így szerepel itt: $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -22778,8 +22817,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_keepBoth => 'Mindkettő megtartása';
 
   @override
-  String settings_conflict_keepDevice(String device) {
-    return 'Megtartás: $device';
+  String settings_conflict_keepDevice(String device, String deviceKind) {
+    String _temp0 = intl.Intl.selectLogic(deviceKind, {
+      'thisDevice': 'Megtartás: ennek az eszköznek a verziója',
+      'otherDevice': 'Megtartás: a másik eszköz verziója',
+      'other': 'Megtartás: $device',
+    });
+    return '$_temp0';
   }
 
   @override
@@ -26199,10 +26243,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_summary_depthDistribution_title => 'Mélység megoszlás';
 
   @override
-  String get insights_summary_diveTypes_semanticLabel =>
-      'Kördiagram a merülési típusok megoszlásáról';
-
-  @override
   String get insights_summary_diveTypes_title => 'Merülési típusok';
 
   @override
@@ -28163,16 +28203,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_edit_appBar_edit => 'Út szerkesztése';
 
   @override
-  String get trips_edit_button_add => 'Út hozzáadása';
-
-  @override
   String get trips_edit_button_cancel => 'Mégse';
 
   @override
   String get trips_edit_button_save => 'Mentés';
-
-  @override
-  String get trips_edit_button_update => 'Út frissítése';
 
   @override
   String get trips_edit_dialog_discard => 'Elvetés';
@@ -31668,6 +31702,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hiányzó palackadatok kitöltése importált merüléseknél az alapértelmezett sablon alapján';
 
   @override
+  String get tankPresets_defaultStartPressure => 'Alapértelmezett kezdőnyomás';
+
+  @override
+  String get tankPresets_defaultStartPressure_subtitle =>
+      'Új palackoknál, valamint kezdőnyomás nélküli importált palackoknál kerül kitöltésre, ha az alapértelmezett palack az importokra is vonatkozik';
+
+  @override
+  String tankPresets_defaultStartPressure_range(String max, String min) {
+    return 'Adjon meg egy nyomást $min és $max között';
+  }
+
+  @override
   String get tankPresets_new_title => 'Új palacksablon';
 
   @override
@@ -34826,6 +34872,27 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get emergencyCard_regionUnknown =>
       'Ismeretlen régió - a világméretű segélyvonal használata';
+
+  @override
+  String emergencyCard_regionManual(String region) {
+    return 'Régió: $region, kézzel beállítva';
+  }
+
+  @override
+  String get emergencyCard_regionChange => 'Régió módosítása';
+
+  @override
+  String get emergencyCard_regionPicker_title => 'Vészhelyzeti régió';
+
+  @override
+  String get emergencyCard_regionPicker_automatic =>
+      'Automatikus (legutóbbi merülés)';
+
+  @override
+  String get emergencyCard_regionPicker_search => 'Országok keresése';
+
+  @override
+  String get emergencyCard_regionPicker_noMatches => 'Nincs egyező ország';
 
   @override
   String get emergencyCard_noDiverData =>
@@ -43820,6 +43887,31 @@ class AppLocalizationsHu extends AppLocalizations {
       'Mely magunkkal vitt palackokra válthat a szimulált emelkedés (TTS, plafon és megállók) az egyes mélységekben. Csak a merülésnél rögzített gázokat veszi figyelembe.';
 
   @override
+  String get settings_decompression_header_ascentRate => 'Feljövetelsebesség';
+
+  @override
+  String get settings_decompression_header_ascentRate_subtitle =>
+      'A profil feljövetelsebesség-színei és -eseményei által használt határértékek. A biztonsági áttekintés saját, rögzített határértékeket használ, így ezek módosítása soha nem változtatja meg a már áttekintett merüléseket.';
+
+  @override
+  String get settings_decompression_ascentRateThresholds =>
+      'Feljövetelsebesség határértékei';
+
+  @override
+  String settings_decompression_ascentRateThresholds_subtitle(
+    String critical,
+    String warning,
+  ) {
+    return 'Figyelmeztetés $warning, kritikus $critical';
+  }
+
+  @override
+  String get settings_decompression_ascentRateWarning => 'Figyelmeztetés';
+
+  @override
+  String get settings_decompression_ascentRateCritical => 'Kritikus';
+
+  @override
   String get settings_decompression_header_dataSources =>
       'Adatforrás-beállítások';
 
@@ -45653,6 +45745,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_profileEditor_revisionSwitchFailed =>
       'Nem sikerült a profilverzió váltása.';
+
+  @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'A verzióelőzmények előtt mentve; nincs számítógéphez kapcsolva';
 
   @override
   String diveLog_sources_sectionTitle(int count) {

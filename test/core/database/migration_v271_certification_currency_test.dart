@@ -56,7 +56,11 @@ void main() {
       AppDatabase.migrationStepCount(270),
       AppDatabase.migrationStepCount(271) + 1,
     );
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('a v270 database upgrades and gains the three tables', () async {

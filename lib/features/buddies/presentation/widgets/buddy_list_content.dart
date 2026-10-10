@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/buddies/data/services/contact_photo_loader.dart';
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -922,43 +923,56 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       onRefresh: () async {
         ref.invalidate(allBuddiesWithDiveCountProvider);
       },
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: buddies.length,
-        itemBuilder: (context, index) {
-          final buddyWithCount = buddies[index];
-          final buddy = buddyWithCount.buddy;
-          final highlightedId = ref.watch(highlightedBuddyIdProvider);
-          final isHighlighted = highlightedId == buddy.id;
-          final isSelected = widget.selectedId == buddy.id || isHighlighted;
-          final isChecked = _selectedIds.contains(buddy.id);
-          final viewMode = ref.watch(buddyListViewModeProvider);
-          return switch (viewMode) {
-            ListViewMode.detailed => BuddyListTile(
-              entry: buddyWithCount,
-              isSelected: isSelected,
-              isChecked: isChecked,
-              isSelectionMode: _isSelectionMode,
-              onTap: () => _handleRowTap(buddy.id, buddies),
-            ),
-            ListViewMode.compact => CompactBuddyListTile(
-              entry: buddyWithCount,
-              isSelectionMode: _isSelectionMode,
-              isSelected: isChecked,
-              isHighlighted: !_isSelectionMode && isHighlighted,
-              onTap: () => _handleRowTap(buddy.id, buddies),
-            ),
-            ListViewMode.dense || ListViewMode.table => DenseBuddyListTile(
-              buddy: buddy,
-              diveCount: buddyWithCount.diveCount,
-              isChecked: isChecked,
-              isHighlighted: !_isSelectionMode && isHighlighted,
-              isSelectionMode: _isSelectionMode,
-              onTap: () => _handleRowTap(buddy.id, buddies),
-            ),
-          };
-        },
+      child: KeyboardListNavigator(
+        keys: [for (final b in buddies) b.buddy.id],
+        currentKey: widget.selectedId ?? ref.watch(highlightedBuddyIdProvider),
+        onMove: (id) => moveListCursor(
+          context,
+          canOpen: !_isSelectionMode && widget.onItemSelected != null,
+          open: () => _handleRowTap(id, buddies),
+          highlight: () =>
+              ref.read(highlightedBuddyIdProvider.notifier).state = id,
+        ),
+        onActivate: (id) => _handleRowTap(id, buddies),
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.only(bottom: 80),
+          itemCount: buddies.length,
+          itemBuilder: (context, index) {
+            final buddyWithCount = buddies[index];
+            final buddy = buddyWithCount.buddy;
+            final highlightedId = ref.watch(highlightedBuddyIdProvider);
+            final isHighlighted = highlightedId == buddy.id;
+            final isSelected = widget.selectedId == buddy.id || isHighlighted;
+            final isChecked = _selectedIds.contains(buddy.id);
+            final viewMode = ref.watch(buddyListViewModeProvider);
+            final tile = switch (viewMode) {
+              ListViewMode.detailed => BuddyListTile(
+                entry: buddyWithCount,
+                isSelected: isSelected,
+                isChecked: isChecked,
+                isSelectionMode: _isSelectionMode,
+                onTap: () => _handleRowTap(buddy.id, buddies),
+              ),
+              ListViewMode.compact => CompactBuddyListTile(
+                entry: buddyWithCount,
+                isSelectionMode: _isSelectionMode,
+                isSelected: isChecked,
+                isHighlighted: !_isSelectionMode && isHighlighted,
+                onTap: () => _handleRowTap(buddy.id, buddies),
+              ),
+              ListViewMode.dense || ListViewMode.table => DenseBuddyListTile(
+                buddy: buddy,
+                diveCount: buddyWithCount.diveCount,
+                isChecked: isChecked,
+                isHighlighted: !_isSelectionMode && isHighlighted,
+                isSelectionMode: _isSelectionMode,
+                onTap: () => _handleRowTap(buddy.id, buddies),
+              ),
+            };
+            return KeyboardListItem(navigationKey: buddy.id, child: tile);
+          },
+        ),
       ),
     );
   }

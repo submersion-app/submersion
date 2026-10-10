@@ -3,12 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v275: diver_settings.icd_warnings_enabled (issue #3121).
+/// Schema v276: diver_settings.icd_warnings_enabled (issue #3121).
 void main() {
-  /// A v274 database whose diver_settings lacks the column.
+  /// A v275 database whose diver_settings lacks the column.
   NativeDatabase setupDb() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 274');
+      rawDb.execute('PRAGMA user_version = 275');
       rawDb.execute(
         'CREATE TABLE diver_settings (id TEXT NOT NULL PRIMARY KEY, '
         'diver_id TEXT NOT NULL)',
@@ -19,20 +19,21 @@ void main() {
     },
   );
 
-  test('v275 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(275));
-    expect(AppDatabase.migrationVersions, contains(275));
+  test('v276 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(276));
+    expect(AppDatabase.migrationVersions, contains(276));
     expect(
-      AppDatabase.migrationStepCount(274),
-      AppDatabase.migrationStepCount(275) + 1,
+      AppDatabase.migrationStepCount(275),
+      AppDatabase.migrationStepCount(276) + 1,
     );
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor (#3091); an additive column leaves it below 276.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(276));
   });
 
-  test('upgrading from v274 defaults the warnings on', () async {
+  test('upgrading from v275 defaults the warnings on', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     final rows = await db

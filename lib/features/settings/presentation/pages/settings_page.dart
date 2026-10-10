@@ -21,6 +21,7 @@ import 'package:submersion/features/settings/presentation/pages/column_config_pa
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/widgets/ascent_rate_thresholds_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/ccr_ppo2_limit_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
@@ -1470,6 +1471,8 @@ class _DecompressionSectionContent extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          const AscentRateSection(),
         ],
       ),
     );

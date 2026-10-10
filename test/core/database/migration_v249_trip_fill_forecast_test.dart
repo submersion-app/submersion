@@ -46,7 +46,11 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(248));
     expect(AppDatabase.migrationStepCount(248), greaterThanOrEqualTo(1));
     expect(AppDatabase.migrationStepCount(247), greaterThanOrEqualTo(2));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('a fresh database has every column; sharing is not null, 1', () async {

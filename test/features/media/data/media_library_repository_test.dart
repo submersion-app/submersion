@@ -87,6 +87,7 @@ void main() {
     String id,
     DateTime takenAt, {
     String? diveId,
+    String? equipmentId,
     MediaType mediaType = MediaType.photo,
     MediaSourceType sourceType = MediaSourceType.localFile,
     bool isOrphaned = false,
@@ -99,6 +100,7 @@ void main() {
       localPath: '/tmp/$id',
       originalFilename: '$id.jpg',
       diveId: diveId,
+      equipmentId: equipmentId,
       // Production normalises to wall-clock-as-UTC before persisting (see
       // MediaImportService). Seeding a local instant instead would encode
       // the very convention error these tests are meant to catch, and would
@@ -440,6 +442,103 @@ void main() {
           MediaSourceType.networkUrl,
         ]),
       );
+    });
+  });
+
+  group('documents stay out of the library (#3052)', () {
+    // Documents (invoices, manuals, dive briefings) are attached through the
+    // Documents sections of dives, sites and equipment. The library is the
+    // photo and video gallery: its type filter offers only photo and video,
+    // and the map beside it already drops documents. An equipment invoice
+    // reads as "Unlinked" in the by-dive grouping, which is how the bug was
+    // reported.
+    setUp(() async {
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion(
+              id: const Value('eq-1'),
+              name: const Value('MK25 EVO'),
+              type: const Value('regulator'),
+              createdAt: Value(epoch),
+              updatedAt: Value(epoch),
+            ),
+          );
+      await insertMedia(
+        'doc-equipment',
+        DateTime(2026, 8, 1),
+        equipmentId: 'eq-1',
+        mediaType: MediaType.document,
+      );
+      await insertMedia(
+        'doc-dive',
+        DateTime(2026, 6, 12, 12, 0),
+        diveId: 'dive-1',
+        mediaType: MediaType.document,
+      );
+      await insertMedia(
+        'doc-missing',
+        DateTime(2026, 6, 12, 12, 5),
+        diveId: 'dive-1',
+        mediaType: MediaType.document,
+        isOrphaned: true,
+      );
+    });
+
+    test('getPage returns no document rows', () async {
+      final page = await repo.getPage(diverId: 'd1');
+      final ids = page.entries.map((e) => e.item.id).toSet();
+      expect(ids, isNot(contains('doc-equipment')));
+      expect(ids, isNot(contains('doc-dive')));
+      expect(ids, isNot(contains('doc-missing')));
+      expect(ids, hasLength(7));
+    });
+
+    test('the missing filter returns no document rows', () async {
+      final page = await repo.getPage(
+        diverId: 'd1',
+        filter: const MediaLibraryFilter(health: MediaHealthFilter.missing),
+      );
+      expect(page.entries.map((e) => e.item.id).toList(), ['orphaned-1']);
+    });
+
+    test('countMissing does not count documents', () async {
+      expect(await repo.countMissing(), 1);
+    });
+
+    test('countBySourceType does not count documents', () async {
+      final counts = await repo.countBySourceType();
+      expect(counts[MediaSourceType.localFile], 7);
+    });
+
+    test('getMissingRows still hands missing documents to repair', () async {
+      // The repair wizard and the watched-folder scanner relink every broken
+      // row, documents included. They must not inherit the gallery's
+      // exclusion, or a moved invoice could never be repaired.
+      await insertMedia(
+        'sig-missing',
+        DateTime(2026, 6, 12, 11, 30),
+        diveId: 'dive-1',
+        mediaType: MediaType.instructorSignature,
+        sourceType: MediaSourceType.signature,
+        isOrphaned: true,
+      );
+      await insertMedia(
+        'other-diver-missing',
+        DateTime(2026, 7, 2),
+        diveId: 'dive-other',
+        isOrphaned: true,
+      );
+
+      final rows = await repo.getMissingRows(diverId: 'd1');
+      expect(rows.map((r) => r.id).toSet(), {'orphaned-1', 'doc-missing'});
+
+      final everyone = await repo.getMissingRows(diverId: null);
+      expect(everyone.map((r) => r.id).toSet(), {
+        'orphaned-1',
+        'doc-missing',
+        'other-diver-missing',
+      });
     });
   });
 }

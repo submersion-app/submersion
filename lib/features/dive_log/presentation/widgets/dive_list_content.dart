@@ -31,10 +31,12 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/dive_list_sections.dart';
 import 'package:submersion/features/dive_log/presentation/providers/trip_group_collapse_provider.dart';
+import 'package:submersion/features/dive_log/presentation/helpers/dive_list_nav_stops.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -1868,6 +1870,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     // Taps, ranges and prev/next walk what the diver can actually see, so a
     // shift-range never sweeps up rows folded inside a collapsed trip.
     final visibleDives = visibleDivesOf(sections);
+    final navStops = diveListNavStops(sections);
 
     // One closure over every per-build value, shared by all the sliver
     // builders below. Hoisting these to fields would risk a row reading a
@@ -1881,7 +1884,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       // keeps the home Recent dives list in sync (#506). Nothing here varies
       // with grouping, which is what keeps a grouped card exactly as wide as
       // a loose one (#1193).
-      return DiveListItem(
+      final item = DiveListItem(
         summary: dive,
         diveTypeLabelResolver: diveTypeLabelResolver,
         diveTypeShortLabelResolver: diveTypeShortLabelResolver,
@@ -1900,6 +1903,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         isHighlighted: isMasterSelected || isHighlighted,
         onTap: () => _handleRowTap(dive.id, visibleDives),
       );
+      return KeyboardListItem(navigationKey: dive.id, child: item);
     }
 
     Widget sliverForEntries(List<DiveListEntry> entries) {
@@ -1917,27 +1921,72 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       child: Column(
         children: [
           Expanded(
-            child: CustomScrollView(
-              controller: _scrollController,
-              slivers: [
-                if (ref.watch(diveListGroupingPausedBySortProvider))
-                  SliverToBoxAdapter(
-                    child: _buildGroupingPausedNotice(context),
+            child: KeyboardListNavigator(
+              keys: navStops.keys,
+              currentKey:
+                  widget.selectedId ?? ref.watch(highlightedDiveIdProvider),
+              onMove: (key) {
+                if (navStops.groupOfHeader(key) != null) return;
+                moveListCursor(
+                  context,
+                  canOpen: !_isSelectionMode && widget.onItemSelected != null,
+                  open: () => _handleRowTap(key, visibleDives),
+                  highlight: () =>
+                      ref.read(highlightedDiveIdProvider.notifier).state = key,
+                );
+              },
+              onActivate: (key) {
+                final tripId = navStops.groupOfHeader(key);
+                if (tripId != null) {
+                  ref.read(collapsedTripIdsProvider.notifier).toggle(tripId);
+                } else {
+                  _handleRowTap(key, visibleDives);
+                }
+              },
+              onExpand: (key) {
+                final tripId = navStops.groupOfHeader(key);
+                if (tripId != null && collapsedTripIds.contains(tripId)) {
+                  ref.read(collapsedTripIdsProvider.notifier).expand(tripId);
+                }
+              },
+              onCollapse: (key) {
+                final header = navStops.headerFor(key);
+                if (header == null) return null;
+                final tripId = navStops.groupOfHeader(header)!;
+                if (!collapsedTripIds.contains(tripId)) {
+                  ref.read(collapsedTripIdsProvider.notifier).collapseAll([
+                    tripId,
+                  ]);
+                }
+                return header;
+              },
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  if (ref.watch(diveListGroupingPausedBySortProvider))
+                    SliverToBoxAdapter(
+                      child: _buildGroupingPausedNotice(context),
+                    ),
+                  for (final (index, section) in sections.indexed)
+                    if (section is TripSection)
+                      _buildTripSectionSliver(
+                        context,
+                        section,
+                        sliverForEntries,
+                        diveListTripHeaderKey(index, section.tripId),
+                      )
+                    else
+                      sliverForEntries(section.entries),
+                  if (showTrailingRow)
+                    SliverToBoxAdapter(
+                      child: _buildTrailingRow(context, paginatedState),
+                    ),
+                  // Clears the FAB, matching the old list's bottom padding.
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: _kListBottomSpacer),
                   ),
-                for (final section in sections)
-                  if (section is TripSection)
-                    _buildTripSectionSliver(context, section, sliverForEntries)
-                  else
-                    sliverForEntries(section.entries),
-                if (showTrailingRow)
-                  SliverToBoxAdapter(
-                    child: _buildTrailingRow(context, paginatedState),
-                  ),
-                // Clears the FAB, matching the old list's bottom padding.
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: _kListBottomSpacer),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -2067,6 +2116,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     BuildContext context,
     TripSection section,
     Widget Function(List<DiveListEntry>) sliverForEntries,
+    String navigationKey,
   ) {
     final scheme = Theme.of(context).colorScheme;
     final groupIds = section.entries.map((e) => e.dive.id).toList();
@@ -2104,6 +2154,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   .read(collapsedTripIdsProvider.notifier)
                   .toggle(section.tripId),
               onOpenTrip: () => context.push('/trips/${section.tripId}'),
+              navigationKey: navigationKey,
               isSelectionMode: _isSelectionMode,
               groupChecked: groupChecked,
               onGroupCheckedChanged: (_) {

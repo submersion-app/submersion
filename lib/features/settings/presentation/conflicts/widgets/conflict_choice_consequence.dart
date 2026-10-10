@@ -26,29 +26,41 @@ String conflictConsequence({
       return l10n.settings_conflict_consequence_nothingLost;
     case ConflictComparisonState.remoteDeleted:
       return keepLocal
-          ? l10n.settings_conflict_consequence_keepRecord(devices.local)
+          ? l10n.settings_conflict_consequence_keepRecord(
+              devices.local,
+              devices.localKind.name,
+            )
           : l10n.settings_conflict_consequence_deleteHere;
     case ConflictComparisonState.localDeleted:
       return keepLocal
           ? l10n.settings_conflict_consequence_staysDeleted
-          : l10n.settings_conflict_consequence_keepRecord(devices.remote);
+          : l10n.settings_conflict_consequence_keepRecord(
+              devices.remote,
+              devices.remoteKind.name,
+            );
     case ConflictComparisonState.differing:
       if (choice == ConflictResolution.keepBoth) {
         return l10n.settings_conflict_consequence_keepBoth(
           devices.local,
+          devices.localKind.name,
           devices.remote,
+          devices.remoteKind.name,
         );
       }
       final fields = _fieldList(l10n, comparison);
       return keepLocal
           ? l10n.settings_conflict_consequence_keep(
               devices.local,
+              devices.localKind.name,
               devices.remote,
+              devices.remoteKind.name,
               fields,
             )
           : l10n.settings_conflict_consequence_keep(
               devices.remote,
+              devices.remoteKind.name,
               devices.local,
+              devices.localKind.name,
               fields,
             );
   }

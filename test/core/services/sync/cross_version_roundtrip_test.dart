@@ -31,6 +31,13 @@
 // the events on that device for good. The direction the floor cannot reach,
 // an older peer republishing events we scope-deleted, is the merge guard's
 // job; the last group below covers it.
+//
+// The floor moved 240 -> 275 with the decimal start pressure (#3091): v275
+// retypes diver_settings.default_start_pressure from INTEGER to REAL, and an
+// older reader's DiverSetting.fromJson casts the field to int, so our
+// decimals would throw there. v275 adds no column, so no new projection is
+// needed. The direction the floor cannot reach, an older peer's whole-bar int
+// arriving here, is covered by sync_diver_settings_start_pressure_test.dart.
 import 'dart:convert';
 import 'dart:typed_data';
 

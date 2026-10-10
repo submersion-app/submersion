@@ -212,7 +212,9 @@ class AppSettings {
   final String placeNameLanguage;
   final String defaultDiveType;
   final double defaultTankVolume;
-  final int defaultStartPressure;
+
+  /// Bar, as a decimal so a value entered in psi keeps its value (#3091).
+  final double defaultStartPressure;
   final String? defaultTankPreset;
   final bool applyDefaultTankToImports;
 
@@ -624,7 +626,7 @@ class AppSettings {
     this.placeNameLanguage = PlaceNameLanguage.defaultCode,
     this.defaultDiveType = 'recreational',
     this.defaultTankVolume = 12.0,
-    this.defaultStartPressure = 200,
+    this.defaultStartPressure = 200.0,
     this.defaultTankPreset = 'al80',
     this.applyDefaultTankToImports = false,
     this.hiddenTankPresetIds = const {},
@@ -816,7 +818,7 @@ class AppSettings {
     String? placeNameLanguage,
     String? defaultDiveType,
     double? defaultTankVolume,
-    int? defaultStartPressure,
+    double? defaultStartPressure,
     String? defaultTankPreset,
     bool clearDefaultTankPreset = false,
     bool? applyDefaultTankToImports,
@@ -1878,8 +1880,20 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setDefaultStartPressure(int pressure) async {
-    state = state.copyWith(defaultStartPressure: pressure);
+  /// Lowest and highest default start pressure, in bar.
+  static const double defaultStartPressureMin = 1;
+  static const double defaultStartPressureMax = 400;
+
+  /// Bar. Clamped to [defaultStartPressureMin]..[defaultStartPressureMax];
+  /// a non-finite value is ignored.
+  Future<void> setDefaultStartPressure(double pressure) async {
+    if (!pressure.isFinite) return;
+    state = state.copyWith(
+      defaultStartPressure: pressure.clamp(
+        defaultStartPressureMin,
+        defaultStartPressureMax,
+      ),
+    );
     await _saveSettings();
   }
 
@@ -2046,15 +2060,29 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setAscentRateWarning(double value) async {
-    final clamped = value.clamp(3.0, 18.0);
-    state = state.copyWith(ascentRateWarning: clamped);
-    await _saveSettings();
-  }
+  /// Lowest and highest warning ascent rate, in m/min.
+  static const double ascentRateWarningMin = 3.0;
+  static const double ascentRateWarningMax = 18.0;
 
-  Future<void> setAscentRateCritical(double value) async {
-    final clamped = value.clamp(6.0, 20.0);
-    state = state.copyWith(ascentRateCritical: clamped);
+  /// Lowest and highest critical ascent rate, in m/min.
+  static const double ascentRateCriticalMin = 6.0;
+  static const double ascentRateCriticalMax = 20.0;
+
+  /// Sets the profile's ascent-rate colour thresholds together, in m/min.
+  ///
+  /// One call rather than one per threshold because the pair has to stay
+  /// ordered: a critical rate below the warning rate would leave the orange
+  /// band empty. Critical is raised to warning when it falls below it.
+  Future<void> setAscentRateThresholds({
+    required double warning,
+    required double critical,
+  }) async {
+    final w = warning.clamp(ascentRateWarningMin, ascentRateWarningMax);
+    final c = critical.clamp(ascentRateCriticalMin, ascentRateCriticalMax);
+    state = state.copyWith(
+      ascentRateWarning: w,
+      ascentRateCritical: c < w ? w : c,
+    );
     await _saveSettings();
   }
 

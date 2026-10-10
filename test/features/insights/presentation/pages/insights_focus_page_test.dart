@@ -9,6 +9,7 @@ import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_focus_page.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_focus_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
+import 'package:submersion/features/insights/presentation/widgets/focus/focus_dive_list.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -42,6 +43,7 @@ void main() {
     List<TrendDataPoint>? series,
     FocusSelection selection = const FocusSelection(),
     List<String>? pushed,
+    List<Override> extraOverrides = const [],
   }) async {
     final overrides = await getBaseOverrides();
     final router = GoRouter(
@@ -70,6 +72,7 @@ void main() {
               (ref) async => m == FocusMetric.rmv ? (series ?? rmv) : const [],
             ),
           focusFactorRowsProvider.overrideWith((ref) async => rows),
+          ...extraOverrides,
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -91,8 +94,15 @@ void main() {
   ) async {
     await pump(tester);
     expect(find.textContaining('10 of 12 dives'), findsOneWidget);
-    expect(find.byKey(const ValueKey('focus-dive-d0')), findsOneWidget);
-    expect(find.byKey(const ValueKey('focus-dive-d10')), findsNothing);
+    // The list is lazy, so check what it holds rather than which rows are
+    // built: the ten lowest RMVs, best first.
+    final list = tester.widget<FocusDiveList>(
+      find.byType(FocusDiveList, skipOffstage: false),
+    );
+    expect(list.members.map((m) => m.diveId), [
+      for (var i = 0; i < 10; i++) 'd$i',
+    ]);
+    expect(list.ranked, isTrue);
     expect(find.byType(DiveTrendChart), findsOneWidget);
   });
 
@@ -113,6 +123,48 @@ void main() {
     expect(find.textContaining('Your dives range from'), findsOneWidget);
   });
 
+  testWidgets('a below threshold with no match shows the range', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      selection: const FocusSelection(mode: FocusMode.below, threshold: 1),
+    );
+    expect(find.textContaining('No dives below'), findsOneWidget);
+  });
+
+  testWidgets('a failed group load shows the error state', (tester) async {
+    await pump(
+      tester,
+      extraOverrides: [
+        focusGroupProvider.overrideWith((ref) async => throw StateError('x')),
+      ],
+    );
+    expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    expect(find.text('Failed to load dive focus'), findsOneWidget);
+  });
+
+  testWidgets('a failed factor report says so in the factors card', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      extraOverrides: [
+        focusFactorReportProvider.overrideWith(
+          (ref) async => throw StateError('x'),
+        ),
+      ],
+    );
+    await tester.scrollUntilVisible(
+      find.text('Common factors'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Failed to load dive focus'), findsOneWidget);
+    // The rest of the results stay up.
+    expect(find.byType(DiveTrendChart, skipOffstage: false), findsOneWidget);
+  });
+
   testWidgets('a threshold mode with no value asks for one', (tester) async {
     await pump(tester, selection: const FocusSelection(mode: FocusMode.above));
     expect(
@@ -129,7 +181,11 @@ void main() {
   testWidgets('tapping a row opens that dive', (tester) async {
     final pushed = <String>[];
     await pump(tester, pushed: pushed);
-    await tester.ensureVisible(find.byKey(const ValueKey('focus-dive-d1')));
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('focus-dive-d1')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.byKey(const ValueKey('focus-dive-d1')));
     await tester.pumpAndSettle();
     expect(pushed, ['d1']);
@@ -164,6 +220,42 @@ void main() {
     expect(chart.secondarySeries.single.color, scheme.primary);
     expect(chart.points, hasLength(2));
     expect(chart.secondarySeries.single.points, hasLength(10));
+  });
+
+  testWidgets('a huge group builds only the rows on screen (#3013)', (
+    tester,
+  ) async {
+    final many = [
+      for (var i = 0; i < 1000; i++)
+        TrendDataPoint(
+          date: DateTime.utc(2020, 1, 1).add(Duration(days: i)),
+          value: 12.0 + i % 10,
+          diveId: 'd$i',
+        ),
+    ];
+    await pump(
+      tester,
+      series: many,
+      selection: const FocusSelection(mode: FocusMode.above, threshold: 0),
+    );
+    expect(find.textContaining('dives, group average'), findsOneWidget);
+
+    final builtRows = find.byWidgetPredicate((w) {
+      final key = w.key;
+      return key is ValueKey<String> && key.value.startsWith('focus-dive-');
+    }, skipOffstage: false);
+    expect(builtRows, findsWidgets);
+    expect(builtRows.evaluate().length, lessThan(100));
+
+    // Every row, and the factors card after the list, are still reachable.
+    final scrollable = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(
+      find.text('Common factors'),
+      2000,
+      scrollable: scrollable,
+      maxScrolls: 200,
+    );
+    expect(builtRows.evaluate().length, lessThan(100));
   });
 
   testWidgets('asking for exactly every dive shows the normal summary', (

@@ -161,6 +161,29 @@ void main() {
     expect(find.text('Breakwater'), findsNothing);
   });
 
+  // The set editor saves from the top-right app bar action, as the gear
+  // editor does (issue #2266); that is its only save action (issue #3174).
+  Finder appBarSave() => find.descendant(
+    of: find.byType(AppBar),
+    matching: find.widgetWithText(AppBarTextAction, 'Save'),
+  );
+
+  testWidgets('the app bar Save is the only save action (issue #3174)', (
+    tester,
+  ) async {
+    // Tall enough that the whole lazy form, down to its end, is built.
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(await buildPage());
+    await tester.pumpAndSettle();
+
+    expect(appBarSave(), findsOneWidget);
+    expect(find.text('Create Set'), findsNothing);
+    expect(find.byTooltip('Create new equipment set'), findsOneWidget);
+  });
+
   testWidgets('saving a new default set with a geofence persists both', (
     tester,
   ) async {
@@ -172,14 +195,8 @@ void main() {
     await tester.pump();
     await addGeofenceViaSheet(tester);
 
-    // Save; the button sits below the fold of a lazily-built ListView, so
-    // scroll it into existence before tapping. The form pops home on success.
-    await tester.scrollUntilVisible(
-      find.widgetWithText(FilledButton, 'Create Set'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Create Set'));
+    // Save from the app bar. The form pops home on success.
+    await tester.tap(appBarSave());
     await tester.pumpAndSettle();
     expect(find.text('home'), findsOneWidget);
 
@@ -189,13 +206,6 @@ void main() {
     expect(sets.first.isDefault, isTrue);
     expect(await repo.getGeofencesForSet(sets.first.id), hasLength(1));
   });
-
-  // The gear editor saves from the top-right app bar action; the set editor
-  // only had a button at the bottom of the form (issue #2266).
-  Finder appBarSave() => find.descendant(
-    of: find.byType(AppBar),
-    matching: find.widgetWithText(AppBarTextAction, 'Save'),
-  );
 
   testWidgets('the app bar Save creates a new set without scrolling '
       '(issue #2266)', (tester) async {
@@ -266,12 +276,7 @@ void main() {
     await tester.pump();
     expect(tester.widget<SwitchListTile>(figureSwitch).value, isTrue);
 
-    await tester.scrollUntilVisible(
-      find.widgetWithText(FilledButton, 'Create Set'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Create Set'));
+    await tester.tap(appBarSave());
     await tester.pumpAndSettle();
 
     final sets = await EquipmentSetRepository().getAllSets(diverId: 'd1');
@@ -336,12 +341,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('e2'), findsNothing);
 
-    await tester.scrollUntilVisible(
-      find.widgetWithText(FilledButton, 'Save Changes'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'Save Changes'));
+    await tester.tap(appBarSave());
     await tester.pumpAndSettle();
 
     expect(
