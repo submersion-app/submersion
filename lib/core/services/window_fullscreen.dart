@@ -25,8 +25,9 @@ class WindowManagerFullscreenPlatform
     with WindowListener
     implements WindowFullscreenPlatform {
   /// The plugin finds the app's window only once initialized, and on
-  /// Windows every other call needs that handle. Its window events start
-  /// then too, and a leave can only follow an enter this app asked for.
+  /// Windows every other call needs that handle. Window events start then
+  /// too, so leaves are heard from the first request on, whether this app
+  /// or the user entered the fullscreen being left.
   Future<void>? _initialized;
 
   void Function()? _onLeave;
@@ -97,7 +98,7 @@ class WindowFullscreenController {
   }
 
   final WindowFullscreenPlatform _platform;
-  final Set<Object> _owners = {};
+  Set<Object> _owners = const {};
   bool _enteredByUs = false;
 
   /// Leaves this controller asked for whose event has not arrived yet. On
@@ -107,8 +108,10 @@ class WindowFullscreenController {
   Future<void> _queue = Future<void>.value();
 
   Future<void> request(Object owner) {
+    if (_owners.contains(owner)) return _queue;
     final wasEmpty = _owners.isEmpty;
-    if (!_owners.add(owner) || !wasEmpty) return _queue;
+    _owners = {..._owners, owner};
+    if (!wasEmpty) return _queue;
     return _enqueue(() async {
       if (_owners.isEmpty || _enteredByUs) return;
       if (await _platform.isFullScreen()) return;
@@ -118,7 +121,12 @@ class WindowFullscreenController {
   }
 
   Future<void> release(Object owner) {
-    if (!_owners.remove(owner) || _owners.isNotEmpty) return _queue;
+    if (!_owners.contains(owner)) return _queue;
+    _owners = {
+      for (final held in _owners)
+        if (held != owner) held,
+    };
+    if (_owners.isNotEmpty) return _queue;
     return _enqueue(() async {
       if (_owners.isNotEmpty || !_enteredByUs) return;
       _enteredByUs = false;
