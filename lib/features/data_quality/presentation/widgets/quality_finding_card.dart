@@ -17,6 +17,7 @@ class QualityFindingCard extends StatefulWidget {
     this.relatedDive,
     this.computerName,
     this.evidence,
+    this.foreignDiveId,
   });
 
   final QualityFinding finding;
@@ -40,6 +41,12 @@ class QualityFindingCard extends StatefulWidget {
   /// Optional expanded-state evidence (before/after chart, sparklines...),
   /// injected by the page so this widget stays synchronous.
   final Widget? evidence;
+
+  /// The dive of this finding that belongs to another profile, if any (see
+  /// `foreignDiveIdOf`). The card then names it but neither opens it nor
+  /// offers a repair on it, and "Go to dive" opens the active diver's own
+  /// dive; [relatedDive] labels the foreign one (issue #3049).
+  final String? foreignDiveId;
 
   @override
   State<QualityFindingCard> createState() => _QualityFindingCardState();
@@ -111,13 +118,21 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
     );
     // The card always renders its own "Go to dive" footer button, so drop any
     // GoToDiveRepair actions from the repair list to avoid a duplicate link.
+    final finding = widget.finding;
+    final foreign = widget.foreignDiveId;
     final actions = [
-      for (final a in repairOptionsFor(widget.finding))
-        if (a is! GoToDiveRepair) a,
+      for (final a in repairOptionsFor(finding))
+        if (a is! GoToDiveRepair &&
+            !(a is RemoveGearFromDiveRepair && a.diveId == foreign))
+          a,
     ];
     final primary = actions.isNotEmpty ? actions.first : null;
     final related = widget.relatedDive;
-    final relatedId = widget.finding.relatedDiveId;
+    // With a foreign anchor, the active diver's dive is the related one, and
+    // the "paired with" row names the anchor instead.
+    final foreignAnchor = foreign != null && foreign == finding.diveId;
+    final ownDiveId = foreignAnchor ? finding.relatedDiveId! : finding.diveId;
+    final pairedId = foreignAnchor ? finding.diveId : finding.relatedDiveId;
     final computerName = widget.computerName;
 
     return Card(
@@ -159,9 +174,9 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
             _ContextRow(
               icon: Icons.link_outlined,
               text: context.l10n.dataQuality_dive_pairedWith(related.headline),
-              onTap: relatedId == null
+              onTap: pairedId == null || pairedId == foreign
                   ? null
-                  : () => widget.onGoToDive(relatedId),
+                  : () => widget.onGoToDive(pairedId),
             ),
           if (computerName != null)
             _ContextRow(
@@ -192,7 +207,7 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
                     child: Text(_repairLabel(context, action)),
                   ),
                 TextButton(
-                  onPressed: () => widget.onGoToDive(widget.finding.diveId),
+                  onPressed: () => widget.onGoToDive(ownDiveId),
                   child: Text(context.l10n.dataQuality_action_goToDive),
                 ),
                 TextButton(

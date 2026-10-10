@@ -9,6 +9,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/data_quality/data/services/diver_data_query.dart';
 import 'package:submersion/features/data_quality/data/services/quality_repair_executor.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/data_quality/domain/services/finding_ownership.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_registry.dart';
 import 'package:submersion/features/data_quality/domain/entities/diver_data_summary.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
@@ -35,13 +37,16 @@ QualityUnitFormatters buildQualityUnitFormatters(WidgetRef ref) =>
 
 typedef _DiveGroup = ({String diveId, List<QualityFinding> findings});
 
-List<_DiveGroup> _groupByDive(List<QualityFinding> findings) {
+List<_DiveGroup> _groupByDive(
+  List<QualityFinding> findings, {
+  required String Function(QualityFinding f) diveIdOf,
+}) {
   // findings arrive ordered by updatedAt (not diveId), so a dive's findings
   // can be interleaved with others. Accumulate by diveId in a map (insertion
   // order = each dive's newest finding) so every dive gets exactly one header.
   final byDive = <String, List<QualityFinding>>{};
   for (final f in findings) {
-    (byDive[f.diveId] ??= []).add(f);
+    (byDive[diveIdOf(f)] ??= []).add(f);
   }
   return [
     for (final entry in byDive.entries)
@@ -464,6 +469,18 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
           // list -- and blinking the identities out is worse than showing the
           // last good ones for a frame.
           final dives = divesAsync.value;
+          // A shared gear pair can name another profile's dive. It is filed
+          // under the active diver's own dive, and that other dive is never
+          // a header to open (issue #3049).
+          final activeDiverId = ref
+              .watch(validatedCurrentDiverIdProvider)
+              .value;
+          String? foreignOf(QualityFinding f) =>
+              foreignDiveIdOf(f, activeDiverId);
+          String ownDiveOf(QualityFinding f) =>
+              foreignOf(f) == f.diveId ? f.relatedDiveId! : f.diveId;
+          String? pairedDiveOf(QualityFinding f) =>
+              foreignOf(f) == f.diveId ? f.diveId : f.relatedDiveId;
           // Reading the names costs a diver lookup plus a computers-table
           // read, so only pay it when some finding actually names a computer.
           final computerNames = scoped.any((f) => f.computerId != null)
@@ -515,7 +532,10 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                       )
                     : ListView(
                         children: [
-                          for (final group in _groupByDive(open)) ...[
+                          for (final group in _groupByDive(
+                            open,
+                            diveIdOf: ownDiveOf,
+                          )) ...[
                             _DiveGroupHeader(
                               label: identity(group.diveId),
                               loading: divesAsync.isLoading,
@@ -526,7 +546,8 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                               QualityFindingCard(
                                 finding: f,
                                 formatters: formatters,
-                                relatedDive: identity(f.relatedDiveId),
+                                relatedDive: identity(pairedDiveOf(f)),
+                                foreignDiveId: foreignOf(f),
                                 computerName: computerNames[f.computerId],
                                 onRepair: (a) =>
                                     _runAction(f, a, identityOf: identity),

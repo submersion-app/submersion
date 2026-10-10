@@ -1143,6 +1143,66 @@ void main() {
     expect(find.text('opened d1'), findsOneWidget);
   });
 
+  // A shared gear pair spans two profiles. Bob sees it under his own dive,
+  // and Alice's dive is named but cannot be opened from his inbox (#3049).
+  testWidgets('files a cross-profile pair under the active diver\'s dive', (
+    tester,
+  ) async {
+    await _seedDive('a1', name: 'Alice wreck');
+    await _seedDive('b1', name: 'Bob reef');
+    final prefs = await _prefs();
+    final router = GoRouter(
+      initialLocation: '/quality',
+      routes: [
+        GoRoute(
+          path: '/quality',
+          builder: (_, _) => const DataQualityInboxPage(),
+        ),
+        GoRoute(
+          path: '/dives/:id',
+          builder: (_, state) =>
+              Scaffold(body: Text('opened ${state.pathParameters['id']}')),
+        ),
+      ],
+    );
+    final pair = _f(
+      id: 'gear',
+      diveId: 'a1',
+      relatedDiveId: 'b1',
+      detectorId: 'shared_gear_overlap',
+      category: QualityCategory.time,
+      severity: QualitySeverity.info,
+      params: const {
+        'equipmentId': 'light',
+        'itemName': 'Light',
+        'partIds': <String>[],
+        'dives': {
+          'a1': {'diverId': 'alice', 'diverName': 'Alice', 'removable': true},
+          'b1': {'diverId': 'bob', 'diverName': 'Bob', 'removable': true},
+        },
+      },
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: [
+          ..._overrides(prefs, findings: [pair]),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'bob'),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Alice's dive appears only in the "paired with" row, which does nothing.
+    await tester.tap(find.textContaining('Alice wreck'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('opened'), findsNothing);
+
+    await tester.tap(find.textContaining('Bob reef'));
+    await tester.pumpAndSettle();
+    expect(find.text('opened b1'), findsOneWidget);
+  });
+
   testWidgets('a failed identity lookup says so rather than showing an id', (
     tester,
   ) async {
