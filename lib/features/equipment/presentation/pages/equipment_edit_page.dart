@@ -1199,7 +1199,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         }
       }
 
-      final revealView = await _viewRevealing(savedId, equipment.status);
+      // An edit outside master-detail returns to the item's own page, which
+      // shows it whatever the list's view; only the list can lose it.
+      final revealView = widget.isEditing && !widget.embedded
+          ? null
+          : await _viewRevealing(savedId, equipment.status);
 
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);

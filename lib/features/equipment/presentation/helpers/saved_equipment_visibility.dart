@@ -21,9 +21,18 @@ Future<EquipmentFilterState?> viewRevealingSavedEquipment({
   required EquipmentStatus status,
 }) async {
   Future<bool> shows(EquipmentFilterState view) async {
+    final compiled = compileEquipmentFilter(view, diverId: diverId);
+    // Narrowed to the one row, so the check never lists the whole view.
+    final owner = view.ownerScope(diverId);
     final ids = await runner.ids(
-      compileEquipmentFilter(view, diverId: diverId),
-      scope: view.ownerScope(diverId),
+      compiled,
+      scope: (
+        sql: [
+          if (owner != null) owner.sql,
+          '${compiled.rootAlias}.${compiled.idColumn} = ?',
+        ].join(' AND '),
+        params: [...?owner?.params, equipmentId],
+      ),
     );
     return ids.contains(equipmentId);
   }

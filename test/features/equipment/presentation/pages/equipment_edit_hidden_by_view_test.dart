@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -26,7 +28,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> pumpCreator(WidgetTester tester) async {
+  Future<void> pumpApp(WidgetTester tester, Widget page) async {
     // Tall viewport so the whole (lazy ListView) form materializes.
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 4000);
@@ -41,16 +43,19 @@ void main() {
           ...overrides,
           equipmentRepositoryProvider.overrideWithValue(repository),
         ].cast(),
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: EquipmentEditPage(embedded: true)),
+          home: Scaffold(body: page),
         ),
       ),
     );
     await tester.pumpAndSettle();
   }
+
+  Future<void> pumpCreator(WidgetTester tester) =>
+      pumpApp(tester, const EquipmentEditPage(embedded: true));
 
   Future<void> saveNew(WidgetTester tester, {String? status}) async {
     await tester.enterText(
@@ -103,6 +108,82 @@ void main() {
     expect(
       containerOf(tester).read(equipmentFilterProvider),
       const EquipmentFilterState(),
+    );
+  });
+
+  Future<String> activeFins() async => (await repository.createEquipment(
+    const EquipmentItem(id: '', name: 'Fins', type: EquipmentType.fins),
+  )).id;
+
+  Future<void> pickWantedAndSave(WidgetTester tester) async {
+    await tester.tap(find.text('Active'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Wanted').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('a master-detail edit to Wanted offers the Wanted view', (
+    tester,
+  ) async {
+    final id = await activeFins();
+    await pumpApp(tester, EquipmentEditPage(equipmentId: id, embedded: true));
+    await pickWantedAndSave(tester);
+
+    expect(find.text('Saved, but the current list view hides it'), findsOne);
+  });
+
+  testWidgets('a routed edit returns to the item, so it just confirms', (
+    tester,
+  ) async {
+    final id = await activeFins();
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: Text('item page')),
+          routes: [
+            GoRoute(
+              path: 'edit',
+              builder: (context, state) => EquipmentEditPage(equipmentId: id),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          equipmentRepositoryProvider.overrideWithValue(repository),
+        ].cast(),
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    router.push('/edit');
+    await tester.pumpAndSettle();
+    await pickWantedAndSave(tester);
+
+    expect(find.text('item page'), findsOne);
+    expect(find.text('Equipment updated'), findsOne);
+    expect(
+      find.text('Saved, but the current list view hides it'),
+      findsNothing,
     );
   });
 }
