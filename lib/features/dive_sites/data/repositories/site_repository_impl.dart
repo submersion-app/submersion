@@ -29,6 +29,8 @@ import 'package:submersion/features/media/data/repositories/media_row_restore.da
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 export 'package:submersion/features/dive_sites/data/repositories/site_links.dart'
     show SiteLinks, SiteUsage;
@@ -600,6 +602,9 @@ class SiteRepository {
         SharedItemKind.site,
         ids,
       );
+      // The sites' documents go with them, tombstoned (issue #2613). A
+      // merge re-points them to the survivor first.
+      await DocumentRepository().deleteForOwners(DocumentOwnerKind.site, ids);
       await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
       // One batch for every tombstone, not a transaction per site.
       await _syncRepository.logDeletions(

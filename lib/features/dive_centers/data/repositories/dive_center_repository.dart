@@ -11,6 +11,8 @@ import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 class DiveCenterRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -243,6 +245,11 @@ class DiveCenterRepository {
         await clearDiveCenterLinks(_db, _syncRepository, [
           id,
         ], now: DateTime.now().millisecondsSinceEpoch);
+        // Its documents go with it, tombstoned (issue #2613).
+        await DocumentRepository().deleteForOwner(
+          DocumentOwnerKind.diveCenter,
+          id,
+        );
         await (_db.delete(_db.diveCenters)..where((t) => t.id.equals(id))).go();
         await _syncRepository.logDeletion(
           entityType: 'diveCenters',

@@ -9,6 +9,8 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart'
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// Snapshot of a DiveBuddies junction row for undo.
 class DiveBuddySnapshot {
@@ -611,6 +613,14 @@ class BuddyMergeRepository {
         // a single notify fires after commit instead of one per cert. Batch the
         // cert lookup (getCertificationsForBuddies) to avoid an N+1 per buddy.
         final certsByBuddy = await _certRepo.getCertificationsForBuddies(ids);
+        // The buddies' documents and their certifications' documents go
+        // with them, tombstoned (issue #2613).
+        final documents = DocumentRepository();
+        await documents.deleteForOwners(DocumentOwnerKind.certification, [
+          for (final certs in certsByBuddy.values)
+            for (final cert in certs) cert.id,
+        ]);
+        await documents.deleteForOwners(DocumentOwnerKind.buddy, ids);
         for (final certs in certsByBuddy.values) {
           for (final cert in certs) {
             await (_db.delete(

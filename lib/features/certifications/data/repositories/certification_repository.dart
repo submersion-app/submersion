@@ -11,6 +11,8 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart'
     as domain;
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 class CertificationRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -290,16 +292,24 @@ class CertificationRepository {
   Future<void> deleteCertification(String id, {bool notify = true}) async {
     try {
       _log.info('Deleting certification: $id');
-      // Currency prefs and events cascade with the row, and a cascade
-      // writes no tombstones, so log them before they go.
-      await CertificationCurrencyRepository().tombstoneChildrenOf(id);
-      await (_db.delete(
-        _db.certifications,
-      )..where((t) => t.id.equals(id))).go();
-      await _syncRepository.logDeletion(
-        entityType: 'certifications',
-        recordId: id,
-      );
+      await _db.transaction(() async {
+        // Currency prefs and events cascade with the row, and a cascade
+        // writes no tombstones, so log them before they go.
+        await CertificationCurrencyRepository().tombstoneChildrenOf(id);
+        // Its documents (the card and any others) go with it, tombstoned
+        // (issue #2613).
+        await DocumentRepository().deleteForOwner(
+          DocumentOwnerKind.certification,
+          id,
+        );
+        await (_db.delete(
+          _db.certifications,
+        )..where((t) => t.id.equals(id))).go();
+        await _syncRepository.logDeletion(
+          entityType: 'certifications',
+          recordId: id,
+        );
+      });
       if (notify) SyncEventBus.notifyLocalChange();
       _log.info('Deleted certification: $id');
     } catch (e, stackTrace) {

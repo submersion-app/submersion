@@ -94,6 +94,8 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
@@ -2361,6 +2363,11 @@ class DiveRepository {
       ids,
       now: DateTime.now().millisecondsSinceEpoch,
     );
+    // The dives' documents go with them, tombstoned (issue #2613). A merge
+    // re-points them to the merged dive first, so it never loses them here.
+    for (final chunk in seriesIdChunks(ids)) {
+      await DocumentRepository().deleteForOwners(DocumentOwnerKind.dive, chunk);
+    }
     for (final chunk in seriesIdChunks(ids)) {
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(chunk))).go();
     }
