@@ -445,7 +445,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('That is not a cylinder tag'), findsOneWidget);
+    expect(find.text('That is not a Submersion tag'), findsOneWidget);
   });
 
   testWidgets('a tag link during setup waits until setup is left', (
@@ -483,12 +483,12 @@ void main() {
     links.controller.add('submersion://c?f=1');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('That is not a cylinder tag'), findsNothing);
+    expect(find.text('That is not a Submersion tag'), findsNothing);
 
     router.go('/');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('That is not a cylinder tag'), findsOneWidget);
+    expect(find.text('That is not a Submersion tag'), findsOneWidget);
   });
 
   testWidgets('a tag link before the navigator is built is kept, not lost', (
@@ -531,7 +531,7 @@ void main() {
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
-    expect(find.text('That is not a cylinder tag'), findsOneWidget);
+    expect(find.text('That is not a Submersion tag'), findsOneWidget);
   });
 
   group('a file shared through the share sheet', () {
