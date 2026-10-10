@@ -13560,6 +13560,7 @@
   "diveLog_profileEditor_mode_trim": "Bijsnijden",
   "diveLog_profileEditor_revisionSelectorTooltip": "Wissel naar actieve revisie. Deze wijziging treedt onmiddellijk in werking en alle toekomstige bewerkingen zijn gebaseerd op deze revisie.",
   "diveLog_profileEditor_revisionSwitchFailed": "Kan niet wisselen van profielrevisie.",
+  "diveLog_profileEditor_revisionLegacyHint": "Opgeslagen vóór de revisiegeschiedenis; niet gekoppeld aan een computer",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Databron} =1{Databron} other{Databronnen}}",
   "diveLog_sources_badge_manual": "Handmatig",
   "diveLog_sources_badge_viewing": "Wordt bekeken",

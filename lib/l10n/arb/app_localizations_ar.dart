@@ -46338,6 +46338,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذر تبديل مراجعة الملف الشخصي.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'حُفظ قبل سجل المراجعات؛ غير مرتبط بأي حاسوب غوص';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

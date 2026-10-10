@@ -45011,6 +45011,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not switch profile revision.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Saved before revision history; not linked to a computer';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

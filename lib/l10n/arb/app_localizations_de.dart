@@ -45614,6 +45614,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Profilrevision konnte nicht gewechselt werden.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Vor der Revisionshistorie gespeichert; mit keinem Tauchcomputer verknüpft';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

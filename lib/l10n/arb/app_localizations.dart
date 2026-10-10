@@ -72691,6 +72691,12 @@ abstract class AppLocalizations {
   /// **'Could not switch profile revision.'**
   String get diveLog_profileEditor_revisionSwitchFailed;
 
+  /// No description provided for @diveLog_profileEditor_revisionLegacyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved before revision history; not linked to a computer'**
+  String get diveLog_profileEditor_revisionLegacyHint;
+
   /// Header of the dive-detail section listing where a dive's data came from (dive computers, imported files, manual entry).
   ///
   /// In en, this message translates to:

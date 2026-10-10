@@ -13560,6 +13560,7 @@
   "diveLog_profileEditor_mode_trim": "Cortar",
   "diveLog_profileEditor_revisionSelectorTooltip": "Alternar revisão ativa. Esta mudança entra em vigor imediatamente e todas as futuras edições serão baseadas nesta revisão.",
   "diveLog_profileEditor_revisionSwitchFailed": "Não foi possível alternar a revisão do perfil.",
+  "diveLog_profileEditor_revisionLegacyHint": "Guardado antes do histórico de revisões; sem ligação a um computador",
   "diveLog_sources_sectionTitle": "{count, plural, one{Fonte de Dados} other{Fontes de Dados}}",
   "diveLog_sources_badge_manual": "Manual",
   "diveLog_sources_badge_viewing": "Visualizando",

@@ -26779,6 +26779,7 @@
   "diveLog_profileEditor_mode_trim": "Trim",
   "diveLog_profileEditor_revisionSelectorTooltip": "Switch active revision. This takes effect immediately and all future edits will be based on this revision.",
   "diveLog_profileEditor_revisionSwitchFailed": "Could not switch profile revision.",
+  "diveLog_profileEditor_revisionLegacyHint": "Saved before revision history; not linked to a computer",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Data Source} =1{Data Source} other{Data Sources}}",
   "diveLog_sources_badge_manual": "Manual",
   "diveLog_sources_badge_viewing": "Viewing",

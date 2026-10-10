@@ -44774,6 +44774,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן להחליף את גרסת הפרופיל.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'נשמר לפני היסטוריית הגרסאות; לא מקושר למחשב צלילה';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

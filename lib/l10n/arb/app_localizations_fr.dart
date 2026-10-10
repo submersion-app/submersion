@@ -45823,6 +45823,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de changer de révision du profil.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Enregistré avant l’historique des révisions ; lié à aucun ordinateur';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

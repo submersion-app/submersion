@@ -45725,6 +45725,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível alternar a revisão do perfil.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Guardado antes do histórico de revisões; sem ligação a um computador';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

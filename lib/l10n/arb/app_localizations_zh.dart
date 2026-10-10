@@ -42934,6 +42934,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profileEditor_revisionSwitchFailed => '无法切换剖面版本。';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint => '保存于版本历史之前；未关联潜水电脑';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

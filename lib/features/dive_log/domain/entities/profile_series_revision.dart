@@ -14,6 +14,8 @@ class ProfileSeriesRevision extends Equatable {
     required this.revisionKind,
     required this.createdAt,
     required this.isActive,
+    this.sourceId,
+    this.computerId,
   });
 
   final String seriesId;
@@ -24,6 +26,14 @@ class ProfileSeriesRevision extends Equatable {
   final String revisionKind;
   final int createdAt;
   final bool isActive;
+
+  /// The `dive_data_sources` row the series belongs to, null for a series
+  /// that predates source ownership (see `owningDataSource`).
+  final String? sourceId;
+
+  /// The computer that recorded the series, null for a manual edit or a file
+  /// import.
+  final String? computerId;
 
   /// Pass [clearParentSeriesId] to make the copy a root revision; a null
   /// [parentSeriesId] alone keeps the current parent.
@@ -37,6 +47,8 @@ class ProfileSeriesRevision extends Equatable {
     String? revisionKind,
     int? createdAt,
     bool? isActive,
+    String? sourceId,
+    String? computerId,
   }) {
     return ProfileSeriesRevision(
       seriesId: seriesId ?? this.seriesId,
@@ -49,6 +61,8 @@ class ProfileSeriesRevision extends Equatable {
       revisionKind: revisionKind ?? this.revisionKind,
       createdAt: createdAt ?? this.createdAt,
       isActive: isActive ?? this.isActive,
+      sourceId: sourceId ?? this.sourceId,
+      computerId: computerId ?? this.computerId,
     );
   }
 
@@ -62,5 +76,7 @@ class ProfileSeriesRevision extends Equatable {
     revisionKind,
     createdAt,
     isActive,
+    sourceId,
+    computerId,
   ];
 }

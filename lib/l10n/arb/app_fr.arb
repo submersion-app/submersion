@@ -13560,6 +13560,7 @@
   "diveLog_profileEditor_mode_trim": "Rogner",
   "diveLog_profileEditor_revisionSelectorTooltip": "Basculer vers la révision active. Ce changement prend effet immédiatement et toutes les futures éditions seront basées sur cette révision.",
   "diveLog_profileEditor_revisionSwitchFailed": "Impossible de changer de révision du profil.",
+  "diveLog_profileEditor_revisionLegacyHint": "Enregistré avant l’historique des révisions ; lié à aucun ordinateur",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Source de données} =1{Source de données} other{Sources de données}}",
   "diveLog_sources_badge_manual": "Manuel",
   "diveLog_sources_badge_viewing": "Affichée",

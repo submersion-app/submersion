@@ -13560,6 +13560,7 @@
   "diveLog_profileEditor_mode_trim": "Recortar",
   "diveLog_profileEditor_revisionSelectorTooltip": "Cambiar revisión activa. Este cambio entra en vigor inmediatamente y todas las futuras ediciones se basarán en esta revisión.",
   "diveLog_profileEditor_revisionSwitchFailed": "No se pudo cambiar la revisión del perfil.",
+  "diveLog_profileEditor_revisionLegacyHint": "Guardado antes del historial de revisiones; sin vincular a un ordenador",
   "diveLog_sources_sectionTitle": "{count, plural, =0{Fuente de datos} =1{Fuente de datos} other{Fuentes de datos}}",
   "diveLog_sources_badge_manual": "Manual",
   "diveLog_sources_badge_viewing": "Visualizando",

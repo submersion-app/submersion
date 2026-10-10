@@ -13560,6 +13560,7 @@
   "diveLog_profileEditor_mode_trim": "חיתוך",
   "diveLog_profileEditor_revisionSelectorTooltip": "החלף גרסה פעילה. שינוי זה יוצא לפועל מיד וכל העריכות הבאות יהיו מבוססות על גרסה זו.",
   "diveLog_profileEditor_revisionSwitchFailed": "לא ניתן להחליף את גרסת הפרופיל.",
+  "diveLog_profileEditor_revisionLegacyHint": "נשמר לפני היסטוריית הגרסאות; לא מקושר למחשב צלילה",
   "diveLog_sources_sectionTitle": "{count, plural, =0{מקור נתונים} one{מקור נתונים} two{מקורות נתונים} many{מקורות נתונים} other{מקורות נתונים}}",
   "diveLog_sources_badge_manual": "ידני",
   "diveLog_sources_badge_viewing": "בתצוגה",

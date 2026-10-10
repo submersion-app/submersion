@@ -13560,6 +13560,7 @@
   "diveLog_profileEditor_mode_trim": "修剪",
   "diveLog_profileEditor_revisionSelectorTooltip": "切换活跃版本。此更改立即生效，所有未来编辑都将基于此版本。",
   "diveLog_profileEditor_revisionSwitchFailed": "无法切换剖面版本。",
+  "diveLog_profileEditor_revisionLegacyHint": "保存于版本历史之前；未关联潜水电脑",
   "diveLog_sources_sectionTitle": "{count, plural, other{数据来源}}",
   "diveLog_sources_badge_manual": "手动",
   "diveLog_sources_badge_viewing": "正在查看",

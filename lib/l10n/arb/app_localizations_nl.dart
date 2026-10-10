@@ -45418,6 +45418,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan niet wisselen van profielrevisie.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Opgeslagen vóór de revisiegeschiedenis; niet gekoppeld aan een computer';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

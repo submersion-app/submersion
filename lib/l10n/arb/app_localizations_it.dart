@@ -45719,6 +45719,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile cambiare la revisione del profilo.';
 
   @override
+  String get diveLog_profileEditor_revisionLegacyHint =>
+      'Salvato prima della cronologia delle revisioni; non collegato a un computer';
+
+  @override
   String diveLog_sources_sectionTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

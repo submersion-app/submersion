@@ -49,6 +49,7 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_series_merge.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_series_owner.dart';
 import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
@@ -1434,14 +1435,63 @@ class DiveRepository {
   }
 
   /// Makes [seriesId] the active profile for [diveId] without copying blobs.
+  ///
+  /// A series that another data source owns makes that source primary too,
+  /// as "Set as primary" does, so the live profile and the primary source
+  /// never name two different computers (issue #3067).
   Future<void> setActiveProfileSeries(String diveId, String seriesId) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await _profileSeries.activateSeriesForDive(
-      diveId: diveId,
-      seriesId: seriesId,
-      now: now,
-    );
+    await _db.transaction(() async {
+      final newPrimary = await _sourceToPromoteForSeries(diveId, seriesId);
+      if (newPrimary != null) {
+        await _makeDataSourcePrimary(diveId, newPrimary, now: now);
+      }
+      await _profileSeries.activateSeriesForDive(
+        diveId: diveId,
+        seriesId: seriesId,
+        now: now,
+      );
+    });
     await _refreshDiveAfterProfileSwitch(diveId, now: now);
+  }
+
+  /// The source row that must become primary for [seriesId] to go live, or
+  /// null when its owner already is primary, shares the primary's strand
+  /// (another segment of the same recording), or no source owns it.
+  Future<DiveDataSourcesData?> _sourceToPromoteForSeries(
+    String diveId,
+    String seriesId,
+  ) async {
+    final series =
+        await (_db.select(_db.diveProfileSeries)
+              ..where((t) => t.id.equals(seriesId) & t.diveId.equals(diveId)))
+            .getSingleOrNull();
+    if (series == null) return null;
+    final rows =
+        await (_db.select(_db.diveDataSources)
+              ..where((t) => t.diveId.equals(diveId))
+              ..orderBy([
+                (t) => OrderingTerm.desc(t.isPrimary),
+                (t) => OrderingTerm.asc(t.createdAt),
+              ]))
+            .get();
+    final owner = owningDataSource(
+      sourceId: series.sourceId,
+      computerId: series.computerId,
+      sources: [for (final row in rows) _mapRowToDataSource(row)],
+    );
+    if (owner == null || owner.isPrimary) return null;
+    String strandOf(DiveDataSourcesData row) => dataSourceStrandKey(
+      rowId: row.id,
+      computerId: row.computerId,
+      mergeSourceSlot: row.mergeSourceSlot,
+    );
+    final ownerRow = rows.firstWhere((row) => row.id == owner.id);
+    final primaryRow = rows.where((row) => row.isPrimary).firstOrNull;
+    if (primaryRow != null && strandOf(primaryRow) == strandOf(ownerRow)) {
+      return null;
+    }
+    return ownerRow;
   }
 
   /// Brings the dive in line with a profile that a restore or a revision
@@ -8047,83 +8097,8 @@ class DiveRepository {
 
         if (newPrimary == null) return;
 
-        // Demote all readings for this dive to non-primary. Both writes
-        // carry their own clock, beside the marks below (#2644).
-        final primaryAt = await _syncRepository.issueRowClock();
-        await (_db.update(
-          _db.diveDataSources,
-        )..where((t) => t.diveId.equals(diveId))).write(
-          DiveDataSourcesCompanion(
-            isPrimary: const Value(false),
-            hlc: Value(primaryAt),
-          ),
-        );
-
-        // Promote the selected reading.
-        await (_db.update(
-          _db.diveDataSources,
-        )..where((t) => t.id.equals(computerReadingId))).write(
-          DiveDataSourcesCompanion(
-            isPrimary: const Value(true),
-            hlc: Value(primaryAt),
-          ),
-        );
-
-        // Bottom time is derived from the new primary's own profile, never
-        // taken from its duration, which is the runtime it measured (issue
-        // #2421). With no profile to derive from, the dive keeps its own.
-        final derivedBottomTime = sourceBottomTimeSeconds(
-          await _profileSeries.getSeriesForDive(diveId),
-          sourceId: newPrimary.id,
-          computerId: newPrimary.computerId,
-          runtimeSeconds: newPrimary.duration,
-        );
-
-        // Update the dives record with the new primary's metadata.
         final now = DateTime.now().millisecondsSinceEpoch;
-        await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-          DivesCompanion(
-            diveComputerModel: Value(newPrimary.computerModel),
-            diveComputerSerial: Value(newPrimary.computerSerial),
-            maxDepth: Value(newPrimary.maxDepth),
-            avgDepth: Value(newPrimary.avgDepth),
-            bottomTime: derivedBottomTime != null
-                ? Value(derivedBottomTime)
-                : const Value.absent(),
-            waterTemp: Value(newPrimary.waterTemp),
-            entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
-            exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),
-            surfaceIntervalSeconds: Value(newPrimary.surfaceInterval),
-            cnsEnd: Value(newPrimary.cns),
-            otu: Value(newPrimary.otu),
-            decoAlgorithm: Value(newPrimary.decoAlgorithm),
-            gradientFactorLow: Value(newPrimary.gradientFactorLow),
-            gradientFactorHigh: Value(newPrimary.gradientFactorHigh),
-            updatedAt: Value(now),
-          ),
-        );
-
-        // Publish the change: nothing was marked here, so a primary chosen
-        // on this device never reached another one (#2644). Every source of
-        // the dive had its flag written, so each is marked, which also
-        // restamps it; the dive row itself was edited above, so it is a
-        // real dive edit and is marked too (#1769 forbids that only for a
-        // child-only change).
-        final sources = await (_db.select(
-          _db.diveDataSources,
-        )..where((t) => t.diveId.equals(diveId))).get();
-        for (final source in sources) {
-          await _syncRepository.markRecordPending(
-            entityType: 'diveDataSources',
-            recordId: source.id,
-            localUpdatedAt: now,
-          );
-        }
-        await _syncRepository.markRecordPending(
-          entityType: 'dives',
-          recordId: diveId,
-          localUpdatedAt: now,
-        );
+        await _makeDataSourcePrimary(diveId, newPrimary, now: now);
 
         // Swap isPrimary on the profile series.
         //
@@ -8149,14 +8124,6 @@ class DiveRepository {
             now: now,
           );
         }
-
-        // The safety review grades the primary's own samples, so the stored
-        // one graded the computer that was primary until now.
-        await SafetyFindingsRepository.clearReviewForDive(
-          _db,
-          _syncRepository,
-          diveId,
-        );
       });
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
@@ -8167,6 +8134,102 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// Makes [newPrimary] the one primary data source of [diveId]: the source
+  /// flags, the dive row's mirrored metadata, the sync marks for both, and
+  /// the stored safety review, which graded the previous primary's samples.
+  /// Leaves the profile series to the caller, which knows which of them go
+  /// live. Run inside a transaction.
+  Future<void> _makeDataSourcePrimary(
+    String diveId,
+    DiveDataSourcesData newPrimary, {
+    required int now,
+  }) async {
+    // Demote all readings for this dive to non-primary. Both writes
+    // carry their own clock, beside the marks below (#2644).
+    final primaryAt = await _syncRepository.issueRowClock();
+    await (_db.update(
+      _db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).write(
+      DiveDataSourcesCompanion(
+        isPrimary: const Value(false),
+        hlc: Value(primaryAt),
+      ),
+    );
+
+    // Promote the selected reading.
+    await (_db.update(
+      _db.diveDataSources,
+    )..where((t) => t.id.equals(newPrimary.id))).write(
+      DiveDataSourcesCompanion(
+        isPrimary: const Value(true),
+        hlc: Value(primaryAt),
+      ),
+    );
+
+    // Bottom time is derived from the new primary's own profile, never
+    // taken from its duration, which is the runtime it measured (issue
+    // #2421). With no profile to derive from, the dive keeps its own.
+    final derivedBottomTime = sourceBottomTimeSeconds(
+      await _profileSeries.getSeriesForDive(diveId),
+      sourceId: newPrimary.id,
+      computerId: newPrimary.computerId,
+      runtimeSeconds: newPrimary.duration,
+    );
+
+    // Update the dives record with the new primary's metadata.
+    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+      DivesCompanion(
+        diveComputerModel: Value(newPrimary.computerModel),
+        diveComputerSerial: Value(newPrimary.computerSerial),
+        maxDepth: Value(newPrimary.maxDepth),
+        avgDepth: Value(newPrimary.avgDepth),
+        bottomTime: derivedBottomTime != null
+            ? Value(derivedBottomTime)
+            : const Value.absent(),
+        waterTemp: Value(newPrimary.waterTemp),
+        entryTime: Value(newPrimary.entryTime?.millisecondsSinceEpoch),
+        exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),
+        surfaceIntervalSeconds: Value(newPrimary.surfaceInterval),
+        cnsEnd: Value(newPrimary.cns),
+        otu: Value(newPrimary.otu),
+        decoAlgorithm: Value(newPrimary.decoAlgorithm),
+        gradientFactorLow: Value(newPrimary.gradientFactorLow),
+        gradientFactorHigh: Value(newPrimary.gradientFactorHigh),
+        updatedAt: Value(now),
+      ),
+    );
+
+    // Publish the change: nothing was marked here, so a primary chosen
+    // on this device never reached another one (#2644). Every source of
+    // the dive had its flag written, so each is marked, which also
+    // restamps it; the dive row itself was edited above, so it is a
+    // real dive edit and is marked too (#1769 forbids that only for a
+    // child-only change).
+    final sources = await (_db.select(
+      _db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    for (final source in sources) {
+      await _syncRepository.markRecordPending(
+        entityType: 'diveDataSources',
+        recordId: source.id,
+        localUpdatedAt: now,
+      );
+    }
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: diveId,
+      localUpdatedAt: now,
+    );
+
+    // The safety review grades the primary's own samples, so the stored
+    // one graded the computer that was primary until now.
+    await SafetyFindingsRepository.clearReviewForDive(
+      _db,
+      _syncRepository,
+      diveId,
+    );
   }
 
   /// Resolves a `{ computerId -> friendly name }` map for the given source

@@ -13560,6 +13560,7 @@
   "diveLog_profileEditor_mode_trim": "قص",
   "diveLog_profileEditor_revisionSelectorTooltip": "تبديل المراجعة النشطة. هذا التغيير يسري مفعوله فوراً وسيتم أساس جميع التعديلات المستقبلية على هذه المراجعة.",
   "diveLog_profileEditor_revisionSwitchFailed": "تعذر تبديل مراجعة الملف الشخصي.",
+  "diveLog_profileEditor_revisionLegacyHint": "حُفظ قبل سجل المراجعات؛ غير مرتبط بأي حاسوب غوص",
   "diveLog_sources_sectionTitle": "{count, plural, zero{مصدر البيانات} one{مصدر البيانات} two{مصدرا البيانات} few{مصادر البيانات} many{مصادر البيانات} other{مصادر البيانات}}",
   "diveLog_sources_badge_manual": "يدوي",
   "diveLog_sources_badge_viewing": "قيد العرض",
