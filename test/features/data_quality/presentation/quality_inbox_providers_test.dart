@@ -246,39 +246,31 @@ void main() {
       await seedOpenFinding('a1');
     });
 
-    Future<int> openCountFor(String diverId) async {
+    /// Reads [provider] in a container whose active diver is [diverId],
+    /// listening so the autoDispose stream survives the await.
+    Future<T> readAs<T>(String diverId, StreamProvider<T> provider) async {
       final container = ProviderContainer(
         overrides: [
           validatedCurrentDiverIdProvider.overrideWith((ref) async => diverId),
         ],
       );
       addTearDown(container.dispose);
-      // Keep the autoDispose stream alive across the await.
-      final sub = container.listen(openQualityFindingsCountProvider, (_, _) {});
+      final sub = container.listen(provider, (_, _) {});
       addTearDown(sub.close);
-      return container.read(openQualityFindingsCountProvider.future);
-    }
-
-    Future<List<QualityFinding>> inboxFor(String diverId) async {
-      final container = ProviderContainer(
-        overrides: [
-          validatedCurrentDiverIdProvider.overrideWith((ref) async => diverId),
-        ],
-      );
-      addTearDown(container.dispose);
-      final sub = container.listen(qualityFindingsStreamProvider, (_, _) {});
-      addTearDown(sub.close);
-      return container.read(qualityFindingsStreamProvider.future);
+      return container.read(provider.future);
     }
 
     test('the open count is the active diver\'s', () async {
-      expect(await openCountFor('alice'), 1);
-      expect(await openCountFor('bob'), 0);
+      expect(await readAs('alice', openQualityFindingsCountProvider), 1);
+      expect(await readAs('bob', openQualityFindingsCountProvider), 0);
     });
 
     test('the inbox lists the active diver\'s findings', () async {
-      expect(await inboxFor('alice'), hasLength(1));
-      expect(await inboxFor('bob'), isEmpty);
+      expect(
+        await readAs('alice', qualityFindingsStreamProvider),
+        hasLength(1),
+      );
+      expect(await readAs('bob', qualityFindingsStreamProvider), isEmpty);
     });
   });
 }

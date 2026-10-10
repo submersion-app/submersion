@@ -314,15 +314,16 @@ void main() {
     });
 
     test('watchFindings lists only that diver\'s dives', () async {
-      Future<Set<String>> anchors(String? diverId) async => {
-        for (final f in await repo.watchFindings(diverId: diverId).first)
-          f.diveId,
-      };
-      expect(await anchors('alice'), {'a1'});
-      expect((await repo.watchFindings(diverId: 'alice').first).length, 2);
+      Future<List<String>> ids(String? diverId) async => [
+        for (final f in await repo.watchFindings(diverId: diverId).first) f.id,
+      ];
+      expect(
+        await ids('alice'),
+        unorderedEquals([finding(diveId: 'a1').id, crossDiver.id]),
+      );
       // Bob sees his own finding and the pair through its related dive.
       expect(
-        (await repo.watchFindings(diverId: 'bob').first).map((f) => f.id),
+        await ids('bob'),
         unorderedEquals([finding(diveId: 'b2').id, crossDiver.id]),
       );
       expect(await repo.watchFindings(diverId: 'carol').first, isEmpty);
