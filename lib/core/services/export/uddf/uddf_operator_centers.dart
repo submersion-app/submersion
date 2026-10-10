@@ -5,9 +5,7 @@
 /// The MacDive XML and SQLite imports already do this (#912); the UDDF
 /// parser kept the name only as `diveOperator`, so no dive center was ever
 /// created. `diveOperator` still carries the original text either way.
-class UddfOperatorCenters {
-  UddfOperatorCenters._();
-
+abstract final class UddfOperatorCenters {
   /// Prefix on the `uddfId` of a center made from an operator name. A file
   /// can still declare an id that looks the same, so a taken id gets a
   /// numeric suffix as well.
