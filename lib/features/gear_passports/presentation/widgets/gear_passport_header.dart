@@ -26,9 +26,13 @@ class GearPassportHeader extends ConsumerWidget {
       if (equipment.model?.trim().isNotEmpty ?? false) equipment.model!.trim(),
     ].join(' ');
     final serial = equipment.serialNumber?.trim();
+    // While the active diver reloads (a profile switch) the provider keeps
+    // the previous id; treat that as unknown rather than judge the chip
+    // against the wrong diver.
+    final activeDiver = ref.watch(validatedCurrentDiverIdProvider);
     final showOwner = showsOwnerChip(
       equipment,
-      ref.watch(validatedCurrentDiverIdProvider).value,
+      activeDiver.isLoading ? null : activeDiver.value,
       multipleDivers: ref.watch(hasMultipleDiversProvider),
     );
     return Column(
