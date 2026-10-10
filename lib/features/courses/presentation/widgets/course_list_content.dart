@@ -19,6 +19,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/courses/domain/constants/course_field.dart';
@@ -665,7 +666,10 @@ class _CourseListContentState extends ConsumerState<CourseListContent> {
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
           ),
-          if (filter.status == CourseStatusFilter.all) ...[
+          // Hidden beside an open form: it reads as the form's submit button
+          // but only reopens the create form (issue #3192).
+          if (filter.status == CourseStatusFilter.all &&
+              !MasterDetailFormScope.isFormOpenOf(context)) ...[
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () {

@@ -35,6 +35,7 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
@@ -1338,7 +1339,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             ),
             textAlign: TextAlign.center,
           ),
-          if (!filter.hasActiveFilters) ...[
+          // Hidden beside an open form: it reads as the form's submit button
+          // but only reopens the create form (issue #3192).
+          if (!filter.hasActiveFilters &&
+              !MasterDetailFormScope.isFormOpenOf(context)) ...[
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () {

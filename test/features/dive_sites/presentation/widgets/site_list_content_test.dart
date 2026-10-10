@@ -27,7 +27,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 
+import '../../../../helpers/list_create_router.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -1517,6 +1519,90 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('16ft+'), findsOneWidget);
+    });
+  });
+
+  group('empty state beside an open form (issue #3192)', () {
+    Future<GoRouter> pumpEmptyInRouter(
+      WidgetTester tester, {
+      required double width,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        sites: [],
+        viewMode: ListViewMode.detailed,
+      );
+      return pumpListInCreateRouter(
+        tester,
+        overrides: overrides,
+        content: const SiteListContent(showAppBar: false),
+        listPath: '/sites',
+        width: width,
+      );
+    }
+
+    testWidgets('the create button opens the full-page form when narrow', (
+      tester,
+    ) async {
+      final router = await pumpEmptyInRouter(tester, width: 900);
+
+      await tester.tap(find.text('Add Your First Site'));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.toString(), '/sites/new');
+      expect(find.text(kFullPageCreateForm), findsOneWidget);
+    });
+
+    testWidgets('the create button opens the pane form beside a detail pane', (
+      tester,
+    ) async {
+      final router = await pumpEmptyInRouter(tester, width: 1400);
+
+      await tester.tap(find.text('Add Your First Site'));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.toString(), '/sites?mode=new');
+    });
+
+    Future<void> pumpEmpty(
+      WidgetTester tester, {
+      required bool isFormOpen,
+    }) async {
+      _setMobileTestSurfaceSize(tester);
+      final overrides = await _buildPhoneOverrides(
+        sites: [],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          // The assertions match English button labels.
+          locale: const Locale('en'),
+          child: MasterDetailFormScope(
+            isFormOpen: isFormOpen,
+            child: const SiteListContent(showAppBar: false),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('offers the create button when no form is open', (
+      tester,
+    ) async {
+      await pumpEmpty(tester, isFormOpen: false);
+
+      expect(find.text('Add Your First Site'), findsOneWidget);
+    });
+
+    testWidgets('hides the create button while a form is open beside it', (
+      tester,
+    ) async {
+      await pumpEmpty(tester, isFormOpen: true);
+
+      // Beside an open form it reads as the form's submit button, but it only
+      // reopens the create form, so nothing gets saved (issue #3192).
+      expect(find.text('Add Your First Site'), findsNothing);
+      expect(find.text('Import'), findsOneWidget);
     });
   });
 }
