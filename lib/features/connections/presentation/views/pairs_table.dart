@@ -113,7 +113,7 @@ class _PairsTableState extends ConsumerState<PairsTable> {
                           children: [
                             ConnectionsTableCell(
                               flex: 3,
-                              child: KindDotLabel(
+                              child: KindLabel(
                                 kind: e.source.kind,
                                 label: labels[e.source] ?? e.source.id,
                                 colors: widget.colors,
@@ -121,7 +121,7 @@ class _PairsTableState extends ConsumerState<PairsTable> {
                             ),
                             ConnectionsTableCell(
                               flex: 3,
-                              child: KindDotLabel(
+                              child: KindLabel(
                                 kind: e.target.kind,
                                 label: labels[e.target] ?? e.target.id,
                                 colors: widget.colors,

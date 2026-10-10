@@ -44,6 +44,7 @@ final _graph = ConnectionGraph(
 Future<List<GraphSelection?>> _pump(
   WidgetTester tester, {
   double width = 400,
+  TextDirection direction = TextDirection.ltr,
 }) async {
   tester.view.physicalSize = Size(width, 600);
   tester.view.devicePixelRatio = 1;
@@ -56,12 +57,15 @@ Future<List<GraphSelection?>> _pump(
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: PairsTable(
-            graph: _graph,
-            colors: const ConnectionKindColors({}, Colors.grey),
-            selection: null,
-            onSelect: picked.add,
+        home: Directionality(
+          textDirection: direction,
+          child: Scaffold(
+            body: PairsTable(
+              graph: _graph,
+              colors: const ConnectionKindColors({}, Colors.grey),
+              selection: null,
+              onSelect: picked.add,
+            ),
           ),
         ),
       ),
@@ -135,5 +139,14 @@ void main() {
       find.byIcon(connectionKindIcon(ConnectionKind.buddy)),
       findsNWidgets(4),
     );
+  });
+
+  testWidgets('right to left, cells line up with their headings', (
+    tester,
+  ) async {
+    await _pump(tester, direction: TextDirection.rtl);
+    final heading = tester.getRect(find.text('Entity'));
+    final firstCell = tester.getRect(find.byType(KindLabel).first);
+    expect((heading.right - firstCell.right).abs(), lessThan(4));
   });
 }

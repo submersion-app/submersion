@@ -19,6 +19,7 @@ class MatrixPainter extends CustomPainter {
     required this.grid,
     required this.tint,
     required this.headerBackground,
+    this.textDirection = TextDirection.ltr,
     this.selectedNode,
     this.selectedEdge,
   });
@@ -37,6 +38,9 @@ class MatrixPainter extends CustomPainter {
   final Color grid;
   final Color tint;
   final Color headerBackground;
+
+  /// The reading direction for header and count text.
+  final TextDirection textDirection;
   final NodeRef? selectedNode;
   final ConnectionEdge? selectedEdge;
 
@@ -96,7 +100,7 @@ class MatrixPainter extends CustomPainter {
                 text: '${edge.weight}',
                 style: strong ? textStyle.copyWith(color: onFill) : textStyle,
               ),
-              textDirection: TextDirection.ltr,
+              textDirection: textDirection,
             )..layout(),
           );
           tp.paint(canvas, rect.center - Offset(tp.width / 2, tp.height / 2));
@@ -180,7 +184,7 @@ class MatrixPainter extends CustomPainter {
             ? textStyle.copyWith(fontWeight: FontWeight.w700)
             : textStyle,
       ),
-      textDirection: TextDirection.ltr,
+      textDirection: textDirection,
       maxLines: 1,
       ellipsis: '…',
     )..layout(maxWidth: maxWidth);
@@ -199,5 +203,6 @@ class MatrixPainter extends CustomPainter {
       old.onFill != onFill ||
       old.tint != tint ||
       old.grid != grid ||
-      old.headerBackground != headerBackground;
+      old.headerBackground != headerBackground ||
+      old.textDirection != textDirection;
 }

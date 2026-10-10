@@ -131,6 +131,7 @@ class _ConnectionsMatrixState extends State<ConnectionsMatrix> {
                   grid: theme.colorScheme.outlineVariant,
                   tint: theme.colorScheme.secondaryContainer,
                   headerBackground: theme.colorScheme.surface,
+                  textDirection: Directionality.of(context),
                   selectedNode: switch (selection) {
                     NodeSelection(:final ref) => ref,
                     _ => null,

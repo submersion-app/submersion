@@ -44,7 +44,9 @@ class ConnectionsTableCell extends StatelessWidget {
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: kTableCellInset),
       child: Align(
-        alignment: numeric ? Alignment.centerRight : Alignment.centerLeft,
+        alignment: numeric
+            ? AlignmentDirectional.centerEnd
+            : AlignmentDirectional.centerStart,
         child: child,
       ),
     ),
@@ -118,8 +120,8 @@ class SortableHeader<T extends Enum> extends StatelessWidget {
 }
 
 /// The kind's icon in the kind's colour, then a one-line label.
-class KindDotLabel extends StatelessWidget {
-  const KindDotLabel({
+class KindLabel extends StatelessWidget {
+  const KindLabel({
     super.key,
     required this.kind,
     required this.label,

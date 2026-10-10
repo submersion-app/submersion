@@ -141,4 +141,35 @@ void main() {
       30 * MatrixGeometry.cell - viewport + kTableEndPadding,
     );
   });
+
+  testWidgets('headers read in the ambient direction', (tester) async {
+    tester.view.physicalSize = const Size(400, 600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Scaffold(
+            body: ConnectionsMatrix(
+              graph: _graph,
+              colors: const ConnectionKindColors({}, Colors.grey),
+              selection: null,
+              onSelect: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    final painter =
+        tester
+                .widget<CustomPaint>(
+                  find.byKey(const ValueKey('connections-matrix-paint')),
+                )
+                .painter!
+            as MatrixPainter;
+    expect(painter.textDirection, TextDirection.rtl);
+  });
 }

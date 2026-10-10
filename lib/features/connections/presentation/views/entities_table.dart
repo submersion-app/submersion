@@ -118,7 +118,7 @@ class _EntitiesTableState extends ConsumerState<EntitiesTable> {
                           children: [
                             ConnectionsTableCell(
                               flex: 4,
-                              child: KindDotLabel(
+                              child: KindLabel(
                                 kind: r.node.ref.kind,
                                 label: r.node.label,
                                 colors: widget.colors,
