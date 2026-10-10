@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -97,7 +98,18 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   /// have not come back as the current key yet. A split view's selection
   /// travels through the router and lands a frame or two after the move, so
   /// fast presses can be ahead of it.
-  final List<String> _unconfirmedMoves = [];
+  ///
+  /// A move that never comes back (a group header, or a list with nothing to
+  /// highlight at phone width) expires after [_echoWindow], so a much later
+  /// selection of that row from elsewhere is not mistaken for it. Times are
+  /// frame timestamps, the clock a widget test's pump advances.
+  final List<({String key, Duration at})> _unconfirmedMoves = [];
+
+  /// How long a move's selection may take to come back.
+  static const _echoWindow = Duration(seconds: 1);
+
+  static Duration get _now =>
+      SchedulerBinding.instance.currentSystemFrameTimeStamp;
   bool _hasFocus = false;
   FocusHighlightMode _highlightMode = FocusManager.instance.highlightMode;
 
@@ -112,7 +124,11 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
     super.didUpdateWidget(oldWidget);
     final current = widget.currentKey;
     if (current == oldWidget.currentKey) return;
-    final confirmed = current == null ? -1 : _unconfirmedMoves.indexOf(current);
+    final now = _now;
+    _unconfirmedMoves.removeWhere((move) => now - move.at > _echoWindow);
+    final confirmed = current == null
+        ? -1
+        : _unconfirmedMoves.indexWhere((move) => move.key == current);
     if (confirmed < 0) {
       // A change from outside the keyboard: a click, or the app opening a row.
       _unconfirmedMoves.clear();
@@ -213,7 +229,7 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
 
   void _moveTo(String key, {required bool forward}) {
     setState(() => _cursor = key);
-    _unconfirmedMoves.add(key);
+    _unconfirmedMoves.add((key: key, at: _now));
     widget.onMove(key);
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _reveal(key, forward: forward),
@@ -282,7 +298,10 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
     return Focus(
       focusNode: _focusNode,
       onKeyEvent: _onKeyEvent,
-      onFocusChange: (focused) => setState(() => _hasFocus = focused),
+      onFocusChange: (focused) {
+        if (!focused) _unconfirmedMoves.clear();
+        setState(() => _hasFocus = focused);
+      },
       child: _KeyboardListScope(
         state: this,
         ringKey: showsRing ? _effectiveCursor : null,

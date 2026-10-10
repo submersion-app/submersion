@@ -15,6 +15,8 @@ class _Host extends StatefulWidget {
     this.onCollapse,
     this.tapSelects = true,
     this.moveLag,
+    this.echoMoves = true,
+    super.key,
   });
 
   final List<String> keys;
@@ -27,6 +29,10 @@ class _Host extends StatefulWidget {
   /// delay, the way a split view's URL selection catches up a frame or two
   /// later.
   final Duration? moveLag;
+
+  /// False for a list whose moves never come back as the current key, like
+  /// a section list at phone width.
+  final bool echoMoves;
   final String? initial;
   final List<String>? log;
   final ValueChanged<String>? onExpand;
@@ -38,6 +44,9 @@ class _Host extends StatefulWidget {
 
 class _HostState extends State<_Host> {
   late String? current = widget.initial;
+
+  /// Makes [key] current from outside the list, as a deep link would.
+  void select(String key) => setState(() => current = key);
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +62,7 @@ class _HostState extends State<_Host> {
                 onMove: (key) {
                   widget.log?.add('move:$key');
                   final lag = widget.moveLag;
+                  if (!widget.echoMoves) return;
                   if (lag == null) {
                     setState(() => current = key);
                   } else {
@@ -182,6 +192,36 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(log, ['move:b', 'move:c', 'move:d']);
+  });
+
+  testWidgets('a later outside selection of a key moved over is honoured', (
+    tester,
+  ) async {
+    final log = <String>[];
+    final host = GlobalKey<_HostState>();
+    await tester.pumpWidget(
+      _Host(
+        key: host,
+        keys: const ['a', 'b', 'c', 'd'],
+        log: log,
+        echoMoves: false,
+      ),
+    );
+    await tester.tap(find.byKey(const ValueKey('row-a')));
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 2));
+
+    // Opened from elsewhere, long after the keyboard passed over it.
+    host.currentState!.select('b');
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+
+    expect(log, ['move:b', 'move:c', 'move:c']);
   });
 
   testWidgets('the ends of the list hold the cursor and keep focus', (
