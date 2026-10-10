@@ -246,6 +246,13 @@ void main() {
         name: '7mm ice vest',
       );
       expect(named.priorKg, closeTo(2.45, 1e-9));
+      final hooded = GearFeature.fromEquipment(
+        id: 'v',
+        type: EquipmentType.vest,
+        name: '7mm ice vest',
+        traits: const GearBuoyancyTraits(hooded: true),
+      );
+      expect(hooded.priorKg, closeTo(3.15, 1e-9));
     });
 
     test('an implausible thickness is clamped', () {

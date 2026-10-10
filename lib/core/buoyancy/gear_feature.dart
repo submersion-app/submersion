@@ -93,7 +93,7 @@ class GearFeature extends Equatable {
           // A vest (#3108) imported as "7mm ice vest" reads the same way, at
           // its torso-only rate.
           prior = type == EquipmentType.vest
-              ? (_vestKgPerMm * legacyMm).clamp(0.0, 5.0)
+              ? _vestPrior(legacyMm, traits?.hooded)
               : legacyMm.clamp(0.0, 10.0);
           strength = _attributeStrength;
         } else {
@@ -140,8 +140,7 @@ class GearFeature extends Equatable {
       // An attached hood adds what a separate hood of that thickness would.
       case EquipmentType.vest:
         if (mm == null) return null;
-        final hood = t.hooded == true ? _hoodKgPerMm * mm : 0.0;
-        return (_vestKgPerMm * mm + hood).clamp(0.0, 5.0);
+        return _vestPrior(mm, t.hooded);
       case EquipmentType.gloves:
         if (mm == null) return null;
         return (0.06 * mm * _gloveTypeFactor(t.gloveType)).clamp(0.0, 2.0);
@@ -228,6 +227,12 @@ class GearFeature extends Equatable {
   // Lift per millimetre of neoprene: a hood's, and a torso-only vest's.
   static const double _hoodKgPerMm = 0.10;
   static const double _vestKgPerMm = 0.35;
+
+  /// A vest's lift for [mm] of neoprene, with the hood's when [hooded].
+  static double _vestPrior(double mm, bool? hooded) {
+    final hood = hooded == true ? _hoodKgPerMm * mm : 0.0;
+    return (_vestKgPerMm * mm + hood).clamp(0.0, 5.0);
+  }
 
   static double _suitStyleFactor(String? style) => switch (style) {
     'semi_dry' => 1.1,

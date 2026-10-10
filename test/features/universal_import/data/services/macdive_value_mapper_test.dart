@@ -453,6 +453,10 @@ void main() {
       );
       expect(MacDiveValueMapper.equipmentType('5mm hood'), EquipmentType.hood);
       expect(
+        MacDiveValueMapper.equipmentType('7mm hooded wetsuit'),
+        EquipmentType.wetsuit,
+      );
+      expect(
         MacDiveValueMapper.equipmentType('Vest'),
         isNot(EquipmentType.vest),
       );
