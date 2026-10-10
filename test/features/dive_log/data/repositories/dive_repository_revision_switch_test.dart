@@ -209,4 +209,40 @@ void main() {
       expect(byId[seriesB]?.computerId, 'comp-2');
     },
   );
+  test('profile history names the shown source of a series whose own row '
+      'collapsed into its strand', () async {
+    // Two file imports of a combined dive, each split over two rows that
+    // share a merge slot. Reads show one row per strand, so the history must
+    // name that row, or the dropdown cannot tell the two imports apart.
+    Future<void> fileSource(String id, int slot, int createdAt) => db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: id,
+            diveId: 'dive-1',
+            mergeSourceSlot: Value(slot),
+            importedAt: DateTime(2026),
+            createdAt: DateTime.fromMillisecondsSinceEpoch(createdAt),
+          ),
+        );
+    await fileSource('file-a', 0, 1000);
+    await fileSource('file-b', 1, 2000);
+    await fileSource('file-b2', 1, 3000);
+    final collapsed = await series.insertSeries(
+      diveId: 'dive-1',
+      sourceId: 'file-b2',
+      isPrimary: false,
+      samples: const [ProfileSample(timestamp: 0, depth: 3.0)],
+      now: 1000,
+    );
+
+    final history = await dives.getProfileHistory('dive-1');
+    final shown = await dives.getDataSources('dive-1');
+
+    expect(shown.map((s) => s.id), isNot(contains('file-b2')));
+    expect(
+      history.singleWhere((r) => r.seriesId == collapsed).sourceId,
+      'file-b',
+    );
+  });
 }

@@ -27,8 +27,10 @@ class ProfileSeriesRevision extends Equatable {
   final int createdAt;
   final bool isActive;
 
-  /// The `dive_data_sources` row the series belongs to, null for a series
-  /// that predates source ownership (see `owningDataSource`).
+  /// The `dive_data_sources` row the series belongs to, as the dive's
+  /// source list shows it (a row that collapsed into its strand reads as the
+  /// row shown for that strand). Null for a series that predates source
+  /// ownership (see `owningDataSource`).
   final String? sourceId;
 
   /// The computer that recorded the series, null for a manual edit or a file

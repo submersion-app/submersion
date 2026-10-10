@@ -1430,8 +1430,39 @@ class DiveRepository {
   }
 
   /// Metadata-only profile history for [diveId], newest first.
-  Future<List<ProfileSeriesRevision>> getProfileHistory(String diveId) {
-    return _profileSeries.getRevisionsForDive(diveId);
+  ///
+  /// Each revision's `sourceId` names the source as [getDataSources] shows
+  /// it: a series whose own row collapsed into its strand's chip names the
+  /// row that speaks for the strand, so a caller matching revisions to the
+  /// shown sources finds the right one (issue #3067).
+  Future<List<ProfileSeriesRevision>> getProfileHistory(String diveId) async {
+    final revisions = await _profileSeries.getRevisionsForDive(diveId);
+    final rows =
+        await (_db.select(_db.diveDataSources)
+              ..where((t) => t.diveId.equals(diveId))
+              ..orderBy([
+                (t) => OrderingTerm.desc(t.isPrimary),
+                (t) => OrderingTerm.asc(t.createdAt),
+              ]))
+            .get();
+    final shownIdByStrand = <String, String>{};
+    final shownIdByRow = <String, String>{};
+    for (final row in rows) {
+      final strand = dataSourceStrandKey(
+        rowId: row.id,
+        computerId: row.computerId,
+        mergeSourceSlot: row.mergeSourceSlot,
+      );
+      shownIdByRow[row.id] = shownIdByStrand.putIfAbsent(strand, () => row.id);
+    }
+    return [
+      for (final revision in revisions)
+        switch (shownIdByRow[revision.sourceId]) {
+          final String shownId when shownId != revision.sourceId =>
+            revision.copyWith(sourceId: shownId),
+          _ => revision,
+        },
+    ];
   }
 
   /// Makes [seriesId] the active profile for [diveId] without copying blobs.
