@@ -7,6 +7,8 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/gear_passports/data/services/gear_adoption_service.dart';
@@ -20,6 +22,12 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 const pid = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+
+class _BrokenEquipment extends EquipmentRepository {
+  @override
+  Future<EquipmentItem?> getEquipmentById(String id) async =>
+      throw StateError('database is locked');
+}
 
 class _FakeAdoption extends GearAdoptionService {
   _FakeAdoption({this.held = false});
@@ -72,6 +80,7 @@ void main() {
     WidgetTester tester, {
     required String location,
     required _FakeAdoption adoption,
+    List<dynamic> extraOverrides = const [],
   }) async {
     final router = GoRouter(
       initialLocation: location,
@@ -93,6 +102,7 @@ void main() {
         overrides: [
           ...await getBaseOverrides(),
           gearAdoptionServiceProvider.overrideWithValue(adoption),
+          ...extraOverrides,
         ].cast(),
         child: MaterialApp.router(
           routerConfig: router,
@@ -191,6 +201,33 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text(l10n.passport_tag_linkInUse('Held reg')), findsOneWidget);
+  });
+
+  testWidgets('a held id still says so when the holder cannot be read', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      location: foreignGearLocation(tag),
+      adoption: _FakeAdoption(held: true),
+      extraOverrides: [
+        equipmentRepositoryProvider.overrideWithValue(_BrokenEquipment()),
+      ],
+    );
+    await tester.tap(find.text(l10n.passport_foreign_addToGear));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.passport_tag_linkInUse('held')), findsOneWidget);
+    final add = tester.widget<FilledButton>(
+      find.ancestor(
+        of: find.text(l10n.passport_foreign_addToGear),
+        matching: find.byWidgetPredicate((w) => w is FilledButton),
+      ),
+    );
+    expect(add.onPressed, isNotNull);
   });
 
   testWidgets('a broken link says so and offers nothing', (tester) async {

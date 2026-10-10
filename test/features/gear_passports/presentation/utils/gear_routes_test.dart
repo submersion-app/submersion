@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payload.dart';
+import 'package:submersion/features/gear_passports/domain/services/gear_tag_codec.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 
 void main() {
@@ -17,15 +18,13 @@ void main() {
   test('a foreign gear tag rides in the query and round trips', () {
     final location = foreignGearLocation(tag);
     expect(location, startsWith('/equipment/gear-tag?t='));
-    expect(
-      foreignGearTagFromQuery(Uri.parse(location).queryParameters['t']),
-      tag,
+    final decoded = GearTagCodec.decode(
+      Uri.parse(location).queryParameters['t']!,
     );
+    expect((decoded as GearTagDecoded).payload, tag);
   });
 
-  test('anything else in the query or the extra is no tag', () {
-    expect(foreignGearTagFromQuery(null), isNull);
-    expect(foreignGearTagFromQuery('nope'), isNull);
+  test('anything else in the extra is no tag', () {
     expect(scannedGearTagFrom(42), isNull);
     expect(scannedGearTagFrom(tag), tag);
   });
