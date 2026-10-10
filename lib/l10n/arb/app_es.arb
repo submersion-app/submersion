@@ -11112,6 +11112,34 @@
   "settings_coordinateFormat_title": "Formato de coordenadas",
   "settings_placeNameLanguage_title": "Idioma de los nombres de lugar",
   "settings_placeNameLanguage_subtitle": "Se usa al obtener país, región, localidad y masa de agua a partir de las coordenadas. Los puntos de buceo existentes no cambian.",
+  "settings_language_placeNameOffer_title": "¿Guardar los nombres de lugares en {language}?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "Los nombres de países y regiones que se consultan para tus puntos de buceo se guardan en {current}. ¿Cambiar a {language} para las nuevas consultas? Después podrás volver a consultar tus puntos de buceo existentes.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "Mantener {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Cambiar",
   "settings_coordinateFormat_decimalDegrees": "Grados decimales",
   "settings_coordinateFormat_degreesDecimalMinutes": "Grados y minutos decimales",
   "settings_coordinateFormat_degreesMinutesSeconds": "Grados, minutos, segundos",

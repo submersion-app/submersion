@@ -34646,6 +34646,27 @@ class AppLocalizationsZh extends AppLocalizations {
       '根据坐标查找国家、地区、城镇和水域时使用。现有潜点不会更改。';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return '以$language保存地名？';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return '为你的潜点查询到的国家和地区名称以$current保存。新的查询改用$language吗？之后你可以重新查询已有的潜点。';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return '保留$current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => '切换';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => '十进制度';
 
   @override

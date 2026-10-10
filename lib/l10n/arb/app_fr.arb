@@ -11112,6 +11112,34 @@
   "settings_coordinateFormat_title": "Format des coordonnées",
   "settings_placeNameLanguage_title": "Langue des noms de lieux",
   "settings_placeNameLanguage_subtitle": "Utilisée lorsque le pays, la région, la ville et le plan d'eau sont déduits des coordonnées. Les sites existants ne sont pas modifiés.",
+  "settings_language_placeNameOffer_title": "Enregistrer les noms de lieux en {language} ?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "Les noms de pays et de régions recherchés pour vos sites sont enregistrés en {current}. Passer à {language} pour les nouvelles recherches ? Vous pourrez ensuite rechercher à nouveau vos sites existants.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "Conserver {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Changer",
   "settings_coordinateFormat_decimalDegrees": "Degrés décimaux",
   "settings_coordinateFormat_degreesDecimalMinutes": "Degrés et minutes décimales",
   "settings_coordinateFormat_degreesMinutesSeconds": "Degrés, minutes, secondes",

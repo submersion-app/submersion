@@ -36107,6 +36107,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'Used when country, region, town and body of water are looked up from coordinates. Existing sites are not changed.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'Store place names in $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'Country and region names looked up for your sites are stored in $current. Switch to $language for new lookups? You can then look up your existing sites again.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'Keep $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Switch';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'Decimal degrees';
 
   @override

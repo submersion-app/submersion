@@ -1,7 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/place_name_language_picker.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -91,14 +97,76 @@ class LanguageOptionTiles extends ConsumerWidget {
               trailing: option.code == currentLocale
                   ? Icon(Icons.check, color: theme.colorScheme.primary)
                   : null,
-              onTap: () {
-                ref.read(settingsProvider.notifier).setLocale(option.code);
-              },
+              onTap: () =>
+                  unawaited(_selectLanguage(context, ref, option.code)),
             ),
           ),
       ],
     );
   }
+}
+
+/// Saves [code] as the app language and, when place names are stored in a
+/// different language, offers to switch them too.
+///
+/// Without the offer a diver who changes the app language keeps getting
+/// countries and regions in the old one (issue #3111). Switching also offers
+/// to look the stored sites up again, as the place name setting itself does,
+/// so the logbook is not split across two spellings (issue #1187).
+Future<void> _selectLanguage(
+  BuildContext context,
+  WidgetRef ref,
+  String code,
+) async {
+  final notifier = ref.read(settingsProvider.notifier);
+  final previous = ref.read(localeProvider);
+  await notifier.setLocale(code);
+  if (code == previous || !context.mounted) return;
+
+  final current = ref.read(placeNameLanguageProvider);
+  final target = PlaceNameLanguage.forAppLocale(
+    code,
+    WidgetsBinding.instance.platformDispatcher.locales.map(
+      (locale) => locale.languageCode,
+    ),
+  );
+  if (target == current) return;
+
+  final currentLabel = placeNameLanguageLabel(current);
+  final targetLabel = placeNameLanguageLabel(target);
+  final switchLanguage = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) {
+      final l10n = dialogContext.l10n;
+      return AlertDialog(
+        title: Text(l10n.settings_language_placeNameOffer_title(targetLabel)),
+        content: Text(
+          l10n.settings_language_placeNameOffer_body(currentLabel, targetLabel),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(
+              l10n.settings_language_placeNameOffer_keep(currentLabel),
+            ),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.settings_language_placeNameOffer_switch),
+          ),
+        ],
+      );
+    },
+  );
+  if (switchLanguage != true || !context.mounted) return;
+
+  await notifier.setPlaceNameLanguage(target);
+  if (!context.mounted) return;
+  await showSiteLocationBackfillFlow(
+    context,
+    ref,
+    mode: SiteLocationLookupMode.refreshAll,
+  );
 }
 
 class LocaleOption {

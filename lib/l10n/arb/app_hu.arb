@@ -11112,6 +11112,34 @@
   "settings_coordinateFormat_title": "Koordináta-formátum",
   "settings_placeNameLanguage_title": "Helynevek nyelve",
   "settings_placeNameLanguage_subtitle": "Akkor használjuk, amikor az ország, régió, település és víztest a koordinátákból kerül lekérdezésre. A meglévő merülőhelyek nem változnak.",
+  "settings_language_placeNameOffer_title": "Helynevek mentése ezen a nyelven: {language}?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "A merülőhelyekhez lekérdezett ország- és régiónevek mentési nyelve: {current}. Átvált erre: {language} az új lekérdezéseknél? Ezután a meglévő merülőhelyeket újra lekérdezheti.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "Marad: {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Átváltás",
   "settings_coordinateFormat_decimalDegrees": "Tizedes fok",
   "settings_coordinateFormat_degreesDecimalMinutes": "Fok és tizedes perc",
   "settings_coordinateFormat_degreesMinutesSeconds": "Fok, perc, másodperc",

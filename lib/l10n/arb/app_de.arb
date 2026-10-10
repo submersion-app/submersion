@@ -11245,6 +11245,34 @@
   "settings_coordinateFormat_title": "Koordinatenformat",
   "settings_placeNameLanguage_title": "Sprache der Ortsnamen",
   "settings_placeNameLanguage_subtitle": "Wird verwendet, wenn Land, Region, Ort und Gewässer aus Koordinaten ermittelt werden. Bestehende Tauchplätze werden nicht geändert.",
+  "settings_language_placeNameOffer_title": "Ortsnamen auf {language} speichern?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "Länder- und Regionsnamen Ihrer Tauchplätze werden auf {current} gespeichert. Neue Abfragen auf {language} umstellen? Danach können Sie Ihre bestehenden Tauchplätze erneut abfragen.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "{current} beibehalten",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Umstellen",
   "settings_coordinateFormat_decimalDegrees": "Dezimalgrad",
   "settings_coordinateFormat_degreesDecimalMinutes": "Grad und Dezimalminuten",
   "settings_coordinateFormat_degreesMinutesSeconds": "Grad, Minuten, Sekunden",

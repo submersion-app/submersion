@@ -36655,6 +36655,27 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wird verwendet, wenn Land, Region, Ort und Gewässer aus Koordinaten ermittelt werden. Bestehende Tauchplätze werden nicht geändert.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'Ortsnamen auf $language speichern?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'Länder- und Regionsnamen Ihrer Tauchplätze werden auf $current gespeichert. Neue Abfragen auf $language umstellen? Danach können Sie Ihre bestehenden Tauchplätze erneut abfragen.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return '$current beibehalten';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Umstellen';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'Dezimalgrad';
 
   @override

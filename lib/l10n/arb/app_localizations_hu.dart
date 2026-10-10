@@ -36520,6 +36520,27 @@ class AppLocalizationsHu extends AppLocalizations {
       'Akkor használjuk, amikor az ország, régió, település és víztest a koordinátákból kerül lekérdezésre. A meglévő merülőhelyek nem változnak.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'Helynevek mentése ezen a nyelven: $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'A merülőhelyekhez lekérdezett ország- és régiónevek mentési nyelve: $current. Átvált erre: $language az új lekérdezéseknél? Ezután a meglévő merülőhelyeket újra lekérdezheti.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'Marad: $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Átváltás';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'Tizedes fok';
 
   @override

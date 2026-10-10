@@ -11112,6 +11112,34 @@
   "settings_coordinateFormat_title": "坐标格式",
   "settings_placeNameLanguage_title": "地名语言",
   "settings_placeNameLanguage_subtitle": "根据坐标查找国家、地区、城镇和水域时使用。现有潜点不会更改。",
+  "settings_language_placeNameOffer_title": "以{language}保存地名？",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "为你的潜点查询到的国家和地区名称以{current}保存。新的查询改用{language}吗？之后你可以重新查询已有的潜点。",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "保留{current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "切换",
   "settings_coordinateFormat_decimalDegrees": "十进制度",
   "settings_coordinateFormat_degreesDecimalMinutes": "度和十进制分",
   "settings_coordinateFormat_degreesMinutesSeconds": "度分秒",

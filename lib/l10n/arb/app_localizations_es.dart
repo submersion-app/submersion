@@ -36744,6 +36744,27 @@ class AppLocalizationsEs extends AppLocalizations {
       'Se usa al obtener país, región, localidad y masa de agua a partir de las coordenadas. Los puntos de buceo existentes no cambian.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return '¿Guardar los nombres de lugares en $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'Los nombres de países y regiones que se consultan para tus puntos de buceo se guardan en $current. ¿Cambiar a $language para las nuevas consultas? Después podrás volver a consultar tus puntos de buceo existentes.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'Mantener $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Cambiar';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'Grados decimales';
 
   @override

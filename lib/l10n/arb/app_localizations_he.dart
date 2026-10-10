@@ -35811,6 +35811,27 @@ class AppLocalizationsHe extends AppLocalizations {
       'בשימוש כאשר מדינה, אזור, עיר וגוף מים נשלפים מהקואורדינטות. אתרים קיימים אינם משתנים.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'לשמור את שמות המקומות ב$language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'שמות המדינות והאזורים שנבדקים עבור האתרים שלך נשמרים ב$current. לעבור ל$language בבדיקות חדשות? לאחר מכן אפשר לבדוק מחדש את האתרים הקיימים.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'להשאיר $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'מעבר';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'מעלות עשרוניות';
 
   @override

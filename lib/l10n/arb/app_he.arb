@@ -11112,6 +11112,34 @@
   "settings_coordinateFormat_title": "פורמט קואורדינטות",
   "settings_placeNameLanguage_title": "שפת שמות המקומות",
   "settings_placeNameLanguage_subtitle": "בשימוש כאשר מדינה, אזור, עיר וגוף מים נשלפים מהקואורדינטות. אתרים קיימים אינם משתנים.",
+  "settings_language_placeNameOffer_title": "לשמור את שמות המקומות ב{language}?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "שמות המדינות והאזורים שנבדקים עבור האתרים שלך נשמרים ב{current}. לעבור ל{language} בבדיקות חדשות? לאחר מכן אפשר לבדוק מחדש את האתרים הקיימים.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "להשאיר {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "מעבר",
   "settings_coordinateFormat_decimalDegrees": "מעלות עשרוניות",
   "settings_coordinateFormat_degreesDecimalMinutes": "מעלות ודקות עשרוניות",
   "settings_coordinateFormat_degreesMinutesSeconds": "מעלות, דקות, שניות",

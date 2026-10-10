@@ -11112,6 +11112,34 @@
   "settings_coordinateFormat_title": "تنسيق الإحداثيات",
   "settings_placeNameLanguage_title": "لغة أسماء الأماكن",
   "settings_placeNameLanguage_subtitle": "تُستخدم عند البحث عن البلد والمنطقة والبلدة والمسطح المائي من الإحداثيات. لا يتم تغيير المواقع الحالية.",
+  "settings_language_placeNameOffer_title": "هل تريد حفظ أسماء الأماكن باللغة {language}؟",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "تُحفظ أسماء الدول والمناطق التي يُبحث عنها لمواقع الغوص الخاصة بك باللغة {current}. هل تريد التبديل إلى {language} لعمليات البحث الجديدة؟ يمكنك بعد ذلك البحث من جديد عن مواقعك الحالية.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "الإبقاء على {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "تبديل",
   "settings_coordinateFormat_decimalDegrees": "درجات عشرية",
   "settings_coordinateFormat_degreesDecimalMinutes": "درجات ودقائق عشرية",
   "settings_coordinateFormat_degreesMinutesSeconds": "درجات ودقائق وثوانٍ",

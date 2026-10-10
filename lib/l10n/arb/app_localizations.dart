@@ -57988,6 +57988,30 @@ abstract class AppLocalizations {
   /// **'Used when country, region, town and body of water are looked up from coordinates. Existing sites are not changed.'**
   String get settings_placeNameLanguage_subtitle;
 
+  /// No description provided for @settings_language_placeNameOffer_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Store place names in {language}?'**
+  String settings_language_placeNameOffer_title(String language);
+
+  /// No description provided for @settings_language_placeNameOffer_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Country and region names looked up for your sites are stored in {current}. Switch to {language} for new lookups? You can then look up your existing sites again.'**
+  String settings_language_placeNameOffer_body(String current, String language);
+
+  /// No description provided for @settings_language_placeNameOffer_keep.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep {current}'**
+  String settings_language_placeNameOffer_keep(String current);
+
+  /// No description provided for @settings_language_placeNameOffer_switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch'**
+  String get settings_language_placeNameOffer_switch;
+
   /// No description provided for @settings_coordinateFormat_decimalDegrees.
   ///
   /// In en, this message translates to:

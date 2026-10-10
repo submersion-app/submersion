@@ -36469,6 +36469,27 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gebruikt wanneer land, regio, plaats en water uit coördinaten worden opgezocht. Bestaande duikstekken worden niet gewijzigd.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'Plaatsnamen opslaan in het $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'Namen van landen en regio\'s die voor je duikstekken worden opgezocht, worden opgeslagen in het $current. Overschakelen naar $language voor nieuwe zoekopdrachten? Daarna kun je je bestaande duikstekken opnieuw opzoeken.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return '$current behouden';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Overschakelen';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'Decimale graden';
 
   @override

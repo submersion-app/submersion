@@ -11112,6 +11112,34 @@
   "settings_coordinateFormat_title": "Formato das coordenadas",
   "settings_placeNameLanguage_title": "Idioma dos nomes de lugares",
   "settings_placeNameLanguage_subtitle": "Usado quando país, região, cidade e corpo de água são obtidos a partir das coordenadas. Os locais existentes não são alterados.",
+  "settings_language_placeNameOffer_title": "Guardar os nomes de lugares em {language}?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "Os nomes de países e regiões consultados para os seus locais são guardados em {current}. Mudar para {language} nas novas consultas? Depois pode consultar de novo os locais existentes.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "Manter {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Mudar",
   "settings_coordinateFormat_decimalDegrees": "Graus decimais",
   "settings_coordinateFormat_degreesDecimalMinutes": "Graus e minutos decimais",
   "settings_coordinateFormat_degreesMinutesSeconds": "Graus, minutos, segundos",

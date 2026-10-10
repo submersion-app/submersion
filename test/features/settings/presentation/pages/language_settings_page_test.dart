@@ -1,15 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
+/// Records the lookup the place name offer starts and answers "no
+/// candidates", which ends the flow at its snackbar without a database.
+class _RecordingBackfill extends StateNotifier<BackfillState>
+    implements SiteLocationBackfillNotifier {
+  _RecordingBackfill() : super(const BackfillIdle());
+
+  final List<SiteLocationLookupMode> counted = [];
+
+  @override
+  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
+    counted.add(mode);
+    return const [];
+  }
+
+  @override
+  void reset() => state = const BackfillIdle();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 Future<MockSettingsNotifier> _pumpPage(
   WidgetTester tester, {
   AppSettings settings = const AppSettings(),
+  _RecordingBackfill? backfill,
 }) async {
   await tester.binding.setSurfaceSize(const Size(400, 2000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -18,7 +43,12 @@ Future<MockSettingsNotifier> _pumpPage(
 
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [settingsProvider.overrideWith((ref) => notifier)],
+      overrides: [
+        settingsProvider.overrideWith((ref) => notifier),
+        siteLocationBackfillProvider.overrideWith(
+          (_) => backfill ?? _RecordingBackfill(),
+        ),
+      ],
       child: const MaterialApp(
         locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -77,5 +107,103 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(notifier.state.locale, 'fr');
+  });
+
+  // Issue #3111: changing the app language leaves place names in the old
+  // language unless the diver is offered the switch.
+  group('place name offer', () {
+    late _RecordingBackfill backfill;
+
+    setUp(() => backfill = _RecordingBackfill());
+
+    Finder offer() => find.byType(AlertDialog);
+
+    testWidgets('a new app language offers to switch place names to it', (
+      tester,
+    ) async {
+      final notifier = await _pumpPage(tester, backfill: backfill);
+
+      await tester.tap(find.text('Deutsch'));
+      await tester.pumpAndSettle();
+
+      expect(offer(), findsOneWidget);
+      expect(find.text('Store place names in Deutsch?'), findsOneWidget);
+      expect(find.text('Keep English'), findsOneWidget);
+
+      await tester.tap(find.text('Switch'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.locale, 'de');
+      expect(notifier.state.placeNameLanguage, 'de');
+      // The sites already stored are offered the same repair as a change
+      // made in the place name setting itself (#1187).
+      expect(backfill.counted, [SiteLocationLookupMode.refreshAll]);
+    });
+
+    testWidgets('keeping the old language changes only the app language', (
+      tester,
+    ) async {
+      final notifier = await _pumpPage(tester, backfill: backfill);
+
+      await tester.tap(find.text('Deutsch'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Keep English'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.locale, 'de');
+      expect(notifier.state.placeNameLanguage, 'en');
+      expect(backfill.counted, isEmpty);
+    });
+
+    testWidgets('no offer when place names are already in that language', (
+      tester,
+    ) async {
+      final notifier = await _pumpPage(
+        tester,
+        settings: const AppSettings(placeNameLanguage: 'de'),
+        backfill: backfill,
+      );
+
+      await tester.tap(find.text('Deutsch'));
+      await tester.pumpAndSettle();
+
+      expect(offer(), findsNothing);
+      expect(notifier.state.locale, 'de');
+    });
+
+    testWidgets('no offer when the same app language is picked again', (
+      tester,
+    ) async {
+      await _pumpPage(
+        tester,
+        settings: const AppSettings(locale: 'de'),
+        backfill: backfill,
+      );
+
+      await tester.tap(find.text('Deutsch'));
+      await tester.pumpAndSettle();
+
+      expect(offer(), findsNothing);
+    });
+
+    testWidgets('System Default offers the device language', (tester) async {
+      tester.binding.platformDispatcher.localesTestValue = const [
+        Locale('fr', 'FR'),
+      ];
+      addTearDown(tester.binding.platformDispatcher.clearLocalesTestValue);
+      final notifier = await _pumpPage(
+        tester,
+        settings: const AppSettings(locale: 'en'),
+        backfill: backfill,
+      );
+
+      await tester.tap(find.text('System Default'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Switch'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.locale, 'system');
+      expect(notifier.state.placeNameLanguage, 'fr');
+    });
   });
 }

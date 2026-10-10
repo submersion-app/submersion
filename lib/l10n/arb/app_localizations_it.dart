@@ -36724,6 +36724,27 @@ class AppLocalizationsIt extends AppLocalizations {
       'Usata quando paese, regione, città e specchio d\'acqua vengono ricavati dalle coordinate. I siti esistenti non vengono modificati.';
 
   @override
+  String settings_language_placeNameOffer_title(String language) {
+    return 'Salvare i nomi dei luoghi in $language?';
+  }
+
+  @override
+  String settings_language_placeNameOffer_body(
+    String current,
+    String language,
+  ) {
+    return 'I nomi di paesi e regioni cercati per i tuoi siti sono salvati in $current. Passare a $language per le nuove ricerche? Potrai poi cercare di nuovo i siti esistenti.';
+  }
+
+  @override
+  String settings_language_placeNameOffer_keep(String current) {
+    return 'Mantieni $current';
+  }
+
+  @override
+  String get settings_language_placeNameOffer_switch => 'Cambia';
+
+  @override
   String get settings_coordinateFormat_decimalDegrees => 'Gradi decimali';
 
   @override

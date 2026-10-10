@@ -22830,6 +22830,34 @@
   "settings_coordinateFormat_title": "Coordinate format",
   "settings_placeNameLanguage_title": "Place name language",
   "settings_placeNameLanguage_subtitle": "Used when country, region, town and body of water are looked up from coordinates. Existing sites are not changed.",
+  "settings_language_placeNameOffer_title": "Store place names in {language}?",
+  "@settings_language_placeNameOffer_title": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_body": "Country and region names looked up for your sites are stored in {current}. Switch to {language} for new lookups? You can then look up your existing sites again.",
+  "@settings_language_placeNameOffer_body": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_keep": "Keep {current}",
+  "@settings_language_placeNameOffer_keep": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_language_placeNameOffer_switch": "Switch",
   "settings_coordinateFormat_decimalDegrees": "Decimal degrees",
   "settings_coordinateFormat_degreesDecimalMinutes": "Degrees and decimal minutes",
   "settings_coordinateFormat_degreesMinutesSeconds": "Degrees, minutes, seconds",
