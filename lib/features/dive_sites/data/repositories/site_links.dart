@@ -5,6 +5,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_children.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_restore.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 
 /// How many dives and dive plans a delete of some sites would leave without
 /// a site (issue #1952), for its confirmation.
@@ -43,7 +44,12 @@ class SiteLinks {
   /// sites: the ones the delete removed and the ones it only unlinked.
   final Map<String, String> mediaSiteIds;
 
+  /// The sites' documents and pages, captured by an undoable delete
+  /// (issue #2613).
+  final List<DocumentSnapshotEntry> documents;
+
   const SiteLinks({
+    this.documents = const [],
     this.diveSiteIds = const {},
     this.planSiteIds = const {},
     this.clearedAt = 0,
@@ -54,6 +60,7 @@ class SiteLinks {
   });
 
   SiteLinks copyWith({
+    List<DocumentSnapshotEntry>? documents,
     Map<String, String>? diveSiteIds,
     Map<String, String>? planSiteIds,
     int? clearedAt,
@@ -62,6 +69,7 @@ class SiteLinks {
     MediaRowsSnapshot? media,
     Map<String, String>? mediaSiteIds,
   }) => SiteLinks(
+    documents: documents ?? this.documents,
     diveSiteIds: diveSiteIds ?? this.diveSiteIds,
     planSiteIds: planSiteIds ?? this.planSiteIds,
     clearedAt: clearedAt ?? this.clearedAt,

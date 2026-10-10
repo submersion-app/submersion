@@ -16,6 +16,8 @@ import 'package:submersion/features/dive_log/domain/services/unreadable_series_e
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// Result of a successful consolidation: the target dive id plus the
 /// pre-consolidation snapshot needed to undo it.
@@ -528,6 +530,11 @@ class DiveConsolidationService {
             localUpdatedAt: now,
           );
         }
+
+        // Documents follow the media to the target (issue #2613).
+        await DocumentRepository().reassignOwner(DocumentOwnerKind.dive, [
+          secondary.id,
+        ], targetDiveId);
 
         // Media re-pointed to the target BEFORE the secondary is deleted
         // (FK is setNull).
@@ -1233,6 +1240,12 @@ class DiveConsolidationService {
           localUpdatedAt: now,
         );
       }
+
+      // File the documents under their restored dives again (#2613).
+      await DocumentRepository().restoreOwners(
+        DocumentOwnerKind.dive,
+        snapshot.documentDiveIds,
+      );
 
       // Restore media pointers.
       for (final entry in snapshot.mediaDiveIds.entries) {

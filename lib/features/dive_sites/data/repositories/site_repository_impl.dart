@@ -602,8 +602,14 @@ class SiteRepository {
         SharedItemKind.site,
         ids,
       );
-      // The sites' documents go with them, tombstoned (issue #2613). A
-      // merge re-points them to the survivor first.
+      // The sites' documents go with them, tombstoned (issue #2613), kept
+      // for the undo. A merge re-points them to the survivor first.
+      final documents = undoable
+          ? await DocumentRepository().captureForOwners(
+              DocumentOwnerKind.site,
+              ids,
+            )
+          : const <DocumentSnapshotEntry>[];
       await DocumentRepository().deleteForOwners(DocumentOwnerKind.site, ids);
       await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
       // One batch for every tombstone, not a transaction per site.
@@ -612,6 +618,7 @@ class SiteRepository {
         recordIds: ids,
       );
       return cleared.copyWith(
+        documents: documents,
         hides: hides,
         children: children,
         media: doomedMedia,
@@ -719,6 +726,8 @@ class SiteRepository {
       );
       return restored;
     });
+    // After the commit: each save is its own transaction and notifies.
+    await DocumentRepository().restoreSnapshot(links.documents);
     SyncEventBus.notifyLocalChange();
     await _mediaDeletionCoordinator.repairRestoredMedia(restoredMedia);
   }
@@ -912,6 +921,12 @@ class SiteRepository {
         // links away.
         await _classification.relinkForMerge(duplicateIds, survivorId);
 
+        // The duplicates' documents move to the survivor (issue #2613).
+        final documents = await DocumentRepository().reassignOwner(
+          DocumentOwnerKind.site,
+          duplicateIds,
+          survivorId,
+        );
         // Every profile's hide of a merged-away site (issue #2594), kept
         // for the undo (issue #2710).
         final hides = await ProfileHidesRepository().deleteHides(
@@ -927,7 +942,7 @@ class SiteRepository {
             recordId: duplicateId,
           );
         }
-        return (plans: movedPlans, hides: hides);
+        return (plans: movedPlans, hides: hides, documents: documents);
       });
 
       SyncEventBus.notifyLocalChange();
@@ -968,6 +983,7 @@ class SiteRepository {
         siteTypeIdsBySite: typeIdsBySite,
         siteTagIdsBySite: tagIdsBySite,
         deletedHides: merged.hides,
+        documentOriginalSiteIds: merged.documents,
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -1097,6 +1113,12 @@ class SiteRepository {
             localUpdatedAt: now,
           );
         }
+
+        // 4a. Re-point documents back to their original sites (#2613)
+        await DocumentRepository().restoreOwners(
+          DocumentOwnerKind.site,
+          snapshot.documentOriginalSiteIds,
+        );
 
         // 4b. Re-point site features back to their original sites
         for (final entry in snapshot.featureOriginalSiteIds.entries) {
@@ -1632,7 +1654,12 @@ class MergeSnapshot {
     this.siteTypeIdsBySite = const {},
     this.siteTagIdsBySite = const {},
     this.deletedHides = const [],
+    this.documentOriginalSiteIds = const {},
   });
+
+  /// Document id -> the site it was filed under before the merge
+  /// (issue #2613).
+  final Map<String, String> documentOriginalSiteIds;
 }
 
 /// Lightweight snapshot of a site_species row for undo.

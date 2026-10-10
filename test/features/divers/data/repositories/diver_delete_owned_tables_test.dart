@@ -905,6 +905,7 @@ const _clearedByDelete = {
   'diver_settings',
   'diver_weight_entries',
   'dives',
+  'documents',
   'equipment',
   'equipment_locations',
   'equipment_sets',

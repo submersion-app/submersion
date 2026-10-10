@@ -25,6 +25,9 @@ class DocumentListEntry {
 
 typedef CardImages = ({Uint8List? front, Uint8List? back});
 
+/// A document and its pages, captured before an undoable delete.
+typedef DocumentSnapshotEntry = ({Document document, List<DocumentPage> pages});
+
 /// The documents store (issue #2613): documents, their pages, and the two
 /// read models other features build on (a diver's primary insurance and
 /// latest clearance, a certification's card images).
@@ -327,6 +330,93 @@ class DocumentRepository {
       recordIds: pageIds,
     );
     await _syncRepository.logDeletions(entityType: _docEntity, recordIds: ids);
+  }
+
+  /// Moves every document of [fromIds] to [toId], for a merge that is
+  /// about to delete [fromIds]. Returns document id -> previous owner id,
+  /// for [restoreOwners] on undo.
+  Future<Map<String, String>> reassignOwner(
+    DocumentOwnerKind kind,
+    List<String> fromIds,
+    String toId,
+  ) async {
+    final moves = await _ownersOf(kind, fromIds);
+    await _setOwners(kind, {for (final id in moves.keys) id: toId});
+    return moves;
+  }
+
+  /// Puts each document of [owners] (document id -> owner id) back under
+  /// that owner: the undo of [reassignOwner].
+  Future<void> restoreOwners(
+    DocumentOwnerKind kind,
+    Map<String, String> owners,
+  ) => _setOwners(kind, owners);
+
+  Future<Map<String, String>> _ownersOf(
+    DocumentOwnerKind kind,
+    List<String> ownerIds,
+  ) async {
+    final column = kDocumentOwnerColumns[kind];
+    if (column == null) {
+      throw ArgumentError.value(kind, 'kind', 'needs an owner kind');
+    }
+    if (ownerIds.isEmpty) return const {};
+    final placeholders = List.filled(ownerIds.length, '?').join(', ');
+    final rows = await _db
+        .customSelect(
+          'SELECT id, $column AS owner FROM documents '
+          'WHERE $column IN ($placeholders)',
+          variables: [for (final o in ownerIds) Variable.withString(o)],
+        )
+        .get();
+    return {
+      for (final r in rows) r.read<String>('id'): r.read<String>('owner'),
+    };
+  }
+
+  Future<void> _setOwners(
+    DocumentOwnerKind kind,
+    Map<String, String> owners,
+  ) async {
+    if (owners.isEmpty) return;
+    final column = kDocumentOwnerColumns[kind]!;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _db.transaction(() async {
+      for (final MapEntry(key: id, value: ownerId) in owners.entries) {
+        await _db.customStatement(
+          'UPDATE documents SET $column = ?, updated_at = ? WHERE id = ?',
+          [ownerId, now, id],
+        );
+        await _syncRepository.markRecordPending(
+          entityType: _docEntity,
+          recordId: id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+  }
+
+  /// The documents of [ownerIds] with their pages, for an undoable delete
+  /// to hand back to [restoreSnapshot].
+  Future<List<DocumentSnapshotEntry>> captureForOwners(
+    DocumentOwnerKind kind,
+    List<String> ownerIds,
+  ) async {
+    final ids = (await _ownersOf(kind, ownerIds)).keys;
+    return [
+      for (final id in ids)
+        if (await getById(id) case final doc?)
+          (document: doc, pages: await getPages(id)),
+    ];
+  }
+
+  /// Re-creates captured documents and pages after an undone delete. Each
+  /// is saved with a fresh clock, which beats the delete's tombstones on
+  /// every peer.
+  Future<void> restoreSnapshot(List<DocumentSnapshotEntry> snapshot) async {
+    for (final entry in snapshot) {
+      await save(entry.document, entry.pages);
+    }
   }
 
   /// Each diver's primary insurance. Two primaries (a sync merge of two

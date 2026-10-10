@@ -74,7 +74,12 @@ class BuddyMergeSnapshot {
     this.repointedOwnerCerts = const [],
     this.roleRows = const [],
     this.roleDiveIds = const [],
+    this.documentOriginalBuddyIds = const {},
   });
+
+  /// Document id -> the buddy it was filed under before the merge
+  /// (issue #2613).
+  final Map<String, String> documentOriginalBuddyIds;
 }
 
 /// Result from a buddy merge operation.
@@ -231,6 +236,8 @@ class BuddyMergeRepository {
       final modifiedRowIds = <String>{};
       final repointedCertifications = <CertificationInstructorSnapshot>[];
       final repointedOwnerCerts = <CertificationOwnerSnapshot>[];
+      // Document id -> the duplicate buddy it was filed under (#2613).
+      final documentOwners = <String, String>{};
 
       await _db.transaction(() async {
         // Update survivor with merged fields
@@ -400,6 +407,15 @@ class BuddyMergeRepository {
           );
         }
 
+        // The duplicates' documents move to the survivor (issue #2613).
+        documentOwners.addAll(
+          await DocumentRepository().reassignOwner(
+            DocumentOwnerKind.buddy,
+            duplicateIds,
+            survivorId,
+          ),
+        );
+
         // Delete duplicate buddy rows (CASCADE cleans remaining junction rows)
         for (final duplicateId in duplicateIds) {
           await (_db.delete(
@@ -449,6 +465,7 @@ class BuddyMergeRepository {
           repointedOwnerCerts: repointedOwnerCerts,
           roleRows: roleRows,
           roleDiveIds: roleDiveIds,
+          documentOriginalBuddyIds: documentOwners,
         ),
       );
     } catch (e, stackTrace) {
@@ -568,6 +585,12 @@ class BuddyMergeRepository {
             localUpdatedAt: now,
           );
         }
+
+        // 5b. Put documents back under the re-created buddies (#2613).
+        await DocumentRepository().restoreOwners(
+          DocumentOwnerKind.buddy,
+          snapshot.documentOriginalBuddyIds,
+        );
 
         // 6. Restore certification buddy-owner links (issue #553). The deleted
         // duplicate buddies were re-created in step 2, so the FK target exists.
