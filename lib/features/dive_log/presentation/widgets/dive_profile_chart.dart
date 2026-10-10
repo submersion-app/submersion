@@ -4749,10 +4749,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ),
           ),
         // Safety finding callout: its own layer above the photo markers, so
-        // camera chips never poke through the open card (#3051). Built only
-        // while a finding is selected; otherwise it would render nothing.
-        if (_hasSafetyLane && widget.selectedSafetyFindingId != null)
-          Positioned.fill(child: safetyLayer(lane: false)),
+        // camera chips never poke through the open card (#3051). Present
+        // whenever the lane is, even with nothing selected: toggling an
+        // unkeyed Positioned.fill here would shift the stateful range overlay
+        // below into a different element and remount it.
+        if (_hasSafetyLane) Positioned.fill(child: safetyLayer(lane: false)),
         // Range-statistics handles. Topmost so a handle wins the pointer
         // over the layers below it, and inside the chart so it shares the
         // plot rect and visible window (issue #1579).

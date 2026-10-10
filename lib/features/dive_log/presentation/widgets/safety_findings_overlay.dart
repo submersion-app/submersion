@@ -81,6 +81,11 @@ class SafetyFindingsOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A callout-only layer with nothing selected renders nothing; skip the
+    // chip layout it would otherwise run on every chart rebuild.
+    if (!showLane && selectedFindingId == null) {
+      return const SizedBox.shrink();
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
         final laneWidth = constraints.maxWidth - insets.left - insets.right;

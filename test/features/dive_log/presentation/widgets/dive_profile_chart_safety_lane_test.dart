@@ -81,9 +81,8 @@ void main() {
       tester,
       safetyFindings: [finding('a', start: 60, end: 120)],
     );
-    // Lane layer only: the callout layer is built while a finding is
-    // selected.
-    expect(find.byType(SafetyFindingsOverlay), findsOneWidget);
+    // Two layers: the lane below the photo markers, the callout above.
+    expect(find.byType(SafetyFindingsOverlay), findsNWidgets(2));
     expect(find.byKey(const ValueKey('safetyLaneChip-0')), findsOneWidget);
   });
 
@@ -110,8 +109,6 @@ void main() {
       selectedId: 'a',
     );
     expect(find.byKey(const ValueKey('safetyFindingCallout')), findsOneWidget);
-    // Two layers: the lane below the photo markers, the callout above.
-    expect(find.byType(SafetyFindingsOverlay), findsNWidgets(2));
   });
 
   group('stacking against photo markers (issue #3051)', () {

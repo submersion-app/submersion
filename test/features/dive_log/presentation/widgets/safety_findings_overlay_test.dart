@@ -95,6 +95,23 @@ void main() {
       expect(find.byKey(chip), findsNothing);
       expect(find.byKey(callout), findsOneWidget);
     });
+
+    testWidgets('callout only with no selection skips the layout', (
+      tester,
+    ) async {
+      await pumpOverlay(
+        tester,
+        findings: [finding('a', start: 100, end: 200)],
+        showLane: false,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(SafetyFindingsOverlay),
+          matching: find.byType(LayoutBuilder),
+        ),
+        findsNothing,
+      );
+    });
   });
 
   testWidgets('renders one chip per finding', (tester) async {
