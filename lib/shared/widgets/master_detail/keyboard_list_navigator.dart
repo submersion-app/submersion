@@ -439,8 +439,13 @@ class _KeyboardListItemState extends State<KeyboardListItem> {
     final hasRing = scope.ringKey == widget.navigationKey;
     return Listener(
       onPointerDown: (_) => scope.state._pointerDownOn(widget.navigationKey),
-      child: Container(
-        foregroundDecoration: hasRing
+      // Always a DecoratedBox, with only its decoration changing: a click
+      // draws the ring while its tap is still in progress, and a box that
+      // came and went with the ring would rebuild the row's contents and
+      // lose that tap (#3208).
+      child: DecoratedBox(
+        position: DecorationPosition.foreground,
+        decoration: hasRing
             ? BoxDecoration(
                 border: Border.all(
                   color: Theme.of(context).colorScheme.primary,
@@ -448,7 +453,7 @@ class _KeyboardListItemState extends State<KeyboardListItem> {
                 ),
                 borderRadius: BorderRadius.circular(12),
               )
-            : null,
+            : const BoxDecoration(),
         child: ExcludeFocus(child: widget.child),
       ),
     );

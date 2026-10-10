@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
+import '../../../helpers/keyboard_navigation_contract.dart';
+
 /// A list host whose current key follows taps and keyboard moves, the way a
 /// master-detail list follows its selected id.
 class _Host extends StatefulWidget {
@@ -138,6 +140,44 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(log, ['move:b', 'move:c', 'move:b']);
+  });
+
+  testWidgets('a single mouse click runs the row\'s tap', (tester) async {
+    // On desktop focus highlighting starts in the traditional mode, so the
+    // click that focuses the list also draws the focus ring on the clicked
+    // row. Drawing it must not rebuild the row's contents, or the tap still
+    // in progress is lost and every row needs a second click to open (#3208).
+    useDesktopFocusHighlighting();
+    final taps = <String>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: KeyboardListNavigator(
+            keys: const ['a', 'b'],
+            currentKey: null,
+            onMove: (_) {},
+            child: ListView(
+              children: [
+                for (final key in const ['a', 'b'])
+                  KeyboardListItem(
+                    navigationKey: key,
+                    child: InkWell(
+                      key: ValueKey('row-$key'),
+                      onTap: () => taps.add(key),
+                      child: SizedBox(height: 40, child: Text(key)),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await clickWithMouse(tester, find.byKey(const ValueKey('row-a')));
+    await clickWithMouse(tester, find.byKey(const ValueKey('row-b')));
+
+    expect(taps, ['a', 'b']);
   });
 
   testWidgets('a click moves the cursor the arrows continue from', (
