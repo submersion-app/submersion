@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -56,6 +57,9 @@ final weightObservationsProvider = FutureProvider<List<WeightObservation>>((
   // block's dry weight would otherwise leave carriedKg stale and refit the
   // calibration against the old ballast until some dive happened to change.
   ref.invalidateSelfWhen(repository.watchGearLeadChanges());
+  // A dive with no water type of its own is trained in its site's (#3196),
+  // so a site's water type edit refits the calibration too.
+  ref.invalidateSelfWhen(SiteRepository().watchSitesChanges());
 
   return repository.observationsForDiver(diverId);
 });

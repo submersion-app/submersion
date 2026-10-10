@@ -427,6 +427,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
       emptySql: '$_effectiveWaterType IS NULL',
       labelKey: _label('waterType'),
       enumValues: _names(WaterType.values),
+      tables: const ['dive_sites'],
     ),
     _enum('entryMethod', 'entry_method', _names(EntryMethod.values)),
     _enum('exitMethod', 'exit_method', _names(EntryMethod.values)),

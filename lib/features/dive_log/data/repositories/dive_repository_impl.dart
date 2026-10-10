@@ -660,7 +660,7 @@ class DiveRepository {
             siteRow == null ? null : mapDiveSiteRow(siteRow),
           ).copyWith(siteId: Value(siteId), updatedAt: Value(now)),
         );
-        if (siteRow != null) await _addSiteDiveTypes(dive, siteRow.id);
+        if (siteRow != null) await _addSiteDiveTypes(dive, siteRow.id, now);
       });
       await _syncRepository.markRecordPending(
         entityType: 'dives',
@@ -6468,17 +6468,14 @@ class DiveRepository {
 
   /// Adds the dive types [siteId]'s site types stand for to [dive]'s set, for
   /// [setSite]. Rewrites the junction only when a type is actually new.
-  Future<void> _addSiteDiveTypes(Dive dive, String siteId) async {
+  Future<void> _addSiteDiveTypes(Dive dive, String siteId, int now) async {
     final siteTypeIds = await diveTypeIdsForSite(siteId, dive.diverId);
     if (siteTypeIds.isEmpty) return;
     final current =
         (await _diveTypesForDives([dive.id]))[dive.id] ?? [dive.diveType];
     final added = siteTypeIds.where((t) => !current.contains(t)).toList();
     if (added.isEmpty) return;
-    await _replaceDiveTypeRows(dive.id, [
-      ...current,
-      ...added,
-    ], DateTime.now().millisecondsSinceEpoch);
+    await _replaceDiveTypeRows(dive.id, [...current, ...added], now);
   }
 
   /// Remove [typeIds] from each dive's set. Never empties a dive: a removal

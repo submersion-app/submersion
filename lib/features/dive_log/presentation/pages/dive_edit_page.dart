@@ -6180,7 +6180,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               diveId: savedDiveId,
               entryWallClock: entryDateTime,
               location: _selectedSite!.location!,
-              waterType: _waterType ?? _selectedSite!.waterType,
+              waterType: _waterType,
             );
           }
         } catch (e) {
