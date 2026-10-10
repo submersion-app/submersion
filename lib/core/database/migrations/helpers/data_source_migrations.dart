@@ -218,6 +218,15 @@ extension DataSourceMigrations on AppDatabase {
   Future<int> healShearwaterDownloadSerialsForTest() =>
       healShearwaterDownloadSerials(this);
 
+  /// Seed connections for computers registered before they existed (issue
+  /// #3106). Body lives in `dive_computer_connection_seed.dart`.
+  Future<void> _seedDiveComputerConnections() =>
+      seedDiveComputerConnections(this);
+
+  /// Test-only hook exercising the #3106 connection seed directly.
+  Future<int> seedDiveComputerConnectionsForTest() =>
+      seedDiveComputerConnections(this);
+
   /// Idempotent DDL for the v159 dive_data_sources.time_offset_seconds
   /// column (issue #1177). Same dual-call contract (onUpgrade + beforeOpen
   /// backstop) as the other column-assert helpers. Nullable with no default,

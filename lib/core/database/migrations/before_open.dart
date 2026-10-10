@@ -739,5 +739,11 @@ extension BeforeOpenBackstops on AppDatabase {
     // the #1064 heal above, which resolves the same column from the
     // stronger download-derived signal.
     await _backfillImportedDiveComputers();
+
+    // Data self-heal (issue #3106): give computers registered before
+    // connections existed the connections their data proves. AFTER the
+    // #1288 pass, so a computer it just registered gets its file
+    // connections too. Local-only, deterministic ids, no HLC bump.
+    await _seedDiveComputerConnections();
   }
 }
