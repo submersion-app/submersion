@@ -2357,7 +2357,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // The volume that converts a segment to L/min. An attributed segment
     // uses its own cylinder (sidemount tanks differ in size, so one shared
     // volume misconverts half the segments, #110); an unattributed one uses
-    // the same reference cylinder the pressure lane reads. Never another
+    // the reference cylinder the pressure lane is expressed in. Never another
     // bottle that merely happens to have a size: a stage's volume says
     // nothing about the back gas the segment describes. Null means the
     // segment stays in pressure units.

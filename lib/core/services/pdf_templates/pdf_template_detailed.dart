@@ -371,11 +371,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   /// `AppSettings.gasConsumptionDisplay` as the dive detail page does.
   ///
   /// SAC and RMV are two quantities rather than one value in two units
-  /// (discussions #354, #803): [Dive.sac] is a bar/min pressure drop on the
-  /// reference cylinder, [Dive.rmvFor] is L/min summed over every cylinder
-  /// that carries pressures and a volume. So RMV is read from the entity, not
-  /// scaled from SAC by a cylinder volume -- bar/min from a 12 L back gas and
-  /// a 7 L stage cannot be averaged.
+  /// (discussions #354, #803): [Dive.sac] is a bar/min pressure drop in bar
+  /// of the reference cylinder, [Dive.rmvFor] is L/min summed over every
+  /// cylinder that carries pressures and a volume. So RMV is read from the
+  /// entity, not scaled from SAC by a cylinder volume -- bar/min from a 12 L
+  /// back gas and a 7 L stage cannot be averaged.
   ///
   /// A lane the dive cannot supply is omitted. The one exception mirrors the
   /// detail page: an RMV-only diver whose cylinders have no volumes still

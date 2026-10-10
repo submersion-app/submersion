@@ -446,9 +446,9 @@ class Dive extends Equatable {
   /// A sidemount cylinder with no volume borrows its partner's (#3109).
   ///
   /// This is the diver's property (how much gas their lungs move), so every
-  /// cylinder counts. Its pressure-lane sibling [sac] reads one reference
-  /// cylinder instead, because a pressure drop is a property of that
-  /// cylinder's size (discussions #354, #803).
+  /// cylinder counts. Its pressure-lane sibling [sac] is expressed in bar of
+  /// one reference cylinder instead, because a pressure drop is a property
+  /// of that cylinder's size (discussions #354, #803).
   ///
   /// Takes the model as a parameter rather than reading a provider so the
   /// entity stays free of container dependencies. Callers source it from
