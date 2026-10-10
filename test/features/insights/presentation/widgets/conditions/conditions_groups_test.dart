@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -227,5 +228,70 @@ void main() {
     expect(section.chartId, TrendChartIds.airTemp);
     // 1 C per year is 1.8 F per year, never 33.8 F.
     expect(section.rateFormatter!(1), '1.8°F');
+  });
+
+  testWidgets('while loading each weather group shows one spinner', (
+    tester,
+  ) async {
+    final pending = Completer<List<ConditionsRow>>();
+    tester.view.physicalSize = const Size(1200, 6000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          conditionsRowsProvider.overrideWith((ref) => pending.future),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  SurfaceWeatherGroup(),
+                  WaterMovementGroup(),
+                  AltitudeConditionsCard(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Surface & Weather'), findsOneWidget);
+    expect(find.text('Water Movement'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNWidgets(2));
+    expect(find.text('Altitude'), findsNothing);
+
+    pending.complete(const []);
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('every cloud cover and current strength has its own colour', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      () async => [
+        for (var i = 0; i < 4; i++)
+          row(
+            'd$i',
+            cloudCover: CloudCover.values[i],
+            currentStrength: CurrentStrength.values[i],
+          ),
+      ],
+    );
+    final pies = tester.widgetList<PieChart>(find.byType(PieChart)).toList();
+    expect(pies, hasLength(2));
+    for (final pie in pies) {
+      final colors = pie.data.sections.map((s) => s.color).toSet();
+      expect(colors, hasLength(4));
+    }
   });
 }
