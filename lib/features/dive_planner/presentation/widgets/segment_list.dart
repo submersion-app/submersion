@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_editor.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -106,17 +111,36 @@ class SegmentList extends ConsumerWidget {
         ? 0.0
         : planState.segments.last.targetDepth;
 
+    final tanks = _breathableTanks(planState);
     showDialog(
       context: context,
       builder: (context) => SegmentEditor(
         startDepth: startDepth,
-        availableTanks: planState.tanks,
+        availableTanks: tanks,
+        tankLocked: _tankLocked(planState, tanks),
         onSave: (segment) {
           ref.read(divePlanNotifierProvider.notifier).addSegment(segment);
         },
       ),
     );
   }
+
+  /// The tanks a segment may breathe: on a CCR plan the diluents only --
+  /// bailout is never planned on, and the oxygen slot is never breathed as
+  /// such -- every tank otherwise (#3220). Falls back to the whole list
+  /// should a CCR plan somehow hold no diluent, so the editor always has
+  /// something to open on.
+  static List<DiveTank> _breathableTanks(DivePlanState planState) {
+    if (planState.mode != PlanMode.ccr) return planState.tanks;
+    final diluents = planState.tanks
+        .where((t) => t.role == TankRole.diluent)
+        .toList();
+    return diluents.isEmpty ? planState.tanks : diluents;
+  }
+
+  /// With exactly one diluent on a CCR plan there is nothing to choose.
+  static bool _tankLocked(DivePlanState planState, List<DiveTank> tanks) =>
+      planState.mode == PlanMode.ccr && tanks.length == 1;
 
   void _showEditSegmentDialog(
     BuildContext context,
@@ -131,12 +155,14 @@ class SegmentList extends ConsumerWidget {
         ? planState.segments[index - 1].targetDepth
         : 0.0;
 
+    final tanks = _breathableTanks(planState);
     showDialog(
       context: context,
       builder: (context) => SegmentEditor(
         segment: segment,
         startDepth: startDepth,
-        availableTanks: planState.tanks,
+        availableTanks: tanks,
+        tankLocked: _tankLocked(planState, tanks),
         onSave: (updated) {
           ref
               .read(divePlanNotifierProvider.notifier)

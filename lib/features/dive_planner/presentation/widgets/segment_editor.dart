@@ -31,8 +31,14 @@ class SegmentEditor extends ConsumerStatefulWidget {
   /// so the only way to change it is to change the segment before this one.
   final double startDepth;
 
-  /// Available tanks for gas selection.
+  /// Available tanks for gas selection. On a CCR plan the caller passes the
+  /// diluents only: a segment never breathes bailout (#3220).
   final List<DiveTank> availableTanks;
+
+  /// The segment can only breathe the one tank in [availableTanks] -- a CCR
+  /// plan with a single diluent -- so the picker is replaced by that tank's
+  /// name, and the segment is saved on it (#3220).
+  final bool tankLocked;
 
   /// Callback when segment is saved.
   final ValueChanged<PlanSegment> onSave;
@@ -42,6 +48,7 @@ class SegmentEditor extends ConsumerStatefulWidget {
     this.segment,
     this.startDepth = 0,
     required this.availableTanks,
+    this.tankLocked = false,
     required this.onSave,
   });
 
@@ -75,7 +82,15 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
         segment != null ? (segment.durationSeconds ~/ 60).toDouble() : 20,
       ),
     );
-    _selectedTankId = segment?.tankId ?? widget.availableTanks.first.id;
+    // A segment authored on a tank the editor no longer offers (a CCR plan's
+    // bailout, say, from before the segment's tank stopped being diluent)
+    // opens on the first offered tank rather than on a value the picker
+    // cannot show.
+    final current = segment?.tankId;
+    _selectedTankId =
+        current != null && widget.availableTanks.any((t) => t.id == current)
+        ? current
+        : widget.availableTanks.first.id;
   }
 
   final _formKey = GlobalKey<FormState>();
@@ -162,30 +177,42 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
               ),
               const SizedBox(height: 16),
 
-              // Tank selection
-              InputDecorator(
-                decoration: InputDecoration(
-                  labelText: context.l10n.divePlanner_segmentEditor_tankGas,
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedTankId,
-                    isExpanded: true,
-                    isDense: true,
-                    items: widget.availableTanks.map((tank) {
-                      return DropdownMenuItem(
-                        value: tank.id,
-                        child: Text(tank.name ?? tank.gasMix.name),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _selectedTankId = value);
-                      }
-                    },
+              // Tank selection -- or, with one tank the segment can
+              // breathe, just that tank's name.
+              if (widget.tankLocked)
+                InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: context.l10n.divePlanner_segmentEditor_tankGas,
+                  ),
+                  child: Text(
+                    widget.availableTanks.first.name ??
+                        widget.availableTanks.first.gasMix.name,
+                  ),
+                )
+              else
+                InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: context.l10n.divePlanner_segmentEditor_tankGas,
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedTankId,
+                      isExpanded: true,
+                      isDense: true,
+                      items: widget.availableTanks.map((tank) {
+                        return DropdownMenuItem(
+                          value: tank.id,
+                          child: Text(tank.name ?? tank.gasMix.name),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _selectedTankId = value);
+                        }
+                      },
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

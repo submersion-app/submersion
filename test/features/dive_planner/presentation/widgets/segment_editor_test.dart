@@ -76,6 +76,73 @@ void main() {
       .elementAt(index)
       .controller!;
 
+  group('tank picker (#3220)', () {
+    const dil = DiveTank(
+      id: 'dil',
+      name: 'Onboard dil',
+      gasMix: GasMix(o2: 18, he: 45),
+    );
+
+    Widget lockedHarness({
+      PlanSegment? segment,
+      ValueChanged<PlanSegment>? onSave,
+    }) => testApp(
+      overrides: [
+        settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      ],
+      child: SegmentEditor(
+        segment: segment,
+        availableTanks: const [dil],
+        tankLocked: true,
+        onSave: onSave ?? (_) {},
+      ),
+    );
+
+    testWidgets('a locked tank is shown by name with no picker, and the '
+        'segment saves on it', (tester) async {
+      PlanSegment? saved;
+      await tester.pumpWidget(lockedHarness(onSave: (s) => saved = s));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DropdownButton<String>), findsNothing);
+      expect(find.text('Onboard dil'), findsOneWidget);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(saved!.tankId, 'dil');
+      expect(saved!.gasMix, dil.gasMix);
+    });
+
+    testWidgets('a segment on a tank the editor no longer offers opens on '
+        'the first offered one', (tester) async {
+      PlanSegment? saved;
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+          child: SegmentEditor(
+            segment: const PlanSegment(
+              id: 's1',
+              targetDepth: 30,
+              durationSeconds: 600,
+              tankId: 'bailout',
+              gasMix: GasMix(o2: 50),
+            ),
+            availableTanks: const [dil],
+            onSave: (s) => saved = s,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DropdownButton<String>), findsOneWidget);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(saved!.tankId, 'dil');
+    });
+  });
+
   testWidgets('asks for a depth and a duration, and nothing else', (
     tester,
   ) async {

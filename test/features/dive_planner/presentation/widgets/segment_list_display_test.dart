@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -7,6 +8,8 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_editor.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_app.dart';
@@ -100,6 +103,67 @@ void main() {
       final editor = tester.widget<SegmentEditor>(find.byType(SegmentEditor));
       expect(editor.startDepth, 0.0);
       expect(find.textContaining('Descent 0m → 30m'), findsOneWidget);
+    });
+  });
+
+  group('CCR segments breathe diluent only (#3220)', () {
+    const bailout = DiveTank(
+      id: 'bo',
+      name: 'Bailout 50',
+      gasMix: GasMix(o2: 50),
+      order: 2,
+    );
+    const deep = DiveTank(
+      id: 'deep',
+      name: 'Deep dil',
+      gasMix: GasMix(o2: 10, he: 70),
+      role: TankRole.diluent,
+      order: 3,
+    );
+
+    testWidgets('with one diluent the editor offers no picker and names '
+        'it', (tester) async {
+      await tester.pumpWidget(harness());
+      final container = containerOf(tester);
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateMode(PlanMode.ccr);
+      notifier.addTank(bailout);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Add Segment'));
+      await tester.pumpAndSettle();
+
+      final editor = tester.widget<SegmentEditor>(find.byType(SegmentEditor));
+      expect(editor.tankLocked, isTrue);
+      final diluent = container
+          .read(divePlanNotifierProvider)
+          .tanks
+          .firstWhere((t) => t.role == TankRole.diluent);
+      expect(editor.availableTanks.map((t) => t.id), [diluent.id]);
+      expect(find.byType(DropdownButton<String>), findsNothing);
+    });
+
+    testWidgets('with two diluents the picker offers exactly those', (
+      tester,
+    ) async {
+      await tester.pumpWidget(harness());
+      final container = containerOf(tester);
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateMode(PlanMode.ccr);
+      notifier.addTank(bailout);
+      notifier.addTank(deep);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Add Segment'));
+      await tester.pumpAndSettle();
+
+      final editor = tester.widget<SegmentEditor>(find.byType(SegmentEditor));
+      expect(editor.tankLocked, isFalse);
+      expect(
+        editor.availableTanks.map((t) => t.role),
+        everyElement(TankRole.diluent),
+      );
+      expect(editor.availableTanks, hasLength(2));
     });
   });
 
