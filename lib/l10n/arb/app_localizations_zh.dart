@@ -2172,6 +2172,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_backupNow => '立即备份';
 
   @override
+  String get backup_note_dialog_title => '立即备份';
+
+  @override
+  String get backup_note_label => '备注（可选）';
+
+  @override
+  String get backup_note_hint => '例如：去科苏梅尔旅行之前';
+
+  @override
+  String get backup_note_dialog_confirm => '备份';
+
+  @override
   String get backup_cloud_enabled => '云端备份';
 
   @override

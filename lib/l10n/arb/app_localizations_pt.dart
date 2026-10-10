@@ -2281,6 +2281,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get backup_backupNow => 'Fazer Backup Agora';
 
   @override
+  String get backup_note_dialog_title => 'Fazer backup agora';
+
+  @override
+  String get backup_note_label => 'Nota (opcional)';
+
+  @override
+  String get backup_note_hint => 'ex.: Antes da viagem a Cozumel';
+
+  @override
+  String get backup_note_dialog_confirm => 'Fazer backup';
+
+  @override
   String get backup_cloud_enabled => 'Backup na nuvem';
 
   @override

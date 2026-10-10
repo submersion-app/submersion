@@ -2279,6 +2279,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get backup_backupNow => 'Mentés Most';
 
   @override
+  String get backup_note_dialog_title => 'Mentés most';
+
+  @override
+  String get backup_note_label => 'Megjegyzés (nem kötelező)';
+
+  @override
+  String get backup_note_hint => 'pl. A cozumeli út előtt';
+
+  @override
+  String get backup_note_dialog_confirm => 'Mentés';
+
+  @override
   String get backup_cloud_enabled => 'Felhő mentés';
 
   @override

@@ -3559,6 +3559,30 @@ abstract class AppLocalizations {
   /// **'Backup Now'**
   String get backup_backupNow;
 
+  /// No description provided for @backup_note_dialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get backup_note_dialog_title;
+
+  /// No description provided for @backup_note_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get backup_note_label;
+
+  /// No description provided for @backup_note_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Before the Cozumel trip'**
+  String get backup_note_hint;
+
+  /// No description provided for @backup_note_dialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Back Up'**
+  String get backup_note_dialog_confirm;
+
   /// No description provided for @backup_cloud_enabled.
   ///
   /// In en, this message translates to:
