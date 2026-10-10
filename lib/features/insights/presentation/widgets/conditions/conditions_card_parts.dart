@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Heading of one group on the Conditions tab (issue #3118).
@@ -55,6 +56,43 @@ class ConditionsCoverageLine extends StatelessWidget {
           color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
+    );
+  }
+}
+
+/// A new group's header over its single loading spinner or error message.
+///
+/// The new groups share one query, so each reports its state once rather
+/// than once per chart.
+class ConditionsGroupStatus extends StatelessWidget {
+  const ConditionsGroupStatus({
+    super.key,
+    required this.title,
+    required this.failed,
+  });
+
+  final String title;
+
+  /// True for the error message, false for the loading spinner.
+  final bool failed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ConditionsGroupHeader(title: title),
+        if (failed)
+          StatEmptyState(
+            icon: Icons.error_outline,
+            message: context.l10n.insights_conditions_weather_error,
+          )
+        else
+          const SizedBox(
+            height: 120,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+      ],
     );
   }
 }
