@@ -306,6 +306,39 @@ class AppLocalizationsEs extends AppLocalizations {
   String get connections_view_matrix => 'Matrix';
 
   @override
+  String get connections_table_entity => 'Entity';
+
+  @override
+  String get connections_table_linkedWith => 'Linked with';
+
+  @override
+  String get connections_table_sharedDives => 'Shared dives';
+
+  @override
+  String get connections_table_lastShared => 'Last shared';
+
+  @override
+  String get connections_table_firstShared => 'First shared';
+
+  @override
+  String get connections_table_name => 'Name';
+
+  @override
+  String get connections_table_kind => 'Kind';
+
+  @override
+  String get connections_table_dives => 'Dives';
+
+  @override
+  String get connections_table_links => 'Connections';
+
+  @override
+  String get connections_table_strongest => 'Strongest connection';
+
+  @override
+  String get connections_table_firstDive => 'First dive';
+
+  @override
   String get connections_legend_group => 'Color: grupo';
 
   @override

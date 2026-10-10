@@ -614,6 +614,72 @@ abstract class AppLocalizations {
   /// **'Matrix'**
   String get connections_view_matrix;
 
+  /// No description provided for @connections_table_entity.
+  ///
+  /// In en, this message translates to:
+  /// **'Entity'**
+  String get connections_table_entity;
+
+  /// No description provided for @connections_table_linkedWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked with'**
+  String get connections_table_linkedWith;
+
+  /// No description provided for @connections_table_sharedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared dives'**
+  String get connections_table_sharedDives;
+
+  /// No description provided for @connections_table_lastShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Last shared'**
+  String get connections_table_lastShared;
+
+  /// No description provided for @connections_table_firstShared.
+  ///
+  /// In en, this message translates to:
+  /// **'First shared'**
+  String get connections_table_firstShared;
+
+  /// No description provided for @connections_table_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get connections_table_name;
+
+  /// No description provided for @connections_table_kind.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get connections_table_kind;
+
+  /// No description provided for @connections_table_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get connections_table_dives;
+
+  /// No description provided for @connections_table_links.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get connections_table_links;
+
+  /// No description provided for @connections_table_strongest.
+  ///
+  /// In en, this message translates to:
+  /// **'Strongest connection'**
+  String get connections_table_strongest;
+
+  /// No description provided for @connections_table_firstDive.
+  ///
+  /// In en, this message translates to:
+  /// **'First dive'**
+  String get connections_table_firstDive;
+
   /// No description provided for @connections_legend_group.
   ///
   /// In en, this message translates to:

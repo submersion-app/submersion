@@ -3,6 +3,7 @@ import 'package:submersion/features/connections/domain/entities/connection_graph
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
+import 'package:submersion/features/connections/presentation/views/pairs_table.dart';
 import 'package:submersion/features/connections/presentation/views/table_header_bar.dart';
 
 /// The Pairs, Entities and Matrix views: a count line, the chosen view, the
@@ -36,8 +37,12 @@ class ConnectionsTableArea extends StatelessWidget {
   final bool loading;
 
   Widget _body() => switch (view) {
-    ConnectionsViewKind.pairs => const SizedBox.shrink(
-      key: ValueKey('connections-view-pairs'),
+    ConnectionsViewKind.pairs => PairsTable(
+      key: const ValueKey('connections-view-pairs'),
+      graph: graph,
+      colors: colors,
+      selection: selection,
+      onSelect: onSelect,
     ),
     ConnectionsViewKind.entities => const SizedBox.shrink(
       key: ValueKey('connections-view-entities'),
