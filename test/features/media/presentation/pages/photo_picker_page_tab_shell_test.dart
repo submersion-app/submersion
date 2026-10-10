@@ -34,6 +34,8 @@ import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/contrast_ratio.dart';
+
 class _StubPhotoPickerService implements PhotoPickerService {
   @override
   Future<PhotoPermissionStatus> currentPermission() => checkPermission();
@@ -182,7 +184,10 @@ void main() {
     final tabBar = tester.widget<TabBar>(find.byType(TabBar));
     expect(tabBar.labelColor, foreground);
     expect(tabBar.indicatorColor, foreground);
-    expect(tabBar.unselectedLabelColor, isNot(primary));
+    expect(
+      contrastRatio(tabBar.unselectedLabelColor!, primary),
+      greaterThanOrEqualTo(4.5),
+    );
     final done = tester.renderObject<RenderParagraph>(find.text('Done'));
     // Nothing is selected yet, so Done shows disabled, dimmed in the bar's
     // colour rather than Material's dark onSurface tint.

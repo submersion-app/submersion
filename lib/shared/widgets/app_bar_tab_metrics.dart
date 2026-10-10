@@ -99,11 +99,23 @@ class AppBarTabColors {
       selected: _contrast(primary, background) >= _aaContrast
           ? primary
           : foreground,
-      unselected: Color.alphaBlend(
-        foreground.withValues(alpha: _unselectedAlpha),
-        background,
-      ),
+      unselected: _dimmed(foreground, background),
     );
+  }
+
+  /// [foreground] dimmed toward [background] by [_unselectedAlpha], or less
+  /// where that would drop it under WCAG AA: a bar whose title has little
+  /// headroom over 4.5:1 (Tropical light, 5.04:1) keeps its unselected labels
+  /// nearly full strength and leaves the indicator to mark the selection.
+  static Color _dimmed(Color foreground, Color background) {
+    for (var alpha = _unselectedAlpha; alpha < 1; alpha += 0.02) {
+      final dimmed = Color.alphaBlend(
+        foreground.withValues(alpha: alpha),
+        background,
+      );
+      if (_contrast(dimmed, background) >= _aaContrast) return dimmed;
+    }
+    return foreground;
   }
 
   /// WCAG AA contrast for normal-size text.
@@ -115,9 +127,9 @@ class AppBarTabColors {
     return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
   }
 
-  /// How much of the foreground an unselected label keeps. Low enough to
-  /// read as unselected, high enough to keep WCAG AA (4.5:1) on every preset
-  /// whose own title meets it.
+  /// How much of the foreground an unselected label keeps where the bar has
+  /// the headroom: low enough to read as unselected. [_dimmed] raises it
+  /// where WCAG AA (4.5:1) needs more.
   static const double _unselectedAlpha = 0.8;
 
   final Color selected;
