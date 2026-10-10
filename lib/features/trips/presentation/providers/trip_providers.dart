@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/text/text_sort.dart';
 
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -275,14 +276,27 @@ final divesForTripProvider = FutureProvider.family<List<domain.Dive>, String>((
   final diveRepository = ref.watch(diveRepositoryProvider);
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
 
-  ref.invalidateSelfWhen(diveRepository.watchDivesChanges());
+  // Includes the buddy link tables: the trip story and day map cards show
+  // buddy names, and a rename or a synced buddy link never restamps the dive
+  // row (#1769, #3039).
+  ref.invalidateSelfWhen(diveRepository.watchDivesChangesWithBuddyLinks());
 
   final diveIds = await tripRepository.getDiveIdsForTrip(
     tripId,
     diverId: diverId,
   );
   if (diveIds.isEmpty) return [];
-  return diveRepository.getDivesByIds(diveIds);
+  final dives = await diveRepository.getDivesByIds(diveIds);
+
+  // getDivesByIds does not load the dive_buddies junction; attach it in one
+  // batched query so the cards' Buddy field matches the Dives tab (#3039).
+  final buddiesByDive = await ref
+      .read(buddyRepositoryProvider)
+      .getBuddiesForDives(diveIds);
+  return [
+    for (final dive in dives)
+      dive.copyWith(buddies: buddiesByDive[dive.id] ?? const []),
+  ];
 });
 
 /// Trip search provider
