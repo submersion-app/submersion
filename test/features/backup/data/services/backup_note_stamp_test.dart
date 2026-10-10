@@ -97,6 +97,16 @@ void main() {
       expect(hasInfoTable(path), isFalse);
     });
 
+    test('stamping an empty file throws and leaves it empty', () {
+      // SQLite would initialise a 0-byte file as a new database, turning a
+      // failed copy into a note-only file that looks like a backup.
+      final path = p.join(dir.path, 'empty.db');
+      File(path).writeAsBytesSync(const []);
+
+      expect(() => stampBackupNote(path, 'x'), throwsA(anything));
+      expect(File(path).lengthSync(), 0);
+    });
+
     test('stamping a missing file throws', () {
       expect(
         () => stampBackupNote(p.join(dir.path, 'missing.db'), 'x'),

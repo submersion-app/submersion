@@ -43,6 +43,7 @@ String? normalizeBackupNote(String? note) {
 /// a reported failure.
 void stampBackupNote(String path, String? note) {
   final normalized = normalizeBackupNote(note);
+  _requireSqliteFile(path);
   final db = DatabaseService.openRaw(path);
   try {
     db.execute('DROP TABLE IF EXISTS $backupInfoTable');
@@ -57,6 +58,33 @@ void stampBackupNote(String path, String? note) {
     ]);
   } finally {
     db.close();
+  }
+}
+
+/// The 16-byte header every SQLite database file starts with.
+const List<int> _sqliteHeader = [
+  0x53, 0x51, 0x4c, 0x69, 0x74, 0x65, 0x20, 0x66, //
+  0x6f, 0x72, 0x6d, 0x61, 0x74, 0x20, 0x33, 0x00,
+];
+
+/// Throws unless [path] is an existing SQLite database file.
+///
+/// Opening read-write would otherwise initialise an empty file as a new
+/// database, turning a failed copy into a note-only file that looks like a
+/// backup, and would never reject the raw fallback copy of a database SQLite
+/// cannot read.
+void _requireSqliteFile(String path) {
+  final file = File(path);
+  final raf = file.openSync();
+  try {
+    final head = raf.readSync(_sqliteHeader.length);
+    for (var i = 0; i < _sqliteHeader.length; i++) {
+      if (head.length <= i || head[i] != _sqliteHeader[i]) {
+        throw FileSystemException('Not a SQLite database', path);
+      }
+    }
+  } finally {
+    raf.closeSync();
   }
 }
 
