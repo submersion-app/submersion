@@ -74,7 +74,8 @@ bool appBarTabsFitInline(
 /// moved onto the bar would vanish there. The selected label keeps `primary`
 /// wherever it reaches WCAG AA on the bar, the stock look, and otherwise
 /// takes the bar's own foreground, the colour its title is legible in.
-/// Unselected labels are always the foreground dimmed toward the background.
+/// Unselected labels are the foreground dimmed toward the background, as far
+/// as WCAG AA allows.
 /// Both are judged against the background the bar actually shows, so a
 /// translucent bar (Minimalist) is read over the scaffold beneath it.
 @immutable
