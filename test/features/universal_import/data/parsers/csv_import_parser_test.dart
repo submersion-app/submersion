@@ -1007,6 +1007,20 @@ void main() {
       expect(result.warnings, isEmpty);
     });
 
+    test('leaves a non-metre visibility range unmapped rather than storing '
+        'feet as metres (review #4)', () async {
+      const csv =
+          'Date,Visibility Min (ft),Visibility Max (ft)\n'
+          '2024-01-15,20,40\n';
+
+      final result = await parser.parse(csvBytes(csv));
+
+      final dive = result.entitiesOf(ImportEntityType.dives).single;
+      expect(dive.containsKey('visibilityMinMeters'), isFalse);
+      expect(dive.containsKey('visibilityMaxMeters'), isFalse);
+      expect(dive.containsKey('visibilityMeters'), isFalse);
+    });
+
     test('keeps a bare or non-metre visibility on the bucket field', () async {
       for (final header in ['Visibility', 'Visibility (ft)']) {
         final result = await parser.parse(

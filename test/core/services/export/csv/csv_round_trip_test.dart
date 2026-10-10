@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart' show EquipmentCompanion;
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
@@ -186,6 +188,14 @@ void main() {
             dateTime: DateTime.utc(2026, 3, 2, 9),
             visibilityMinMeters: 12,
           ),
+          // A custom-scale band edge in feet (15 ft and 30 ft).
+          Dive(
+            id: 'range-custom',
+            diveNumber: 24,
+            dateTime: DateTime.utc(2026, 3, 4, 9),
+            visibilityMinMeters: 4.572,
+            visibilityMaxMeters: 9.144,
+          ),
           // A hand-edited inverted range imports as no range.
           Dive(
             id: 'range-inverted',
@@ -206,13 +216,22 @@ void main() {
           return (await repo.getDiveById(summary.id))!;
         }
 
+        // Exact, not near: a band edge that drifts by rounding (6-12 m
+        // written as 19.7-39.4 ft comes back as 6.005-12.009 m) leaves its
+        // band and loses its adjective, chip and Insights bin (review #2).
         final closed = await back(21);
         expect(closed.visibilityMeters, isNull);
-        near(closed.visibilityMinMeters, 6, 0.06, 'closed min');
-        near(closed.visibilityMaxMeters, 12, 0.06, 'closed max');
+        expect(closed.visibilityRange, const VisibilityRange(minM: 6, maxM: 12));
+        expect(
+          VisibilityScale.coldWater.bandForRange(closed.visibilityRange!),
+          VisibilityBand.good,
+        );
         final open = await back(22);
-        near(open.visibilityMinMeters, 12, 0.06, 'open min');
-        expect(open.visibilityMaxMeters, isNull);
+        expect(open.visibilityRange, const VisibilityRange(minM: 12));
+        expect(
+          (await back(24)).visibilityRange,
+          const VisibilityRange(minM: 4.572, maxM: 9.144),
+        );
         expect((await back(23)).visibilityRange, isNull);
       });
 

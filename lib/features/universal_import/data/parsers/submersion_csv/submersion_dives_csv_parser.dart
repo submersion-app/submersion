@@ -140,8 +140,12 @@ class SubmersionDivesCsvParser implements ImportParser {
         'airTemp': table.quantity(row, CsvColumns.airTemp),
         'visibilityMeters': visibilityMeters,
         // A band-picked range (issue #3226); the importer validates it.
-        'visibilityMinMeters': table.quantity(row, CsvColumns.visibilityMin),
-        'visibilityMaxMeters': table.quantity(row, CsvColumns.visibilityMax),
+        'visibilityMinMeters': _toMillimeter(
+          table.quantity(row, CsvColumns.visibilityMin),
+        ),
+        'visibilityMaxMeters': _toMillimeter(
+          table.quantity(row, CsvColumns.visibilityMax),
+        ),
         // A pre-v144 dive carries only the bucket; a measured distance wins.
         'visibility': visibilityMeters == null
             ? _enumName(
@@ -351,3 +355,10 @@ class SubmersionDivesCsvParser implements ImportParser {
     }..removeWhere((_, value) => value == null);
   }
 }
+
+/// A range end snapped to the millimetre (issue #3226). The export writes
+/// range ends unrounded, but feet to metres and back leaves float noise
+/// (12 m returns as 12.000000000000002) that would push a band edge out of
+/// its band; no visibility is known to better than a millimetre.
+double? _toMillimeter(double? meters) =>
+    meters == null ? null : (meters * 1000).roundToDouble() / 1000;
