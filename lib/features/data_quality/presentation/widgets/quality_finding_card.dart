@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
+import 'package:submersion/features/data_quality/domain/services/finding_ownership.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/dive_identity_label.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -128,11 +129,7 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
     ];
     final primary = actions.isNotEmpty ? actions.first : null;
     final related = widget.relatedDive;
-    // With a foreign anchor, the active diver's dive is the related one, and
-    // the "paired with" row names the anchor instead.
-    final foreignAnchor = foreign != null && foreign == finding.diveId;
-    final ownDiveId = foreignAnchor ? finding.relatedDiveId! : finding.diveId;
-    final pairedId = foreignAnchor ? finding.diveId : finding.relatedDiveId;
+    final (own: ownDiveId, paired: pairedId) = diveSidesOf(finding, foreign);
     final computerName = widget.computerName;
 
     return Card(

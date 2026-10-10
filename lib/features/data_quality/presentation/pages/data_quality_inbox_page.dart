@@ -9,13 +9,12 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/data_quality/data/services/diver_data_query.dart';
 import 'package:submersion/features/data_quality/data/services/quality_repair_executor.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
-import 'package:submersion/features/data_quality/domain/services/finding_ownership.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/data_quality/domain/detectors/quality_detector_registry.dart';
 import 'package:submersion/features/data_quality/domain/entities/diver_data_summary.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
+import 'package:submersion/features/data_quality/domain/services/finding_ownership.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/delete_duplicate_dialog.dart';
@@ -27,6 +26,7 @@ import 'package:submersion/features/dive_log/data/services/derived_metrics_sched
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassign_tank_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -477,10 +477,6 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
               .value;
           String? foreignOf(QualityFinding f) =>
               foreignDiveIdOf(f, activeDiverId);
-          String ownDiveOf(QualityFinding f) =>
-              foreignOf(f) == f.diveId ? f.relatedDiveId! : f.diveId;
-          String? pairedDiveOf(QualityFinding f) =>
-              foreignOf(f) == f.diveId ? f.diveId : f.relatedDiveId;
           // Reading the names costs a diver lookup plus a computers-table
           // read, so only pay it when some finding actually names a computer.
           final computerNames = scoped.any((f) => f.computerId != null)
@@ -534,7 +530,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                         children: [
                           for (final group in _groupByDive(
                             open,
-                            diveIdOf: ownDiveOf,
+                            diveIdOf: (f) => diveSidesOf(f, foreignOf(f)).own,
                           )) ...[
                             _DiveGroupHeader(
                               label: identity(group.diveId),
@@ -546,7 +542,9 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                               QualityFindingCard(
                                 finding: f,
                                 formatters: formatters,
-                                relatedDive: identity(pairedDiveOf(f)),
+                                relatedDive: identity(
+                                  diveSidesOf(f, foreignOf(f)).paired,
+                                ),
                                 foreignDiveId: foreignOf(f),
                                 computerName: computerNames[f.computerId],
                                 onRepair: (a) =>

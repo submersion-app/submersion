@@ -27,3 +27,13 @@ String? foreignDiveIdOf(QualityFinding finding, String? activeDiverId) {
   }
   return null;
 }
+
+/// The active diver's dive of [finding] and the dive it is paired with,
+/// given its [foreignDiveId] from [foreignDiveIdOf]. With a foreign anchor
+/// the two swap, so the finding is filed under the related dive.
+({String own, String? paired}) diveSidesOf(
+  QualityFinding finding,
+  String? foreignDiveId,
+) => foreignDiveId != null && foreignDiveId == finding.diveId
+    ? (own: finding.relatedDiveId!, paired: finding.diveId)
+    : (own: finding.diveId, paired: finding.relatedDiveId);

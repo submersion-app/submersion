@@ -70,4 +70,20 @@ void main() {
       expect(foreignDiveIdOf(f, 'bob'), isNull);
     });
   });
+
+  group('diveSidesOf', () {
+    test('swaps the sides when the anchor is foreign', () {
+      final sides = diveSidesOf(_finding(), 'a1');
+      expect(sides.own, 'b1');
+      expect(sides.paired, 'a1');
+    });
+
+    test('keeps the anchor as its own dive otherwise', () {
+      for (final foreign in ['b1', null]) {
+        final sides = diveSidesOf(_finding(), foreign);
+        expect(sides.own, 'a1');
+        expect(sides.paired, 'b1');
+      }
+    });
+  });
 }
