@@ -370,13 +370,19 @@ class Dive3dScenePainter extends CustomPainter {
     }
   }
 
-  /// Widens a stroke mesh on the canvas: each vertex pair collapses to its
-  /// midpoint, then moves [halfWidthPx] to either side of the on-screen run
-  /// toward the next pair (the last pair reuses the run before it). A
-  /// zero-length run has no direction, so it keeps the previous side and a
-  /// stationary stretch never pinches to a point; before the first real run
-  /// the side faces that run. [sx]/[sy] are the projected canvas positions
-  /// of every vertex in the soup; [start] is this mesh's first vertex.
+  /// Widens a stroke mesh on the canvas: each vertex pair moves
+  /// [halfWidthPx] to either side of its point, along the mean of the
+  /// normals of the run arriving at it and the run leaving it, so the quads
+  /// on both sides of a turn share that edge instead of leaving a notch.
+  /// Each run's normal is flipped to agree with the previous one, which
+  /// keeps the two edges on the same sides through a reversal (an
+  /// out-and-back leg) rather than crossing into a bow-tie. A zero-length
+  /// run has no direction and keeps the previous side, so a stationary
+  /// stretch never pinches to a point; before the first real run the side
+  /// faces that run. [sx]/[sy] are the projected canvas positions of every
+  /// vertex in the soup; [start] is this mesh's first vertex. Both members
+  /// of a pair sit on the same point (see [MeshData.strokeHalfWidthPx]), so
+  /// the first member is read as the point.
   @visibleForTesting
   static void strokeScreenEdges(
     Float32List sx,
@@ -386,35 +392,49 @@ class Dive3dScenePainter extends CustomPainter {
     required double halfWidthPx,
   }) {
     if (pairCount == 0) return;
-    final mx = Float32List(pairCount);
-    final my = Float32List(pairCount);
-    for (var k = 0; k < pairCount; k++) {
-      final a = start + k * 2;
-      mx[k] = (sx[a] + sx[a + 1]) / 2;
-      my[k] = (sy[a] + sy[a + 1]) / 2;
-    }
-    var nx = 0.0, ny = 1.0;
-    bool sideOfRun(int j) {
-      final dx = mx[j + 1] - mx[j];
-      final dy = my[j + 1] - my[j];
+    // Normal of run j (pair j to pair j+1), or (0, 0) for a zero-length run.
+    (double, double) runNormal(int j) {
+      final a = start + j * 2;
+      final dx = sx[a + 2] - sx[a];
+      final dy = sy[a + 2] - sy[a];
       final len = math.sqrt(dx * dx + dy * dy);
-      if (len <= 1e-6) return false;
-      nx = -dy / len;
-      ny = dx / len;
-      return true;
+      return len <= 1e-6 ? (0, 0) : (-dy / len, dx / len);
     }
 
+    // The side before the first pair: that of the first real run, or an
+    // arbitrary one for a stroke that never moves.
+    var px = 0.0, py = 1.0;
     for (var j = 0; j < pairCount - 1; j++) {
-      if (sideOfRun(j)) break;
+      final (nx, ny) = runNormal(j);
+      if (nx != 0 || ny != 0) {
+        px = nx;
+        py = ny;
+        break;
+      }
     }
     for (var k = 0; k < pairCount; k++) {
-      final j = k < pairCount - 1 ? k : k - 1;
-      if (j >= 0) sideOfRun(j);
+      var (nx, ny) = k < pairCount - 1 ? runNormal(k) : (0.0, 0.0);
+      var ex = px, ey = py;
+      if (nx != 0 || ny != 0) {
+        if (nx * px + ny * py < 0) {
+          nx = -nx;
+          ny = -ny;
+        }
+        final sx0 = px + nx, sy0 = py + ny;
+        final len = math.sqrt(sx0 * sx0 + sy0 * sy0);
+        if (len > 1e-6) {
+          ex = sx0 / len;
+          ey = sy0 / len;
+        }
+        px = nx;
+        py = ny;
+      }
       final a = start + k * 2;
-      sx[a] = mx[k] - nx * halfWidthPx;
-      sy[a] = my[k] - ny * halfWidthPx;
-      sx[a + 1] = mx[k] + nx * halfWidthPx;
-      sy[a + 1] = my[k] + ny * halfWidthPx;
+      final x = sx[a], y = sy[a];
+      sx[a] = x - ex * halfWidthPx;
+      sy[a] = y - ey * halfWidthPx;
+      sx[a + 1] = x + ex * halfWidthPx;
+      sy[a + 1] = y + ey * halfWidthPx;
     }
   }
 

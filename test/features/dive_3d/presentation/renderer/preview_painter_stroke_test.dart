@@ -127,6 +127,46 @@ void main() {
       expect(sx, [0, 0, 10, 10, 10, 10, 20, 20]);
     });
 
+    test('shares the edge at a turn: the mean of both runs\' normals', () {
+      // East then north, a right angle. The corner pair sits on the
+      // diagonal between the two runs' normals so the quads on either
+      // side meet edge to edge.
+      final sx = Float32List.fromList([0, 0, 10, 10, 10, 10]);
+      final sy = Float32List.fromList([0, 0, 0, 0, 10, 10]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 3,
+        halfWidthPx: 1,
+      );
+      const d = 0.7071;
+      expect(sy.sublist(0, 2), [-1, 1]);
+      expect(sx[2], closeTo(10 + d, 1e-3));
+      expect(sy[2], closeTo(-d, 1e-3));
+      expect(sx[3], closeTo(10 - d, 1e-3));
+      expect(sy[3], closeTo(d, 1e-3));
+      expect(sx.sublist(4), [11, 9]);
+    });
+
+    test('keeps both edges on their sides through a reversal', () {
+      // Out east and straight back: the return run's normal points the
+      // other way, and taken as is it would cross the edges into a
+      // bow-tie that draws nothing. Flipped to agree with the outbound
+      // side, every pair keeps edge 0 below and edge 1 above.
+      final sx = Float32List.fromList([0, 0, 10, 10, 0, 0]);
+      final sy = Float32List.fromList([5, 5, 5, 5, 5, 5]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 3,
+        halfWidthPx: 1,
+      );
+      expect(sy, [4, 6, 4, 6, 4, 6]);
+      expect(sx, [0, 0, 10, 10, 0, 0]);
+    });
+
     test('faces the first real run when the stroke starts stationary', () {
       final sx = Float32List.fromList([10, 10, 10, 10, 10, 10]);
       final sy = Float32List.fromList([0, 0, 0, 0, 40, 40]);

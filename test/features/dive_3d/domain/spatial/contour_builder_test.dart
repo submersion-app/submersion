@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
@@ -332,13 +330,12 @@ void main() {
         displayUnitInMeters: 1.0,
         depthSymbol: 'm',
       );
-      double widthOf(SceneLayer layer) {
-        // Ribbon vertices come in left/right pairs; the first pair's
-        // separation is the full ribbon width in scene units.
-        final p = layer.mesh.positions;
-        final dx = p[3] - p[0], dz = p[5] - p[2];
-        return math.sqrt(dx * dx + dz * dz);
-      }
+      // Contours are canvas strokes (issue #3215): the width lives in
+      // strokeHalfWidthPx, both members of a vertex pair sit on the
+      // isobath.
+      double widthOf(SceneLayer layer) => layer.mesh.strokeHalfWidthPx!;
+      final p = result.layers[0].mesh.positions;
+      expect(p.sublist(0, 3), p.sublist(3, 6));
 
       // Rendered levels are 10,15,20,25,...: the 25 m major is index 3.
       expect(widthOf(result.layers[3]), greaterThan(widthOf(result.layers[0])));

@@ -37,7 +37,9 @@ class MeshData {
   /// the surface (issue #3215). Null draws the mesh as given.
   final double? strokeHalfWidthPx;
 
-  const MeshData({
+  // Not const: typed-data lists never are, and the stroke assert below
+  // walks the positions.
+  MeshData({
     required this.positions,
     required this.indices,
     required this.colors,
@@ -51,11 +53,23 @@ class MeshData {
          'indexes it by vertex while building the depth key',
        ),
        assert(
-         strokeHalfWidthPx == null || positions.length % 6 == 0,
+         strokeHalfWidthPx == null || _pairsCoincide(positions),
          'a stroke is made of vertex pairs: two xyz triplets per centerline '
-         'point',
+         'point, both at the same position',
        );
 
   int get vertexCount => positions.length ~/ 3;
   int get triangleCount => indices.length ~/ 3;
+
+  static bool _pairsCoincide(Float32List positions) {
+    if (positions.length % 6 != 0) return false;
+    for (var i = 0; i < positions.length; i += 6) {
+      if (positions[i] != positions[i + 3] ||
+          positions[i + 1] != positions[i + 4] ||
+          positions[i + 2] != positions[i + 5]) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
