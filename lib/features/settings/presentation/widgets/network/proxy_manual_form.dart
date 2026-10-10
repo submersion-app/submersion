@@ -74,8 +74,9 @@ class _ProxyManualFormState extends ConsumerState<ProxyManualForm> {
 
   Future<void> _save() async {
     final l10n = context.l10n;
-    final host = _host.text.trim();
-    final port = readProxyPort(_port.text);
+    final parsed = parseProxyHostInput(_host.text);
+    final host = parsed.host;
+    final port = readProxyPort(_port.text) ?? parsed.port;
     final username = _username.text;
     final password = _password.text;
     final problem = checkProxyCredentials(_type, username, password);
@@ -222,6 +223,34 @@ class _ProxyManualFormState extends ConsumerState<ProxyManualForm> {
       ),
     );
   }
+}
+
+/// The host a user meant in [text], tolerating a pasted URL: a scheme, a
+/// path and a `:port` are removed (the port is returned so an empty Port
+/// field can take it). Empty when what is left cannot be a host name, so
+/// `proxy corp` is refused rather than saved as a proxy that never connects.
+({String host, int? port}) parseProxyHostInput(String text) {
+  var rest = text.trim();
+  final scheme = rest.indexOf('://');
+  if (scheme >= 0) rest = rest.substring(scheme + 3);
+  final slash = rest.indexOf('/');
+  if (slash >= 0) rest = rest.substring(0, slash);
+  int? port;
+  if (rest.startsWith('[')) {
+    final close = rest.indexOf(']');
+    if (close < 0) return (host: '', port: null);
+    final after = rest.substring(close + 1);
+    if (after.startsWith(':')) port = readProxyPort(after.substring(1));
+    rest = rest.substring(1, close);
+  } else if (':'.allMatches(rest).length == 1) {
+    final colon = rest.indexOf(':');
+    port = readProxyPort(rest.substring(colon + 1));
+    rest = rest.substring(0, colon);
+  }
+  if (rest.isEmpty || RegExp(r'[\s@]').hasMatch(rest)) {
+    return (host: '', port: null);
+  }
+  return (host: rest, port: port);
 }
 
 /// The port in [text], or null when it is blank, unreadable, or outside

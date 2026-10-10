@@ -82,8 +82,15 @@ class EffectiveProxy {
               kind: type == ProxyType.http ? ProxyKind.http : ProxyKind.socks5,
               host: host,
               port: port,
-              username: system.username,
-              password: system.password,
+              // Only the Linux environment carries these, unchecked; values
+              // the directive cannot represent would make dart:io reject
+              // every request, so they are dropped.
+              username: _usableSystemCredentials(system)
+                  ? system.username
+                  : null,
+              password: _usableSystemCredentials(system)
+                  ? system.password
+                  : null,
               bypass: system.bypass,
               source: system.viaPac
                   ? ProxySource.systemPac
@@ -92,6 +99,13 @@ class EffectiveProxy {
           _ => const EffectiveProxy.direct(source: ProxySource.system),
         };
     }
+  }
+
+  static bool _usableSystemCredentials(SystemProxyFixed system) {
+    final user = system.username;
+    if (user == null || user.isEmpty) return false;
+    return checkProxyCredentials(system.type, user, system.password ?? '') ==
+        null;
   }
 
   @override

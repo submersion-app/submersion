@@ -17,6 +17,7 @@ enum Socks5Failure {
   addressTypeNotSupported,
   protocolError,
   hostnameTooLong,
+  handshakeTimeout,
 }
 
 /// A SOCKS5 failure. A [SocketException], so every caller that already treats
@@ -52,6 +53,10 @@ const _replyFailures = {
 ///
 /// The handshake uses the socket's only listener; see [Socks5Tunnel] for
 /// how https and http each take the open tunnel over.
+///
+/// The handshake has its own [handshakeTimeout]: most clients set no
+/// connection timeout, and a port that accepts TCP but never answers would
+/// otherwise hold the request forever.
 Future<Socks5Tunnel> connectViaSocks5({
   required String proxyHost,
   required int proxyPort,
@@ -59,6 +64,7 @@ Future<Socks5Tunnel> connectViaSocks5({
   required int targetPort,
   String? username,
   String? password,
+  Duration handshakeTimeout = const Duration(seconds: 30),
 }) async {
   var host = targetHost;
   if (host.startsWith('[') && host.endsWith(']')) {
@@ -103,6 +109,7 @@ Future<Socks5Tunnel> connectViaSocks5({
     },
   );
 
+  final deadline = DateTime.now().add(handshakeTimeout);
   Future<List<int>> need(int n) async {
     while (pending.length < n) {
       if (closed) {
@@ -112,7 +119,15 @@ Future<Socks5Tunnel> connectViaSocks5({
         );
       }
       waiter = Completer<void>();
-      await waiter.future;
+      final left = deadline.difference(DateTime.now());
+      try {
+        await waiter.future.timeout(left.isNegative ? Duration.zero : left);
+      } on TimeoutException {
+        throw Socks5Exception(
+          Socks5Failure.handshakeTimeout,
+          detail: 'SOCKS5 proxy $proxyHost:$proxyPort did not answer',
+        );
+      }
     }
     final out = pending.sublist(0, n);
     pending.removeRange(0, n);

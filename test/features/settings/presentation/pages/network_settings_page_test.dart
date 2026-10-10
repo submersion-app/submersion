@@ -174,6 +174,33 @@ void main() {
     expect(find.text('Proxy settings saved'), findsOneWidget);
   });
 
+  testWidgets('a pasted URL in Host is reduced to the host, filling the '
+      'port', (tester) async {
+    await pump(tester, saved: manualSaved);
+    await tester.enterText(
+      find.byKey(const ValueKey('proxy-host')),
+      'http://proxy.corp:3128/',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(store.load().host, 'proxy.corp');
+    expect(store.load().port, 3128);
+    expect(controller.current.endpoint, 'proxy.corp:3128');
+  });
+
+  testWidgets('a host with spaces is refused', (tester) async {
+    await pump(tester, saved: manualSaved);
+    await tester.enterText(
+      find.byKey(const ValueKey('proxy-host')),
+      'proxy corp',
+    );
+    await tester.enterText(find.byKey(const ValueKey('proxy-port')), '1');
+    await tester.tap(find.text('Save'));
+    await tester.pump();
+    expect(find.text('Enter the proxy host'), findsOneWidget);
+    expect(store.load().host, '');
+  });
+
   testWidgets('the form starts from the saved proxy and password', (
     tester,
   ) async {
@@ -303,6 +330,28 @@ void main() {
     expect(find.byType(AlertDialog), findsOneWidget);
     await tester.tap(find.text('Discard'));
     await tester.pumpAndSettle();
+    expect(find.text('root'), findsOneWidget);
+  });
+
+  testWidgets('leaving Manual makes an unsaved draft no reason to stop '
+      'back', (tester) async {
+    await setUpController(saved: manualSaved);
+    final navKey = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      app(const Scaffold(body: Text('root')), key: navKey),
+    );
+    navKey.currentState!.push(
+      MaterialPageRoute<void>(
+        builder: (_) => const Scaffold(body: NetworkSettingsPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const ValueKey('proxy-host')), 'unsaved');
+    await tester.tap(find.text('No proxy'));
+    await tester.pumpAndSettle();
+    await navKey.currentState!.maybePop();
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
     expect(find.text('root'), findsOneWidget);
   });
 }

@@ -66,6 +66,41 @@ void main() {
     expect(p.source, ProxySource.systemPac);
   });
 
+  test('system credentials the directive cannot carry are dropped', () {
+    for (final (user, pass) in [
+      ('ann', null),
+      ('ann', 'a;b'),
+      ('ann', ' pw'),
+      ('a:b', 'pw'),
+    ]) {
+      final p = EffectiveProxy.resolve(
+        settings: ProxySettings.defaults,
+        system: SystemProxyFixed(
+          type: ProxyType.http,
+          host: 'h',
+          port: 1,
+          username: user,
+          password: pass,
+        ),
+      );
+      expect(p.username, isNull, reason: '$user/$pass');
+      expect(p.password, isNull, reason: '$user/$pass');
+      expect(p.kind, ProxyKind.http);
+    }
+    final ok = EffectiveProxy.resolve(
+      settings: ProxySettings.defaults,
+      system: const SystemProxyFixed(
+        type: ProxyType.http,
+        host: 'h',
+        port: 1,
+        username: 'ann',
+        password: 'p@ss',
+      ),
+    );
+    expect(ok.username, 'ann');
+    expect(ok.password, 'p@ss');
+  });
+
   test('system none, unavailable and not-yet-known are direct', () {
     for (final system in <SystemProxyResult?>[
       null,

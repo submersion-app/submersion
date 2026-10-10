@@ -94,6 +94,7 @@ class ProxyConnectionTester {
     if (e is Socks5Exception) {
       return switch (e.failure) {
         Socks5Failure.proxyUnreachable => ProxyTestUnreachable(proxy.endpoint),
+        Socks5Failure.handshakeTimeout => const ProxyTestTimeout(),
         Socks5Failure.authRejected ||
         Socks5Failure.noAcceptableAuth => const ProxyTestAuthRejected(),
         _ => ProxyTestFailed(e.message),

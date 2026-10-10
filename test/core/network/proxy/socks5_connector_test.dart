@@ -169,6 +169,28 @@ void main() {
     );
   });
 
+  test('a proxy that never answers the handshake times out', () async {
+    final silent = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    final held = <Socket>[];
+    silent.listen(held.add);
+    addTearDown(() async {
+      for (final s in held) {
+        s.destroy();
+      }
+      await silent.close();
+    });
+    await expectLater(
+      connectViaSocks5(
+        proxyHost: '127.0.0.1',
+        proxyPort: silent.port,
+        targetHost: 'x.test',
+        targetPort: 1,
+        handshakeTimeout: const Duration(milliseconds: 100),
+      ),
+      failsWith(Socks5Failure.handshakeTimeout),
+    );
+  });
+
   test('a Socks5Exception is a SocketException', () {
     expect(
       const Socks5Exception(Socks5Failure.generalFailure),

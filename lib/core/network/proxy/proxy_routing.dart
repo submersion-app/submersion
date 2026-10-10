@@ -55,6 +55,12 @@ bool isAlwaysDirectHost(String host) {
 bool matchesBypass(String host, List<String> bypass) {
   final h = _normalize(host);
   final address = InternetAddress.tryParse(h);
+  // A snapshot's bypass list is checked on every request; its CIDR entries
+  // are parsed once per list rather than per request.
+  final cidrs = _cidrCache[bypass] ??= {
+    for (final raw in bypass)
+      if (raw.contains('/')) raw: _Cidr.parse(raw.trim().toLowerCase()),
+  };
   for (final raw in bypass) {
     var entry = raw.trim().toLowerCase();
     if (entry.isEmpty) continue;
@@ -64,7 +70,7 @@ bool matchesBypass(String host, List<String> bypass) {
       continue;
     }
     if (entry.contains('/')) {
-      final cidr = _Cidr.parse(entry);
+      final cidr = cidrs[raw];
       if (cidr != null && address != null && cidr.contains(address)) {
         return true;
       }
@@ -85,6 +91,8 @@ bool matchesBypass(String host, List<String> bypass) {
   }
   return false;
 }
+
+final _cidrCache = Expando<Map<String, _Cidr?>>('proxy bypass CIDRs');
 
 /// An address range in CIDR notation.
 class _Cidr {

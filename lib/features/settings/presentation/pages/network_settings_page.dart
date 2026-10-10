@@ -68,7 +68,8 @@ class _NetworkSettingsPageState extends ConsumerState<NetworkSettingsPage> {
     final mode = state.settings.mode;
 
     return PopScope(
-      canPop: draft == null,
+      // The draft only matters while its form is on screen.
+      canPop: draft == null || mode != ProxyMode.manual,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
         if (!await _confirmDiscard() || !context.mounted) return;
