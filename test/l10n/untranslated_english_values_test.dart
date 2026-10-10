@@ -15,11 +15,11 @@ import 'kept_english_values.dart';
 /// else notices either. Issue #2481 found 215 such keys after #2283's pass.
 ///
 /// A value counts when it matches English ignoring case (so "Open circuit" for
-/// "Open Circuit" is still English) and still holds at least two
-/// words once ICU placeholders are removed, which leaves out single words such
-/// as "OK" and bare unit symbols. Some values are correct as English (brand
-/// and course names, unit abbreviations, loanwords a locale already uses);
-/// each is listed with its reason in [keptEnglishValues].
+/// "Open Circuit" is still English) and still holds at least two words once ICU
+/// placeholders are removed, which leaves out single words such as "OK" and
+/// bare unit symbols. Some values are correct as English (brand and course
+/// names, unit abbreviations, loanwords a locale already uses); each is listed
+/// with its reason in [keptEnglishValues].
 void main() {
   final arbDir = p.join('lib', 'l10n', 'arb');
 
