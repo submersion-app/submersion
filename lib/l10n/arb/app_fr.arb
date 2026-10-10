@@ -4214,6 +4214,8 @@
   "equipment_edit_serialNumberLabel": "Numéro de série",
   "equipment_edit_snackbar_added": "Équipement ajouté",
   "equipment_edit_snackbar_error": "Erreur d'enregistrement de l'équipement : {error}",
+  "equipment_edit_snackbar_hiddenByView": "Enregistré, mais la vue actuelle de la liste le masque",
+  "equipment_edit_snackbar_showAction": "Afficher",
   "equipment_edit_snackbar_updated": "Équipement mis à jour",
   "equipment_edit_statusLabel": "Statut",
   "equipment_edit_tagsLabel": "Étiquettes",

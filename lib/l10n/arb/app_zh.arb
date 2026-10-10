@@ -4443,6 +4443,8 @@
   "equipment_edit_serialNumberLabel": "序列编号",
   "equipment_edit_snackbar_added": "装备已添加",
   "equipment_edit_snackbar_error": "保存装备出错：{error}",
+  "equipment_edit_snackbar_hiddenByView": "已保存，但当前列表视图将其隐藏",
+  "equipment_edit_snackbar_showAction": "显示",
   "equipment_edit_snackbar_updated": "装备已更新",
   "equipment_edit_statusLabel": "状态",
   "equipment_edit_tagsLabel": "标签",

@@ -14830,6 +14830,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Enregistré, mais la vue actuelle de la liste le masque';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Afficher';
+
+  @override
   String get equipment_edit_snackbar_updated => 'Équipement mis à jour';
 
   @override

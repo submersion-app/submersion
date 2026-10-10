@@ -4214,6 +4214,8 @@
   "equipment_edit_serialNumberLabel": "Sorozatszám",
   "equipment_edit_snackbar_added": "Felszerelés hozzáadva",
   "equipment_edit_snackbar_error": "Hiba a felszerelés mentésekor: {error}",
+  "equipment_edit_snackbar_hiddenByView": "Mentve, de a jelenlegi listanézet elrejti",
+  "equipment_edit_snackbar_showAction": "Megjelenítés",
   "equipment_edit_snackbar_updated": "Felszerelés frissítve",
   "equipment_edit_statusLabel": "Állapot",
   "equipment_edit_tagsLabel": "Címkék",

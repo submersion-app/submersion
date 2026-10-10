@@ -4214,6 +4214,8 @@
   "equipment_edit_serialNumberLabel": "מספר סידורי",
   "equipment_edit_snackbar_added": "הציוד נוסף",
   "equipment_edit_snackbar_error": "שגיאה בשמירת ציוד: {error}",
+  "equipment_edit_snackbar_hiddenByView": "נשמר, אך תצוגת הרשימה הנוכחית מסתירה אותו",
+  "equipment_edit_snackbar_showAction": "הצג",
   "equipment_edit_snackbar_updated": "הציוד עודכן",
   "equipment_edit_statusLabel": "סטטוס",
   "equipment_edit_tagsLabel": "תגיות",

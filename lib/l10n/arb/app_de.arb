@@ -4432,6 +4432,8 @@
   "equipment_edit_serialNumberLabel": "Seriennummer",
   "equipment_edit_snackbar_added": "Ausrüstung hinzugefügt",
   "equipment_edit_snackbar_error": "Fehler beim Speichern der Ausrüstung: {error}",
+  "equipment_edit_snackbar_hiddenByView": "Gespeichert, aber die aktuelle Listenansicht blendet es aus",
+  "equipment_edit_snackbar_showAction": "Anzeigen",
   "equipment_edit_snackbar_updated": "Ausrüstung aktualisiert",
   "equipment_edit_statusLabel": "Status",
   "equipment_edit_tagsLabel": "Tags",

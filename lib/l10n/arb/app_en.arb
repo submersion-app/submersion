@@ -8764,6 +8764,8 @@
   "equipment_edit_serialNumberLabel": "Serial Number",
   "equipment_edit_snackbar_added": "Equipment added",
   "equipment_edit_snackbar_error": "Error saving equipment: {error}",
+  "equipment_edit_snackbar_hiddenByView": "Saved, but the current list view hides it",
+  "equipment_edit_snackbar_showAction": "Show",
   "equipment_edit_snackbar_updated": "Equipment updated",
   "equipment_edit_statusLabel": "Status",
   "equipment_edit_tagsLabel": "Tags",
@@ -9365,6 +9367,12 @@
         "type": "Object"
       }
     }
+  },
+  "@equipment_edit_snackbar_hiddenByView": {
+    "description": "Snackbar after saving equipment that the list's current filter hides, e.g. a Wanted item under the default view"
+  },
+  "@equipment_edit_snackbar_showAction": {
+    "description": "Snackbar action that switches the equipment list to a view showing the item just saved"
   },
   "@equipment_list_emptyState_filterText_status": {
     "placeholders": {

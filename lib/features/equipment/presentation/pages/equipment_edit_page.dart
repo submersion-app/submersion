@@ -18,7 +18,10 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/data/services/initial_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/presentation/helpers/saved_equipment_visibility.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_field.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tags_field.dart';
@@ -1053,6 +1056,31 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     }
   }
 
+  /// The list view that shows [savedId], or null when the list's current
+  /// view already does. Null too when the check fails: the item is saved
+  /// either way, so the plain confirmation is the safe fallback.
+  Future<EquipmentFilterState?> _viewRevealing(
+    String savedId,
+    EquipmentStatus status,
+  ) async {
+    try {
+      return await viewRevealingSavedEquipment(
+        runner: ref.read(queryIdSetRunnerProvider),
+        filter: ref.read(effectiveEquipmentFilterProvider),
+        diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+        equipmentId: savedId,
+        status: status,
+      );
+    } catch (e, st) {
+      _log.error(
+        "Failed to check the saved item's visibility",
+        error: e,
+        stackTrace: st,
+      );
+      return null;
+    }
+  }
+
   Future<void> _saveEquipment(EquipmentItem? existingEquipment) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -1171,22 +1199,43 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         }
       }
 
+      final revealView = await _viewRevealing(savedId, equipment.status);
+
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         final locationFailed = context.l10n.equipment_edit_locationFailed;
+        final saved = widget.isEditing
+            ? context.l10n.equipment_edit_snackbar_updated
+            : context.l10n.equipment_edit_snackbar_added;
+        final hidden = context.l10n.equipment_edit_snackbar_hiddenByView;
+        final show = context.l10n.equipment_edit_snackbar_showAction;
+        // Captured now: the page is gone by the time the action runs.
+        final filterNotifier = ref.read(equipmentFilterProvider.notifier);
+        final highlightNotifier = ref.read(
+          highlightedEquipmentIdProvider.notifier,
+        );
         if (widget.embedded) {
           widget.onSaved?.call(savedId);
         } else {
           context.pop();
+        }
+        // An item the list's view hides seemed not to have saved at all
+        // (#3068), so say where it went and offer the view that shows it.
+        if (revealView != null) {
           messenger.showSnackBar(
             SnackBar(
-              content: Text(
-                widget.isEditing
-                    ? context.l10n.equipment_edit_snackbar_updated
-                    : context.l10n.equipment_edit_snackbar_added,
+              content: Text(hidden),
+              action: SnackBarAction(
+                label: show,
+                onPressed: () {
+                  filterNotifier.state = revealView;
+                  highlightNotifier.state = savedId;
+                },
               ),
             ),
           );
+        } else if (!widget.embedded) {
+          messenger.showSnackBar(SnackBar(content: Text(saved)));
         }
         // The item is saved; only its location is missing. Say so, so the
         // diver knows to set it with Move rather than retry the save.

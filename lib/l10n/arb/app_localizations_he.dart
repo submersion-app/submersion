@@ -14479,6 +14479,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'נשמר, אך תצוגת הרשימה הנוכחית מסתירה אותו';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'הצג';
+
+  @override
   String get equipment_edit_snackbar_updated => 'הציוד עודכן';
 
   @override

@@ -23939,6 +23939,18 @@ abstract class AppLocalizations {
   /// **'Error saving equipment: {error}'**
   String equipment_edit_snackbar_error(Object error);
 
+  /// Snackbar after saving equipment that the list's current filter hides, e.g. a Wanted item under the default view
+  ///
+  /// In en, this message translates to:
+  /// **'Saved, but the current list view hides it'**
+  String get equipment_edit_snackbar_hiddenByView;
+
+  /// Snackbar action that switches the equipment list to a view showing the item just saved
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get equipment_edit_snackbar_showAction;
+
   /// No description provided for @equipment_edit_snackbar_updated.
   ///
   /// In en, this message translates to:

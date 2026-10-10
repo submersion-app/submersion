@@ -14742,6 +14742,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Mentve, de a jelenlegi listanézet elrejti';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Megjelenítés';
+
+  @override
   String get equipment_edit_snackbar_updated => 'Felszerelés frissítve';
 
   @override

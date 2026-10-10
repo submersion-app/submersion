@@ -14971,6 +14971,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'تم الحفظ، لكن عرض القائمة الحالي يخفيه';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'عرض';
+
+  @override
   String get equipment_edit_snackbar_updated => 'تم تحديث المعدات';
 
   @override

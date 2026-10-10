@@ -14116,6 +14116,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get equipment_edit_snackbar_hiddenByView => '已保存，但当前列表视图将其隐藏';
+
+  @override
+  String get equipment_edit_snackbar_showAction => '显示';
+
+  @override
   String get equipment_edit_snackbar_updated => '装备已更新';
 
   @override

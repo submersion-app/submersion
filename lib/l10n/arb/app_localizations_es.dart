@@ -14783,6 +14783,13 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Guardado, pero la vista actual de la lista lo oculta';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Mostrar';
+
+  @override
   String get equipment_edit_snackbar_updated => 'Equipo actualizado';
 
   @override

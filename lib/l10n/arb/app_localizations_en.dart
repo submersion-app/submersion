@@ -14571,6 +14571,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Saved, but the current list view hides it';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Show';
+
+  @override
   String get equipment_edit_snackbar_updated => 'Equipment updated';
 
   @override

@@ -4316,6 +4316,8 @@
   "equipment_edit_serialNumberLabel": "الرقم التسلسلي",
   "equipment_edit_snackbar_added": "تمت إضافة المعدات",
   "equipment_edit_snackbar_error": "خطأ في حفظ المعدات: {error}",
+  "equipment_edit_snackbar_hiddenByView": "تم الحفظ، لكن عرض القائمة الحالي يخفيه",
+  "equipment_edit_snackbar_showAction": "عرض",
   "equipment_edit_snackbar_updated": "تم تحديث المعدات",
   "equipment_edit_statusLabel": "الحالة",
   "equipment_edit_tagsLabel": "الوسوم",

@@ -4316,6 +4316,8 @@
   "equipment_edit_serialNumberLabel": "Número de Série",
   "equipment_edit_snackbar_added": "Equipamento adicionado",
   "equipment_edit_snackbar_error": "Erro ao salvar equipamento: {error}",
+  "equipment_edit_snackbar_hiddenByView": "Salvo, mas a visualização atual da lista o oculta",
+  "equipment_edit_snackbar_showAction": "Mostrar",
   "equipment_edit_snackbar_updated": "Equipamento atualizado",
   "equipment_edit_statusLabel": "Status",
   "equipment_edit_tagsLabel": "Etiquetas",

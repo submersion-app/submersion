@@ -14690,6 +14690,13 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get equipment_edit_snackbar_hiddenByView =>
+      'Opgeslagen, maar de huidige lijstweergave verbergt het';
+
+  @override
+  String get equipment_edit_snackbar_showAction => 'Tonen';
+
+  @override
   String get equipment_edit_snackbar_updated => 'Uitrusting bijgewerkt';
 
   @override
