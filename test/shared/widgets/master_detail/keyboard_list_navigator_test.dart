@@ -16,6 +16,7 @@ class _Host extends StatefulWidget {
     this.tapSelects = true,
     this.moveLag,
     this.echoMoves = true,
+    this.rowHeight,
     super.key,
   });
 
@@ -33,6 +34,9 @@ class _Host extends StatefulWidget {
   /// False for a list whose moves never come back as the current key, like
   /// a section list at phone width.
   final bool echoMoves;
+
+  /// Each row's height by index; 40 for every row when null.
+  final double Function(int index)? rowHeight;
   final String? initial;
   final List<String>? log;
   final ValueChanged<String>? onExpand;
@@ -76,7 +80,7 @@ class _HostState extends State<_Host> {
                 onCollapse: widget.onCollapse,
                 child: ListView(
                   children: [
-                    for (final key in widget.keys)
+                    for (final (index, key) in widget.keys.indexed)
                       KeyboardListItem(
                         navigationKey: key,
                         child: InkWell(
@@ -86,7 +90,10 @@ class _HostState extends State<_Host> {
                               setState(() => current = key);
                             }
                           },
-                          child: SizedBox(height: 40, child: Text(key)),
+                          child: SizedBox(
+                            height: widget.rowHeight?.call(index) ?? 40,
+                            child: Text(key),
+                          ),
                         ),
                       ),
                   ],
@@ -222,6 +229,37 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(log, ['move:b', 'move:c', 'move:c']);
+  });
+
+  testWidgets('an unbuilt row is reached even when rows vary in height', (
+    tester,
+  ) async {
+    final keys = [for (var i = 0; i < 200; i++) 'k$i'];
+    final host = GlobalKey<_HostState>();
+    // Tall rows first, short ones after: a jump in proportion to the row's
+    // index lands far short of where the row really is.
+    await tester.pumpWidget(
+      _Host(
+        key: host,
+        keys: keys,
+        rowHeight: (index) => index < 100 ? 400 : 10,
+      ),
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pumpAndSettle();
+
+    // Settle at the bottom first, where the extent is fully known.
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('row-k199')).hitTestable(), findsOne);
+
+    host.currentState!.select('k20');
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('row-k21')).hitTestable(), findsOne);
   });
 
   testWidgets('the ends of the list hold the cursor and keep focus', (

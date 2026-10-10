@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -240,9 +242,13 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
   ///
   /// A neighbouring row is nearly always built already, inside the list's
   /// cache extent. One that is not (the cursor started from nothing and went
-  /// to the far end) has no context to scroll to, so the list jumps to where
-  /// the row's share of the keys puts it and tries once more a frame later.
-  void _reveal(String key, {required bool forward, bool estimated = false}) {
+  /// to the far end, or the selection was set from elsewhere) has no context
+  /// to scroll to. The first attempt jumps to where the row's share of the
+  /// keys puts it; rows of uneven height can make that miss, so each later
+  /// attempt steps a viewport towards the row, judged from the indices of
+  /// the rows that did get built, until it registers or [_maxRevealAttempts]
+  /// runs out.
+  void _reveal(String key, {required bool forward, int attempt = 0}) {
     if (!mounted || _cursor != key) return;
     final row = _rows[key];
     if (row != null && row.mounted) {
@@ -255,25 +261,44 @@ class _KeyboardListNavigatorState extends State<KeyboardListNavigator> {
       );
       return;
     }
-    if (estimated) return;
-    final builtRow = _rows.values.where((r) => r.mounted).firstOrNull;
-    final index = widget.keys.indexOf(key);
-    if (builtRow == null || index < 0) return;
-    final position = Scrollable.of(builtRow).position;
-    final share = widget.keys.length <= 1
-        ? 0.0
-        : index / (widget.keys.length - 1);
-    position.jumpTo(
-      (share * position.maxScrollExtent).clamp(
-        position.minScrollExtent,
-        position.maxScrollExtent,
-      ),
+    if (attempt >= _maxRevealAttempts) return;
+    final keys = widget.keys;
+    final index = keys.indexOf(key);
+    final built = [
+      for (final MapEntry(key: builtKey, value: context) in _rows.entries)
+        if (context.mounted) (index: keys.indexOf(builtKey), context: context),
+    ].where((r) => r.index >= 0).toList();
+    if (built.isEmpty || index < 0) return;
+    final position = Scrollable.of(built.first.context).position;
+
+    final double target;
+    if (attempt == 0) {
+      final share = keys.length <= 1 ? 0.0 : index / (keys.length - 1);
+      target = share * position.maxScrollExtent;
+    } else {
+      final firstBuilt = built.map((r) => r.index).reduce(math.min);
+      final step = index < firstBuilt
+          ? -position.viewportDimension
+          : position.viewportDimension;
+      target = position.pixels + step;
+    }
+    final clamped = target.clamp(
+      position.minScrollExtent,
+      position.maxScrollExtent,
     );
+    // Pinned at an end with the row still missing: there is nowhere further
+    // to look.
+    if (attempt > 0 && clamped == position.pixels) return;
+    position.jumpTo(clamped);
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _reveal(key, forward: forward, estimated: true),
+      (_) => _reveal(key, forward: forward, attempt: attempt + 1),
     );
     WidgetsBinding.instance.scheduleFrame();
   }
+
+  /// How many jumps a reveal may take to build an off-screen row. Each one is
+  /// a viewport after the first estimate, which lands close on even lists.
+  static const _maxRevealAttempts = 40;
 
   /// A pointer went down on [key]'s row: the list takes focus and the cursor
   /// moves there, so the arrows carry on from the click. The row's own tap
