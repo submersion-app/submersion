@@ -972,7 +972,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _exitMethod = dive.exitMethod;
           _exitMethodLinked =
               _exitMethod == null || _exitMethod == _entryMethod;
-          _waterType = dive.waterType;
+          // A dive with no water type of its own shows its site's, as the
+          // detail page does; saving then stores it (issue #3196).
+          _waterType = dive.effectiveWaterType;
           _swellHeightController.text = dive.swellHeight != null
               ? _seedDecimal(units.convertDepth(dive.swellHeight!), 1)
               : '';

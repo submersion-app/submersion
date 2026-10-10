@@ -12,9 +12,10 @@ import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 
 /// Assembles weight-prediction training rows from the dive log.
 ///
-/// Six batch queries (dives, dive_weights, dive_equipment, dive_tanks, and
-/// equipment + equipment_attributes for gear-carried lead) -- no per-dive
-/// N+1. Only dives that recorded any weight qualify.
+/// Seven batch queries (dives, dive_weights, dive_equipment, dive_tanks,
+/// dive_sites for water type, and equipment + equipment_attributes for
+/// gear-carried lead) -- no per-dive N+1. Only dives that recorded any
+/// weight qualify.
 class WeightHistoryRepository {
   WeightHistoryRepository([AppDatabase? db]) : _dbOverride = db;
 
@@ -52,6 +53,7 @@ class WeightHistoryRepository {
     final tankRows = await (_db.select(
       _db.diveTanks,
     )..where((t) => t.diveId.isIn(diveIds))).get();
+    final siteWaterTypes = await _siteWaterTypes(diveRows);
 
     final weightsByDive = <String, List<DiveWeight>>{};
     for (final row in weightRows) {
@@ -143,12 +145,7 @@ class WeightHistoryRepository {
         WeightObservation(
           diveId: dive.id,
           diveDateTime: wallClockUtcFromMillis(dive.diveDateTime),
-          waterType: dive.waterType != null
-              ? WaterType.values.firstWhere(
-                  (w) => w.name == dive.waterType,
-                  orElse: () => WaterType.salt,
-                )
-              : null,
+          waterType: _waterType(dive.waterType ?? siteWaterTypes[dive.siteId]),
           carriedKg: carried,
           placement: placement,
           equipmentIds: equipmentByDive[dive.id] ?? const [],
@@ -160,6 +157,28 @@ class WeightHistoryRepository {
     }
     return observations;
   }
+
+  /// The stored water type of each site of [diveRows], keyed by site id, so a
+  /// dive with none of its own is trained in its site's water, as
+  /// `Dive.effectiveWaterType` reads it (issue #3196). One batch query.
+  Future<Map<String, String>> _siteWaterTypes(List<Dive> diveRows) async {
+    final siteIds = {
+      for (final d in diveRows)
+        if (d.waterType == null && d.siteId != null) d.siteId!,
+    };
+    if (siteIds.isEmpty) return const {};
+    final rows = await (_db.select(
+      _db.diveSites,
+    )..where((s) => s.id.isIn(siteIds) & s.waterType.isNotNull())).get();
+    return {for (final s in rows) s.id: s.waterType!};
+  }
+
+  static WaterType? _waterType(String? name) => name == null
+      ? null
+      : WaterType.values.firstWhere(
+          (w) => w.name == name,
+          orElse: () => WaterType.salt,
+        );
 
   /// Ballast and placement for every [EquipmentType.weights] item among
   /// [equipmentIds], keyed by equipment id. Items that declare no usable mass

@@ -1418,7 +1418,7 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
         cnsCalculationMethod: inputs.cnsCalculationMethod,
         environment: DiveEnvironment.forConditions(
           altitudeMeters: dive.altitude,
-          waterType: dive.waterType,
+          waterType: dive.effectiveWaterType,
           surfacePressureBar: dive.surfacePressure,
         ),
         ascentMaxPpO2: ascentMaxPpO2,
@@ -1943,7 +1943,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       dive.gradientFactorHigh,
       environment: DiveEnvironment.forConditions(
         altitudeMeters: dive.altitude,
-        waterType: dive.waterType,
+        waterType: dive.effectiveWaterType,
         surfacePressureBar: dive.surfacePressure,
       ),
       recordedAlgorithm: dive.decoAlgorithm,
