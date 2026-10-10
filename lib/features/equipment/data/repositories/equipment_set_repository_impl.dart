@@ -169,6 +169,22 @@ class EquipmentSetRepository {
     return rows.map((r) => r.equipmentId).toList();
   }
 
+  /// The sets holding [equipmentId], only [diverId]'s own when given (a
+  /// clone joins the cloner's sets, never the owner's: issue #3184).
+  Future<List<String>> getSetIdsContaining(
+    String equipmentId, {
+    String? diverId,
+  }) async {
+    final items = _db.equipmentSetItems;
+    final sets = _db.equipmentSets;
+    final query = _db.select(items).join([
+      innerJoin(sets, sets.id.equalsExp(items.setId)),
+    ])..where(items.equipmentId.equals(equipmentId));
+    if (diverId != null) query.where(sets.diverId.equals(diverId));
+    final rows = await query.get();
+    return [for (final row in rows) row.readTable(items).setId];
+  }
+
   /// Create a new equipment set.
   ///
   /// The set row and its membership are one logical write, so they share a
