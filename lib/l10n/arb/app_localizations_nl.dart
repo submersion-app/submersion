@@ -36827,6 +36827,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands =>
+      'Beslaat meerdere klassen';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count geselecteerd';
   }

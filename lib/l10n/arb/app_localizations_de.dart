@@ -37012,6 +37012,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands => 'Über mehrere Stufen';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count ausgewählt';
   }

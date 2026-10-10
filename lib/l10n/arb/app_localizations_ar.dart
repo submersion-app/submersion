@@ -37572,6 +37572,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands => 'يمتد عبر عدة فئات';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count محدد';
   }

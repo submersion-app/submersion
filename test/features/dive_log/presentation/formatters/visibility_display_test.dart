@@ -197,6 +197,13 @@ void main() {
   });
 
   group('visibilityDistributionLabel', () {
+    test('the spanning key reads Spans bands (issue #3226)', () {
+      expect(
+        visibilityDistributionLabel('range_spanning', en, metric),
+        'Spans bands',
+      );
+    });
+
     test('a band key becomes its localized adjective', () {
       expect(visibilityDistributionLabel('excellent', en, metric), 'Excellent');
       expect(visibilityDistributionLabel('good', en, metric), 'Good');

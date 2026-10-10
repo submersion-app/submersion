@@ -11353,6 +11353,7 @@
   "settings_visibilityScale_customUnset": "Eigene Entfernungen festlegen",
   "settings_visibilityScale_customHelp": "Gib für jede Stufe die kürzeste Entfernung ein, die noch dazu zählt.",
   "insights_conditions_visibility_legacySuffix": "{band} (vor der Messung erfasst)",
+  "insights_conditions_visibility_spansBands": "Über mehrere Stufen",
   "common_selection_countSelected": "{count} ausgewählt",
   "common_listCount_shownOfTotal": "{shown} von {total}",
   "common_selection_enterTooltip": "Elemente auswählen",

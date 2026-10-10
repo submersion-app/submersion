@@ -37075,6 +37075,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands =>
+      'Abrange várias faixas';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count selecionados';
   }

@@ -36878,6 +36878,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands => 'Több sávot átfog';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count kijelölve';
   }

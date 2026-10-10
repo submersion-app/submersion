@@ -11220,6 +11220,7 @@
   "settings_visibilityScale_customUnset": "Définissez vos propres distances",
   "settings_visibilityScale_customHelp": "Saisissez la distance la plus courte qui compte encore pour chaque niveau.",
   "insights_conditions_visibility_legacySuffix": "{band} (enregistré avant la mesure)",
+  "insights_conditions_visibility_spansBands": "Couvre plusieurs niveaux",
   "common_selection_countSelected": "{count} sélectionnés",
   "common_listCount_shownOfTotal": "{shown} sur {total}",
   "common_selection_enterTooltip": "Sélectionner des éléments",

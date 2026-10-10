@@ -36464,6 +36464,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands => 'Spans bands';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count selected';
   }

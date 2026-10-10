@@ -11220,6 +11220,7 @@
   "settings_visibilityScale_customUnset": "Add meg a saját távolságaidat",
   "settings_visibilityScale_customHelp": "Add meg minden szinthez a legrövidebb távolságot, amely még oda számít.",
   "insights_conditions_visibility_legacySuffix": "{band} (mérés előtt rögzítve)",
+  "insights_conditions_visibility_spansBands": "Több sávot átfog",
   "common_selection_countSelected": "{count} kijelölve",
   "common_listCount_shownOfTotal": "{shown} / {total}",
   "common_selection_enterTooltip": "Elemek kijelölése",

@@ -23036,6 +23036,7 @@
       }
     }
   },
+  "insights_conditions_visibility_spansBands": "Spans bands",
   "common_selection_countSelected": "{count} selected",
   "common_listCount_shownOfTotal": "{shown} of {total}",
   "@common_listCount_shownOfTotal": {

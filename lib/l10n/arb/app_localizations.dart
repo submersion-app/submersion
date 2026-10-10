@@ -58502,6 +58502,12 @@ abstract class AppLocalizations {
   /// **'{band} (logged before measurement)'**
   String insights_conditions_visibility_legacySuffix(String band);
 
+  /// No description provided for @insights_conditions_visibility_spansBands.
+  ///
+  /// In en, this message translates to:
+  /// **'Spans bands'**
+  String get insights_conditions_visibility_spansBands;
+
   /// No description provided for @common_selection_countSelected.
   ///
   /// In en, this message translates to:

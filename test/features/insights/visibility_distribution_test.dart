@@ -20,16 +20,24 @@ void main() {
   });
 
   var seq = 0;
-  Future<void> seedDive({double? meters, String? bucket}) async {
+  Future<void> seedDive({
+    double? meters,
+    String? bucket,
+    double? min,
+    double? max,
+  }) async {
     seq++;
     await db.customStatement(
       'INSERT INTO dives (id, dive_date_time, visibility, visibility_meters, '
-      'created_at, updated_at) VALUES (?, ?, ?, ?, 0, 0)',
+      'visibility_min_meters, visibility_max_meters, created_at, updated_at) '
+      'VALUES (?, ?, ?, ?, ?, ?, 0, 0)',
       [
         'dive-$seq',
         DateTime.utc(2026, 1, seq.clamp(1, 28)).millisecondsSinceEpoch,
         bucket,
         meters,
+        min,
+        max,
       ],
     );
   }
@@ -127,4 +135,41 @@ void main() {
     );
     expect(segments, isEmpty);
   });
+
+  test('a range inside one band counts in that band (issue #3226)', () async {
+    await seedDive(min: 6, max: 12);
+    await seedDive(meters: 7);
+
+    final segments = await repository.getVisibilityDistribution(
+      scale: VisibilityScale.coldWater,
+    );
+
+    expect(countsByLabel(segments), {'good': 2});
+  });
+
+  test('a range crossing a band edge gets its own segment', () async {
+    await seedDive(min: 6, max: 20);
+    await seedDive(max: 2);
+
+    final segments = await repository.getVisibilityDistribution(
+      scale: VisibilityScale.tropical,
+    );
+
+    expect(countsByLabel(segments), {'poor': 1, 'range_spanning': 1});
+    // Bands first, then the spanning segment.
+    expect(segments.map((s) => s.label), ['poor', 'range_spanning']);
+  });
+
+  test(
+    'a dive carrying a measurement and a range counts once, as measured',
+    () async {
+      await seedDive(meters: 31, min: 2, max: 6);
+
+      final segments = await repository.getVisibilityDistribution(
+        scale: VisibilityScale.tropical,
+      );
+
+      expect(countsByLabel(segments), {'excellent': 1});
+    },
+  );
 }

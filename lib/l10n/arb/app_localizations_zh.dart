@@ -34983,6 +34983,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands => '跨多个等级';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '已选择 $count 项';
   }

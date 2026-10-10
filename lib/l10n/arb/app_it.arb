@@ -11220,6 +11220,7 @@
   "settings_visibilityScale_customUnset": "Imposta le tue distanze",
   "settings_visibilityScale_customHelp": "Inserisci la distanza più breve che conta ancora per ogni livello.",
   "insights_conditions_visibility_legacySuffix": "{band} (registrato prima della misurazione)",
+  "insights_conditions_visibility_spansBands": "Copre più fasce",
   "common_selection_countSelected": "{count} selezionati",
   "common_listCount_shownOfTotal": "{shown} di {total}",
   "common_selection_enterTooltip": "Seleziona elementi",

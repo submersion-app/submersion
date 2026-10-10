@@ -37086,6 +37086,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands => 'Copre più fasce';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count selezionati';
   }

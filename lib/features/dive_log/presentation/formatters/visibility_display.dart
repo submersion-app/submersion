@@ -152,7 +152,8 @@ String? formatDiveVisibilityPlain({
 /// Turns a statistics distribution key into display text.
 ///
 /// The repository emits stable keys rather than display text: a calibrated
-/// band yields its [VisibilityBand] name, and a pre-v144 dive yields
+/// band yields its [VisibilityBand] name, a range crossing a band edge yields
+/// [visibilityRangeSpanningKey] (issue #3226), and a pre-v144 dive yields
 /// `legacy_<bucket>`. A legacy key renders as the range that bucket covers,
 /// marked as pre-measurement, so it is never mistaken for a calibrated
 /// reading.
@@ -173,6 +174,9 @@ String visibilityDistributionLabel(
         ? null
         : formatLegacyVisibilityBand(bucket, l10n, units);
     return l10n.insights_conditions_visibility_legacySuffix(band ?? name);
+  }
+  if (key == visibilityRangeSpanningKey) {
+    return l10n.insights_conditions_visibility_spansBands;
   }
   final band = VisibilityBand.values.where((b) => b.name == key).firstOrNull;
   return band == null ? key : visibilityBandName(band, l10n);
