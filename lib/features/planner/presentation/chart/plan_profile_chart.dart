@@ -82,7 +82,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     for (final (id, segment) in result.updates) {
       // Most pointer moves snap to the waypoint it already has; publishing
       // it anyway would re-run the whole deco schedule for nothing.
-      if (ordered.any((s) => s.id == id && s == segment)) continue;
+      if (segment == ordered[vertexIndex]) continue;
       notifier.updateSegment(id, segment);
     }
     ref.read(selectedSegmentIdProvider.notifier).state =
@@ -235,7 +235,13 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     final units = UnitFormatter(settings);
     final palette = PlanChartPalette.of(theme);
 
-    if (series.isEmpty) return _EmptyState(theme: theme);
+    if (series.isEmpty) {
+      // The Listener goes with the chart, so a drag in progress never sees
+      // its pointer-up; drop it rather than freeze the next plan's axes.
+      _dragVertex = null;
+      _frozenAxes = null;
+      return _EmptyState(theme: theme);
+    }
 
     // Axes stretch to cover every drawn series: plan, ghost and the source
     // dive's actual profile.
@@ -474,19 +480,26 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                           return Stack(
                             children: [
                               Positioned.fill(
-                                child: CustomPaint(
-                                  key: const Key('planChartOverlay'),
-                                  painter: PlanChartOverlayPainter(
-                                    geometry: geometry,
-                                    palette: palette,
-                                    scrubX: scrubTime == null
-                                        ? null
-                                        : geometry.xFor(scrubTime),
-                                    handles: handleOffsets,
-                                    activeHandle: draggableHandleFor(
-                                      _dragVertex ?? _hoverVertex,
+                                // A handle dragged past the frozen axes
+                                // must not paint over neighbouring panels.
+                                child: ClipRect(
+                                  clipBehavior: frozen == null
+                                      ? Clip.none
+                                      : Clip.hardEdge,
+                                  child: CustomPaint(
+                                    key: const Key('planChartOverlay'),
+                                    painter: PlanChartOverlayPainter(
+                                      geometry: geometry,
+                                      palette: palette,
+                                      scrubX: scrubTime == null
+                                          ? null
+                                          : geometry.xFor(scrubTime),
+                                      handles: handleOffsets,
+                                      activeHandle: draggableHandleFor(
+                                        _dragVertex ?? _hoverVertex,
+                                      ),
+                                      selectedHandle: selectedHandleIndex,
                                     ),
-                                    selectedHandle: selectedHandleIndex,
                                   ),
                                 ),
                               ),
