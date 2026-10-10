@@ -10000,18 +10000,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_field_bailoutGas => 'Bailout gáz';
-
-  @override
-  String get divePlanner_field_bailoutGasHint =>
-      'Nyitott rendszerű gáz a kör meghibásodása esetére';
-
-  @override
   String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
   String get divePlanner_field_diluentGasHint =>
-      'Unticked cylinders default to bailout';
+      'Unticked cylinders are bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10128,6 +10121,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => 'Palackok';
+
+  @override
+  String get divePlanner_label_loopGases => 'Loop';
+
+  @override
+  String get divePlanner_label_bailoutGases => 'Bailout';
+
+  @override
+  String get divePlanner_label_noBailout => 'No bailout cylinder yet';
 
   @override
   String get divePlanner_savedTanks_title => 'Mentett palackok';

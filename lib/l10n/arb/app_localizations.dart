@@ -16069,18 +16069,6 @@ abstract class AppLocalizations {
   /// **'Not entered — assuming {value} {unit}'**
   String divePlanner_info_reserveDefault(Object unit, Object value);
 
-  /// No description provided for @divePlanner_field_bailoutGas.
-  ///
-  /// In en, this message translates to:
-  /// **'Bailout gas'**
-  String get divePlanner_field_bailoutGas;
-
-  /// No description provided for @divePlanner_field_bailoutGasHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Open-circuit gas carried in case the loop fails'**
-  String get divePlanner_field_bailoutGasHint;
-
   /// No description provided for @divePlanner_field_diluentGas.
   ///
   /// In en, this message translates to:
@@ -16090,7 +16078,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_field_diluentGasHint.
   ///
   /// In en, this message translates to:
-  /// **'Unticked cylinders default to bailout'**
+  /// **'Unticked cylinders are bailout'**
   String get divePlanner_field_diluentGasHint;
 
   /// No description provided for @divePlanner_field_hePercent.
@@ -16308,6 +16296,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tanks'**
   String get divePlanner_label_tanks;
+
+  /// Heading over a CCR plan's diluent and oxygen cylinders in the planner's tank list
+  ///
+  /// In en, this message translates to:
+  /// **'Loop'**
+  String get divePlanner_label_loopGases;
+
+  /// Heading over a CCR plan's open-circuit bailout cylinders in the planner's tank list
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout'**
+  String get divePlanner_label_bailoutGases;
+
+  /// Shown under the Bailout heading of a CCR plan's tank list while no bailout cylinder has been added
+  ///
+  /// In en, this message translates to:
+  /// **'No bailout cylinder yet'**
+  String get divePlanner_label_noBailout;
 
   /// No description provided for @divePlanner_savedTanks_title.
   ///

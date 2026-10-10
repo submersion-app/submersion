@@ -2976,8 +2976,6 @@
   "divePlanner_error_reserveExceedsTank": "Meghaladja a palack nyomását",
   "divePlanner_error_reserveMustBePositive": "Nullánál nagyobbnak kell lennie",
   "divePlanner_info_reserveDefault": "Nincs megadva — alapértelmezett {value} {unit}",
-  "divePlanner_field_bailoutGas": "Bailout gáz",
-  "divePlanner_field_bailoutGasHint": "Nyitott rendszerű gáz a kör meghibásodása esetére",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Név",
   "divePlanner_field_o2Percent": "O₂ %",

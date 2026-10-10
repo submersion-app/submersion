@@ -10014,18 +10014,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_field_bailoutGas => 'Gás de emergência';
-
-  @override
-  String get divePlanner_field_bailoutGasHint =>
-      'Gás de circuito aberto levado em caso de falha do circuito';
-
-  @override
   String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
   String get divePlanner_field_diluentGasHint =>
-      'Unticked cylinders default to bailout';
+      'Unticked cylinders are bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10142,6 +10135,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => 'Cilindros';
+
+  @override
+  String get divePlanner_label_loopGases => 'Loop';
+
+  @override
+  String get divePlanner_label_bailoutGases => 'Bailout';
+
+  @override
+  String get divePlanner_label_noBailout => 'No bailout cylinder yet';
 
   @override
   String get divePlanner_savedTanks_title => 'Cilindros guardados';

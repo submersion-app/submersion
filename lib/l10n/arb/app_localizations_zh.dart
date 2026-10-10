@@ -9531,17 +9531,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_field_bailoutGas => '备用气体';
-
-  @override
-  String get divePlanner_field_bailoutGasHint => '开放式循环气体，用于循环系统故障时';
-
-  @override
   String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
   String get divePlanner_field_diluentGasHint =>
-      'Unticked cylinders default to bailout';
+      'Unticked cylinders are bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -9658,6 +9652,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => '气瓶';
+
+  @override
+  String get divePlanner_label_loopGases => 'Loop';
+
+  @override
+  String get divePlanner_label_bailoutGases => 'Bailout';
+
+  @override
+  String get divePlanner_label_noBailout => 'No bailout cylinder yet';
 
   @override
   String get divePlanner_savedTanks_title => '已保存气瓶';

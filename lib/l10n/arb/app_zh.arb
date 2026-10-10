@@ -3192,8 +3192,6 @@
   "divePlanner_error_cannotConvert": "无法转换：计划存在严重警告",
   "divePlanner_error_reserveExceedsTank": "超过气瓶压力",
   "divePlanner_error_reserveMustBePositive": "必须大于 0",
-  "divePlanner_field_bailoutGas": "备用气体",
-  "divePlanner_field_bailoutGasHint": "开放式循环气体，用于循环系统故障时",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "名称",
   "divePlanner_field_o2Percent": "O₂ %",

@@ -6145,10 +6145,8 @@
   "divePlanner_error_reserveExceedsTank": "Exceeds tank pressure",
   "divePlanner_error_reserveMustBePositive": "Must be greater than 0",
   "divePlanner_info_reserveDefault": "Not entered — assuming {value} {unit}",
-  "divePlanner_field_bailoutGas": "Bailout gas",
-  "divePlanner_field_bailoutGasHint": "Open-circuit gas carried in case the loop fails",
   "divePlanner_field_diluentGas": "Diluent",
-  "divePlanner_field_diluentGasHint": "Unticked cylinders default to bailout",
+  "divePlanner_field_diluentGasHint": "Unticked cylinders are bailout",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Name",
   "divePlanner_field_o2Percent": "O₂ %",
@@ -6199,6 +6197,18 @@
   "divePlanner_gasOptions_bestMixEnd": "Best mix END",
   "divePlanner_gasOptions_o2Narcotic": "Treat O₂ as narcotic for this plan",
   "divePlanner_label_tanks": "Tanks",
+  "divePlanner_label_loopGases": "Loop",
+  "@divePlanner_label_loopGases": {
+    "description": "Heading over a CCR plan's diluent and oxygen cylinders in the planner's tank list"
+  },
+  "divePlanner_label_bailoutGases": "Bailout",
+  "@divePlanner_label_bailoutGases": {
+    "description": "Heading over a CCR plan's open-circuit bailout cylinders in the planner's tank list"
+  },
+  "divePlanner_label_noBailout": "No bailout cylinder yet",
+  "@divePlanner_label_noBailout": {
+    "description": "Shown under the Bailout heading of a CCR plan's tank list while no bailout cylinder has been added"
+  },
   "divePlanner_savedTanks_title": "Saved tanks",
   "divePlanner_savedTanks_save": "Save a tank",
   "divePlanner_savedTanks_saveTitle": "Save tank as",
