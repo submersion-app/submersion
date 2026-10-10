@@ -178,6 +178,76 @@ void main() {
     final role = refFor(refs, 'role');
     expect(role.targetType, 'diveRoles');
     expect(role.name, 'Instructor');
+    expect(
+      role.builtInSource,
+      isNull,
+      reason: "a diver's own role keeps the name they typed",
+    );
+  });
+
+  // Built-in rows store English names; the dialog translates them from the
+  // row's id, so the resolver has to say which built-in row named it (#3026).
+  test('records the built-in row behind a dive type and role name', () async {
+    await serializer.upsertRecord('diveTypes', {
+      'id': 'wreck',
+      'name': 'Wreck',
+      'isBuiltIn': true,
+      'sortOrder': 0,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+    await serializer.upsertRecord('diveRoles', {
+      'id': 'instructor',
+      'name': 'Instructor',
+      'isBuiltIn': true,
+      'sortOrder': 0,
+      'createdAt': 1000,
+      'updatedAt': 1000,
+    });
+
+    final refs = await resolver.resolve('dives', {
+      'id': 'dive-1',
+      'diveType': 'wreck',
+      'diverRole': 'instructor',
+    });
+
+    final type = refFor(refs, 'diveType');
+    expect(type.name, 'Wreck');
+    expect(type.builtInSource, (targetType: 'diveTypes', id: 'wreck'));
+    expect(refFor(refs, 'diverRole').builtInSource, (
+      targetType: 'diveRoles',
+      id: 'instructor',
+    ));
+  });
+
+  test('records a built-in species a sighting borrows its name from', () async {
+    await serializer.upsertRecord('species', {
+      'id': 'sp_whale_shark',
+      'commonName': 'Whale Shark',
+      'scientificName': 'Rhincodon typus',
+      'category': 'shark',
+      'isBuiltIn': true,
+    });
+    await seedDive('dive-1');
+    await serializer.upsertRecord('sightings', {
+      'id': 'sighting-1',
+      'diveId': 'dive-1',
+      'speciesId': 'sp_whale_shark',
+      'count': 1,
+      'notes': '',
+    });
+
+    final refs = await resolver.resolve('mediaSpecies', {
+      'id': 'media-species-1',
+      'sightingId': 'sighting-1',
+    });
+
+    final sighting = refFor(refs, 'sightingId');
+    expect(sighting.name, 'Whale Shark');
+    expect(sighting.builtInSource, (
+      targetType: 'species',
+      id: 'sp_whale_shark',
+    ));
   });
 
   test('marks a reference whose row is absent locally as missing', () async {
