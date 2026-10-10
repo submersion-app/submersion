@@ -166,19 +166,24 @@ No schema rung, no new table.
   every type holds it and the edit form never renders it.
 - Minting is unchanged: a UUID v5 of the equipment id under
   `kCylinderPassportNamespace`, on the first passport open, label print or
-  NFC write. A tank keeps exactly its current id. The namespace constant is
-  renamed `kPassportNamespace`; its value never changes.
-- The repository generalises from `CylinderPassportRepository` to
-  `EquipmentPassportRepository` (cylinder fills relinking stays where it is,
-  called only for tanks). `findEquipmentIdByPassportId` drops the
-  `type == tank` filter and searches every item the diver can see. The
-  holder ordering (in service first, then oldest, then id) is unchanged.
+  NFC write. A tank keeps exactly its current id.
+- `CylinderPassportRepository` keeps its name (decided at plan time:
+  renaming it, the namespace constant and the label printer churns about
+  twenty files for no behaviour). `findEquipmentIdByPassportId` drops the
+  `type == tank` filter and searches every item the diver can see, with an
+  optional `type` that narrows it; `findHolderByPassportId` also returns the
+  holder's type. The holder ordering (in service first, then oldest, then
+  id) is unchanged. The cylinder-only scan points and the fills CSV import
+  pass `type: tank`.
 - `assignPassportId` treats a holder of any type alike: one still in service
   refuses the link with its name (`PassportIdInUse`); one that is not gives
   the id up. `_nonTankCarriers` and its release step are removed, since a
   retyped item is now an ordinary holder. Fills are relinked only when the
   item being linked is a tank.
 - The attribute already syncs with the row and follows `VisibilityFilter`.
+- The clone form seed (#3184) leaves system attributes out, so a clone
+  starts untagged. Before this change it copied a tank's passport id, giving
+  two cylinders one tag (follow-up found at plan time).
 
 ## 8. Reading a tag
 
@@ -221,7 +226,8 @@ it.
 | Trip Gear tab, Add chooser, new "Scan a tag" | the item goes through `_apply`: a tank becomes a slot on the cylinder board, anything else is packed | snack bar "Not in your gear" with View |
 | Dive tank editor, blender cylinder picker | unchanged (cylinders only) | unchanged; a gear tag says the tag is not a cylinder |
 
-Each scan point uses `PassportScanSheet`, so phones get camera and NFC,
+Each scan point uses `PassportScanSheet`, whose title becomes the generic
+"Scan a tag" everywhere. Phones get camera and NFC,
 macOS the camera, and Windows and Linux Paste link. A wishlist item scanned
 in the dive or trip flow is refused with "On your wishlist", as the pickers
 hide wishlist items.
@@ -252,7 +258,8 @@ the id exists, the last service date, and Open passport.
 
 ## 10. The foreign gear page
 
-`ForeignGearPage` at `/gear-tag?t=<payload>`, opened on a `ForeignGear`
+`ForeignGearPage` at `/equipment/gear-tag?t=<payload>`, beside the
+foreign cylinder route `/equipment/tag`, opened on a `ForeignGear`
 result. It shows the type, name, brand, model and serial, and the last
 service date with "as written on the tag on <w>".
 
@@ -272,7 +279,8 @@ The new item opens on its gear passport.
 
 ## 11. Labels
 
-`printPassportLabels` becomes `printEquipmentLabels` and takes any selection.
+`printPassportLabels` keeps its name and takes any selection.
+Wishlist items are skipped.
 Cylinders keep their label; other gear gets a gear label with the QR, name,
 type, brand and model, and serial. Both kinds go in one PDF, in selection
 order. Multi-select Print labels on the equipment list enables for any
