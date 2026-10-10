@@ -17,7 +17,9 @@ import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 /// preview card paints it with the default camera, the interactive
 /// viewport drives the camera parameters from gestures. Layers whose
 /// overlay is toggled off (and markers when the markers overlay is off)
-/// are skipped.
+/// are skipped. Meshes that declare [MeshData.strokeHalfWidthPx] are
+/// widened on the canvas after projection and drawn unshaded, so a line
+/// stays a line at every zoom.
 class Dive3dScenePainter extends CustomPainter {
   final Scene3d scene;
   final double yawDegrees;
@@ -222,11 +224,15 @@ class Dive3dScenePainter extends CustomPainter {
     final vColors = Float32List(vn * 3);
     final triIndices = Uint32List(triCount * 3);
     final triAlpha = Int32List(triCount);
+    // 1 for triangles of a stroke mesh: drawn in their vertex colors as
+    // given, since a line has no face to light.
+    final triUnshaded = Uint8List(triCount);
     var vOff = 0;
     var tOff = 0;
     for (final mesh in meshes) {
       final alpha = (mesh.opacity * 255).round() << 24;
       final sortHeights = mesh.sortHeights;
+      final strokeHalfWidthPx = mesh.strokeHalfWidthPx;
       for (var i = 0; i < mesh.vertexCount; i++) {
         final gi = vOff + i;
         final v = projector.viewOf(
@@ -249,12 +255,22 @@ class Dive3dScenePainter extends CustomPainter {
         vColors[gi * 3 + 1] = mesh.colors[i * 3 + 1];
         vColors[gi * 3 + 2] = mesh.colors[i * 3 + 2];
       }
+      if (strokeHalfWidthPx != null) {
+        strokeScreenEdges(
+          sx,
+          sy,
+          start: vOff,
+          pairCount: mesh.vertexCount ~/ 2,
+          halfWidthPx: strokeHalfWidthPx,
+        );
+      }
       for (var t = 0; t < mesh.triangleCount; t++) {
         final gt = tOff + t;
         triIndices[gt * 3] = mesh.indices[t * 3] + vOff;
         triIndices[gt * 3 + 1] = mesh.indices[t * 3 + 1] + vOff;
         triIndices[gt * 3 + 2] = mesh.indices[t * 3 + 2] + vOff;
         triAlpha[gt] = alpha;
+        triUnshaded[gt] = strokeHalfWidthPx == null ? 0 : 1;
       }
       vOff += mesh.vertexCount;
       tOff += mesh.triangleCount;
@@ -305,9 +321,9 @@ class Dive3dScenePainter extends CustomPainter {
       var nx = ay * bz - az * by;
       var ny = az * bx - ax * bz;
       var nz = ax * by - ay * bx;
-      var shade = _ambient;
+      var shade = triUnshaded[tri] != 0 ? 1.0 : _ambient;
       final len = math.sqrt(nx * nx + ny * ny + nz * nz);
-      if (len > 1e-9) {
+      if (triUnshaded[tri] == 0 && len > 1e-9) {
         nx /= len;
         ny /= len;
         nz /= len;
@@ -351,6 +367,54 @@ class Dive3dScenePainter extends CustomPainter {
         BlendMode.dst,
         Paint(),
       );
+    }
+  }
+
+  /// Widens a stroke mesh on the canvas: each vertex pair collapses to its
+  /// midpoint, then moves [halfWidthPx] to either side of the on-screen run
+  /// toward the next pair (the last pair reuses the run before it). A
+  /// zero-length run has no direction, so it keeps the previous side and a
+  /// stationary stretch never pinches to a point; before the first real run
+  /// the side faces that run. [sx]/[sy] are the projected canvas positions
+  /// of every vertex in the soup; [start] is this mesh's first vertex.
+  @visibleForTesting
+  static void strokeScreenEdges(
+    Float32List sx,
+    Float32List sy, {
+    required int start,
+    required int pairCount,
+    required double halfWidthPx,
+  }) {
+    if (pairCount == 0) return;
+    final mx = Float32List(pairCount);
+    final my = Float32List(pairCount);
+    for (var k = 0; k < pairCount; k++) {
+      final a = start + k * 2;
+      mx[k] = (sx[a] + sx[a + 1]) / 2;
+      my[k] = (sy[a] + sy[a + 1]) / 2;
+    }
+    var nx = 0.0, ny = 1.0;
+    bool sideOfRun(int j) {
+      final dx = mx[j + 1] - mx[j];
+      final dy = my[j + 1] - my[j];
+      final len = math.sqrt(dx * dx + dy * dy);
+      if (len <= 1e-6) return false;
+      nx = -dy / len;
+      ny = dx / len;
+      return true;
+    }
+
+    for (var j = 0; j < pairCount - 1; j++) {
+      if (sideOfRun(j)) break;
+    }
+    for (var k = 0; k < pairCount; k++) {
+      final j = k < pairCount - 1 ? k : k - 1;
+      if (j >= 0) sideOfRun(j);
+      final a = start + k * 2;
+      sx[a] = mx[k] - nx * halfWidthPx;
+      sy[a] = my[k] - ny * halfWidthPx;
+      sx[a + 1] = mx[k] + nx * halfWidthPx;
+      sy[a + 1] = my[k] + ny * halfWidthPx;
     }
   }
 

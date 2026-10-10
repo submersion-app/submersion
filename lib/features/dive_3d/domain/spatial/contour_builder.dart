@@ -186,11 +186,13 @@ List<ContourPolyline> marchGrid({
 /// 2).
 const double contourLiftMeters = 0.15;
 const double _labelExtraLiftMeters = 0.25;
-const double _minorHalfWidth = 0.016;
 
-/// Half-width of a major isobath ribbon in scene units. Public because the
-/// swim-path ribbon (SpatialPathBuilder) is sized to match it (issue #3215).
-const double majorContourHalfWidth = 0.030;
+/// Stroke half-widths on the canvas, in logical pixels (see
+/// [MeshData.strokeHalfWidthPx]). A width in scene units was a real-world
+/// distance: it grew with the terrain when zooming in and, on a hillside,
+/// put one edge of the ribbon under the surface (issue #3215).
+const double _minorStrokeHalfWidthPx = 0.6;
+const double _majorStrokeHalfWidthPx = 1.0;
 const Color _contourInk = Color(0xFFF8FAFC);
 const double _minorOpacity = 0.5;
 const double _majorOpacity = 0.85;
@@ -319,10 +321,11 @@ ContourBuildResult buildContourLayers({
   return ContourBuildResult(layers: layers, labels: labels);
 }
 
-/// A thin horizontal ribbon along a scene-space polyline (constant y), the
-/// same perpendicular-extrusion pattern as SpatialPathBuilder.buildRibbon.
+/// A stroke along a scene-space polyline (constant y): vertex pairs on the
+/// isobath that the renderer widens on the canvas, the same pattern as
+/// SpatialPathBuilder.buildRibbon (see [MeshData.strokeHalfWidthPx]).
 ///
-/// Every vertex also carries a sort height: the ribbon is DRAWN on the
+/// Every vertex also carries a sort height: the stroke is DRAWN on the
 /// isobath but SORTED at the ceiling of the terrain cell it crosses, so the
 /// rough cells that used to paint over it now lose the comparison. See
 /// [TerrainCeiling].
@@ -341,7 +344,9 @@ MeshData _ribbonMesh(
       colors: Float32List(0),
     );
   }
-  final halfWidth = isMajor ? majorContourHalfWidth : _minorHalfWidth;
+  final strokeHalfWidthPx = isMajor
+      ? _majorStrokeHalfWidthPx
+      : _minorStrokeHalfWidthPx;
   final color = colorArgb != null ? Color(colorArgb) : _contourInk;
   final opacity = colorArgb != null
       ? _majorOpacity
@@ -351,39 +356,19 @@ MeshData _ribbonMesh(
   final colors = Float32List(n * 6);
   final sortHeights = Float32List(n * 2);
   for (var i = 0; i < n; i++) {
-    final j = i < n - 1 ? i : i - 1;
-    var tx = xyz[(j + 1) * 3] - xyz[j * 3];
-    var tz = xyz[(j + 1) * 3 + 2] - xyz[j * 3 + 2];
-    final len = math.sqrt(tx * tx + tz * tz);
-    if (len > 1e-9) {
-      tx /= len;
-      tz /= len;
-    }
-    // Perpendicular in xz, rotated the way the map frame turns: scene Z
-    // runs SOUTH (see SpatialProjection), so the sense is (tz, -tx). Get
-    // it backwards and the ribbon's two edges swap array slots while the
-    // strip indices below stay put, which splits every quad along the
-    // other diagonal and shifts the triangle sort keys for free.
-    final px = tz, pz = -tx;
-    final vi = i * 6;
-    positions[vi] = xyz[i * 3] - px * halfWidth;
-    positions[vi + 1] = xyz[i * 3 + 1];
-    positions[vi + 2] = xyz[i * 3 + 2] - pz * halfWidth;
-    positions[vi + 3] = xyz[i * 3] + px * halfWidth;
-    positions[vi + 4] = xyz[i * 3 + 1];
-    positions[vi + 5] = xyz[i * 3 + 2] + pz * halfWidth;
+    final x = xyz[i * 3], y = xyz[i * 3 + 1], z = xyz[i * 3 + 2];
+    // The same lift that keeps the stroke off the mesh keeps its sort
+    // height off the ceiling.
+    final sortHeight = math.max(y, ceiling.atScene(x, z) + liftSceneUnits);
     for (var s = 0; s < 2; s++) {
-      colors[vi + s * 3] = color.r;
-      colors[vi + s * 3 + 1] = color.g;
-      colors[vi + s * 3 + 2] = color.b;
-      // Each edge of the ribbon can straddle a different cell on rough
-      // ground, so each asks for its own ceiling. The same lift that keeps
-      // the ribbon off the mesh keeps its sort height off the ceiling.
-      final si = vi + s * 3;
-      sortHeights[i * 2 + s] = math.max(
-        positions[si + 1],
-        ceiling.atScene(positions[si], positions[si + 2]) + liftSceneUnits,
-      );
+      final vi = i * 6 + s * 3;
+      positions[vi] = x;
+      positions[vi + 1] = y;
+      positions[vi + 2] = z;
+      colors[vi] = color.r;
+      colors[vi + 1] = color.g;
+      colors[vi + 2] = color.b;
+      sortHeights[i * 2 + s] = sortHeight;
     }
   }
   final indices = Uint32List((n - 1) * 6);
@@ -403,6 +388,7 @@ MeshData _ribbonMesh(
     colors: colors,
     opacity: opacity,
     sortHeights: sortHeights,
+    strokeHalfWidthPx: strokeHalfWidthPx,
   );
 }
 

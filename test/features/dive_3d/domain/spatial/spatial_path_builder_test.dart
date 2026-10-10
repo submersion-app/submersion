@@ -1,7 +1,7 @@
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_path_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
@@ -36,98 +36,52 @@ void main() {
   );
 
   group('SpatialPathBuilder.buildRibbon', () {
-    test('no wider than a major contour ribbon (issue #3215)', () {
-      // The track used to be 0.08, 2.7x the major isobath width, and read
-      // as a band rather than a line next to the contours.
-      expect(
-        SpatialPathBuilder.ribbonHalfWidth,
-        lessThanOrEqualTo(majorContourHalfWidth),
-      );
-    });
-
-    test('keeps its width across zero-length segments (a stationary stop)', () {
-      // Three samples at the same east/north, then a move east. The stop
-      // has no tangent of its own and must borrow the side vector instead
-      // of collapsing both edges onto the centre line.
-      final mesh = SpatialPathBuilder.buildRibbon(
-        _path([(10, 10, 5), (10, 10, 5.5), (10, 10, 6), (20, 10, 6)]),
-        proj,
-      );
-      const hw = SpatialPathBuilder.ribbonHalfWidth;
-      for (var i = 0; i < 4; i++) {
-        final vi = i * 6;
-        final dx = mesh.positions[vi + 3] - mesh.positions[vi];
-        final dz = mesh.positions[vi + 5] - mesh.positions[vi + 2];
-        expect(dx, closeTo(0, 1e-6), reason: 'point $i');
-        expect(dz.abs(), closeTo(2 * hw, 1e-6), reason: 'point $i');
-      }
-    });
-
-    test('a path that never moves still has a ribbon of full width', () {
-      final mesh = SpatialPathBuilder.buildRibbon(
-        _path([(0, 0, 5), (0, 0, 6)]),
-        proj,
-      );
-      const hw = SpatialPathBuilder.ribbonHalfWidth;
-      final dx = mesh.positions[3] - mesh.positions[0];
-      final dz = mesh.positions[5] - mesh.positions[2];
-      expect(math.sqrt(dx * dx + dz * dz), closeTo(2 * hw, 1e-6));
-    });
-
-    test('extrudes each point by ribbonHalfWidth to either side, '
-        'perpendicular to the horizontal direction of travel', () {
+    test('is a canvas stroke, not a scene-unit ribbon (issue #3215)', () {
+      // A width in scene units grew with the terrain when zooming in and
+      // read as a band; the renderer now widens the pairs in pixels.
       final mesh = SpatialPathBuilder.buildRibbon(
         _path([(0, 0, 5), (10, 10, 5), (20, 10, 8)]),
         proj,
       );
-      const hw = SpatialPathBuilder.ribbonHalfWidth;
-      final xs = [proj.xOf(0), proj.xOf(10), proj.xOf(20)];
-      final zs = [proj.zOf(0), proj.zOf(10), proj.zOf(10)];
-
+      expect(mesh.strokeHalfWidthPx, SpatialPathBuilder.strokeHalfWidthPx);
       expect(mesh.positions, hasLength(3 * 6));
       expect(mesh.indices, hasLength(2 * 6));
-      for (var i = 0; i < 3; i++) {
-        final vi = i * 6;
-        final dx = mesh.positions[vi + 3] - mesh.positions[vi];
-        final dz = mesh.positions[vi + 5] - mesh.positions[vi + 2];
-        expect(math.sqrt(dx * dx + dz * dz), closeTo(2 * hw, 1e-6));
-        // Centered on the projected point.
-        expect(
-          (mesh.positions[vi] + mesh.positions[vi + 3]) / 2,
-          closeTo(xs[i], 1e-6),
-        );
-        expect(
-          (mesh.positions[vi + 2] + mesh.positions[vi + 5]) / 2,
-          closeTo(zs[i], 1e-6),
-        );
-        // Perpendicular to the forward difference (last point reuses the
-        // previous segment).
-        final j = i < 2 ? i : i - 1;
-        final tx = xs[j + 1] - xs[j];
-        final tz = zs[j + 1] - zs[j];
-        expect(dx * tx + dz * tz, closeTo(0, 1e-6));
+    });
+
+    test('puts both members of every pair on the projected route point', () {
+      final pts = [(0.0, 0.0, 5.0), (10.0, 10.0, 5.0), (20.0, 10.0, 8.0)];
+      final mesh = SpatialPathBuilder.buildRibbon(_path(pts), proj);
+      for (final (i, p) in pts.indexed) {
+        for (var s = 0; s < 2; s++) {
+          final vi = i * 6 + s * 3;
+          expect(mesh.positions[vi], closeTo(proj.xOf(p.$1), 1e-6));
+          expect(mesh.positions[vi + 1], closeTo(proj.yOf(p.$3), 1e-6));
+          expect(mesh.positions[vi + 2], closeTo(proj.zOf(p.$2), 1e-6));
+        }
       }
     });
 
-    test(
-      'keeps both edges at the projected depth: width is horizontal only',
-      () {
-        final mesh = SpatialPathBuilder.buildRibbon(
-          _path([(0, 0, 5), (10, 0, 12)]),
-          proj,
-        );
-        expect(mesh.positions[1], closeTo(proj.yOf(5), 1e-9));
-        expect(mesh.positions[4], closeTo(proj.yOf(5), 1e-9));
-        expect(mesh.positions[7], closeTo(proj.yOf(12), 1e-9));
-        expect(mesh.positions[10], closeTo(proj.yOf(12), 1e-9));
-      },
-    );
+    test('colors the route yellow at the surface and orange at max depth', () {
+      final mesh = SpatialPathBuilder.buildRibbon(
+        _path([(0, 0, 0), (10, 0, 20)]),
+        proj,
+      );
+      const shallow = Color(0xFFFDE047);
+      const deep = Color(0xFFF97316);
+      expect(mesh.colors[0], closeTo(shallow.r, 1e-6));
+      expect(mesh.colors[1], closeTo(shallow.g, 1e-6));
+      expect(mesh.colors[2], closeTo(shallow.b, 1e-6));
+      expect(mesh.colors[9], closeTo(deep.r, 1e-6));
+      expect(mesh.colors[10], closeTo(deep.g, 1e-6));
+      expect(mesh.colors[11], closeTo(deep.b, 1e-6));
+    });
 
     test('returns an empty mesh for fewer than two points', () {
       final mesh = SpatialPathBuilder.buildRibbon(_path([(0, 0, 5)]), proj);
       expect(mesh.positions, isEmpty);
       expect(mesh.indices, isEmpty);
       expect(mesh.colors, isEmpty);
+      expect(mesh.strokeHalfWidthPx, isNull);
     });
   });
 }
