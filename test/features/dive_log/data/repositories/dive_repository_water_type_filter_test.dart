@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/compiler/query_compiler.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -6,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/query/app_query_registry.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -60,5 +64,18 @@ void main() {
       const DiveFilterState(waterTypes: [WaterType.salt]),
     );
     expect(ids, {'own', 'fromSite'});
+  });
+
+  test('a water type query re-ticks on site changes', () {
+    final q = compileQuery(
+      ConditionNode(
+        FieldPath(['waterType']),
+        QueryOp.eq,
+        const EnumValue('salt'),
+      ),
+      appQueryRegistry.entityFor(QuerySubject.dives),
+      appQueryRegistry,
+    );
+    expect(q.tablesTouched, contains('dive_sites'));
   });
 }
