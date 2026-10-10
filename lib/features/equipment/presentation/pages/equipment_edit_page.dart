@@ -1291,7 +1291,19 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         final locationFailed = context.l10n.equipment_edit_locationFailed;
+        // A clone confirms as a clone: "Cloned, but ..." when some clocks,
+        // sets or documents did not copy, rather than queueing that behind
+        // the plain message. [cloneSaid] records that it was shown.
+        final cloneMessage = failedCloneSteps.isEmpty
+            ? context.l10n.equipment_clone_snackbar_cloned
+            : context.l10n.equipment_clone_partialCopy;
         final partialCopy = context.l10n.equipment_clone_partialCopy;
+        var cloneSaid = false;
+        void sayCloned() {
+          messenger.showSnackBar(SnackBar(content: Text(cloneMessage)));
+          cloneSaid = true;
+        }
+
         final saved = widget.isEditing
             ? context.l10n.equipment_edit_snackbar_updated
             : context.l10n.equipment_edit_snackbar_added;
@@ -1309,16 +1321,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           // rename and adjust. On a phone Back still returns to the original;
           // on desktop the detail route redirects into the master-detail
           // list, which selects the clone, so a view that hides it gets the
-          // hidden-by-view message below instead. Otherwise, when some
-          // clocks, sets or documents did not copy, that message ("Cloned,
-          // but ...") replaces the plain one rather than queueing behind it.
-          final cloned = failedCloneSteps.isEmpty
-              ? context.l10n.equipment_clone_snackbar_cloned
-              : partialCopy;
+          // hidden-by-view message below instead.
           context.pushReplacement('/equipment/$savedId');
-          if (revealView == null) {
-            messenger.showSnackBar(SnackBar(content: Text(cloned)));
-          }
+          if (revealView == null) sayCloned();
         } else {
           context.pop();
         }
@@ -1337,11 +1342,15 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               ),
             ),
           );
-        } else if (!widget.isCloning && (!widget.embedded || reveal.failed)) {
+        } else if (widget.embedded ? reveal.failed : !widget.isCloning) {
           // Master-detail confirms by selecting the item; a failed check
-          // cannot vouch for the list, so it confirms in words too. A clone
-          // has already said "cloned" above.
-          messenger.showSnackBar(SnackBar(content: Text(saved)));
+          // cannot vouch for the list, so it confirms in words too. A routed
+          // clone has already confirmed above.
+          if (widget.isCloning) {
+            sayCloned();
+          } else {
+            messenger.showSnackBar(SnackBar(content: Text(saved)));
+          }
         }
         // The item is saved; only its location is missing. Say so, so the
         // diver knows to set it with Move rather than retry the save.
@@ -1351,8 +1360,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         // Likewise for a clone whose clocks, sets or documents did not all
         // copy, where the "Cloned, but ..." message has not already said so:
         // they can be added on the clone by hand.
-        if (failedCloneSteps.isNotEmpty &&
-            (widget.embedded || revealView != null)) {
+        if (failedCloneSteps.isNotEmpty && !cloneSaid) {
           messenger.showSnackBar(SnackBar(content: Text(partialCopy)));
         }
       }

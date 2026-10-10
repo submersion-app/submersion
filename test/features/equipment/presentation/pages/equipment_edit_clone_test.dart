@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
@@ -22,6 +23,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_l
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_field.dart';
+import 'package:submersion/features/query/data/query_id_set_runner.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -371,6 +374,47 @@ void main() {
     });
   });
 
+  testWidgets('an embedded clone the list cannot vouch for says cloned', (
+    tester,
+  ) async {
+    // Master-detail confirms by selecting the item; when the visibility
+    // check fails it confirms in words too (#3150), and a clone says so as
+    // a clone.
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 4000);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          equipmentRepositoryProvider.overrideWithValue(repository),
+          queryIdSetRunnerProvider.overrideWithValue(
+            _FailingRunner(DatabaseService.instance.database),
+          ),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: EquipmentEditPage(cloneFromId: source.id, embedded: true),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Save').first);
+    await tester.pumpAndSettle();
+
+    expect(await repository.getAllEquipment(), hasLength(2));
+    expect(find.text('Equipment cloned'), findsOneWidget);
+  });
+
   testWidgets('an embedded clone reports a step that could not be copied', (
     tester,
   ) async {
@@ -481,4 +525,13 @@ class _FailingCloneService extends EquipmentCloneService {
     calls.add((sourceId, cloneId, cloneType, diverId));
     return {CloneExtrasStep.documents};
   }
+}
+
+/// A runner whose every query fails, as a locked or closed database would.
+class _FailingRunner extends QueryIdSetRunner {
+  _FailingRunner(super.db);
+
+  @override
+  Future<Set<String>> ids(CompiledQuery compiled, {QueryScope? scope}) =>
+      Future.error(StateError('query failed'));
 }
