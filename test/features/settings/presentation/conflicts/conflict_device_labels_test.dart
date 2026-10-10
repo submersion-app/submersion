@@ -26,6 +26,22 @@ void main() {
     final l = labels();
     expect(l.local, 'Pixel 8');
     expect(l.remote, 'Windows PC');
+    expect(l.localKind, ConflictDeviceKind.named);
+    expect(l.remoteKind, ConflictDeviceKind.named);
+  });
+
+  test('a generic label says which generic side it is', () {
+    // Sentences need the kind to word "this device" and "the other device"
+    // grammatically instead of splicing in the capitalised label.
+    final l = labels(localName: null, peers: const {});
+    expect(l.localKind, ConflictDeviceKind.thisDevice);
+    expect(l.remoteKind, ConflictDeviceKind.otherDevice);
+  });
+
+  test('one side can be generic while the other is named', () {
+    final l = labels(peers: const {});
+    expect(l.localKind, ConflictDeviceKind.named);
+    expect(l.remoteKind, ConflictDeviceKind.otherDevice);
   });
 
   test('an unknown peer is the other device', () {
@@ -50,6 +66,8 @@ void main() {
     );
     expect(l.local, 'This device');
     expect(l.remote, 'Other device');
+    expect(l.localKind, ConflictDeviceKind.thisDevice);
+    expect(l.remoteKind, ConflictDeviceKind.otherDevice);
   });
 
   test('two devices with the same name fall back to generic labels', () {

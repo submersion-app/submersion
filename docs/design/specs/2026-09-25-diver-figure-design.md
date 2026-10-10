@@ -250,8 +250,15 @@ Paths carry roles, never colours: `body`, `bodyShade`, `gearDark`,
   to read on both brightnesses.
 - `itemColor` is the item's colour attribute when set, otherwise the type
   default from the placement table. `itemShade` is the same colour darkened by
-  a fixed fraction, and its outline darkened further, so a white fin keeps an
-  edge on a light surface.
+  a fixed fraction. Item colours are never altered for contrast.
+- A painted colour (an item's colour, its shade, or a fixed gear grey) that
+  does not clear 1.6:1 against `surface`, `surfaceContainerLow` and
+  `surfaceContainer` is edged with a rim: the painter strokes each such path
+  and then fills the whole piece over the strokes, so a rim shows only where
+  that path meets the page or another piece (a black suit's silhouette, a
+  black valve on a bright tank). The mannequin is never rimmed. The rim is the faintest `onSurface` blend over `surface` that
+  clears 3:1 on those surfaces. This is what keeps black gear visible on a
+  dark scheme and white gear on a light one (issue #3181).
 - Number badges use `primary` and `onPrimary`.
 
 `FigurePalette.light` is a fixed light palette; the themed palette takes its
@@ -531,5 +538,5 @@ lib/features/equipment/figure/presentation/    painter, widget, labels, badge
   step blocks a change that leaves a type without its default piece.
 - **Theme contrast.** Fixed gear greys must read on ten schemes; the palette
   tests across every preset are the guard. Item colours are the diver's
-  choice, so the outline and shade roles keep a light piece's edge visible on
-  a light surface.
+  choice, so an item that blends into the page is edged with the rim rather
+  than recoloured (issue #3181).

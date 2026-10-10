@@ -139,7 +139,8 @@ class ProfileSeriesRepository {
           'SELECT '
           'h.series_id, h.dive_id, h.parent_series_id, h.root_series_id, '
           'h.content_hash, h.revision_kind, h.created_at, '
-          'COALESCE(s.is_primary, 0) AS is_active '
+          'COALESCE(s.is_primary, 0) AS is_active, '
+          's.source_id, s.computer_id '
           'FROM $_historyTable h '
           'LEFT JOIN dive_profile_series s ON s.id = h.series_id '
           'WHERE h.dive_id = ? '
@@ -158,6 +159,8 @@ class ProfileSeriesRepository {
           revisionKind: row.read<String>('revision_kind'),
           createdAt: row.read<int>('created_at'),
           isActive: row.read<int>('is_active') == 1,
+          sourceId: row.read<String?>('source_id'),
+          computerId: row.read<String?>('computer_id'),
         ),
     ];
   }

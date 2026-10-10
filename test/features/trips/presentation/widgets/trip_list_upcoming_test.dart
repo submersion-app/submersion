@@ -79,6 +79,9 @@ Widget _buildTestWidget({required List<Override> overrides}) {
 // Fixtures
 // ---------------------------------------------------------------------------
 
+/// Local midnight [days] calendar days from today. Counted in calendar days
+/// rather than adding a Duration: across a DST change a 24-hour day is an
+/// hour short or long, and the countdown then reads one day off.
 DateTime _dayOffset(int days) {
   final now = clock.now();
   return DateTime(now.year, now.month, now.day + days);

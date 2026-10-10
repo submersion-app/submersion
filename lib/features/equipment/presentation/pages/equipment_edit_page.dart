@@ -18,7 +18,11 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/data/services/initial_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/presentation/helpers/saved_equipment_visibility.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_field.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tags_field.dart';
@@ -596,32 +600,9 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
           // Notification Overrides: service reminders are for owned gear
           // (#2025).
           if (!_isWanted) _buildNotificationSection(context),
-
-          if (!widget.embedded) ...[
-            const SizedBox(height: 32),
-            // Save Button
-            Tooltip(
-              message: widget.isEditing
-                  ? context.l10n.equipment_edit_saveTooltip_edit
-                  : context.l10n.equipment_edit_saveTooltip_new,
-              child: FilledButton(
-                onPressed: _isLoading
-                    ? null
-                    : () => _saveEquipment(existingEquipment),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        widget.isEditing
-                            ? context.l10n.equipment_edit_saveButton_edit
-                            : context.l10n.equipment_edit_saveButton_new,
-                      ),
-              ),
-            ),
-          ],
+          // No save button down here: Save lives in the app bar (or the
+          // embedded header) only, since a second, differently labelled one
+          // read as another action (issue #3174).
         ],
       ),
     );
@@ -1053,6 +1034,34 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     }
   }
 
+  /// The list view that shows [savedId] ([view] null when the list's
+  /// current view already does), and whether the check [failed]. The item
+  /// is saved either way, so a failure falls back to the plain confirmation.
+  Future<({EquipmentFilterState? view, bool failed})> _viewRevealing(
+    String savedId,
+    EquipmentStatus status,
+  ) async {
+    try {
+      final view = await viewRevealingSavedEquipment(
+        runner: ref.read(queryIdSetRunnerProvider),
+        filter: ref.read(effectiveEquipmentFilterProvider),
+        diverId: await ref.read(validatedCurrentDiverIdProvider.future),
+        equipmentId: savedId,
+        status: status,
+        beforeQuery: (tables) =>
+            awaitServiceStatusIfReadFromWidget(ref, tables),
+      );
+      return (view: view, failed: false);
+    } catch (e, st) {
+      _log.error(
+        "Failed to check the saved item's visibility",
+        error: e,
+        stackTrace: st,
+      );
+      return (view: null, failed: true);
+    }
+  }
+
   Future<void> _saveEquipment(EquipmentItem? existingEquipment) async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -1171,22 +1180,50 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         }
       }
 
+      // An edit outside master-detail returns to the item's own page, which
+      // shows it whatever the list's view; only the list can lose it.
+      final reveal = widget.isEditing && !widget.embedded
+          ? (view: null, failed: false)
+          : await _viewRevealing(savedId, equipment.status);
+      final revealView = reveal.view;
+
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         final locationFailed = context.l10n.equipment_edit_locationFailed;
+        final saved = widget.isEditing
+            ? context.l10n.equipment_edit_snackbar_updated
+            : context.l10n.equipment_edit_snackbar_added;
+        final hidden = context.l10n.equipment_edit_snackbar_hiddenByView;
+        final show = context.l10n.equipment_edit_snackbar_showAction;
+        // Captured now: the page is gone by the time the action runs.
+        final filterNotifier = ref.read(equipmentFilterProvider.notifier);
+        final highlightNotifier = ref.read(
+          highlightedEquipmentIdProvider.notifier,
+        );
         if (widget.embedded) {
           widget.onSaved?.call(savedId);
         } else {
           context.pop();
+        }
+        // An item the list's view hides seemed not to have saved at all
+        // (#3068), so say where it went and offer the view that shows it.
+        if (revealView != null) {
           messenger.showSnackBar(
             SnackBar(
-              content: Text(
-                widget.isEditing
-                    ? context.l10n.equipment_edit_snackbar_updated
-                    : context.l10n.equipment_edit_snackbar_added,
+              content: Text(hidden),
+              action: SnackBarAction(
+                label: show,
+                onPressed: () {
+                  filterNotifier.state = revealView;
+                  highlightNotifier.state = savedId;
+                },
               ),
             ),
           );
+        } else if (!widget.embedded || reveal.failed) {
+          // Master-detail confirms by selecting the item; a failed check
+          // cannot vouch for the list, so it confirms in words too.
+          messenger.showSnackBar(SnackBar(content: Text(saved)));
         }
         // The item is saved; only its location is missing. Say so, so the
         // diver knows to set it with Move rather than retry the save.

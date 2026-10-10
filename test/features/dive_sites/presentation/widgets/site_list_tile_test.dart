@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_tile.dart';
+import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
+import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -269,6 +271,10 @@ void main() {
 
     expect(find.byType(FlutterMap), findsWidgets);
     expect(find.text('Located Reef'), findsOneWidget);
+    // A trackpad scroll over the background map must scroll the list, so the
+    // static map carries no trackpad zoom recognizer (#3156).
+    expect(find.byType(TrackpadZoomMap), findsNothing);
+    expect(find.byType(LockedMapScrollPassthrough), findsOneWidget);
   });
 
   testWidgets('tapping the checkbox toggles the row', (tester) async {

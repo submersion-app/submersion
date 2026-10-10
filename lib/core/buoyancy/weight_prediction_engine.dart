@@ -37,6 +37,12 @@ class RigSpec extends Equatable {
   final List<GearFeature> gear;
   final List<TankSpec> tanks;
   final WaterType? waterType;
+
+  /// Custom water salinity in ppt. Wins over [waterType] for the water
+  /// term, matching DiveEnvironment.forConditions, so a plan on a custom
+  /// salinity shifts by its own density.
+  final double? salinityPpt;
+
   final double? bodyWeightKg;
 
   /// Diver height for the body-composition term. Null falls back to the
@@ -47,12 +53,20 @@ class RigSpec extends Equatable {
     this.gear = const [],
     this.tanks = const [],
     this.waterType,
+    this.salinityPpt,
     this.bodyWeightKg,
     this.heightCm,
   });
 
   @override
-  List<Object?> get props => [gear, tanks, waterType, bodyWeightKg, heightCm];
+  List<Object?> get props => [
+    gear,
+    tanks,
+    waterType,
+    salinityPpt,
+    bodyWeightKg,
+    heightCm,
+  ];
 }
 
 /// Where a breakdown term's value came from.
@@ -430,6 +444,7 @@ class FittedWeightModel {
         label: 'water',
         kg: BuoyancyPhysics.waterTermKg(
           waterType: rig.waterType,
+          salinityPpt: rig.salinityPpt,
           totalMassKg: bodyMass + gearDryMass + tankDryMass,
         ),
         source: TermSource.physics,

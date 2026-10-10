@@ -16,6 +16,7 @@ import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
+import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/sync_record_overlay.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
@@ -4460,7 +4461,10 @@ class SyncDataSerializer {
   ) async {
     data = _withoutUnsetNulls(
       entityType,
-      _withRenamedKeys(entityType, withoutDeviceLocalColumns(entityType, data)),
+      withCurrentWireKeys(
+        entityType,
+        withoutDeviceLocalColumns(entityType, data),
+      ),
     );
     data = (await _withDeviceLocalFromHere(entityType, [data])).single;
     data = _withSchemaDefaults(
@@ -5376,7 +5380,7 @@ class SyncDataSerializer {
         for (final record in records)
           _withoutUnsetNulls(
             entityType,
-            _withRenamedKeys(
+            withCurrentWireKeys(
               entityType,
               withoutDeviceLocalColumns(entityType, record),
             ),
@@ -9873,55 +9877,6 @@ class SyncDataSerializer {
     'equipmentSetItems',
   };
 
-  /// Hydrates missing (or explicitly null) non-nullable columns in [data]
-  /// with their schema defaults before the generated `fromJson` runs (#858).
-  ///
-  /// A record exported before a schema change lacks the newer columns, and
-  /// Drift's `fromJson` does a straight cast per column -- `null` where a
-  /// non-nullable `bool`/`int`/`String` is expected throws, which permanently
-  /// blocked library adoption (the only path that replays full changeset
-  /// history through `fromJson`). Filling the column's own default mirrors
-  /// what the `ALTER TABLE ... DEFAULT` migration produced for that row on
-  /// the exporting device, so this is a faithful reconstruction, not a guess.
-  /// Wire keys this build renamed, as oldKey -> newKey per entity type.
-  ///
-  /// Payloads published by peers below schema 160, and backups written by
-  /// them, spell the maintenance category 'serviceType'. The compatibility
-  /// floor stops those peers applying OUR payloads, but the gate is
-  /// one-directional (changeset_reader.dart compares the writer's floor to
-  /// the reader's schema), so their payloads still arrive here and would hit
-  /// a NOT NULL column with no key, throwing in the generated fromJson.
-  ///
-  /// [_withSchemaDefaults] cannot cover this: it only fills NOT NULL columns
-  /// carrying a constant SQL default, and service_category has none.
-  ///
-  /// Delete this once the floor moves past the last build that published the
-  /// old spelling.
-  static const Map<String, Map<String, String>> _renamedWireKeys = {
-    'serviceRecords': {'serviceType': 'serviceCategory'},
-    // v170: the SAC unit toggle became the gas-consumption display. The value
-    // is remapped in _applyDiverSettingDefaults.
-    'diverSettings': {'sacUnit': 'gasConsumptionDisplay'},
-  };
-
-  Map<String, dynamic> _withRenamedKeys(
-    String entityType,
-    Map<String, dynamic> data,
-  ) {
-    final renames = _renamedWireKeys[entityType];
-    if (renames == null) return data;
-    Map<String, dynamic>? patched;
-    for (final entry in renames.entries) {
-      if (!data.containsKey(entry.key)) continue;
-      // A payload carrying both keys came from a build that knows the new
-      // name, so the new one wins and the stale alias is dropped.
-      final map = patched ??= Map.of(data);
-      final legacy = map.remove(entry.key);
-      map.putIfAbsent(entry.value, () => legacy);
-    }
-    return patched ?? data;
-  }
-
   /// Issue #2030. A diver_settings row from a peer older than v263 carries
   /// no `distanceUnit`. [_withLocalForOmitted] already kept this device's
   /// value for a row it holds; for a row new here, derive the unit from the
@@ -9940,6 +9895,16 @@ class SyncDataSerializer {
     };
   }
 
+  /// Hydrates missing (or explicitly null) non-nullable columns in [data]
+  /// with their schema defaults before the generated `fromJson` runs (#858).
+  ///
+  /// A record exported before a schema change lacks the newer columns, and
+  /// Drift's `fromJson` does a straight cast per column -- `null` where a
+  /// non-nullable `bool`/`int`/`String` is expected throws, which permanently
+  /// blocked library adoption (the only path that replays full changeset
+  /// history through `fromJson`). Filling the column's own default mirrors
+  /// what the `ALTER TABLE ... DEFAULT` migration produced for that row on
+  /// the exporting device, so this is a faithful reconstruction, not a guess.
   Map<String, dynamic> _withSchemaDefaults(
     String entityType,
     Map<String, dynamic> data,
@@ -10165,13 +10130,11 @@ class SyncDataSerializer {
         !data.containsKey('cardColorAttribute')) {
       merged['cardColorAttribute'] = 'depth';
     }
-    // A pre-170 peer spells the value as a unit. _withRenamedKeys moved the
-    // key; the value still needs the lane it meant.
-    const legacyLanes = {'litersPerMin': 'rmv', 'pressurePerMin': 'sac'};
-    final display = merged['gasConsumptionDisplay'];
-    if (display is String && legacyLanes.containsKey(display)) {
-      merged['gasConsumptionDisplay'] = legacyLanes[display];
-    }
+    // A pre-170 peer spells the value as a unit. withCurrentWireKeys moved
+    // the key; the value still needs the lane it meant.
+    merged['gasConsumptionDisplay'] = currentGasConsumptionLane(
+      merged['gasConsumptionDisplay'],
+    );
     return merged;
   }
 }

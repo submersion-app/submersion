@@ -6,6 +6,7 @@ import 'package:submersion/features/settings/presentation/conflicts/conflict_fie
 import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_comparison_view.dart';
 import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_difference_list.dart';
 import 'package:submersion/features/settings/presentation/conflicts/widgets/conflict_text_diff.dart';
+import 'package:submersion/features/settings/presentation/conflicts/word_diff.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 const _devices = ConflictDeviceLabels(local: 'Pixel 8', remote: 'Windows PC');
@@ -29,6 +30,7 @@ Future<void> _pump(
   WidgetTester tester,
   ConflictComparison c, {
   double width = 700,
+  ConflictDeviceLabels devices = _devices,
 }) async {
   await tester.binding.setSurfaceSize(Size(width, 1200));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -41,7 +43,7 @@ Future<void> _pump(
         body: SingleChildScrollView(
           child: ConflictComparisonView(
             comparison: c,
-            devices: _devices,
+            devices: devices,
             localModified: '2 hours ago',
             remoteModified: '5 hours ago',
           ),
@@ -167,6 +169,60 @@ void main() {
     expect(find.text('Only spacing or line breaks differ.'), findsOneWidget);
   });
 
+  testWidgets('the word diff is computed once, not on every rebuild', (
+    tester,
+  ) async {
+    // Issue #3031: a chip tap rebuilds the dialog, which builds fresh
+    // FieldDifference objects for the same conflict.
+    var calls = 0;
+    WordDiff? counting(String local, String remote) {
+      calls++;
+      return diffWords(local, remote);
+    }
+
+    var remoteNotes = 'Saw two turtles.';
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (context, setState) {
+              rebuild = setState;
+              return ConflictDifferenceList(
+                differences: [
+                  _diff('Water temp', '26 C', '27 C'),
+                  _diff(
+                    'Notes',
+                    'Saw a turtle.',
+                    remoteNotes,
+                    kind: FieldKind.longText,
+                  ),
+                ],
+                devices: _devices,
+                diff: counting,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    expect(calls, 1);
+
+    rebuild(() {});
+    await tester.pump();
+    rebuild(() {});
+    await tester.pump();
+    expect(calls, 1);
+
+    rebuild(() => remoteNotes = 'Saw three turtles.');
+    await tester.pump();
+    expect(calls, 2);
+    expect(find.byType(ConflictTextDiff), findsNWidgets(2));
+  });
+
   testWidgets('a long device name wraps in the narrow layout', (tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -206,6 +262,45 @@ void main() {
     expect(find.text('Windows PC deleted this record.'), findsOneWidget);
     expect(find.text('Blue Hole'), findsOneWidget);
     expect(find.textContaining('What differs'), findsNothing);
+  });
+
+  testWidgets('a generic survivor reads as part of the heading', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const ConflictComparison(
+        state: ConflictComparisonState.remoteDeleted,
+        survivingValues: [
+          ShownField(key: 'name', label: 'Name', display: 'Blue Hole'),
+        ],
+      ),
+      devices: const ConflictDeviceLabels(
+        local: 'This device',
+        remote: 'Other device',
+        localKind: ConflictDeviceKind.thisDevice,
+        remoteKind: ConflictDeviceKind.otherDevice,
+      ),
+    );
+    expect(find.text('The record as this device has it:'), findsOneWidget);
+  });
+
+  testWidgets('a generic remote survivor is the other device', (tester) async {
+    await _pump(
+      tester,
+      const ConflictComparison(
+        state: ConflictComparisonState.localDeleted,
+        survivingValues: [
+          ShownField(key: 'name', label: 'Name', display: 'Blue Hole'),
+        ],
+      ),
+      devices: const ConflictDeviceLabels(
+        local: 'Pixel 8',
+        remote: 'Other device',
+        remoteKind: ConflictDeviceKind.otherDevice,
+      ),
+    );
+    expect(find.text('The record as the other device has it:'), findsOneWidget);
   });
 
   testWidgets('a local deletion names this device', (tester) async {

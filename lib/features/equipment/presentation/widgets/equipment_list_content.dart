@@ -25,6 +25,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -1172,71 +1173,92 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         });
       }
     }
+    final itemsById = {
+      for (final row in rows)
+        if (row is _EquipmentItemRow) row.item.id: row.item,
+    };
     return RefreshIndicator(
       onRefresh: () async {
         _invalidateCurrentProvider(ref);
       },
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: rows.length,
-        itemBuilder: (context, index) {
-          final EquipmentItem item;
-          switch (rows[index]) {
-            case _EquipmentLocationHeadingRow(:final location, :final count):
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: EquipmentLocationGroupHeader(
-                  location: location,
-                  count: count,
-                ),
-              );
-            case _EquipmentHeadingRow(:final type, :final sectionKey):
-              // Keyed by place and type: grouped by location, one type can
-              // head a run under several places.
-              return KeyedSubtree(
-                key: ValueKey(
-                  'equipment-type-${sectionKey ?? ''}-${type.name}',
-                ),
-                child: Padding(
-                  // Level with the card edges below it.
+      child: KeyboardListNavigator(
+        // The group headings are labels, not folds, so only items are stops.
+        keys: itemsById.keys.toList(),
+        currentKey:
+            widget.selectedId ?? ref.watch(highlightedEquipmentIdProvider),
+        onMove: (id) => moveListCursor(
+          context,
+          canOpen: !_isSelectionMode && widget.onItemSelected != null,
+          open: () => _handleRowTap(itemsById[id]!),
+          highlight: () =>
+              ref.read(highlightedEquipmentIdProvider.notifier).state = id,
+        ),
+        onActivate: (id) => _handleRowTap(itemsById[id]!),
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.only(bottom: 80),
+          itemCount: rows.length,
+          itemBuilder: (context, index) {
+            final EquipmentItem item;
+            switch (rows[index]) {
+              case _EquipmentLocationHeadingRow(:final location, :final count):
+                return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: EquipmentGroupHeader(type: type),
-                ),
-              );
-            case _EquipmentItemRow(item: final rowItem):
-              item = rowItem;
-          }
-          final isSelected =
-              widget.selectedId == item.id ||
-              ref.watch(highlightedEquipmentIdProvider) == item.id;
-          final viewMode = ref.watch(equipmentListViewModeProvider);
-          final isChecked = _selectedIds.contains(item.id);
-          void onCheckChanged(bool _) => _selection.toggle(item.id);
-          return switch (viewMode) {
-            ListViewMode.detailed || ListViewMode.compact => EquipmentListTile(
-              item: item,
-              isSelected: isSelected,
-              onTap: () => _handleRowTap(item),
-              isSelectionMode: _isSelectionMode,
-              isChecked: isChecked,
-              onCheckChanged: onCheckChanged,
-              // Chips only in the detailed mode; compact stays one line.
-              tags: viewMode == ListViewMode.detailed
-                  ? tagsByEquipment[item.id] ?? const []
-                  : const [],
-              label: labels[item.id],
-            ),
-            ListViewMode.dense || ListViewMode.table => DenseEquipmentListTile(
-              item: item,
-              isSelected: isSelected,
-              onTap: () => _handleRowTap(item),
-              isSelectionMode: _isSelectionMode,
-              isChecked: isChecked,
-              onCheckChanged: onCheckChanged,
-            ),
-          };
-        },
+                  child: EquipmentLocationGroupHeader(
+                    location: location,
+                    count: count,
+                  ),
+                );
+              case _EquipmentHeadingRow(:final type, :final sectionKey):
+                // Keyed by place and type: grouped by location, one type can
+                // head a run under several places.
+                return KeyedSubtree(
+                  key: ValueKey(
+                    'equipment-type-${sectionKey ?? ''}-${type.name}',
+                  ),
+                  child: Padding(
+                    // Level with the card edges below it.
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: EquipmentGroupHeader(type: type),
+                  ),
+                );
+              case _EquipmentItemRow(item: final rowItem):
+                item = rowItem;
+            }
+            final isSelected =
+                widget.selectedId == item.id ||
+                ref.watch(highlightedEquipmentIdProvider) == item.id;
+            final viewMode = ref.watch(equipmentListViewModeProvider);
+            final isChecked = _selectedIds.contains(item.id);
+            void onCheckChanged(bool _) => _selection.toggle(item.id);
+            final tile = switch (viewMode) {
+              ListViewMode.detailed ||
+              ListViewMode.compact => EquipmentListTile(
+                item: item,
+                isSelected: isSelected,
+                onTap: () => _handleRowTap(item),
+                isSelectionMode: _isSelectionMode,
+                isChecked: isChecked,
+                onCheckChanged: onCheckChanged,
+                // Chips only in the detailed mode; compact stays one line.
+                tags: viewMode == ListViewMode.detailed
+                    ? tagsByEquipment[item.id] ?? const []
+                    : const [],
+                label: labels[item.id],
+              ),
+              ListViewMode.dense ||
+              ListViewMode.table => DenseEquipmentListTile(
+                item: item,
+                isSelected: isSelected,
+                onTap: () => _handleRowTap(item),
+                isSelectionMode: _isSelectionMode,
+                isChecked: isChecked,
+                onCheckChanged: onCheckChanged,
+              ),
+            };
+            return KeyboardListItem(navigationKey: item.id, child: tile);
+          },
+        ),
       ),
     );
   }

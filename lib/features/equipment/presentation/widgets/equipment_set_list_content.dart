@@ -7,6 +7,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 
 /// Content widget for the equipment set list, used in master-detail layout.
@@ -116,87 +117,113 @@ class EquipmentSetListContent extends ConsumerWidget {
     WidgetRef ref,
     List<EquipmentSet> sets,
   ) {
+    void open(String id) {
+      if (onItemSelected != null) {
+        onItemSelected!(id);
+      } else {
+        context.push('/equipment/sets/$id');
+      }
+    }
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.read(equipmentSetListNotifierProvider.notifier).refresh();
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 80),
-        itemCount: sets.length,
-        itemBuilder: (context, index) {
-          final set = sets[index];
-          final isSelected = selectedId == set.id;
-          final itemCountText = set.itemCount == 1
-              ? context.l10n.equipment_sets_itemCountSingular(set.itemCount)
-              : context.l10n.equipment_sets_itemCountPlural(set.itemCount);
-          // The count leads the description on one line rather than sitting
-          // in a trailing chip: a ListTile lays trailing out at its natural
-          // width first, and a chip there starves the set name (issue #2717).
-          final subtitleText = set.description.isEmpty
-              ? itemCountText
-              : set.itemCount > 0
-              ? '$itemCountText · ${set.description}'
-              : set.description;
-          return Semantics(
-            label: listItemLabel(title: set.name, subtitle: subtitleText),
-            child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              color: isSelected
-                  ? Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer.withValues(alpha: 0.5)
-                  : null,
-              child: ListTile(
-                onTap: () {
-                  if (onItemSelected != null) {
-                    onItemSelected!(set.id);
-                  } else {
-                    context.push('/equipment/sets/${set.id}');
-                  }
-                },
-                leading: Builder(
-                  builder: (context) {
-                    final accent = resolveFeatureAccent(
-                      context,
-                      ref,
-                      surface: AccentSurface.list,
-                      featureId: 'equipment',
-                    );
-                    return CircleAvatar(
-                      backgroundColor:
-                          accent?.withValues(alpha: 0.15) ??
-                          Theme.of(context).colorScheme.primaryContainer,
-                      child: Icon(
-                        Icons.folder,
-                        color:
-                            accent ??
-                            Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                    );
-                  },
-                ),
-                title: Row(
-                  children: [
-                    Flexible(child: Text(set.name)),
-                    if (set.isDefault) ...[
-                      const SizedBox(width: 8),
-                      Chip(
-                        label: Text(context.l10n.equipment_sets_defaultBadge),
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ],
-                  ],
-                ),
-                subtitle: Text(
-                  subtitleText,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+      child: KeyboardListNavigator(
+        keys: [for (final s in sets) s.id],
+        currentKey: selectedId,
+        // No highlight of its own to move: at phone width the cursor's focus ring
+        // marks the row, and Enter opens it.
+        onMove: (id) => moveListCursor(
+          context,
+          canOpen: onItemSelected != null,
+          open: () => open(id),
+          highlight: () {},
+        ),
+        onActivate: open,
+        child: ListView.builder(
+          padding: const EdgeInsets.only(bottom: 80),
+          itemCount: sets.length,
+          itemBuilder: (context, index) {
+            final set = sets[index];
+            final isSelected = selectedId == set.id;
+            final itemCountText = set.itemCount == 1
+                ? context.l10n.equipment_sets_itemCountSingular(set.itemCount)
+                : context.l10n.equipment_sets_itemCountPlural(set.itemCount);
+            // The count leads the description on one line rather than sitting
+            // in a trailing chip: a ListTile lays trailing out at its natural
+            // width first, and a chip there starves the set name (issue #2717).
+            final subtitleText = set.description.isEmpty
+                ? itemCountText
+                : set.itemCount > 0
+                ? '$itemCountText · ${set.description}'
+                : set.description;
+            return KeyboardListItem(
+              navigationKey: set.id,
+              child: Semantics(
+                label: listItemLabel(title: set.name, subtitle: subtitleText),
+                child: Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  color: isSelected
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer.withValues(alpha: 0.5)
+                      : null,
+                  child: ListTile(
+                    onTap: () => open(set.id),
+                    leading: Builder(
+                      builder: (context) {
+                        final accent = resolveFeatureAccent(
+                          context,
+                          ref,
+                          surface: AccentSurface.list,
+                          featureId: 'equipment',
+                        );
+                        return CircleAvatar(
+                          backgroundColor:
+                              accent?.withValues(alpha: 0.15) ??
+                              Theme.of(context).colorScheme.primaryContainer,
+                          child: Icon(
+                            Icons.folder,
+                            color:
+                                accent ??
+                                Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
+                          ),
+                        );
+                      },
+                    ),
+                    title: Row(
+                      children: [
+                        Flexible(child: Text(set.name)),
+                        if (set.isDefault) ...[
+                          const SizedBox(width: 8),
+                          Chip(
+                            label: Text(
+                              context.l10n.equipment_sets_defaultBadge,
+                            ),
+                            visualDensity: VisualDensity.compact,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ],
+                      ],
+                    ),
+                    subtitle: Text(
+                      subtitleText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
