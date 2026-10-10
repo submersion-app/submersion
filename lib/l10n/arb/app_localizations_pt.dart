@@ -19238,13 +19238,19 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_share_menu => 'Compartilhar arquivo do plano';
+  String get plannerCanvas_share_menu => 'Exportar arquivo do plano';
+
+  @override
+  String get plannerCanvas_share_saved => 'Arquivo do plano salvo';
 
   @override
   String get plannerCanvas_slate_menu => 'Exportar prancheta (PDF)';
 
   @override
   String get plannerCanvas_slate_minGas => 'Gás mínimo';
+
+  @override
+  String get plannerCanvas_slate_saved => 'Prancheta salva';
 
   @override
   String get plannerCanvas_slate_turn => 'Retorno';

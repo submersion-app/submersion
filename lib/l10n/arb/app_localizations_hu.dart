@@ -19173,13 +19173,19 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_share_menu => 'Tervfájl megosztása';
+  String get plannerCanvas_share_menu => 'Tervfájl exportálása';
+
+  @override
+  String get plannerCanvas_share_saved => 'Tervfájl mentve';
 
   @override
   String get plannerCanvas_slate_menu => 'Tábla exportálása (PDF)';
 
   @override
   String get plannerCanvas_slate_minGas => 'Minimális gáz';
+
+  @override
+  String get plannerCanvas_slate_saved => 'Tábla mentve';
 
   @override
   String get plannerCanvas_slate_turn => 'Forduló';

@@ -12091,9 +12091,11 @@
       }
     }
   },
-  "plannerCanvas_share_menu": "Share plan file",
+  "plannerCanvas_share_menu": "Export plan file",
+  "plannerCanvas_share_saved": "Plan file saved",
   "plannerCanvas_slate_menu": "Export slate (PDF)",
   "plannerCanvas_slate_minGas": "Min gas",
+  "plannerCanvas_slate_saved": "Slate saved",
   "plannerCanvas_slate_turn": "Turn",
   "plannerCanvas_table_depth": "Depth",
   "plannerCanvas_table_gas": "Gas",

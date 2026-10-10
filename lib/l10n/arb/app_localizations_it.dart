@@ -19239,13 +19239,19 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_share_menu => 'Condividi file del piano';
+  String get plannerCanvas_share_menu => 'Esporta file del piano';
+
+  @override
+  String get plannerCanvas_share_saved => 'File del piano salvato';
 
   @override
   String get plannerCanvas_slate_menu => 'Esporta lavagnetta (PDF)';
 
   @override
   String get plannerCanvas_slate_minGas => 'Gas minimo';
+
+  @override
+  String get plannerCanvas_slate_saved => 'Lavagnetta salvata';
 
   @override
   String get plannerCanvas_slate_turn => 'Rientro';

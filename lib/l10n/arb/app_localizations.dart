@@ -30802,8 +30802,14 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_share_menu.
   ///
   /// In en, this message translates to:
-  /// **'Share plan file'**
+  /// **'Export plan file'**
   String get plannerCanvas_share_menu;
+
+  /// No description provided for @plannerCanvas_share_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan file saved'**
+  String get plannerCanvas_share_saved;
 
   /// No description provided for @plannerCanvas_slate_menu.
   ///
@@ -30816,6 +30822,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Min gas'**
   String get plannerCanvas_slate_minGas;
+
+  /// No description provided for @plannerCanvas_slate_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Slate saved'**
+  String get plannerCanvas_slate_saved;
 
   /// No description provided for @plannerCanvas_slate_turn.
   ///

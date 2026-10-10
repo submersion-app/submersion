@@ -18811,13 +18811,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_share_menu => 'שיתוף קובץ תוכנית';
+  String get plannerCanvas_share_menu => 'ייצוא קובץ תוכנית';
+
+  @override
+  String get plannerCanvas_share_saved => 'קובץ התוכנית נשמר';
 
   @override
   String get plannerCanvas_slate_menu => 'ייצוא לוח (PDF)';
 
   @override
   String get plannerCanvas_slate_minGas => 'גז מינימלי';
+
+  @override
+  String get plannerCanvas_slate_saved => 'הלוח נשמר';
 
   @override
   String get plannerCanvas_slate_turn => 'נקודת חזרה';

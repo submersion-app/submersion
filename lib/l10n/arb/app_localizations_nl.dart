@@ -19111,13 +19111,19 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_share_menu => 'Planbestand delen';
+  String get plannerCanvas_share_menu => 'Planbestand exporteren';
+
+  @override
+  String get plannerCanvas_share_saved => 'Planbestand opgeslagen';
 
   @override
   String get plannerCanvas_slate_menu => 'Slate exporteren (PDF)';
 
   @override
   String get plannerCanvas_slate_minGas => 'Minimum gas';
+
+  @override
+  String get plannerCanvas_slate_saved => 'Slate opgeslagen';
 
   @override
   String get plannerCanvas_slate_turn => 'Keerpunt';
