@@ -1273,13 +1273,7 @@ class DiveRepository {
     try {
       final series = await _profileSeries.getSeriesForDive(diveId);
       final sourceRows = _canonicalDataSourceRows(
-        await (_db.select(_db.diveDataSources)
-              ..where((t) => t.diveId.equals(diveId))
-              ..orderBy([
-                (t) => OrderingTerm.desc(t.isPrimary),
-                (t) => OrderingTerm.asc(t.createdAt),
-              ]))
-            .get(),
+        await _sourceRowsInShownOrder(diveId),
       );
       if (sourceRows.isEmpty) {
         // Dives with series but no dive_data_sources row (older imports
@@ -7434,13 +7428,9 @@ class DiveRepository {
   /// Get all data source snapshots for a dive.
   Future<List<DiveDataSource>> getDataSources(String diveId) async {
     try {
-      final query = _db.select(_db.diveDataSources)
-        ..where((t) => t.diveId.equals(diveId))
-        ..orderBy([
-          (t) => OrderingTerm.desc(t.isPrimary),
-          (t) => OrderingTerm.asc(t.createdAt),
-        ]);
-      final rows = _canonicalDataSourceRows(await query.get());
+      final rows = _canonicalDataSourceRows(
+        await _sourceRowsInShownOrder(diveId),
+      );
       final computerNames = await _friendlyNamesFor(rows);
       return rows
           .map((row) => _mapRowToDataSource(row, computerNames))
