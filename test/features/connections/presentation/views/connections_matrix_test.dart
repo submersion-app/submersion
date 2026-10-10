@@ -42,6 +42,7 @@ Future<List<GraphSelection?>> _pump(
   final picked = <GraphSelection?>[];
   await tester.pumpWidget(
     MaterialApp(
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -91,7 +92,7 @@ void main() {
   testWidgets('has a summary for screen readers', (tester) async {
     await _pump(tester);
     expect(
-      find.bySemanticsLabel('Matrix of 2 rows and 1 columns, 2 connections'),
+      find.bySemanticsLabel('Matrix, rows: 2, columns: 1, connections: 2'),
       findsOneWidget,
     );
   });
@@ -148,6 +149,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Directionality(

@@ -20,6 +20,7 @@ Future<ProviderContainer> _pump(WidgetTester tester) async {
     ProviderScope(
       overrides: overrides,
       child: const MaterialApp(
+        locale: Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(body: SingleChildScrollView(child: DisplaySection())),

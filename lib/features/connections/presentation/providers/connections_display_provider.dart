@@ -30,16 +30,22 @@ class ConnectionsDisplayNotifier extends StateNotifier<ConnectionsDisplay> {
     }
   }
 
+  /// The last write queued; each new one waits for it, so a slow write
+  /// can never land after a newer one and restore a stale display.
+  Future<void> _lastWrite = Future.value();
+
   /// Applies [change] at once and persists the result. A failed write is
   /// logged and otherwise ignored: the display is a convenience, not data.
-  Future<void> update(
-    ConnectionsDisplay Function(ConnectionsDisplay) change,
-  ) async {
+  Future<void> update(ConnectionsDisplay Function(ConnectionsDisplay) change) {
     final next = change(state);
-    if (next == state) return;
+    if (next == state) return Future.value();
     state = next;
+    return _lastWrite = _lastWrite.then((_) => _persist(next));
+  }
+
+  Future<void> _persist(ConnectionsDisplay display) async {
     try {
-      await _write(kConnectionsDisplayKey, jsonEncode(next.toJson()));
+      await _write(kConnectionsDisplayKey, jsonEncode(display.toJson()));
     } catch (e, st) {
       _log.warning(
         'Could not remember the connections display',

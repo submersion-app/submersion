@@ -17,6 +17,7 @@ void main() {
       ProviderScope(
         overrides: overrides,
         child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(appBar: AppBar(actions: const [ViewModeButton()])),

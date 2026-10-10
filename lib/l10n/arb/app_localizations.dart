@@ -683,7 +683,7 @@ abstract class AppLocalizations {
   /// No description provided for @connections_matrix_semantics.
   ///
   /// In en, this message translates to:
-  /// **'Matrix of {rows} rows and {columns} columns, {links} connections'**
+  /// **'Matrix, rows: {rows}, columns: {columns}, connections: {links}'**
   String connections_matrix_semantics(int rows, int columns, int links);
 
   /// No description provided for @connections_legend_group.

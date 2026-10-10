@@ -194,4 +194,30 @@ void main() {
         .map((c) => c.positionalArguments[1] as Offset);
     expect(offsets.every((o) => o.dx >= 0), isTrue);
   });
+
+  test('guide text follows a change of language with the same graph', () {
+    final cache = <Object, TextPainter>{};
+    void paintIn(String lane) {
+      final recorder = ui.PictureRecorder();
+      ConnectionsPainter(
+        graph: graph,
+        frame: frame(
+          guides: const [LaneGuide(ConnectionKind.buddy, GraphPoint(-70, 0))],
+        ),
+        viewport: const GraphViewport(offset: Offset(200, 200)),
+        colors: const ConnectionKindColors({}, Colors.grey),
+        labelStyle: const TextStyle(fontSize: 12),
+        kindNames: {ConnectionKind.buddy: lane},
+        guideCache: cache,
+      ).paint(Canvas(recorder), const Size(400, 400));
+      recorder.endRecording().dispose();
+    }
+
+    paintIn('Buddies');
+    paintIn('Tauchpartner');
+    expect(
+      cache.values.map((p) => p.text!.toPlainText()),
+      contains('Tauchpartner'),
+    );
+  });
 }

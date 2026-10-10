@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart' show Intl;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
@@ -55,6 +56,7 @@ Future<List<GraphSelection?>> _pump(
     ProviderScope(
       overrides: overrides,
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Directionality(
@@ -76,6 +78,15 @@ Future<List<GraphSelection?>> _pump(
 }
 
 void main() {
+  // Dates are formatted through Intl.defaultLocale, a process global that
+  // another file in the same isolate may have changed; pin it and put it back.
+  late String? previousLocale;
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   testWidgets('rows start by shared dives, strongest first', (tester) async {
     await _pump(tester);
     final first = tester.getTopLeft(find.text('Cy')).dy;

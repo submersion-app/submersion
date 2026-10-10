@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -63,5 +64,31 @@ void main() {
     addTearDown(n.dispose);
     await n.update((d) => d.copyWith(edges: EdgeMode.thin));
     expect(n.state.edges, EdgeMode.thin);
+  });
+
+  test('writes run one after another, in the order of the changes', () async {
+    SharedPreferences.setMockInitialValues({});
+    final sp = await SharedPreferences.getInstance();
+    final first = Completer<bool>();
+    final started = <String>[];
+    final n = ConnectionsDisplayNotifier(
+      sp,
+      write: (_, value) {
+        started.add(value);
+        return started.length == 1 ? first.future : Future.value(true);
+      },
+    );
+    addTearDown(n.dispose);
+    final a = n.update((d) => d.copyWith(labels: LabelMode.all));
+    final b = n.update((d) => d.copyWith(labels: LabelMode.off));
+    await Future<void>.delayed(Duration.zero);
+    expect(started, hasLength(1), reason: 'the second waits for the first');
+    first.complete(true);
+    await Future.wait([a, b]);
+    expect(started, hasLength(2));
+    expect(
+      ConnectionsDisplay.fromJson(jsonDecode(started.last)).labels,
+      LabelMode.off,
+    );
   });
 }

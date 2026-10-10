@@ -58,6 +58,7 @@ Future<List<GraphSelection?>> _pump(
     ProviderScope(
       overrides: overrides,
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
