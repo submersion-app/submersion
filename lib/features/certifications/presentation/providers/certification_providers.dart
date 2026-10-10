@@ -7,7 +7,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
-import 'package:submersion/features/certifications/domain/certification_title.dart';
+import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/domain/constants/certification_field.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -16,6 +16,7 @@ import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Repository provider
 final certificationRepositoryProvider = Provider<CertificationRepository>((
@@ -76,11 +77,12 @@ final certificationSortProvider =
 List<Certification> applyCertificationSorting(
   List<Certification> certifications,
   SortState<CertificationSortField> sort, {
+  required AppLocalizations l10n,
   CertificationCatalog? catalog,
 }) {
   final cat = catalog ?? CertificationCatalog.builtInOnly;
   final sorted = List<Certification>.from(certifications);
-  // The title sort orders by what the list shows (certificationTitle), not
+  // The title sort orders by what the list shows (the localized title), not
   // the raw stored name, which is blank for a certification saved without a
   // custom title and "PADI : ..." for legacy rows. Computed once per
   // certification rather than on every comparison, in an identity map:
@@ -88,7 +90,7 @@ List<Certification> applyCertificationSorting(
   final titles = Map<Certification, String>.identity();
   if (sort.field == CertificationSortField.name) {
     for (final c in certifications) {
-      titles[c] = certificationTitle(c, catalog: cat).toLowerCase();
+      titles[c] = certificationTitleL10n(c, l10n, catalog: cat).toLowerCase();
     }
   }
 
