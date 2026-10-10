@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
+import 'package:submersion/features/connections/presentation/canvas/connection_kind_icons.dart';
 
 /// Each side of a cell, header or body, so neighbouring columns never touch
 /// (a right-aligned number would otherwise run into the next column).
@@ -116,7 +117,7 @@ class SortableHeader<T extends Enum> extends StatelessWidget {
   }
 }
 
-/// A kind colour dot and a one-line label.
+/// The kind's icon in the kind's colour, then a one-line label.
 class KindDotLabel extends StatelessWidget {
   const KindDotLabel({
     super.key,
@@ -133,14 +134,7 @@ class KindDotLabel extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Container(
-        width: 8,
-        height: 8,
-        decoration: BoxDecoration(
-          color: colors.colorFor(kind),
-          shape: BoxShape.circle,
-        ),
-      ),
+      Icon(connectionKindIcon(kind), size: 16, color: colors.colorFor(kind)),
       const SizedBox(width: 6),
       Flexible(
         child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),

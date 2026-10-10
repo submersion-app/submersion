@@ -13,6 +13,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import 'package:submersion/features/connections/presentation/views/table_parts.dart';
+import 'package:submersion/features/connections/presentation/canvas/connection_kind_icons.dart';
 
 NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
 
@@ -124,6 +125,15 @@ void main() {
     expect(
       tester.widget<ListView>(find.byType(ListView)).padding,
       const EdgeInsets.only(bottom: kTableEndPadding),
+    );
+  });
+
+  testWidgets('each end shows its kind icon', (tester) async {
+    await _pump(tester);
+    // Two rows, two ends each, every one a buddy.
+    expect(
+      find.byIcon(connectionKindIcon(ConnectionKind.buddy)),
+      findsNWidgets(4),
     );
   });
 }
