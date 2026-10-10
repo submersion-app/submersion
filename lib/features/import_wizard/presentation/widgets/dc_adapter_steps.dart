@@ -479,9 +479,11 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     // computer's stored connection info when discovery state has no device.
     // The device descriptor lookup provides the dcModel integer that
     // libdivecomputer needs to select the right driver.
+    final storedTransport = _connectionTypeFromString(computer?.connectionType);
     if (device == null &&
         computer != null &&
-        computer.bluetoothAddress != null) {
+        computer.bluetoothAddress != null &&
+        storedTransport != null) {
       final descriptorsAsync = ref.watch(deviceDescriptorsProvider);
       if (descriptorsAsync.isLoading) {
         return const Center(child: CircularProgressIndicator());
@@ -498,7 +500,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       device = DiscoveredDevice(
         id: computer.id,
         name: computer.displayName,
-        connectionType: _connectionTypeFromString(computer.connectionType),
+        connectionType: storedTransport,
         address: computer.bluetoothAddress!,
         recognizedModel: matchingDescriptor != null
             ? DeviceModel.fromDescriptor(matchingDescriptor)
@@ -709,17 +711,25 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
 // Helpers
 // ---------------------------------------------------------------------------
 
-DeviceConnectionType _connectionTypeFromString(String? type) {
+/// The transport a saved computer's connection type names, or null for
+/// one the app cannot reopen directly, such as `cloud`. Every other value
+/// used to fall back to BLE, which dialed a cloud computer's stale address
+/// over Bluetooth (issue #3106). A missing type still means BLE: records
+/// saved before the type was always written carry an address and no type.
+DeviceConnectionType? _connectionTypeFromString(String? type) {
   switch (type?.toLowerCase()) {
+    case null:
     case 'bluetooth':
     case 'ble':
       return DeviceConnectionType.ble;
+    case 'bluetoothclassic':
+      return DeviceConnectionType.bluetoothClassic;
     case 'usb':
       return DeviceConnectionType.usb;
     case 'infrared':
       return DeviceConnectionType.infrared;
     default:
-      return DeviceConnectionType.ble;
+      return null;
   }
 }
 
