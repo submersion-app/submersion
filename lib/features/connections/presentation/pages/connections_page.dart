@@ -15,6 +15,8 @@ import 'package:submersion/features/connections/domain/views/connections_view_st
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_graph_stack.dart';
+import 'package:submersion/features/connections/presentation/pages/connections_table_area.dart';
+import 'package:submersion/features/connections/presentation/views/view_mode_button.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_display_provider.dart';
 import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/presentation/panel/connections_panel.dart';
@@ -31,6 +33,7 @@ import 'package:submersion/features/connections/presentation/share/connections_s
 import 'package:submersion/features/connections/presentation/share/connections_share_renderer.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
+import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/connections/presentation/widgets/year_play_pill.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -224,26 +227,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   /// larger than the ceiling asks first, because only then can the layout
   /// get slow.
   Future<void> _showAll(int total) async {
-    if (total > ConnectionsPage.maxBudget) {
-      final l10n = context.l10n;
-      final ok = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(l10n.connections_showAll_confirmTitle),
-          content: Text(l10n.connections_showAll_confirmBody(total)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l10n.common_action_cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(l10n.connections_showAll),
-            ),
-          ],
-        ),
-      );
-      if (ok != true) return;
+    if (total > ConnectionsPage.maxBudget &&
+        !await confirmShowAll(context, total)) {
+      return;
     }
     if (mounted) {
       setState(() => _budgetOverride = ConnectionsPage.maxBudget);
@@ -296,23 +282,6 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         kindNames: kindNames,
       ),
     );
-  }
-
-  /// The canvas's accessible summary: counts, then the selection by name.
-  String _semanticsLabel(ConnectionGraph graph, GraphSelection? selection) {
-    final l10n = context.l10n;
-    final summary = l10n.connections_semantics_summary(
-      graph.nodes.length,
-      graph.edges.length,
-    );
-    final String? selected = switch (selection) {
-      null => null,
-      NodeSelection(:final ref) => graph.nodeFor(ref)?.label,
-      EdgeSelection(:final a, :final b) =>
-        '${graph.nodeFor(a)?.label ?? a.id}, ${graph.nodeFor(b)?.label ?? b.id}',
-    };
-    if (selected == null) return summary;
-    return '$summary. ${l10n.connections_semantics_selected(selected)}';
   }
 
   /// Clears a selection the newly loaded graph no longer contains, so a
@@ -480,13 +449,26 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           ],
         );
       }
+      if (display.view != ConnectionsViewKind.graph) {
+        return ConnectionsTableArea(
+          view: display.view,
+          graph: graph,
+          colors: colors,
+          selection: selection,
+          onSelect: (s) =>
+              ref.read(connectionsSelectionProvider.notifier).state = s,
+          onShowAll: showAll,
+          bottomInset: bottomInset,
+          playPill: playPill,
+          loading: graphAsync.isLoading,
+        );
+      }
       return ConnectionsGraphStack(
         graph: graph,
         canvasGraph: canvasGraph,
         controller: _layout,
         colors: colors,
         selection: selection,
-        semanticsLabel: _semanticsLabel(graph, selection),
         animate: animate,
         bottomInset: bottomInset,
         stripHeight: stripHeight,
@@ -564,17 +546,19 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       appBar: AppBar(
         title: Text(l10n.connections_title),
         actions: [
+          const ViewModeButton(),
           // A Builder gives the button its own context for the iPad popover.
-          Builder(
-            builder: (button) => IconButton(
-              key: const ValueKey('connections-share'),
-              icon: const Icon(Icons.ios_share),
-              tooltip: l10n.connections_share_tooltip,
-              onPressed: showCanvas
-                  ? () => _share(graph, view, display, button)
-                  : null,
+          if (display.view == ConnectionsViewKind.graph)
+            Builder(
+              builder: (button) => IconButton(
+                key: const ValueKey('connections-share'),
+                icon: const Icon(Icons.ios_share),
+                tooltip: l10n.connections_share_tooltip,
+                onPressed: showCanvas
+                    ? () => _share(graph, view, display, button)
+                    : null,
+              ),
             ),
-          ),
           if (display.view == ConnectionsViewKind.graph)
             ListenableBuilder(
               listenable: _layout,

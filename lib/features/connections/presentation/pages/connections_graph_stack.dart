@@ -25,7 +25,6 @@ class ConnectionsGraphStack extends StatelessWidget {
     required this.controller,
     required this.colors,
     required this.selection,
-    required this.semanticsLabel,
     required this.animate,
     required this.bottomInset,
     required this.stripHeight,
@@ -53,7 +52,6 @@ class ConnectionsGraphStack extends StatelessWidget {
   final ConnectionsLayoutController controller;
   final ConnectionKindColors colors;
   final GraphSelection? selection;
-  final String semanticsLabel;
   final bool animate;
   final double bottomInset;
   final double stripHeight;
@@ -72,6 +70,23 @@ class ConnectionsGraphStack extends StatelessWidget {
   final Widget playPill;
   final bool loading;
 
+  /// The canvas's accessible summary: counts, then the selection by name.
+  String _semanticsLabel(BuildContext context) {
+    final l10n = context.l10n;
+    final summary = l10n.connections_semantics_summary(
+      graph.nodes.length,
+      graph.edges.length,
+    );
+    final String? selected = switch (selection) {
+      null => null,
+      NodeSelection(:final ref) => graph.nodeFor(ref)?.label,
+      EdgeSelection(:final a, :final b) =>
+        '${graph.nodeFor(a)?.label ?? a.id}, ${graph.nodeFor(b)?.label ?? b.id}',
+    };
+    if (selected == null) return summary;
+    return '$summary. ${l10n.connections_semantics_selected(selected)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -84,7 +99,7 @@ class ConnectionsGraphStack extends StatelessWidget {
             controller: controller,
             colors: colors,
             selection: selection,
-            semanticsLabel: semanticsLabel,
+            semanticsLabel: _semanticsLabel(context),
             animate: animate,
             bottomInset: bottomInset,
             topInset: stripHeight,

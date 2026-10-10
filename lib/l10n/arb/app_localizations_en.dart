@@ -291,6 +291,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_spacing_spread => 'Spread';
 
   @override
+  String get connections_view_tooltip => 'Change view';
+
+  @override
+  String get connections_view_graph => 'Graph';
+
+  @override
+  String get connections_view_pairs => 'Pairs';
+
+  @override
+  String get connections_view_entities => 'Entities';
+
+  @override
+  String get connections_view_matrix => 'Matrix';
+
+  @override
   String get connections_legend_group => 'Color: group';
 
   @override

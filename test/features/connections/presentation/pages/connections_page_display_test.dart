@@ -19,6 +19,9 @@ import 'package:submersion/features/connections/domain/layout/graph_point.dart';
 import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_canvas.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_display_provider.dart';
+import 'package:submersion/features/connections/presentation/views/table_header_bar.dart';
+import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
+import 'package:submersion/features/connections/presentation/widgets/year_play_pill.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -172,5 +175,23 @@ void main() {
     await tester.tap(find.byTooltip('Lay out again'));
     await tester.pump();
     expect(find.byTooltip('Lay out again'), findsNothing);
+  });
+
+  testWidgets('a table view hides the graph chrome and keeps the play pill', (
+    tester,
+  ) async {
+    final c = await _pump(tester);
+    await tester.pumpAndSettle();
+    await c
+        .read(connectionsDisplayProvider.notifier)
+        .update((d) => d.copyWith(view: ConnectionsViewKind.pairs));
+    await tester.pumpAndSettle();
+    expect(find.byType(ConnectionsCanvas), findsNothing);
+    expect(find.byType(InsightStrip), findsNothing);
+    expect(find.byKey(const ValueKey('connections-share')), findsNothing);
+    expect(find.byTooltip('Lay out again'), findsNothing);
+    expect(find.byType(YearPlayPill), findsOneWidget);
+    expect(find.byType(TableHeaderBar), findsOneWidget);
+    expect(find.byKey(const ValueKey('connections-display')), findsNothing);
   });
 }

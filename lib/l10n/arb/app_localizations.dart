@@ -584,6 +584,36 @@ abstract class AppLocalizations {
   /// **'Spread'**
   String get connections_spacing_spread;
 
+  /// No description provided for @connections_view_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Change view'**
+  String get connections_view_tooltip;
+
+  /// No description provided for @connections_view_graph.
+  ///
+  /// In en, this message translates to:
+  /// **'Graph'**
+  String get connections_view_graph;
+
+  /// No description provided for @connections_view_pairs.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairs'**
+  String get connections_view_pairs;
+
+  /// No description provided for @connections_view_entities.
+  ///
+  /// In en, this message translates to:
+  /// **'Entities'**
+  String get connections_view_entities;
+
+  /// No description provided for @connections_view_matrix.
+  ///
+  /// In en, this message translates to:
+  /// **'Matrix'**
+  String get connections_view_matrix;
+
   /// No description provided for @connections_legend_group.
   ///
   /// In en, this message translates to:
