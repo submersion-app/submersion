@@ -24,6 +24,7 @@ import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart'
     show computerModelsCompatible, identityPartsCompatible;
@@ -492,6 +493,11 @@ class DiveComputerRepository {
           [id],
         );
       }
+
+      // Tombstoned before the computer goes: the FK cascade would delete
+      // the connections with no tombstone, and a peer would keep them
+      // (issue #3106).
+      await DiveComputerConnectionRepository().deleteForComputer(id);
 
       await (_db.delete(_db.diveComputers)..where((t) => t.id.equals(id))).go();
       await _syncRepository.logDeletion(
