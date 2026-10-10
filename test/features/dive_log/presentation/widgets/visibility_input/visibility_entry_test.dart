@@ -1,0 +1,215 @@
+// `show Locale` on purpose: flutter/widgets.dart exports a Visibility widget
+// that collides with the app's Visibility enum.
+import 'package:flutter/widgets.dart' show Locale;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+void main() {
+  const cold = VisibilityScale.coldWater;
+  const tropical = VisibilityScale.tropical;
+  const coldGood = VisibilityRange(minM: 6, maxM: 12);
+  const metric = UnitFormatter(AppSettings(depthUnit: DepthUnit.meters));
+
+  late AppLocalizations en;
+
+  setUpAll(() async {
+    en = await AppLocalizations.delegate.load(const Locale('en'));
+  });
+
+  StoredVisibility resolve({
+    VisibilityInputMode mode = VisibilityInputMode.range,
+    double? precise,
+    VisibilityBand? band,
+    bool touched = true,
+    StoredVisibility original = StoredVisibility.none,
+    VisibilityScale scale = cold,
+  }) => resolveVisibilityEntry(
+    mode: mode,
+    preciseMeters: precise,
+    band: band,
+    touched: touched,
+    original: original,
+    scale: scale,
+  );
+
+  group('resolveVisibilityEntry', () {
+    test('a band pick saves its range on the current scale', () {
+      expect(resolve(band: VisibilityBand.good).range, coldGood);
+    });
+
+    test('a typed number in Precise saves a measurement', () {
+      final saved = resolve(mode: VisibilityInputMode.precise, precise: 7);
+      expect(saved.meters, 7);
+      expect(saved.range, isNull);
+    });
+
+    test('only the active mode is saved', () {
+      final saved = resolve(precise: 7, band: VisibilityBand.good);
+      expect(saved.meters, isNull);
+      expect(saved.range, coldGood);
+    });
+
+    test('an untouched dive keeps exactly what it had', () {
+      for (final original in const [
+        StoredVisibility(meters: 6.44),
+        StoredVisibility(range: coldGood),
+        StoredVisibility(legacy: Visibility.moderate),
+      ]) {
+        expect(
+          resolve(
+            mode: VisibilityInputMode.precise,
+            precise: 6,
+            touched: false,
+            original: original,
+            scale: tropical,
+          ),
+          original,
+        );
+      }
+    });
+
+    test('clearing the input after touching it saves nothing', () {
+      expect(
+        resolve(original: const StoredVisibility(range: coldGood)),
+        StoredVisibility.none,
+      );
+    });
+  });
+
+  group('StoredVisibility modes', () {
+    test('a dive opens in the shape it was saved in', () {
+      expect(
+        const StoredVisibility(meters: 6).naturalMode,
+        VisibilityInputMode.precise,
+      );
+      expect(
+        const StoredVisibility(range: coldGood).naturalMode,
+        VisibilityInputMode.range,
+      );
+      expect(
+        const StoredVisibility(legacy: Visibility.good).naturalMode,
+        VisibilityInputMode.range,
+      );
+      expect(StoredVisibility.none.naturalMode, isNull);
+    });
+
+    test('only a new value is remembered as the last-used mode', () {
+      expect(
+        const StoredVisibility(range: coldGood).modeToRemember,
+        VisibilityInputMode.range,
+      );
+      expect(
+        const StoredVisibility(meters: 6).modeToRemember,
+        VisibilityInputMode.precise,
+      );
+      expect(
+        const StoredVisibility(legacy: Visibility.good).modeToRemember,
+        isNull,
+      );
+    });
+  });
+
+  group('effectiveVisibilityBand', () {
+    test('a stored range selects the chip it equals on the current scale', () {
+      expect(
+        effectiveVisibilityBand(
+          band: null,
+          touched: false,
+          original: const StoredVisibility(range: coldGood),
+          scale: cold,
+        ),
+        VisibilityBand.good,
+      );
+    });
+
+    test('after a scale change the stored range selects no chip', () {
+      expect(
+        effectiveVisibilityBand(
+          band: null,
+          touched: false,
+          original: const StoredVisibility(range: coldGood),
+          scale: tropical,
+        ),
+        isNull,
+      );
+    });
+
+    test('once touched, the pick is what it is', () {
+      expect(
+        effectiveVisibilityBand(
+          band: null,
+          touched: true,
+          original: const StoredVisibility(range: coldGood),
+          scale: cold,
+        ),
+        isNull,
+      );
+    });
+  });
+
+  group('visibilityEntryCaption', () {
+    String? caption({
+      VisibilityInputMode mode = VisibilityInputMode.range,
+      double? precise,
+      VisibilityBand? band,
+      bool touched = true,
+      StoredVisibility original = StoredVisibility.none,
+      VisibilityScale scale = cold,
+    }) => visibilityEntryCaption(
+      mode: mode,
+      preciseMeters: precise,
+      band: band,
+      touched: touched,
+      original: original,
+      scale: scale,
+      l10n: en,
+      units: metric,
+    );
+
+    test('a picked band shows the range it will save', () {
+      expect(caption(band: VisibilityBand.good), '6-12 m');
+    });
+
+    test('an off-scale stored range shows itself', () {
+      expect(
+        caption(
+          touched: false,
+          original: const StoredVisibility(range: coldGood),
+          scale: tropical,
+        ),
+        '6-12 m',
+      );
+    });
+
+    test('an untouched legacy dive shows its bucket range', () {
+      expect(
+        caption(
+          touched: false,
+          original: const StoredVisibility(legacy: Visibility.moderate),
+        ),
+        '5-15 m',
+      );
+    });
+
+    test('a typed number shows its band', () {
+      expect(
+        caption(mode: VisibilityInputMode.precise, precise: 6),
+        en.enum_visibilityBand_good,
+      );
+    });
+
+    test('a cleared input shows nothing', () {
+      expect(
+        caption(original: const StoredVisibility(range: coldGood)),
+        isNull,
+      );
+    });
+  });
+}
