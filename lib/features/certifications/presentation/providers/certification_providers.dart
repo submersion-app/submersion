@@ -83,13 +83,14 @@ List<Certification> applyCertificationSorting(
   // The title sort orders by what the list shows (certificationTitle), not
   // the raw stored name, which is blank for a certification saved without a
   // custom title and "PADI : ..." for legacy rows. Computed once per
-  // certification rather than on every comparison.
-  final titles = sort.field == CertificationSortField.name
-      ? {
-          for (final c in certifications)
-            c: certificationTitle(c, catalog: cat).toLowerCase(),
-        }
-      : const <Certification, String>{};
+  // certification rather than on every comparison, in an identity map:
+  // Certification's value hashCode walks its photo bytes.
+  final titles = Map<Certification, String>.identity();
+  if (sort.field == CertificationSortField.name) {
+    for (final c in certifications) {
+      titles[c] = certificationTitle(c, catalog: cat).toLowerCase();
+    }
+  }
 
   sorted.sort((a, b) {
     int comparison;
