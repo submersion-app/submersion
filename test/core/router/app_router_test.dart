@@ -1114,9 +1114,20 @@ void main() {
       );
     }
 
+    // The gate's own shell: the one declaring the /planning hub as a DIRECT
+    // child. Membership checks must be made against this shell, not "any
+    // shell", since the app-wide MainScaffold shell contains every route and
+    // would pass them for a route declared outside the gate.
+    ShellRoute gatedShell() =>
+        _collectShellRoutes(router.configuration.routes).singleWhere(
+          (shell) =>
+              shell.routes.any((r) => r is GoRoute && r.name == 'planning'),
+        );
+
     test('deco-calculator and the gas calculators share one gated shell', () {
       final decoShell = shellContaining('decoCalculator');
       final gasShell = shellContaining('gasCalculators');
+      expect(decoShell, same(gatedShell()));
       expect(
         decoShell,
         same(gasShell),
@@ -1142,8 +1153,13 @@ void main() {
         pageKey: const ValueKey('/planning/deco-calculator'),
       );
       const leaf = SizedBox(key: Key('leaf'));
-      final wrapped = shell.builder!(context, state, leaf);
+      // A NoTransitionPage, like every other top-level tab: a builder-only
+      // ShellRoute gets a platform MaterialPage/CupertinoPage in the
+      // MainScaffold navigator, so switching to Planning would animate.
+      final page = shell.pageBuilder!(context, state, leaf);
 
+      expect(page, isA<NoTransitionPage<void>>());
+      final wrapped = (page as NoTransitionPage<void>).child;
       expect(wrapped, isA<PlanningDisclaimerGate>());
       expect((wrapped as PlanningDisclaimerGate).child, same(leaf));
     });
@@ -1164,20 +1180,18 @@ void main() {
         'noFly',
         'cnsOtu',
       ];
-      final shells = _collectShellRoutes(router.configuration.routes);
+      final gated = gatedShell();
       for (final name in names) {
         expect(
-          shells.any((shell) => _findRouteByName(shell.routes, name) != null),
-          isTrue,
-          reason: '$name is reachable directly but not inside a ShellRoute',
+          _findRouteByName(gated.routes, name),
+          isNotNull,
+          reason: '$name is reachable directly but not inside the gated shell',
         );
       }
       // Each calculator id (mod, best-mix, ...) is a path under
       // gas-calculators, not a name of its own; check it by path within the
       // shell that gates the hub, rather than by name.
-      final gasCalculatorPaths = _collectRoutePaths(
-        shellContaining('gasCalculators').routes,
-      );
+      final gasCalculatorPaths = _collectRoutePaths(gated.routes);
       for (final id in kGasCalculatorIds) {
         expect(
           gasCalculatorPaths,

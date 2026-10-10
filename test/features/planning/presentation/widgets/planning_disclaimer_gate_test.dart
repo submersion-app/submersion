@@ -101,6 +101,48 @@ void main() {
     expect(find.text('Planning Tools Disclaimer'), findsOneWidget);
   });
 
+  // The dialog sits on the root navigator, so it outlives the gate when a
+  // programmatic navigation (a notification or file deep link) replaces the
+  // /planning subtree while it is up. Confirming must still close it: with
+  // no barrier tap and no back gesture, a confirm that throws on the
+  // disposed gate's ref would leave it on screen for good.
+  testWidgets('confirming still closes the dialog after the gate unmounts', (
+    tester,
+  ) async {
+    final notifier = MockSettingsNotifier(const AppSettings());
+    final base = await getBaseOverrides(settingsNotifier: notifier);
+    final showGate = ValueNotifier<bool>(true);
+    addTearDown(showGate.dispose);
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: base.cast(),
+        locale: const Locale('en'),
+        child: ValueListenableBuilder<bool>(
+          valueListenable: showGate,
+          builder: (context, show, _) => show
+              ? const PlanningDisclaimerGate(child: Text('planning tools'))
+              : const Text('elsewhere'),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Planning Tools Disclaimer'), findsOneWidget);
+
+    showGate.value = false;
+    await tester.pump();
+    expect(find.text('elsewhere'), findsOneWidget);
+    expect(find.text('Planning Tools Disclaimer'), findsOneWidget);
+
+    await tester.tap(find.text('I Understand'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Planning Tools Disclaimer'), findsNothing);
+    expect(notifier.state.hasAcceptedPlanningDisclaimer, isTrue);
+  });
+
   testWidgets('the system back gesture does not dismiss it', (tester) async {
     await pump(tester, hasAcceptedPlanningDisclaimer: false);
 

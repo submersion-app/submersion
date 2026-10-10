@@ -273,8 +273,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // A ShellRoute around the whole subtree instead wraps whichever
           // leaf matched, so every route under /planning is covered.
           ShellRoute(
-            builder: (context, state, child) =>
-                PlanningDisclaimerGate(child: child),
+            // A pageBuilder, not a builder: a builder-only ShellRoute gets a
+            // platform MaterialPage/CupertinoPage in the MainScaffold
+            // navigator, so switching to Planning would animate while every
+            // other tab switches instantly.
+            pageBuilder: (context, state, child) => NoTransitionPage(
+              key: state.pageKey,
+              child: PlanningDisclaimerGate(child: child),
+            ),
             routes: [
               GoRoute(
                 path: '/planning',

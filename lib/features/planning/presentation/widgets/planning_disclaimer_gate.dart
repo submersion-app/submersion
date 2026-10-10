@@ -7,13 +7,14 @@ import 'package:submersion/features/settings/presentation/pages/settings_page.da
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Wraps the Planning hub and the Gas Calculators page so that each diver
-/// confirms the planning safety disclaimer once before using any tool
-/// underneath (issue #3120). Non-dismissible: there is no way to reach the
-/// tools without confirming.
+/// Wraps every route under /planning (installed by a ShellRoute in
+/// app_router.dart, so a deep link straight to a leaf tool is covered too)
+/// so that each diver confirms the planning safety disclaimer once before
+/// using any tool there (issue #3120). Non-dismissible: there is no way to
+/// reach the tools without confirming.
 ///
-/// One flag covers both entry points: confirming from either one satisfies
-/// the other, since they share [AppSettings.hasAcceptedPlanningDisclaimer].
+/// The confirmation is stored per diver in
+/// [AppSettings.hasAcceptedPlanningDisclaimer].
 class PlanningDisclaimerGate extends ConsumerStatefulWidget {
   const PlanningDisclaimerGate({super.key, required this.child});
 
@@ -74,6 +75,11 @@ class _PlanningDisclaimerGateState
   }
 
   Future<void> _showDialog() {
+    // Read up front: the dialog sits on the root navigator and can outlive
+    // this gate (a deep link replacing /planning while it is up), and a
+    // disposed gate's ref throws, which would leave this non-dismissible
+    // dialog on screen for good.
+    final settings = ref.read(settingsProvider.notifier);
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -91,8 +97,8 @@ class _PlanningDisclaimerGateState
             ),
             FilledButton(
               onPressed: () {
-                ref.read(settingsProvider.notifier).acceptPlanningDisclaimer();
                 Navigator.of(context).pop();
+                settings.acceptPlanningDisclaimer();
               },
               child: Text(context.l10n.planning_disclaimer_dialog_confirm),
             ),
