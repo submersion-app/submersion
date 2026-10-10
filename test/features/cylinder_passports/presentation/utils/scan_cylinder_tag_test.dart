@@ -15,6 +15,7 @@ import 'package:submersion/features/cylinder_passports/presentation/providers/cy
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -343,6 +344,7 @@ class _BrokenRepo extends CylinderPassportRepository {
   Future<String?> findEquipmentIdByPassportId(
     String passportId, {
     String? diverId,
+    EquipmentType? type,
   }) async => throw StateError('database is locked');
 }
 
@@ -365,6 +367,7 @@ class _GatedRepo extends CylinderPassportRepository {
   Future<String?> findEquipmentIdByPassportId(
     String passportId, {
     String? diverId,
+    EquipmentType? type,
   }) async {
     await gate;
     return 'eq-1';

@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
@@ -69,6 +70,8 @@ class CsvFillImporter {
       linked[fill.passportId] = await _passports.findEquipmentIdByPassportId(
         fill.passportId,
         diverId: diverId,
+        // Fills link only to cylinders (issue #2652).
+        type: EquipmentType.tank,
       );
     }
     final now = DateTime.now();

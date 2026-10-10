@@ -80,9 +80,14 @@ class _HeldPassports extends CylinderPassportRepository {
   Future<String?> findEquipmentIdByPassportId(
     String passportId, {
     String? diverId,
+    EquipmentType? type,
   }) async {
     await gate;
-    return super.findEquipmentIdByPassportId(passportId, diverId: diverId);
+    return super.findEquipmentIdByPassportId(
+      passportId,
+      diverId: diverId,
+      type: type,
+    );
   }
 }
 

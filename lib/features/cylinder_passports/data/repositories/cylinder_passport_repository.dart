@@ -25,8 +25,11 @@ class PassportIdInUse implements Exception {
   String toString() => 'PassportIdInUse($equipmentId)';
 }
 
-/// The passport id of a cylinder: the `passport_id` equipment attribute
-/// (spec section 6.5). Reads and writes go through the equipment
+/// The item holding a passport id, and what type it is now.
+typedef PassportHolder = ({String equipmentId, EquipmentType type});
+
+/// The passport id of any equipment item: the `passport_id` equipment
+/// attribute (cylinder spec 6.5, gear tag spec 7). Reads and writes go through the equipment
 /// repository's attribute path so the row ids, tombstones and pending marks
 /// match every other curated attribute.
 class CylinderPassportRepository {
@@ -51,12 +54,14 @@ class CylinderPassportRepository {
     return value == null || value.isEmpty ? null : value;
   }
 
-  /// The one cylinder holding [passportId], limited to the gear [diverId]
-  /// can see (owns or has been shared) when given; the whole library when
-  /// null.
-  Future<String?> findEquipmentIdByPassportId(
+  /// The one item holding [passportId], of any type unless [type] narrows
+  /// it, limited to the gear [diverId] can see (owns or has been shared)
+  /// when given; the whole library when null. An item keeps its id across a
+  /// retype, and answers as what it is now (issue #2652).
+  Future<PassportHolder?> findHolderByPassportId(
     String passportId, {
     String? diverId,
+    EquipmentType? type,
   }) async {
     final attrs = _db.equipmentAttributes;
     final eq = _db.equipment;
@@ -66,19 +71,15 @@ class CylinderPassportRepository {
         ])..where(
           attrs.attrKey.equals(EquipmentAttrKeys.passportId) &
               attrs.isCustom.equals(false) &
-              attrs.valueText.equals(passportId) &
-              // Only a cylinder holds a tag. An item retyped to other gear
-              // keeps the id (a retype undone gets it back) but never
-              // blocks or answers a lookup while it is not a tank.
-              eq.type.equals(EquipmentType.tank.name),
+              attrs.valueText.equals(passportId),
         );
+    if (type != null) query.where(eq.type.equals(type.name));
     final visible = VisibilityFilter.equipmentVisibleTo(_db, eq, diverId);
     if (visible != null) query.where(visible);
     final holders = [for (final r in await query.get()) r.readTable(eq)];
     if (holders.isEmpty) return null;
     // One id should have one holder, but an old import could have written
-    // two. Resolve the same way every time: a cylinder still in service,
-    // then the oldest row, then the id.
+    // two. Resolve the same way every time: in service, oldest, then id.
     final sorted = [...holders]
       ..sort((a, b) {
         final byFitted = (_isFitted(a) ? 0 : 1) - (_isFitted(b) ? 0 : 1);
@@ -86,7 +87,25 @@ class CylinderPassportRepository {
         final byAge = a.createdAt.compareTo(b.createdAt);
         return byAge != 0 ? byAge : a.id.compareTo(b.id);
       });
-    return sorted.first.id;
+    final row = sorted.first;
+    return (equipmentId: row.id, type: _typeOf(row.type));
+  }
+
+  Future<String?> findEquipmentIdByPassportId(
+    String passportId, {
+    String? diverId,
+    EquipmentType? type,
+  }) async => (await findHolderByPassportId(
+    passportId,
+    diverId: diverId,
+    type: type,
+  ))?.equipmentId;
+
+  static EquipmentType _typeOf(String name) {
+    for (final t in EquipmentType.values) {
+      if (t.name == name) return t;
+    }
+    return EquipmentType.other;
   }
 
   /// In service: active and neither retired, sold nor wanted (#2025), as
@@ -96,28 +115,6 @@ class CylinderPassportRepository {
       row.status != EquipmentStatus.retired.name &&
       row.status != EquipmentStatus.sold.name &&
       row.status != EquipmentStatus.wanted.name;
-
-  /// Items that are no longer cylinders but still carry [passportId], other
-  /// than [except]: the leftovers of a retype.
-  Future<List<String>> _nonTankCarriers(
-    String passportId,
-    String except,
-  ) async {
-    final attrs = _db.equipmentAttributes;
-    final eq = _db.equipment;
-    final rows =
-        await (_db.select(attrs).join([
-              innerJoin(eq, eq.id.equalsExp(attrs.equipmentId)),
-            ])..where(
-              attrs.attrKey.equals(EquipmentAttrKeys.passportId) &
-                  attrs.isCustom.equals(false) &
-                  attrs.valueText.equals(passportId) &
-                  eq.type.equals(EquipmentType.tank.name).not() &
-                  eq.id.equals(except).not(),
-            ))
-            .get();
-    return [for (final r in rows) r.readTable(eq).id];
-  }
 
   /// Removes [equipmentId]'s passport id, so a tag can move off a cylinder
   /// that is no longer in service.
@@ -129,16 +126,18 @@ class CylinderPassportRepository {
     ], preserveSystem: false);
   }
 
-  /// Writes [passportId] onto [equipmentId] and relinks the fills stored
-  /// under it. Throws [PassportIdInUse] when a different visible cylinder
-  /// that is still in service holds the id; one that is not gives it up.
+  /// Writes [passportId] onto [equipmentId] and, for a cylinder, relinks the
+  /// fills stored under it. Throws [PassportIdInUse] when a different
+  /// visible item of any type that is still in service holds the id; one
+  /// that is not gives it up.
   Future<void> assignPassportId({
     required String equipmentId,
     required String passportId,
     String? diverId,
   }) async {
     // One transaction for the whole move: the holder check, releasing a
-    // retired holder, writing the id and moving the fills. Drift runs
+    // holder no longer in service, writing the id and, for a cylinder,
+    // moving the fills. Drift runs
     // transactions one at a time, so two links of the same tag cannot both
     // pass the check, and a failure part-way rolls every step back.
     await _db.transaction(() async {
@@ -155,11 +154,11 @@ class CylinderPassportRepository {
         if (_isFitted(row)) throw PassportIdInUse(holder);
         await _releasePassportId(holder);
       }
-      // A retyped item still carrying the id gives it up to the cylinder the
-      // tag is now linked to, so the id is never on two rows.
-      for (final carrier in await _nonTankCarriers(passportId, equipmentId)) {
-        await _releasePassportId(carrier);
-      }
+      final target = await (_db.select(
+        _db.equipment,
+      )..where((t) => t.id.equals(equipmentId))).getSingleOrNull();
+      // Fills belong to cylinders; other gear never collects them.
+      final holdsFills = target?.type == EquipmentType.tank.name;
       final previous = await getPassportId(equipmentId);
       if (holder != equipmentId) {
         final existing = await _equipment.getAttributesForEquipment(
@@ -176,17 +175,19 @@ class CylinderPassportRepository {
         ];
         await _equipment.saveAttributes(equipmentId, desired);
       }
-      if (previous != null && previous != passportId) {
+      if (holdsFills && previous != null && previous != passportId) {
         await _fills.rekeyPassport(
           from: previous,
           to: passportId,
           equipmentId: equipmentId,
         );
       }
-      await _fills.relinkToEquipment(
-        passportId: passportId,
-        equipmentId: equipmentId,
-      );
+      if (holdsFills) {
+        await _fills.relinkToEquipment(
+          passportId: passportId,
+          equipmentId: equipmentId,
+        );
+      }
     });
   }
 

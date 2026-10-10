@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/services/csv_fill_importer.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -264,9 +265,14 @@ class _CountingPassports extends CylinderPassportRepository {
   Future<String?> findEquipmentIdByPassportId(
     String passportId, {
     String? diverId,
+    EquipmentType? type,
   }) {
     lookups.add(passportId);
-    return super.findEquipmentIdByPassportId(passportId, diverId: diverId);
+    return super.findEquipmentIdByPassportId(
+      passportId,
+      diverId: diverId,
+      type: type,
+    );
   }
 }
 
