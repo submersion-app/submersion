@@ -7,6 +7,7 @@ import 'package:submersion/core/network/proxy/socks5_connector.dart';
 
 import '../../../helpers/fake_socks5_server.dart';
 import '../../../helpers/recording_tcp_server.dart';
+import '../../../helpers/socks5_matchers.dart';
 
 /// A loopback server that answers the SOCKS5 greeting with [greeting], then
 /// the CONNECT with [reply] (when given).
@@ -31,10 +32,6 @@ Future<ServerSocket> scriptedSocks(
 }
 
 void main() {
-  Matcher failsWith(Socks5Failure failure) => throwsA(
-    isA<Socks5Exception>().having((e) => e.failure, 'failure', failure),
-  );
-
   Future<Socks5Tunnel> connect(int port) => connectViaSocks5(
     proxyHost: '127.0.0.1',
     proxyPort: port,
@@ -96,7 +93,7 @@ void main() {
     addTearDown(server.close);
     await expectLater(
       connect(server.port),
-      failsWith(Socks5Failure.protocolError),
+      throwsSocks5(Socks5Failure.protocolError),
     );
   });
 
@@ -105,7 +102,7 @@ void main() {
     addTearDown(server.close);
     await expectLater(
       connect(server.port),
-      failsWith(Socks5Failure.protocolError),
+      throwsSocks5(Socks5Failure.protocolError),
     );
   });
 
@@ -114,7 +111,7 @@ void main() {
     addTearDown(server.close);
     await expectLater(
       connect(server.port),
-      failsWith(Socks5Failure.protocolError),
+      throwsSocks5(Socks5Failure.protocolError),
     );
   });
 
@@ -123,7 +120,7 @@ void main() {
     addTearDown(server.close);
     await expectLater(
       connect(server.port),
-      failsWith(Socks5Failure.protocolError),
+      throwsSocks5(Socks5Failure.protocolError),
     );
   });
 
@@ -132,7 +129,7 @@ void main() {
     addTearDown(server.close);
     await expectLater(
       connect(server.port),
-      failsWith(Socks5Failure.protocolError),
+      throwsSocks5(Socks5Failure.protocolError),
     );
   });
 
@@ -157,7 +154,7 @@ void main() {
     addTearDown(server.close);
     await expectLater(
       connect(server.port),
-      failsWith(Socks5Failure.protocolError),
+      throwsSocks5(Socks5Failure.protocolError),
     );
   });
 

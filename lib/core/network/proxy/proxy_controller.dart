@@ -49,6 +49,7 @@ class ProxyController {
 
   ProxySettingsStore? _store;
   String? _password;
+  bool _passwordLoaded = false;
   int _generation = 0;
   var _state = const ProxyControllerState(
     settings: ProxySettings.defaults,
@@ -74,7 +75,6 @@ class ProxyController {
   }) async {
     _store = store;
     final settings = store.load();
-    _password = await _loadPassword(store, settings);
     await _recompute(settings).timeout(
       startupTimeout,
       onTimeout: () {
@@ -97,6 +97,7 @@ class ProxyController {
     }
     if (updatePassword) {
       _password = password == null || password.isEmpty ? null : password;
+      _passwordLoaded = true;
     }
     await _recompute(settings);
   }
@@ -108,8 +109,6 @@ class ProxyController {
     ProxySettingsStore store,
     ProxySettings settings,
   ) async {
-    // Loaded whatever the mode: switching back to Manual later must not
-    // send the saved proxy without its password.
     if (settings.username.isEmpty) return null;
     try {
       return await store.loadPassword();
@@ -121,6 +120,17 @@ class ProxyController {
 
   Future<void> _recompute(ProxySettings settings) async {
     final generation = ++_generation;
+    // The keychain is read the first time Manual applies, not at startup:
+    // System and No proxy never use the password, and the read would sit
+    // before the first frame.
+    final store = _store;
+    if (settings.mode == ProxyMode.manual &&
+        !_passwordLoaded &&
+        store != null) {
+      _password = await _loadPassword(store, settings);
+      _passwordLoaded = true;
+      if (generation != _generation) return;
+    }
     if (settings.mode != ProxyMode.system) {
       _apply(settings, _state.system, detecting: false);
       return;

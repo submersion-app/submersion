@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/network/proxy/effective_proxy.dart';
@@ -21,6 +22,25 @@ class _Resolver implements SystemProxyResolver {
     final c = Completer<SystemProxyResult>();
     answers.add(c);
     return c.future;
+  }
+}
+
+/// A keychain whose reads wait until the test releases them.
+class _SlowKeychain extends InMemoryKeychain {
+  final release = Completer<void>();
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    await release.future;
+    return super.read(key: key);
   }
 }
 
@@ -177,10 +197,43 @@ void main() {
     final c = ProxyController(resolver: _Resolver());
     addTearDown(c.dispose);
     await c.initialize(store);
-    expect(c.manualPassword, 'pw');
+    // Not read at startup: No proxy never uses it.
+    expect(c.manualPassword, isNull);
     await c.saveSettings(c.state.settings.copyWith(mode: ProxyMode.manual));
+    expect(c.manualPassword, 'pw');
     expect(c.current.username, 'ann');
     expect(c.current.password, 'pw');
+  });
+
+  test('a password read still pending never overrides a newer '
+      'choice', () async {
+    SharedPreferences.setMockInitialValues({});
+    final keychain = _SlowKeychain();
+    final slowStore = ProxySettingsStore(
+      await SharedPreferences.getInstance(),
+      storage: keychain,
+    );
+    await slowStore.save(
+      const ProxySettings(
+        mode: ProxyMode.none,
+        type: ProxyType.http,
+        host: 'm',
+        port: 3128,
+        username: 'ann',
+      ),
+    );
+    final c = ProxyController(resolver: _Resolver());
+    addTearDown(c.dispose);
+    await c.initialize(slowStore);
+    final toManual = c.saveSettings(
+      c.state.settings.copyWith(mode: ProxyMode.manual),
+    );
+    await pumpEventQueue();
+    await c.saveSettings(c.state.settings.copyWith(mode: ProxyMode.none));
+    keychain.release.complete();
+    await toManual;
+    expect(c.state.settings.mode, ProxyMode.none);
+    expect(c.current.isDirect, isTrue);
   });
 
   test('a resolver that throws leaves the app direct', () async {

@@ -6,6 +6,7 @@ import 'package:submersion/core/network/proxy/socks5_connector.dart';
 
 import '../../../helpers/fake_socks5_server.dart';
 import '../../../helpers/recording_tcp_server.dart';
+import '../../../helpers/socks5_matchers.dart';
 
 void main() {
   late RecordingTcpServer target;
@@ -22,10 +23,6 @@ void main() {
     s.destroy();
     return utf8.decode(reply);
   }
-
-  Matcher failsWith(Socks5Failure failure) => throwsA(
-    isA<Socks5Exception>().having((e) => e.failure, 'failure', failure),
-  );
 
   test('no-auth CONNECT by hostname tunnels bytes', () async {
     final socks = await FakeSocks5Server.start();
@@ -95,7 +92,7 @@ void main() {
         username: 'ann',
         password: 'wrong',
       ),
-      failsWith(Socks5Failure.authRejected),
+      throwsSocks5(Socks5Failure.authRejected),
     );
   });
 
@@ -110,7 +107,7 @@ void main() {
         targetHost: 'x.test',
         targetPort: target.port,
       ),
-      failsWith(Socks5Failure.noAcceptableAuth),
+      throwsSocks5(Socks5Failure.noAcceptableAuth),
     );
   });
 
@@ -135,7 +132,7 @@ void main() {
           targetHost: 'x.test',
           targetPort: 1,
         ),
-        failsWith(entry.value),
+        throwsSocks5(entry.value),
         reason: 'reply ${entry.key}',
       );
       await socks.close();
@@ -153,7 +150,7 @@ void main() {
         targetHost: 'x.test',
         targetPort: 1,
       ),
-      failsWith(Socks5Failure.proxyUnreachable),
+      throwsSocks5(Socks5Failure.proxyUnreachable),
     );
   });
 
@@ -165,7 +162,7 @@ void main() {
         targetHost: 'a' * 256,
         targetPort: 1,
       ),
-      failsWith(Socks5Failure.hostnameTooLong),
+      throwsSocks5(Socks5Failure.hostnameTooLong),
     );
   });
 
@@ -187,7 +184,7 @@ void main() {
         targetPort: 1,
         handshakeTimeout: const Duration(milliseconds: 100),
       ),
-      failsWith(Socks5Failure.handshakeTimeout),
+      throwsSocks5(Socks5Failure.handshakeTimeout),
     );
   });
 
