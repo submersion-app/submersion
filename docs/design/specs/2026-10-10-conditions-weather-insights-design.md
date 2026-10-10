@@ -124,7 +124,9 @@ Under `lib/features/insights/domain/conditions/`:
   Insights filter, with the same keep-alive expiry as the sibling providers.
 - `conditionsStatsProvider`: watches `conditionsRowsProvider` and the unit
   settings only, so a unit change re-bins without re-querying.
-- Each card watches `conditionsStatsProvider.select(...)` for its slice.
+- Each new group watches `conditionsStatsProvider`. Per-card `select`s
+  would save nothing: the stats only change when the rows or the units do,
+  and then every slice changes with them.
 - `TrendChartIds.airTemp` is added for the air temperature trend's settings.
 
 ### Presentation
@@ -147,9 +149,20 @@ coverage line and the semantic labels.
 
 ### Errors and loading
 
-The new cards share one query. While it loads, each new group shows one
-spinner; if it fails, each new group shows one error card rather than one per
-chart. Existing cards keep their own providers, loading and error states.
+The new cards share one query. While it loads, Surface & weather and Water
+movement each show one spinner; if it fails, each shows one error card rather
+than one per chart. The new altitude and exit method cards sit in Site &
+access, whose header always shows for the existing cards, so they render
+nothing while loading or on failure: the two groups above already report the
+shared query's state. Existing cards keep their own providers, loading and
+error states.
+
+## Follow-up: water temperature rate in Fahrenheit
+
+The existing water temperature trend formats its fitted per-year rate with
+`formatTemperature`, which adds the 32-degree offset in Fahrenheit (0.1 °C a
+year reads as about 32.2 °F). A rate is a difference, so it switches to
+`formatTemperatureDelta`, which the new air temperature trend uses too.
 
 ## Testing
 
