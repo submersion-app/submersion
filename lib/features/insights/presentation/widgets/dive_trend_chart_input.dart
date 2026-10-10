@@ -35,7 +35,8 @@ class TrendChartInputLayer extends StatefulWidget {
   final Widget child;
 
   /// Fires once a navigation settles: pointer up after a pan or pinch, the
-  /// end of a trackpad gesture, and each wheel or arrow-key step.
+  /// end of a trackpad gesture, and each wheel or arrow-key step. Not called
+  /// when the viewport did not change.
   final VoidCallback? onNavigationEnd;
 
   @override

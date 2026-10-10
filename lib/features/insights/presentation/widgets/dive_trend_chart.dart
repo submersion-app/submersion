@@ -93,8 +93,9 @@ class DiveTrendChart extends StatefulWidget {
   final TrendRange range;
 
   /// Called with the window the diver navigated to: [TrendRange.all] when
-  /// unzoomed, otherwise a custom range of the visible dates. Null when the
-  /// caller does not keep the window.
+  /// unzoomed, otherwise a custom range of the visible dates. Not called when
+  /// a navigation ends on the window already shown. Null when the caller does
+  /// not keep the window.
   final ValueChanged<TrendRange>? onRangeChanged;
 
   final TrendAggregation aggregation;
