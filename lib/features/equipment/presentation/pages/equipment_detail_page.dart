@@ -426,7 +426,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
   }
 
   /// Open in Connections is for everyone who can see the item, a sharee
-  /// included: shared gear sits on their own dives. Delete needs the owner.
+  /// included: shared gear sits on their own dives. So is Clone (#3184): the
+  /// clone is the viewer's own item. Delete needs the owner.
   List<PopupMenuEntry<String>> _buildMenuItems(
     BuildContext context, {
     required bool canDelete,
@@ -434,6 +435,14 @@ class _EquipmentDetailContent extends ConsumerWidget {
   }) {
     return [
       openInConnectionsMenuItem(context),
+      PopupMenuItem(
+        value: 'clone',
+        child: ListTile(
+          leading: const Icon(Icons.copy),
+          title: Text(context.l10n.equipment_menu_clone),
+          contentPadding: EdgeInsets.zero,
+        ),
+      ),
       if (canTransfer)
         PopupMenuItem(
           value: 'transfer',
@@ -1028,6 +1037,8 @@ class _EquipmentDetailContent extends ConsumerWidget {
           context,
           NodeRef(ConnectionKind.equipment, equipmentId),
         );
+      case 'clone':
+        context.push('/equipment/new?cloneFrom=$equipmentId');
       case 'transfer':
         final activeDiverId = await ref.read(
           validatedCurrentDiverIdProvider.future,
