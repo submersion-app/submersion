@@ -1423,11 +1423,13 @@ class PlanEngine {
       // mix.
       double? ppO2Override,
       // The depth ppO2/END are computed at, when it differs from the row's
-      // own displayed [depth]. A CCR travel row determines its gas identity
-      // and loop state at the leg's deeper end (the same conservative
-      // approximation open-circuit legs make) but displays the shallower
-      // arrival depth, so the physics must use the depth that determination
-      // actually came from.
+      // own displayed [depth]. A travel row -- OC or CCR -- determines its
+      // gas at the leg's deeper end (ascentPlan.gasForDepth(from)) but
+      // displays the shallower arrival depth, so the physics must use the
+      // depth that determination actually came from: the leg's maximum
+      // ppO2 and END on that gas, which is what a diver checks a travel
+      // line for. The bailout table (BailoutSolver._scheduleRowsFor) follows
+      // the same convention so the two tables read alike.
       double? physicsDepth,
     }) {
       final lastFO2 = previousFO2;
@@ -1514,7 +1516,7 @@ class PlanEngine {
         fO2: fO2,
         fHe: fHe,
         tankId: _tankForGas(plan.tanks, fO2, fHe, isCcr: isCcr),
-        physicsDepth: isCcr ? from : null,
+        physicsDepth: from,
         ppO2Override: ccrPpO2At(from),
       );
     }

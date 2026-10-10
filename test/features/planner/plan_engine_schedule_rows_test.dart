@@ -125,6 +125,24 @@ void main() {
       }
     });
 
+    test('a travel row reads PO2/END at the leg\'s deeper end, where its gas '
+        'was chosen, not at the arrival depth it displays', () {
+      // Travel to the first stop leaves the 50 m bottom on the bottom gas:
+      // same gas, same depth as the bottom row, so the same PO2 and END.
+      final bottom = rows[1];
+      final travel = rows[2];
+      expect(travel.kind, PlanScheduleRowKind.ascent);
+      expect(travel.gasFO2, closeTo(bottom.gasFO2, 1e-9));
+      expect(travel.ppO2, closeTo(bottom.ppO2, 1e-9));
+      expect(travel.endMeters, closeTo(bottom.endMeters, 1e-9));
+      // The surfacing row leaves the last stop on the last stop's gas.
+      final lastStop = rows[rows.length - 2];
+      final surfacing = rows.last;
+      expect(surfacing.kind, PlanScheduleRowKind.ascent);
+      expect(surfacing.gasFO2, closeTo(lastStop.gasFO2, 1e-9));
+      expect(surfacing.ppO2, closeTo(lastStop.ppO2, 1e-9));
+    });
+
     test('every stop ends on a whole minute', () {
       for (final row in rows.where((r) => r.kind == PlanScheduleRowKind.stop)) {
         expect(row.runtimeSeconds % 60, 0, reason: '${row.depthMeters} m');

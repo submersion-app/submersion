@@ -444,6 +444,11 @@ class BailoutSolver {
       required int runtime,
       required double fO2,
       required double fHe,
+      // Same convention as PlanEngine._buildSchedule: a travel row picks
+      // its gas at the leg's deeper end but displays the arrival depth, so
+      // ppO2/END are computed where the gas was chosen -- the leg's maximum
+      // on that gas -- and the two tables read alike.
+      double? physicsDepth,
     }) {
       final lastFO2 = previousFO2;
       final lastFHe = previousFHe;
@@ -452,6 +457,7 @@ class BailoutSolver {
           lastFHe == null ||
           (fO2 - lastFO2).abs() > 0.0005 ||
           (fHe - lastFHe).abs() > 0.0005;
+      final pDepth = physicsDepth ?? depth;
       rows.add(
         PlanScheduleRow(
           kind: kind,
@@ -462,14 +468,14 @@ class BailoutSolver {
           gasFHe: fHe,
           tankId: tankForGas(fO2, fHe),
           gasSwitch: switched,
-          ppO2: environment.pressureAtDepth(depth) * fO2,
+          ppO2: environment.pressureAtDepth(pDepth) * fO2,
           // Floored at 0 m, same as PlanEngine's END column.
           endMeters: math.max(
             0.0,
             GasMix(
               o2: fO2 * 100,
               he: fHe * 100,
-            ).end(depth, o2Narcotic: config.o2Narcotic),
+            ).end(pDepth, o2Narcotic: config.o2Narcotic),
           ),
         ),
       );
@@ -501,6 +507,7 @@ class BailoutSolver {
           runtime: end + travelSeconds,
           fO2: fO2,
           fHe: gas.fHe,
+          physicsDepth: depth,
         );
         charge(
           tankForGas(fO2, gas.fHe),
@@ -548,6 +555,7 @@ class BailoutSolver {
         runtime: end,
         fO2: fO2,
         fHe: gas.fHe,
+        physicsDepth: depth,
       );
       charge(tankForGas(fO2, gas.fHe), travelSeconds.toDouble(), depth / 2.0);
     }

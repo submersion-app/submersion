@@ -193,6 +193,29 @@ void main() {
       );
     });
 
+    test('a travel row reads PO2/END at the leg\'s deeper end, same as the '
+        'main table', () {
+      final rows = solver.solve(_plan())!.worstCaseRows;
+      final firstOc = rows.indexWhere((r) => r.tankId == 'bo');
+      final travel = rows[firstOc];
+      final firstStop = rows[firstOc + 1];
+      expect(travel.kind, PlanScheduleRowKind.ascent);
+      expect(firstStop.kind, PlanScheduleRowKind.stop);
+      expect(travel.gasFO2, closeTo(firstStop.gasFO2, 1e-9));
+      // ppO2 / fO2 is the ambient pressure the row was computed at: the
+      // travel row leaves 60 m, so it must be deeper than the stop it
+      // arrives at (which it displays as its own depth).
+      expect(
+        travel.ppO2 / travel.gasFO2,
+        greaterThan(firstStop.ppO2 / firstStop.gasFO2),
+      );
+      // The surfacing row leaves the last stop on the last stop's gas.
+      final lastStop = rows[rows.length - 2];
+      final surfacing = rows.last;
+      expect(surfacing.kind, PlanScheduleRowKind.ascent);
+      expect(surfacing.ppO2, closeTo(lastStop.ppO2, 1e-9));
+    });
+
     test('END is floored at 0 m on every row, same as the main table', () {
       final outcome = solver.solve(_plan())!;
       final rows = outcome.worstCaseRows;
