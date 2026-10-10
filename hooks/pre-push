@@ -421,8 +421,10 @@ fi
 #
 # An oversized value is clamped to OVERRIDE_MAX, which is already more than
 # any pool or importer count, so it keeps its meaning ("every importer", "no
-# hubs"). Left alone, BSD head rejected a count from 2^31 up, which killed the
-# push silently under set -e, and past 2^63 bash arithmetic wrapped instead.
+# hubs"). Left alone, BSD head rejected most counts from 2^31 up (3000000000,
+# for one; it truncates to 32 bits, so a few huge values slip through by luck),
+# which killed the push silently under set -e, and past 2^63 bash arithmetic
+# wrapped the value instead.
 # The digits are compared as a string, before any arithmetic can wrap them.
 OVERRIDE_MAX=999999
 sanitized_override() {

@@ -610,7 +610,7 @@ else
         "selected $selected_l10n of 60"
 fi
 
-# From 2^31 up, BSD head rejected the line count and set -e ended the push
+# BSD head rejected most line counts from 2^31 up and set -e ended the push
 # silently. An oversized sample now means every importer.
 run_hook "$tmp" L10N_SAMPLE=3000000000
 selected_l10n="$(printf '%s\n' "$hook_output" | grep -c 'test/features/gamma/l10n_' || true)"
@@ -962,7 +962,7 @@ assert_selected has 'test/features/zeta/small_helper_user_test.dart' \
 git -C "$tmp/wt" checkout -q -- test/features/zeta/small_helper_user_test.dart
 
 # An oversized knob means "more than any pool": run every importer. BSD head
-# rejects a line count from 2^31 up, and inside the hook's $(...) under set -e
+# rejects most line counts from 2^31 up, and inside the hook's $(...) under set -e
 # that killed the push with no message; past 2^63 bash arithmetic wrapped the
 # value instead. Both are clamped before they reach head.
 for big in 3000000000 99999999999999999999; do
