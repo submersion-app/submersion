@@ -90,6 +90,21 @@ void main() {
       );
     });
 
+    testWidgets('shows Network between Manage and Notifications', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(await buildWidget(debugEnabled: false));
+      await tester.pumpAndSettle();
+      expect(find.text('Network'), findsOneWidget);
+      expect(find.text('Proxy server'), findsOneWidget);
+      final manage = tester.getTopLeft(find.text('Manage')).dy;
+      final network = tester.getTopLeft(find.text('Network')).dy;
+      final notifications = tester.getTopLeft(find.text('Notifications')).dy;
+      expect(manage < network && network < notifications, isTrue);
+    });
+
     testWidgets('shows Debug section when debug mode is enabled', (
       tester,
     ) async {

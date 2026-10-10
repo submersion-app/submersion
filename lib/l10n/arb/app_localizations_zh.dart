@@ -23071,6 +23071,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_section_manage_title => '管理';
 
   @override
+  String get settings_section_network_subtitle => 'Proxy server';
+
+  @override
+  String get settings_section_network_title => 'Network';
+
+  @override
   String get settings_section_notifications_subtitle => '维护提醒';
 
   @override

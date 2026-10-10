@@ -39404,6 +39404,18 @@ abstract class AppLocalizations {
   /// **'Manage'**
   String get settings_section_manage_title;
 
+  /// No description provided for @settings_section_network_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy server'**
+  String get settings_section_network_subtitle;
+
+  /// No description provided for @settings_section_network_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get settings_section_network_title;
+
   /// No description provided for @settings_section_notifications_subtitle.
   ///
   /// In en, this message translates to:

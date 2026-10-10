@@ -23803,6 +23803,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_section_manage_title => 'ניהול';
 
   @override
+  String get settings_section_network_subtitle => 'Proxy server';
+
+  @override
+  String get settings_section_network_title => 'Network';
+
+  @override
   String get settings_section_notifications_subtitle => 'תזכורות תחזוקה';
 
   @override

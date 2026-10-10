@@ -24433,6 +24433,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_section_manage_title => 'Gestisci';
 
   @override
+  String get settings_section_network_subtitle => 'Proxy server';
+
+  @override
+  String get settings_section_network_title => 'Network';
+
+  @override
   String get settings_section_notifications_subtitle =>
       'Promemoria manutenzione';
 

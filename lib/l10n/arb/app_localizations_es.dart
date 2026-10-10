@@ -24434,6 +24434,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_section_manage_title => 'Administrar';
 
   @override
+  String get settings_section_network_subtitle => 'Proxy server';
+
+  @override
+  String get settings_section_network_title => 'Network';
+
+  @override
   String get settings_section_notifications_subtitle =>
       'Recordatorios de servicio';
 

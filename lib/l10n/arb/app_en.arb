@@ -14090,6 +14090,8 @@
   "settings_section_diverProfile_title": "Diver Profile",
   "settings_section_manage_subtitle": "Dive types & tank presets",
   "settings_section_manage_title": "Manage",
+  "settings_section_network_subtitle": "Proxy server",
+  "settings_section_network_title": "Network",
   "settings_section_notifications_subtitle": "Service reminders",
   "settings_section_notifications_title": "Notifications",
   "settings_section_units_subtitle": "Measurement preferences",

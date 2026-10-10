@@ -93,6 +93,12 @@ const settingsSections = [
     subtitle: 'Dive types & tank presets',
   ),
   SettingsSection(
+    id: 'network',
+    icon: Icons.lan_outlined,
+    title: 'Network',
+    subtitle: 'Proxy server',
+  ),
+  SettingsSection(
     id: 'notifications',
     icon: Icons.notifications_outlined,
     title: 'Notifications',
@@ -297,6 +303,8 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_section_decompression_title;
       case 'appearance':
         return context.l10n.settings_section_appearance_title;
+      case 'network':
+        return context.l10n.settings_section_network_title;
       case 'notifications':
         return context.l10n.settings_section_notifications_title;
       case 'manage':
@@ -330,6 +338,8 @@ class _SettingsSectionTile extends StatelessWidget {
         return context.l10n.settings_section_decompression_subtitle;
       case 'appearance':
         return context.l10n.settings_section_appearance_subtitle;
+      case 'network':
+        return context.l10n.settings_section_network_subtitle;
       case 'notifications':
         return context.l10n.settings_section_notifications_subtitle;
       case 'manage':
