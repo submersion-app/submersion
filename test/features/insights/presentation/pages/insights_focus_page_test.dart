@@ -43,6 +43,7 @@ void main() {
     List<TrendDataPoint>? series,
     FocusSelection selection = const FocusSelection(),
     List<String>? pushed,
+    List<Override> extraOverrides = const [],
   }) async {
     final overrides = await getBaseOverrides();
     final router = GoRouter(
@@ -71,6 +72,7 @@ void main() {
               (ref) async => m == FocusMetric.rmv ? (series ?? rmv) : const [],
             ),
           focusFactorRowsProvider.overrideWith((ref) async => rows),
+          ...extraOverrides,
         ],
         child: MaterialApp.router(
           locale: const Locale('en'),
@@ -119,6 +121,48 @@ void main() {
     );
     expect(find.textContaining('No dives above'), findsOneWidget);
     expect(find.textContaining('Your dives range from'), findsOneWidget);
+  });
+
+  testWidgets('a below threshold with no match shows the range', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      selection: const FocusSelection(mode: FocusMode.below, threshold: 1),
+    );
+    expect(find.textContaining('No dives below'), findsOneWidget);
+  });
+
+  testWidgets('a failed group load shows the error state', (tester) async {
+    await pump(
+      tester,
+      extraOverrides: [
+        focusGroupProvider.overrideWith((ref) async => throw StateError('x')),
+      ],
+    );
+    expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    expect(find.text('Failed to load dive focus'), findsOneWidget);
+  });
+
+  testWidgets('a failed factor report says so in the factors card', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      extraOverrides: [
+        focusFactorReportProvider.overrideWith(
+          (ref) async => throw StateError('x'),
+        ),
+      ],
+    );
+    await tester.scrollUntilVisible(
+      find.text('Common factors'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Failed to load dive focus'), findsOneWidget);
+    // The rest of the results stay up.
+    expect(find.byType(DiveTrendChart, skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('a threshold mode with no value asks for one', (tester) async {
