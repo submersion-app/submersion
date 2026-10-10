@@ -244,6 +244,29 @@ void main() {
     );
   });
 
+  testWidgets('a long device label ellipsizes rather than overflowing '
+      '(#3191)', (tester) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final long = primaryComputer.copyWith(
+      brand: 'Shearwater Research Incorporated',
+      model: 'Perdix 2 Titanium Limited Edition',
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: primaryComputer.id,
+          key: EquipmentAttrKeys.identifier,
+          valueText: 'Blue left wrist primary',
+        ),
+      ],
+    );
+    await pumpSheet(tester, gear: [long, backupComputer]);
+    await chooseComputerCheck(tester);
+
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('ID Blue', findRichText: true), findsOneWidget);
+  });
+
   testWidgets('a remembered device now on the wishlist is not pre-filled '
       '(#2025)', (tester) async {
     // The template remembers g1, which the diver has since set to Wanted.

@@ -183,6 +183,9 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
     final labels = equipmentRowLabelsOf(context, ref, listed);
     return DropdownButtonFormField<EquipmentItem?>(
       initialValue: chosen,
+      // Bounds the label's width, so a long name and details ellipsize
+      // instead of overflowing the sheet.
+      isExpanded: true,
       decoration: InputDecoration(labelText: item.title),
       items: [
         DropdownMenuItem<EquipmentItem?>(
