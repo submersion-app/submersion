@@ -151,27 +151,17 @@ class PlanResultsSheet extends ConsumerWidget {
     final resolvedRoles = const TankRoleResolver().rolesFor(
       divePlanFromState(state),
     );
-    // On a loop plan, only the diluent's own consumption belongs here: the
-    // bailout gases live in the bailout section's own picture instead
-    // (#3137 follow-up), and the oxygen supply's metabolic-rate estimate is
-    // a model output, not a gas the diver actually tracks the same way --
-    // showing it here read as a fictional, automatically invented reading
-    // next to the diluent's real one. Open circuit has no such distinction,
-    // so every tank it resolves to still shows.
+    // On a loop plan this list is what the loop consumes: the diluent(s)
+    // and the oxygen supply, the plan's two mandatory slots (#3220). The
+    // bailout cylinders carry no loop consumption and live in the bailout
+    // section's own picture instead (#3137 follow-up). Open circuit has no
+    // such distinction, so every tank it resolves to still shows.
     final loopTankUsages = outcome.tankUsages.where((u) {
       final role = resolvedRoles[u.tankId];
-      return state.mode == PlanMode.oc || role == TankRole.diluent;
+      return state.mode == PlanMode.oc ||
+          role == TankRole.diluent ||
+          role == TankRole.oxygenSupply;
     });
-    // The oxygen supply is not a diluent gas either, so it does not belong
-    // in the list above -- but it is also not one of BailoutSolver's own
-    // bailout tanks (mixing it into the OC bailout gas plan would be
-    // wrong), so it rides along in the bailout section's own list instead
-    // of being dropped entirely.
-    final oxygenSupplyUsages = state.mode == PlanMode.oc
-        ? const <PlanTankUsage>[]
-        : outcome.tankUsages
-              .where((u) => resolvedRoles[u.tankId] == TankRole.oxygenSupply)
-              .toList();
 
     return ListView(
       controller: controller,
@@ -196,12 +186,7 @@ class PlanResultsSheet extends ConsumerWidget {
         if (bailout != null) ...[
           const SizedBox(height: 20),
           PlanSectionHeader(context.l10n.plannerCanvas_bailout_title),
-          _BailoutSection(
-            outcome: bailout,
-            units: units,
-            extraUsages: oxygenSupplyUsages,
-            extraLabel: tankLabel,
-          ),
+          _BailoutSection(outcome: bailout, units: units),
         ],
         ...?_contingencySections(context, ref, units),
         if (ref.watch(planRangeTableProvider) != null) ...[
@@ -800,23 +785,10 @@ class _IssueRow extends StatelessWidget {
 }
 
 class _BailoutSection extends StatelessWidget {
-  const _BailoutSection({
-    required this.outcome,
-    required this.units,
-    this.extraUsages = const [],
-    this.extraLabel,
-  });
+  const _BailoutSection({required this.outcome, required this.units});
 
   final BailoutOutcome outcome;
   final UnitFormatter units;
-
-  /// Non-diluent, non-bailout cylinders that still belong in this picture
-  /// -- the oxygen supply, which is neither a diluent gas (so it does not
-  /// belong in the main gas-consumption list) nor one of BailoutSolver's
-  /// own OC bailout tanks (so it is not in [outcome.bailoutTankUsages]
-  /// either).
-  final List<PlanTankUsage> extraUsages;
-  final String Function(String?)? extraLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -881,7 +853,7 @@ class _BailoutSection extends StatelessWidget {
               ],
             ),
           ),
-        if (outcome.bailoutTankUsages.isNotEmpty || extraUsages.isNotEmpty) ...[
+        if (outcome.bailoutTankUsages.isNotEmpty) ...[
           const SizedBox(height: 10),
           for (final usage in outcome.bailoutTankUsages)
             _GasRow(
@@ -892,12 +864,6 @@ class _BailoutSection extends StatelessWidget {
                     .firstOrNull;
                 return tank == null ? '--' : (tank.name ?? tank.gasMix.name);
               }(),
-              units: units,
-            ),
-          for (final usage in extraUsages)
-            _GasRow(
-              usage: usage,
-              label: extraLabel?.call(usage.tankId) ?? '--',
               units: units,
             ),
         ],

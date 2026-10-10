@@ -123,12 +123,13 @@ void main() {
     expect(find.textContaining(RegExp(r'Required \d+ L')), findsOneWidget);
     // The bailout tank carries no normal-loop consumption to chart in the
     // per-tank gas list -- it belongs in the bailout section instead (#3137
-    // follow-up). Only the diluent gets a "used: ..." row there.
-    expect(find.textContaining('used:'), findsOneWidget);
+    // follow-up). The two loop slots -- the diluent and the oxygen supply
+    // entering CCR added -- each get a "used: ..." row there (#3220).
+    expect(find.textContaining('used:'), findsNWidgets(2));
   });
 
-  testWidgets('the O2 supply is not diluent either, so it rides along in the '
-      'bailout section, not the main gas list', (tester) async {
+  testWidgets('the oxygen slot is loop consumption, listed in the main gas '
+      'list next to the diluent (#3220)', (tester) async {
     tester.view.physicalSize = const Size(500, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -158,18 +159,20 @@ void main() {
         role: TankRole.bailout,
       ),
     );
-    notifier.addTank(
-      const DiveTank(
-        id: 'o2',
-        name: 'O2 supply',
-        volume: 3.0,
-        startPressure: 200,
-        gasMix: GasMix(o2: 100),
-      ),
-    );
+    final o2 = container
+        .read(divePlanNotifierProvider)
+        .tanks
+        .firstWhere((t) => t.role == TankRole.oxygenSupply);
+    notifier.updateTank(o2.id, o2.copyWith(name: 'Onboard O2'));
     await tester.pumpAndSettle();
 
-    expect(find.text('O2 supply'), findsOneWidget);
+    expect(find.text('Onboard O2'), findsOneWidget);
+    final gasList = find.ancestor(
+      of: find.text('Onboard O2'),
+      matching: find.byType(ListView),
+    );
+    expect(gasList, findsOneWidget);
+    expect(find.textContaining('used:'), findsNWidgets(2));
   });
 
   testWidgets('CCR settings edit all setpoints; switch depth accepts 0', (
