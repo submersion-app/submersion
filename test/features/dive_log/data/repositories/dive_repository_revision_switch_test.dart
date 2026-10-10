@@ -159,6 +159,26 @@ void main() {
     expect(await primarySources(), {'src-1'});
   });
 
+  test('switching to a series of another row of the primary computer leaves '
+      'the data sources alone', () async {
+    // A combined dive keeps one row per segment; rows of one computer share
+    // a strand, so the primary row already speaks for the sibling.
+    await source('src-1b', 'comp-1', model: 'Perdix');
+    final sibling = await series.insertSeries(
+      diveId: 'dive-1',
+      computerId: 'comp-1',
+      sourceId: 'src-1b',
+      isPrimary: false,
+      samples: const [ProfileSample(timestamp: 0, depth: 7.0)],
+      now: 1000,
+    );
+
+    await dives.setActiveProfileSeries('dive-1', sibling);
+
+    expect(await primarySeries(), contains(sibling));
+    expect(await primarySources(), {'src-1'});
+  });
+
   test(
     'switching to a series no source owns leaves the data sources alone',
     () async {
