@@ -1233,15 +1233,27 @@ class DiveRepository {
     final seenStrands = <String>{};
     final result = <DiveDataSourcesData>[];
     for (final row in rows) {
-      final strand = dataSourceStrandKey(
-        rowId: row.id,
-        computerId: row.computerId,
-        mergeSourceSlot: row.mergeSourceSlot,
-      );
-      if (seenStrands.add(strand)) result.add(row);
+      if (seenStrands.add(_strandOf(row))) result.add(row);
     }
     return result;
   }
+
+  static String _strandOf(DiveDataSourcesData row) => dataSourceStrandKey(
+    rowId: row.id,
+    computerId: row.computerId,
+    mergeSourceSlot: row.mergeSourceSlot,
+  );
+
+  /// Every source row of [diveId], primary first and then oldest: the order
+  /// [_canonicalDataSourceRows] needs to keep the shown row of each strand.
+  Future<List<DiveDataSourcesData>> _sourceRowsInShownOrder(String diveId) =>
+      (_db.select(_db.diveDataSources)
+            ..where((t) => t.diveId.equals(diveId))
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.isPrimary),
+              (t) => OrderingTerm.asc(t.createdAt),
+            ]))
+          .get();
 
   /// Get profile samples grouped by owning data source.
   ///
@@ -1437,24 +1449,11 @@ class DiveRepository {
   /// shown sources finds the right one (issue #3067).
   Future<List<ProfileSeriesRevision>> getProfileHistory(String diveId) async {
     final revisions = await _profileSeries.getRevisionsForDive(diveId);
-    final rows =
-        await (_db.select(_db.diveDataSources)
-              ..where((t) => t.diveId.equals(diveId))
-              ..orderBy([
-                (t) => OrderingTerm.desc(t.isPrimary),
-                (t) => OrderingTerm.asc(t.createdAt),
-              ]))
-            .get();
     final shownIdByStrand = <String, String>{};
-    final shownIdByRow = <String, String>{};
-    for (final row in rows) {
-      final strand = dataSourceStrandKey(
-        rowId: row.id,
-        computerId: row.computerId,
-        mergeSourceSlot: row.mergeSourceSlot,
-      );
-      shownIdByRow[row.id] = shownIdByStrand.putIfAbsent(strand, () => row.id);
-    }
+    final shownIdByRow = <String, String>{
+      for (final row in await _sourceRowsInShownOrder(diveId))
+        row.id: shownIdByStrand.putIfAbsent(_strandOf(row), () => row.id),
+    };
     return [
       for (final revision in revisions)
         switch (shownIdByRow[revision.sourceId]) {
@@ -1507,28 +1506,16 @@ class DiveRepository {
               ..where((t) => t.id.equals(seriesId) & t.diveId.equals(diveId)))
             .getSingleOrNull();
     if (series == null) return null;
-    final rows =
-        await (_db.select(_db.diveDataSources)
-              ..where((t) => t.diveId.equals(diveId))
-              ..orderBy([
-                (t) => OrderingTerm.desc(t.isPrimary),
-                (t) => OrderingTerm.asc(t.createdAt),
-              ]))
-            .get();
+    final rows = await _sourceRowsInShownOrder(diveId);
     final owner = owningDataSource(
       sourceId: series.sourceId,
       computerId: series.computerId,
       sources: [for (final row in rows) _mapRowToDataSource(row)],
     );
     if (owner == null || owner.isPrimary) return null;
-    String strandOf(DiveDataSourcesData row) => dataSourceStrandKey(
-      rowId: row.id,
-      computerId: row.computerId,
-      mergeSourceSlot: row.mergeSourceSlot,
-    );
     final ownerRow = rows.firstWhere((row) => row.id == owner.id);
     final primaryRow = rows.where((row) => row.isPrimary).firstOrNull;
-    if (primaryRow != null && strandOf(primaryRow) == strandOf(ownerRow)) {
+    if (primaryRow != null && _strandOf(primaryRow) == _strandOf(ownerRow)) {
       return null;
     }
     return ownerRow;
