@@ -3317,20 +3317,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           );
     if (!mounted) return;
 
-    String? sourceId;
-    var promotes = false;
+    // A single source needs no naming: the dive's profile is its own. With
+    // more, name the source even when it is the primary, since the dive's
+    // profile interleaves every source. Saving an edit of another source
+    // makes it primary.
+    DiveDataSource? chosen;
     if (startable.length > 1) {
-      final selected = await showModalBottomSheet<DiveDataSource>(
+      chosen = await showModalBottomSheet<DiveDataSource>(
         context: context,
         builder: (context) => ComputerSourceSelectionSheet(readings: startable),
       );
-      if (selected == null || !mounted) return;
-      // Name the choice even when it is the primary: without a source the
-      // editor starts from the dive's profile, which interleaves every
-      // source. Saving an edit of another source makes it primary.
-      sourceId = selected.id;
-      promotes = !selected.isPrimary;
+      if (chosen == null || !mounted) return;
+    } else if (sources.length > 1 && startable.length == 1) {
+      // Only one source has samples, and it may not be the primary: the
+      // edit is that source's, not the sample-less primary's.
+      chosen = startable.single;
     }
+    final sourceId = chosen?.id;
+    final promotes = chosen != null && !chosen.isPrimary;
 
     final saved = await context.pushNamed<bool>(
       'editProfile',

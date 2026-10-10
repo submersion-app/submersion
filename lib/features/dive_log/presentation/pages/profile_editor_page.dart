@@ -45,10 +45,6 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
   _editorProvider;
   List<DiveProfilePoint>? _lastProfile;
 
-  /// Whether [ProfileEditorPage.sourceId] names a source other than the
-  /// primary, whose revision history the app bar selector shows.
-  bool _editsOtherSource = false;
-
   void _initializeProvider(List<DiveProfilePoint> profile) {
     final previous = _lastProfile;
     if (previous != null) {
@@ -215,8 +211,6 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
       ),
       data: (profiles) {
         final points = profiles[sourceId]?.points ?? const [];
-        // Sources are keyed primary first.
-        _editsOtherSource = profiles.keys.firstOrNull != sourceId;
         if (points.isEmpty) {
           return Scaffold(
             appBar: AppBar(
@@ -230,12 +224,17 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
 
         _initializeProvider(points);
 
-        return _buildEditor();
+        // Sources are keyed primary first.
+        return _buildEditor(
+          showRevisions: profiles.keys.firstOrNull == sourceId,
+        );
       },
     );
   }
 
-  Widget _buildEditor() {
+  /// [showRevisions] is false while editing a source other than the
+  /// primary, whose revision history the app bar selector shows.
+  Widget _buildEditor({bool showRevisions = true}) {
     final state = ref.watch(_editorProvider);
     final notifier = ref.read(_editorProvider.notifier);
 
@@ -256,7 +255,7 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
               // The revision history is the primary profile's lineage, so
               // switching it would reload a profile other than the source
               // being edited.
-              if (!_editsOtherSource) ...[
+              if (showRevisions) ...[
                 const SizedBox(width: 12),
                 Flexible(
                   child: _buildProfileRevisionControl(
@@ -372,6 +371,8 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
               ref.invalidate(diveProvider(diveId));
               ref.invalidate(diveProfileProvider(diveId));
               ref.invalidate(profileSeriesHistoryProvider(diveId));
+              // An editor started from the primary source reads it here.
+              ref.invalidate(sourceProfilesProvider(diveId));
             } catch (_) {
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(

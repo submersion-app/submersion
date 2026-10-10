@@ -201,4 +201,29 @@ void main() {
     // from the dive's profile, which interleaves both computers.
     expect(editorQuery?['sourceId'], 'src-a');
   });
+
+  testWidgets('a lone source with samples is named even when not primary', (
+    tester,
+  ) async {
+    // The primary carries metadata only; the other source owns every
+    // sample. No sheet is offered, but an edit is still that source's.
+    await (db.delete(
+      db.diveProfileSeries,
+    )..where((t) => t.sourceId.equals('src-a'))).go();
+
+    Map<String, String>? editorQuery;
+    await pumpEditPage(
+      tester,
+      editor: (context, state) {
+        editorQuery = state.uri.queryParameters;
+        return const SizedBox.shrink();
+      },
+    );
+
+    await tester.tap(find.text('Dive profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose starting profile'), findsNothing);
+    expect(editorQuery?['sourceId'], 'src-b');
+  });
 }
