@@ -84,9 +84,22 @@ SuitClassification? classifySuitGear(String? text) {
   final classified = classifySuit(text);
   if (classified != null) return classified;
   final mapped = MacDiveValueMapper.equipmentType(text?.trim());
-  return mapped != null && _layerTypes.contains(mapped)
-      ? (type: mapped, thickness: null)
-      : null;
+  if (mapped == null || !_layerTypes.contains(mapped)) return null;
+  return (
+    type: mapped,
+    thickness: mapped == EquipmentType.vest ? vestThickness(text) : null,
+  );
+}
+
+/// The thickness a vest's name states (#3108), read the way a wetsuit's is:
+/// exactly one token, and none when the text also names another accessory
+/// ("Ice vest, 5mm gloves"), whose thickness it could be.
+String? vestThickness(String? text) {
+  final s = text?.trim().toLowerCase();
+  if (s == null || s.isEmpty) return null;
+  final rest = s.replaceAll(MacDiveValueMapper.vestGarment, ' ');
+  if (_accessory.hasMatch(rest)) return null;
+  return _singleThickness(s);
 }
 
 final RegExp _notASuit = RegExp(

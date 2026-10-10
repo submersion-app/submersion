@@ -81,7 +81,7 @@ void main() {
     test('reads a vest, never the suit it is worn with (#3108)', () {
       expect(typeFromName('7mm ice vest'), (
         type: EquipmentType.vest,
-        thickness: null,
+        thickness: '7mm',
       ));
       expect(typeFromName('Wetsuit hooded vest')?.type, EquipmentType.vest);
     });

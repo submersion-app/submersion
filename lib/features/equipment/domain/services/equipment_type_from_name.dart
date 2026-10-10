@@ -27,7 +27,10 @@ TypeFromName? typeFromName(String name) {
   final suit = classifySuit(name);
   if (suit != null && (readsNothing || _suits.contains(mapped))) return suit;
   if (readsNothing) return null;
-  return (type: mapped, thickness: null);
+  return (
+    type: mapped,
+    thickness: mapped == EquipmentType.vest ? vestThickness(name) : null,
+  );
 }
 
 const _suits = {EquipmentType.wetsuit, EquipmentType.drysuit};
