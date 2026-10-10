@@ -419,6 +419,7 @@ class DiveRepository {
     () => _siteWaterTypeOf(diveId),
   );
 
+  // stats-scope-exempt: reads one dive's site water type for its analysis
   Future<String?> _siteWaterTypeOf(String diveId) async {
     final row = await _db
         .customSelect(
