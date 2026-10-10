@@ -32,6 +32,15 @@ class DivingLogDiveMapper {
     var divesMissingSite = 0;
     final referenceSites = DivingLogReferenceMapper.sites(logbook);
     final referenceBuddies = DivingLogReferenceMapper.buddies(logbook);
+    // A free-text name spelled like a Buddy record in another case is that
+    // record. Registering it under its own spelling would emit a second
+    // buddy whose name differs only in case.
+    final recordNames = {
+      for (final name in referenceBuddies.keys) name.toLowerCase(): name,
+    };
+    List<String> asRecorded(List<String> names) => [
+      for (final name in names) recordNames[name.toLowerCase()] ?? name,
+    ];
     final equipment = DivingLogEquipmentMapper.entities(logbook);
     final trips = DivingLogReferenceMapper.trips(logbook);
     final diveCenters = DivingLogReferenceMapper.diveCenters(logbook);
@@ -111,27 +120,33 @@ class DivingLogDiveMapper {
       // `alice` emits one buddy; a ref spelled the other way would then
       // match nothing in the importer's id map and the dive would lose the
       // link silently.
-      // Ids win. A dive that names its buddies by id must not also emit the
-      // free-text column, or the same person arrives twice under two
-      // spellings and the dive links to only one of them. This is what
-      // turned a Buddy table of 16 people into 68 entries in phase 1.
+      // Ids win for the people they name. A dive that names its buddies by
+      // id must not also emit those same people from the free-text column,
+      // or each arrives twice under two spellings and the dive links to
+      // only one of them. This is what turned a Buddy table of 16 people
+      // into 68 entries in phase 1. A text name that matches no linked
+      // buddy is someone else and is kept (#3110).
       final idBuddyRefs = [
         for (final id in raw.buddyIds)
           if (logbook.buddiesById[id]?.fullName case final String name) name,
       ];
-      // Keyed on whether the dive HAS ids, not on whether they resolved.
-      // Falling back when none resolve would recreate the phase 1
-      // duplicates exactly when the relational data is incomplete.
-      final buddyRefs = raw.buddyIds.isEmpty
-          ? _refs(_names(raw.buddy), buddiesByName)
-          : [
-              ...idBuddyRefs,
-              ..._refs(
-                _unlinkedNames(logbook, raw, idBuddyRefs),
-                buddiesByName,
-              ),
-            ];
-      final guideRefs = _refs(_names(raw.divemaster), buddiesByName);
+      // Each person once, in source order: two ids sharing a name, or a
+      // name repeated in the text, would otherwise link the dive twice.
+      final buddyRefs = {
+        ...idBuddyRefs,
+        ..._refs(
+          asRecorded(
+            raw.buddyIds.isEmpty
+                ? _names(raw.buddy)
+                : _unlinkedNames(logbook, raw, idBuddyRefs),
+          ),
+          buddiesByName,
+        ),
+      }.toList();
+      final guideRefs = _refs(
+        asRecorded(_names(raw.divemaster)),
+        buddiesByName,
+      );
       if (buddyRefs.isNotEmpty) map['buddyRefs'] = buddyRefs;
       if (guideRefs.isNotEmpty) map['diveGuideRefs'] = guideRefs;
 

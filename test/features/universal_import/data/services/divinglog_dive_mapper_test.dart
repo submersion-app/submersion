@@ -660,6 +660,32 @@ void main() {
       expect(messages, contains('1 equipment reference(s)'));
     });
 
+    test('a text name in another case links the Buddy record, once', () {
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(
+            id: 1,
+            diveDate: '2024-06-01',
+            buddy: 'bob jones, Bob Jones',
+            buddyIds: [1],
+          ),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        buddiesById: {
+          1: DivingLogRawBuddy(id: 1, firstName: 'Alice'),
+          2: DivingLogRawBuddy(id: 2, firstName: 'Bob', lastName: 'Jones'),
+        },
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d['buddyRefs'], ['Alice', 'Bob Jones']);
+      final names = payload
+          .entitiesOf(ImportEntityType.buddies)
+          .map((b) => b['name'])
+          .toList();
+      expect(names, unorderedEquals(['Alice', 'Bob Jones']));
+    });
+
     test('an unresolvable BuddyIDs still keeps the text names', () {
       // The id names nobody, so no text name can be its duplicate. Dropping
       // the text here lost every buddy of a dive whose link had dangled
