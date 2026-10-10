@@ -46086,6 +46086,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'Copia de seguridad creada: $size. Solo se guardó en este dispositivo: introduce tu frase de acceso de cifrado para subir las copias de seguridad a la nube.';
+  }
+
+  @override
   String backup_operation_backupFailed(String error) {
     return 'Error en la copia de seguridad: $error';
   }

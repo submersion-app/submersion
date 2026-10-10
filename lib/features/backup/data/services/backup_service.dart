@@ -1489,6 +1489,27 @@ class BackupService {
     return (mlk: key.mlk, libraryKeyId: key.libraryKeyId, keyslotBytes: mirror);
   }
 
+  /// True when cloud backup is on and end-to-end sync encryption is on, but
+  /// this device has not been unlocked yet (no key or keyslot mirror in its
+  /// keychain). Cloud uploads fail closed in that state, so callers use this
+  /// to tell the user why a backup stayed on the device (issue #3089).
+  Future<bool> isCloudBackupBlockedByEncryptionLock() async {
+    if (_cloudProvider == null) return false;
+    if (!_preferences.getSettings().cloudBackupEnabled) return false;
+    if (!(_syncPreferences?.syncEncryptionEnabled ?? false)) return false;
+    return await _unlockedSyncKey() == null;
+  }
+
+  /// The sync-encryption key and its keyslot mirror, or null when either is
+  /// missing from this device's keychain.
+  Future<({UnlockedKey key, Uint8List keyslotBytes})?>
+  _unlockedSyncKey() async {
+    final key = await _encryptionKeyStore?.loadKey();
+    final mirror = await _encryptionKeyStore?.loadKeyslotMirror();
+    if (key == null || mirror == null) return null;
+    return (key: key, keyslotBytes: mirror);
+  }
+
   Future<String?> _uploadToCloud(String localPath, String filename) async {
     if (_cloudProvider == null) return null;
 
@@ -1507,27 +1528,28 @@ class BackupService {
     final alreadyEncrypted = await BackupCrypto.isEncryptedBackup(localPath);
     if (!alreadyEncrypted &&
         (_syncPreferences?.syncEncryptionEnabled ?? false)) {
-      final key = await _encryptionKeyStore?.loadKey();
-      final mirror = await _encryptionKeyStore?.loadKeyslotMirror();
-      if (key == null || mirror == null) {
-        _log.error(
-          'Encryption is enabled but no key/keyslots are available; '
-          'uploading backup UNENCRYPTED',
+      final unlocked = await _unlockedSyncKey();
+      if (unlocked == null) {
+        // Fail closed (issue #3089): a diver who turned on end-to-end
+        // encryption must never get a plaintext copy in the cloud. The
+        // caller keeps the backup local-only.
+        throw const BackupException(
+          'Sync encryption is enabled but this device is not unlocked; '
+          'cloud upload skipped',
         );
-      } else {
-        final tempDir = await resolveSyncTempDir();
-        uploadName =
-            p.basenameWithoutExtension(filename) + BackupCrypto.fileExtension;
-        uploadPath = p.join(tempDir.path, uploadName);
-        await BackupCrypto.encryptFile(
-          inPath: localPath,
-          outPath: uploadPath,
-          mlk: key.mlk,
-          libraryKeyId: key.libraryKeyId,
-          keyslotBytes: mirror,
-        );
-        encryptedTemp = File(uploadPath);
       }
+      final tempDir = await resolveSyncTempDir();
+      uploadName =
+          p.basenameWithoutExtension(filename) + BackupCrypto.fileExtension;
+      uploadPath = p.join(tempDir.path, uploadName);
+      await BackupCrypto.encryptFile(
+        inPath: localPath,
+        outPath: uploadPath,
+        mlk: unlocked.key.mlk,
+        libraryKeyId: unlocked.key.libraryKeyId,
+        keyslotBytes: unlocked.keyslotBytes,
+      );
+      encryptedTemp = File(uploadPath);
     }
 
     try {

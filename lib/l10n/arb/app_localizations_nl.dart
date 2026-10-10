@@ -45745,6 +45745,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'Back-up gemaakt: $size. Deze is alleen op dit apparaat opgeslagen: voer je wachtwoordzin voor versleuteling in om back-ups naar de cloud te uploaden.';
+  }
+
+  @override
   String backup_operation_backupFailed(String error) {
     return 'Back-up mislukt: $error';
   }

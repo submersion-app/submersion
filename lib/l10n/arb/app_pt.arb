@@ -13773,6 +13773,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "Salvar CSV de verificações de equipamento",
   "settings_export_saveFillsCsvDialogTitle": "Guardar CSV de enchimentos de garrafa",
   "backup_operation_created": "Backup criado: {size}",
+  "backup_operation_createdLocalOnlyLocked": "Backup criado: {size}. Foi guardado apenas neste dispositivo: digite sua frase-senha de criptografia para enviar os backups para a nuvem.",
   "backup_operation_backupFailed": "Falha no backup: {error}",
   "backup_operation_restoring": "Restaurando backup...",
   "backup_operation_restoreFailed": "Falha na restauração: {error}",

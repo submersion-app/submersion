@@ -46042,6 +46042,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'Backup creato: $size. È stato salvato solo su questo dispositivo: inserisci la passphrase di crittografia per caricare i backup nel cloud.';
+  }
+
+  @override
   String backup_operation_backupFailed(String error) {
     return 'Backup non riuscito: $error';
   }

@@ -13773,6 +13773,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "Enregistrer le CSV des bilans d’équipement",
   "settings_export_saveFillsCsvDialogTitle": "Enregistrer le CSV des gonflages de bloc",
   "backup_operation_created": "Sauvegarde créée : {size}",
+  "backup_operation_createdLocalOnlyLocked": "Sauvegarde créée : {size}. Elle a été enregistrée uniquement sur cet appareil : saisissez votre phrase secrète de chiffrement pour envoyer les sauvegardes dans le cloud.",
   "backup_operation_backupFailed": "Échec de la sauvegarde : {error}",
   "backup_operation_restoring": "Restauration de la sauvegarde...",
   "backup_operation_restoreFailed": "Échec de la restauration : {error}",

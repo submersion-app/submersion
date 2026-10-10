@@ -319,9 +319,18 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
 
     try {
       final record = await _service.performBackup();
+      // The cloud copy fails closed while sync encryption is locked on this
+      // device (issue #3089); say why it stayed local.
+      final withheldFromCloud =
+          record.location == BackupLocation.local &&
+          await _service.isCloudBackupBlockedByEncryptionLock();
       state = BackupOperationState(
         status: BackupOperationStatus.success,
-        message: _l10n.backup_operation_created(record.formattedSize),
+        message: withheldFromCloud
+            ? _l10n.backup_operation_createdLocalOnlyLocked(
+                record.formattedSize,
+              )
+            : _l10n.backup_operation_created(record.formattedSize),
         lastRecord: record,
       );
       _ref.read(backupSettingsProvider.notifier).refresh();

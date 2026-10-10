@@ -13773,6 +13773,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "Salva CSV dei controlli attrezzatura",
   "settings_export_saveFillsCsvDialogTitle": "Salva CSV delle ricariche bombola",
   "backup_operation_created": "Backup creato: {size}",
+  "backup_operation_createdLocalOnlyLocked": "Backup creato: {size}. È stato salvato solo su questo dispositivo: inserisci la passphrase di crittografia per caricare i backup nel cloud.",
   "backup_operation_backupFailed": "Backup non riuscito: {error}",
   "backup_operation_restoring": "Ripristino del backup in corso...",
   "backup_operation_restoreFailed": "Ripristino non riuscito: {error}",

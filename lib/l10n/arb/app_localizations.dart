@@ -73159,6 +73159,12 @@ abstract class AppLocalizations {
   /// **'Backup created: {size}'**
   String backup_operation_created(String size);
 
+  /// No description provided for @backup_operation_createdLocalOnlyLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup created: {size}. It was saved on this device only: enter your encryption passphrase to upload backups to the cloud.'**
+  String backup_operation_createdLocalOnlyLocked(String size);
+
   /// No description provided for @backup_operation_backupFailed.
   ///
   /// In en, this message translates to:

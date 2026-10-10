@@ -13773,6 +13773,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "Guardar CSV de revisiones de equipo",
   "settings_export_saveFillsCsvDialogTitle": "Guardar CSV de llenados de botella",
   "backup_operation_created": "Copia de seguridad creada: {size}",
+  "backup_operation_createdLocalOnlyLocked": "Copia de seguridad creada: {size}. Solo se guardó en este dispositivo: introduce tu frase de acceso de cifrado para subir las copias de seguridad a la nube.",
   "backup_operation_backupFailed": "Error en la copia de seguridad: {error}",
   "backup_operation_restoring": "Restaurando la copia de seguridad...",
   "backup_operation_restoreFailed": "Error al restaurar: {error}",

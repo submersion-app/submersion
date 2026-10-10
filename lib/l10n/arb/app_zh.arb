@@ -13773,6 +13773,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "保存装备检查记录 CSV",
   "settings_export_saveFillsCsvDialogTitle": "保存气瓶充气记录 CSV",
   "backup_operation_created": "已创建备份：{size}",
+  "backup_operation_createdLocalOnlyLocked": "已创建备份：{size}。备份仅保存在此设备上：请输入加密口令，以便将备份上传到云端。",
   "backup_operation_backupFailed": "备份失败：{error}",
   "backup_operation_restoring": "正在恢复备份...",
   "backup_operation_restoreFailed": "恢复失败：{error}",

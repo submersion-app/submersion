@@ -13773,6 +13773,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "حفظ ملف CSV لفحوصات المعدات",
   "settings_export_saveFillsCsvDialogTitle": "حفظ CSV تعبئات الأسطوانات",
   "backup_operation_created": "تم إنشاء نسخة احتياطية: {size}",
+  "backup_operation_createdLocalOnlyLocked": "تم إنشاء نسخة احتياطية: {size}. حُفظت على هذا الجهاز فقط: أدخل عبارة مرور التشفير لرفع النسخ الاحتياطية إلى السحابة.",
   "backup_operation_backupFailed": "فشل النسخ الاحتياطي: {error}",
   "backup_operation_restoring": "جارٍ استعادة النسخة الاحتياطية...",
   "backup_operation_restoreFailed": "فشلت الاستعادة: {error}",

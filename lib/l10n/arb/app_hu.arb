@@ -13773,6 +13773,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "Felszerelés-ellenőrzések CSV-fájljának mentése",
   "settings_export_saveFillsCsvDialogTitle": "Palacktöltések CSV mentése",
   "backup_operation_created": "Biztonsági mentés elkészült: {size}",
+  "backup_operation_createdLocalOnlyLocked": "Biztonsági mentés elkészült: {size}. Csak ezen az eszközön lett mentve: adja meg a titkosítási jelmondatot, hogy a mentések feltöltődjenek a felhőbe.",
   "backup_operation_backupFailed": "A biztonsági mentés nem sikerült: {error}",
   "backup_operation_restoring": "Biztonsági mentés visszaállítása...",
   "backup_operation_restoreFailed": "A visszaállítás nem sikerült: {error}",

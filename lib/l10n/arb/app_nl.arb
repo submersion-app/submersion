@@ -13773,6 +13773,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "CSV van uitrusting-check-ins opslaan",
   "settings_export_saveFillsCsvDialogTitle": "CSV met flesvullingen opslaan",
   "backup_operation_created": "Back-up gemaakt: {size}",
+  "backup_operation_createdLocalOnlyLocked": "Back-up gemaakt: {size}. Deze is alleen op dit apparaat opgeslagen: voer je wachtwoordzin voor versleuteling in om back-ups naar de cloud te uploaden.",
   "backup_operation_backupFailed": "Back-up mislukt: {error}",
   "backup_operation_restoring": "Back-up herstellen...",
   "backup_operation_restoreFailed": "Herstellen mislukt: {error}",

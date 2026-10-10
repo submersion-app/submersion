@@ -13773,6 +13773,7 @@
   "settings_export_saveObservationsCsvDialogTitle": "שמירת קובץ ה-CSV של בדיקות הציוד",
   "settings_export_saveFillsCsvDialogTitle": "שמירת CSV מילויי מכלים",
   "backup_operation_created": "נוצר גיבוי: {size}",
+  "backup_operation_createdLocalOnlyLocked": "נוצר גיבוי: {size}. הוא נשמר במכשיר זה בלבד: יש להזין את משפט הסיסמה של ההצפנה כדי להעלות גיבויים לענן.",
   "backup_operation_backupFailed": "הגיבוי נכשל: {error}",
   "backup_operation_restoring": "משחזר גיבוי...",
   "backup_operation_restoreFailed": "השחזור נכשל: {error}",

@@ -45793,6 +45793,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'Biztonsági mentés elkészült: $size. Csak ezen az eszközön lett mentve: adja meg a titkosítási jelmondatot, hogy a mentések feltöltődjenek a felhőbe.';
+  }
+
+  @override
   String backup_operation_backupFailed(String error) {
     return 'A biztonsági mentés nem sikerült: $error';
   }

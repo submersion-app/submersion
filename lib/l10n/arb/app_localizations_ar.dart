@@ -46654,6 +46654,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String backup_operation_createdLocalOnlyLocked(String size) {
+    return 'تم إنشاء نسخة احتياطية: $size. حُفظت على هذا الجهاز فقط: أدخل عبارة مرور التشفير لرفع النسخ الاحتياطية إلى السحابة.';
+  }
+
+  @override
   String backup_operation_backupFailed(String error) {
     return 'فشل النسخ الاحتياطي: $error';
   }
