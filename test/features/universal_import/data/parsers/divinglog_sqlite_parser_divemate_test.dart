@@ -218,6 +218,27 @@ void main() {
     expect(other.entitiesOf(ImportEntityType.dives), hasLength(1));
   });
 
+  test('a logbook whose every dive was discarded says so', () async {
+    final dir = Directory.systemTemp.createTempSync('divemate_all_discarded');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final path = p.join(dir.path, 'divemate.ddb');
+    final db = sqlite3.open(path);
+    db.execute(
+      'CREATE TABLE Logbook (ID INTEGER, Number INTEGER, Divedate TEXT, '
+      'TypeOfDive INTEGER, Status INTEGER)',
+    );
+    db.execute("INSERT INTO Logbook VALUES (1, 7, '2024-06-01', NULL, 2)");
+    db.close();
+    final empty = await const DivingLogSqliteParser().parse(
+      File(path).readAsBytesSync(),
+    );
+    expect(empty.entitiesOf(ImportEntityType.dives), isEmpty);
+    expect(
+      empty.warnings.map((w) => w.message),
+      contains(contains('discarded')),
+    );
+  });
+
   test('DiveMate-only columns are not reported missing for Diving Log', () {
     // The reverse case: these columns are DiveMate's, so a note naming them
     // would be noise on every Diving Log import.
