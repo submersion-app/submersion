@@ -160,7 +160,11 @@ class DocumentRepository {
   /// pages (empty id) are inserted, kept pages updated only when changed,
   /// missing ones deleted and tombstoned. A page with no bytes keeps its
   /// stored content. One transaction.
-  Future<Document> save(Document document, List<DocumentPage> pages) async {
+  Future<Document> save(
+    Document document,
+    List<DocumentPage> pages, {
+    bool notify = true,
+  }) async {
     final now = DateTime.now();
     final nowMs = now.millisecondsSinceEpoch;
     final isNew = document.id.isEmpty;
@@ -186,7 +190,7 @@ class DocumentRepository {
         );
         await _replacePages(id, pages, nowMs);
       });
-      SyncEventBus.notifyLocalChange();
+      if (notify) SyncEventBus.notifyLocalChange();
       return doc;
     } catch (e, stackTrace) {
       _log.error(
@@ -496,13 +500,14 @@ class DocumentRepository {
     required String diverId,
     required Uint8List? front,
     required Uint8List? back,
+    bool notify = true,
   }) async {
     final docId = documentCertificationCardId(certificationId);
     final existing = await getById(docId);
     if (front == null && back == null) {
       if (existing != null) {
         await _db.transaction(() => _deleteIds([docId]));
-        SyncEventBus.notifyLocalChange();
+        if (notify) SyncEventBus.notifyLocalChange();
       }
       return;
     }
@@ -542,7 +547,7 @@ class DocumentRepository {
     await save(doc, [
       if (front != null) side(DocumentPageSide.front, front),
       if (back != null) side(DocumentPageSide.back, back),
-    ]);
+    ], notify: notify);
   }
 
   /// [diverId]'s documents that can remind: an expiry date, not a card.
