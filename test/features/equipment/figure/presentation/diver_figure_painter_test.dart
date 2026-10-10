@@ -200,6 +200,23 @@ void main() {
       });
     });
 
+    testWidgets('a dark fitting on bright gear is rimmed, the gear is not', (
+      tester,
+    ) async {
+      await tester.runAsync(() async {
+        final pixel = await paint(
+          composeFigure([item('tank', EquipmentType.tank)]),
+          palette: darkPage,
+        );
+        // tank_single_back: an aluminium body (x 86 to 114, y 80 to 190)
+        // and a gearDark boot whose bottom edge is at y 194. Row 194 lies
+        // inside the rim band under the boot.
+        expect(pixel(layout.toBox(FigureView.back, 100, 194)), rim);
+        // The aluminium body reads on the page, so its side has no rim.
+        expect(pixel(layout.toBox(FigureView.back, 114, 100)), isNot(rim));
+      });
+    });
+
     testWidgets('the mannequin is never rimmed', (tester) async {
       await tester.runAsync(() async {
         final pixel = await paint(composeFigure(const []), palette: darkPage);

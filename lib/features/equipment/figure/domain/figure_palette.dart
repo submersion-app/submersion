@@ -44,18 +44,19 @@ class FigurePalette {
   /// rimmed.
   final List<int> backdrops;
 
-  /// The edge drawn around an item that [needsRim]. Items keep their own
-  /// colour; the rim is what makes black gear show on a dark page and white
-  /// gear on a light one (issue #3181).
+  /// The edge drawn around any painted colour that [needsRim]. Items keep
+  /// their own colour; the rim is what makes black gear show on a dark page
+  /// and white gear on a light one (issue #3181).
   final int rim;
 
-  /// The contrast an item needs against every backdrop to go without a rim,
-  /// the same floor the themed mannequin keeps.
+  /// The contrast a painted colour needs against every backdrop to go
+  /// without a rim, the same floor the themed mannequin keeps.
   static const double rimFloor = 1.6;
 
-  /// Whether an item coloured [itemColor] blends into any backdrop.
-  bool needsRim(int itemColor) =>
-      backdrops.any((b) => figureContrast(itemColor, b) < rimFloor);
+  /// Whether [color] (an item's colour, its shade or a fixed gear grey)
+  /// blends into any backdrop.
+  bool needsRim(int color) =>
+      backdrops.any((b) => figureContrast(color, b) < rimFloor);
 
   /// The colour for [role] on an item whose own colour is [itemColor].
   int colorFor(FigureRole role, int itemColor) => switch (role) {

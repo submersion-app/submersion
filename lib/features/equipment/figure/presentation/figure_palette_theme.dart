@@ -6,8 +6,8 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_sec
 ///
 /// The mannequin is a blend of `onSurface` over `surface`, walked up until
 /// it stands 1.6:1 off both the page surface and the container tint a card
-/// sits on. Gear greys are fixed. An item that blends into those surfaces is
-/// edged with a rim (issue #3181). The number badge uses `primary` with
+/// sits on. Gear greys are fixed. Any painted colour that blends into those
+/// surfaces is edged with a rim (issue #3181). The number badge uses `primary` with
 /// whichever of `onPrimary`, black or white reads on it.
 FigurePalette figurePaletteFor(ColorScheme scheme) =>
     _figurePaletteForCache[scheme] ??= _figurePaletteForUncached(scheme);

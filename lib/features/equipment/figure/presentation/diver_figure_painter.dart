@@ -13,8 +13,11 @@ import 'package:submersion/features/equipment/figure/presentation/figure_paths.d
 /// Each view paints the mannequin, then every placed piece of that view in
 /// layer order (ties broken by item number), each path filled with its
 /// role's colour. A piece on a mirrored zone is flipped about the figure's
-/// centre line. An item the palette says blends into the page is first
-/// stroked with the rim, then filled over it, so only its outer edge shows.
+/// centre line. Each path of a piece whose colour the palette says blends
+/// into the page is first stroked with the rim, then the whole piece is
+/// filled over it, so a rim shows only where that path meets the page or
+/// another piece: around a black suit, and around a black valve on a bright
+/// tank. The mannequin is never rimmed.
 /// Labels are not painted here; the widget positions them.
 class DiverFigurePainter extends CustomPainter {
   DiverFigurePainter({
@@ -64,7 +67,7 @@ class DiverFigurePainter extends CustomPainter {
             itemColor: 0,
             mirrored: false,
             order: 0,
-            rimmed: false,
+            rimmable: false,
           ),
           for (final item in model.placed)
             for (final id in item.pieceIds)
@@ -74,7 +77,7 @@ class DiverFigurePainter extends CustomPainter {
                   itemColor: item.color,
                   mirrored: item.zone!.mirrored,
                   order: item.number,
-                  rimmed: palette.needsRim(item.color),
+                  rimmable: true,
                 ),
         ]..sort((a, b) {
           final byLayer = a.piece.layer.compareTo(b.piece.layer);
@@ -99,14 +102,17 @@ class DiverFigurePainter extends CustomPainter {
         canvas.scale(-1, 1);
       }
       final paths = FigurePaths.of(entry.piece.id);
-      if (entry.rimmed) {
-        for (final path in paths) {
-          canvas.drawPath(path, rim);
+      final colors = [
+        for (final p in entry.piece.paths)
+          palette.colorFor(p.role, entry.itemColor),
+      ];
+      if (entry.rimmable) {
+        for (var i = 0; i < paths.length; i++) {
+          if (palette.needsRim(colors[i])) canvas.drawPath(paths[i], rim);
         }
       }
       for (var i = 0; i < paths.length; i++) {
-        final role = entry.piece.paths[i].role;
-        paint.color = Color(palette.colorFor(role, entry.itemColor));
+        paint.color = Color(colors[i]);
         canvas.drawPath(paths[i], paint);
       }
       canvas.restore();
@@ -127,12 +133,14 @@ class _Entry {
     required this.itemColor,
     required this.mirrored,
     required this.order,
-    required this.rimmed,
+    required this.rimmable,
   });
 
   final FigurePieceData piece;
   final int itemColor;
   final bool mirrored;
   final int order;
-  final bool rimmed;
+
+  /// False for the mannequin, whose tones are already set to read.
+  final bool rimmable;
 }

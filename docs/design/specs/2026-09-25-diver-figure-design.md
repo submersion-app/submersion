@@ -251,10 +251,12 @@ Paths carry roles, never colours: `body`, `bodyShade`, `gearDark`,
 - `itemColor` is the item's colour attribute when set, otherwise the type
   default from the placement table. `itemShade` is the same colour darkened by
   a fixed fraction. Item colours are never altered for contrast.
-- An item whose colour does not clear 1.6:1 against `surface`,
-  `surfaceContainerLow` and `surfaceContainer` is edged with a rim: the
-  painter strokes the piece's paths and then fills them, so only the outer
-  edge shows. The rim is the faintest `onSurface` blend over `surface` that
+- A painted colour (an item's colour, its shade, or a fixed gear grey) that
+  does not clear 1.6:1 against `surface`, `surfaceContainerLow` and
+  `surfaceContainer` is edged with a rim: the painter strokes each such path
+  and then fills the whole piece over the strokes, so a rim shows only where
+  that path meets the page or another piece (a black suit's silhouette, a
+  black valve on a bright tank). The mannequin is never rimmed. The rim is the faintest `onSurface` blend over `surface` that
   clears 3:1 on those surfaces. This is what keeps black gear visible on a
   dark scheme and white gear on a light one (issue #3181).
 - Number badges use `primary` and `onPrimary`.
