@@ -252,6 +252,30 @@ void main() {
     expect((changed!.gasMix.o2, changed!.gasMix.he), (21.0, 35.0));
   });
 
+  testWidgets('a tag fill keeps the mix the dive computer recorded (#3021)', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      scanned:
+          'https://submersion.app/c#f=1&p=$stranger&v=10'
+          '&fi=3f0c2b8e-6a1d-4c47-9e2a-5b7d8c9e0f11'
+          '&ft=2026-09-28T09%3A30%3A00Z&fo=21&fh=35',
+      onChanged: (t) => changed = t,
+      tank: const DiveTank(
+        id: 'tank-1',
+        gasMix: GasMix(o2: 32),
+        computerId: 'dc1',
+        sourceTankIndex: 0,
+      ),
+    );
+    await scan(tester);
+    // The tag's size still fills in; its trimix does not replace EAN32.
+    expect(changed!.volume, 10);
+    expect((changed!.gasMix.o2, changed!.gasMix.he), (32.0, 0.0));
+  });
+
   testWidgets("an own cylinder's newer tag fill is stored and used", (
     tester,
   ) async {
