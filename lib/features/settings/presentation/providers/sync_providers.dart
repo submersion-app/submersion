@@ -526,9 +526,16 @@ final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) {
 /// This device's id and display name, for labelling the local side of a
 /// sync conflict. Same resolver the manifests use, so a peer sees this
 /// device under the same name.
+///
+/// Auto-disposed, and invalidated by Reset Sync State, because the reset
+/// mints a new device id: a cached id would stop recognising this device's
+/// own rows as its own (issue #3029).
+// no-tick: the one repository call is getDeviceId, which changes only through
+// Reset Sync State, and that action invalidates this provider itself.
 final conflictLocalDeviceProvider =
-    FutureProvider<({String? id, String? name})>((ref) async {
-      final identity = await SyncDeviceMetadata(SyncRepository()).resolve();
+    FutureProvider.autoDispose<({String? id, String? name})>((ref) async {
+      final repo = ref.watch(syncRepositoryProvider);
+      final identity = await SyncDeviceMetadata(repo).resolve();
       return (id: identity.id, name: identity.name);
     });
 
@@ -1635,6 +1642,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
     await _syncService.resetSyncState();
     final initializer = _ref.read(syncInitializerProvider);
     await initializer.adoptFreshIdentity();
+    _ref.invalidate(conflictLocalDeviceProvider);
     // The question is about the RETIRED id, which is no longer this device's,
     // so it is passed explicitly rather than inferred from the current one.
     final provider = _ref.read(cloudStorageProviderProvider);
