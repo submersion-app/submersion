@@ -69,6 +69,8 @@ Widget _buildTestWidget({required List<Override> overrides}) {
     overrides: overrides,
     child: MaterialApp.router(
       routerConfig: router,
+      // The assertions read English labels, so do not follow the host locale.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
     ),
@@ -241,6 +243,9 @@ void main() {
           createdAt: now,
           updatedAt: now,
         );
+        // Ties the fixture to the pinned day: a helper that ignored `clock`
+        // could otherwise still yield "In 24 days" by coincidence.
+        expect(trip.startDate, DateTime(2026, 11, 2));
 
         await tester.pumpWidget(
           _buildTestWidget(
