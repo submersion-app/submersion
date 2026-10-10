@@ -166,7 +166,7 @@ void main() {
       final plan = _plan(
         mode: domain.PlanMode.ccr,
         tanks: [
-          _tank('o2', o2: 100),
+          _tank('o2', o2: 100, role: TankRole.oxygenSupply),
           _tank('dil', o2: 21, he: 35, role: TankRole.diluent),
         ],
         segments: [_seg('s1', 45, 25, 'dil', 0)],
@@ -175,6 +175,23 @@ void main() {
       final roles = _roles(plan);
       expect(roles['o2'], TankRole.oxygenSupply);
       expect(roles['dil'], TankRole.diluent);
+    });
+
+    test('a pure-O2 cylinder not held as the oxygen slot is bailout oxygen, '
+        'not a second supply (#3220)', () {
+      final plan = _plan(
+        mode: domain.PlanMode.ccr,
+        tanks: [
+          _tank('o2', o2: 100, role: TankRole.oxygenSupply),
+          _tank('dil', o2: 21, he: 35, role: TankRole.diluent),
+          _tank('bailout-o2', o2: 100),
+        ],
+        segments: [_seg('s1', 45, 25, 'dil', 0)],
+      );
+
+      final roles = _roles(plan);
+      expect(roles['o2'], TankRole.oxygenSupply);
+      expect(roles['bailout-o2'], TankRole.bailout);
     });
 
     test('a cylinder no segment breathes is still diluent once explicitly '
@@ -205,7 +222,7 @@ void main() {
         final plan = _plan(
           mode: domain.PlanMode.ccr,
           tanks: [
-            _tank('o2', o2: 100),
+            _tank('o2', o2: 100, role: TankRole.oxygenSupply),
             _tank('dil', o2: 21, he: 35, role: TankRole.diluent),
             _tank('bo', o2: 21),
           ],
@@ -216,14 +233,15 @@ void main() {
       },
     );
 
-    test('an explicit diluent flag wins even over the pure-O2 derivation', () {
+    test('a 100 % cylinder marked diluent stays diluent; the mix derives '
+        'nothing', () {
       // The diver's own choice always wins: a 100% cylinder they marked
       // diluent is diluent, not silently reassigned to oxygen supply.
       final plan = _plan(
         mode: domain.PlanMode.ccr,
         tanks: [
           _tank('o2dil', o2: 100, role: TankRole.diluent),
-          _tank('o2supply', o2: 100),
+          _tank('o2supply', o2: 100, role: TankRole.oxygenSupply),
         ],
         segments: const [],
       );
@@ -231,6 +249,19 @@ void main() {
       final roles = _roles(plan);
       expect(roles['o2dil'], TankRole.diluent);
       expect(roles['o2supply'], TankRole.oxygenSupply);
+    });
+
+    test('a stale oxygen-supply role on an open-circuit plan is re-derived '
+        'like any other', () {
+      final plan = _plan(
+        tanks: [
+          _tank('bottom'),
+          _tank('o2', o2: 100, role: TankRole.oxygenSupply),
+        ],
+        segments: [_seg('s1', 30, 20, 'bottom', 0)],
+      );
+
+      expect(_roles(plan)['o2'], TankRole.deco);
     });
 
     test('the diluent flag does not carry over to an open-circuit plan', () {
