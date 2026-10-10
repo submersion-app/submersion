@@ -51,8 +51,8 @@ class _EmergencyRegionPickerDialogState
     if (query.isEmpty) return _byName;
     return [
       for (final code in _byName)
-        if (code.toLowerCase() == query ||
-            emergencyRegionDisplayName(code).toLowerCase().contains(query))
+        // The display name carries the code, so this matches either.
+        if (emergencyRegionDisplayName(code).toLowerCase().contains(query))
           code,
     ];
   }

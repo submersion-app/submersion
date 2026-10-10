@@ -220,14 +220,19 @@ class _CardBody extends ConsumerWidget {
   }
 
   Future<void> _changeRegion(BuildContext context, WidgetRef ref) async {
+    final selected = data.regionIsManual ? data.countryCode : null;
     final choice = await showDialog<EmergencyRegionChoice>(
       context: context,
       builder: (_) => EmergencyRegionPickerDialog(
         choices: data.regionChoices,
-        selected: data.regionIsManual ? data.countryCode : null,
+        selected: selected,
       ),
     );
-    if (choice == null) return;
+    // Re-picking the current choice is not a change: writing it anyway would
+    // queue the synced settings row for nothing.
+    if (choice == null || choice.countryCode == selected || !context.mounted) {
+      return;
+    }
     await ref
         .read(settingsProvider.notifier)
         .setEmergencyRegion(choice.countryCode);

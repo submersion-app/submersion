@@ -36,7 +36,8 @@ class DefaultStartPressureTile extends ConsumerWidget {
           context: context,
           builder: (_) => _DefaultStartPressureDialog(units: units),
         );
-        if (bar == null) return;
+        if (bar == null || bar == settings.defaultStartPressure) return;
+        if (!context.mounted) return;
         await ref.read(settingsProvider.notifier).setDefaultStartPressure(bar);
       },
     );
