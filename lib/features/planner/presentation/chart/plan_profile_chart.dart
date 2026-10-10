@@ -239,6 +239,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
       // The Listener goes with the chart, so a drag in progress never sees
       // its pointer-up; drop it rather than freeze the next plan's axes.
       _dragVertex = null;
+      _hoverVertex = null;
       _frozenAxes = null;
       return _EmptyState(theme: theme);
     }
@@ -308,7 +309,10 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           if (idx >= 0) selectedHandleIndex = idx;
         }
         int? draggableHandleFor(int? vertexIndex) {
-          if (vertexIndex == null) return null;
+          // The plan can change under a stale drag or hover index.
+          if (vertexIndex == null || vertexIndex >= vertices.length) {
+            return null;
+          }
           final id = vertices[vertexIndex].segmentId;
           final idx = draggable.indexWhere((v) => v.segmentId == id);
           return idx >= 0 ? idx : null;
@@ -419,6 +423,9 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                 endDrag();
                 _clearScrub();
                 _downPosition = null;
+                // A cancelled sequence must not pair with the next tap.
+                _lastTapAt = null;
+                _lastTapPosition = null;
               },
               onPointerHover: onPointerHover,
               child: DecoratedBox(

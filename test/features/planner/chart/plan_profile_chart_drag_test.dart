@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/map_style.dart';
@@ -181,6 +182,44 @@ void main() {
     );
     await gesture.up();
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('removing a hovered waypoint does not leave a stale index', (
+    tester,
+  ) async {
+    final s = await setUpPlan(tester);
+    final segments = List<PlanSegment>.from(
+      s.container.read(divePlanNotifierProvider).segments,
+    )..sort((a, b) => a.order.compareTo(b.order));
+    final last = planVertices(segments).last;
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: s.rect.topLeft + const Offset(80, 40));
+    await mouse.moveTo(
+      s.rect.topLeft + s.geometry.toPixel(last.timeSeconds, last.depth),
+    );
+    await tester.pump();
+
+    s.container
+        .read(divePlanNotifierProvider.notifier)
+        .removeSegment(last.segmentId);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    await mouse.removePointer();
+  });
+
+  testWidgets('a cancelled sequence does not pair with the next tap', (
+    tester,
+  ) async {
+    final s = await setUpPlan(tester);
+    final before = s.container.read(divePlanNotifierProvider).segments.length;
+    // Empty chart space past the plan, where a double-tap appends.
+    final spot = s.rect.topLeft + Offset(s.rect.width - 30, 60);
+    await tester.tapAt(spot);
+    final cancelled = await tester.startGesture(spot);
+    await cancelled.cancel();
+    await tester.tapAt(spot);
+    await tester.pumpAndSettle();
+    expect(s.container.read(divePlanNotifierProvider).segments.length, before);
   });
 
   testWidgets('a cancelled drag releases the frozen axes', (tester) async {
