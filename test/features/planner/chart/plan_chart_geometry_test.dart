@@ -40,6 +40,21 @@ void main() {
       expect(geometry.depthAtDy(-50), 0);
       expect(geometry.depthAtDy(100000), closeTo(40 * 1.1, 0.01));
     });
+
+    test('dragTimeAtDx inverts xFor and reaches past the plan end', () {
+      expect(geometry.dragTimeAtDx(geometry.xFor(1800)), closeTo(1800, 0.01));
+      expect(geometry.dragTimeAtDx(-50), 0);
+      // A pointer past the right edge keeps extending at the same scale.
+      final beyond = geometry.plotRect.right + geometry.plotRect.width;
+      expect(geometry.dragTimeAtDx(beyond), closeTo(3600 * 1.05 * 2, 0.01));
+    });
+
+    test('dragDepthAtDy inverts yFor and reaches past the bottom edge', () {
+      expect(geometry.dragDepthAtDy(geometry.yFor(20)), closeTo(20, 0.01));
+      expect(geometry.dragDepthAtDy(-50), 0);
+      final below = geometry.plotRect.bottom + geometry.plotRect.height;
+      expect(geometry.dragDepthAtDy(below), closeTo(40 * 1.1 * 2, 0.01));
+    });
   });
 
   group('ticks', () {

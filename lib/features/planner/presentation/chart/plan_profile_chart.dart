@@ -31,6 +31,12 @@ class PlanProfileChart extends ConsumerStatefulWidget {
 class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
   final _focusNode = FocusNode();
   int? _dragVertex;
+
+  /// Axis extents captured when a waypoint drag starts and held until it
+  /// ends. Mapping the pointer through axes that rescale as the plan grows
+  /// turned each small move into a large jump in dive time (issue #3113),
+  /// so both display and input use these until release, then refit.
+  ({double time, double depth})? _frozenAxes;
   int? _hoverVertex;
   Offset? _downPosition;
   bool _moved = false;
@@ -68,12 +74,15 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     final result = dragVertex(
       ordered: ordered,
       vertexIndex: vertexIndex,
-      newDepthMeters: geometry.depthAtDy(local.dy),
-      newTimeSeconds: geometry.timeAtDx(local.dx),
+      newDepthMeters: geometry.dragDepthAtDy(local.dy),
+      newTimeSeconds: geometry.dragTimeAtDx(local.dx),
       depthUnitScale: geometry.depthUnitScale,
     );
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     for (final (id, segment) in result.updates) {
+      // Most pointer moves snap to the waypoint it already has; publishing
+      // it anyway would re-run the whole deco schedule for nothing.
+      if (ordered.any((s) => s.id == id && s == segment)) continue;
       notifier.updateSegment(id, segment);
     }
     ref.read(selectedSegmentIdProvider.notifier).state =
@@ -264,6 +273,12 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
         ? planVertices(plan.segments)
         : const <PlanVertex>[];
 
+    final frozen = _frozenAxes;
+    if (frozen != null) {
+      maxTime = frozen.time;
+      maxDepth = frozen.depth;
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final geometry = PlanChartGeometry(
@@ -315,7 +330,16 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
             geometry: geometry,
             position: event.localPosition,
           );
-          if (_dragVertex == null) _scrubTo(geometry, event.localPosition);
+          if (_dragVertex == null) {
+            _scrubTo(geometry, event.localPosition);
+          } else {
+            _frozenAxes = (time: maxTime, depth: maxDepth);
+          }
+        }
+
+        void endDrag() {
+          _dragVertex = null;
+          if (_frozenAxes != null) setState(() => _frozenAxes = null);
         }
 
         void onPointerMove(PointerMoveEvent event) {
@@ -332,7 +356,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
 
         void onPointerUp(PointerUpEvent event) {
           final wasDrag = _dragVertex != null;
-          _dragVertex = null;
+          endDrag();
           _clearScrub();
           if (wasDrag || _moved || _readOnly) {
             _downPosition = null;
@@ -385,6 +409,11 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
               onPointerDown: onPointerDown,
               onPointerMove: onPointerMove,
               onPointerUp: onPointerUp,
+              onPointerCancel: (_) {
+                endDrag();
+                _clearScrub();
+                _downPosition = null;
+              },
               onPointerHover: onPointerHover,
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -413,19 +442,27 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                     ),
                     Positioned.fill(
                       child: RepaintBoundary(
-                        child: CustomPaint(
-                          key: const Key('planChartSeries'),
-                          painter: PlanChartSeriesPainter(
-                            geometry: geometry,
-                            palette: palette,
-                            series: series,
-                            ghost: ghost,
-                            sourceDive: sourceDive,
-                            stopTagLabels: stopTagLabels,
-                            meanDepthLabel: meanDepthLabel,
-                            labelStyle: labelStyle,
-                            tagStyle: tagStyle,
-                            textDirection: direction,
+                        // While the axes are frozen the plan can outgrow
+                        // them; keep it inside the plot until they refit.
+                        child: ClipRect(
+                          clipper: _PlotClipper(geometry.plotRect),
+                          clipBehavior: frozen == null
+                              ? Clip.none
+                              : Clip.hardEdge,
+                          child: CustomPaint(
+                            key: const Key('planChartSeries'),
+                            painter: PlanChartSeriesPainter(
+                              geometry: geometry,
+                              palette: palette,
+                              series: series,
+                              ghost: ghost,
+                              sourceDive: sourceDive,
+                              stopTagLabels: stopTagLabels,
+                              meanDepthLabel: meanDepthLabel,
+                              labelStyle: labelStyle,
+                              tagStyle: tagStyle,
+                              textDirection: direction,
+                            ),
                           ),
                         ),
                       ),
@@ -478,6 +515,18 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
       },
     );
   }
+}
+
+class _PlotClipper extends CustomClipper<Rect> {
+  const _PlotClipper(this.plot);
+
+  final Rect plot;
+
+  @override
+  Rect getClip(Size size) => plot;
+
+  @override
+  bool shouldReclip(_PlotClipper oldClipper) => oldClipper.plot != plot;
 }
 
 /// Scrub cursor + waypoint handles layer; repaints per pointer event without
