@@ -20024,6 +20024,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => '蓝牙地址';
 
   @override
+  String get settings_conflict_field_connectionDetail => '连接详情';
+
+  @override
+  String get settings_conflict_field_connectionAddress => '连接地址';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => '首次使用';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => '最近使用';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt => '在此设备上最近使用';
+
+  @override
   String get settings_conflict_field_boatCaptain => '船长';
 
   @override

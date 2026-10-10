@@ -20762,6 +20762,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'Bluetooth address';
 
   @override
+  String get settings_conflict_field_connectionDetail => 'Connection detail';
+
+  @override
+  String get settings_conflict_field_connectionAddress => 'Connection address';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'First used';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'Last used';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt =>
+      'Last used on this device';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'Boat captain';
 
   @override

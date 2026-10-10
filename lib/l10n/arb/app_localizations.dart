@@ -33612,6 +33612,36 @@ abstract class AppLocalizations {
   /// **'Bluetooth address'**
   String get settings_conflict_field_bluetoothAddress;
 
+  /// No description provided for @settings_conflict_field_connectionDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection detail'**
+  String get settings_conflict_field_connectionDetail;
+
+  /// No description provided for @settings_conflict_field_connectionAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection address'**
+  String get settings_conflict_field_connectionAddress;
+
+  /// No description provided for @settings_conflict_field_firstUsedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'First used'**
+  String get settings_conflict_field_firstUsedAt;
+
+  /// No description provided for @settings_conflict_field_lastUsedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used'**
+  String get settings_conflict_field_lastUsedAt;
+
+  /// No description provided for @settings_conflict_field_localLastUsedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used on this device'**
+  String get settings_conflict_field_localLastUsedAt;
+
   /// No description provided for @settings_conflict_field_boatCaptain.
   ///
   /// In en, this message translates to:

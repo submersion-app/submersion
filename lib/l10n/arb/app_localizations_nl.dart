@@ -20945,6 +20945,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'Bluetooth-adres';
 
   @override
+  String get settings_conflict_field_connectionDetail => 'Verbindingsdetail';
+
+  @override
+  String get settings_conflict_field_connectionAddress => 'Verbindingsadres';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'Eerst gebruikt';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'Laatst gebruikt';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt =>
+      'Laatst gebruikt op dit apparaat';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'Kapitein';
 
   @override

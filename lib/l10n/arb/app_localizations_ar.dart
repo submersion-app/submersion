@@ -21342,6 +21342,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'عنوان البلوتوث';
 
   @override
+  String get settings_conflict_field_connectionDetail => 'تفاصيل الاتصال';
+
+  @override
+  String get settings_conflict_field_connectionAddress => 'عنوان الاتصال';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'أول استخدام';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'آخر استخدام';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt =>
+      'آخر استخدام على هذا الجهاز';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'قبطان القارب';
 
   @override

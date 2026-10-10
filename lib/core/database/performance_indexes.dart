@@ -230,6 +230,13 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_equipment_location_moves_location '
         'ON equipment_location_moves(location_id)',
   ),
+  // A computer's connections, for the detail page and merge (v277).
+  (
+    name: 'idx_dive_computer_connections_computer',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_computer_connections_computer '
+        'ON dive_computer_connections(computer_id)',
+  ),
   (
     name: 'idx_equipment_components_component',
     ddl:

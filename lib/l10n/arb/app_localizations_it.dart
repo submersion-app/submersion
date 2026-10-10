@@ -21092,6 +21092,24 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'Indirizzo Bluetooth';
 
   @override
+  String get settings_conflict_field_connectionDetail =>
+      'Dettaglio della connessione';
+
+  @override
+  String get settings_conflict_field_connectionAddress =>
+      'Indirizzo della connessione';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'Primo utilizzo';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'Ultimo utilizzo';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt =>
+      'Ultimo utilizzo su questo dispositivo';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'Capitano della barca';
 
   @override

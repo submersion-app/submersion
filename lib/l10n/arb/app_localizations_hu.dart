@@ -21021,6 +21021,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'Bluetooth-cím';
 
   @override
+  String get settings_conflict_field_connectionDetail => 'Kapcsolat részletei';
+
+  @override
+  String get settings_conflict_field_connectionAddress => 'Kapcsolat címe';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'Első használat';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'Utolsó használat';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt =>
+      'Utolsó használat ezen az eszközön';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'Kapitány';
 
   @override

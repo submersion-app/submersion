@@ -121,6 +121,7 @@ void main() {
       'equipmentLocationMoves',
       'tankPresets',
       'diveComputers',
+      'diveComputerConnections',
       'tankPressureProfiles',
       'tideRecords',
       'settings',
@@ -265,6 +266,10 @@ void main() {
         (type: 'diveTypes', table: db.diveTypes.actualTableName),
         (type: 'tankPresets', table: db.tankPresets.actualTableName),
         (type: 'diveComputers', table: db.diveComputers.actualTableName),
+        (
+          type: 'diveComputerConnections',
+          table: db.diveComputerConnections.actualTableName,
+        ),
         (type: 'tideRecords', table: db.tideRecords.actualTableName),
         (type: 'settings', table: db.settings.actualTableName),
         (type: 'species', table: db.species.actualTableName),

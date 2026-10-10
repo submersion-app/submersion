@@ -307,5 +307,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertIcdWarningsColumn();
     }
     if (from < 276) await reportProgress();
+    // v277: dive_computer_connections (issue #3106). Table only;
+    // re-asserted in beforeOpen.
+    if (from < 277) {
+      await _assertDiveComputerConnectionSchema();
+    }
+    if (from < 277) await reportProgress();
   }
 }

@@ -56,6 +56,7 @@ void main() {
     'saved_queries': 'savedQueries',
     'insight_observation_dismissals': 'insightObservationDismissals',
     'dive_computers': 'diveComputers',
+    'dive_computer_connections': 'diveComputerConnections',
     'species': 'species',
     'tags': 'tags',
     'courses': 'courses',

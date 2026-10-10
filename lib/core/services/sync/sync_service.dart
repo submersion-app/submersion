@@ -1532,6 +1532,12 @@ class SyncService {
             records: data.diveComputers,
             hasUpdatedAt: true,
           ),
+          // v277: a computer's connections, after their parent (#3106).
+          (
+            type: 'diveComputerConnections',
+            records: data.diveComputerConnections,
+            hasUpdatedAt: true,
+          ),
           (
             type: 'transmitters',
             records: data.transmitters,
@@ -2627,6 +2633,7 @@ class SyncService {
     'weightPresets': true,
     'weightPresetEntries': false,
     'diveComputers': true,
+    'diveComputerConnections': true,
     'transmitters': true,
     'cylinderFills': true,
     'connectionMaps': true,
@@ -2786,6 +2793,10 @@ class SyncService {
     // COMMIT. Nullable, so the computer survives with the reference cleared.
     'diveComputers': [
       (field: 'equipmentId', parent: 'equipment', nullable: true),
+    ],
+    // v277: a connection belongs to its computer (issue #3106).
+    'diveComputerConnections': [
+      (field: 'computerId', parent: 'diveComputers', nullable: false),
     ],
     // Both gear FKs are nullable: the registry entry outlives a deleted
     // cylinder or computer (set null), so a missing parent must not drop it.

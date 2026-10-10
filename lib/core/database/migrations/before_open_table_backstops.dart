@@ -62,5 +62,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v268 backstop: the equipment location tables (parallel-branch
     // version-collision self-heal; idempotent).
     await _assertEquipmentLocationSchema();
+
+    // v277 backstop: dive_computer_connections (parallel-branch
+    // version-collision self-heal; idempotent).
+    await _assertDiveComputerConnectionSchema();
   }
 }

@@ -104,7 +104,8 @@ confirmation reverses the whole merge.
 Your whole dive log syncs: divers and their settings, dives (with tanks, weights,
 gear, buddies, tags, profiles and safety reviews), sites, trips, dive centers,
 equipment and its service history, certifications and courses, dive plans,
-species and sightings, presets, dive computers, transmitters and cylinder fills,
+species and sightings, presets, dive computers and the ways each one has been
+downloaded or imported, transmitters and cylinder fills,
 GPS tracks, saved searches, near-miss reports, and your photo and video links.
 
 Some things stay with each device, because the right answer differs from one
@@ -115,7 +116,7 @@ device to the next:
 | Light or dark mode, and service reminder settings | Each device can look and notify its own way |
 | Which diver profile is active | Two people can share a library on different devices |
 | The navigation layout | Phones and computers have different room |
-| A dive computer's Bluetooth address | Each device pairs on its own |
+| A dive computer's Bluetooth address or USB port, and which connection this device last downloaded it over | Each device pairs on its own |
 | The cloud provider and its sign-in, sync behaviour, and the encryption passphrase | Credentials never leave the device |
 | Backup settings and location, update channel, debug mode, database location, App Security | Device housekeeping |
 | Photo and video files | Only their links sync; the files themselves travel through [Media Sync](media-sync.md) |

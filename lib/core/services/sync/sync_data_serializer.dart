@@ -366,6 +366,7 @@ class SyncData {
   final List<Map<String, dynamic>> equipmentOwnershipEvents;
   final List<Map<String, dynamic>> equipmentLocations;
   final List<Map<String, dynamic>> equipmentLocationMoves;
+  final List<Map<String, dynamic>> diveComputerConnections;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
   final List<Map<String, dynamic>> csvPresets;
@@ -481,6 +482,7 @@ class SyncData {
     this.equipmentOwnershipEvents = const [],
     this.equipmentLocations = const [],
     this.equipmentLocationMoves = const [],
+    this.diveComputerConnections = const [],
     this.mediaSpecies = const [],
     this.siteFeatures = const [],
     this.csvPresets = const [],
@@ -595,6 +597,7 @@ class SyncData {
     'equipmentOwnershipEvents': equipmentOwnershipEvents,
     'equipmentLocations': equipmentLocations,
     'equipmentLocationMoves': equipmentLocationMoves,
+    'diveComputerConnections': diveComputerConnections,
     'mediaSpecies': mediaSpecies,
     'siteFeatures': siteFeatures,
     'csvPresets': csvPresets,
@@ -724,6 +727,7 @@ class SyncData {
       equipmentOwnershipEvents: _parseList(json['equipmentOwnershipEvents']),
       equipmentLocations: _parseList(json['equipmentLocations']),
       equipmentLocationMoves: _parseList(json['equipmentLocationMoves']),
+      diveComputerConnections: _parseList(json['diveComputerConnections']),
       mediaSpecies: _parseList(json['mediaSpecies']),
       siteFeatures: _parseList(json['siteFeatures']),
       csvPresets: _parseList(json['csvPresets']),
@@ -1305,6 +1309,12 @@ class SyncDataSerializer {
     (
       key: 'equipmentLocationMoves',
       table: _db.equipmentLocationMoves,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'diveComputerConnections',
+      table: _db.diveComputerConnections,
       blob: false,
       full: null,
     ),
@@ -2592,6 +2602,10 @@ class SyncDataSerializer {
           pendingChildren,
         ),
       ),
+      diveComputerConnections: await _safeExport(
+        'diveComputerConnections',
+        () => _exportDiveComputerConnections(hlcSince),
+      ),
       siteTypes: await _safeExport(
         'siteTypes',
         () => _exportSiteTypes(hlcSince),
@@ -3230,6 +3244,16 @@ class SyncDataSerializer {
         return row == null
             ? null
             : withoutDeviceLocalColumns('diveComputers', row.toJson());
+      case 'diveComputerConnections':
+        final row = await (_db.select(
+          _db.diveComputerConnections,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row == null
+            ? null
+            : withoutDeviceLocalColumns(
+                'diveComputerConnections',
+                row.toJson(),
+              );
       case 'transmitters':
         final row = await (_db.select(
           _db.transmitters,
@@ -3684,6 +3708,17 @@ class SyncDataSerializer {
         return {
           for (final r in rows)
             r.id: withoutDeviceLocalColumns('diveComputers', r.toJson()),
+        };
+      case 'diveComputerConnections':
+        final rows = await (_db.select(
+          _db.diveComputerConnections,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows)
+            r.id: withoutDeviceLocalColumns(
+              'diveComputerConnections',
+              r.toJson(),
+            ),
         };
       case 'transmitters':
         final rows = await (_db.select(
@@ -4985,6 +5020,15 @@ class SyncDataSerializer {
             .into(_db.diveComputers)
             .insertOnConflictUpdate(
               DiveComputer.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'diveComputerConnections':
+        await _db
+            .into(_db.diveComputerConnections)
+            .insertOnConflictUpdate(
+              DiveComputerConnectionRow.fromJson(
+                _withTimestampDefaults(data),
+              ).toCompanion(false),
             );
         return;
       case 'transmitters':
@@ -6386,6 +6430,20 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'diveComputerConnections':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveComputerConnections,
+            records
+                .map(
+                  (r) => DiveComputerConnectionRow.fromJson(
+                    _withTimestampDefaults(r),
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'transmitters':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -6916,6 +6974,11 @@ class SyncDataSerializer {
         return plain(_db.weightPresetEntries, _db.weightPresetEntries.id);
       case 'diveComputers':
         return plain(_db.diveComputers, _db.diveComputers.id);
+      case 'diveComputerConnections':
+        return plain(
+          _db.diveComputerConnections,
+          _db.diveComputerConnections.id,
+        );
       case 'transmitters':
         return plain(_db.transmitters, _db.transmitters.id);
       case 'cylinderFills':
@@ -7368,6 +7431,8 @@ class SyncDataSerializer {
         return _db.weightPresetEntries;
       case 'diveComputers':
         return _db.diveComputers;
+      case 'diveComputerConnections':
+        return _db.diveComputerConnections;
       case 'transmitters':
         return _db.transmitters;
       case 'cylinderFills':
@@ -7928,6 +7993,11 @@ class SyncDataSerializer {
       case 'diveComputers':
         await (_db.delete(
           _db.diveComputers,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'diveComputerConnections':
+        await (_db.delete(
+          _db.diveComputerConnections,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'transmitters':
@@ -9093,6 +9163,24 @@ class SyncDataSerializer {
     final rows = await query.get();
     return rows
         .map((r) => withoutDeviceLocalColumns('diveComputers', r.toJson()))
+        .toList();
+  }
+
+  /// Dive computer connections (v277, issue #3106): their own clock, and
+  /// this device's address and last use stripped, like [_exportDiveComputers].
+  Future<List<Map<String, dynamic>>> _exportDiveComputerConnections(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.diveComputerConnections);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows
+        .map(
+          (r) =>
+              withoutDeviceLocalColumns('diveComputerConnections', r.toJson()),
+        )
         .toList();
   }
 
