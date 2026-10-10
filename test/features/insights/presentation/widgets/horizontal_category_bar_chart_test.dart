@@ -50,6 +50,30 @@ void main() {
     );
   });
 
+  // Issue #3048: the Gas page now uses this chart, so a right-to-left
+  // locale must fill each bar from the label's side, not the left edge.
+  testWidgets('bars grow from the start edge in right-to-left text', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        const Directionality(
+          textDirection: TextDirection.rtl,
+          child: HorizontalCategoryBarChart(
+            data: [(label: 'A', count: 4), (label: 'B', count: 1)],
+          ),
+        ),
+      ),
+    );
+
+    final track = find.byType(FractionallySizedBox).last;
+    final fill = find.descendant(of: track, matching: find.byType(Container));
+    expect(
+      tester.getTopRight(fill).dx,
+      moreOrLessEquals(tester.getTopRight(track).dx),
+    );
+  });
+
   testWidgets('empty data shows the shared empty state', (tester) async {
     await tester.pumpWidget(_wrap(const HorizontalCategoryBarChart(data: [])));
 
