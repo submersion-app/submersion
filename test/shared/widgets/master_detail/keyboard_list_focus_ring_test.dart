@@ -209,4 +209,49 @@ void main() {
       );
     },
   );
+
+  testWidgets('a row\'s header takes clicks but stays outside its ring', (
+    tester,
+  ) async {
+    // An upcoming trip's banner: part of the row, so a click on it moves the
+    // cursor there, but the ring still traces the card below it alone.
+    useDesktopFocusHighlighting();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: _cardTheme(12),
+        home: Scaffold(
+          body: KeyboardListNavigator(
+            keys: const ['a'],
+            currentKey: null,
+            onMove: (_) {},
+            child: ListView(
+              children: [
+                const KeyboardListItem(
+                  navigationKey: 'a',
+                  header: SizedBox(height: 20, child: Text('banner')),
+                  child: Card(
+                    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: SizedBox(height: 40),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await clickWithMouse(tester, find.text('banner'));
+    await tester.pumpAndSettle();
+
+    expect(
+      _ringedRow(tester),
+      _ringAround(
+        RRect.fromRectAndRadius(
+          const Rect.fromLTWH(16, 24, _rowWidth - 32, 40),
+          const Radius.circular(12),
+        ),
+      ),
+    );
+  });
 }

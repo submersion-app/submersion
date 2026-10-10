@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/presentation/widgets/upcoming_trip_ban
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
+import 'package:submersion/shared/widgets/master_detail/keyboard_list_focus_ring.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -240,10 +241,11 @@ void main() {
     });
 
     testWidgets(
-      'an upcoming trip\'s keyboard row is its card, not its banner',
+      'an upcoming trip\'s banner is its row\'s header, outside the ring',
       (tester) async {
-        // The focus ring traces the row's card only when the row is the card;
-        // a banner inside the row would put the ring around both (#3224).
+        // The banner belongs to the trip's row, so a click on it moves the
+        // keyboard cursor there, but it sits outside the focus ring, which
+        // traces the trip's card alone (#3224).
         await setMobileSize(tester);
 
         await tester.pumpWidget(
@@ -259,12 +261,19 @@ void main() {
             of: find.byType(UpcomingTripBanner),
             matching: find.byType(KeyboardListItem),
           ),
+          findsOneWidget,
+        );
+        expect(
+          find.ancestor(
+            of: find.byType(UpcomingTripBanner),
+            matching: find.byType(KeyboardListFocusRing),
+          ),
           findsNothing,
         );
         expect(
           find.ancestor(
             of: find.text('Cozumel'),
-            matching: find.byType(KeyboardListItem),
+            matching: find.byType(KeyboardListFocusRing),
           ),
           findsOneWidget,
         );

@@ -820,22 +820,17 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                       onCheckChanged: onCheckChanged,
                     ),
                   };
-                  final keyboardRow = KeyboardListItem(
+                  // The banner is the row's header, outside the focus ring,
+                  // so the ring traces the trip's card alone (#3224).
+                  return KeyboardListItem(
                     navigationKey: tripWithStats.trip.id,
+                    header: tripWithStats.trip.isUpcoming
+                        ? Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                            child: UpcomingTripBanner(trip: tripWithStats.trip),
+                          )
+                        : null,
                     child: selectableTile,
-                  );
-                  if (!tripWithStats.trip.isUpcoming) return keyboardRow;
-                  // The banner sits outside the keyboard row, so the focus
-                  // ring traces the trip's card alone (#3224).
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-                        child: UpcomingTripBanner(trip: tripWithStats.trip),
-                      ),
-                      keyboardRow,
-                    ],
                   );
                 },
               ),
