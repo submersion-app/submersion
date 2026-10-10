@@ -763,10 +763,15 @@ class _RecordingRestoreService extends BackupService {
 
   /// Destination the manual export was pointed at.
   String? exportedTo;
+  String? exportedNote;
 
   @override
-  Future<BackupRecord> exportBackupToPath(String destinationPath) async {
+  Future<BackupRecord> exportBackupToPath(
+    String destinationPath, {
+    String? note,
+  }) async {
     calls.add('exportBackupToPath');
+    exportedNote = note;
     exportedTo = destinationPath;
     return BackupRecord(
       id: 'exported',

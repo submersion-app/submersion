@@ -25,6 +25,7 @@ import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
 import '../../../../helpers/mock_channels.dart';
+import '../../../../helpers/test_database.dart';
 
 // =============================================================================
 // Test Doubles
@@ -74,6 +75,17 @@ class FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
 
   @override
   String? get databaseKeyHex => null;
+}
+
+/// A fake whose live database is real, for checks on what a restore leaves in
+/// it.
+class _LiveDatabaseAdapter extends FakeBackupDatabaseAdapter {
+  _LiveDatabaseAdapter(this.live);
+
+  final AppDatabase live;
+
+  @override
+  AppDatabase get database => live;
 }
 
 /// Sync repository whose device id is fixed by the test, including the empty
@@ -485,6 +497,68 @@ void main() {
               'minting a replace here would push the UNTOUCHED live '
               'library to every synced device as the "restored" one',
         );
+      });
+    });
+
+    group('backup notes', () {
+      test('Backup Now passes the note to the copy and records it', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+        final record = await service.performBackup(
+          note: 'Before merging sites',
+        );
+        expect(fakeDb.lastBackupNote, 'Before merging sites');
+        expect(record.note, 'Before merging sites');
+        expect(preferences.getHistory().single.note, 'Before merging sites');
+      });
+
+      test('an automatic backup carries no note', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+        final record = await service.performBackup(isAutomatic: true);
+        expect(fakeDb.backupCallCount, 1);
+        expect(fakeDb.lastBackupNote, isNull);
+        expect(record.note, isNull);
+      });
+
+      test('a restore drops the note table from the live database', () async {
+        final live = createTestDatabase();
+        addTearDown(live.close);
+        await live.customStatement(
+          'CREATE TABLE backup_info (key TEXT PRIMARY KEY NOT NULL, '
+          'value TEXT NOT NULL)',
+        );
+        final adapter = _LiveDatabaseAdapter(live);
+        final service = BackupService(
+          dbAdapter: adapter,
+          preferences: preferences,
+          syncRepository: _SpySyncRepository(),
+        );
+        final src = File(
+          p.join(
+            _isolatedTempDir.path,
+            'note_restore_${DateTime.now().microsecondsSinceEpoch}.db',
+          ),
+        );
+        await src.writeAsString('db');
+        addTearDown(() async {
+          if (await src.exists()) await src.delete();
+        });
+
+        await service.restoreFromFile(src.path);
+
+        expect(adapter.restoreCallCount, 1);
+        final rows = await live
+            .customSelect(
+              "SELECT 1 FROM sqlite_master WHERE type = 'table' "
+              "AND name = 'backup_info'",
+            )
+            .get();
+        expect(rows, isEmpty);
       });
     });
 
@@ -1082,6 +1156,29 @@ void main() {
     });
 
     group('exportBackupToPath', () {
+      test('passes the note to the copy and records it', () async {
+        final tempDir = await Directory.systemTemp.createTemp('backup_test_');
+        final destPath = p.join(tempDir.path, 'my_backup.db');
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+        try {
+          final record = await service.exportBackupToPath(
+            destPath,
+            note: '  Before the Cozumel trip ',
+          );
+          expect(fakeDb.lastBackupNote, 'Before the Cozumel trip');
+          expect(record.note, 'Before the Cozumel trip');
+          expect(
+            preferences.getHistory().single.note,
+            'Before the Cozumel trip',
+          );
+        } finally {
+          await tempDir.delete(recursive: true);
+        }
+      });
+
       test('copies database to specified path', () async {
         final tempDir = await Directory.systemTemp.createTemp('backup_test_');
         final destPath = '${tempDir.path}/my_backup.db';
@@ -1125,6 +1222,15 @@ void main() {
     });
 
     group('exportBackupToTemp', () {
+      test('passes the note to the copy', () async {
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+        await service.exportBackupToTemp(note: 'Shared with my buddy');
+        expect(fakeDb.lastBackupNote, 'Shared with my buddy');
+      });
+
       test('copies database to temp directory', () async {
         final service = BackupService(
           dbAdapter: fakeDb,

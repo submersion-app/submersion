@@ -41,22 +41,28 @@ class _FakeBackupService extends BackupService {
   bool blockedByEncryptionLock = false;
   bool lockCheckThrows = false;
   BackupLocation location = BackupLocation.local;
+  String? lastNote;
 
   _FakeBackupService(BackupPreferences prefs)
     : super(dbAdapter: _NoopAdapter(), preferences: prefs);
 
   @override
-  Future<BackupRecord> performBackup({bool isAutomatic = false}) async =>
-      BackupRecord(
-        id: 'r1',
-        filename: 'submersion_backup_test.db',
-        timestamp: DateTime(2026, 10, 9),
-        sizeBytes: 2048,
-        location: location,
-        diveCount: 0,
-        siteCount: 0,
-        type: BackupType.manual,
-      );
+  Future<BackupRecord> performBackup({
+    bool isAutomatic = false,
+    String? note,
+  }) async {
+    lastNote = note;
+    return BackupRecord(
+      id: 'r1',
+      filename: 'submersion_backup_test.db',
+      timestamp: DateTime(2026, 10, 9),
+      sizeBytes: 2048,
+      location: location,
+      diveCount: 0,
+      siteCount: 0,
+      type: BackupType.manual,
+    );
+  }
 
   @override
   Future<bool> isCloudBackupBlockedByEncryptionLock() async {

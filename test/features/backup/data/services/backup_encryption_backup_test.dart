@@ -51,6 +51,18 @@ class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   String? get databaseKeyHex => null;
 }
 
+class _NoteRecordingAdapter extends _FakeBackupDatabaseAdapter {
+  String? lastNote;
+  String? lastPath;
+
+  @override
+  Future<void> backup(String destinationPath, {String? note}) async {
+    lastNote = note;
+    lastPath = destinationPath;
+    await super.backup(destinationPath, note: note);
+  }
+}
+
 /// Per-file temp root, so the backup service's fixed `Submersion/Backups`
 /// subtree does not collide with the other suites that mock path_provider the
 /// same way. `flutter test` runs files in parallel isolates against one real
@@ -182,6 +194,24 @@ void main() {
     );
     expect(files.single.name, endsWith('.sbe'));
     expect(await service.isCloudBackupBlockedByEncryptionLock(), isFalse);
+  });
+
+  test('backup encryption ON: the note is stamped into the plaintext copy '
+      'before it is encrypted', () async {
+    await enableBackupEncryption();
+    final adapter = _NoteRecordingAdapter();
+    final service = BackupService(
+      dbAdapter: adapter,
+      preferences: preferences,
+      backupEncryptionKeyStore: backupKeyStore,
+    );
+
+    final record = await service.performBackup(note: 'Encrypted trip');
+
+    expect(adapter.lastNote, 'Encrypted trip');
+    expect(adapter.lastPath, endsWith('.db'));
+    expect(record.filename, endsWith('.sbe'));
+    expect(record.note, 'Encrypted trip');
   });
 
   test('exportBackupToTemp encrypts to .sbe when enabled', () async {

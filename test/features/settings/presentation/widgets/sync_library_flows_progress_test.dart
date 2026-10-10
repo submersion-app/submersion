@@ -55,7 +55,10 @@ class _FakeBackupService extends BackupService {
   Completer<void>? gate;
 
   @override
-  Future<BackupRecord> performBackup({bool isAutomatic = false}) async {
+  Future<BackupRecord> performBackup({
+    bool isAutomatic = false,
+    String? note,
+  }) async {
     performBackupCalls++;
     await gate?.future;
     return BackupRecord(

@@ -134,7 +134,10 @@ class _FakeBackupService extends BackupService {
     : super(dbAdapter: _NoopBackupAdapter(), preferences: prefs);
 
   @override
-  Future<BackupRecord> performBackup({bool isAutomatic = false}) async {
+  Future<BackupRecord> performBackup({
+    bool isAutomatic = false,
+    String? note,
+  }) async {
     performBackupCalls++;
     return BackupRecord(
       id: 'fake-safety',

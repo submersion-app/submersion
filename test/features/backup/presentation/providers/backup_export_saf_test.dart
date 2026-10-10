@@ -45,9 +45,11 @@ class _TempExportingBackupService extends BackupService {
   final Directory _dir;
   Object? throwOnExport;
   File? lastTemp;
+  String? lastNote;
 
   @override
-  Future<File> exportBackupToTemp() async {
+  Future<File> exportBackupToTemp({String? note}) async {
+    lastNote = note;
     final error = throwOnExport;
     if (error != null) throw error;
     final f = File('${_dir.path}/submersion_backup_2026-08-16.db');
