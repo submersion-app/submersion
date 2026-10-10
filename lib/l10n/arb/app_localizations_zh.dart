@@ -646,7 +646,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerMission_member_pickBuddy => '选择潜伴';
 
   @override
-  String get plannerMission_member_sac => 'Bottom RMV';
+  String get plannerMission_member_sac => '水底 RMV';
 
   @override
   String get plannerMission_member_scooter => '推进器';
@@ -1266,7 +1266,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_addGeofence => '添加地理围栏';
 
   @override
-  String get equipment_setEdit_removeGeofence => 'Remove geofence';
+  String get equipment_setEdit_removeGeofence => '移除地理围栏';
 
   @override
   String equipment_setEdit_geofenceRadius(String distance) {
@@ -2837,7 +2837,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_stat_lastDive => '最近潜水';
 
   @override
-  String get buddies_summary_mostDives => 'Most Dives';
+  String get buddies_summary_mostDives => '潜水次数最多';
 
   @override
   String get buddies_summary_overview => '概览';
@@ -5732,7 +5732,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveCenters_hint_phone => '+1 234 567 890';
 
   @override
-  String get diveCenters_hint_postalCode => 'e.g., 83100';
+  String get diveCenters_hint_postalCode => '例如：83100';
 
   @override
   String get diveCenters_hint_stateProvince => '例如，普吉岛';
@@ -6746,10 +6746,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => '编辑潜水';
 
   @override
-  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+  String get diveLog_detail_tooltip_previousDive => '上一次潜水';
 
   @override
-  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+  String get diveLog_detail_tooltip_nextDive => '下一次潜水';
 
   @override
   String get diveLog_detail_tooltip_removeFromFavorites => '从收藏中移除';
@@ -7597,7 +7597,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_ceiling => '上升限制';
 
   @override
-  String get diveLog_legend_label_decoStops => 'Deco stops';
+  String get diveLog_legend_label_decoStops => '减压停留';
 
   @override
   String get diveLog_legend_label_cns => '中枢神经系统%';
@@ -9355,7 +9355,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tooltip_ceiling => '上升限制';
 
   @override
-  String get diveLog_tooltip_decoStop => 'Deco stop';
+  String get diveLog_tooltip_decoStop => '减压停留';
 
   @override
   String get diveLog_tooltip_cns => '中枢神经系统';
@@ -9637,13 +9637,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_hint_tankName => '输入气瓶名称';
 
   @override
-  String get divePlanner_label_airBreaks => 'Air breaks';
+  String get divePlanner_label_airBreaks => '空气间歇';
 
   @override
-  String get divePlanner_label_airBreaksBreak => 'Break (min)';
+  String get divePlanner_label_airBreaksBreak => '间歇（分钟）';
 
   @override
-  String get divePlanner_label_airBreaksOnO2 => 'On O2 (min)';
+  String get divePlanner_label_airBreaksOnO2 => '吸 O2（分钟）';
 
   @override
   String get divePlanner_label_altitude => '高海拔:';
@@ -9693,33 +9693,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_label_salinity => '盐度';
 
   @override
-  String get divePlanner_gasOptions_title => 'Gas options';
+  String get divePlanner_gasOptions_title => '气体选项';
 
   @override
-  String get divePlanner_gasOptions_sacBottom => 'Bottom RMV';
+  String get divePlanner_gasOptions_sacBottom => '水底 RMV';
 
   @override
-  String get divePlanner_gasOptions_sacDeco => 'Deco RMV';
+  String get divePlanner_gasOptions_sacDeco => '减压 RMV';
 
   @override
-  String get divePlanner_gasOptions_sacFactor => 'RMV factor';
+  String get divePlanner_gasOptions_sacFactor => 'RMV 系数';
 
   @override
-  String get divePlanner_gasOptions_problemSolvingMinutes =>
-      'Problem solving time';
+  String get divePlanner_gasOptions_problemSolvingMinutes => '问题处理时间';
 
   @override
-  String get divePlanner_gasOptions_ppO2Bottom => 'Bottom ppO₂';
+  String get divePlanner_gasOptions_ppO2Bottom => '水底 ppO₂';
 
   @override
-  String get divePlanner_gasOptions_ppO2Deco => 'Deco ppO₂';
+  String get divePlanner_gasOptions_ppO2Deco => '减压 ppO₂';
 
   @override
-  String get divePlanner_gasOptions_bestMixEnd => 'Best mix END';
+  String get divePlanner_gasOptions_bestMixEnd => '最佳混合气 END';
 
   @override
-  String get divePlanner_gasOptions_o2Narcotic =>
-      'Treat O₂ as narcotic for this plan';
+  String get divePlanner_gasOptions_o2Narcotic => '在此计划中将 O₂ 视为麻醉性气体';
 
   @override
   String get divePlanner_label_tanks => '气瓶';
@@ -10108,7 +10106,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_access_exitMethod => '出水';
 
   @override
-  String get diveSites_edit_altitude_hint => 'e.g., 2000';
+  String get diveSites_edit_altitude_hint => '例如：2000';
 
   @override
   String get diveSites_edit_altitude_validation => '无效的海拔';
@@ -11364,7 +11362,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_allergiesLabel => '过敏';
 
   @override
-  String get divers_edit_bloodTypeHint => 'e.g., O+, A-, B+';
+  String get divers_edit_bloodTypeHint => '例如：O+、A-、B+';
 
   @override
   String get divers_edit_bloodTypeLabel => '血型';
@@ -17558,19 +17556,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get media_unavailablePlaceholder_fileNotFound => 'File not found';
+  String get media_unavailablePlaceholder_fileNotFound => '未找到文件';
 
   @override
-  String get media_unavailablePlaceholder_fromOtherDevice =>
-      'From another device';
+  String get media_unavailablePlaceholder_fromOtherDevice => '来自其他设备';
 
   @override
   String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
-    return 'From $device';
+    return '来自 $device';
   }
 
   @override
-  String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
+  String get media_unavailablePlaceholder_networkError => '无法连接';
 
   @override
   String get media_unavailablePlaceholder_signInRequired => '登录后查看';
@@ -19310,19 +19307,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_navCustomization_dividerLabel => '下方的项目在导航栏放不下时会移入“更多”菜单';
 
   @override
-  String get settings_navCustomization_resetButton => 'Reset to defaults';
+  String get settings_navCustomization_resetButton => '重置为默认值';
 
   @override
-  String get settings_navCustomization_pinnedTooltip => 'Always shown';
+  String get settings_navCustomization_pinnedTooltip => '始终显示';
 
   @override
   String settings_navCustomization_moveUpLabel(String destination) {
-    return 'Move $destination up';
+    return '将$destination上移';
   }
 
   @override
   String settings_navCustomization_moveDownLabel(String destination) {
-    return 'Move $destination down';
+    return '将$destination下移';
   }
 
   @override
@@ -19335,8 +19332,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_navCustomization_saveError =>
-      'Could not save navigation layout. Please try again.';
+  String get settings_navCustomization_saveError => '无法保存导航布局。请重试。';
 
   @override
   String get settings_backToSettings_tooltip => '返回设置';
@@ -22651,29 +22647,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get weightPresets_page_empty => '在潜水编辑器中保存一份配重，或点按 + 在此新建一份。';
 
   @override
-  String get weightPresets_action_new => 'New preset';
+  String get weightPresets_action_new => '新建预设';
 
   @override
-  String get weightPresets_action_edit => 'Edit';
+  String get weightPresets_action_edit => '编辑';
 
   @override
-  String get weightPresets_new_title => 'New weight preset';
+  String get weightPresets_new_title => '新建配重预设';
 
   @override
-  String get weightPresets_edit_title => 'Edit weight preset';
+  String get weightPresets_edit_title => '编辑配重预设';
 
   @override
-  String get weightPresets_editor_addWeight => 'Add weight';
+  String get weightPresets_editor_addWeight => '添加配重';
 
   @override
-  String get weightPresets_editor_needName => 'Give the preset a name';
+  String get weightPresets_editor_needName => '请为预设命名';
 
   @override
-  String get weightPresets_editor_needWeight => 'Add at least one weight';
+  String get weightPresets_editor_needWeight => '请至少添加一项配重';
 
   @override
-  String get weightPresets_editor_notFound =>
-      'This weighting rig no longer exists.';
+  String get weightPresets_editor_notFound => '此配重预设已不存在。';
 
   @override
   String get weightPresets_delete_title => '删除此预设？';
@@ -23675,11 +23670,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_category_marineLife_title => '物种';
 
   @override
-  String get insights_category_overview_title => 'Overview';
+  String get insights_category_overview_title => '概览';
 
   @override
-  String get insights_category_overview_subtitle =>
-      'Totals, records, and breakdowns at a glance';
+  String get insights_category_overview_subtitle => '总计、纪录和分类一目了然';
 
   @override
   String get insights_category_profile_subtitle => '上升速率与减压';
@@ -25041,7 +25035,7 @@ class AppLocalizationsZh extends AppLocalizations {
     Object hours,
     Object minutes,
   ) {
-    return '${hours}h ${minutes}m';
+    return '$hours小时$minutes分钟';
   }
 
   @override
@@ -43292,7 +43286,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String diveLog_detail_serialNumber(String serial) {
-    return 'S/N $serial';
+    return '序列号 $serial';
   }
 
   @override
@@ -45703,76 +45697,76 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Replan this dive';
+  String get diveLog_detail_menu_whatIf => '重新规划此次潜水';
 
   @override
-  String get plannerCanvas_sourceCompare_title => 'vs. original dive';
+  String get plannerCanvas_sourceCompare_title => '对比原始潜水';
 
   @override
   String plannerCanvas_issue_repeated(String message, int count) {
-    return '$message ($count legs)';
+    return '$message（$count 段）';
   }
 
   @override
   String plannerCanvas_stopMinimum_dialogTitle(String depth) {
-    return 'Minimum stop time at $depth';
+    return '$depth 处的最短停留时间';
   }
 
   @override
-  String get plannerCanvas_stopMinimum_minutesLabel => 'Minutes';
+  String get plannerCanvas_stopMinimum_minutesLabel => '分钟';
 
   @override
-  String get plannerCanvas_stopMinimum_apply => 'Apply';
+  String get plannerCanvas_stopMinimum_apply => '应用';
 
   @override
-  String get plannerCanvas_stopMinimum_clear => 'Clear minimum';
+  String get plannerCanvas_stopMinimum_clear => '清除最短时间';
 
   @override
-  String get diveLog_whatIf_title => 'Replan this dive';
+  String get diveLog_whatIf_title => '重新规划此次潜水';
 
   @override
-  String get diveLog_whatIf_detailLabel => 'Detail';
+  String get diveLog_whatIf_detailLabel => '详细程度';
 
   @override
   String get diveLog_whatIf_engineNote =>
-      'The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.';
+      '该计划涵盖下潜和作业深度。计划器会计算上升和减压，便于你与已记录的潜水进行比较。';
 
   @override
-  String get diveLog_whatIf_seedTissues => 'Seed tissues from previous dive';
+  String get diveLog_whatIf_seedTissues => '从上一次潜水载入组织饱和度';
 
   @override
-  String get diveLog_whatIf_openInPlanner => 'Open in planner';
+  String get diveLog_whatIf_openInPlanner => '在计划器中打开';
 
   @override
   String diveLog_whatIf_planName(String title) {
-    return 'Replan: $title';
+    return '重新规划：$title';
   }
 
   @override
-  String get plannerCanvas_compare_runtime => 'Runtime';
+  String get plannerCanvas_compare_runtime => '运行时间';
 
   @override
-  String get plannerCanvas_compare_maxDepth => 'Max depth';
+  String get plannerCanvas_compare_maxDepth => '最大深度';
 
   @override
-  String get plannerCanvas_compare_deco => 'Deco time';
+  String get plannerCanvas_compare_deco => '减压时间';
 
   @override
   String plannerCanvas_compare_gas(String tank) {
-    return 'Gas ($tank)';
+    return '气体（$tank）';
   }
 
   @override
   String get plannerCanvas_compare_cns => 'CNS';
 
   @override
-  String get plannerCanvas_compare_planned => 'Plan';
+  String get plannerCanvas_compare_planned => '计划';
 
   @override
-  String get plannerCanvas_compare_actual => 'Actual';
+  String get plannerCanvas_compare_actual => '实际';
 
   @override
-  String get plannerCanvas_compare_showOnChart => 'Show on chart';
+  String get plannerCanvas_compare_showOnChart => '在图表中显示';
 
   @override
   String numberInput_invalidNumber(String separator) {
