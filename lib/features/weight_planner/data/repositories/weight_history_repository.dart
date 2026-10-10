@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/core/utils/stream_value_changes.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_lead.dart';
@@ -32,6 +33,29 @@ class WeightHistoryRepository {
   Stream<void> watchGearLeadChanges() => _db.tableUpdates(
     TableUpdateQuery.onAllTables([_db.equipment, _db.equipmentAttributes]),
   );
+
+  /// Emits when any site's water type changes, the fallback an observation
+  /// takes for a dive with none of its own (issue #3196). Other site writes
+  /// (notes, coordinates, the altitude backfill) leave it quiet.
+  ///
+  /// Built on table updates, not a query stream, which would emit on
+  /// subscribe (see test/architecture/query_stream_tick_test.dart).
+  Stream<void> watchSiteWaterTypeChanges() => whenValueChanges(
+    _db.tableUpdates(TableUpdateQuery.onTable(_db.diveSites)),
+    _siteWaterTypeSnapshot,
+  );
+
+  /// Every site's id and water type, as one comparable string.
+  Future<String> _siteWaterTypeSnapshot() async {
+    final rows = await (_db.selectOnly(
+      _db.diveSites,
+    )..addColumns([_db.diveSites.id, _db.diveSites.waterType])).get();
+    final pairs = [
+      for (final r in rows)
+        '${r.read(_db.diveSites.id)}=${r.read(_db.diveSites.waterType)}',
+    ]..sort();
+    return pairs.join('\n');
+  }
 
   /// All dives of [diverId] that recorded any weight, ordered oldest-first.
   Future<List<WeightObservation>> observationsForDiver(String diverId) async {

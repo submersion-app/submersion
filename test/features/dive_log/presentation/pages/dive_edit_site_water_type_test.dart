@@ -167,4 +167,35 @@ void main() {
       WaterType.brackish,
     );
   });
+
+  testWidgets('a water type picked by hand survives clearing the site', (
+    tester,
+  ) async {
+    final dive = await createDiveAtSite(siteWater: WaterType.salt);
+    await pumpExistingDivePage(tester, dive.id);
+    await expandConditions(tester);
+
+    await tester.tap(find.text('Salt Water'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'Fresh Water'));
+    await tester.pumpAndSettle();
+
+    final siteRow = find.ancestor(
+      of: find.text('Blue Hole'),
+      matching: find.byType(FormRow),
+    );
+    await tester.scrollUntilVisible(
+      siteRow,
+      -300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(
+      find.descendant(of: siteRow, matching: find.byIcon(Icons.clear)),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect((await repository.getDiveById(dive.id))!.waterType, WaterType.fresh);
+  });
 }

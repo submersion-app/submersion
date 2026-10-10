@@ -194,6 +194,60 @@ void main() {
     expect(dive.effectiveWaterType, WaterType.fresh);
   });
 
+  test('a missing dive is left alone', () async {
+    await insertSite('s1', waterType: 'salt');
+
+    await repo.setSite('nope', 's1');
+
+    expect(await repo.getDiveById('nope'), isNull);
+  });
+
+  group('watchSiteWaterTypeChanges', () {
+    /// The tick is debounced (300 ms), so each wait outlasts it. The
+    /// subscription is cancelled here, while the database is still open.
+    Future<int> ticksDuring(Future<void> Function() writes) async {
+      const settle = Duration(milliseconds: 500);
+      var ticks = 0;
+      final sub = repo.watchSiteWaterTypeChanges('d1').listen((_) => ticks++);
+      await Future<void>.delayed(settle);
+      await writes();
+      await Future<void>.delayed(settle);
+      await sub.cancel();
+      return ticks;
+    }
+
+    test('ticks when the dive site water type changes', () async {
+      await insertDive('d1');
+      await insertSite('s1', waterType: 'salt');
+      await repo.setSite('d1', 's1');
+
+      final ticks = await ticksDuring(
+        () => (db.update(db.diveSites)..where((t) => t.id.equals('s1'))).write(
+          const DiveSitesCompanion(waterType: Value('fresh')),
+        ),
+      );
+
+      expect(ticks, 1);
+    });
+
+    test('stays quiet for other site writes', () async {
+      await insertDive('d1');
+      await insertSite('s1', waterType: 'salt');
+      await insertSite('other', waterType: 'salt');
+      await repo.setSite('d1', 's1');
+
+      final ticks = await ticksDuring(() async {
+        await (db.update(db.diveSites)..where((t) => t.id.equals('s1'))).write(
+          const DiveSitesCompanion(notes: Value('calm')),
+        );
+        await (db.update(db.diveSites)..where((t) => t.id.equals('other')))
+            .write(const DiveSitesCompanion(waterType: Value('fresh')));
+      });
+
+      expect(ticks, 0);
+    });
+  });
+
   group('dive types', () {
     test('adds the dive types the site types stand for', () async {
       await insertDive('d1');

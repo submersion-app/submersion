@@ -15,6 +15,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/core/utils/stream_value_changes.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
@@ -397,11 +398,38 @@ class DiveRepository {
           TableUpdateQuery.onTable(_db.diveDataSources),
           TableUpdateQuery.onTable(_db.diveComputers),
           TableUpdateQuery.onTable(_db.diveProfileEvents),
-          // The site's water type is the deco fallback (issue #3196).
-          TableUpdateQuery.onTable(_db.diveSites),
         ]),
       )
       .debounce(changeTickDebounce);
+
+  /// Emits when the water type of [diveId]'s site changes, the deco fallback
+  /// [getDiveForAnalysis] reads for a dive with none of its own (issue
+  /// #3196). Deliberately not part of [watchAnalysisInputChanges]: that tick
+  /// fans out to every analysis input provider, and `dive_sites` is written
+  /// in bulk (a sync, the altitude backfill after site matching). This query
+  /// re-reads one value on such a write and emits only when it changed.
+  ///
+  /// Built on table updates, not a query stream, which would emit on
+  /// subscribe (see test/architecture/query_stream_tick_test.dart). A change
+  /// of the dive's own site link already ticks through `dives`.
+  Stream<void> watchSiteWaterTypeChanges(String diveId) => whenValueChanges(
+    _db
+        .tableUpdates(TableUpdateQuery.onTable(_db.diveSites))
+        .debounce(changeTickDebounce),
+    () => _siteWaterTypeOf(diveId),
+  );
+
+  Future<String?> _siteWaterTypeOf(String diveId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT s.water_type AS water_type FROM dives d '
+          'JOIN dive_sites s ON s.id = d.site_id WHERE d.id = ?',
+          variables: [Variable.withString(diveId)],
+          readsFrom: {_db.dives, _db.diveSites},
+        )
+        .getSingleOrNull();
+    return row?.readNullable<String>('water_type');
+  }
 
   /// Get all dives, ordered by date (newest first)
   /// This method is optimized to avoid N+1 queries by batch loading related data
