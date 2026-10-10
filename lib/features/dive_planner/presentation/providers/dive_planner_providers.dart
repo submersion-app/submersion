@@ -271,8 +271,19 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   // --------------------------------------------------------------------------
 
   /// [s] with its two mandatory loop slots filled when it is a CCR plan
-  /// (see [CcrLoopSlots]); any other mode is returned as it is. Filling a
-  /// slot is not a diver edit, so [DivePlanState.isDirty] is left alone.
+  /// (see [CcrLoopSlots]), and every segment remapped onto a diluent
+  /// against that same, possibly just-updated, tank list; any other mode
+  /// is returned as it is. Filling a slot is not a diver edit, so
+  /// [DivePlanState.isDirty] is left alone.
+  ///
+  /// The remap matters even when [CcrLoopSlots.ensure] changes nothing
+  /// about an *existing* slot split: entering CCR on a plan whose only
+  /// pure-O2 cylinder is the segments' own gas (an ordinary OC/SCR O2 deco
+  /// bottle) has [CcrLoopSlots] claim that cylinder for the oxygen slot,
+  /// which leaves every segment referencing it in violation of "a CCR
+  /// segment always breathes a diluent" -- nothing else in [ensure] looks
+  /// at segments once a role is decided, so the remap has to happen here,
+  /// against the tanks [ensure] actually returned, not the input.
   static DivePlanState _withCcrSlots(DivePlanState s) {
     if (s.mode != domain.PlanMode.ccr) return s;
     final slots = const CcrLoopSlots().ensure(
@@ -280,12 +291,39 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       segments: s.segments,
       newId: _uuid.v4,
     );
-    return slots.changed ? s.copyWith(tanks: slots.tanks) : s;
+    var segmentsChanged = false;
+    final segments = [
+      for (final segment in s.segments)
+        () {
+          final mapped = _segmentOnDiluent(segment, slots.tanks);
+          if (!identical(mapped, segment)) segmentsChanged = true;
+          return mapped;
+        }(),
+    ];
+    if (!slots.changed && !segmentsChanged) return s;
+    return s.copyWith(tanks: slots.tanks, segments: segments);
   }
 
   /// The plan's diluent cylinders, in list order.
   static List<DiveTank> _diluents(List<DiveTank> tanks) =>
       tanks.where((t) => t.role == TankRole.diluent).toList();
+
+  /// [segment] as it is when it already breathes one of [tanks]' diluents,
+  /// else moved onto the first diluent, mix and all -- the free-standing
+  /// form [_withCcrSlots] uses, against a tank list it computed itself
+  /// rather than `state.tanks` (which [updateMode] has not yet committed
+  /// at the point it needs this).
+  static PlanSegment _segmentOnDiluent(
+    PlanSegment segment,
+    List<DiveTank> tanks,
+  ) {
+    final diluents = _diluents(tanks);
+    if (diluents.isEmpty || diluents.any((t) => t.id == segment.tankId)) {
+      return segment;
+    }
+    final first = diluents.first;
+    return segment.copyWith(tankId: first.id, gasMix: first.gasMix);
+  }
 
   /// On a CCR plan every segment breathes a diluent: [segment] as it is
   /// when it already does, else moved onto the first diluent, mix and all.
@@ -293,12 +331,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// segment authored before the tank it names stopped being one.
   PlanSegment _onDiluent(PlanSegment segment) {
     if (state.mode != domain.PlanMode.ccr) return segment;
-    final diluents = _diluents(state.tanks);
-    if (diluents.isEmpty || diluents.any((t) => t.id == segment.tankId)) {
-      return segment;
-    }
-    final first = diluents.first;
-    return segment.copyWith(tankId: first.id, gasMix: first.gasMix);
+    return _segmentOnDiluent(segment, state.tanks);
   }
 
   /// The cylinder a new segment starts on: the first diluent on a CCR plan,
@@ -837,10 +870,20 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     // the diver's explicit per-tank choice there (#3135), and entering with
     // nothing marked yet marks the tank(s) the plan already breathes, once.
     var tanks = state.tanks;
+    var segments = state.segments;
     if (mode == domain.PlanMode.ccr) {
       tanks = const CcrLoopSlots()
-          .ensure(tanks, segments: state.segments, newId: _uuid.v4)
+          .ensure(tanks, segments: segments, newId: _uuid.v4)
           .tanks;
+      // Claiming the oxygen slot can take a cylinder an existing segment
+      // already breathes (an ordinary OC/SCR O2 deco bottle, say) -- so
+      // every segment is remapped onto a diluent against the tanks just
+      // computed, the same backstop _onDiluent applies to a later edit
+      // (see _withCcrSlots for why this cannot be skipped just because
+      // the slots themselves were already both present).
+      segments = [
+        for (final segment in segments) _segmentOnDiluent(segment, tanks),
+      ];
     } else if (mode != domain.PlanMode.oc &&
         !tanks.any((t) => t.role == TankRole.diluent)) {
       final breathedIds = state.segments.map((s) => s.tankId).toSet();
@@ -854,6 +897,7 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     state = state.copyWith(
       mode: mode,
       tanks: tanks,
+      segments: segments,
       setpointLow: state.setpointLow ?? defaults?.low,
       setpointHigh: state.setpointHigh ?? defaults?.high,
       isDirty: true,

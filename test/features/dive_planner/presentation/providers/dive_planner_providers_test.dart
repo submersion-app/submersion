@@ -377,6 +377,81 @@ void main() {
         expect(state.segments.single.gasMix, dil.gasMix);
       });
 
+      test('entering CCR on a plan whose only pure-O2 cylinder is already '
+          'breathed by a segment (an ordinary OC/SCR O2 deco bottle) '
+          'remaps that segment onto the diluent instead of leaving it on '
+          'the cylinder CcrLoopSlots just claimed for oxygen', () {
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        final primary = container.read(divePlanNotifierProvider).tanks.first;
+        const o2 = DiveTank(
+          id: 'o2-deco',
+          volume: 11.1,
+          startPressure: 207,
+          gasMix: GasMix(o2: 100),
+          role: TankRole.deco,
+        );
+        notifier.addTank(o2);
+        notifier.addSegment(hold(primary.id, primary.gasMix));
+        notifier.addSegment(hold('o2-deco', const GasMix(o2: 100)));
+
+        notifier.updateMode(domain.PlanMode.ccr);
+
+        final state = container.read(divePlanNotifierProvider);
+        final slot = state.tanks.firstWhere((t) => t.id == 'o2-deco');
+        expect(slot.role, TankRole.oxygenSupply);
+        final dil = state.tanks.firstWhere((t) => t.role == TankRole.diluent);
+        // Neither segment may still reference the oxygen slot.
+        for (final segment in state.segments) {
+          expect(segment.tankId, isNot('o2-deco'));
+          expect(segment.tankId, dil.id);
+          expect(segment.gasMix, dil.gasMix);
+        }
+      });
+
+      test('loading a CCR plan with a segment stuck on the oxygen slot '
+          '(saved before this remap existed) is repaired on load', () {
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        final saved = container
+            .read(divePlanNotifierProvider)
+            .copyWith(
+              mode: domain.PlanMode.ccr,
+              tanks: const [
+                DiveTank(
+                  id: 'dil',
+                  volume: 3,
+                  startPressure: 200,
+                  gasMix: GasMix(o2: 18, he: 45),
+                  role: TankRole.diluent,
+                ),
+                DiveTank(
+                  id: 'o2',
+                  volume: 3,
+                  startPressure: 200,
+                  gasMix: GasMix(o2: 100),
+                  role: TankRole.oxygenSupply,
+                ),
+              ],
+              segments: [hold('o2', const GasMix(o2: 100))],
+              isDirty: false,
+            );
+        notifier.loadPlan(saved);
+        final state = container.read(divePlanNotifierProvider);
+        expect(state.segments.single.tankId, 'dil');
+        expect(state.segments.single.gasMix, const GasMix(o2: 18, he: 45));
+      });
+
       test('a quick plan on a CCR plan starts on the diluent, not the first '
           'cylinder', () {
         final container = ccrContainer();
