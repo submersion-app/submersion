@@ -206,6 +206,39 @@ void main() {
     });
   });
 
+  group('Master Instructor rung (issue #3194)', () {
+    // The professional tail of a ladder: everything from Instructor up.
+    List<CertificationLevel> proTail(CertificationAgency agency) {
+      final ladder = CertificationLevelCatalog.ladderFor(agency);
+      return ladder.sublist(ladder.indexOf(CertificationLevel.instructor));
+    }
+
+    test('PADI ranks Master Instructor between Instructor and Course '
+        'Director', () {
+      expect(proTail(CertificationAgency.padi), const [
+        CertificationLevel.instructor,
+        CertificationLevel.masterInstructor,
+        CertificationLevel.courseDirector,
+      ]);
+    });
+
+    test('SDI ranks Master Instructor between Instructor and Course '
+        'Director', () {
+      expect(proTail(CertificationAgency.sdi), const [
+        CertificationLevel.instructor,
+        CertificationLevel.masterInstructor,
+        CertificationLevel.courseDirector,
+      ]);
+    });
+
+    test('NAUI keeps its own ladder, with no Master Instructor', () {
+      expect(proTail(CertificationAgency.naui), const [
+        CertificationLevel.instructor,
+        CertificationLevel.courseDirector,
+      ]);
+    });
+  });
+
   group('fromId', () {
     test('returns the built-in for its enum name and null otherwise', () {
       expect(CertificationAgency.fromId('acuc'), CertificationAgency.acuc);
