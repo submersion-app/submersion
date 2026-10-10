@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/certifications/data/repositories/certification_currency_repository.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -86,6 +87,45 @@ void main() {
     expect(await DiveRepository().getAllDives(), isEmpty);
   });
 
+  test('a cancel while overwriting sites stops at the next site', () async {
+    final diverId = await createTestDiver();
+    final first = UddfImportResult(sites: [site('s1'), site('s2')]);
+    await UddfEntityImporter().import(
+      data: first,
+      selections: UddfImportSelections.selectAll(first),
+      repositories: buildRepositories(),
+      diverId: diverId,
+    );
+    final existing = await SiteRepository().getAllSites(diverId: diverId);
+    final idByName = {for (final s in existing) s.name: s.id};
+
+    final renamed = UddfImportResult(
+      sites: [
+        {...site('s1'), 'name': 'Renamed s1'},
+        {...site('s2'), 'name': 'Renamed s2'},
+      ],
+    );
+    final token = ImportCancellationToken();
+    final result = await UddfEntityImporter().import(
+      data: renamed,
+      selections: UddfImportSelections(
+        siteOverrides: {0: idByName['Site s1']!, 1: idByName['Site s2']!},
+      ),
+      repositories: buildRepositories(),
+      diverId: diverId,
+      onProgress: (phase, current, total) {
+        if (phase == ImportPhase.sites && current == 1) token.cancel();
+      },
+      cancelToken: token,
+    );
+
+    final names = (await SiteRepository().getAllSites(
+      diverId: diverId,
+    )).map((s) => s.name).toSet();
+    expect(names, {'Renamed s1', 'Site s2'});
+    expect(result.sites, 1);
+  });
+
   test('a cancel before the import starts writes nothing', () async {
     final diverId = await createTestDiver();
 
@@ -110,6 +150,59 @@ void main() {
       await DiveComputerRepository().getAllComputers(diverId: diverId),
       isEmpty,
     );
+  });
+
+  test('a cancel before a stage also skips the stages that finish its '
+      'records', () async {
+    final diverId = await createTestDiver();
+    final base = buildRepositories();
+    final currency = CertificationCurrencyRepository();
+    final repositories = ImportRepositories(
+      tripRepository: base.tripRepository,
+      equipmentRepository: base.equipmentRepository,
+      equipmentSetRepository: base.equipmentSetRepository,
+      buddyRepository: base.buddyRepository,
+      diveCenterRepository: base.diveCenterRepository,
+      certificationRepository: base.certificationRepository,
+      tagRepository: base.tagRepository,
+      diveTypeRepository: base.diveTypeRepository,
+      diveRoleRepository: base.diveRoleRepository,
+      siteRepository: base.siteRepository,
+      diveRepository: base.diveRepository,
+      tankPressureRepository: base.tankPressureRepository,
+      courseRepository: base.courseRepository,
+      diveComputerRepository: base.diveComputerRepository,
+      siteTypeRepository: base.siteTypeRepository,
+      certificationCurrencyRepository: currency,
+    );
+    const data = UddfImportResult(
+      // Custom rules restore with the certifications, which a cancel
+      // before that stage never imports.
+      currencyRules: [
+        {
+          'id': 'custom-1',
+          'name': 'Club refresher',
+          'clockKind': 'activity',
+          'applicableAgencies': '["bsac"]',
+          'applicableLevels': '[]',
+          'lapseDays': 200,
+          'leadDays': 30,
+          'countedDiveTypeIds': '[]',
+          'countedDiveModes': '[]',
+        },
+      ],
+    );
+
+    await UddfEntityImporter().import(
+      data: data,
+      selections: UddfImportSelections.selectAll(data),
+      repositories: repositories,
+      diverId: diverId,
+      cancelToken: ImportCancellationToken()..cancel(),
+    );
+
+    final rules = await currency.getRules();
+    expect(rules.where((r) => r.id == 'custom-1'), isEmpty);
   });
 
   test('a cancel in an earlier stage skips every stage after it', () async {
