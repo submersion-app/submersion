@@ -138,6 +138,26 @@ void main() {
     expect(fieldText(tester, 'Serial Number'), isEmpty);
   });
 
+  testWidgets('keeps the form when the source goes away mid-edit', (
+    tester,
+  ) async {
+    await pumpClone(tester);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Name *'),
+      'Reg B',
+    );
+
+    // Deleted elsewhere (another window, a sync) while the form is open.
+    await repository.deleteEquipment(source.id);
+    ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentEditPage)),
+    ).invalidate(equipmentItemProvider(source.id));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Clone Equipment'), findsOneWidget);
+    expect(fieldText(tester, 'Name *'), 'Reg B');
+  });
+
   testWidgets('starts with the source\'s tags', (tester) async {
     await pumpClone(tester);
 
@@ -271,6 +291,7 @@ class _FailingCloneService extends EquipmentCloneService {
   Future<Set<CloneExtrasStep>> copyExtras({
     required String sourceId,
     required String cloneId,
+    required EquipmentType cloneType,
     required String? diverId,
   }) async => {CloneExtrasStep.documents};
 }

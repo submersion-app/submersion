@@ -362,6 +362,11 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       final equipmentAsync = ref.watch(equipmentItemProvider(loadId));
       return equipmentAsync.when(
         data: (equipment) {
+          // A seeded clone form no longer needs its source: deleting or
+          // transferring the original mid-edit must not discard the clone.
+          if (widget.isCloning && _isInitialized) {
+            return _buildForm(context, null);
+          }
           if (equipment == null) {
             if (widget.embedded) {
               return Center(
@@ -1253,6 +1258,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
               .copyExtras(
                 sourceId: widget.cloneFromId!,
                 cloneId: savedId,
+                cloneType: equipment.type,
                 diverId: diverId,
               );
         }

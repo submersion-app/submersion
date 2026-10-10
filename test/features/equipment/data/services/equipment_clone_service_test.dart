@@ -109,6 +109,7 @@ void main() {
         final failed = await service.copyExtras(
           sourceId: source.id,
           cloneId: clone.id,
+          cloneType: clone.type,
           diverId: null,
         );
 
@@ -138,6 +139,7 @@ void main() {
         await service.copyExtras(
           sourceId: source.id,
           cloneId: clone.id,
+          cloneType: clone.type,
           diverId: null,
         );
 
@@ -147,6 +149,35 @@ void main() {
           (kind.id, 30, false),
         );
         expect(c.anchorDate, isNull);
+      },
+    );
+
+    test(
+      'a clock whose kind does not fit the clone\'s type stays behind',
+      () async {
+        // The diver changed Type on the clone form: a fins-only check has no
+        // place on a hood.
+        final source = await make('Fins', EquipmentType.fins);
+        final finsOnly = await ServiceKindRepository().createKind(
+          ServiceKind(
+            id: '',
+            name: 'Strap check',
+            applicableTypes: const [EquipmentType.fins],
+            createdAt: t0,
+            updatedAt: t0,
+          ),
+        );
+        await addClock(source.id, finsOnly.id, intervalDays: 30);
+        final clone = await make('Fins (copy)', EquipmentType.hood);
+
+        await service.copyExtras(
+          sourceId: source.id,
+          cloneId: clone.id,
+          cloneType: clone.type,
+          diverId: null,
+        );
+
+        expect(await schedules.getSchedulesForEquipment(clone.id), isEmpty);
       },
     );
 
@@ -163,6 +194,7 @@ void main() {
       await service.copyExtras(
         sourceId: source.id,
         cloneId: shareeClone.id,
+        cloneType: shareeClone.type,
         diverId: 'sharee',
       );
       expect(await schedules.getSchedulesForEquipment(shareeClone.id), isEmpty);
@@ -175,6 +207,7 @@ void main() {
       await service.copyExtras(
         sourceId: source.id,
         cloneId: ownerClone.id,
+        cloneType: ownerClone.type,
         diverId: 'owner',
       );
       expect(
@@ -221,6 +254,7 @@ void main() {
       await service.copyExtras(
         sourceId: source.id,
         cloneId: clone.id,
+        cloneType: clone.type,
         diverId: 'sharee',
       );
 
@@ -234,6 +268,7 @@ void main() {
       await service.copyExtras(
         sourceId: source.id,
         cloneId: clone.id,
+        cloneType: clone.type,
         diverId: null,
       );
 
@@ -280,6 +315,7 @@ void main() {
         await service.copyExtras(
           sourceId: source.id,
           cloneId: clone.id,
+          cloneType: clone.type,
           diverId: null,
         );
 
@@ -322,9 +358,13 @@ void main() {
     await addClock(source.id, kind.id, intervalDays: 90);
     final clone = await make('Hood (copy)', EquipmentType.hood);
 
-    final failed = await EquipmentCloneService(
-      sets: _ThrowingSetRepository(),
-    ).copyExtras(sourceId: source.id, cloneId: clone.id, diverId: null);
+    final failed = await EquipmentCloneService(sets: _ThrowingSetRepository())
+        .copyExtras(
+          sourceId: source.id,
+          cloneId: clone.id,
+          cloneType: clone.type,
+          diverId: null,
+        );
 
     expect(failed, {CloneExtrasStep.sets});
     expect(await schedules.getSchedulesForEquipment(clone.id), hasLength(1));

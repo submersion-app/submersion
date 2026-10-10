@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
@@ -33,11 +34,13 @@ class EquipmentCloneService {
 
   static final _log = LoggerService.forClass(EquipmentCloneService);
 
-  /// Copies the extras of [sourceId] onto [cloneId], scoped to [diverId]
-  /// (the clone's owner), and returns the steps that failed.
+  /// Copies the extras of [sourceId] onto [cloneId], an item of [cloneType]
+  /// (the type it was saved as, which the form may have changed), scoped to
+  /// [diverId] (the clone's owner), and returns the steps that failed.
   Future<Set<CloneExtrasStep>> copyExtras({
     required String sourceId,
     required String cloneId,
+    required EquipmentType cloneType,
     required String? diverId,
   }) async {
     final failed = <CloneExtrasStep>{};
@@ -57,7 +60,7 @@ class EquipmentCloneService {
 
     await run(
       CloneExtrasStep.serviceClocks,
-      () => _copyClocks(sourceId, cloneId, diverId),
+      () => _copyClocks(sourceId, cloneId, cloneType, diverId),
     );
     await run(
       CloneExtrasStep.sets,
@@ -70,25 +73,28 @@ class EquipmentCloneService {
   /// The source's clocks without their baseline, so the clone counts from
   /// its own purchase or creation. A kind the clone already has (an
   /// auto-attached clock) takes the source's settings instead of a second
-  /// clock; another diver's custom kind is skipped, as auto-attach does.
+  /// clock. Only kinds [diverId] can use (another diver's custom kind is
+  /// skipped, as auto-attach does) and that apply to [cloneType] are copied.
   Future<void> _copyClocks(
     String sourceId,
     String cloneId,
+    EquipmentType cloneType,
     String? diverId,
   ) async {
     final source = await _schedules.getSchedulesForEquipment(sourceId);
     if (source.isEmpty) return;
-    final kinds = {for (final k in await _kinds.getAllKinds()) k.id: k};
+    final kinds = {
+      for (final k in await _kinds.getAllKinds(diverId: diverId)) k.id: k,
+    };
     final onClone = {
       for (final s in await _schedules.getSchedulesForEquipment(cloneId))
         s.serviceKindId: s,
     };
     for (final schedule in source) {
       final kind = kinds[schedule.serviceKindId];
-      if (kind == null) continue;
-      if (!kind.isBuiltIn && kind.diverId != null && kind.diverId != diverId) {
-        continue;
-      }
+      // A kind that does not fit the clone's type (the form's Type was
+      // changed) would only nag with reminders that make no sense for it.
+      if (kind == null || !kind.appliesTo(cloneType)) continue;
       final existing = onClone[schedule.serviceKindId];
       if (existing != null) {
         await _schedules.updateSchedule(_withSettingsOf(existing, schedule));
