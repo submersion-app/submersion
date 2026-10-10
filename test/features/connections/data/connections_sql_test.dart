@@ -138,6 +138,16 @@ void main() {
   });
 
   group('buildNodeSql', () {
+    test('reads each entity first dive in scope', () {
+      final r = buildNodeSql(
+        kind: ConnectionKind.site,
+        diverId: 'me',
+        filter: const DiveFilterState(),
+      );
+      expect(r.sql, contains('MIN(d.dive_date_time) AS first_ms'));
+      expect(r.sql, contains('c.first_ms AS first_ms'));
+    });
+
     test('joins counts to the label table and selects extra columns', () {
       final r = buildNodeSql(
         kind: ConnectionKind.site,
