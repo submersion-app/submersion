@@ -24,6 +24,9 @@ class WaterMovementGroup extends ConsumerWidget {
     return ref
         .watch(conditionsStatsProvider)
         .when(
+          // A background re-query (sync, download, unit switch) keeps the
+          // cards; a spinner would shrink the page and lose the scroll.
+          skipLoadingOnReload: true,
           loading: () => ConditionsGroupStatus(title: title, failed: false),
           error: (_, _) => ConditionsGroupStatus(title: title, failed: true),
           data: (stats) {

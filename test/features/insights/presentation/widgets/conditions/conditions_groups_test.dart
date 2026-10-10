@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -126,5 +128,38 @@ void main() {
     expect(find.text('Surface & Weather'), findsOneWidget);
     expect(find.text('Water Movement'), findsOneWidget);
     expect(find.text('Altitude'), findsNothing);
+  });
+
+  testWidgets('a background refresh keeps the cards instead of a spinner', (
+    tester,
+  ) async {
+    // A sync pull or dive download re-runs the query. The cards must stay
+    // mounted while it does, or the page shrinks and the diver loses their
+    // scroll position.
+    var calls = 0;
+    final pending = Completer<List<ConditionsRow>>();
+    await pump(tester, () {
+      calls++;
+      return calls == 1
+          ? Future.value([
+              row('a', cloudCover: CloudCover.clear),
+              row('b', currentStrength: CurrentStrength.light),
+            ])
+          : pending.future;
+    });
+    expect(find.text('Cloud Cover'), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(SurfaceWeatherGroup)),
+    ).invalidate(conditionsRowsProvider);
+    await tester.pump();
+
+    expect(calls, 2);
+    expect(find.text('Cloud Cover'), findsOneWidget);
+    expect(find.text('Current Strength'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    pending.complete(const []);
+    await tester.pumpAndSettle();
   });
 }
