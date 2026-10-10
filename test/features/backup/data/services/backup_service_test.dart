@@ -35,6 +35,7 @@ class FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   int backupCallCount = 0;
   int restoreCallCount = 0;
   String? lastBackupPath;
+  String? lastBackupNote;
   String? lastRestorePath;
 
   /// When set, [restore] records the call and then throws this, modelling a
@@ -43,9 +44,10 @@ class FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   Object? restoreError;
 
   @override
-  Future<void> backup(String destinationPath) async {
+  Future<void> backup(String destinationPath, {String? note}) async {
     backupCallCount++;
     lastBackupPath = destinationPath;
+    lastBackupNote = note;
     // Create the file so callers that check size don't throw
     final file = File(destinationPath);
     await file.parent.create(recursive: true);

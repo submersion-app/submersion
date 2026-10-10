@@ -18,7 +18,7 @@ class _FakeAdapter implements BackupDatabaseAdapter {
   String? copiedTo;
 
   @override
-  Future<void> backup(String destinationPath) async {
+  Future<void> backup(String destinationPath, {String? note}) async {
     copiedTo = destinationPath;
     final bytes = exportBytes;
     if (bytes != null) {

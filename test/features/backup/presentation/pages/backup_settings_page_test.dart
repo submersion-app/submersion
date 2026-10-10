@@ -701,7 +701,7 @@ final _kNow = DateTime(2024, 6, 1, 12, 0, 0);
 /// Minimal BackupDatabaseAdapter fake — unused methods throw loud errors.
 class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async =>
+  Future<void> backup(String destinationPath, {String? note}) async =>
       throw UnimplementedError('not used');
 
   @override

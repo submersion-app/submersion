@@ -1,5 +1,6 @@
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 
 /// Thin interface for the database operations BackupService needs.
 ///
@@ -8,7 +9,11 @@ import 'package:submersion/core/services/database_service.dart';
 /// `backup_service.dart` and `backup_target.dart` can depend on it without a
 /// circular import.
 abstract class BackupDatabaseAdapter {
-  Future<void> backup(String destinationPath);
+  /// Writes a portable plaintext copy of the live database to
+  /// [destinationPath], with [note] stamped into it (see
+  /// `stampBackupNote`). The stamp always runs, so a copy never inherits a
+  /// note from a database that was restored from a noted backup.
+  Future<void> backup(String destinationPath, {String? note});
 
   /// Swap the live database for [backupPath].
   ///
@@ -48,8 +53,10 @@ class DefaultBackupDatabaseAdapter implements BackupDatabaseAdapter {
   const DefaultBackupDatabaseAdapter(this._dbAdapter);
 
   @override
-  Future<void> backup(String destinationPath) =>
-      _dbAdapter.backup(destinationPath);
+  Future<void> backup(String destinationPath, {String? note}) async {
+    await _dbAdapter.backup(destinationPath);
+    stampBackupNote(destinationPath, note);
+  }
 
   @override
   Future<void> restore(

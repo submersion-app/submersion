@@ -20,7 +20,7 @@ import '../../../../support/fake_cloud_storage_provider.dart';
 /// Fake database adapter (mirror of backup_service_test.dart's).
 class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {
+  Future<void> backup(String destinationPath, {String? note}) async {
     final file = File(destinationPath);
     await file.parent.create(recursive: true);
     await file.writeAsString('fake backup data');

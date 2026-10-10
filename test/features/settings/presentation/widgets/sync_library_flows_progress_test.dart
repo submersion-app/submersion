@@ -26,7 +26,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// No-op database adapter so [_FakeBackupService] never touches a real DB.
 class _NoopBackupAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {}
+  Future<void> backup(String destinationPath, {String? note}) async {}
 
   @override
   Future<void> restore(

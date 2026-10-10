@@ -18,7 +18,7 @@ import 'package:submersion/features/settings/presentation/providers/sync_provide
 
 class _NoopAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {}
+  Future<void> backup(String destinationPath, {String? note}) async {}
 
   @override
   Future<void> restore(
