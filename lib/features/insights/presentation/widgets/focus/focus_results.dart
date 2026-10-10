@@ -16,6 +16,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Everything under the selector: summary, chart, dive list and factors.
+///
+/// Builds a sliver so the dive list can be lazy (#3013); the page places it
+/// in a [CustomScrollView].
 class FocusResults extends ConsumerWidget {
   const FocusResults({super.key});
 
@@ -33,26 +36,34 @@ class FocusResults extends ConsumerWidget {
         .watch(focusGroupProvider)
         .when(
           skipLoadingOnReload: true,
-          loading: () => const Padding(
-            padding: EdgeInsets.all(32),
-            child: Center(child: CircularProgressIndicator()),
+          loading: () => const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(32),
+              child: Center(child: CircularProgressIndicator()),
+            ),
           ),
-          error: (_, _) => StatEmptyState(
-            icon: Icons.error_outline,
-            message: l10n.insights_focus_error,
+          error: (_, _) => SliverToBoxAdapter(
+            child: StatEmptyState(
+              icon: Icons.error_outline,
+              message: l10n.insights_focus_error,
+            ),
           ),
           data: (group) {
             if (group.population.isEmpty) {
-              return StatEmptyState(
-                icon: Icons.filter_center_focus,
-                message: l10n.insights_focus_empty,
+              return SliverToBoxAdapter(
+                child: StatEmptyState(
+                  icon: Icons.filter_center_focus,
+                  message: l10n.insights_focus_empty,
+                ),
               );
             }
             final message = _message(context, selection, group, metricUnits);
             if (group.members.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(message),
+              return SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text(message),
+                ),
               );
             }
             final rows = <String, FocusFactorRow>{
@@ -63,59 +74,74 @@ class FocusResults extends ConsumerWidget {
             };
             final theme = Theme.of(context);
             final memberIds = group.memberIds;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(message, style: theme.textTheme.bodyLarge),
-                const SizedBox(height: 16),
-                StatSectionCard(
-                  title: l10n.insights_focus_chart_title,
-                  child: DiveTrendChart(
-                    chartId: 'focus',
-                    points: [
-                      for (final p in group.population)
-                        if (!memberIds.contains(p.diveId)) p,
-                    ],
-                    secondarySeries: [
-                      TrendSeries(
-                        label: l10n.insights_focus_chart_group,
-                        points: group.members,
-                        color: theme.colorScheme.primary,
+            return SliverMainAxisGroup(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(message, style: theme.textTheme.bodyLarge),
+                      const SizedBox(height: 16),
+                      StatSectionCard(
+                        title: l10n.insights_focus_chart_title,
+                        child: DiveTrendChart(
+                          chartId: 'focus',
+                          points: [
+                            for (final p in group.population)
+                              if (!memberIds.contains(p.diveId)) p,
+                          ],
+                          secondarySeries: [
+                            TrendSeries(
+                              label: l10n.insights_focus_chart_group,
+                              points: group.members,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ],
+                          // Muted enough that the group, in the accent, reads at a
+                          // glance among a long logbook's other dives.
+                          pointColor: theme.colorScheme.outlineVariant,
+                          dateFormat: ref.watch(dateFormatProvider),
+                          valueFormatter: (v) => metricUnits.format(v, l10n),
+                          yAxisFormatter: (v) =>
+                              metricUnits.toDisplay(v).toStringAsFixed(1),
+                          onDiveSelected: (id) => context.push('/dives/$id'),
+                        ),
                       ),
+                      const SizedBox(height: 16),
                     ],
-                    // Muted enough that the group, in the accent, reads at a
-                    // glance among a long logbook's other dives.
-                    pointColor: theme.colorScheme.outlineVariant,
-                    dateFormat: ref.watch(dateFormatProvider),
-                    valueFormatter: (v) => metricUnits.format(v, l10n),
-                    yAxisFormatter: (v) =>
-                        metricUnits.toDisplay(v).toStringAsFixed(1),
-                    onDiveSelected: (id) => context.push('/dives/$id'),
                   ),
                 ),
-                const SizedBox(height: 16),
-                StatSectionCard(
+                SliverStatSectionCard(
                   title: l10n.insights_focus_list_title,
-                  child: FocusDiveList(
+                  sliver: FocusDiveList(
                     members: group.members,
                     rows: rows,
                     metricUnits: metricUnits,
                     ranked: selection.mode.isRanked,
                   ),
                 ),
-                const SizedBox(height: 16),
-                StatSectionCard(
-                  title: l10n.insights_focus_factors_title,
-                  subtitle: l10n.insights_focus_factors_subtitle,
-                  child: ref
-                      .watch(focusFactorReportProvider)
-                      .when(
-                        skipLoadingOnReload: true,
-                        loading: () =>
-                            const Center(child: CircularProgressIndicator()),
-                        error: (_, _) => Text(l10n.insights_focus_error),
-                        data: (report) => FocusFactorsTable(report: report),
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      StatSectionCard(
+                        title: l10n.insights_focus_factors_title,
+                        subtitle: l10n.insights_focus_factors_subtitle,
+                        child: ref
+                            .watch(focusFactorReportProvider)
+                            .when(
+                              skipLoadingOnReload: true,
+                              loading: () => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              error: (_, _) => Text(l10n.insights_focus_error),
+                              data: (report) =>
+                                  FocusFactorsTable(report: report),
+                            ),
                       ),
+                    ],
+                  ),
                 ),
               ],
             );

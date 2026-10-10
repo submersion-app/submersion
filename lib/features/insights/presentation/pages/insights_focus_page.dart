@@ -15,12 +15,21 @@ class InsightsFocusPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const content = SingleChildScrollView(
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [FocusSelector(), SizedBox(height: 16), FocusResults()],
-      ),
+    // Slivers rather than a SingleChildScrollView, so the dive list builds
+    // only the rows on screen however many dives the group holds (#3013).
+    const content = CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.all(16),
+          sliver: SliverMainAxisGroup(
+            slivers: [
+              SliverToBoxAdapter(child: FocusSelector()),
+              SliverToBoxAdapter(child: SizedBox(height: 16)),
+              FocusResults(),
+            ],
+          ),
+        ),
+      ],
     );
     if (embedded) return content;
     return Scaffold(
@@ -28,7 +37,7 @@ class InsightsFocusPage extends StatelessWidget {
         title: Text(context.l10n.insights_focus_title),
         actions: const [InsightsFilterAction()],
       ),
-      // Expanded is required: content is a SingleChildScrollView, and a
+      // Expanded is required: content is a CustomScrollView, and a
       // Column would otherwise hand it unbounded height.
       body: const Column(
         children: [

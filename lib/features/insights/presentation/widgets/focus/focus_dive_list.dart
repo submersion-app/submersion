@@ -9,6 +9,10 @@ import 'package:submersion/features/insights/presentation/formatters/focus_metri
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The group's dives, each opening its dive page.
+///
+/// A sliver, so only the rows on screen are built: a threshold can match
+/// thousands of dives (#3013). Place it in a [CustomScrollView], typically
+/// inside a SliverStatSectionCard.
 class FocusDiveList extends StatelessWidget {
   const FocusDiveList({
     super.key,
@@ -27,17 +31,15 @@ class FocusDiveList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var i = 0; i < members.length; i++)
-          _FocusDiveRow(
-            key: ValueKey('focus-dive-${members[i].diveId}'),
-            dive: members[i],
-            row: rows[members[i].diveId],
-            metricUnits: metricUnits,
-            rank: ranked ? i + 1 : null,
-          ),
-      ],
+    return SliverList.builder(
+      itemCount: members.length,
+      itemBuilder: (context, i) => _FocusDiveRow(
+        key: ValueKey('focus-dive-${members[i].diveId}'),
+        dive: members[i],
+        row: rows[members[i].diveId],
+        metricUnits: metricUnits,
+        rank: ranked ? i + 1 : null,
+      ),
     );
   }
 }
@@ -72,16 +74,21 @@ class _FocusDiveRow extends StatelessWidget {
       if (minutes != null)
         focusNumericValue(FocusFactorId.duration, minutes, units, l10n),
     ].join(' · ');
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: rank == null ? null : Text('$rank'),
-      title: Text(row?.siteName ?? l10n.insights_focus_list_unknownSite),
-      subtitle: Text(details),
-      trailing: Text(
-        metricUnits.format(dive.value, l10n),
-        style: Theme.of(context).textTheme.titleSmall,
+    // Its own Material: the card behind the row is a DecoratedSliver painted
+    // over the page's Material, which would otherwise hide the tap ink.
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: rank == null ? null : Text('$rank'),
+        title: Text(row?.siteName ?? l10n.insights_focus_list_unknownSite),
+        subtitle: Text(details),
+        trailing: Text(
+          metricUnits.format(dive.value, l10n),
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+        onTap: () => context.push('/dives/${dive.diveId}'),
       ),
-      onTap: () => context.push('/dives/${dive.diveId}'),
     );
   }
 }
