@@ -312,7 +312,6 @@ class InsightsRepository {
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
-          AND ${consumptionVolumeSql('t')} > 0
         ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
@@ -328,7 +327,8 @@ class InsightsRepository {
         final diveId = row.read<String>('dive_id');
         final startP = row.read<double>('start_pressure');
         final endP = row.read<double>('end_pressure');
-        final vol = row.read<double>('volume');
+        final vol = row.read<double?>('volume');
+        if (vol == null) continue;
         final o2 = row.read<double>('o2_percent');
         final he = row.read<double>('he_percent');
         final dateTimeMs = row.read<int>('dive_date_time');
@@ -408,16 +408,18 @@ class InsightsRepository {
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
-        SELECT
-          d.id AS dive_id,
-          d.dive_date_time AS dive_date_time,
-          ${diveSacPressureSql('d')} AS sac
-        FROM dives d
-        WHERE 1 = 1 $diverFilter ${df.clause}
-          AND COALESCE(d.runtime, d.bottom_time) > 0
-          AND d.avg_depth > 0
-          AND ${diveSacPressureSql('d')} IS NOT NULL
-        ORDER BY d.dive_date_time
+        SELECT * FROM (
+          SELECT
+            d.id AS dive_id,
+            d.dive_date_time AS dive_date_time,
+            ${diveSacPressureSql('d')} AS sac
+          FROM dives d
+          WHERE 1 = 1 $diverFilter ${df.clause}
+            AND COALESCE(d.runtime, d.bottom_time) > 0
+            AND d.avg_depth > 0
+        )
+        WHERE sac IS NOT NULL
+        ORDER BY dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results
@@ -521,7 +523,6 @@ class InsightsRepository {
         WHERE COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
-          AND ${consumptionVolumeSql('t')} > 0
          
           $diverFilter ${df.clause}
         ORDER BY d.dive_date_time
@@ -545,7 +546,8 @@ class InsightsRepository {
         final diveId = row.read<String>('dive_id');
         final o2 = row.read<double>('o2_percent');
         final he = row.read<double>('he_percent');
-        final vol = row.read<double>('volume');
+        final vol = row.read<double?>('volume');
+        if (vol == null) continue;
         final used =
             gasVolume(
               tankSizeLiters: vol,
@@ -630,18 +632,20 @@ class InsightsRepository {
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
-        SELECT
-          d.id,
-          d.dive_number,
-          ds.name AS site_name,
-          d.dive_date_time,
-          ${diveSacPressureSql('d')} AS sac
-        FROM dives d
-        LEFT JOIN dive_sites ds ON ds.id = d.site_id
-        WHERE COALESCE(d.runtime, d.bottom_time) > 0
-          AND d.avg_depth > 0
-          AND ${diveSacPressureSql('d')} IS NOT NULL
-          $diverFilter ${df.clause}
+        SELECT * FROM (
+          SELECT
+            d.id,
+            d.dive_number,
+            ds.name AS site_name,
+            d.dive_date_time,
+            ${diveSacPressureSql('d')} AS sac
+          FROM dives d
+          LEFT JOIN dive_sites ds ON ds.id = d.site_id
+          WHERE COALESCE(d.runtime, d.bottom_time) > 0
+            AND d.avg_depth > 0
+            $diverFilter ${df.clause}
+        )
+        WHERE sac IS NOT NULL
         ORDER BY sac ASC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
@@ -702,7 +706,6 @@ class InsightsRepository {
           AND t.start_pressure > t.end_pressure
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
-          AND ${consumptionVolumeSql('t')} > 0
          
           $diverFilter ${df.clause}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -713,7 +716,8 @@ class InsightsRepository {
         final role = row.read<String>('tank_role');
         final o2 = row.read<double>('o2_percent');
         final he = row.read<double>('he_percent');
-        final vol = row.read<double>('volume');
+        final vol = row.read<double?>('volume');
+        if (vol == null) continue;
         final used =
             gasVolume(
               tankSizeLiters: vol,

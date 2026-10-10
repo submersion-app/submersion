@@ -508,10 +508,11 @@ class Dive extends Equatable {
     return totalGasLiters / minutes / avgPressureBar;
   }
 
-  /// The cylinder the pressure lane ([sac]) reads, and the one whose
-  /// volume converts an unattributed SAC segment to L/min: on a multi-tank
-  /// dive the back gas, else the first cylinder; the only cylinder on a
-  /// single-tank dive whatever its role. Null when the dive has no cylinders.
+  /// The cylinder whose bar the pressure lane ([sac]) is expressed in, and
+  /// the one whose volume converts an unattributed SAC segment to L/min:
+  /// on a multi-tank dive the back gas, else the first cylinder; the only
+  /// cylinder on a single-tank dive whatever its role. Null when the dive
+  /// has no cylinders.
   DiveTank? get sacReferenceTank {
     if (tanks.isEmpty) return null;
     if (tanks.length == 1) return tanks.first;

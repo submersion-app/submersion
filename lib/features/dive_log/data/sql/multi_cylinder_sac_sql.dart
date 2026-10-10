@@ -28,18 +28,22 @@ String consumptionVolumeSql(String tank) {
 /// reads the reference alone. NULL with no reference drop; the caller
 /// guards the runtime and average depth. Mirrors `Dive.sac`.
 String diveSacPressureSql(String dive) {
-  final volume = consumptionVolumeSql('sac_t');
-  final referenceVolume = consumptionVolumeSql('sac_ref');
-  return '((SELECT SUM((sac_t.start_pressure - sac_t.end_pressure) * CASE '
-      'WHEN sac_t.id = sac_ref.id THEN 1.0 '
-      'WHEN $volume > 0 AND $referenceVolume > 0 '
-      'THEN $volume / $referenceVolume '
-      'WHEN sac_t.tank_role IN $_sidemountRolesSql '
-      'AND sac_ref.tank_role IN $_sidemountRolesSql THEN 1.0 '
+  // Each breathed cylinder once, with its consumption volume computed once.
+  final breathed =
+      '(SELECT sac_t.id, '
+      'sac_t.start_pressure - sac_t.end_pressure AS pressure_drop, '
+      '${consumptionVolumeSql('sac_t')} AS volume, '
+      'sac_t.tank_role IN $_sidemountRolesSql AS sidemount '
+      'FROM dive_tanks sac_t WHERE sac_t.dive_id = $dive.id '
+      'AND sac_t.start_pressure > sac_t.end_pressure)';
+  return '((SELECT SUM(sac_c.pressure_drop * CASE '
+      'WHEN sac_c.id = sac_r.id THEN 1.0 '
+      'WHEN sac_c.volume > 0 AND sac_r.volume > 0 '
+      'THEN sac_c.volume / sac_r.volume '
+      'WHEN sac_c.sidemount AND sac_r.sidemount THEN 1.0 '
       'ELSE 0.0 END) '
-      'FROM dive_tanks sac_ref '
-      'JOIN dive_tanks sac_t ON sac_t.dive_id = sac_ref.dive_id '
-      'WHERE sac_ref.id = ('
+      'FROM $breathed sac_c JOIN $breathed sac_r '
+      'ON sac_r.id = ('
       'SELECT t2.id FROM dive_tanks t2 '
       'WHERE t2.dive_id = $dive.id '
       'AND t2.start_pressure > t2.end_pressure '
@@ -47,9 +51,8 @@ String diveSacPressureSql(String dive) {
       'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = $dive.id '
       "AND t3.tank_role = 'backGas')) "
       'ORDER BY t2.tank_order, t2.rowid LIMIT 1) '
-      'AND sac_t.start_pressure > sac_t.end_pressure '
-      'AND (sac_t.id = sac_ref.id '
-      "OR COALESCE($dive.dive_mode, 'oc') NOT IN ('ccr', 'scr'))) "
+      'WHERE sac_c.id = sac_r.id '
+      "OR COALESCE($dive.dive_mode, 'oc') NOT IN ('ccr', 'scr')) "
       '/ (COALESCE($dive.runtime, $dive.bottom_time) / 60.0) '
       '/ (($dive.avg_depth / 10.0) + 1))';
 }
