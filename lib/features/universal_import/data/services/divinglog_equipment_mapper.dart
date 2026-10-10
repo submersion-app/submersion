@@ -26,7 +26,8 @@ class DivingLogEquipmentMapper {
       final key = _uddfId(item.id);
       // DiveMate names the item and keeps the model in `Object`; Diving Log
       // has only `Object`, so the model is read out of the name.
-      final model = _diveMateModel(item) ?? _modelFrom(name, item.manufacturer);
+      final diveMateModel = _diveMateModel(item);
+      final model = diveMateModel ?? _modelFrom(name, item.manufacturer);
       final isComputer = computers.any(
         (c) => computerNamesAgree(
           brandA: null,
@@ -43,7 +44,7 @@ class DivingLogEquipmentMapper {
             ? EquipmentType.computer.name
             : (read?.type ?? EquipmentType.other).name,
       };
-      if (isComputer || _diveMateModel(item) != null) map['model'] = model;
+      if (isComputer || diveMateModel != null) map['model'] = model;
       if (read?.thickness != null) map['thickness'] = read!.thickness;
       if (item.manufacturer != null) map['brand'] = item.manufacturer;
       if (item.serial != null) map['serialNumber'] = item.serial;

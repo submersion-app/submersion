@@ -201,6 +201,23 @@ void main() {
     });
   });
 
+  test('a Status column outside a DiveMate file drops no dive', () async {
+    final dir = Directory.systemTemp.createTempSync('divinglog_status');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final path = p.join(dir.path, 'logbook.sql');
+    final db = sqlite3.open(path);
+    db.execute(
+      'CREATE TABLE Logbook (ID INTEGER, Number INTEGER, Divedate TEXT, '
+      'Status INTEGER)',
+    );
+    db.execute("INSERT INTO Logbook VALUES (1, 7, '2024-06-01', 2)");
+    db.close();
+    final other = await const DivingLogSqliteParser().parse(
+      File(path).readAsBytesSync(),
+    );
+    expect(other.entitiesOf(ImportEntityType.dives), hasLength(1));
+  });
+
   test('DiveMate-only columns are not reported missing for Diving Log', () {
     // The reverse case: these columns are DiveMate's, so a note naming them
     // would be noise on every Diving Log import.

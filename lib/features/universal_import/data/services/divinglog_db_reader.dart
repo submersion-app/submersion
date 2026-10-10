@@ -230,12 +230,16 @@ class DivingLogDbReader {
 
         final dives = <DivingLogRawDive>[];
         var discarded = 0;
+        // `Status` is only read as DiveMate's discard flag in a DiveMate
+        // file, told apart by its `TypeOfDive` column, so a column of the
+        // same name in another Diving Log flavour cannot drop dives.
+        final isDiveMate = caps.hasColumn('Logbook', 'TypeOfDive');
         for (final row in rows) {
           final uuid = rowString(row, 'UUID');
           if (uuid != null && tombstones.contains(uuid)) continue;
           final id = rowInt(row, 'ID');
           if (id == null) continue;
-          if (rowInt(row, 'Status') == _discardedStatus) {
+          if (isDiveMate && rowInt(row, 'Status') == _discardedStatus) {
             discarded++;
             continue;
           }
