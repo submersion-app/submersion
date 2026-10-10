@@ -95,7 +95,11 @@ class RenderKeyboardListFocusRing extends RenderProxyBox {
   /// Where the row's surface sits, relative to this box, and its shape.
   (Rect, OutlinedBorder, TextDirection?)? _surfaceRing() {
     RenderObject? node = child;
-    while (node is RenderObjectWithChildMixin && node is! RenderPhysicalShape) {
+    while (node is RenderObjectWithChildMixin &&
+        node is! RenderPhysicalShape &&
+        // An unshaped Material paints a full-width row with this; that row is
+        // its own surface, so the ring stays at its bounds.
+        node is! RenderPhysicalModel) {
       node = node.child;
     }
     if (node is! RenderPhysicalShape || !node.hasSize) return null;

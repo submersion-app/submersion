@@ -42,9 +42,15 @@ Future<void> _pumpRingedRow(
 RenderObject _ringedRow(WidgetTester tester) =>
     tester.renderObject(find.byType(KeyboardListItem));
 
-/// The ring a 2px inside border paints around [rrect].
-PaintPattern _ringAround(RRect rrect) =>
-    paints..drrect(outer: rrect, inner: rrect.deflate(2));
+/// The ring a 2px inside border paints around [rrect], wherever it falls
+/// among the row's other drawing.
+PaintPattern _ringAround(RRect rrect) => paints
+  ..something(
+    (method, arguments) =>
+        method == #drawDRRect &&
+        arguments[0] == rrect &&
+        arguments[1] == rrect.deflate(2),
+  );
 
 ThemeData _cardTheme(double radius, {BorderSide side = BorderSide.none}) =>
     ThemeData(
@@ -99,13 +105,7 @@ void main() {
       const Rect.fromLTWH(16, 2, _rowWidth - 32, 40),
       const Radius.circular(20),
     );
-    // The card paints its own outline first; the ring goes over it.
-    expect(
-      _ringedRow(tester),
-      paints
-        ..drrect()
-        ..drrect(outer: ring, inner: ring.deflate(2)),
-    );
+    expect(_ringedRow(tester), _ringAround(ring));
   });
 
   testWidgets('a shaped Material behind padding is ringed the same way', (
@@ -139,6 +139,34 @@ void main() {
     tester,
   ) async {
     await _pumpRingedRow(tester, const SizedBox(height: 40));
+
+    expect(
+      _ringedRow(tester),
+      _ringAround(
+        RRect.fromRectAndRadius(
+          const Rect.fromLTWH(0, 0, _rowWidth, 40),
+          const Radius.circular(12),
+        ),
+      ),
+    );
+  });
+
+  testWidgets('a full-width Material is the row\'s surface, not a card in it', (
+    tester,
+  ) async {
+    // A settings-style row: the unshaped Material spans the row, so the ring
+    // stays at the row's bounds even with a card further down its chain.
+    await _pumpRingedRow(
+      tester,
+      const Material(
+        color: Colors.white,
+        child: Padding(
+          padding: EdgeInsets.all(8),
+          child: Card(margin: EdgeInsets.zero, child: SizedBox(height: 24)),
+        ),
+      ),
+      theme: _cardTheme(8),
+    );
 
     expect(
       _ringedRow(tester),
