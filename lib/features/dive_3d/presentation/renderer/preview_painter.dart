@@ -465,6 +465,17 @@ class Dive3dScenePainter extends CustomPainter {
         pairCount > 2 &&
         (sx[aN] - sx[a0]).abs() <= 1e-6 &&
         (sy[aN] - sy[a0]).abs() <= 1e-6;
+    // The forward chain above only keeps each run within 150 degrees of
+    // the one before it, which says nothing about how the last run
+    // compares to the first: orient it against the first run too, the
+    // same way, so the seam gets the same reversal handling every
+    // interior join already has.
+    if (closed &&
+        nx[lastReal] * nx[firstReal] + ny[lastReal] * ny[firstReal] <
+            _reversalDot) {
+      nx[lastReal] = -nx[lastReal];
+      ny[lastReal] = -ny[lastReal];
+    }
     var k = 0;
     while (k < pairCount) {
       // Pairs k..e sit on one point: the runs between them have no length.

@@ -274,6 +274,51 @@ void main() {
       expect(sy[3], sy[19]);
     });
 
+    test('orients the seam normal against the first run too, not just the '
+        'chain: a sharp seam turn with gentle interior corners stays '
+        'bounded', () {
+      // An isoceles triangle with a 20-degree apex at the seam point A and
+      // 80-degree angles at B and C: the two interior turns (at B, C) are
+      // 100 degrees each, safely under the 150-degree reversal threshold,
+      // but the seam turn (at A, wrapping from the incoming CA run to the
+      // outgoing AB run) is 160 degrees -- past it. The forward chain
+      // alone never compares the last run to the first, so without
+      // orienting the seam explicitly the miter scale at A could still
+      // explode or flip sign even though every interior join is fine.
+      const apex = 10 * math.pi / 180;
+      const a = (x: 0.0, y: 0.0);
+      final b = (x: 10 * math.cos(-apex), y: 10 * math.sin(-apex));
+      final c = (x: 10 * math.cos(apex), y: 10 * math.sin(apex));
+      // One pair at A (open), two at B, two at C, two at the closing A.
+      final centers = [a, b, b, c, c, a, a];
+      final sx = Float32List.fromList([
+        for (final p in centers) ...[p.x, p.x],
+      ]);
+      final sy = Float32List.fromList([
+        for (final p in centers) ...[p.y, p.y],
+      ]);
+      Dive3dScenePainter.strokeScreenEdges(
+        sx,
+        sy,
+        start: 0,
+        pairCount: 7,
+        halfWidthPx: 1,
+      );
+      for (var k = 0; k < 7; k++) {
+        final center = centers[k];
+        for (final v in [k * 2, k * 2 + 1]) {
+          expect(sx[v].isFinite, isTrue, reason: 'vertex $v');
+          expect(sy[v].isFinite, isTrue, reason: 'vertex $v');
+          final dx = sx[v] - center.x, dy = sy[v] - center.y;
+          expect(
+            dx * dx + dy * dy,
+            lessThanOrEqualTo(2 + 1e-6),
+            reason: 'vertex $v',
+          );
+        }
+      }
+    });
+
     test('a doubled hairpin keeps each leg at full width with nothing '
         'crossing', () {
       // Out east and straight back, the corner point doubled: the first
