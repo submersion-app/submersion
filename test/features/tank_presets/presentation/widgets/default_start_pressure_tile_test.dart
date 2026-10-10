@@ -62,13 +62,36 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
   });
 
-  testWidgets('converts a value entered in psi to bar', (tester) async {
+  testWidgets('keeps a value entered in psi exactly', (tester) async {
     final settings = await pump(tester, pressureUnit: PressureUnit.psi);
 
     await enter(tester, '3000');
 
-    // 3000 psi is 206.8 bar; the setting holds whole bar.
-    expect(settings.state.defaultStartPressure, 207);
+    // 3000 psi is 206.84 bar. Stored as a decimal since v275, so it reads
+    // back as 3000 psi rather than the 3002 psi whole bar would give.
+    expect(settings.state.defaultStartPressure, closeTo(206.843, 0.001));
+    expect(find.text('3000 psi'), findsOneWidget);
+  });
+
+  testWidgets('keeps a decimal entered in bar', (tester) async {
+    final settings = await pump(tester);
+
+    await enter(tester, '232.5');
+
+    expect(settings.state.defaultStartPressure, 232.5);
+  });
+
+  testWidgets('reopening shows the value as it was entered', (tester) async {
+    await pump(tester, pressureUnit: PressureUnit.psi);
+    await enter(tester, '3000');
+
+    await tester.tap(find.text('Default start pressure'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<TextFormField>(find.byType(TextFormField)).controller!.text,
+      '3000',
+    );
   });
 
   testWidgets('refuses zero and keeps the dialog open', (tester) async {
@@ -110,7 +133,7 @@ void main() {
     expect(settings.state.defaultStartPressure, 400);
 
     await enter(tester, '15');
-    expect(settings.state.defaultStartPressure, 1);
+    expect(settings.state.defaultStartPressure, closeTo(1.034, 0.001));
   });
 
   testWidgets('refuses a pressure above the range', (tester) async {

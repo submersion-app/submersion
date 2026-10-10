@@ -28,7 +28,11 @@ void main() {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(272));
     expect(AppDatabase.migrationVersions, contains(272));
     expect(AppDatabase.migrationStepCount(271), greaterThanOrEqualTo(1));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('creates both junctions with their columns', () async {

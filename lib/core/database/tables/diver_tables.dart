@@ -171,8 +171,11 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('recreational'))();
   RealColumn get defaultTankVolume =>
       real().withDefault(const Constant(12.0))();
-  IntColumn get defaultStartPressure =>
-      integer().withDefault(const Constant(200))();
+
+  /// Bar. REAL since v275 so a pressure entered in psi keeps its value
+  /// (issue #3091); whole bar before that.
+  RealColumn get defaultStartPressure =>
+      real().withDefault(const Constant(200.0))();
   TextColumn get defaultTankPreset =>
       text().nullable().withDefault(const Constant('al80'))();
   BoolColumn get applyDefaultTankToImports =>

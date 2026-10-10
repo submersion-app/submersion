@@ -11,6 +11,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // database that reached 261 without the rung.
     await _dropDefaultCeilingSourceColumn();
 
+    // v275 backstop: the REAL default start pressure.
+    await _retypeDefaultStartPressureColumn();
+
     // v257 backstop: metadata-only profile revision history over existing
     // dive_profile_series rows. Safe to re-run: INSERT OR IGNORE keeps
     // existing revisions untouched and only fills missing pointer rows.

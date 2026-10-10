@@ -64,7 +64,11 @@ void main() {
       AppDatabase.migrationStepCount(250),
       AppDatabase.migrationStepCount(251) + 1,
     );
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('a fresh database has the column and its index', () async {

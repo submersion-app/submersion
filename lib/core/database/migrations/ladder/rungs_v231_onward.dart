@@ -288,5 +288,12 @@ extension RungsFromV231 on AppDatabase {
       await _migrateTdiCertificationStructure();
     }
     if (from < 273) await reportProgress();
+    // v275: diver_settings.default_start_pressure retyped INTEGER to REAL
+    // (issue #3091). Re-asserted in beforeOpen. 274 is held by open
+    // branches (#3125, #3126).
+    if (from < 275) {
+      await _retypeDefaultStartPressureColumn();
+    }
+    if (from < 275) await reportProgress();
   }
 }

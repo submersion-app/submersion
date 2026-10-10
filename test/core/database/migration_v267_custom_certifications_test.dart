@@ -82,8 +82,9 @@ void main() {
       AppDatabase.migrationStepCount(266),
       AppDatabase.migrationStepCount(267) + 1,
     );
-    // Additive rung: new synced tables never raise the floor.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(267));
+    // Additive rung: new synced tables never raise the floor. v275 raised
+    // it later (#3091), so this pins only that 267 itself is not the floor.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(267));
   });
 
   test('a v261 database gains both tables and the index', () async {

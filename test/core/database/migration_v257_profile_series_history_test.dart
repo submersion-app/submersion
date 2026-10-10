@@ -28,7 +28,11 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 240);
+    // v275 raised the floor later (#3091); this rung did not move it.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(240),
+    );
   });
 
   test('a fresh database has the history table and its indexes', () async {

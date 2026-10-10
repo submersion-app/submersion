@@ -8,14 +8,14 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
-/// Lowest and highest default start pressure, in whole bar.
-const int _minBar = 1;
-const int _maxBar = 400;
+/// Lowest and highest default start pressure, in bar.
+const double _minBar = 1;
+const double _maxBar = 400;
 
 /// The start pressure filled in on a new tank in the dive editor, and on an
 /// imported tank that has none when the default tank is applied to imports
 /// (issue #3091). Shown and edited in the diver's pressure unit; stored in
-/// whole bar.
+/// bar as a decimal, so 3000 psi reads back as 3000 psi.
 class DefaultStartPressureTile extends ConsumerWidget {
   const DefaultStartPressureTile({super.key});
 
@@ -28,15 +28,19 @@ class DefaultStartPressureTile extends ConsumerWidget {
       title: Text(context.l10n.tankPresets_defaultStartPressure),
       subtitle: Text(context.l10n.tankPresets_defaultStartPressure_subtitle),
       trailing: Text(
-        units.formatPressure(settings.defaultStartPressure.toDouble()),
+        units.formatPressure(settings.defaultStartPressure),
         style: Theme.of(context).textTheme.titleMedium,
       ),
       onTap: () async {
-        final bar = await showDialog<int>(
+        final bar = await showDialog<double>(
           context: context,
           builder: (_) => _DefaultStartPressureDialog(units: units),
         );
-        if (bar == null || bar == settings.defaultStartPressure) return;
+        // A tolerance rather than ==: the value round-trips through the
+        // diver's unit, so an unedited psi value can differ in the last bits.
+        if (bar == null || (bar - settings.defaultStartPressure).abs() < 1e-6) {
+          return;
+        }
         if (!context.mounted) return;
         await ref.read(settingsProvider.notifier).setDefaultStartPressure(bar);
       },
@@ -44,7 +48,7 @@ class DefaultStartPressureTile extends ConsumerWidget {
   }
 }
 
-/// Pops the entered pressure in whole bar, or null on cancel. Blank,
+/// Pops the entered pressure in bar, or null on cancel. Blank,
 /// unreadable and out-of-range input keep the dialog open with the field's
 /// error rather than closing with nothing saved (#1900).
 class _DefaultStartPressureDialog extends StatefulWidget {
@@ -59,13 +63,16 @@ class _DefaultStartPressureDialog extends StatefulWidget {
 
 class _DefaultStartPressureDialogState
     extends State<_DefaultStartPressureDialog> {
+  /// The stored value in the diver's unit, to one decimal, so 206.8428 bar
+  /// opens as 3000 psi and a bar value keeps a typed half.
   late final TextEditingController _controller = TextEditingController(
     text: formatDecimalForInput(
-      widget.units
-          .convertPressure(
-            widget.units.settings.defaultStartPressure.toDouble(),
-          )
-          .roundToDouble(),
+      (widget.units.convertPressure(
+                    widget.units.settings.defaultStartPressure,
+                  ) *
+                  10)
+              .roundToDouble() /
+          10,
     ),
   );
   final _formKey = GlobalKey<FormState>();
@@ -76,16 +83,16 @@ class _DefaultStartPressureDialogState
   late final double _min = _shown(_minBar);
   late final double _max = _shown(_maxBar);
 
-  double _shown(int bar) =>
-      widget.units.convertPressure(bar.toDouble()).roundToDouble();
+  double _shown(double bar) =>
+      widget.units.convertPressure(bar).roundToDouble();
 
-  /// The entered value in whole bar, or null when it is outside the range.
-  /// The range is checked on the value as typed, before rounding, so 0.5 bar
-  /// is refused rather than rounded up to 1. The clamp only absorbs the
-  /// display rounding at the ends (5802 psi is 400.03 bar).
-  int? _toBar(double value) {
+  /// The entered value in bar, or null when it is outside the range. The
+  /// range is checked on the value as typed, so 0.5 bar is refused. The
+  /// clamp only absorbs the display rounding at the ends (5802 psi is
+  /// 400.03 bar).
+  double? _toBar(double value) {
     if (value < _min || value > _max) return null;
-    return widget.units.pressureToBar(value).round().clamp(_minBar, _maxBar);
+    return widget.units.pressureToBar(value).clamp(_minBar, _maxBar);
   }
 
   void _save() {
@@ -120,8 +127,8 @@ class _DefaultStartPressureDialogState
             allowNegative: false,
             check: (value) => _toBar(value) == null
                 ? context.l10n.tankPresets_defaultStartPressure_range(
-                    units.formatPressure(_maxBar.toDouble()),
-                    units.formatPressure(_minBar.toDouble()),
+                    units.formatPressure(_maxBar),
+                    units.formatPressure(_minBar),
                   )
                 : null,
           ),

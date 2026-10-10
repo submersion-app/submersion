@@ -607,7 +607,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         id: _uuid.v4(),
         volume: _defaultPreset?.volumeLiters ?? settings.defaultTankVolume,
         workingPressure: _defaultPreset?.workingPressureBar,
-        startPressure: settings.defaultStartPressure.toDouble(),
+        startPressure: settings.defaultStartPressure,
         endPressure: 50.0,
         gasMix: const GasMix(),
         role: TankRole.backGas,
@@ -3864,7 +3864,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           id: _uuid.v4(),
           volume: _defaultPreset?.volumeLiters ?? settings.defaultTankVolume,
           workingPressure: _defaultPreset?.workingPressureBar,
-          startPressure: settings.defaultStartPressure.toDouble(),
+          startPressure: settings.defaultStartPressure,
           endPressure: 50.0,
           gasMix: const GasMix(),
           role: _tanks.isEmpty ? TankRole.backGas : TankRole.stage,
@@ -5350,7 +5350,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ..addAll(
           last.tanksForNewDive(
             newId: _uuid.v4,
-            startPressure: settings.defaultStartPressure.toDouble(),
+            startPressure: settings.defaultStartPressure,
             endPressure: 50.0,
           ),
         );

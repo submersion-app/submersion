@@ -212,7 +212,9 @@ class AppSettings {
   final String placeNameLanguage;
   final String defaultDiveType;
   final double defaultTankVolume;
-  final int defaultStartPressure;
+
+  /// Bar, as a decimal so a value entered in psi keeps its value (#3091).
+  final double defaultStartPressure;
   final String? defaultTankPreset;
   final bool applyDefaultTankToImports;
 
@@ -614,7 +616,7 @@ class AppSettings {
     this.placeNameLanguage = PlaceNameLanguage.defaultCode,
     this.defaultDiveType = 'recreational',
     this.defaultTankVolume = 12.0,
-    this.defaultStartPressure = 200,
+    this.defaultStartPressure = 200.0,
     this.defaultTankPreset = 'al80',
     this.applyDefaultTankToImports = false,
     this.hiddenTankPresetIds = const {},
@@ -804,7 +806,7 @@ class AppSettings {
     String? placeNameLanguage,
     String? defaultDiveType,
     double? defaultTankVolume,
-    int? defaultStartPressure,
+    double? defaultStartPressure,
     String? defaultTankPreset,
     bool clearDefaultTankPreset = false,
     bool? applyDefaultTankToImports,
@@ -1861,7 +1863,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setDefaultStartPressure(int pressure) async {
+  Future<void> setDefaultStartPressure(double pressure) async {
     state = state.copyWith(defaultStartPressure: pressure);
     await _saveSettings();
   }
