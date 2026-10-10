@@ -20333,6 +20333,19 @@ class AppLocalizationsAr extends AppLocalizations {
       'المقياس الافتراضي المعروض على المحور الأيمن';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'وضع ملء الشاشة';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'ما إذا كان ملف الغوصة وعارض الوسائط في وضع ملء الشاشة يملآن النافذة أو الشاشة بأكملها';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'ملء النافذة';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'ملء الشاشة';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'مقاييس تخفيف الضغط';
 

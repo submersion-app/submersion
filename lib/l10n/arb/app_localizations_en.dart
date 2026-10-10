@@ -19777,6 +19777,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Default metric shown on right axis';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'Fullscreen mode';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'Whether the fullscreen dive profile and media viewer fill the window or the whole screen';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'Full window';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'Full screen';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'Decompression Metrics';
 

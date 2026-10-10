@@ -74,6 +74,10 @@ class SettingsKeys {
   /// Device-local: whether media grids draw a provenance badge on every
   /// thumbnail. Health badges are not covered by it.
   static const String mediaProvenanceBadges = 'media_provenance_badges';
+
+  /// Device-local: whether the fullscreen viewers fill the window or take
+  /// the desktop window into OS fullscreen.
+  static const String viewerFullscreenMode = 'viewer_fullscreen_mode';
   static const String defaultDiveType = 'default_dive_type';
   static const String defaultTankVolume = 'default_tank_volume';
   static const String defaultStartPressure = 'default_start_pressure';

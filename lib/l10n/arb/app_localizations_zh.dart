@@ -19092,6 +19092,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_rightYAxisMetric_subtitle => '右轴默认显示的指标';
 
   @override
+  String get settings_appearance_viewerFullscreen => '全屏模式';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      '全屏潜水轮廓和媒体查看器是填满窗口还是整个屏幕';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => '填满窗口';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => '全屏';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics => '减压指标';
 
   @override

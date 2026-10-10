@@ -20078,6 +20078,20 @@ class AppLocalizationsEs extends AppLocalizations {
       'Métrica predeterminada mostrada en el eje derecho';
 
   @override
+  String get settings_appearance_viewerFullscreen =>
+      'Modo de pantalla completa';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'Si el perfil de inmersión y el visor de medios a pantalla completa ocupan la ventana o toda la pantalla';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'Ventana completa';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'Pantalla completa';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'Métricas de descompresión';
 

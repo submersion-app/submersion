@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/clock_s
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/shared/services/incoming_share.dart';
 import 'package:submersion/shared/services/navigation_ready_gate.dart';
 
@@ -50,6 +51,11 @@ List<dynamic> rootProviderOverrides({
     // persistence (issue #1216).
     clockSyncSettingsNotifierProvider.overrideWith(
       (ref) => ClockSyncSettingsNotifier(ClockSyncPreferences(prefs)),
+    ),
+    // Unstored by default so viewers in a container without prefs keep
+    // their full-window behaviour; here it gains persistence (issue #3178).
+    viewerFullscreenModeProvider.overrideWith(
+      (ref) => ViewerFullscreenModeNotifier(prefs),
     ),
   ];
 }

@@ -19946,6 +19946,19 @@ class AppLocalizationsNl extends AppLocalizations {
       'Standaardmetriek getoond op de rechter as';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'Volledig-schermmodus';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'Of het duikprofiel en de mediaviewer op volledig scherm het venster of het hele scherm vullen';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'Volledig venster';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'Volledig scherm';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'Decompressiemetrieken';
 

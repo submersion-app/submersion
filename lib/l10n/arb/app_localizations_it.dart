@@ -20077,6 +20077,19 @@ class AppLocalizationsIt extends AppLocalizations {
       'Metrica predefinita mostrata sull\'asse destro';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'Modalità schermo intero';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'Se il profilo immersione e il visualizzatore multimediale a schermo intero occupano la finestra o l\'intero schermo';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'Finestra intera';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'Schermo intero';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'Metriche di decompressione';
 

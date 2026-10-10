@@ -20055,6 +20055,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Standardmetrik auf der rechten Achse';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'Vollbildmodus';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'Ob Tauchprofil und Medienansicht im Vollbild das Fenster oder den ganzen Bildschirm ausfüllen';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'Ganzes Fenster';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'Vollbild';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'Dekompressionsmetriken';
 

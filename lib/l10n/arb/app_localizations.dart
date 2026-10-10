@@ -32167,6 +32167,30 @@ abstract class AppLocalizations {
   /// **'Default metric shown on right axis'**
   String get settings_appearance_rightYAxisMetric_subtitle;
 
+  /// No description provided for @settings_appearance_viewerFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Fullscreen mode'**
+  String get settings_appearance_viewerFullscreen;
+
+  /// No description provided for @settings_appearance_viewerFullscreen_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Whether the fullscreen dive profile and media viewer fill the window or the whole screen'**
+  String get settings_appearance_viewerFullscreen_subtitle;
+
+  /// No description provided for @settings_appearance_viewerFullscreen_window.
+  ///
+  /// In en, this message translates to:
+  /// **'Full window'**
+  String get settings_appearance_viewerFullscreen_window;
+
+  /// No description provided for @settings_appearance_viewerFullscreen_screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen'**
+  String get settings_appearance_viewerFullscreen_screen;
+
   /// No description provided for @settings_appearance_subsection_decompressionMetrics.
   ///
   /// In en, this message translates to:

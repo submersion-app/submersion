@@ -20138,6 +20138,19 @@ class AppLocalizationsFr extends AppLocalizations {
       'Métrique par défaut affichée sur l\'axe droit';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'Mode plein écran';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'Si le profil de plongée et la visionneuse de médias en plein écran occupent la fenêtre ou tout l\'écran';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'Fenêtre entière';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'Plein écran';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'Métriques de décompression';
 

@@ -20081,6 +20081,19 @@ class AppLocalizationsPt extends AppLocalizations {
       'Métrica padrão exibida no eixo direito';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'Modo de tela cheia';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'Se o perfil de mergulho e o visualizador de mídia em tela cheia ocupam a janela ou a tela inteira';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'Janela inteira';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'Tela cheia';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'Métricas de Descompressão';
 

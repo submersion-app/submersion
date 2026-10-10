@@ -36,6 +36,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dar
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Fullscreen dive review: full-height profile chart with a dive-computer
@@ -66,6 +67,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
   late final PlaybackNotifier _playbackNotifier;
   late final StateController<int?> _reviewController;
   late final void Function() _removePlaybackListener;
+  late final ViewerWindowFullscreen _windowFullscreen;
 
   /// Whether playback mode was already active for this dive before the
   /// fullscreen page opened. If the page itself activates playback (see
@@ -95,11 +97,14 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     ]);
     // Fullscreen means fullscreen: hide the status and navigation bars so
     // the chart owns the display (#811). Mirrors photo_viewer_page. The
-    // call is a no-op on desktop platforms.
+    // call is a no-op on desktop platforms, where the window itself goes
+    // fullscreen instead when the setting asks for it (#3178).
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.immersiveSticky,
       overlays: [],
     );
+    _windowFullscreen = ref.read(viewerWindowFullscreenProvider);
+    _windowFullscreen.enter(this);
     _lifecycleListener = AppLifecycleListener(
       onInactive: () => _playbackNotifier.pause(),
     );
@@ -114,6 +119,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
       SystemUiMode.edgeToEdge,
       overlays: SystemUiOverlay.values,
     );
+    _windowFullscreen.exit(this);
     // Riverpod forbids mutating provider state synchronously from a widget
     // lifecycle callback (dispose included), so the cleanup itself is
     // deferred to a microtask, which runs just after the current unmount

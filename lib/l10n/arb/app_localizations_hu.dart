@@ -20014,6 +20014,19 @@ class AppLocalizationsHu extends AppLocalizations {
       'Alapértelmezett metrika a jobb tengelyen';
 
   @override
+  String get settings_appearance_viewerFullscreen => 'Teljes képernyős mód';
+
+  @override
+  String get settings_appearance_viewerFullscreen_subtitle =>
+      'A teljes képernyős merülési profil és médianézegető az ablakot vagy a teljes képernyőt tölti-e ki';
+
+  @override
+  String get settings_appearance_viewerFullscreen_window => 'Teljes ablak';
+
+  @override
+  String get settings_appearance_viewerFullscreen_screen => 'Teljes képernyő';
+
+  @override
   String get settings_appearance_subsection_decompressionMetrics =>
       'Dekompressziós metrikák';
 
