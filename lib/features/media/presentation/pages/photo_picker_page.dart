@@ -13,6 +13,7 @@ import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
@@ -212,6 +213,9 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(photoPickerNotifierProvider);
+    // Tropical light fills its app bar with primary, the colour a stock tab
+    // and TextButton paint in, so both take colours that read on the bar.
+    final barColors = AppBarTabColors.of(Theme.of(context));
 
     final appBarLeading = IconButton(
       icon: const Icon(Icons.close),
@@ -219,6 +223,11 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
       onPressed: () => Navigator.of(context).pop(),
     );
     final doneAction = TextButton(
+      style: TextButton.styleFrom(
+        foregroundColor: barColors.selected,
+        // Material's disabled tint is onSurface, dark ink on a dark bar.
+        disabledForegroundColor: barColors.selected.withValues(alpha: 0.38),
+      ).copyWith(overlayColor: barColors.overlay),
       onPressed: state.selectionCount > 0 ? _handleDone : null,
       child: Text(
         state.selectionCount > 0
@@ -249,6 +258,10 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
         ],
         bottom: TabBar(
           controller: tabController,
+          labelColor: barColors.selected,
+          unselectedLabelColor: barColors.unselected,
+          indicatorColor: barColors.selected,
+          overlayColor: barColors.overlay,
           tabs: [
             Tab(text: context.l10n.media_photoPicker_tab_gallery),
             Tab(text: context.l10n.media_photoPicker_tab_files),

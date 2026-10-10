@@ -13,6 +13,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -102,6 +103,7 @@ Widget _wrap({
   MediaAttachTarget? target,
   FilesTabNotifier? filesTab,
   UrlTabNotifier? urlTab,
+  ThemeData? theme,
 }) {
   final pipeline = _FakeNetworkFetchPipeline();
   final credentials = _FakeNetworkCredentialsService();
@@ -130,6 +132,7 @@ Widget _wrap({
       networkCredentialsServiceProvider.overrideWithValue(credentials),
     ],
     child: MaterialApp(
+      theme: theme,
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
@@ -153,6 +156,37 @@ void main() {
     expect(find.text('Gallery'), findsOneWidget);
     expect(find.text('Files'), findsOneWidget);
     expect(find.text('URL'), findsOneWidget);
+  });
+
+  // Tropical light fills its app bar with primary, the colour a stock tab
+  // marks its selected label and indicator in (and a TextButton its label),
+  // so the active tab and the Done action vanished.
+  testWidgets('tabs and Done take the app bar foreground on a primary fill', (
+    tester,
+  ) async {
+    const primary = Color(0xFF007D6F);
+    const foreground = Color(0xFFFFFFFF);
+    await tester.pumpWidget(
+      _wrap(
+        theme: ThemeData(
+          colorScheme: const ColorScheme.light(primary: primary),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: primary,
+            foregroundColor: foreground,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final tabBar = tester.widget<TabBar>(find.byType(TabBar));
+    expect(tabBar.labelColor, foreground);
+    expect(tabBar.indicatorColor, foreground);
+    expect(tabBar.unselectedLabelColor, isNot(primary));
+    final done = tester.renderObject<RenderParagraph>(find.text('Done'));
+    // Nothing is selected yet, so Done shows disabled, dimmed in the bar's
+    // colour rather than Material's dark onSurface tint.
+    expect(done.text.style?.color, foreground.withValues(alpha: 0.38));
   });
 
   testWidgets('switching to Files tab shows FilesTab', (tester) async {
