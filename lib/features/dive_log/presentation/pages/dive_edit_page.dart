@@ -158,6 +158,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_weight_en
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/scan_owned_item.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -4019,6 +4020,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               onPressed: _showEquipmentPicker,
             ),
             FormOverlineAction(
+              label: context.l10n.gearPassport_scan_action,
+              icon: Icons.qr_code_scanner,
+              onPressed: _scanGear,
+            ),
+            FormOverlineAction(
               label: context.l10n.equipment_list_sortTooltip,
               icon: Icons.sort,
               onPressed: () => showEquipmentArrangeSheet(context),
@@ -4242,6 +4248,28 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           if (keep.contains(e.id)) e,
       ];
     });
+  }
+
+  /// Adds the item a scanned tag names to this dive's gear, through the
+  /// same path as the picker so components expand (issue #2652).
+  Future<void> _scanGear() async {
+    final item = await scanOwnedItem(context, ref);
+    if (item == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    if (_selectedEquipment.any((e) => e.id == item.id)) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.gearPassport_scan_alreadyOnDive(item.name)),
+        ),
+      );
+      return;
+    }
+    await _addGear([item]);
+    if (!mounted) return;
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.gearPassport_scan_added(item.name))),
+    );
   }
 
   void _showEquipmentPicker() {
