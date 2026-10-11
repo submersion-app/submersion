@@ -15,6 +15,8 @@ import 'package:submersion/features/insights/presentation/widgets/chart_axis.dar
 import 'package:submersion/features/insights/presentation/widgets/chart_overview_strip.dart';
 import 'package:submersion/features/insights/presentation/widgets/date_axis.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart_input.dart';
+import 'package:submersion/features/insights/presentation/formatters/trend_gap_label.dart';
+import 'package:submersion/features/insights/presentation/widgets/trend_break_band_painter.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_break_spots.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_window_seater.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -459,44 +461,71 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
           : context.l10n.insights_chart_trendSemanticLabel(pointCount),
       child: SizedBox(
         height: height,
-        child: LineChart(
-          duration: Duration.zero,
-          LineChartData(
-            minX: visibleMin,
-            maxX: visibleMax,
-            clipData: const FlClipData.horizontal(),
-            minY: yAxis.min,
-            maxY: yAxis.max,
-            lineTouchData: _touchData(context, bars, seriesLabels),
-            titlesData: _titles(context, dateAxis, yAxis),
-            // Framed like the dive profile chart: an unbounded plot floats
-            // on the card with nothing to read the axes against.
-            borderData: FlBorderData(
-              show: true,
-              border: Border.all(color: theme.colorScheme.outlineVariant),
+        child: Stack(
+          children: [
+            _lineChart(
+              visibleMin: visibleMin,
+              visibleMax: visibleMax,
+              yAxis: yAxis,
+              dateAxis: dateAxis,
+              bars: bars,
+              seriesLabels: seriesLabels,
+              isRaw: isRaw,
+              highlight: highlight,
             ),
-            gridData: FlGridData(
-              show: true,
-              drawVerticalLine: false,
-              horizontalInterval: yAxis.interval,
-              getDrawingHorizontalLine: (value) => FlLine(
-                color: theme.colorScheme.outlineVariant,
-                strokeWidth: 1,
+            if (!_scale.isIdentity)
+              _breakBands(context, visibleMin, visibleMax, plotWidth, height),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _lineChart({
+    required double visibleMin,
+    required double visibleMax,
+    required ChartAxis yAxis,
+    required DateAxis dateAxis,
+    required List<LineChartBarData> bars,
+    required List<String> seriesLabels,
+    required bool isRaw,
+    required ({DateTime start, DateTime end})? highlight,
+  }) {
+    final theme = Theme.of(context);
+    return LineChart(
+      duration: Duration.zero,
+      LineChartData(
+        minX: visibleMin,
+        maxX: visibleMax,
+        clipData: const FlClipData.horizontal(),
+        minY: yAxis.min,
+        maxY: yAxis.max,
+        lineTouchData: _touchData(context, bars, seriesLabels),
+        titlesData: _titles(context, dateAxis, yAxis),
+        // Framed like the dive profile chart: an unbounded plot floats
+        // on the card with nothing to read the axes against.
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: yAxis.interval,
+          getDrawingHorizontalLine: (value) =>
+              FlLine(color: theme.colorScheme.outlineVariant, strokeWidth: 1),
+        ),
+        lineBarsData: bars,
+        betweenBarsData: _bands(context, isRaw),
+        rangeAnnotations: RangeAnnotations(
+          verticalRangeAnnotations: [
+            if (highlight != null)
+              VerticalRangeAnnotation(
+                x1: _x(highlight.start),
+                x2: _x(highlight.end),
+                color: theme.colorScheme.tertiary.withValues(alpha: 0.18),
               ),
-            ),
-            lineBarsData: bars,
-            betweenBarsData: _bands(context, isRaw),
-            rangeAnnotations: RangeAnnotations(
-              verticalRangeAnnotations: [
-                if (highlight != null)
-                  VerticalRangeAnnotation(
-                    x1: _x(highlight.start),
-                    x2: _x(highlight.end),
-                    color: theme.colorScheme.tertiary.withValues(alpha: 0.18),
-                  ),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );

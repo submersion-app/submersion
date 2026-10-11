@@ -171,4 +171,47 @@ extension _DiveTrendChartTouch on _DiveTrendChartState {
       rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
     );
   }
+
+  /// The hatched bands over the plot, one per visible collapsed gap, with
+  /// their lengths under the x axis (issue #3251).
+  Widget _breakBands(
+    BuildContext context,
+    double visibleMin,
+    double visibleMax,
+    double plotWidth,
+    double height,
+  ) {
+    final theme = Theme.of(context);
+    final plot = Rect.fromLTWH(
+      trendChartPlotInsets.left + _yAxisNameSize,
+      0,
+      plotWidth,
+      height - trendChartPlotInsets.bottom,
+    );
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: CustomPaint(
+          key: const ValueKey('trend-break-bands'),
+          painter: TrendBreakBandPainter(
+            bands: TrendBreakBandPainter.layout(
+              breaks: _scale.breaks,
+              visibleMin: visibleMin,
+              visibleMax: visibleMax,
+              plot: plot,
+              labelOf: (b) => trendGapLengthLabel(b.start, b.end, context.l10n),
+            ),
+            plot: plot,
+            hatch: theme.colorScheme.outline.withValues(alpha: 0.6),
+            // Opaque, so the band hides anything drawn under it and reads
+            // the same on every card surface.
+            fill: theme.colorScheme.surfaceContainerHighest,
+            labelStyle: theme.textTheme.bodySmall!.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textDirection: Directionality.of(context),
+          ),
+        ),
+      ),
+    );
+  }
 }

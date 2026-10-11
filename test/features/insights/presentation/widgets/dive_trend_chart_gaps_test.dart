@@ -45,6 +45,19 @@ void main() {
     expect(find.byKey(const ValueKey('trend-break-bands')), findsNothing);
   });
 
+  testWidgets('the band painter is present only when a gap collapses', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(DiveTrendChart(points: points)));
+    expect(find.byKey(const ValueKey('trend-break-bands')), findsNothing);
+    await tester.pumpWidget(
+      host(
+        DiveTrendChart(points: points, gapThreshold: TrendGapThreshold.year1),
+      ),
+    );
+    expect(find.byKey(const ValueKey('trend-break-bands')), findsOneWidget);
+  });
+
   testWidgets('a year threshold pulls the later dives left', (tester) async {
     await tester.pumpWidget(
       host(
