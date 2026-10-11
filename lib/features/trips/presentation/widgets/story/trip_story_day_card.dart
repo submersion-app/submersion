@@ -17,6 +17,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_story_prov
 import 'package:submersion/features/trips/domain/services/day_conditions.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/day_conditions_line.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/day_format.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/today_card_shape.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_plan.dart';
@@ -118,10 +119,7 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
     // Today's card carries the header's emphasis down its edge; a day ahead
     // keeps the quiet outline that marks it as only a plan.
     final ShapeBorder? shape = switch (day.kind) {
-      TripStoryDayKind.today => RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.colorScheme.primary, width: 2),
-      ),
+      TripStoryDayKind.today => todayCardShape(theme),
       TripStoryDayKind.future => RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(color: theme.colorScheme.outlineVariant),

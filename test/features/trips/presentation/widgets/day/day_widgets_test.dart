@@ -12,6 +12,7 @@ import 'package:submersion/features/trips/presentation/widgets/day/day_condition
 import 'package:submersion/features/trips/presentation/widgets/day/day_format.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/day_plan_line.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/day_weather_badge.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/today_card_shape.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/today_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -143,5 +144,28 @@ void main() {
       ),
       isTrue,
     );
+  });
+
+  group('today card shape', () {
+    test("keeps the theme's card corners and adds a primary edge", () {
+      final theme = ThemeData(
+        cardTheme: CardThemeData(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+      );
+      final shape = todayCardShape(theme);
+      expect(shape.borderRadius, BorderRadius.circular(20));
+      expect(shape.side.color, theme.colorScheme.primary);
+      expect(shape.side.width, 2);
+    });
+
+    test('falls back to the Material card radius without a themed shape', () {
+      expect(
+        todayCardShape(ThemeData()).borderRadius,
+        BorderRadius.circular(12),
+      );
+    });
   });
 }

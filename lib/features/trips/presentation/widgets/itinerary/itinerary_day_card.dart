@@ -17,6 +17,7 @@ import 'package:submersion/features/trips/presentation/widgets/day/day_condition
 import 'package:submersion/features/trips/presentation/widgets/day/day_format.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/day_plan_line.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/day_weather_badge.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/today_card_shape.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/today_chip.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary/itinerary_dive_row.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary_day_edit_sheet.dart';
@@ -78,21 +79,17 @@ class ItineraryDayCard extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Card(
-        // Today's tint is blended onto the card's own opaque surface: a
-        // translucent fill would composite with whatever is behind the card
-        // and with the theme's elevation tint, and read differently on each.
+        // Today's tint is blended onto the card's own surface colour rather
+        // than handed to Material as a bare translucent fill, which would
+        // composite with whatever is behind the card and with the theme's
+        // elevation tint, and read differently on each.
         color: isToday
             ? Color.alphaBlend(
                 colorScheme.primaryContainer.withValues(alpha: 0.35),
                 theme.cardTheme.color ?? colorScheme.surfaceContainerLow,
               )
             : null,
-        shape: isToday
-            ? RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: colorScheme.primary, width: 2),
-              )
-            : null,
+        shape: isToday ? todayCardShape(theme) : null,
         child: InkWell(
           onTap: () => showItineraryDayEditSheet(
             context: context,
