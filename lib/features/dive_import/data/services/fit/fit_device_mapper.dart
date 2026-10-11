@@ -68,7 +68,10 @@ class FitDeviceMapper {
   /// The computer model a FIT file's `file_id` names (#3045).
   ///
   /// A Garmin-family file keeps the product table, which holds verified
-  /// names, and falls back to `product_name`, then plain "Garmin". A Suunto
+  /// names, and otherwise plain "Garmin". It ignores `product_name`: the
+  /// Garmin cloud import matches a serial against the stored model, so
+  /// renaming a device it already registered as "Garmin" would split it
+  /// into a second record. A Suunto
   /// file uses `product_name`, then its product code, then plain "Suunto".
   /// Any other manufacturer has only `product_name` to go on and is left
   /// without a model when that is absent, so the importer leaves the dive
@@ -83,10 +86,10 @@ class FitDeviceMapper {
     int? product,
     String? productName,
   }) {
-    final named = _modelFromProductName(productName, manufacturerName);
     if (manufacturer == null || _garminFamily.contains(manufacturer)) {
-      return _models[product] ?? named ?? 'Garmin';
+      return _models[product] ?? 'Garmin';
     }
+    final named = _modelFromProductName(productName, manufacturerName);
     if (manufacturer == _suunto) {
       return named ?? _suuntoModels[product] ?? 'Suunto';
     }

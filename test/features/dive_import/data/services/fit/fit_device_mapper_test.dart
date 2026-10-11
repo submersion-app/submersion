@@ -52,7 +52,9 @@ void main() {
       );
     });
 
-    test('a Garmin file with an unknown code uses product_name', () {
+    test('a Garmin file with an unknown code ignores product_name', () {
+      // The Garmin cloud import matches a serial against the stored model,
+      // so a device already registered as "Garmin" must keep that name.
       expect(
         FitDeviceMapper.modelFor(
           manufacturer: 1,
@@ -60,7 +62,7 @@ void main() {
           product: 999999,
           productName: 'Garmin Descent S1',
         ),
-        'Descent S1',
+        'Garmin',
       );
     });
 
