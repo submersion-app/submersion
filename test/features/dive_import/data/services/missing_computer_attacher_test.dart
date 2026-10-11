@@ -109,6 +109,22 @@ $computers
     expect(profiles[rows[1].id]!.points.map((p) => p.depth), [0.0, 30.4, 0.0]);
   });
 
+  test('records the file format as a connection of each computer it '
+      'adds (#3106)', () async {
+    final dive = await parse(perdixAndTeric);
+    final diveId = await importTheOldWay(dive);
+
+    await attach(diveId, dive);
+
+    final added = (await sourcesOf(diveId))[1].computerId!;
+    final connections = await (db.select(
+      db.diveComputerConnections,
+    )..where((t) => t.computerId.equals(added))).get();
+    expect(connections.map((c) => (c.kind, c.detail)), [
+      ('file', 'subsurfaceXml'),
+    ]);
+  });
+
   test('a second run adds nothing', () async {
     final dive = await parse(perdixAndTeric);
     final diveId = await importTheOldWay(dive);

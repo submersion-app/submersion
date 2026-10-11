@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_import/data/services/additional_computer_writer.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
@@ -35,7 +37,9 @@ class MissingComputerAttacher {
     required AppDatabase db,
     DiveRepository? diveRepository,
     DiveComputerRepository? diveComputerRepository,
+    DiveComputerConnectionRepository? connections,
   }) : _db = db,
+       _connections = connections ?? DiveComputerConnectionRepository(),
        _writer = AdditionalComputerWriter(
          diveRepository: diveRepository ?? DiveRepository(),
        ),
@@ -44,6 +48,9 @@ class MissingComputerAttacher {
   final AppDatabase _db;
   final AdditionalComputerWriter _writer;
   final DiveComputerRepository _computers;
+
+  /// Where each added computer's file connection is recorded (issue #3106).
+  final DiveComputerConnectionRepository _connections;
   static const _log = LoggerService('MissingComputerAttacher');
 
   /// Writes onto [diveId] each further computer of [diveData] (a parsed dive
@@ -149,7 +156,34 @@ class MissingComputerAttacher {
       now: now ?? DateTime.now(),
       onSkippedEvent: _log.warning,
     );
+    if (written > 0) {
+      await _recordFileConnections(idByKey.values, sourceFileFormat);
+    }
     return (missing: missing.length, written: written);
+  }
+
+  /// Record [format] as a connection of each of [computerIds] (issue
+  /// #3106). Bookkeeping after the computers are written: a failure is
+  /// logged, never thrown.
+  Future<void> _recordFileConnections(
+    Iterable<String> computerIds,
+    String format,
+  ) async {
+    for (final computerId in computerIds.toSet()) {
+      try {
+        await _connections.recordConnection(
+          computerId: computerId,
+          kind: DiveComputerConnectionKind.file,
+          detail: format,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Could not record the $format connection for computer $computerId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
   }
 
   /// The re-import of a dive imported before the importer kept every
