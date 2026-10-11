@@ -195,6 +195,46 @@ void main() {
       expect(find.text('Other copy (#300)'), findsWidgets);
     });
 
+    testWidgets('the duplicate card never offers Consolidate for a copy', (
+      tester,
+    ) async {
+      // The universal adapter offers Consolidate for dive duplicates, but a
+      // copy of another row has no stored dive to fold into.
+      await tester.pumpWidget(
+        harness(
+          SingleChildScrollView(
+            child: DuplicateActionCard(
+              item: EntityItem(
+                title: 'Copy',
+                subtitle: '',
+                diveData: withProfile,
+              ),
+              matchResult: const DiveMatchResult(
+                diveId: '',
+                inBatchIndex: 0,
+                score: 1.0,
+                timeDifferenceMs: 0,
+              ),
+              selectedAction: DuplicateAction.skip,
+              availableActions: const {
+                DuplicateAction.skip,
+                DuplicateAction.importAsNew,
+                DuplicateAction.consolidate,
+              },
+              onActionChanged: (_) {},
+              existingDiveId: '',
+              inBatchPartner: partner,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('Copy'));
+      await tester.pumpAndSettle();
+      expect(find.text('Skip'), findsWidgets);
+      expect(find.text('Consolidate'), findsNothing);
+    });
+
     testWidgets('compares the two copies field by field', (tester) async {
       await pumpPair(tester);
       // The water temperature only the other copy has is a difference,

@@ -778,6 +778,13 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       '${_adapter.runtimeType} for entity type $type',
     );
     if (!_adapter.duplicateActionsFor(type).contains(action)) return;
+    // A copy of another row in this import has no stored dive to fold into:
+    // consolidating it would target an empty dive id.
+    if (action == DuplicateAction.consolidate &&
+        state.bundle?.groups[type]?.matchResults?[index]?.inBatchIndex !=
+            null) {
+      return;
+    }
 
     final actionsForType =
         state.duplicateActions[type] ?? const <int, DuplicateAction>{};

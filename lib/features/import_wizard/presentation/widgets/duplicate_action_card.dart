@@ -163,7 +163,11 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       incomingLabel: context.l10n.universalImport_compare_incoming,
       selectedAction: widget.selectedAction,
       onActionChanged: widget.onActionChanged,
-      availableActions: widget.availableActions,
+      // A copy of another row in this import has no stored dive to fold
+      // into, so Consolidate is never offered for it.
+      availableActions: widget.matchResult.inBatchIndex == null
+          ? widget.availableActions
+          : widget.availableActions.difference({DuplicateAction.consolidate}),
       isPending: widget.isPending,
       showFillPlanned: widget.matchResult.isPlannedFill,
       inBatchPartner: widget.inBatchPartner,

@@ -946,6 +946,25 @@ void main() {
           notifier.toggleSelection(ImportEntityType.dives, 0);
           expect(selected(), {0, 1});
         });
+
+        test('cannot be consolidated, having no stored dive to fold into', () {
+          when(mockAdapter.duplicateActionsFor(any)).thenReturn({
+            DuplicateAction.skip,
+            DuplicateAction.importAsNew,
+            DuplicateAction.consolidate,
+          });
+          notifier.setBundle(pair());
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.consolidate,
+          );
+          expect(
+            notifier.state.duplicateActions[ImportEntityType.dives]?[1],
+            isNot(DuplicateAction.consolidate),
+          );
+          expect(selected(), {0});
+        });
       });
     });
 
