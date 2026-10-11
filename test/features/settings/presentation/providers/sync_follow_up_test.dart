@@ -169,4 +169,39 @@ void main() {
     expect(runs, 2, reason: 'the findings stamp went out in a follow-up');
     expect(container.read(syncStateProvider).pendingChanges, 0);
   });
+
+  test('the wait drains batches the findings pass queues itself', () async {
+    // A findings pass can queue another batch (summaries it found missing),
+    // which replaces the scheduler's tail after the sync read it. Waiting on
+    // the first tail alone would settle before the second batch stamps.
+    final scheduler = SensorSummaryScheduler.instance;
+    final loader = scheduler.conditionInputsLoader;
+    addTearDown(() => scheduler.conditionInputsLoader = loader);
+    SensorSummaryScheduler.enabled = true;
+    var passes = 0;
+    scheduler.conditionInputsLoader = () async {
+      passes++;
+      if (passes == 1) {
+        await Future<void>.delayed(const Duration(seconds: 1));
+        scheduler.scheduleFindings({'regulator'});
+      } else if (passes == 2) {
+        // Past the old single wait (pass 1) plus its 2s settle.
+        await Future<void>.delayed(const Duration(seconds: 3));
+        await stampAfterPublish('second-batch-finding');
+      }
+      return const ConditionPassInputs(
+        diverId: null,
+        thresholds: ExposureThresholds.defaults,
+        engineEnabled: false,
+      );
+    };
+    var runs = 0;
+    final container = await makeContainer(() async => runs++);
+
+    await container.read(syncStateProvider.notifier).performSync();
+
+    expect(passes, greaterThanOrEqualTo(2));
+    expect(runs, 2, reason: 'the second batch went out in a follow-up');
+    expect(container.read(syncStateProvider).pendingChanges, 0);
+  });
 }

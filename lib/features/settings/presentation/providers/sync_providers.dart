@@ -1400,6 +1400,24 @@ class SyncNotifier extends StateNotifier<SyncState> {
     }
   }
 
+  /// Waits, within [_postSyncFindingsWait], until the summary scheduler's
+  /// queue stops changing. One await is not enough: a findings pass that met
+  /// dives with no summary queues another batch, replacing the tail read
+  /// before it, and that batch can stamp rows too.
+  Future<void> _awaitPostSyncFindings() async {
+    final scheduler = SensorSummaryScheduler.instance;
+    final deadline = DateTime.now().add(_postSyncFindingsWait);
+    var tail = scheduler.idle;
+    while (true) {
+      final left = deadline.difference(DateTime.now());
+      if (left <= Duration.zero) return;
+      await tail.timeout(left, onTimeout: () {});
+      final next = scheduler.idle;
+      if (identical(next, tail)) return;
+      tail = next;
+    }
+  }
+
   /// Folds a request into the one queued run (see [_queuedSyncAuto]).
   void _queueSync({required bool auto}) {
     _queuedSyncAuto = (_queuedSyncAuto ?? true) && auto;
@@ -1630,10 +1648,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
       // work most likely to mark rows pending, and it runs unawaited. Give it
       // a bounded wait, so the settled count below (and with it the
       // follow-up decision in performSync) sees what it wrote.
-      await SensorSummaryScheduler.instance.idle.timeout(
-        _postSyncFindingsWait,
-        onTimeout: () {},
-      );
+      await _awaitPostSyncFindings();
       if (!mounted) return false;
       await Future.delayed(const Duration(seconds: 2));
       if (!mounted) return false;
