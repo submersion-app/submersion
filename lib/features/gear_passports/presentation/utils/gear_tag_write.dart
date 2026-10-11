@@ -21,8 +21,7 @@ TagWriteRequest gearTagWriteRequest(GearTagPayload payload) => TagWriteRequest(
   fieldLabel: gearTagFieldLabel,
 );
 
-/// The passport id of a gear tag link, or null for anything else.
-String? gearPassportIdOf(String text) => switch (TagLinkCodec.decode(text)) {
-  GearTagLink(:final passportId) => passportId,
-  _ => null,
-};
+/// The passport id of a tag link of either kind, or null for anything else.
+/// An item's Link an existing tag takes both: the id is the identity, and
+/// an item retyped from a tank keeps the cylinder tag on its body.
+String? tagPassportIdOf(String text) => TagLinkCodec.passportIdOf(text);

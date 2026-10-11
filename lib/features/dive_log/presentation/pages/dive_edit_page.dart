@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/presentation/utils/usable_set_item
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/scan_owned_item.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -158,7 +159,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_weight_en
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/tides/data/services/dive_tide_recorder.dart';
 import 'package:submersion/features/dive_log/presentation/providers/shared_gear_overlap_providers.dart';
-import 'package:submersion/features/gear_passports/presentation/utils/scan_owned_item.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';

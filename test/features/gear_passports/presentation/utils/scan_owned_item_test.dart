@@ -184,4 +184,17 @@ void main() {
     );
     expect(fills, isEmpty);
   });
+
+  testWidgets('an own tank tag with a fill says the fill was added', (
+    tester,
+  ) async {
+    final (item, _) = await scan(
+      tester,
+      'https://submersion.app/c#f=1&p=$tankId'
+      '&fi=66666666-7777-4888-8999-aaaaaaaaaaaa'
+      '&ft=2026-10-01T09%3A30%3A00Z&fo=32&fp=200',
+    );
+    expect(item?.id, 'tank');
+    expect(find.textContaining('EAN32'), findsOneWidget);
+  });
 }

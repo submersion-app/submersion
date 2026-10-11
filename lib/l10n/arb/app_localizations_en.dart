@@ -13427,7 +13427,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String gearPassport_scan_wishlist(String name) {
-    return '$name has the status Wanted';
+    return '$name is marked Wanted';
   }
 
   @override

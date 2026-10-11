@@ -5,9 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/database/database.dart' show DiversCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/database/database.dart' show DiversCompanion;
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -35,8 +37,6 @@ import 'package:submersion/features/trips/presentation/providers/trip_fill_forec
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_tab.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
-import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
-import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';

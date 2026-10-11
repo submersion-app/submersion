@@ -22168,7 +22168,7 @@ abstract class AppLocalizations {
   /// Said when a scanned item has the Wanted status, so it is not gear the diver owns yet.
   ///
   /// In en, this message translates to:
-  /// **'{name} has the status Wanted'**
+  /// **'{name} is marked Wanted'**
   String gearPassport_scan_wishlist(String name);
 
   /// No description provided for @pdf_unknownSite.

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
@@ -15,7 +16,6 @@ import 'package:submersion/features/cylinder_passports/presentation/providers/cy
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payload.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 

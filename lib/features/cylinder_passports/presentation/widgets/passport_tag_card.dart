@@ -14,6 +14,7 @@ import 'package:submersion/features/cylinder_passports/domain/services/passport_
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/link_existing_tag_dialog.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_qr_view.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/tag_stale_banner.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
@@ -21,7 +22,6 @@ import 'package:submersion/features/equipment/domain/entities/service_record.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/cylinder_passports/presentation/widgets/tag_stale_banner.dart';
 
 /// The payload a tag written right now carries in full: the row's spec, the
 /// recorded hydro and VIP dates (never a clock's fallback anchor), and O2

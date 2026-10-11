@@ -18,7 +18,7 @@ String? cylinderPassportIdOf(String text) =>
 /// Paste a tag's link to give this item that tag's passport id, so labels
 /// already on the gear keep working after a row was re-created (spec
 /// section 6.5). [passportIdOf] reads the kind of tag this item takes:
-/// cylinder links by default, [gearPassportIdOf] for other gear (issue
+/// cylinder links by default, either kind for other gear (issue
 /// #2652). Resolves with the linked passport id, or null.
 Future<String?> showLinkExistingTagDialog(
   BuildContext context, {

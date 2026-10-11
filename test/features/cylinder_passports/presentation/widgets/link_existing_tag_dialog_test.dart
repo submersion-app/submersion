@@ -176,7 +176,7 @@ void main() {
       final l10n = await pumpAndOpen(
         tester,
         equipmentId: 'reg-1',
-        passportIdOf: gearPassportIdOf,
+        passportIdOf: tagPassportIdOf,
       );
       await submit(tester, l10n, 'https://submersion.app/g#f=1&p=$pid&t=bcd');
       expect(find.byType(AlertDialog), findsNothing);
@@ -186,15 +186,32 @@ void main() {
       expect(id, pid);
     });
 
-    testWidgets('the gear dialog refuses a cylinder link', (tester) async {
+    testWidgets('the gear dialog takes the cylinder tag a retyped item kept', (
+      tester,
+    ) async {
       final l10n = await pumpAndOpen(
         tester,
         equipmentId: 'reg-1',
-        passportIdOf: gearPassportIdOf,
-        invalidText: (l10n) => l10n.gearPassport_tag_linkInvalid,
+        passportIdOf: tagPassportIdOf,
+        invalidText: (l10n) => l10n.tagScan_linkInvalid,
       );
       await submit(tester, l10n, 'https://submersion.app/c#f=1&p=$pid');
-      expect(find.text(l10n.gearPassport_tag_linkInvalid), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+      final id = await tester.runAsync(
+        () => CylinderPassportRepository().getPassportId('reg-1'),
+      );
+      expect(id, pid);
+    });
+
+    testWidgets('the gear dialog refuses text that is no tag', (tester) async {
+      final l10n = await pumpAndOpen(
+        tester,
+        equipmentId: 'reg-1',
+        passportIdOf: tagPassportIdOf,
+        invalidText: (l10n) => l10n.tagScan_linkInvalid,
+      );
+      await submit(tester, l10n, 'https://example.com/x');
+      expect(find.text(l10n.tagScan_linkInvalid), findsOneWidget);
     });
   });
 }

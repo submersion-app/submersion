@@ -9,6 +9,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_transfer.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_transfer_gate.dart';
+import 'package:submersion/features/gear_passports/presentation/widgets/gear_passport_entry_card.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
@@ -60,7 +61,6 @@ import 'package:submersion/features/equipment/presentation/widgets/installed_in_
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_history_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
-import 'package:submersion/features/gear_passports/presentation/widgets/gear_passport_entry_card.dart';
 
 class EquipmentDetailPage extends ConsumerStatefulWidget {
   final String equipmentId;

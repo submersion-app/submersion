@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-
+import 'package:submersion/features/gear_passports/domain/services/tag_link_codec.dart';
+import 'package:submersion/features/gear_passports/domain/services/tag_resolver.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -15,9 +17,6 @@ import 'package:submersion/features/cylinder_passports/presentation/utils/import
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/gear_passports/domain/services/tag_link_codec.dart';
-import 'package:submersion/features/gear_passports/domain/services/tag_resolver.dart';
-import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 
 const _log = LoggerService('scanCylinderTag');
 

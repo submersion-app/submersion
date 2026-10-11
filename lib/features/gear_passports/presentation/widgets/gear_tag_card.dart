@@ -8,6 +8,7 @@ import 'package:submersion/features/cylinder_passports/presentation/utils/nfc_av
 import 'package:submersion/features/cylinder_passports/presentation/widgets/link_existing_tag_dialog.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/nfc_write_sheet.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_qr_view.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/tag_stale_banner.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
@@ -19,7 +20,6 @@ import 'package:submersion/features/gear_passports/domain/services/gear_tag_rule
 import 'package:submersion/features/gear_passports/presentation/utils/gear_tag_write.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/cylinder_passports/presentation/widgets/tag_stale_banner.dart';
 
 /// QR of the current gear tag, print and link actions, NFC write, and the
 /// stale hint when a scanned tag no longer matches (gear tag spec 9).
@@ -124,8 +124,8 @@ class GearTagCard extends ConsumerWidget {
                       context,
                       equipmentId: equipment.id,
                       diverId: diverId,
-                      passportIdOf: gearPassportIdOf,
-                      invalidText: (l10n) => l10n.gearPassport_tag_linkInvalid,
+                      passportIdOf: tagPassportIdOf,
+                      invalidText: (l10n) => l10n.tagScan_linkInvalid,
                     );
                     if (linked != null && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(

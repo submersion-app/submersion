@@ -8041,7 +8041,7 @@
   "gearPassport_scan_alreadyOnTrip": "{name} is already on this trip",
   "gearPassport_scan_notYours": "Not in your gear",
   "gearPassport_scan_view": "View",
-  "gearPassport_scan_wishlist": "{name} has the status Wanted",
+  "gearPassport_scan_wishlist": "{name} is marked Wanted",
   "pdf_unknownSite": "Unknown Site",
   "pdf_signaturePlaceholder": "[Signature]",
   "pdf_signerBuddy": "Buddy",

@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/fill_summary.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
@@ -13,6 +15,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/gear_passports/domain/services/tag_link_codec.dart';
 import 'package:submersion/features/gear_passports/domain/services/tag_resolver.dart';
 import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('scanOwnedItem');
@@ -49,8 +52,26 @@ Future<EquipmentItem?> scanOwnedItem(
           return null;
         }
         if (type == EquipmentType.tank && link is CylinderTagLink) {
-          await importTagFill(ref, tag: link.payload, equipmentId: equipmentId);
+          // The fill the tag carries joins the history once, and the diver
+          // hears so, as on the Equipment list's scan (spec section 11).
+          final added = await importTagFill(
+            ref,
+            tag: link.payload,
+            equipmentId: equipmentId,
+          );
           if (!context.mounted) return null;
+          if (added != null) {
+            final units = UnitFormatter(ref.read(settingsProvider));
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(
+                  l10n.passport_fill_addedFromTag(
+                    fillSummary(added.gasMix, added.pressureBar, units),
+                  ),
+                ),
+              ),
+            );
+          }
         }
         return item;
       case ForeignCylinderTag(:final tag):

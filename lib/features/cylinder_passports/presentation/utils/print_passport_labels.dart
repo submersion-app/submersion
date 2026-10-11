@@ -10,17 +10,17 @@ import 'package:submersion/features/cylinder_passports/presentation/providers/cy
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_tag_card.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payload.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_codec.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_fit.dart';
 import 'package:submersion/features/gear_passports/domain/services/gear_tag_rules.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Hands finished labels on: the PDF share sheet in the app, a capture in
 /// tests. [origin] anchors the share popover on iPad and macOS, and
