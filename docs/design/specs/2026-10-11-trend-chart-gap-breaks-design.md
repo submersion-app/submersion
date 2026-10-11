@@ -44,7 +44,7 @@ Small gaps (a winter off) are fine and should stay on the real time scale.
 | 2 years | 24 | Collapse gaps longer than 24 calendar months |
 
 - Column `diver_settings.trend_gap_collapse_months`, INTEGER NOT NULL DEFAULT
-  12, added by a migration rung at schema v279. This is a new setting, not a
+  12, added by a migration rung at schema v280. This is a new setting, not a
   changed default, so every diver (existing ones included) starts at 1 year.
 - Synced like every other diver setting: table column, rung, sync serializer
   arm, `diver_settings_repository`, conflict-catalogue entry,

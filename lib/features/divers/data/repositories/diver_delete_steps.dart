@@ -275,6 +275,13 @@ const List<DiverDeleteStep> diverLibrarySteps = [
     where: 'diver_id = ?1 AND is_built_in = 0',
   ),
   (table: 'tank_presets', entityType: 'tankPresets', where: 'diver_id = ?1'),
+  // Before their computers: `deleteComputer` tombstones a computer's
+  // connections (v279, issue #3106), so the diver delete does too.
+  (
+    table: 'dive_computer_connections',
+    entityType: 'diveComputerConnections',
+    where: 'computer_id IN (SELECT id FROM dive_computers WHERE diver_id = ?1)',
+  ),
   (
     table: 'dive_computers',
     entityType: 'diveComputers',

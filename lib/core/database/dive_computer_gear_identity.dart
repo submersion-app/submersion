@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/database/computer_serial_identity.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
 
 /// Namespace for deterministic gear-twin ids (v175).
@@ -82,9 +83,19 @@ GearTwinCandidate? matchGearTwin({
       .toList();
 
   if (wantSerial.isNotEmpty) {
+    // The shared serial rule (#3106): Shearwater hex and decimal are one.
     return _single(
       sameDiver.where(
-        (c) => normalizeComputerIdentityPart(c.serialNumber) == wantSerial,
+        (c) => computerSerialsMatch(
+          serialNumber,
+          c.serialNumber,
+          shearwater: shearwaterPair(
+            manufacturerA: manufacturer,
+            modelA: model,
+            manufacturerB: c.brand,
+            modelB: c.model,
+          ),
+        ),
       ),
     );
   }

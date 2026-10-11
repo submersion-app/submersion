@@ -1,3 +1,5 @@
+import 'package:submersion/core/database/computer_serial_identity.dart';
+import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 
@@ -11,45 +13,98 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 /// merge sheet and the duplicate banner share one definition of "duplicate".
 
 /// Other records in [all] that look like the same physical computer as
-/// [target]: a shared non-blank serial number, a compatible manufacturer and
-/// model, and the same owner.
+/// [target]: the same serial number, a compatible manufacturer and model,
+/// and the same owner.
+///
+/// "The same serial" is the shared rule in `computer_serial_identity.dart`
+/// (issue #3106): a Shearwater file import keeps the hex serial the computer
+/// shows while a download reports it in decimal, and both name one device.
 ///
 /// Manufacturer and model are compatible when they agree after normalisation
 /// or when either side is blank; a file import can register a serial without
-/// a model, and that record is still the same device.
+/// a manufacturer or a model, and that record is still the same device. A
+/// model also agrees when one source folded the brand into it ("Shearwater
+/// Teric" against "Shearwater" + "Teric").
 List<DiveComputer> duplicateCandidatesFor(
   DiveComputer target,
   Iterable<DiveComputer> all,
 ) {
-  final serial = normalizeComputerIdentityPart(target.serialNumber);
-  if (serial.isEmpty) return const [];
+  if (normalizeComputerIdentityPart(target.serialNumber).isEmpty) {
+    return const [];
+  }
   final diver = normalizeComputerIdentityPart(target.diverId);
   return [
     for (final candidate in all)
       if (candidate.id != target.id &&
-          normalizeComputerIdentityPart(candidate.serialNumber) == serial &&
           normalizeComputerIdentityPart(candidate.diverId) == diver &&
-          _compatible(target.manufacturer, candidate.manufacturer) &&
-          _compatible(target.model, candidate.model))
+          identityPartsCompatible(
+            target.manufacturer,
+            candidate.manufacturer,
+          ) &&
+          computerModelsCompatible(
+            brandA: target.manufacturer,
+            modelA: target.model,
+            brandB: candidate.manufacturer,
+            modelB: candidate.model,
+          ) &&
+          _sameSerial(target, candidate))
         candidate,
   ];
 }
 
-bool _compatible(String? a, String? b) {
+bool _sameSerial(DiveComputer a, DiveComputer b) => computerSerialsMatch(
+  a.serialNumber,
+  b.serialNumber,
+  shearwater: shearwaterPair(
+    manufacturerA: a.manufacturer,
+    modelA: a.model,
+    manufacturerB: b.manufacturer,
+    modelB: b.model,
+  ),
+);
+
+/// Whether two identity fragments agree after normalisation, or either is
+/// blank.
+bool identityPartsCompatible(String? a, String? b) {
   final left = normalizeComputerIdentityPart(a);
   final right = normalizeComputerIdentityPart(b);
   return left.isEmpty || right.isEmpty || left == right;
 }
 
-/// Whether [records] carry two different non-blank serial numbers, which
-/// means the user is about to merge what are probably different devices.
+/// Whether two models are compatible: either is blank, or the two brand and
+/// model pairs name the same device however each source split the name.
+bool computerModelsCompatible({
+  String? brandA,
+  String? modelA,
+  String? brandB,
+  String? modelB,
+}) {
+  if (normalizeComputerIdentityPart(modelA).isEmpty ||
+      normalizeComputerIdentityPart(modelB).isEmpty) {
+    return true;
+  }
+  return computerNamesAgree(
+    brandA: brandA,
+    modelA: modelA,
+    brandB: brandB,
+    modelB: modelB,
+  );
+}
+
+/// Whether [records] carry two serial numbers that are not the same serial
+/// under the shared rule, which means the user is about to merge what are
+/// probably different devices.
 bool serialNumbersConflict(Iterable<DiveComputer> records) {
-  final serials = {
+  final withSerial = [
     for (final record in records)
-      if (normalizeComputerIdentityPart(record.serialNumber).isNotEmpty)
-        normalizeComputerIdentityPart(record.serialNumber),
-  };
-  return serials.length > 1;
+      if (normalizeComputerIdentityPart(record.serialNumber).isNotEmpty) record,
+  ];
+  for (var i = 0; i < withSerial.length; i++) {
+    for (var j = i + 1; j < withSerial.length; j++) {
+      if (!_sameSerial(withSerial[i], withSerial[j])) return true;
+    }
+  }
+  return false;
 }
 
 /// The record a merge should keep unless the user says otherwise: the

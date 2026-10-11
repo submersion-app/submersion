@@ -4,6 +4,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/core/services/garmin_connect/garmin_connect_client.dart';
 import 'package:submersion/core/services/garmin_connect/garmin_dive_mapper.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_phase.dar
   MockSpec<DiveRepository>(),
   MockSpec<DiveConsolidationService>(),
 ])
+import '../../../../helpers/fake_dive_computer_connections.dart';
 import 'garmin_cloud_adapter_test.mocks.dart';
 
 GarminParsedDive makeParsedDive({
@@ -445,6 +447,66 @@ void main() {
   });
 
   group('performImport()', () {
+    test(
+      'an import whose every dive is skipped still records the Garmin Connect '
+      'connection (#3106)',
+      () async {
+        final connections = FakeDiveComputerConnections();
+        final recording = GarminCloudAdapter(
+          importService: mockImportService,
+          computerRepository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          consolidationService: mockConsolidationService,
+          diverId: diverId,
+          connectionRepository: connections,
+        );
+        recording.setParsedDives([makeParsedDive()]);
+        final bundle = await recording.buildBundle();
+
+        await recording.performImport(bundle, {
+          ImportEntityType.dives: <int>{},
+        }, {});
+
+        expect(connections.recorded.map((r) => (r.kind, r.detail)), [
+          (DiveComputerConnectionKind.cloud, 'garminConnect'),
+        ]);
+      },
+    );
+
+    test(
+      'records the Garmin Connect connection on the computer (#3106)',
+      () async {
+        final connections = FakeDiveComputerConnections();
+        final recording = GarminCloudAdapter(
+          importService: mockImportService,
+          computerRepository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          consolidationService: mockConsolidationService,
+          diverId: diverId,
+          connectionRepository: connections,
+        );
+        recording.setParsedDives([makeParsedDive()]);
+        final bundle = await recording.buildBundle();
+        when(
+          mockImportService.importSingleDiveAsNew(
+            any,
+            computerId: anyNamed('computerId'),
+            diverId: anyNamed('diverId'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+          ),
+        ).thenAnswer((_) async => 'new-dive-id');
+
+        await recording.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        expect(connections.recorded.map((r) => (r.kind, r.detail)), [
+          (DiveComputerConnectionKind.cloud, 'garminConnect'),
+        ]);
+      },
+    );
+
     test('imports selected dives against their resolved computer', () async {
       adapter.setParsedDives([makeParsedDive()]);
       final bundle = await adapter.buildBundle();

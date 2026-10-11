@@ -186,6 +186,9 @@ import 'package:submersion/features/gas_calculators/presentation/pages/blender_i
 import 'package:submersion/features/gas_calculators/presentation/pages/blender_invoice_archive_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculator_detail_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculators_page.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/domain/services/download_connection_selection.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_list_page.dart';
 import 'package:submersion/features/dive_computer/presentation/pages/device_detail_page.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart'
@@ -1876,6 +1879,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                           forceFullDownload: parseForceFullQueryParam(
                             state.uri.queryParameters['forceFull'],
                           ),
+                          connectionId: state.uri.queryParameters['connection'],
                         ),
                   ),
                 ],
@@ -2012,10 +2016,15 @@ class _DiveComputerDownloadWizardRoute extends ConsumerStatefulWidget {
   const _DiveComputerDownloadWizardRoute({
     required this.computerId,
     this.forceFullDownload = false,
+    this.connectionId,
   });
 
   final String computerId;
   final bool forceFullDownload;
+
+  /// The connection to download over (issue #3106), from the detail page's
+  /// Connections card; null downloads over this device's last-used one.
+  final String? connectionId;
 
   @override
   ConsumerState<_DiveComputerDownloadWizardRoute> createState() =>
@@ -2030,7 +2039,8 @@ class _DiveComputerDownloadWizardRouteState
   void didUpdateWidget(_DiveComputerDownloadWizardRoute oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.computerId != widget.computerId ||
-        oldWidget.forceFullDownload != widget.forceFullDownload) {
+        oldWidget.forceFullDownload != widget.forceFullDownload ||
+        oldWidget.connectionId != widget.connectionId) {
       _adapter = null;
     }
   }
@@ -2040,6 +2050,16 @@ class _DiveComputerDownloadWizardRouteState
     final computerAsync = ref.watch(
       diveComputerByIdProvider(widget.computerId),
     );
+    final connectionsAsync = ref.watch(
+      diveComputerConnectionsProvider(widget.computerId),
+    );
+    if (connectionsAsync.isLoading && !connectionsAsync.hasValue) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    // A failed connection read falls back to the legacy columns, as for a
+    // computer with no connections yet.
+    final connections =
+        connectionsAsync.valueOrNull ?? const <DiveComputerConnection>[];
 
     return computerAsync.when(
       data: (computer) {
@@ -2059,7 +2079,15 @@ class _DiveComputerDownloadWizardRouteState
           diveRepository: ref.read(diveRepositoryProvider),
           consolidationService: ref.read(diveConsolidationServiceProvider),
           diverId: ref.read(currentDiverIdProvider) ?? '',
-          knownComputer: computer,
+          // This device's transport and address for it (issue #3106).
+          knownComputer: computerForDownload(
+            computer,
+            connections,
+            selected: connectionForDownload(
+              connections,
+              connectionId: widget.connectionId,
+            ),
+          ),
           ref: ref,
           forceFullDownload: widget.forceFullDownload,
         );

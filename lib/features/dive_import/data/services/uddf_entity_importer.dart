@@ -40,6 +40,8 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
+import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
@@ -132,6 +134,10 @@ class ImportRepositories {
   /// (#1288).
   final DiveComputerRepository? diveComputerRepository;
 
+  /// Optional for the same reason; when null, the file format is not
+  /// recorded as one of the computer's connections (issue #3106).
+  final DiveComputerConnectionRepository? diveComputerConnectionRepository;
+
   /// Optional so existing bundles keep compiling; when null the importer
   /// builds the default, so assembly templates (issue #1487) are restored
   /// on every path.
@@ -186,6 +192,7 @@ class ImportRepositories {
     required this.tankPressureRepository,
     required this.courseRepository,
     this.diveComputerRepository,
+    this.diveComputerConnectionRepository,
     this.equipmentComponentRepository,
     this.siteTypeRepository,
     this.siteClassificationRepository,
@@ -2239,6 +2246,33 @@ class UddfEntityImporter {
     );
   }
 
+  /// Record each (computer, format) pair as one of the computer's
+  /// connections (issue #3106). Bookkeeping, like the registration it
+  /// follows: a failure is logged and the imported dives stand.
+  Future<void> _recordFileConnections(
+    DiveComputerConnectionRepository? repository,
+    Set<(String, String)> used, {
+    required DateTime usedAt,
+  }) async {
+    if (repository == null) return;
+    for (final (computerId, format) in used) {
+      try {
+        await repository.recordConnection(
+          computerId: computerId,
+          kind: DiveComputerConnectionKind.file,
+          detail: format,
+          usedAt: usedAt,
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Could not record the $format connection for computer $computerId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  }
+
   /// The registration key for a model and serial pair.
   ///
   /// Shared so a restored `<source>` entry resolves its computer exactly the
@@ -2593,6 +2627,10 @@ class UddfEntityImporter {
     // The trips the diver can see, read on the first dive placed by date.
     // Trips are imported before dives, so the file's own are here.
     List<Trip>? diverTrips;
+
+    // Each (computer, file format) pair the selected dives came in through,
+    // recorded once after the loop as a connection (issue #3106).
+    final usedConnections = <(String, String)>{};
 
     for (final i in sortedSelected) {
       if (cancelToken?.isCancelled ?? false) break;
@@ -3282,11 +3320,23 @@ class UddfEntityImporter {
         sourceFileFormat: diveSourceFormat?.name ?? 'uddf',
         now: now,
         onSkippedEvent: _log.warning,
+        onComputerWritten: (id) =>
+            usedConnections.add((id, diveSourceFormat?.name ?? 'uddf')),
       );
+
+      if (computerId != null) {
+        usedConnections.add((computerId, diveSourceFormat?.name ?? 'uddf'));
+      }
 
       count++;
       onProgress?.call(ImportPhase.dives, count, selected.length);
     }
+
+    await _recordFileConnections(
+      repos.diveComputerConnectionRepository,
+      usedConnections,
+      usedAt: now,
+    );
 
     return _DiveImportResult(
       count,

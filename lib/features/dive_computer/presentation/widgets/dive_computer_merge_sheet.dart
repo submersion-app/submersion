@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/utils/connection_presentation.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_merge_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
@@ -105,6 +108,11 @@ class _DiveComputerMergeSheetState
     final l10n = context.l10n;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final conflict = serialNumbersConflict(widget.computers);
+    // Which way each record came in (issue #3106), so the diver can tell a
+    // Bluetooth record from a file import before choosing the one to keep.
+    final connections =
+        ref.watch(allDiveComputerConnectionsProvider).valueOrNull ??
+        const <String, List<DiveComputerConnection>>{};
 
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomInset),
@@ -151,7 +159,13 @@ class _DiveComputerMergeSheetState
                       key: ValueKey('merge_keep_${computer.id}'),
                       value: computer.id,
                       title: Text(computer.displayName),
-                      subtitle: Text(_subtitleFor(context, computer)),
+                      subtitle: Text(
+                        _subtitleFor(
+                          context,
+                          computer,
+                          connections[computer.id] ?? const [],
+                        ),
+                      ),
                       secondary: computer.isFavorite
                           ? Icon(Icons.star, color: theme.colorScheme.primary)
                           : null,
@@ -198,7 +212,11 @@ class _DiveComputerMergeSheetState
     );
   }
 
-  String _subtitleFor(BuildContext context, DiveComputer computer) {
+  String _subtitleFor(
+    BuildContext context,
+    DiveComputer computer,
+    List<DiveComputerConnection> connections,
+  ) {
     final l10n = context.l10n;
     final serial = computer.serialNumber?.trim();
     final parts = <String>[
@@ -207,6 +225,8 @@ class _DiveComputerMergeSheetState
           ? l10n.diveComputer_merge_serialLabel(serial)
           : l10n.diveComputer_merge_noSerial,
       l10n.diveComputer_list_diveCount(computer.diveCount),
+      if (connections.isNotEmpty)
+        connections.map((c) => connectionLabel(l10n, c)).join(', '),
     ];
     return parts.join(' · ');
   }

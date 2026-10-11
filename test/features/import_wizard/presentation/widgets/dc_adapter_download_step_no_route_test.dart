@@ -215,6 +215,29 @@ void main() {
     },
   );
 
+  testWidgets(
+    'a cloud computer that still carries an address is not dialed over '
+    'BLE (#3106)',
+    (tester) async {
+      final harness = _Harness();
+      await tester.pumpWidget(
+        harness.build(
+          _computer(
+            manufacturer: 'Suunto',
+            model: 'EON Core',
+            connectionType: 'cloud',
+            bluetoothAddress: 'STALE-ADDRESS',
+          ),
+        ),
+      );
+      await _settle(tester);
+
+      expect(find.byType(DownloadStepWidget), findsNothing);
+      expect(find.byType(DcNoDirectDownloadView), findsOneWidget);
+      expect(harness.hostApi.calls, isNot(contains('startDownload')));
+    },
+  );
+
   testWidgets('Import from File opens the file import wizard', (tester) async {
     final harness = _Harness();
     await tester.pumpWidget(

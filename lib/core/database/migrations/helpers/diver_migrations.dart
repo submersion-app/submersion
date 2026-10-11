@@ -718,7 +718,7 @@ extension DiverMigrations on AppDatabase {
     }
   }
 
-  /// v279: diver_settings.trend_gap_collapse_months (issue #3251). Column
+  /// v280: diver_settings.trend_gap_collapse_months (issue #3251). Column
   /// only, defaulting to a year; re-asserted in beforeOpen. No CHECK: a peer
   /// value outside 0, 6, 12, 24 reads as 12 rather than failing the upsert.
   Future<void> _assertTrendGapCollapseColumn() async {

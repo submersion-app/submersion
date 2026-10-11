@@ -3,12 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v279: diver_settings.trend_gap_collapse_months (issue #3251).
+/// Schema v280: diver_settings.trend_gap_collapse_months (issue #3251).
 void main() {
-  /// A v278 database whose diver_settings lacks the column.
+  /// A v279 database whose diver_settings lacks the column.
   NativeDatabase setupDb() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 278');
+      rawDb.execute('PRAGMA user_version = 279');
       rawDb.execute(
         'CREATE TABLE diver_settings (id TEXT NOT NULL PRIMARY KEY, '
         'diver_id TEXT NOT NULL)',
@@ -19,20 +19,20 @@ void main() {
     },
   );
 
-  test('v279 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(279));
-    expect(AppDatabase.migrationVersions, contains(279));
+  test('v280 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(280));
+    expect(AppDatabase.migrationVersions, contains(280));
     expect(
-      AppDatabase.migrationStepCount(278),
-      AppDatabase.migrationStepCount(279) + 1,
+      AppDatabase.migrationStepCount(279),
+      AppDatabase.migrationStepCount(280) + 1,
     );
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(279));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(280));
   });
 
-  test('upgrading from v278 gives every diver a one-year threshold', () async {
+  test('upgrading from v279 gives every diver a one-year threshold', () async {
     final db = AppDatabase(setupDb());
     addTearDown(db.close);
     final rows = await db

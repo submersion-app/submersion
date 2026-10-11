@@ -5,6 +5,7 @@ import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/certification_currency_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
+import 'package:submersion/core/database/tables/dive_computer_connection_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
 import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
@@ -39,6 +40,7 @@ export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
 export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
+export 'package:submersion/core/database/tables/dive_computer_connection_tables.dart';
 export 'package:submersion/core/database/tables/dive_profile_tables.dart';
 export 'package:submersion/core/database/tables/dive_tables.dart';
 export 'package:submersion/core/database/tables/diver_tables.dart';
@@ -237,6 +239,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     ConnectionMaps,
     // Gear packed for a trip (v248, issue #2338)
     TripEquipment,
+    // Download connections per dive computer (v279, issue #3106)
+    DiveComputerConnections,
     // A profile's hidden shared trips and sites (v250, issue #2594)
     TripHides,
     SiteHides,
@@ -258,7 +262,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 279;
+  static const int currentSchemaVersion = 280;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1188,10 +1192,13 @@ class AppDatabase extends _$AppDatabase {
     277,
     // v278: dives.visibility_min_meters / visibility_max_meters (issue #3226).
     278,
-    // v279: diver_settings.trend_gap_collapse_months (issue #3251). Additive
-    // defaulted column, so the floor stays. Renumbered from 278, which #3226
-    // shipped first.
+    // v279: dive_computer_connections (issue #3106). Table-only rung, no
+    // backfill; the floor does not move.
     279,
+    // v280: diver_settings.trend_gap_collapse_months (issue #3251). Additive
+    // defaulted column, so the floor stays. Renumbered from 278 and 279,
+    // which #3226 and #3106 shipped first.
+    280,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

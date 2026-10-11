@@ -10,7 +10,7 @@
 
 **Spec:** `docs/design/specs/2026-10-11-trend-chart-gap-breaks-design.md`
 
-> **Schema note:** this plan was written against v278. Main shipped v278 first (issue #3226), so the rung landed as **v279**; read every v278 and 277 below as v279 and 278.
+> **Schema note:** this plan was written against v278. Main shipped v278 (issue #3226) and v279 (issue #3106) first, so the rung landed as **v280**; read every v278 and 277 below as v280 and 279.
 
 ## Global Constraints
 

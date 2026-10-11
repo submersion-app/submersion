@@ -47,6 +47,10 @@ class AdditionalComputerWriter {
   /// Best-effort per computer: the dive is already committed, so a throw
   /// here would abort the rest of the import. A computer that cannot be
   /// written is logged and skipped, and the others are still written.
+  ///
+  /// [onComputerWritten] receives the registered computer of each entry
+  /// written with one, so the caller can record the file it came through
+  /// as one of that computer's connections (issue #3106).
   Future<int> write({
     required List<Map<String, dynamic>> computers,
     required String diveId,
@@ -58,6 +62,7 @@ class AdditionalComputerWriter {
     required String sourceFileFormat,
     required DateTime now,
     void Function(String message)? onSkippedEvent,
+    void Function(String computerId)? onComputerWritten,
   }) async {
     final used = {...usedComputerIds};
     var written = 0;
@@ -79,6 +84,7 @@ class AdditionalComputerWriter {
           onSkippedEvent: onSkippedEvent,
         );
         written++;
+        if (computerId != null) onComputerWritten?.call(computerId);
       } catch (e, stackTrace) {
         _log.error(
           'Failed to import the ${entry['diveComputerModel'] ?? 'unnamed'} '

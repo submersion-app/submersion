@@ -3,6 +3,9 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/utils/connection_presentation.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
@@ -392,6 +395,13 @@ class _ComputerCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final units = UnitFormatter(ref.watch(settingsProvider));
+    // The newest connection's icon (issue #3106); the legacy type while the
+    // connections load or for a computer with none yet.
+    final connections =
+        ref
+            .watch(allDiveComputerConnectionsProvider)
+            .valueOrNull?[computer.id] ??
+        const <DiveComputerConnection>[];
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -422,7 +432,7 @@ class _ComputerCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      _getConnectionIcon(computer.connectionType),
+                      computerConnectionIcon(computer, connections),
                       color: computer.isFavorite
                           ? colorScheme.onPrimaryContainer
                           : colorScheme.onSurfaceVariant,
@@ -500,18 +510,5 @@ class _ComputerCard extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  IconData _getConnectionIcon(String? connectionType) {
-    switch (connectionType?.toLowerCase()) {
-      case 'bluetooth':
-        return Icons.bluetooth;
-      case 'usb':
-        return Icons.usb;
-      case 'wifi':
-        return Icons.wifi;
-      default:
-        return Icons.watch;
-    }
   }
 }

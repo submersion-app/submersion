@@ -305,6 +305,12 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
 
   bool _captured = false;
   bool _computerResolved = false;
+
+  /// The device handed to the download, when the step built it from the
+  /// saved computer rather than taking a discovery selection. Completion
+  /// bookkeeping (saving the computer, recording its connection and clock
+  /// sync answer) needs the device the download actually used (#3106).
+  DiscoveredDevice? _downloadDevice;
   bool _searchingForKnownDevice = false;
   bool _noDives = false;
 
@@ -479,9 +485,11 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     // computer's stored connection info when discovery state has no device.
     // The device descriptor lookup provides the dcModel integer that
     // libdivecomputer needs to select the right driver.
+    final storedTransport = _connectionTypeFromString(computer?.connectionType);
     if (device == null &&
         computer != null &&
-        computer.bluetoothAddress != null) {
+        computer.bluetoothAddress != null &&
+        storedTransport != null) {
       final descriptorsAsync = ref.watch(deviceDescriptorsProvider);
       if (descriptorsAsync.isLoading) {
         return const Center(child: CircularProgressIndicator());
@@ -498,7 +506,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       device = DiscoveredDevice(
         id: computer.id,
         name: computer.displayName,
-        connectionType: _connectionTypeFromString(computer.connectionType),
+        connectionType: storedTransport,
         address: computer.bluetoothAddress!,
         recognizedModel: matchingDescriptor != null
             ? DeviceModel.fromDescriptor(matchingDescriptor)
@@ -549,6 +557,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       cutoffDefault = cutoffAsync.valueOrNull;
     }
 
+    _downloadDevice = device;
     return DownloadStepWidget(
       device: device,
       computer: computer,
@@ -645,7 +654,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       // it cannot skip the can-advance flip below, which is what left the
       // wizard on "Download complete" with Next disabled (issue #2439).
       final discoveryState = ref.read(discoveryNotifierProvider);
-      final device = discoveryState.selectedDevice;
+      final device = discoveryState.selectedDevice ?? _downloadDevice;
       if (device != null) {
         // If the save below fails, the adapter records this once a later
         // retry recovers the computer.
@@ -709,17 +718,25 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
 // Helpers
 // ---------------------------------------------------------------------------
 
-DeviceConnectionType _connectionTypeFromString(String? type) {
+/// The transport a saved computer's connection type names, or null for
+/// one the app cannot reopen directly, such as `cloud`. Every other value
+/// used to fall back to BLE, which dialed a cloud computer's stale address
+/// over Bluetooth (issue #3106). A missing type still means BLE: records
+/// saved before the type was always written carry an address and no type.
+DeviceConnectionType? _connectionTypeFromString(String? type) {
   switch (type?.toLowerCase()) {
+    case null:
     case 'bluetooth':
     case 'ble':
       return DeviceConnectionType.ble;
+    case 'bluetoothclassic':
+      return DeviceConnectionType.bluetoothClassic;
     case 'usb':
       return DeviceConnectionType.usb;
     case 'infrared':
       return DeviceConnectionType.infrared;
     default:
-      return DeviceConnectionType.ble;
+      return null;
   }
 }
 

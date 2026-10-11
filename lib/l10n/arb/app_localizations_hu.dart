@@ -21307,6 +21307,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'Bluetooth-cím';
 
   @override
+  String get settings_conflict_field_connectionDetail => 'Kapcsolat részletei';
+
+  @override
+  String get settings_conflict_field_connectionAddress => 'Kapcsolat címe';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'Első használat';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'Utolsó használat';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt =>
+      'Utolsó használat ezen az eszközön';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'Kapitány';
 
   @override
@@ -31143,6 +31159,40 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'Wi-Fi';
 
   @override
+  String get diveComputer_connections_title => 'Kapcsolatok';
+
+  @override
+  String get diveComputer_connections_empty =>
+      'Még nincs rögzített letöltés vagy importálás';
+
+  @override
+  String diveComputer_connections_lastUsed(String when) {
+    return 'Utoljára használva: $when';
+  }
+
+  @override
+  String get diveComputer_connections_thisDevice => 'Ez az eszköz';
+
+  @override
+  String diveComputer_connections_downloadVia(String connection) {
+    return 'Letöltés ezen keresztül: $connection';
+  }
+
+  @override
+  String diveComputer_connections_fileFormat(String format) {
+    return '$format fájl';
+  }
+
+  @override
+  String get diveComputer_connections_cloudGarmin => 'Garmin Connect';
+
+  @override
+  String get diveComputer_connections_cloudSuunto => 'Suunto alkalmazás';
+
+  @override
+  String get diveComputer_connections_cloudOther => 'Felhőimportálás';
+
+  @override
   String diveComputer_detail_deleteDialogContent(String name) {
     return 'Biztosan eltávolítod a(z) \"$name\" eszközt? Ez nem törli az erről a számítógépről importált merüléseket.';
   }
@@ -31164,9 +31214,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveComputer_detail_editNotesHint => 'Opcionális megjegyzések';
-
-  @override
-  String get diveComputer_detail_labelConnection => 'Kapcsolat';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'Gyártó';

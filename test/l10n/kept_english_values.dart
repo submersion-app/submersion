@@ -55,6 +55,7 @@ const Map<String, String> keptEnglishValues = {
   'diveCenters_hint_website': _exampleAddress,
   'diveComputer_connectionType_ble': _technology,
   'diveComputer_connectionType_wifi': _technology,
+  'diveComputer_connections_cloudGarmin': _brand,
   'diveImport_healthkit_accessRequired': _brand,
   'diveLog_bulkEdit_fieldSetpointDeco@es': _setpoint,
   'diveLog_bulkEdit_fieldSetpointDeco@it': _setpoint,

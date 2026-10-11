@@ -21236,6 +21236,22 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'Bluetooth-adres';
 
   @override
+  String get settings_conflict_field_connectionDetail => 'Verbindingsdetail';
+
+  @override
+  String get settings_conflict_field_connectionAddress => 'Verbindingsadres';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'Eerst gebruikt';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'Laatst gebruikt';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt =>
+      'Laatst gebruikt op dit apparaat';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'Kapitein';
 
   @override
@@ -31084,6 +31100,40 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'Wi-Fi';
 
   @override
+  String get diveComputer_connections_title => 'Verbindingen';
+
+  @override
+  String get diveComputer_connections_empty =>
+      'Nog geen downloads of imports vastgelegd';
+
+  @override
+  String diveComputer_connections_lastUsed(String when) {
+    return 'Laatst gebruikt $when';
+  }
+
+  @override
+  String get diveComputer_connections_thisDevice => 'Dit apparaat';
+
+  @override
+  String diveComputer_connections_downloadVia(String connection) {
+    return 'Downloaden via $connection';
+  }
+
+  @override
+  String diveComputer_connections_fileFormat(String format) {
+    return '$format-bestand';
+  }
+
+  @override
+  String get diveComputer_connections_cloudGarmin => 'Garmin Connect';
+
+  @override
+  String get diveComputer_connections_cloudSuunto => 'Suunto-app';
+
+  @override
+  String get diveComputer_connections_cloudOther => 'Cloudimport';
+
+  @override
   String diveComputer_detail_deleteDialogContent(String name) {
     return 'Weet je zeker dat je \"$name\" wilt verwijderen? Dit verwijdert geen duiken die van deze computer zijn geïmporteerd.';
   }
@@ -31105,9 +31155,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveComputer_detail_editNotesHint => 'Optionele notities';
-
-  @override
-  String get diveComputer_detail_labelConnection => 'Verbinding';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'Fabrikant';

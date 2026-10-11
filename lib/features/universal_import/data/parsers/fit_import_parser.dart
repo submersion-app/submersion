@@ -88,6 +88,9 @@ class FitImportParser implements ImportParser {
     if (dive.computerModel != null) {
       diveData['diveComputerModel'] = dive.computerModel;
     }
+    if (dive.computerManufacturer != null) {
+      diveData['diveComputerManufacturer'] = dive.computerManufacturer;
+    }
     if (dive.computerSerial != null) {
       diveData['diveComputerSerial'] = dive.computerSerial;
     }

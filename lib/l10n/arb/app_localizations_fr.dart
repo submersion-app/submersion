@@ -21436,6 +21436,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'Adresse Bluetooth';
 
   @override
+  String get settings_conflict_field_connectionDetail =>
+      'Détail de la connexion';
+
+  @override
+  String get settings_conflict_field_connectionAddress =>
+      'Adresse de la connexion';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'Première utilisation';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'Dernière utilisation';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt =>
+      'Dernière utilisation sur cet appareil';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'Capitaine du bateau';
 
   @override
@@ -31394,6 +31412,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'Wi-Fi';
 
   @override
+  String get diveComputer_connections_title => 'Connexions';
+
+  @override
+  String get diveComputer_connections_empty =>
+      'Aucun téléchargement ni import enregistré';
+
+  @override
+  String diveComputer_connections_lastUsed(String when) {
+    return 'Dernière utilisation $when';
+  }
+
+  @override
+  String get diveComputer_connections_thisDevice => 'Cet appareil';
+
+  @override
+  String diveComputer_connections_downloadVia(String connection) {
+    return 'Télécharger via $connection';
+  }
+
+  @override
+  String diveComputer_connections_fileFormat(String format) {
+    return 'Fichier $format';
+  }
+
+  @override
+  String get diveComputer_connections_cloudGarmin => 'Garmin Connect';
+
+  @override
+  String get diveComputer_connections_cloudSuunto => 'Application Suunto';
+
+  @override
+  String get diveComputer_connections_cloudOther => 'Import depuis le cloud';
+
+  @override
   String diveComputer_detail_deleteDialogContent(String name) {
     return 'Voulez-vous vraiment supprimer \"$name\" ? Les plongées importées depuis cet ordinateur ne seront pas supprimées.';
   }
@@ -31417,9 +31469,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveComputer_detail_editNotesHint => 'Notes facultatives';
-
-  @override
-  String get diveComputer_detail_labelConnection => 'Connexion';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'Fabricant';

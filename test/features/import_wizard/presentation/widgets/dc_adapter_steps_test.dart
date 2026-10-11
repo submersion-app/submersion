@@ -12,6 +12,7 @@ import 'package:riverpod/src/framework.dart' as riverpod show Override;
 
 import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
@@ -25,6 +26,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/fake_dive_computer_connections.dart';
 
 // ---------------------------------------------------------------------------
 // Fake service -- avoids platform channels
@@ -121,8 +124,8 @@ class _RecordingDiveComputerRepository extends DiveComputerRepository {
 
   @override
   Future<DiveComputer?> findByHardwareIdentity({
-    required String manufacturer,
-    required String model,
+    String? manufacturer,
+    String? model,
     required String serialNumber,
     String? diverId,
   }) async => null;
@@ -147,8 +150,8 @@ class _FailingCreateDiveComputerRepository extends DiveComputerRepository {
 
   @override
   Future<DiveComputer?> findByHardwareIdentity({
-    required String manufacturer,
-    required String model,
+    String? manufacturer,
+    String? model,
     required String serialNumber,
     String? diverId,
   }) async => null;
@@ -176,8 +179,8 @@ class _FlakyCreateDiveComputerRepository extends DiveComputerRepository {
 
   @override
   Future<DiveComputer?> findByHardwareIdentity({
-    required String manufacturer,
-    required String model,
+    String? manufacturer,
+    String? model,
     required String serialNumber,
     String? diverId,
   }) async => null;
@@ -683,6 +686,65 @@ void main() {
 
       expect(container.read(dcAdapterDownloadCanAdvanceProvider), isTrue);
     });
+
+    testWidgets('a saved USB computer\'s completed download records its '
+        'connection although discovery selected no device (#3106)', (
+      tester,
+    ) async {
+      // The step builds the download device from the saved computer itself
+      // for any transport it does not rescan, so the discovery provider never
+      // holds a selection. Recording must use the device the download used.
+      final computer = DiveComputer(
+        id: 'usb-computer',
+        name: 'Suunto Vyper',
+        manufacturer: 'Suunto',
+        model: 'Vyper',
+        serialNumber: 'SN-1',
+        connectionType: 'usb',
+        bluetoothAddress: '/dev/cu.usbserial-A10',
+        createdAt: DateTime(2026, 3, 20),
+        updatedAt: DateTime(2026, 3, 20),
+      );
+      final connections = FakeDiveComputerConnections();
+      final repo = _FakeDiveComputerRepository();
+      final diveRepository = DiveRepository();
+      final adapter = DiveComputerAdapter(
+        importService: DiveImportService(repository: repo),
+        computerRepository: repo,
+        diveRepository: diveRepository,
+        consolidationService: DiveConsolidationService(diveRepository),
+        diverId: 'diver-1',
+        knownComputer: computer,
+        connectionRepository: connections,
+      );
+
+      await tester.pumpWidget(
+        _buildDownloadStep(adapter: adapter, knownComputer: computer),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcAdapterDownloadStep)),
+      );
+      container.read(downloadNotifierProvider.notifier).state = DownloadState(
+        phase: DownloadPhase.complete,
+        downloadedDives: [_downloadedDive()],
+        serialNumber: 'SN-1',
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        connections.recorded.map((r) => (r.computerId, r.kind, r.address)),
+        [
+          (
+            'usb-computer',
+            DiveComputerConnectionKind.usb,
+            '/dev/cu.usbserial-A10',
+          ),
+        ],
+      );
+    }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 
     testWidgets('a completed download with no dives shows the no-dives view', (
       tester,
