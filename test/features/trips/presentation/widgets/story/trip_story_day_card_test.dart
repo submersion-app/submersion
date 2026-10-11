@@ -599,5 +599,30 @@ void main() {
       );
       expect(find.textContaining('3 past dives here'), findsOneWidget);
     });
+
+    testWidgets('a port with no history adds no space to a planned card', (
+      tester,
+    ) async {
+      final noHistory = siteHistoryByNameProvider('Kralendijk').overrideWith(
+        (ref) async => (diveCount: 0, avgWaterTemp: null, avgMaxDepth: null),
+      );
+      Future<double> cardHeight(String? port) async {
+        await pumpCard(
+          tester,
+          TripStoryDay(
+            date: DateTime(2027, 1, 10),
+            dayNumber: 1,
+            kind: TripStoryDayKind.future,
+            itineraryDay: _itin(port: port, notes: 'Bring a reef hook'),
+          ),
+          extra: [noHistory],
+        );
+        return tester.getSize(find.byType(Card)).height;
+      }
+
+      final withoutPort = await cardHeight(null);
+      final withPort = await cardHeight('Kralendijk');
+      expect(withPort, withoutPort);
+    });
   });
 }

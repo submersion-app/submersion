@@ -16,7 +16,17 @@ class TripStoryDayPlan extends StatelessWidget {
   final TripStoryDay day;
   final UnitFormatter units;
 
-  const TripStoryDayPlan({super.key, required this.day, required this.units});
+  /// Whether the day's port has dive history to show; the card resolves it
+  /// once for its own empty-body guard. Without it the pills are left out
+  /// entirely, so the column adds no gap for a widget that draws nothing.
+  final bool hasHistory;
+
+  const TripStoryDayPlan({
+    super.key,
+    required this.day,
+    required this.units,
+    required this.hasHistory,
+  });
 
   /// Whether the section would draw anything. Blank is not content: sync and
   /// import payloads can write whitespace-only notes or ports, which the edit
@@ -46,8 +56,7 @@ class TripStoryDayPlan extends StatelessWidget {
     final notes = day.itineraryDay?.notes.trim() ?? '';
     final progress = _progress(day);
     final site = historySite(day);
-    // It can lead the card, so no part carries a gap above itself; the
-    // history pills keep their own small top inset.
+    // It can lead the card, so no part carries a gap above itself.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 6,
@@ -55,7 +64,8 @@ class TripStoryDayPlan extends StatelessWidget {
         if (notes.isNotEmpty)
           Text(notes, style: Theme.of(context).textTheme.bodySmall),
         if (progress != null) DayPlanLine(progress: progress),
-        if (site != null) _HistoryPills(siteName: site, units: units),
+        if (site != null && hasHistory)
+          _HistoryPills(siteName: site, units: units),
       ],
     );
   }
@@ -75,36 +85,33 @@ class _HistoryPills extends ConsumerWidget {
       return const SizedBox.shrink();
     }
     final l10n = context.l10n;
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 4,
-        children: [
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: [
+        Chip(
+          label: Text(l10n.trips_story_history_dives(history.diveCount)),
+          visualDensity: VisualDensity.compact,
+        ),
+        if (history.avgWaterTemp != null)
           Chip(
-            label: Text(l10n.trips_story_history_dives(history.diveCount)),
+            label: Text(
+              l10n.trips_story_history_avgTemp(
+                units.formatTemperature(history.avgWaterTemp),
+              ),
+            ),
             visualDensity: VisualDensity.compact,
           ),
-          if (history.avgWaterTemp != null)
-            Chip(
-              label: Text(
-                l10n.trips_story_history_avgTemp(
-                  units.formatTemperature(history.avgWaterTemp),
-                ),
+        if (history.avgMaxDepth != null)
+          Chip(
+            label: Text(
+              l10n.trips_story_history_avgDepth(
+                units.formatDepth(history.avgMaxDepth),
               ),
-              visualDensity: VisualDensity.compact,
             ),
-          if (history.avgMaxDepth != null)
-            Chip(
-              label: Text(
-                l10n.trips_story_history_avgDepth(
-                  units.formatDepth(history.avgMaxDepth),
-                ),
-              ),
-              visualDensity: VisualDensity.compact,
-            ),
-        ],
-      ),
+            visualDensity: VisualDensity.compact,
+          ),
+      ],
     );
   }
 }

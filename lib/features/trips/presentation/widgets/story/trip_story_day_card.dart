@@ -163,7 +163,11 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
               // The plan reads first: what the day was meant to be, then
               // what it became.
               if (hasPlan) ...[
-                TripStoryDayPlan(day: day, units: units),
+                TripStoryDayPlan(
+                  day: day,
+                  units: units,
+                  hasHistory: hasHistory,
+                ),
                 if (day.dives.isNotEmpty) const SizedBox(height: 12),
               ],
               if (day.dives.isNotEmpty) ...[
