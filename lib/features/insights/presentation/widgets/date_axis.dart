@@ -18,6 +18,7 @@ library;
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/insights/domain/trend_time_scale.dart';
 
 enum DateAxisGranularity { day, month, quarter, year }
 
@@ -29,7 +30,29 @@ class DateAxis {
     required this.granularity,
     required this.labelInterval,
     this.dateFormat = DateFormatPreference.mmmDYYYY,
+    this.scale = TrendTimeScale.identity,
+    this.axisPerPixel,
   });
+
+  /// Maps axis positions back to dates; collapses long gaps (issue #3251).
+  final TrendTimeScale scale;
+
+  /// Axis units per pixel of plot, when the plot width is known. Lets a
+  /// label keep clear of a break band by a pixel distance.
+  final double? axisPerPixel;
+
+  /// Pixels a date label keeps from a band, leaving room for the band's own
+  /// length label under the axis.
+  static const double breakLabelClearancePx = 36;
+
+  /// Narrowest spacing, in pixels, between two labels of each granularity at
+  /// the chart's bodySmall size: "2014" and "Mar '25" plus a gap.
+  static const Map<DateAxisGranularity, double> _minLabelSpacingPx = {
+    DateAxisGranularity.year: 44,
+    DateAxisGranularity.quarter: 60,
+    DateAxisGranularity.month: 60,
+    DateAxisGranularity.day: 64,
+  };
 
   /// Lower bound, as `millisecondsSinceEpoch`, for fl_chart's `minX`.
   final double min;
@@ -80,7 +103,7 @@ class DateAxis {
   /// fl_chart is free to use a different one, and comparing against a value it
   /// never drew silently defeats the check.
   String? labelFor(double value, {double? step}) {
-    if (!showsLabelAt(value)) return null;
+    if (!showsLabelAt(value) || _crowdsBreak(value)) return null;
 
     final text = _format(_dateOf(value));
 
@@ -97,8 +120,19 @@ class DateAxis {
     return text;
   }
 
-  static DateTime _dateOf(double ms) =>
-      DateTime.fromMillisecondsSinceEpoch(ms.toInt(), isUtc: true);
+  DateTime _dateOf(double value) => scale.toDate(value);
+
+  /// Whether a label at [value] would sit in a band or crowd its length
+  /// label.
+  bool _crowdsBreak(double value) {
+    final reach = (axisPerPixel ?? 0) * breakLabelClearancePx;
+    for (final b in scale.breaks) {
+      if (value > b.axisStart - reach && value < b.axisEnd + reach) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /// Every label carries its year. A bare "Oct" never says which October, and
   /// spelling the year out only where it changes left the axis looking ragged,
@@ -130,14 +164,30 @@ class DateAxis {
     DateTime first,
     DateTime last, {
     DateFormatPreference dateFormat = DateFormatPreference.mmmDYYYY,
-  }) {
-    final start = first;
-    var end = last;
-    if (!end.isAfter(start)) {
-      end = start.add(const Duration(days: 1));
-    }
+  }) => DateAxis.forAxisRange(
+    first.millisecondsSinceEpoch.toDouble(),
+    last.millisecondsSinceEpoch.toDouble(),
+    dateFormat: dateFormat,
+  );
 
-    final days = end.difference(start).inDays;
+  /// An axis over positions [min]..[max] under [scale].
+  ///
+  /// Granularity comes from the axis span, which for a collapsed scale is
+  /// the time with dives in it, not the calendar span. With [plotWidth] the
+  /// label step is widened until neighbouring labels cannot touch.
+  factory DateAxis.forAxisRange(
+    double min,
+    double max, {
+    TrendTimeScale scale = TrendTimeScale.identity,
+    double? plotWidth,
+    DateFormatPreference dateFormat = DateFormatPreference.mmmDYYYY,
+  }) {
+    final lo = min;
+    final hi = max > min ? max : min + Duration.millisecondsPerDay;
+
+    // Whole days, as Duration.inDays counted them before the axis took
+    // positions rather than dates.
+    final days = ((hi - lo) / Duration.millisecondsPerDay).floor();
     final granularity = days > 1095
         ? DateAxisGranularity.year
         : days > 365
@@ -146,18 +196,32 @@ class DateAxis {
         ? DateAxisGranularity.month
         : DateAxisGranularity.day;
 
-    final ticks = _ticksFor(start, end, granularity);
-    final minMs = start.millisecondsSinceEpoch.toDouble();
-    final maxMs = end.millisecondsSinceEpoch.toDouble();
+    final start = scale.toDate(lo);
+    final end = scale.toDate(hi);
+    var ticks = [
+      for (final t in _ticksFor(start, end, granularity))
+        if (scale.breakAt(scale.toAxis(t)) == null) t,
+    ];
+    if (ticks.isEmpty) ticks = [start];
+
     final steps = ticks.length > 1 ? ticks.length - 1 : 1;
+    var interval = (hi - lo) / steps;
+    final width = plotWidth;
+    final hasWidth = width != null && width > 0;
+    if (hasWidth) {
+      final minInterval = (hi - lo) * _minLabelSpacingPx[granularity]! / width;
+      if (minInterval > interval) interval = minInterval;
+    }
 
     return DateAxis(
-      min: minMs,
-      max: maxMs,
-      ticks: ticks,
+      min: lo,
+      max: hi,
+      ticks: List.unmodifiable(ticks),
       granularity: granularity,
-      labelInterval: (maxMs - minMs) / steps,
+      labelInterval: interval,
       dateFormat: dateFormat,
+      scale: scale,
+      axisPerPixel: hasWidth ? (hi - lo) / width : null,
     );
   }
 

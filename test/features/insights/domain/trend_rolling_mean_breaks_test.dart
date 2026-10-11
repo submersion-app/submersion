@@ -3,7 +3,10 @@ import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 
 List<TrendDataPoint> run(DateTime from, int n, double value) => [
   for (var i = 0; i < n; i++)
-    TrendDataPoint(date: from.add(Duration(days: i * 3)), value: value),
+    TrendDataPoint(
+      date: from.add(Duration(days: i * 3)),
+      value: value,
+    ),
 ];
 
 void main() {
