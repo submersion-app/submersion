@@ -28,6 +28,7 @@ import 'package:submersion/features/safety/presentation/providers/no_fly_provide
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 final _t0 = DateTime(2026, 1, 1);
 
@@ -139,6 +140,9 @@ ProviderContainer makeContainer({
         (ref) => Stream.value(findings),
       ),
       activeTripFlightWindowProvider.overrideWith((ref) async => flightWindow),
+      // The documents chip's input (issue #2613) reaches a database these
+      // tests do not have.
+      attentionDocumentsProvider.overrideWith((ref) async => const []),
     ],
   );
   addTearDown(container.dispose);

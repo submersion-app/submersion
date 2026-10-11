@@ -13,6 +13,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/sync_now_action.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/documents/domain/document_expiry.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/document_l10n.dart';
 
 /// Dive-currency thresholds for the last-dive chip: quiet under 6 months,
 /// amber past 6, red past 12 (typical agency refresher guidance).
@@ -305,6 +308,48 @@ class GaugeStrip extends ConsumerWidget {
           label: l10n.dashboard_gauges_certsNeedAttention(certCount),
           tone: cert.anyLapsed || !certShown ? _Tone.alert : _Tone.warn,
           onTap: () => openCertificationsNeedingAttention(context, ref),
+        ),
+      );
+    }
+
+    // Documents (issue #2613). An expired medical clearance is hardened like
+    // insurance: it renders even with the chip hidden. Everything else
+    // follows the hide.
+    final docsShown = _shown(hidden, HomeChipType.documents);
+    final docs = [
+      for (final e in g.attentionDocuments)
+        if (docsShown ||
+            (e.$1.type == DocumentType.medicalClearance &&
+                e.$2.kind == DocumentExpiryKind.expired))
+          e,
+    ];
+    if (docs.isNotEmpty) {
+      final anyExpired = docs.any(
+        (e) => e.$2.kind == DocumentExpiryKind.expired,
+      );
+      final single = docs.length == 1 ? docs.single : null;
+      final label = switch (single) {
+        null => l10n.dashboard_gauges_documentsNeedAttention(docs.length),
+        (final doc, DocumentExpiryStatus(kind: DocumentExpiryKind.expired)) =>
+          l10n.dashboard_gauges_documentExpired(
+            documentDisplayTitle(l10n, doc),
+          ),
+        (final doc, _) => l10n.dashboard_gauges_documentExpires(
+          documentDisplayTitle(l10n, doc),
+          units.formatDate(doc.expiryDate),
+        ),
+      };
+      chips.add(
+        _chip(
+          context,
+          icon: Icons.folder_copy_outlined,
+          label: label,
+          tone: anyExpired || !docsShown ? _Tone.alert : _Tone.warn,
+          onTap: () => context.push(
+            single == null
+                ? '/documents?filter=expiring'
+                : '/documents/${single.$1.id}',
+          ),
         ),
       );
     }
