@@ -42956,6 +42956,12 @@ abstract class AppLocalizations {
   /// **'Bottom time'**
   String get insights_focus_metric_bottomTime;
 
+  /// No description provided for @insights_focus_metric_runtime.
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get insights_focus_metric_runtime;
+
   /// No description provided for @insights_focus_metric_weight.
   ///
   /// In en, this message translates to:
@@ -43844,6 +43850,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bottom Time Trend'**
   String get insights_progression_bottomTime_title;
+
+  /// No description provided for @insights_progression_runtime_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load runtime trend'**
+  String get insights_progression_runtime_error;
+
+  /// No description provided for @insights_progression_runtime_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every dive in range'**
+  String get insights_progression_runtime_subtitle;
+
+  /// No description provided for @insights_progression_runtime_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime Trend'**
+  String get insights_progression_runtime_title;
 
   /// No description provided for @insights_progression_cumulative_error.
   ///

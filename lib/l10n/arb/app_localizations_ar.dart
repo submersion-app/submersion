@@ -26742,6 +26742,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'وقت القاع';
 
   @override
+  String get insights_focus_metric_runtime => 'وقت التشغيل';
+
+  @override
   String get insights_focus_metric_weight => 'الأثقال';
 
   @override
@@ -27277,6 +27280,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => 'اتجاه وقت القاع';
+
+  @override
+  String get insights_progression_runtime_error =>
+      'فشل تحميل اتجاه وقت التشغيل';
+
+  @override
+  String get insights_progression_runtime_subtitle => 'كل غطسة ضمن النطاق';
+
+  @override
+  String get insights_progression_runtime_title => 'اتجاه وقت التشغيل';
 
   @override
   String get insights_progression_cumulative_error =>

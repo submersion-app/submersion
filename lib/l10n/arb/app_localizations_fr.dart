@@ -26658,6 +26658,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'Temps au fond';
 
   @override
+  String get insights_focus_metric_runtime => 'Durée totale';
+
+  @override
   String get insights_focus_metric_weight => 'Lest';
 
   @override
@@ -27202,6 +27205,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get insights_progression_bottomTime_title =>
       'Tendance du temps au fond';
+
+  @override
+  String get insights_progression_runtime_error =>
+      'Échec du chargement de la tendance de durée totale';
+
+  @override
+  String get insights_progression_runtime_subtitle =>
+      'Chaque plongée de la période';
+
+  @override
+  String get insights_progression_runtime_title =>
+      'Tendance de la durée totale';
 
   @override
   String get insights_progression_cumulative_error =>

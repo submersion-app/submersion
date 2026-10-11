@@ -26519,6 +26519,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'Grundzeit';
 
   @override
+  String get insights_focus_metric_runtime => 'Laufzeit';
+
+  @override
   String get insights_focus_metric_weight => 'Blei';
 
   @override
@@ -27055,6 +27058,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => 'Grundzeit-Trend';
+
+  @override
+  String get insights_progression_runtime_error =>
+      'Laufzeit-Trend konnte nicht geladen werden';
+
+  @override
+  String get insights_progression_runtime_subtitle =>
+      'Jeder Tauchgang im Zeitraum';
+
+  @override
+  String get insights_progression_runtime_title => 'Laufzeit-Trend';
 
   @override
   String get insights_progression_cumulative_error =>

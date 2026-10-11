@@ -31,6 +31,8 @@ final focusMetricSeriesProvider =
       switch (metric) {
         case FocusMetric.maxDepth:
           return ref.watch(depthProgressionTrendProvider.future);
+        case FocusMetric.runtime:
+          return ref.watch(runtimeTrendProvider.future);
         case FocusMetric.bottomTime:
           return ref.watch(bottomTimeTrendProvider.future);
         case FocusMetric.weight:

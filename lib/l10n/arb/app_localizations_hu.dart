@@ -26447,6 +26447,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'Fenékidő';
 
   @override
+  String get insights_focus_metric_runtime => 'Futásidő';
+
+  @override
   String get insights_focus_metric_weight => 'Ólom';
 
   @override
@@ -26984,6 +26987,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => 'Fenékidő trend';
+
+  @override
+  String get insights_progression_runtime_error =>
+      'Nem sikerült a futásidő trend betöltése';
+
+  @override
+  String get insights_progression_runtime_subtitle =>
+      'Minden merülés a tartományban';
+
+  @override
+  String get insights_progression_runtime_title => 'Futásidő trend';
 
   @override
   String get insights_progression_cumulative_error =>

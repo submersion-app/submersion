@@ -40,6 +40,7 @@ void main() {
         overrides: [
           ...overrides,
           depthProgressionTrendProvider.overrideWith((ref) async => series(20)),
+          runtimeTrendProvider.overrideWith((ref) async => series(20)),
           bottomTimeTrendProvider.overrideWith((ref) async => series(20)),
           if (suits != null)
             divesBySuitThicknessProvider.overrideWith((ref) => suits()),
@@ -55,15 +56,32 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('renders a per-dive chart for depth and for bottom time', (
+  testWidgets('renders a per-dive chart for depth, run time and bottom time', (
     tester,
   ) async {
     await pumpPage(tester);
 
-    // Three charts: depth, bottom time, and the cumulative count. Only the
-    // first two carry controls; a mean of a running total says nothing.
-    expect(find.byType(DiveTrendChart), findsNWidgets(3));
-    expect(find.byType(TrendControlStrip), findsNWidgets(2));
+    // Four charts: depth, run time, bottom time, and the cumulative count.
+    // Only the first three carry controls; a mean of a running total says
+    // nothing.
+    expect(find.byType(DiveTrendChart), findsNWidgets(4));
+    expect(find.byType(TrendControlStrip), findsNWidgets(3));
+  });
+
+  testWidgets('run time sits between depth and bottom time (issue #3059)', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+
+    double top(String text) => tester.getTopLeft(find.text(text)).dy;
+    expect(find.text('Runtime Trend'), findsOneWidget);
+    expect(top('Maximum Depth Progression'), lessThan(top('Runtime Trend')));
+    expect(top('Runtime Trend'), lessThan(top('Bottom Time Trend')));
+    // Its own control strip, so its settings are independent.
+    expect(
+      find.byKey(const ValueKey('trend-aggregation-runtime')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('both charts start in per-dive mode', (tester) async {

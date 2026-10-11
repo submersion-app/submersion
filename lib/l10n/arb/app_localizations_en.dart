@@ -26117,6 +26117,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'Bottom time';
 
   @override
+  String get insights_focus_metric_runtime => 'Runtime';
+
+  @override
   String get insights_focus_metric_weight => 'Weight';
 
   @override
@@ -26646,6 +26649,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => 'Bottom Time Trend';
+
+  @override
+  String get insights_progression_runtime_error =>
+      'Failed to load runtime trend';
+
+  @override
+  String get insights_progression_runtime_subtitle => 'Every dive in range';
+
+  @override
+  String get insights_progression_runtime_title => 'Runtime Trend';
 
   @override
   String get insights_progression_cumulative_error =>

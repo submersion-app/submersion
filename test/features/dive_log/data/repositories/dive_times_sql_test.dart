@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -91,5 +91,51 @@ void main() {
         .getSingle();
     expect(sumRow.read<String>('sum_type'), 'integer');
     expect(sumRow.readNullable<int>('total'), 40 * 60 + 600);
+  });
+
+  /// Run time on Insights (#3059) is the chain without its bottom-time step:
+  /// bottom time is derived from a depth threshold and never stands in for
+  /// a measured duration.
+  test('the measured chain stops before bottom time; the effective chain '
+      'still ends on it', () async {
+    await repository.createDive(
+      domain.Dive(
+        id: 'table-era',
+        dateTime: DateTime.utc(2026, 4, 3, 10),
+        bottomTime: const Duration(minutes: 35),
+      ),
+    );
+    await repository.createDive(
+      domain.Dive(
+        id: 'timestamps',
+        dateTime: DateTime.utc(2026, 4, 4, 10),
+        entryTime: DateTime.utc(2026, 4, 4, 10),
+        exitTime: DateTime.utc(2026, 4, 4, 10, 52),
+        bottomTime: const Duration(minutes: 40),
+      ),
+    );
+
+    Future<({int? measured, int? effective})> read(String id) async {
+      final row = await db
+          .customSelect(
+            "SELECT ${measuredRuntimeSecondsSql('d')} AS measured, "
+            "${effectiveRuntimeSecondsSql('d')} AS effective "
+            'FROM dives d WHERE d.id = ?',
+            variables: [Variable<String>(id)],
+          )
+          .getSingle();
+      return (
+        measured: row.readNullable<int>('measured'),
+        effective: row.readNullable<int>('effective'),
+      );
+    }
+
+    final tableEra = await read('table-era');
+    expect(tableEra.measured, isNull);
+    expect(tableEra.effective, 35 * 60);
+
+    final timestamps = await read('timestamps');
+    expect(timestamps.measured, 52 * 60);
+    expect(timestamps.effective, 52 * 60);
   });
 }

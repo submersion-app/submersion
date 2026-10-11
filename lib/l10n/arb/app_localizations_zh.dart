@@ -25092,6 +25092,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_metric_bottomTime => '水底时间';
 
   @override
+  String get insights_focus_metric_runtime => '运行时间';
+
+  @override
   String get insights_focus_metric_weight => '配重';
 
   @override
@@ -25602,6 +25605,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => '潜水时间趋势';
+
+  @override
+  String get insights_progression_runtime_error => '加载运行时间趋势失败';
+
+  @override
+  String get insights_progression_runtime_subtitle => '范围内的每次潜水';
+
+  @override
+  String get insights_progression_runtime_title => '运行时间趋势';
 
   @override
   String get insights_progression_cumulative_error => '加载累计数据失败';

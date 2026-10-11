@@ -33,6 +33,8 @@ class InsightsProgressionPage extends ConsumerWidget {
         children: [
           _buildDepthProgressionSection(context, ref, units),
           const SizedBox(height: 16),
+          _buildRuntimeSection(context, ref),
+          const SizedBox(height: 16),
           _buildBottomTimeSection(context, ref),
           const SizedBox(height: 16),
           _buildDivesPerYearSection(context, ref),
@@ -79,6 +81,23 @@ class InsightsProgressionPage extends ConsumerWidget {
       lineColor: Colors.indigo,
       valueFormatter: (value) => units.formatDepth(value),
       rateFormatter: (value) => units.formatDepth(value),
+    );
+  }
+
+  Widget _buildRuntimeSection(BuildContext context, WidgetRef ref) {
+    String minutes(double value) =>
+        context.l10n.surfaceInterval_format_minutes(value.toStringAsFixed(0));
+
+    return TrendChartSection(
+      chartId: TrendChartIds.runtime,
+      onDiveSelected: (diveId) => context.push('/dives/$diveId'),
+      title: context.l10n.insights_progression_runtime_title,
+      subtitle: context.l10n.insights_progression_runtime_subtitle,
+      pointsAsync: ref.watch(runtimeTrendProvider),
+      errorMessage: context.l10n.insights_progression_runtime_error,
+      lineColor: Colors.purple,
+      valueFormatter: minutes,
+      rateFormatter: minutes,
     );
   }
 

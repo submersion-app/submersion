@@ -26381,6 +26381,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'Bodemtijd';
 
   @override
+  String get insights_focus_metric_runtime => 'Looptijd';
+
+  @override
   String get insights_focus_metric_weight => 'Lood';
 
   @override
@@ -26916,6 +26919,16 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => 'Bodemtijdtrend';
+
+  @override
+  String get insights_progression_runtime_error =>
+      'Kan looptijdtrend niet laden';
+
+  @override
+  String get insights_progression_runtime_subtitle => 'Elke duik in het bereik';
+
+  @override
+  String get insights_progression_runtime_title => 'Looptijdtrend';
 
   @override
   String get insights_progression_cumulative_error =>

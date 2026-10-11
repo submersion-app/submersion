@@ -26579,6 +26579,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'Tempo di fondo';
 
   @override
+  String get insights_focus_metric_runtime => 'Tempo totale';
+
+  @override
   String get insights_focus_metric_weight => 'Zavorra';
 
   @override
@@ -27119,6 +27122,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => 'Tendenza tempo di fondo';
+
+  @override
+  String get insights_progression_runtime_error =>
+      'Impossibile caricare la tendenza del tempo totale';
+
+  @override
+  String get insights_progression_runtime_subtitle =>
+      'Ogni immersione nel periodo';
+
+  @override
+  String get insights_progression_runtime_title => 'Tendenza tempo totale';
 
   @override
   String get insights_progression_cumulative_error =>

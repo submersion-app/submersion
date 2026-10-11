@@ -25892,6 +25892,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'זמן תחתית';
 
   @override
+  String get insights_focus_metric_runtime => 'זמן ריצה';
+
+  @override
   String get insights_focus_metric_weight => 'משקולות';
 
   @override
@@ -26419,6 +26422,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => 'מגמת זמן תחתית';
+
+  @override
+  String get insights_progression_runtime_error => 'שגיאה בטעינת מגמת זמן ריצה';
+
+  @override
+  String get insights_progression_runtime_subtitle => 'כל צלילה בטווח';
+
+  @override
+  String get insights_progression_runtime_title => 'מגמת זמן ריצה';
 
   @override
   String get insights_progression_cumulative_error =>
