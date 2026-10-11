@@ -243,3 +243,38 @@ Written first (TDD):
 
 - Filter menus on the other seven entity tables.
 - Changing `getSurfaceInterval`'s own lookup.
+
+## Amendments recorded while planning
+
+Authoritative where the body above differs.
+
+1. `DiveTableView` is kept as a thin `ConsumerWidget` over `EntityTableView`
+   (same name and constructor, so `dive_list_content.dart` is untouched).
+   Its duplicated table code and the dive `TableHeaderCell` are deleted.
+2. SAC, CNS end and OTU are header-only (Add and Reset, no cell items). The
+   SAC cell can show a unit the `sac` field does not read, and the table's
+   CNS end and OTU cells are always empty today.
+3. A cell whose display is not the value its field reads offers no value
+   items: a runtime derived from timestamps or the profile, an entry
+   method inherited from the site, a legacy free-text buddy, a legacy
+   visibility bucket, a dive name shown from its site, a computer model
+   with no linked computer row.
+4. Dive number, rating and tank count use exact values ("integer" kind).
+   Durations (bottom time, runtime, surface interval) use whole minutes,
+   which is how the cell rounds and how the query fields store them.
+5. The dive type column is multi-valued like buddies and tags (With and
+   Without per type), since a dive can carry several types.
+6. A new performance index `idx_dives_entry_date ON dives(entry_time,
+   dive_date_time)` (asserted on open, no schema rung) lets the shared
+   surface interval SQL seek the previous dive instead of scanning per
+   row. The SQL spells the detail page's ranking as two subqueries for the
+   same reason.
+7. "Hide column" can hide a pinned column, and clears a sort on the hidden
+   column.
+8. The localized label switches move from `dive_field.dart` to
+   `dive_field_labels.dart` so the file stays under 800 lines once it
+   implements `EntityField`.
+9. Long-press on a dive table cell opens the cell menu, so on touch a hold
+   no longer resolves as a tap there. Commit 899d7f5 removed long-press as
+   a way into selection; this adds it back only as a menu gesture, only on
+   tables given a cell menu (the dive table).
