@@ -501,22 +501,47 @@ class BailoutSolver {
         phase: phase,
       );
       if (i == 0 && travelSeconds > 0) {
-        final gas = bailoutPlan.gasForDepth(depth);
-        final fO2 = 1.0 - gas.fN2 - gas.fHe;
-        add(
-          kind: PlanScheduleRowKind.ascent,
-          depth: stop.depthMeters,
-          duration: travelSeconds,
-          runtime: end + travelSeconds,
-          fO2: fO2,
-          fHe: gas.fHe,
-          physicsDepth: depth,
+        // Split at every gas-switch depth crossed, same as PlanEngine's own
+        // first travel leg (#3225): a carried gas whose MOD falls strictly
+        // between the bailout depth and the first stop would otherwise
+        // never appear -- its whole usable window sits inside this one
+        // leg, which used to be charged entirely to the gas valid at the
+        // deepest point.
+        final boundaries = travelLegBoundaries(
+          bailoutPlan,
+          fromDepth: depth,
+          toDepth: stop.depthMeters,
         );
-        charge(
-          tankForGas(fO2, gas.fHe),
-          travelSeconds.toDouble(),
-          (depth + stop.depthMeters) / 2.0,
-        );
+        final totalSpan = depth - stop.depthMeters;
+        var legDepth = depth;
+        var legRuntime = end;
+        var remaining = travelSeconds;
+        for (var j = 1; j < boundaries.length; j++) {
+          final legTo = boundaries[j];
+          final isLast = j == boundaries.length - 1;
+          final legSeconds = isLast
+              ? remaining
+              : (travelSeconds * (legDepth - legTo) / totalSpan).round();
+          remaining -= legSeconds;
+          legRuntime += legSeconds;
+          final gas = bailoutPlan.gasForDepth(legDepth);
+          final fO2 = 1.0 - gas.fN2 - gas.fHe;
+          add(
+            kind: PlanScheduleRowKind.ascent,
+            depth: legTo,
+            duration: legSeconds,
+            runtime: legRuntime,
+            fO2: fO2,
+            fHe: gas.fHe,
+            physicsDepth: legDepth,
+          );
+          charge(
+            tankForGas(fO2, gas.fHe),
+            legSeconds.toDouble(),
+            (legDepth + legTo) / 2.0,
+          );
+          legDepth = legTo;
+        }
       }
       end += travelSeconds + stop.durationSeconds;
       final stopGas = bailoutPlan.gasForDepth(stop.depthMeters);

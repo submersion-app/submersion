@@ -216,6 +216,84 @@ void main() {
       expect(surfacing.ppO2, closeTo(lastStop.ppO2, 1e-9));
     });
 
+    test('the first OC leg splits at gas switches, so a bailout gas whose '
+        'whole window sits inside it still gets used (#3225)', () {
+      // Deep bottom, modest bottom time: the worst case's first real OC
+      // stop lands well shallower than the mid gas's own MOD (78.9 m), so
+      // its window -- between that and the shallow gas's MOD (54.0 m) --
+      // sits entirely inside the single long bailout-point-to-first-stop
+      // leg, same shape as the main table's own #3225 regression.
+      final deepPlan = domain.DivePlan(
+        id: 'deep-plan',
+        name: 'Deep bailout test',
+        mode: domain.PlanMode.ccr,
+        gfLow: 50,
+        gfHigh: 80,
+        tanks: [
+          _diluentTank,
+          const DiveTank(
+            id: 'bo-bottom',
+            volume: 11.1,
+            startPressure: 207,
+            gasMix: GasMix(o2: 10, he: 70), // MOD(1.6) = 150 m.
+            role: TankRole.bailout,
+          ),
+          const DiveTank(
+            id: 'bo-mid',
+            volume: 11.1,
+            startPressure: 207,
+            gasMix: GasMix(o2: 18, he: 45), // MOD(1.6) = 78.9 m.
+            role: TankRole.bailout,
+          ),
+          const DiveTank(
+            id: 'bo-shallow',
+            volume: 11.1,
+            startPressure: 207,
+            gasMix: GasMix(o2: 25, he: 50), // MOD(1.6) = 54.0 m.
+            role: TankRole.bailout,
+          ),
+        ],
+        segments: [
+          PlanSegment.travel(
+            id: 'deep-seg-1',
+            fromDepth: 0,
+            targetDepth: 100.0,
+            tankId: 'dil',
+            gasMix: _diluent,
+            order: 0,
+            ratePerMinute: 18.0,
+          ),
+          PlanSegment.hold(
+            id: 'deep-seg-2',
+            depth: 100.0,
+            durationMinutes: 8,
+            tankId: 'dil',
+            gasMix: _diluent,
+            order: 1,
+          ),
+        ],
+        createdAt: DateTime(2026, 7, 5),
+        updatedAt: DateTime(2026, 7, 5),
+      );
+      final outcome = solver.solve(deepPlan)!;
+
+      final firstStopIndex = outcome.worstCaseRows.indexWhere(
+        (r) => r.kind == PlanScheduleRowKind.stop,
+      );
+      expect(
+        outcome.worstCaseRows[firstStopIndex].depthMeters,
+        lessThan(78.9),
+        reason:
+            'precondition: the mid gas\'s window must sit inside the '
+            'first OC leg for this test to exercise anything',
+      );
+
+      final usage = outcome.bailoutTankUsages.firstWhere(
+        (u) => u.tankId == 'bo-mid',
+      );
+      expect(usage.litersUsed, greaterThan(0));
+    });
+
     test('END is floored at 0 m on every row, same as the main table', () {
       final outcome = solver.solve(_plan())!;
       final rows = outcome.worstCaseRows;

@@ -824,19 +824,53 @@ class PlanEngine {
     final policy = _policyFor(plan);
     var depth = lastDepth;
     var phase = AscentPhase.toFirstStop;
-    for (final stop in stops) {
+    for (var i = 0; i < stops.length; i++) {
+      final stop = stops[i];
       final legSeconds = policy.ascentSeconds(
         fromDepth: depth,
         toDepth: stop.depthMeters,
         phase: phase,
       );
-      final legAvg = (depth + stop.depthMeters) / 2.0;
-      charge(
-        stop.tankId,
-        plan.sacDecoEffective *
-            (legSeconds / 60.0) *
-            environment.pressureAtDepth(legAvg),
-      );
+      if (i == 0) {
+        // Mirrors _buildSchedule's own split (#3225): charge each sub-leg
+        // to the gas actually eligible across it, the same gases that leg's
+        // table rows now show, rather than lumping the whole leg onto the
+        // first stop's shallow gas the way every later inter-stop leg
+        // safely can (a real switch there always lands exactly at the
+        // stop it leads into).
+        final boundaries = travelLegBoundaries(
+          ascentPlan,
+          fromDepth: depth,
+          toDepth: stop.depthMeters,
+        );
+        final totalSpan = depth - stop.depthMeters;
+        var legDepth = depth;
+        var remaining = legSeconds;
+        for (var j = 1; j < boundaries.length; j++) {
+          final legTo = boundaries[j];
+          final isLast = j == boundaries.length - 1;
+          final subSeconds = isLast
+              ? remaining
+              : (legSeconds * (legDepth - legTo) / totalSpan).round();
+          remaining -= subSeconds;
+          final gas = ascentPlan.gasForDepth(legDepth);
+          charge(
+            _tankForGas(plan.tanks, 1.0 - gas.fN2 - gas.fHe, gas.fHe),
+            plan.sacDecoEffective *
+                (subSeconds / 60.0) *
+                environment.pressureAtDepth((legDepth + legTo) / 2.0),
+          );
+          legDepth = legTo;
+        }
+      } else {
+        final legAvg = (depth + stop.depthMeters) / 2.0;
+        charge(
+          stop.tankId,
+          plan.sacDecoEffective *
+              (legSeconds / 60.0) *
+              environment.pressureAtDepth(legAvg),
+        );
+      }
       final stopPressure = environment.pressureAtDepth(stop.depthMeters);
       final primarySeconds = stop.durationSeconds - stop.airBreakSeconds;
       charge(
@@ -1501,27 +1535,64 @@ class PlanEngine {
 
     void addTravel(double from, double to, int duration, int arrival) {
       final displayGas = ccrDisplayGasAt(from);
-      double fO2;
-      double fHe;
       if (displayGas != null) {
-        fO2 = displayGas.fO2;
-        fHe = displayGas.fHe;
-      } else {
-        final gas = ascentPlan.gasForDepth(from);
-        fO2 = 1.0 - gas.fN2 - gas.fHe;
-        fHe = gas.fHe;
+        // The loop's displayed gas never changes mid-ascent (it stays on
+        // the last segment's diluent down to the surface), so there is
+        // nothing to split here.
+        add(
+          kind: PlanScheduleRowKind.ascent,
+          depth: to,
+          duration: duration,
+          runtime: arrival,
+          fO2: displayGas.fO2,
+          fHe: displayGas.fHe,
+          tankId: _tankForGas(
+            plan.tanks,
+            displayGas.fO2,
+            displayGas.fHe,
+            isCcr: isCcr,
+          ),
+          physicsDepth: from,
+          ppO2Override: ccrPpO2At(from),
+        );
+        return;
       }
-      add(
-        kind: PlanScheduleRowKind.ascent,
-        depth: to,
-        duration: duration,
-        runtime: arrival,
-        fO2: fO2,
-        fHe: fHe,
-        tankId: _tankForGas(plan.tanks, fO2, fHe, isCcr: isCcr),
-        physicsDepth: from,
-        ppO2Override: ccrPpO2At(from),
+      // OC: split at every gas-switch depth crossed, so each sub-leg prints
+      // -- and is later charged in _computeTankUsages' matching split --
+      // the gas actually eligible there, not only the one valid at the
+      // deepest point (#3225). boundaries is just [from, to] on a regular
+      // inter-stop leg, so this is a no-op split everywhere but the long
+      // bottom-to-first-stop leg.
+      final boundaries = travelLegBoundaries(
+        ascentPlan,
+        fromDepth: from,
+        toDepth: to,
       );
+      final totalSpan = from - to;
+      var legDepth = from;
+      var legArrival = arrival - duration;
+      for (var i = 1; i < boundaries.length; i++) {
+        final legTo = boundaries[i];
+        final isLast = i == boundaries.length - 1;
+        final legDuration = isLast
+            ? arrival - legArrival
+            : (duration * (legDepth - legTo) / totalSpan).round();
+        legArrival += legDuration;
+        final gas = ascentPlan.gasForDepth(legDepth);
+        final fO2 = 1.0 - gas.fN2 - gas.fHe;
+        final fHe = gas.fHe;
+        add(
+          kind: PlanScheduleRowKind.ascent,
+          depth: legTo,
+          duration: legDuration,
+          runtime: legArrival,
+          fO2: fO2,
+          fHe: fHe,
+          tankId: _tankForGas(plan.tanks, fO2, fHe, isCcr: isCcr),
+          physicsDepth: legDepth,
+        );
+        legDepth = legTo;
+      }
     }
 
     var depth = lastDepth;

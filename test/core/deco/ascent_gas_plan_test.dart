@@ -49,6 +49,30 @@ void main() {
       expect(plan.switchDepthsBetween(9, 6), isEmpty); // no MOD strictly inside
     });
 
+    group('travelLegBoundaries (#3225)', () {
+      test('a leg crossing both MODs gets both as its interior boundaries', () {
+        expect(travelLegBoundaries(plan, fromDepth: 40, toDepth: 0), [
+          40.0,
+          22.0,
+          6.0,
+          0.0,
+        ]);
+      });
+
+      test('a leg crossing only the shallower MOD gets only that one', () {
+        expect(travelLegBoundaries(plan, fromDepth: 40, toDepth: 12), [
+          40.0,
+          22.0,
+          12.0,
+        ]);
+      });
+
+      test('a leg crossing nothing gets back exactly its own two ends -- '
+          'the ordinary, unsplit case every inter-stop leg is in practice', () {
+        expect(travelLegBoundaries(plan, fromDepth: 9, toDepth: 6), [9.0, 6.0]);
+      });
+    });
+
     group('breakGasForDepth', () {
       // Air (fO2 0.21), EAN32 (fO2 0.32), EAN50 (fO2 0.50), hypoxic 10/70
       // trimix back gas (fO2 0.10), and O2 (fO2 1.0); ppO2 ceiling 1.6.

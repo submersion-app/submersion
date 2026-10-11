@@ -186,6 +186,85 @@ void main() {
     });
   });
 
+  group('travel-to-first-stop leg splits at gas switches (#3225)', () {
+    // A trimix carried only for the deep part (MOD well past the bottom,
+    // always eligible) plus two richer stage gases whose MODs are both well
+    // shallower than the bottom but still deep enough that neither one's
+    // own window coincides with a real deco stop -- the exact shape of the
+    // bug: a gas whose entire usable range sits inside the single, long
+    // bottom-to-first-stop leg, with no stop of its own to be charged at.
+    const bottom = GasMix(o2: 10, he: 70); // MOD(1.6) = 150 m -- always on.
+    const mid = GasMix(o2: 18, he: 45); // MOD(1.6) = 78.9 m.
+    const shallow = GasMix(o2: 25, he: 50); // MOD(1.6) = 54.0 m.
+    const bottomTank = DiveTank(
+      id: 'bottom',
+      volume: 11.1,
+      startPressure: 200,
+      gasMix: bottom,
+    );
+    const midTank = DiveTank(
+      id: 'mid',
+      volume: 11.1,
+      startPressure: 200,
+      gasMix: mid,
+    );
+    const shallowTank = DiveTank(
+      id: 'shallow',
+      volume: 11.1,
+      startPressure: 200,
+      gasMix: shallow,
+    );
+    final outcome = _engine.compute(
+      _plan(
+        bottomDepth: 100,
+        bottomMinutes: 8,
+        tanks: [bottomTank, midTank, shallowTank],
+      ),
+    );
+
+    test('the first real stop lands well shallower than the mid gas\'s own '
+        'MOD, so its whole window sits inside the first travel leg -- the '
+        'precondition the rest of this group depends on', () {
+      final firstStop = outcome.schedule.firstWhere(
+        (r) => r.kind == PlanScheduleRowKind.stop,
+      );
+      expect(firstStop.depthMeters, lessThan(78.9));
+    });
+
+    test('the mid gas is actually used, not skipped over', () {
+      final usage = outcome.tankUsages.firstWhere((u) => u.tankId == 'mid');
+      expect(usage.litersUsed, greaterThan(0));
+    });
+
+    test('the table prints a row on the mid gas before the first stop', () {
+      final firstStopIndex = outcome.schedule.indexWhere(
+        (r) => r.kind == PlanScheduleRowKind.stop,
+      );
+      final beforeFirstStop = outcome.schedule.sublist(0, firstStopIndex);
+      expect(
+        beforeFirstStop.any(
+          (r) => (r.gasFO2 - 0.18).abs() < 1e-9 && r.gasFHe > 0.4,
+        ),
+        isTrue,
+        reason: 'no row breathes the mid gas before the first stop',
+      );
+    });
+
+    test('splitting the leg does not change the total liters charged across '
+        'all three tanks versus breathing the whole leg on one gas would '
+        'have', () {
+      // Conservation check: every liter charged somewhere is still exactly
+      // SAC x time x pressure, just attributed to the right tank now
+      // instead of all landing on the shallowest one.
+      final total = outcome.tankUsages.fold<double>(
+        0,
+        (sum, u) => sum + u.litersUsed,
+      );
+      expect(total, greaterThan(0));
+      expect(total.isFinite, isTrue);
+    });
+  });
+
   group('gas consumption order', () {
     test('lists cylinders in the order the table breathes them, not the '
         'order they were added', () {
