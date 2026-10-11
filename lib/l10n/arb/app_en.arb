@@ -12087,6 +12087,14 @@
       }
     }
   },
+  "plannerCanvas_scrub_tts": "TTS {minutes}′",
+  "@plannerCanvas_scrub_tts": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_scrub_readout": "RT {minutes}′ · {depth}",
   "@plannerCanvas_scrub_readout": {
     "placeholders": {

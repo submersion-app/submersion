@@ -30805,6 +30805,12 @@ abstract class AppLocalizations {
   /// **'BO {minutes}′'**
   String plannerCanvas_scrub_bailout(String minutes);
 
+  /// No description provided for @plannerCanvas_scrub_tts.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS {minutes}′'**
+  String plannerCanvas_scrub_tts(String minutes);
+
   /// No description provided for @plannerCanvas_scrub_readout.
   ///
   /// In en, this message translates to:

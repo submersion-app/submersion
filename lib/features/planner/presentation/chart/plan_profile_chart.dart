@@ -698,17 +698,22 @@ class _ScrubReadout extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final minutes = (runtimeSeconds / 60).round();
-    final bailout = ref.watch(planBailoutProvider);
+    final outcome = ref.watch(planOutcomeProvider);
     var text = context.l10n.plannerCanvas_scrub_readout(
       minutes.toString(),
       units.formatDepth(depthMeters, decimals: 0),
     );
-    if (bailout != null) {
-      final point = bailout.nearest(runtimeSeconds);
-      text +=
-          ' · '
-          '${context.l10n.plannerCanvas_scrub_bailout('${(point.ttsSeconds / 60).ceil()}')}';
-    }
+    // The plan's own remaining time, not a bailout TTS: the schedule the
+    // diver is actually following is already fully computed, so the time
+    // left is just the plan's total runtime minus how far the scrub point
+    // already is into it.
+    final remainingSeconds = (outcome.runtimeSeconds - runtimeSeconds).clamp(
+      0,
+      outcome.runtimeSeconds,
+    );
+    text +=
+        ' · '
+        '${context.l10n.plannerCanvas_scrub_tts('${(remainingSeconds / 60).ceil()}')}';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
