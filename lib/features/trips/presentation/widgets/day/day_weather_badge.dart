@@ -56,10 +56,16 @@ class DayWeatherBadge extends StatelessWidget {
             color: foreground,
             semanticLabel: _conditionsLabel(context.l10n),
           ),
+        // Flexible so a narrow slot (a phone with large text) ellipsizes the
+        // temperature instead of overflowing.
         if (airTemp != null)
-          Text(
-            units.formatTemperature(airTemp),
-            style: theme.textTheme.bodySmall?.copyWith(color: foreground),
+          Flexible(
+            child: Text(
+              units.formatTemperature(airTemp),
+              style: theme.textTheme.bodySmall?.copyWith(color: foreground),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
       ],
     );

@@ -131,7 +131,12 @@ class ItineraryDayCard extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          // Both lines wrap rather than overflow: on a phone
+                          // with large text the chip or the weather drops to
+                          // a line of its own.
+                          Wrap(
+                            spacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
                                 context.l10n.trips_itinerary_dayLabel(
@@ -141,13 +146,12 @@ class ItineraryDayCard extends ConsumerWidget {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              if (isToday) ...[
-                                const SizedBox(width: 8),
-                                const TodayChip(),
-                              ],
+                              if (isToday) const TodayChip(),
                             ],
                           ),
-                          Row(
+                          Wrap(
+                            spacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
                                 units.formatWeekdayMonthDay(day.date),
@@ -155,13 +159,11 @@ class ItineraryDayCard extends ConsumerWidget {
                                   color: colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                              if (DayWeatherBadge.rendersAnything(weather)) ...[
-                                const SizedBox(width: 8),
+                              if (DayWeatherBadge.rendersAnything(weather))
                                 DayWeatherBadge(
                                   weather: weather!,
                                   units: units,
                                 ),
-                              ],
                             ],
                           ),
                         ],

@@ -120,9 +120,9 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
     // keeps the quiet outline that marks it as only a plan.
     final ShapeBorder? shape = switch (day.kind) {
       TripStoryDayKind.today => todayCardShape(theme),
-      TripStoryDayKind.future => RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.colorScheme.outlineVariant),
+      TripStoryDayKind.future => dayCardShape(
+        theme,
+        BorderSide(color: theme.colorScheme.outlineVariant),
       ),
       TripStoryDayKind.past => null,
     };

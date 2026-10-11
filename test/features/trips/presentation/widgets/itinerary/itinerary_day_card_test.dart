@@ -1,0 +1,72 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
+import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/presentation/widgets/itinerary/itinerary_day_card.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../../helpers/mock_providers.dart';
+
+final _day = ItineraryDay(
+  id: 'r',
+  tripId: 'trip-1',
+  dayNumber: 10,
+  date: DateTime(2026, 9, 30),
+  dayType: DayType.diveDay,
+  createdAt: DateTime(2026, 1, 1),
+  updatedAt: DateTime(2026, 1, 1),
+);
+
+void main() {
+  for (final scale in [1.0, 1.3, 1.5]) {
+    testWidgets('today on a 360px phone fits at text scale $scale', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MediaQuery(
+              data: MediaQueryData(
+                size: const Size(360, 800),
+                textScaler: TextScaler.linear(scale),
+              ),
+              child: Scaffold(
+                body: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ItineraryDayCard(
+                    day: _day,
+                    dives: [
+                      Dive(
+                        id: 'd',
+                        dateTime: DateTime(2026, 9, 30, 9),
+                        airTemp: 31.5,
+                        cloudCover: CloudCover.partlyCloudy,
+                      ),
+                    ],
+                    tripId: 'trip-1',
+                    isLiveaboard: false,
+                    kind: TripStoryDayKind.today,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(const Key('today-chip')), findsOneWidget);
+    });
+  }
+}

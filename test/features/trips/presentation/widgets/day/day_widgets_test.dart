@@ -161,6 +161,18 @@ void main() {
       expect(shape.side.width, 2);
     });
 
+    test('a planned day keeps the same corners with its quiet edge', () {
+      final theme = ThemeData(
+        cardTheme: CardThemeData(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        ),
+      );
+      final side = BorderSide(color: theme.colorScheme.outlineVariant);
+      final shape = dayCardShape(theme, side);
+      expect(shape.borderRadius, BorderRadius.circular(4));
+      expect(shape.side, side);
+    });
+
     test('falls back to the Material card radius without a themed shape', () {
       expect(
         todayCardShape(ThemeData()).borderRadius,
