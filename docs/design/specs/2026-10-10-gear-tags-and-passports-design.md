@@ -343,8 +343,8 @@ Tests first throughout.
 - **Widgets.** The gear passport in its states (no service history, history,
   stale tag, wishlist); the entry card; the foreign page with and without
   `ls`; the dive edit Scan (own, already added, foreign, out of the kit,
-  cylinder tag); the trip Scan (own gear packed, own tank slotted, foreign); imperial
-  units on dates and usage where shown.
+  cylinder tag); the trip Scan (own gear packed, own tank slotted, foreign);
+  imperial units on dates and usage where shown.
 - **Labels.** A mixed selection gives one PDF with both label kinds, and the
   gear label's QR decodes to the link.
 - **Guards.** `test/architecture/` and `test/shared/` after new files under
