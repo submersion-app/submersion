@@ -21,8 +21,12 @@ final _unit = RegExp(r'\s*mm', caseSensitive: false);
 
 double _readFigure(String figure) => double.parse(figure.replaceAll(',', '.'));
 
-String _plain(double n) =>
-    n == n.truncateToDouble() ? n.toInt().toString() : n.toString();
+/// A number without a trailing ".0". Non-finite values (only a hand-edited
+/// file can carry one) read as nothing rather than throwing in toInt().
+String _plain(double n) {
+  if (!n.isFinite) return '';
+  return n == n.truncateToDouble() ? n.toInt().toString() : n.toString();
+}
 
 /// Whether [text] is a focal length the edit form accepts: one figure or a
 /// range of two, each optionally suffixed with `mm`. Empty is valid because
@@ -61,7 +65,8 @@ String formatFocalLength({String? valueText, double? valueNum}) {
   final raw = valueText?.trim() ?? '';
   final written = raw.replaceAll(_unit, '').trim();
   if (written.isEmpty) {
-    return valueNum == null ? '' : '${_plain(valueNum)} mm';
+    final figure = valueNum == null ? '' : _plain(valueNum);
+    return figure.isEmpty ? '' : '$figure mm';
   }
   return isValidFocalLength(raw) ? '$written mm' : raw;
 }

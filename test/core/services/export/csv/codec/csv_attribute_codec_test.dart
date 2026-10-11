@@ -287,6 +287,15 @@ void main() {
       ));
     });
 
+    test('a non-finite number is not read as a focal length', () {
+      expect(parseAttributePair('focal_length_mm=Infinity'), (
+        key: 'focal_length_mm',
+        isCustom: false,
+        valueText: 'Infinity',
+        valueNum: null,
+      ));
+    });
+
     test('a value that is not a focal length keeps its text', () {
       expect(parseAttributePair('focal_length_mm=wide'), (
         key: 'focal_length_mm',

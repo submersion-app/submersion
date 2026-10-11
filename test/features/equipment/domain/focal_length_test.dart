@@ -114,6 +114,15 @@ void main() {
       expect(formatFocalLength(valueText: null, valueNum: 60), '60 mm');
     });
 
+    test('a non-finite number shows nothing instead of throwing', () {
+      expect(formatFocalLength(valueText: null, valueNum: double.infinity), '');
+      expect(formatFocalLength(valueText: null, valueNum: double.nan), '');
+      expect(
+        focalLengthEditText(valueText: null, valueNum: double.infinity),
+        '',
+      );
+    });
+
     test('is empty when there is nothing stored', () {
       expect(formatFocalLength(valueText: null, valueNum: null), '');
       expect(formatFocalLength(valueText: 'mm', valueNum: null), '');

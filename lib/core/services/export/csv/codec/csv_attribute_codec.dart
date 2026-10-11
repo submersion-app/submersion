@@ -202,7 +202,7 @@ CsvAttribute? _readCurated(
       // A bare number is how files written before issue #3050 carry a lens
       // ("60.0"), so it reads back as the number alone, as it was stored.
       final figure = double.tryParse(value);
-      if (figure != null) return withNumber(figure);
+      if (figure != null && figure.isFinite) return withNumber(figure);
       return (
         key: def.key,
         isCustom: false,
