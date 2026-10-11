@@ -95,6 +95,9 @@ Widget _page({
       reefHabitatProvider.overrideWith((ref, location) async => habitat),
     ],
     child: MaterialApp(
+      // The assertions are English strings; say so rather than lean on the
+      // test binding's default locale.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: DiveDetailPage(diveId: dive.id),
