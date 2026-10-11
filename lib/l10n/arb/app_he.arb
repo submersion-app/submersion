@@ -8453,7 +8453,7 @@
   "trips_day_conditionVisibility": "ראות {value}",
   "trips_day_conditionWater": "מים {value}",
   "trips_day_photoCount": "{count, plural, one{{count} תמונה} other{{count} תמונות}}",
-  "trips_day_planProgress": "{planned, plural, other{{logged} מתוך {planned} צלילות מתוכננות}}",
+  "trips_day_planProgress": "{planned, plural, =1{{logged} מתוך צלילה אחת מתוכננת} other{{logged} מתוך {planned} צלילות מתוכננות}}",
   "trips_day_speciesCount": "{count, plural, one{{count} מין} other{{count} מינים}}",
   "trips_day_valueRange": "{from} עד {to}",
   "@trips_itinerary_plannedDives": {

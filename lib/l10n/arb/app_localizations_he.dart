@@ -1642,6 +1642,7 @@ class AppLocalizationsHe extends AppLocalizations {
       planned,
       locale: localeName,
       other: '$logged מתוך $planned צלילות מתוכננות',
+      one: '$logged מתוך צלילה אחת מתוכננת',
     );
     return '$_temp0';
   }
