@@ -79,4 +79,39 @@ void main() {
 
     expect(container.exists(diveSurfaceIntervalsProvider), isFalse);
   });
+
+  test(
+    'a write to an unrelated dive table does not re-run the query',
+    () async {
+      final repository = DiveRepository();
+      final at = DateTime.utc(2026, 4, 1, 10);
+      await repository.createDive(
+        domain.Dive(id: 'a', dateTime: at, entryTime: at),
+      );
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      var emissions = 0;
+      final sub = container.listen(
+        diveSurfaceIntervalsProvider,
+        (_, _) => emissions++,
+      );
+      addTearDown(sub.close);
+      await container.read(diveSurfaceIntervalsProvider.future);
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+      final settled = emissions;
+
+      // A tank row: the detail tick fires, the surface interval inputs do not.
+      await db
+          .into(db.diveTanks)
+          .insert(
+            const DiveTanksCompanion(
+              id: Value('t-a'),
+              diveId: Value('a'),
+            ),
+          );
+      await Future<void>.delayed(const Duration(milliseconds: 600));
+
+      expect(emissions, settled);
+    },
+  );
 }

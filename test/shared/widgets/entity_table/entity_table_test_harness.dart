@@ -110,6 +110,7 @@ Widget buildTestTable({
   EntityTableHeaderMenuBuilder<TestField>? headerMenuBuilder,
   EntityTableCellMenuBuilder<TestEntity, TestField>? cellMenuBuilder,
   bool Function(TestField)? isColumnFiltered,
+  bool Function(TestField)? hasCellMenu,
   Locale? locale,
 }) {
   return testApp(
@@ -127,6 +128,7 @@ Widget buildTestTable({
       headerMenuBuilder: headerMenuBuilder,
       cellMenuBuilder: cellMenuBuilder,
       isColumnFiltered: isColumnFiltered,
+      hasCellMenu: hasCellMenu,
     ),
   );
 }

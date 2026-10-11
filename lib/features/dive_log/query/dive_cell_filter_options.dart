@@ -72,6 +72,14 @@ List<CellFilterOption> diveCellFilterOptions({
         );
   final displayed = field.formatValue(shownValue, units);
   final raw = _queriedValue(field, dive, surfaceIntervals, diveTypeLabel);
+  // A dive whose only participants are guides shows no buddy, but the
+  // `buddies` relation counts every link: "no buddy" would drop it.
+  if (field == DiveField.buddy &&
+      raw is List &&
+      raw.isEmpty &&
+      dive.buddies.isNotEmpty) {
+    return const [];
+  }
   if (raw == null || (raw is List && raw.isEmpty)) {
     if (!isBlankFieldValue(displayed)) return const [];
     return [
@@ -150,6 +158,12 @@ List<CellFilterOption> diveCellFilterOptions({
       if (raw is! num) return const [];
       final queryField = _fieldOf(spec);
       final dimension = queryField.dimension;
+      // Bounds clamped into the range below could not include a value
+      // outside it, so such a value is not offered.
+      final range = queryField.sanity;
+      if (range != null && (raw < range.min || raw > range.max)) {
+        return const [];
+      }
       final (shown, _) = storageToDisplay(
         raw.toDouble(),
         null,

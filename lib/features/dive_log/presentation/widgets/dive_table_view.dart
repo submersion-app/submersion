@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/providers/view_config_
 import 'package:submersion/features/dive_log/presentation/table/dive_field_adapter.dart';
 import 'package:submersion/features/dive_log/presentation/table/dive_table_menus.dart';
 import 'package:submersion/features/dive_log/query/dive_column_filter_edits.dart';
+import 'package:submersion/features/dive_log/query/dive_column_filters.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 
@@ -88,6 +89,10 @@ class DiveTableView extends ConsumerWidget {
         surfaceIntervals: intervals,
       ),
       isColumnFiltered: (field) => isDiveColumnFiltered(filter, field),
+      hasCellMenu: (field) => switch (kDiveColumnFilters[field]?.kind) {
+        null || DiveColumnFilterKind.headerOnly => false,
+        _ => true,
+      },
     );
   }
 }

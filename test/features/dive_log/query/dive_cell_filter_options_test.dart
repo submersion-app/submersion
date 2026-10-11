@@ -6,9 +6,11 @@ import 'package:submersion/core/query/compiler/query_validator.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/query/dive_cell_filter_options.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -209,6 +211,28 @@ void main() {
       expect(options(DiveField.entryMethod, d), isEmpty);
     });
 
+    test('a dive whose only participant is a guide', () {
+      // The cell lists non-guide buddies ("--"), but `buddies` counts every
+      // link, so "no buddy" would drop this dive.
+      final at = DateTime.utc(2026, 1, 1);
+      final d = base.copyWith(
+        buddies: [
+          BuddyWithRole(
+            buddy: Buddy(id: 'g', name: 'Gil', createdAt: at, updatedAt: at),
+            roles: [
+              DiveRole(
+                id: DiveRole.diveGuideId,
+                name: 'Dive Guide',
+                createdAt: at,
+                updatedAt: at,
+              ),
+            ],
+          ),
+        ],
+      );
+      expect(options(DiveField.buddy, d), isEmpty);
+    });
+
     test('legacy free-text buddy', () {
       expect(options(DiveField.buddy, base.copyWith(buddy: 'Sam')), isEmpty);
     });
@@ -281,6 +305,14 @@ void main() {
 
     test('a water temperature at the field maximum stays valid', () {
       expectValid(options(DiveField.waterTemp, base.copyWith(waterTemp: 45)));
+    });
+
+    test('a measured value outside the field range offers no items', () {
+      // Clamped bounds could not include a 450 m dive.
+      expect(
+        options(DiveField.maxDepth, base.copyWith(maxDepth: 450)),
+        isEmpty,
+      );
     });
 
     test('a six-tank dive offers valid exact rules', () {
