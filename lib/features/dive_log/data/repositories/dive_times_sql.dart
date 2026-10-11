@@ -60,3 +60,54 @@ String effectiveRuntimeSecondsSql(String alias) =>
     '${timestampRuntimeSecondsSql(alias)}, '
     '${profileSpanSecondsSql(alias)}, '
     '$alias.bottom_time)';
+
+/// The alias the previous dive takes inside [diveSurfaceIntervalSecondsSql],
+/// exposed so a caller's `previousScope` can name it.
+const kSurfaceIntervalPreviousAlias = 'si_prev';
+
+/// A dive's surface interval in whole seconds (#2984): ONE definition for
+/// the dive table, the `surfaceInterval` query field and Insights.
+///
+/// The stored `surface_interval_seconds` wins. Otherwise it is the gap from
+/// the previous dive's exit to this dive's start, where "previous" is what
+/// `DiveRepository.getPreviousDiveTimes` picks for the detail page: any
+/// diver, the dive whose `entry_time` is latest before this dive's start
+/// (ties by `dive_date_time`), and only when no such dive exists, the
+/// latest dive with no `entry_time` whose `dive_date_time` is before it.
+/// That ranking is spelled as two subqueries so each is an index range seek
+/// on `idx_dives_entry_date` rather than a scan of `dives` per row.
+///
+/// The previous dive's exit is its `exit_time`, else its start plus
+/// [effectiveRuntimeSecondsSql]. A negative gap (overlapping dives) is
+/// zero, matching `getSurfaceInterval`; the first dive is NULL. The CAST
+/// truncates, like `Duration.inSeconds`.
+///
+/// [previousScope] is appended to both subqueries' WHERE clauses and must
+/// lead with ` AND `; it names the previous dive as
+/// [kSurfaceIntervalPreviousAlias].
+String diveSurfaceIntervalSecondsSql(
+  String alias, {
+  String previousScope = '',
+}) {
+  const p = kSurfaceIntervalPreviousAlias;
+  final start = 'COALESCE($alias.entry_time, $alias.dive_date_time)';
+  final previousExit =
+      'COALESCE($p.exit_time, COALESCE($p.entry_time, $p.dive_date_time) '
+      '+ COALESCE(${effectiveRuntimeSecondsSql(p)}, 0) '
+      '* $_millisecondsPerSecond)';
+  String gap(String where, String order) =>
+      '(SELECT MAX(0, CAST(($start - $previousExit) '
+      '/ $_millisecondsPerSecond AS INTEGER)) '
+      'FROM dives $p WHERE $p.id != $alias.id AND $where$previousScope '
+      'ORDER BY $order LIMIT 1)';
+  final withEntry = gap(
+    '$p.entry_time < $start',
+    '$p.entry_time DESC, $p.dive_date_time DESC',
+  );
+  final withoutEntry = gap(
+    '$p.entry_time IS NULL AND $p.dive_date_time < $start',
+    '$p.dive_date_time DESC',
+  );
+  return 'COALESCE($alias.surface_interval_seconds, $withEntry, '
+      '$withoutEntry)';
+}
