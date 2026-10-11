@@ -6,6 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/util/time_zone_database.dart';
+import 'package:submersion/features/documents/domain/document_reminder_plan.dart';
 
 /// Deterministic 32-bit notification id for [key].
 ///
@@ -362,6 +363,61 @@ class NotificationService {
   }
 
   /// Cancel a specific notification
+  /// One-shot document expiry reminder (issue #2613). The id is stable per
+  /// document and stage, so rescheduling replaces rather than duplicates.
+  /// [title] and [body] arrive localized from the scheduler.
+  Future<int> scheduleDocumentReminder({
+    required String documentId,
+    required String title,
+    required String body,
+    required DocumentReminderStage stage,
+    required DateTime scheduledDate,
+  }) async {
+    if (!_isMobilePlatform) return 0;
+    final notificationId = _documentReminderId(documentId, stage);
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'document_expiry_reminders',
+        'Document Expiry Reminders',
+        channelDescription:
+            'Reminders before insurance, medical clearance and other '
+            'documents expire',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        category: AndroidNotificationCategory.reminder,
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+    final scheduledTz = tz.TZDateTime.from(scheduledDate, tz.local);
+    await _plugin.zonedSchedule(
+      id: notificationId,
+      title: title,
+      body: body,
+      scheduledDate: scheduledTz,
+      notificationDetails: details,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+    _log.info(
+      'Scheduled document notification $notificationId for $documentId '
+      'at $scheduledTz',
+    );
+    return notificationId;
+  }
+
+  /// Cancels both of [documentId]'s reminders, scheduled or not.
+  Future<void> cancelDocumentReminders(String documentId) async {
+    for (final stage in DocumentReminderStage.values) {
+      await cancelNotification(_documentReminderId(documentId, stage));
+    }
+  }
+
+  int _documentReminderId(String documentId, DocumentReminderStage stage) =>
+      _stableNotificationId('document#$documentId#${stage.name}');
+
   Future<void> cancelNotification(int notificationId) async {
     if (!_isMobilePlatform) return;
     await _plugin.cancel(id: notificationId);

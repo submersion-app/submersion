@@ -4,6 +4,9 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 final documentRepositoryProvider = Provider<DocumentRepository>(
   (ref) => DocumentRepository(),
@@ -101,8 +104,26 @@ class DocumentMutations {
     await _afterChange(deletedId: id);
   }
 
-  /// Keeps expiry reminders in step with each change.
-  Future<void> _afterChange({Document? saved, String? deletedId}) async {}
+  /// Keeps expiry reminders in step with each change. A reminder failure
+  /// never fails the save: the next full reschedule repairs it.
+  Future<void> _afterChange({Document? saved, String? deletedId}) async {
+    try {
+      final scheduler = _ref.read(notificationSchedulerProvider);
+      if (deletedId != null) {
+        await scheduler.cancelForDocument(deletedId);
+      } else if (saved != null) {
+        await scheduler.updateForDocument(saved, _ref.read(settingsProvider));
+      }
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Document reminder update failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  static final _log = LoggerService.forClass(DocumentMutations);
 }
 
 final documentMutationsProvider = Provider<DocumentMutations>(

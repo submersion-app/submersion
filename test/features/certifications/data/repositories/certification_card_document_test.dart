@@ -42,12 +42,14 @@ void main() {
     updatedAt: DateTime(2026),
   );
 
-  Future<Object?> rawPhotoFront(String id) async => (await db
-      .customSelect(
-        'SELECT photo_front AS v FROM certifications WHERE id = ?',
-        variables: [Variable.withString(id)],
-      )
-      .getSingle()).data['v'];
+  Future<Object?> rawPhotoFront(String id) async =>
+      (await db
+              .customSelect(
+                'SELECT photo_front AS v FROM certifications WHERE id = ?',
+                variables: [Variable.withString(id)],
+              )
+              .getSingle())
+          .data['v'];
 
   test('photos are stored in the card document, not on the row', () async {
     final repo = CertificationRepository();
@@ -107,21 +109,26 @@ void main() {
     );
   });
 
-  test('a buddy cert files its card under the diver who owns the buddy', () async {
-    await db.customStatement(
-      'INSERT INTO buddies (id, diver_id, name, created_at, updated_at) '
-      "VALUES ('b1', 'd1', 'Bo', 0, 0)",
-    );
-    final repo = CertificationRepository();
-    await repo.createCertification(
-      cert(id: 'c2', buddyId: 'b1', front: Uint8List.fromList([5])),
-    );
-    final doc = await DocumentRepository().getById(
-      documentCertificationCardId('c2'),
-    );
-    expect(doc!.diverId, 'd1');
-    expect((await repo.getCertificationsByBuddy('b1')).single.photoFront, [5]);
-  });
+  test(
+    'a buddy cert files its card under the diver who owns the buddy',
+    () async {
+      await db.customStatement(
+        'INSERT INTO buddies (id, diver_id, name, created_at, updated_at) '
+        "VALUES ('b1', 'd1', 'Bo', 0, 0)",
+      );
+      final repo = CertificationRepository();
+      await repo.createCertification(
+        cert(id: 'c2', buddyId: 'b1', front: Uint8List.fromList([5])),
+      );
+      final doc = await DocumentRepository().getById(
+        documentCertificationCardId('c2'),
+      );
+      expect(doc!.diverId, 'd1');
+      expect((await repo.getCertificationsByBuddy('b1')).single.photoFront, [
+        5,
+      ]);
+    },
+  );
 
   test('the certification tick fires when a card page changes', () async {
     final repo = CertificationRepository();
