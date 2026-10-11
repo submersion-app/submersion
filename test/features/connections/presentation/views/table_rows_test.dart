@@ -88,4 +88,48 @@ void main() {
     expect(ConnectionsTableRows.startsAscending(PairsColumn.shared), isFalse);
     expect(ConnectionsTableRows.startsAscending(EntitiesColumn.first), isFalse);
   });
+
+  test('entities sort by name, kind and strongest connection', () {
+    List<String> by(EntitiesColumn c, {bool asc = true}) => [
+      for (final r in ConnectionsTableRows.entities(_graph, c, ascending: asc))
+        r.node.label,
+    ];
+    expect(by(EntitiesColumn.name), ['Ann', 'Bob', 'Reef', 'Wall']);
+    expect(by(EntitiesColumn.kind), ['Ann', 'Bob', 'Reef', 'Wall']);
+    expect(by(EntitiesColumn.strongest), ['Reef', 'Wall', 'Ann', 'Bob']);
+  });
+
+  test('entities sort by first dive, a missing date as the oldest', () {
+    final dated = _graph.copyWith(
+      nodes: [
+        for (final n in _graph.nodes)
+          n.ref.id == 'ann'
+              ? n.copyWith(firstDiveAt: DateTime.utc(2021))
+              : n.ref.id == 'reef'
+              ? n.copyWith(firstDiveAt: DateTime.utc(2019))
+              : n,
+      ],
+    );
+    final rows = ConnectionsTableRows.entities(
+      dated,
+      EntitiesColumn.first,
+      ascending: true,
+    );
+    expect(rows.map((r) => r.node.label), ['Bob', 'Wall', 'Reef', 'Ann']);
+  });
+
+  test('pairs sort by first shared dive and by the first end', () {
+    final byA = ConnectionsTableRows.pairs(
+      _graph,
+      PairsColumn.a,
+      ascending: true,
+    );
+    expect(byA.map((e) => e.source.id), ['ann', 'ann', 'bob']);
+    final byFirst = ConnectionsTableRows.pairs(
+      _graph,
+      PairsColumn.first,
+      ascending: false,
+    );
+    expect(byFirst, hasLength(3));
+  });
 }

@@ -19,6 +19,7 @@ Future<void> _pump(
   WidgetTester tester,
   ConnectionGraph graph, {
   bool loading = false,
+  ConnectionsViewKind view = ConnectionsViewKind.pairs,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -30,7 +31,7 @@ Future<void> _pump(
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: ConnectionsTableArea(
-            view: ConnectionsViewKind.pairs,
+            view: view,
             graph: graph,
             colors: const ConnectionKindColors({}, Colors.grey),
             selection: null,
@@ -73,5 +74,16 @@ void main() {
   testWidgets('the loading bar is announced', (tester) async {
     await _pump(tester, ConnectionGraph.empty, loading: true);
     expect(find.bySemanticsLabel('Loading connections'), findsOneWidget);
+  });
+
+  testWidgets('each view kind shows its own widget', (tester) async {
+    for (final (view, key) in [
+      (ConnectionsViewKind.pairs, 'connections-view-pairs'),
+      (ConnectionsViewKind.entities, 'connections-view-entities'),
+      (ConnectionsViewKind.matrix, 'connections-view-matrix'),
+    ]) {
+      await _pump(tester, ConnectionGraph.empty, view: view);
+      expect(find.byKey(ValueKey(key)), findsOneWidget, reason: view.name);
+    }
   });
 }

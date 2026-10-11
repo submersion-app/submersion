@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
@@ -35,6 +36,7 @@ final _graph = ConnectionGraph(
 Future<List<GraphSelection?>> _pump(
   WidgetTester tester, {
   ConnectionGraph? graph,
+  GraphSelection? selection,
 }) async {
   tester.view.physicalSize = const Size(400, 600);
   tester.view.devicePixelRatio = 1;
@@ -49,7 +51,7 @@ Future<List<GraphSelection?>> _pump(
         body: ConnectionsMatrix(
           graph: graph ?? _graph,
           colors: const ConnectionKindColors({}, Colors.grey),
-          selection: null,
+          selection: selection,
           onSelect: picked.add,
         ),
       ),
@@ -173,5 +175,65 @@ void main() {
                 .painter!
             as MatrixPainter;
     expect(painter.textDirection, TextDirection.rtl);
+  });
+
+  testWidgets(
+    'a selection reaches the painter, and a blank cell selects nothing',
+    (tester) async {
+      final picked = await _pump(
+        tester,
+        selection: EdgeSelection(_b('ann'), _s('reef')),
+      );
+      final painter =
+          tester
+                  .widget<CustomPaint>(
+                    find.byKey(const ValueKey('connections-matrix-paint')),
+                  )
+                  .painter!
+              as MatrixPainter;
+      expect(painter.selectedEdge?.weight, 3);
+      await _pump(tester, selection: NodeSelection(_b('bob')));
+      final tinted =
+          tester
+                  .widget<CustomPaint>(
+                    find.byKey(const ValueKey('connections-matrix-paint')),
+                  )
+                  .painter!
+              as MatrixPainter;
+      expect(tinted.selectedNode, _b('bob'));
+      // The corner above the row headers selects nothing.
+      final origin = tester.getTopLeft(find.byType(ConnectionsMatrix));
+      await tester.tapAt(origin + const Offset(10, 10));
+      expect(picked, isEmpty);
+    },
+  );
+
+  testWidgets('a mouse wheel scrolls a matrix taller than the view', (
+    tester,
+  ) async {
+    final buddies = [
+      for (var i = 0; i < 30; i++)
+        ConnectionNode(ref: _b('b$i'), label: 'B$i', diveCount: 30 - i),
+    ];
+    await _pump(
+      tester,
+      graph: ConnectionGraph(
+        nodes: [...buddies, _graph.nodes.first],
+        edges: [for (final b in buddies) _e(b.ref, _s('reef'), 1)],
+      ),
+    );
+    final centre = tester.getCenter(find.byType(ConnectionsMatrix));
+    final pointer = TestPointer(1, PointerDeviceKind.mouse);
+    await tester.sendEventToBinding(pointer.hover(centre));
+    await tester.sendEventToBinding(pointer.scroll(const Offset(0, 100)));
+    await tester.pump();
+    final painter =
+        tester
+                .widget<CustomPaint>(
+                  find.byKey(const ValueKey('connections-matrix-paint')),
+                )
+                .painter!
+            as MatrixPainter;
+    expect(painter.scroll.dy, 100);
   });
 }
