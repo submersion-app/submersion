@@ -1410,7 +1410,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
   Future<bool> _runSyncOnce({required bool auto}) async {
     var succeeded = false;
     // An auto-sync armed before this run is covered by it: the publish reads
-    // every change made so far. Firing afterwards would only repeat it.
+    // every change made so far. Firing afterwards would only repeat it. A run
+    // that fails re-arms it below, keeping the retry that timer would have
+    // been.
+    final autoSyncWasArmed = _autoSyncTimer?.isActive ?? false;
     _autoSyncTimer?.cancel();
     // Load any stored encryption key BEFORE resolving the sync service:
     // the provider wrap watches the session, so a launch-triggered sync
@@ -1636,6 +1639,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
       if (!mounted) return false;
       await refreshState();
     }
+    if (!succeeded && autoSyncWasArmed && mounted) _scheduleAutoSync();
     return succeeded;
   }
 
