@@ -1,0 +1,246 @@
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
+import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/registry/query_registry.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_participant_names.dart';
+import 'package:submersion/features/dive_log/query/dive_column_filters.dart';
+import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/query/app_query_registry.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
+
+/// What a cell menu item does (#2984); the menu words it.
+enum CellFilterKind {
+  only,
+  exclude,
+  atLeast,
+  atMost,
+  onOrAfter,
+  onOrBefore,
+  withValue,
+  withoutValue,
+  noValue,
+  anyValue,
+}
+
+/// One cell menu item: the rule it adds and the value it names.
+@immutable
+class CellFilterOption {
+  const CellFilterOption(this.kind, this.rule, {this.valueLabel = ''});
+
+  final CellFilterKind kind;
+  final QueryNode rule;
+
+  /// The value as the cell shows it; empty for noValue and anyValue.
+  final String valueLabel;
+}
+
+/// The cell menu for [field] on [dive] (#2984).
+///
+/// Every item is a rule the query engine evaluates on the SAME value the
+/// cell displays. Where the cell shows something the field does not read
+/// (a runtime derived from timestamps, an entry method inherited from the
+/// site, a legacy free-text buddy, a legacy visibility bucket, a dive name
+/// shown from its site), there are no items rather than a rule that would
+/// drop the dive that was clicked.
+List<CellFilterOption> diveCellFilterOptions({
+  required DiveField field,
+  required Dive dive,
+  required UnitFormatter units,
+  required UnitPrefs prefs,
+  String Function(String id)? diveTypeLabel,
+  Map<String, Duration?> surfaceIntervals = const {},
+}) {
+  final spec = kDiveColumnFilters[field];
+  if (spec == null || spec.kind == DiveColumnFilterKind.headerOnly) {
+    return const [];
+  }
+  ConditionNode cond(QueryOp op, QueryValue? v) =>
+      ConditionNode(spec.path, op, v);
+
+  final shownValue = field == DiveField.surfaceInterval
+      ? _surfaceInterval(dive, surfaceIntervals)
+      : field.extractFromDive(
+          dive,
+          gasModel: units.settings.gasModel,
+          diveTypeLabel: diveTypeLabel,
+        );
+  final displayed = field.formatValue(shownValue, units);
+  final raw = _queriedValue(field, dive, surfaceIntervals, diveTypeLabel);
+  if (raw == null || (raw is List && raw.isEmpty)) {
+    if (!isBlankFieldValue(displayed)) return const [];
+    return [
+      CellFilterOption(CellFilterKind.noValue, cond(QueryOp.isEmpty, null)),
+      CellFilterOption(CellFilterKind.anyValue, cond(QueryOp.isSet, null)),
+    ];
+  }
+  // A value the cell cannot show (a zero-minute duration) is not offered.
+  if (isBlankFieldValue(displayed)) return const [];
+
+  List<CellFilterOption> onlyExclude(QueryValue v, String label) => [
+    CellFilterOption(
+      CellFilterKind.only,
+      cond(QueryOp.eq, v),
+      valueLabel: label,
+    ),
+    CellFilterOption(
+      CellFilterKind.exclude,
+      NotNode(cond(QueryOp.eq, v)),
+      valueLabel: label,
+    ),
+  ];
+  List<CellFilterOption> ranged(
+    ConditionNode only,
+    QueryValue lo,
+    QueryValue hi,
+    String label, {
+    bool dates = false,
+  }) => [
+    CellFilterOption(CellFilterKind.only, only, valueLabel: label),
+    CellFilterOption(
+      dates ? CellFilterKind.onOrAfter : CellFilterKind.atLeast,
+      cond(QueryOp.gte, lo),
+      valueLabel: label,
+    ),
+    CellFilterOption(
+      dates ? CellFilterKind.onOrBefore : CellFilterKind.atMost,
+      cond(QueryOp.lte, hi),
+      valueLabel: label,
+    ),
+  ];
+
+  switch (spec.kind) {
+    case DiveColumnFilterKind.relation:
+      final ref = raw as RefValue;
+      return onlyExclude(ref, ref.label);
+    case DiveColumnFilterKind.multiRelation:
+      return [
+        for (final ref in raw as List<RefValue>) ...[
+          CellFilterOption(
+            CellFilterKind.withValue,
+            cond(QueryOp.eq, ref),
+            valueLabel: ref.label,
+          ),
+          CellFilterOption(
+            CellFilterKind.withoutValue,
+            NotNode(cond(QueryOp.eq, ref)),
+            valueLabel: ref.label,
+          ),
+        ],
+      ];
+    case DiveColumnFilterKind.integer:
+      final v = NumberValue((raw as num).toDouble(), null);
+      return ranged(cond(QueryOp.eq, v), v, v, displayed);
+    case DiveColumnFilterKind.duration:
+      final minutes = NumberValue((raw as Duration).inMinutes.toDouble(), null);
+      return ranged(cond(QueryOp.eq, minutes), minutes, minutes, displayed);
+    case DiveColumnFilterKind.number:
+      if (raw is! num) return const [];
+      final dimension = resolvePath(
+        appQueryRegistry,
+        diveQueryEntity,
+        spec.path,
+      ).field!.dimension;
+      final (shown, _) = storageToDisplay(
+        raw.toDouble(),
+        null,
+        dimension,
+        prefs,
+      );
+      // Half a display step either side of the value as the cell rounds
+      // it, so the clicked dive is always inside.
+      final step = math.pow(10, -spec.decimals).toDouble();
+      final rounded = (shown / step).round() * step;
+      double ground(double v) => groundToStorage(v, null, dimension, prefs);
+      final lo = NumberValue(ground(rounded - step / 2), null);
+      final hi = NumberValue(ground(rounded + step / 2), null);
+      return ranged(
+        cond(QueryOp.between, ListValue([lo, hi])),
+        lo,
+        hi,
+        displayed,
+      );
+    case DiveColumnFilterKind.date:
+      final day = DateValue(raw as DateTime);
+      return ranged(
+        cond(QueryOp.eq, day),
+        day,
+        day,
+        units.formatDate(raw),
+        dates: true,
+      );
+    case DiveColumnFilterKind.text:
+      return onlyExclude(StringValue(raw as String), raw);
+    case DiveColumnFilterKind.enumValue:
+      return onlyExclude(
+        EnumValue((raw as Enum).name, label: displayed),
+        displayed,
+      );
+    case DiveColumnFilterKind.boolean:
+      return onlyExclude(BoolValue(raw as bool), displayed);
+    case DiveColumnFilterKind.headerOnly:
+      return const [];
+  }
+}
+
+Duration? _surfaceInterval(Dive dive, Map<String, Duration?> computed) =>
+    computed.containsKey(dive.id) ? computed[dive.id] : dive.surfaceInterval;
+
+/// The value the column's query field reads for [dive], or null when it
+/// reads nothing (an empty cell, or a cell showing a derived value).
+Object? _queriedValue(
+  DiveField field,
+  Dive dive,
+  Map<String, Duration?> surfaceIntervals,
+  String Function(String id)? diveTypeLabel,
+) => switch (field) {
+  DiveField.siteName => switch (dive.site) {
+    null => null,
+    final s => RefValue(s.id, s.name),
+  },
+  DiveField.tripName => switch (dive.trip) {
+    null => null,
+    final t => RefValue(t.id, t.name),
+  },
+  DiveField.diveCenterName => switch (dive.diveCenter) {
+    null => null,
+    final c => RefValue(c.id, c.name),
+  },
+  DiveField.diveComputerModel => switch (dive.computerId) {
+    null => null,
+    final id => RefValue(id, dive.diveComputerModel ?? id),
+  },
+  DiveField.diveTypeName => [
+    for (final id in dive.diveTypeIds)
+      RefValue(id, (diveTypeLabel ?? Dive.diveTypeDisplayName)(id)),
+  ],
+  DiveField.buddy => [
+    for (final b in dive.nonGuideBuddies) RefValue(b.buddy.id, b.buddy.name),
+  ],
+  DiveField.tags => [for (final t in dive.tags) RefValue(t.id, t.name)],
+  DiveField.diveNumber => dive.diveNumber,
+  DiveField.ratingStars => dive.rating,
+  DiveField.tankCount => dive.tanks.length,
+  DiveField.maxDepth => dive.maxDepth,
+  DiveField.avgDepth => dive.avgDepth,
+  DiveField.waterTemp => dive.waterTemp,
+  DiveField.airTemp => dive.airTemp,
+  DiveField.visibility => dive.visibilityMeters,
+  DiveField.totalWeight => dive.totalWeight > 0 ? dive.totalWeight : null,
+  DiveField.bottomTime => dive.bottomTime,
+  DiveField.runtime => dive.runtime,
+  DiveField.surfaceInterval => _surfaceInterval(dive, surfaceIntervals),
+  DiveField.dateTime => dive.effectiveEntryTime,
+  DiveField.diveName => dive.effectiveName,
+  DiveField.currentStrength => dive.currentStrength,
+  DiveField.entryMethod => dive.entryMethod,
+  DiveField.exitMethod => dive.exitMethod,
+  DiveField.waterType => dive.effectiveWaterType,
+  DiveField.diveMode => dive.diveMode,
+  DiveField.isFavorite => dive.isFavorite,
+  _ => null,
+};
