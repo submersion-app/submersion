@@ -314,6 +314,35 @@ void main() {
         );
       },
     );
+
+    test('opens a selected site\'s bundled "no body of water" subgroup, '
+        'unlike a plain no-inner-value site', () {
+      final groups = groupSitesByLocationAndWater([
+        _s('a', country: 'Egypt'),
+        _s('b', country: 'Egypt', bodyOfWater: 'Red Sea'),
+      ], (s) => s);
+      final egypt = groups.single;
+      final selected = _s('a', country: 'Egypt');
+      expect(
+        initialExpandedGroups(
+          groups,
+          outerKeyOf: siteCountryKey,
+          innerKeyOf: innerKeyOfMode(SiteGroupBy.locationAndWater),
+          bundlesInner: bundlesUnlabeledInner(SiteGroupBy.locationAndWater),
+          selected: selected,
+        ),
+        {egypt.key, subGroupExpansionKey(egypt.key, noGroupKey)},
+      );
+    });
+  });
+
+  group('bundlesUnlabeledInner', () {
+    test('is true only for the combined country-and-water mode', () {
+      expect(bundlesUnlabeledInner(SiteGroupBy.locationAndWater), isTrue);
+      expect(bundlesUnlabeledInner(SiteGroupBy.location), isFalse);
+      expect(bundlesUnlabeledInner(SiteGroupBy.water), isFalse);
+      expect(bundlesUnlabeledInner(SiteGroupBy.none), isFalse);
+    });
   });
 
   test('allGroupKeys lists every group key', () {

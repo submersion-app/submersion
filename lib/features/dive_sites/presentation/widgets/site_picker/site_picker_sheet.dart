@@ -594,7 +594,12 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
               onTap: () => _toggleCountry(group.key, searching: searching),
             ),
           SubHeaderRow(:final subgroup) => () => SiteSectionLabel(
-            subgroup.label,
+            // Region (the picker's only axis) never bundles an unlabeled
+            // subgroup, so the fallback is never actually shown -- going
+            // through siteSubGroupLabel anyway keeps this correct if that
+            // ever changes (#3270), rather than reading subgroup.label
+            // (blank for an ungrouped subgroup) directly.
+            siteSubGroupLabel('', subgroup),
             indent: 56,
           ),
           SiteRow(:final item) => () => SitePickerSiteTile(

@@ -324,6 +324,25 @@ void main() {
     },
   );
 
+  // Regression: a selected site with no body of water sits in the bundled
+  // "No body of water" subgroup, which must open too, not just its country.
+  testWidgets(
+    'selecting a site with no body of water opens its bundled subgroup too',
+    (tester) async {
+      await _pumpGrouped(
+        tester,
+        groupBy: SiteGroupBy.locationAndWater,
+        selectedId: 'b',
+        storedExpansion: const {},
+        sites: [
+          _site('a', 'Ras Mohammed', country: 'Egypt', bodyOfWater: 'Red Sea'),
+          _site('b', 'Elphinstone', country: 'Egypt'),
+        ],
+      );
+      expect(find.text('Elphinstone'), findsWidgets);
+    },
+  );
+
   testWidgets('switching grouping mode drops the old expansion', (
     tester,
   ) async {

@@ -707,6 +707,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       groups,
       outerKeyOf: outerKeyOfMode(groupBy),
       innerKeyOf: innerKeyOfMode(groupBy),
+      bundlesInner: bundlesUnlabeledInner(groupBy),
       selected: selected?.site,
     );
   }
@@ -716,6 +717,10 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   /// keeps collapsed in the diver's stored expansion, else null. Before the
   /// first toggle there is no stored set and the initial expansion already
   /// opens the selected site's groups; a filter opens every group by itself.
+  ///
+  /// Delegates to [initialExpandedGroups] for the same site rather than
+  /// re-deriving its outer/subgroup keys by hand, so this can never drift
+  /// from what "freshly opening this list" would already have opened.
   Set<String>? _collapsedGroupsOfSelected(List<SiteWithDiveCount> sites) {
     final groupBy = ref.read(siteGroupByProvider);
     if (groupBy == SiteGroupBy.none) return null;
@@ -726,16 +731,14 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         .where((s) => s.site.id == widget.selectedId)
         .firstOrNull;
     if (selected == null) return null;
-    final outerKey = outerKeyOfMode(groupBy)(selected.site);
-    final missing = <String>{if (!stored.contains(outerKey)) outerKey};
-    final innerKeyOf = innerKeyOfMode(groupBy);
-    if (innerKeyOf != null) {
-      final innerKey = innerKeyOf(selected.site);
-      if (innerKey != noGroupKey) {
-        final composite = subGroupExpansionKey(outerKey, innerKey);
-        if (!stored.contains(composite)) missing.add(composite);
-      }
-    }
+    final required = initialExpandedGroups(
+      _groupsFor(sites, groupBy),
+      outerKeyOf: outerKeyOfMode(groupBy),
+      innerKeyOf: innerKeyOfMode(groupBy),
+      bundlesInner: bundlesUnlabeledInner(groupBy),
+      selected: selected.site,
+    );
+    final missing = required.difference(stored);
     return missing.isEmpty ? null : missing;
   }
 
@@ -1361,24 +1364,24 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
           );
         },
         onActivate: (key) {
-          final country = navStops.groupOfHeader(key);
-          if (country != null) {
-            _toggleGroup(country, expanded);
+          final groupKey = navStops.groupOfHeader(key);
+          if (groupKey != null) {
+            _toggleGroup(groupKey, expanded);
           } else {
             _handleRowTap(key, orderedSites);
           }
         },
         onExpand: (key) {
-          final country = navStops.groupOfHeader(key);
-          if (country != null && !expanded.contains(country)) {
-            _toggleGroup(country, expanded);
+          final groupKey = navStops.groupOfHeader(key);
+          if (groupKey != null && !expanded.contains(groupKey)) {
+            _toggleGroup(groupKey, expanded);
           }
         },
         onCollapse: (key) {
           final header = navStops.headerFor(key);
           if (header == null) return null;
-          final country = navStops.groupOfHeader(header)!;
-          if (expanded.contains(country)) _toggleGroup(country, expanded);
+          final groupKey = navStops.groupOfHeader(header)!;
+          if (expanded.contains(groupKey)) _toggleGroup(groupKey, expanded);
           return header;
         },
         child: ListView.builder(
@@ -1411,7 +1414,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                   ),
                   child: SiteGroupHeader(
                     label: siteSubGroupLabel(
-                      context.l10n.diveSites_group_noBodyOfWater,
+                      groupBy.innerNoGroupLabel(context.l10n) ?? '',
                       subgroup,
                     ),
                     siteCount: subgroup.items.length,

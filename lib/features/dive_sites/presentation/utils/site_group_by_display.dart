@@ -23,4 +23,12 @@ extension SiteGroupByDisplay on SiteGroupBy {
     SiteGroupBy.location ||
     SiteGroupBy.locationAndWater => l10n.diveSites_group_noCountry,
   };
+
+  /// The label for this mode's ungrouped *subgroup*, when it bundles one
+  /// (see [bundlesUnlabeledInner]) -- null for a mode that doesn't, since it
+  /// never has an ungrouped subgroup to label.
+  String? innerNoGroupLabel(AppLocalizations l10n) => switch (this) {
+    SiteGroupBy.locationAndWater => l10n.diveSites_group_noBodyOfWater,
+    SiteGroupBy.none || SiteGroupBy.location || SiteGroupBy.water => null,
+  };
 }

@@ -49,6 +49,15 @@ String Function(DiveSite)? innerKeyOfMode(SiteGroupBy groupBy) =>
       SiteGroupBy.none || SiteGroupBy.water => null,
     };
 
+/// Whether [groupBy]'s inner axis bundles sites with no value into a titled
+/// subgroup of its own (see [_groupSites]'s `bundleUnlabeledInner`) rather
+/// than leaving them in the outer group's plain [SiteOuterGroup.ungrouped]
+/// list. Only [SiteGroupBy.locationAndWater] does, since body of water is
+/// commonly blank; region never has, since #1080 (only meaningful for a mode
+/// [innerKeyOfMode] gives a key function for).
+bool bundlesUnlabeledInner(SiteGroupBy groupBy) =>
+    groupBy == SiteGroupBy.locationAndWater;
+
 /// The expansion-state key for the subgroup [subKey] of outer group
 /// [outerKey], so the same region or body-of-water name under two different
 /// outer groups toggles independently. Shares one expansion set with outer
@@ -195,20 +204,41 @@ List<SiteOuterGroup<T>> _groupSites<T>(
                     : _commonest(sub.value.spellings),
                 items: List.unmodifiable(sub.value.items),
               ),
-          ]..sort((a, b) {
-            if (a.isUngroupedKey != b.isUngroupedKey) {
-              return a.isUngroupedKey ? 1 : -1;
-            }
-            return collator.compare(a.label, b.label);
-          }),
+          ]..sort(
+            (a, b) => _compareUngroupedLast(
+              a.isUngroupedKey,
+              a.label,
+              b.isUngroupedKey,
+              b.label,
+              collator,
+            ),
+          ),
         ),
       ),
   ];
-  groups.sort((a, b) {
-    if (a.isUngroupedKey != b.isUngroupedKey) return a.isUngroupedKey ? 1 : -1;
-    return collator.compare(a.label, b.label);
-  });
+  groups.sort(
+    (a, b) => _compareUngroupedLast(
+      a.isUngroupedKey,
+      a.label,
+      b.isUngroupedKey,
+      b.label,
+      collator,
+    ),
+  );
   return List.unmodifiable(groups);
+}
+
+/// Orders the ungrouped group or subgroup last, everything else by label --
+/// shared by the outer-group and subgroup sorts in [_groupSites].
+int _compareUngroupedLast(
+  bool aUngrouped,
+  String aLabel,
+  bool bUngrouped,
+  String bLabel,
+  TextCollator collator,
+) {
+  if (aUngrouped != bUngrouped) return aUngrouped ? 1 : -1;
+  return collator.compare(aLabel, bLabel);
 }
 
 /// Groups [items] by country, then region (#1080).
@@ -337,11 +367,17 @@ List<SiteListRow<T>> flattenSiteGroups<T>(
 /// (keyed by [outerKeyOf]) and, when [innerKeyOf] is given, its subgroup too
 /// -- otherwise the selected site would sit behind two collapsed headers
 /// instead of one. Also the only outer group when there is just one.
+///
+/// A blank inner value is skipped unless [bundlesInner] says the mode bunds
+/// it into a titled subgroup of its own (#3270) rather than leaving it in
+/// the outer group's plain ungrouped list -- only then does a blank value
+/// still have a subgroup header to open.
 Set<String> initialExpandedGroups<T>(
   List<SiteOuterGroup<T>> groups, {
   required String Function(DiveSite) outerKeyOf,
   DiveSite? selected,
   String Function(DiveSite)? innerKeyOf,
+  bool bundlesInner = false,
 }) {
   final outerKey = selected == null ? null : outerKeyOf(selected);
   final innerKey = selected == null || innerKeyOf == null
@@ -350,7 +386,9 @@ Set<String> initialExpandedGroups<T>(
   return {
     if (groups.length == 1) groups.single.key,
     ?outerKey,
-    if (outerKey != null && innerKey != null && innerKey != noGroupKey)
+    if (outerKey != null &&
+        innerKey != null &&
+        (innerKey != noGroupKey || bundlesInner))
       subGroupExpansionKey(outerKey, innerKey),
   };
 }
