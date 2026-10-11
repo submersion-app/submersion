@@ -10130,9 +10130,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tooltip_gtr => 'GTR';
 
   @override
-  String get diveLog_sources_row_metric => 'Adat';
-
-  @override
   String get diveLog_sources_row_maxDepth => 'Max mélység';
 
   @override

@@ -3007,7 +3007,6 @@
   "diveLog_tooltip_switchDelay": "Késés",
   "diveLog_tooltip_extraDeco": "Többlet dekó",
   "diveLog_tooltip_gtr": "GTR",
-  "diveLog_sources_row_metric": "Adat",
   "diveLog_sources_row_maxDepth": "Max mélység",
   "diveLog_sources_row_avgDepth": "Átl. mélység",
   "diveLog_sources_row_duration": "Időtartam",

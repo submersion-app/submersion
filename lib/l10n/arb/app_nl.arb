@@ -3109,7 +3109,6 @@
   "diveLog_tooltip_switchDelay": "Vertraging",
   "diveLog_tooltip_extraDeco": "Extra deco",
   "diveLog_tooltip_gtr": "GTR",
-  "diveLog_sources_row_metric": "Meting",
   "diveLog_sources_row_maxDepth": "Max diepte",
   "diveLog_sources_row_avgDepth": "Gem. diepte",
   "diveLog_sources_row_duration": "Duur",

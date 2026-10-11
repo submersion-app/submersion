@@ -3109,7 +3109,6 @@
   "diveLog_tooltip_switchDelay": "التأخير",
   "diveLog_tooltip_extraDeco": "تخفيف ضغط إضافي",
   "diveLog_tooltip_gtr": "GTR",
-  "diveLog_sources_row_metric": "المقياس",
   "diveLog_sources_row_maxDepth": "أقصى عمق",
   "diveLog_sources_row_avgDepth": "متوسط العمق",
   "diveLog_sources_row_duration": "المدة",

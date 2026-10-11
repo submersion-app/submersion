@@ -3007,7 +3007,6 @@
   "diveLog_tooltip_switchDelay": "Retard",
   "diveLog_tooltip_extraDeco": "Déco supplémentaire",
   "diveLog_tooltip_gtr": "GTR",
-  "diveLog_sources_row_metric": "Mesure",
   "diveLog_sources_row_maxDepth": "Prof. max",
   "diveLog_sources_row_avgDepth": "Prof. moy.",
   "diveLog_sources_row_duration": "Durée",

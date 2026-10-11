@@ -3224,7 +3224,6 @@
   "diveLog_tooltip_switchDelay": "延迟",
   "diveLog_tooltip_extraDeco": "额外减压",
   "diveLog_tooltip_gtr": "GTR",
-  "diveLog_sources_row_metric": "指标",
   "diveLog_sources_row_maxDepth": "最大深度",
   "diveLog_sources_row_avgDepth": "平均深度",
   "diveLog_sources_row_duration": "时长",

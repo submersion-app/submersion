@@ -3007,7 +3007,6 @@
   "diveLog_tooltip_switchDelay": "איחור",
   "diveLog_tooltip_extraDeco": "דקו נוסף",
   "diveLog_tooltip_gtr": "GTR",
-  "diveLog_sources_row_metric": "מדד",
   "diveLog_sources_row_maxDepth": "עומק מקסימלי",
   "diveLog_sources_row_avgDepth": "עומק ממוצע",
   "diveLog_sources_row_duration": "משך",

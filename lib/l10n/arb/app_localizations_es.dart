@@ -10152,9 +10152,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_tooltip_gtr => 'GTR';
 
   @override
-  String get diveLog_sources_row_metric => 'Medida';
-
-  @override
   String get diveLog_sources_row_maxDepth => 'Prof. máxima';
 
   @override

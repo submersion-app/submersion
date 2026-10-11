@@ -5655,7 +5655,6 @@
   "diveLog_tooltip_switchDelay": "Delay",
   "diveLog_tooltip_extraDeco": "Extra deco",
   "diveLog_tooltip_gtr": "GTR",
-  "diveLog_sources_row_metric": "Metric",
   "diveLog_sources_row_maxDepth": "Max Depth",
   "diveLog_sources_row_avgDepth": "Avg Depth",
   "diveLog_sources_row_duration": "Duration",

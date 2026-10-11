@@ -16297,12 +16297,6 @@ abstract class AppLocalizations {
   /// **'GTR'**
   String get diveLog_tooltip_gtr;
 
-  /// No description provided for @diveLog_sources_row_metric.
-  ///
-  /// In en, this message translates to:
-  /// **'Metric'**
-  String get diveLog_sources_row_metric;
-
   /// No description provided for @diveLog_sources_row_maxDepth.
   ///
   /// In en, this message translates to:

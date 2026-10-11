@@ -9662,9 +9662,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tooltip_gtr => 'GTR';
 
   @override
-  String get diveLog_sources_row_metric => '指标';
-
-  @override
   String get diveLog_sources_row_maxDepth => '最大深度';
 
   @override

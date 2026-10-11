@@ -3134,7 +3134,6 @@
   "diveLog_tooltip_switchDelay": "Verzögerung",
   "diveLog_tooltip_extraDeco": "Zusätzliche Deko",
   "diveLog_tooltip_gtr": "GTR",
-  "diveLog_sources_row_metric": "Messwert",
   "diveLog_sources_row_maxDepth": "Max. Tiefe",
   "diveLog_sources_row_avgDepth": "Ø Tiefe",
   "diveLog_sources_row_duration": "Dauer",

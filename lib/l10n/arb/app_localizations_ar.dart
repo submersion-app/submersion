@@ -10274,9 +10274,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tooltip_gtr => 'GTR';
 
   @override
-  String get diveLog_sources_row_metric => 'المقياس';
-
-  @override
   String get diveLog_sources_row_maxDepth => 'أقصى عمق';
 
   @override
