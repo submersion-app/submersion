@@ -11,7 +11,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/tables/dive_profile_tables.dart';
 
-/// The ways one dive computer has reached the library (v278, issue #3106):
+/// The ways one dive computer has reached the library (v279, issue #3106):
 /// a direct transport (BLE, Bluetooth Classic, USB, infrared), a file
 /// format, or a cloud provider. One row per (computer, kind, detail), on a
 /// deterministic id so two devices recording the same connection converge.

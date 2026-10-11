@@ -1,4 +1,6 @@
 import 'package:submersion/core/constants/dive_field.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 
 /// Extension providing display string formatting for [DiveField] raw values.
@@ -18,6 +20,7 @@ extension DiveFieldFormatter on DiveField {
         // Measured dives extract a metric double; pre-v144 dives extract the
         // legacy bucket's label, which is already display-ready.
         if (value is double) return units.formatDistance(value);
+        if (value is VisibilityRange) return _compactRange(value, units);
         return value.toString();
 
       case DiveField.waterTemp:
@@ -126,4 +129,18 @@ String _formatDuration(dynamic value) {
     return '${hours}h ${minutes}m';
   }
   return '${minutes}min';
+}
+
+/// A visibility range for a narrow table cell, unit attached like
+/// [UnitFormatter.formatDistance]: "6-12m", "<2m", "12m+" (issue #3226).
+/// Symbols rather than words, so the cell needs no l10n.
+String _compactRange(VisibilityRange range, UnitFormatter units) {
+  String n(double meters) =>
+      formatFixedForDisplay(units.convertDepth(meters), 0);
+  final unit = units.depthSymbol;
+  final min = range.minM;
+  final max = range.maxM;
+  if (min == null) return '<${n(max!)}$unit';
+  if (max == null) return '${n(min)}$unit+';
+  return '${n(min)}-${n(max)}$unit';
 }

@@ -2556,6 +2556,8 @@
   "diveLog_edit_label_surfaceConditions": "水面状况",
   "diveLog_edit_label_type": "类型",
   "diveLog_edit_label_visibility": "能见度",
+  "diveLog_edit_visibility_modeRange": "范围",
+  "diveLog_edit_visibility_modePrecise": "精确",
   "diveLog_edit_label_waterTemp": "水温",
   "diveLog_edit_label_waterType": "水类型",
   "diveLog_edit_label_weightName": "名称（可选）",
@@ -8825,6 +8827,13 @@
   "trips_itinerary_empty": "还没有行程。根据旅行日期生成一个。",
   "trips_itinerary_fillMissing": "补全缺少的天数",
   "trips_itinerary_plannedDives": "{count, plural, =1{计划 1 次潜水} other{计划 {count} 次潜水}}",
+  "trips_day_conditionCurrent": "水流 {value}",
+  "trips_day_conditionVisibility": "能见度 {value}",
+  "trips_day_conditionWater": "水温 {value}",
+  "trips_day_photoCount": "{count, plural, other{{count} 张照片}}",
+  "trips_day_planProgress": "{planned, plural, other{已完成 {logged} 次，计划 {planned} 次潜水}}",
+  "trips_day_speciesCount": "{count, plural, other{{count} 个物种}}",
+  "trips_day_valueRange": "{from} 至 {to}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {
@@ -11446,6 +11455,7 @@
   "settings_visibilityScale_customUnset": "设置你自己的距离",
   "settings_visibilityScale_customHelp": "为每个等级输入仍可计入该等级的最短距离。",
   "insights_conditions_visibility_legacySuffix": "{band}（测量功能之前记录）",
+  "insights_conditions_visibility_spansBands": "跨多个等级",
   "common_selection_countSelected": "已选择 {count} 项",
   "common_listCount_shownOfTotal": "{shown} / {total}",
   "common_selection_enterTooltip": "选择项目",

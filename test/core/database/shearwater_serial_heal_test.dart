@@ -152,7 +152,7 @@ void main() {
     expect(await db.healShearwaterDownloadSerialsForTest(), 0);
     expect((await read('c5')).serialNumber, '12345678');
 
-    // The v278 rung runs once, before this build has written any hex, when
+    // The v279 rung runs once, before this build has written any hex, when
     // every 8-digit download serial is still libdivecomputer's decimal.
     expect(
       await db.healShearwaterDownloadSerialsForTest(includeAmbiguous: true),

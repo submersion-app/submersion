@@ -7,6 +7,7 @@ import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/uddf/uddf_certification_currency.dart';
 import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
+import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
@@ -581,6 +582,18 @@ class UddfFullImportService {
           for (final dive in dives) {
             final data = byDive[dive['sourceUuid']];
             if (data != null) UddfComputerTissue.apply(dive, data);
+          }
+        }
+
+        // Each dive's visibility range (issue #3226), matched the same way.
+        final visibilityRangeSection = submersionElement
+            .findElements(UddfVisibilityRange.sectionName)
+            .firstOrNull;
+        if (visibilityRangeSection != null) {
+          final byDive = UddfVisibilityRange.parse(visibilityRangeSection);
+          for (final dive in dives) {
+            final range = byDive[dive['sourceUuid']];
+            if (range != null) UddfVisibilityRange.apply(dive, range);
           }
         }
 

@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
@@ -142,6 +143,7 @@ void main() {
       expect(
         formatDiveVisibility(
           meters: 12,
+          range: null,
           legacy: null,
           scale: VisibilityScale.tropical,
           l10n: en,
@@ -155,6 +157,7 @@ void main() {
       expect(
         formatDiveVisibility(
           meters: 12,
+          range: null,
           legacy: Visibility.excellent,
           scale: VisibilityScale.tropical,
           l10n: en,
@@ -168,6 +171,7 @@ void main() {
       expect(
         formatDiveVisibility(
           meters: null,
+          range: null,
           legacy: Visibility.moderate,
           scale: VisibilityScale.tropical,
           l10n: en,
@@ -181,6 +185,7 @@ void main() {
       expect(
         formatDiveVisibility(
           meters: null,
+          range: null,
           legacy: null,
           scale: VisibilityScale.tropical,
           l10n: en,
@@ -192,6 +197,13 @@ void main() {
   });
 
   group('visibilityDistributionLabel', () {
+    test('the spanning key reads Spans bands (issue #3226)', () {
+      expect(
+        visibilityDistributionLabel('range_spanning', en, metric),
+        'Spans bands',
+      );
+    });
+
     test('a band key becomes its localized adjective', () {
       expect(visibilityDistributionLabel('excellent', en, metric), 'Excellent');
       expect(visibilityDistributionLabel('good', en, metric), 'Good');
@@ -272,6 +284,131 @@ void main() {
         formatLegacyVisibilityBand(Visibility.unknown, en, metric),
         isNull,
       );
+    });
+  });
+
+  group('formatVisibilityRange (issue #3226)', () {
+    test('a closed range reads low-high in the depth unit', () {
+      expect(
+        formatVisibilityRange(
+          const VisibilityRange(minM: 6, maxM: 12),
+          en,
+          metric,
+        ),
+        '6-12 m',
+      );
+    });
+
+    test('open ends read under / plus', () {
+      expect(
+        formatVisibilityRange(const VisibilityRange(maxM: 2), en, metric),
+        'under 2 m',
+      );
+      expect(
+        formatVisibilityRange(const VisibilityRange(minM: 12), en, metric),
+        '12 m+',
+      );
+    });
+
+    test('feet convert each end', () {
+      expect(
+        formatVisibilityRange(
+          const VisibilityRange(minM: 6, maxM: 12),
+          en,
+          imperial,
+        ),
+        '20-39 ft',
+      );
+    });
+  });
+
+  group('formatRangeVisibility', () {
+    test('adds the band when the range sits inside one', () {
+      expect(
+        formatRangeVisibility(
+          const VisibilityRange(minM: 6, maxM: 12),
+          VisibilityScale.coldWater,
+          en,
+          metric,
+        ),
+        '6-12 m · Good',
+      );
+    });
+
+    test('omits the adjective when the range spans bands', () {
+      expect(
+        formatRangeVisibility(
+          const VisibilityRange(minM: 6, maxM: 20),
+          VisibilityScale.tropical,
+          en,
+          metric,
+        ),
+        '6-20 m',
+      );
+    });
+  });
+
+  group('formatDiveVisibility precedence with a range', () {
+    test('a range shows when there is no measurement', () {
+      expect(
+        formatDiveVisibility(
+          meters: null,
+          range: const VisibilityRange(minM: 12),
+          legacy: null,
+          scale: VisibilityScale.coldWater,
+          l10n: en,
+          units: metric,
+        ),
+        '12 m+ · Excellent',
+      );
+    });
+
+    test('a measurement wins over a range carried alongside it', () {
+      expect(
+        formatDiveVisibility(
+          meters: 8,
+          range: const VisibilityRange(minM: 6, maxM: 12),
+          legacy: null,
+          scale: VisibilityScale.coldWater,
+          l10n: en,
+          units: metric,
+        ),
+        formatMeasuredVisibility(8, VisibilityScale.coldWater, en, metric),
+      );
+    });
+  });
+
+  group('formatDiveVisibilityPlain (PDF pages)', () {
+    String? plain({
+      double? meters,
+      VisibilityRange? range,
+      Visibility? legacy,
+    }) => formatDiveVisibilityPlain(
+      meters: meters,
+      range: range,
+      legacy: legacy,
+      l10n: en,
+      units: metric,
+    );
+
+    test('a range renders without an adjective', () {
+      expect(plain(range: const VisibilityRange(minM: 6, maxM: 12)), '6-12 m');
+    });
+
+    test('precedence is measurement, then range, then bucket', () {
+      expect(
+        plain(meters: 8, range: const VisibilityRange(minM: 6)),
+        metric.formatDistance(8),
+      );
+      expect(
+        plain(range: const VisibilityRange(maxM: 2), legacy: Visibility.good),
+        'under 2 m',
+      );
+      expect(
+        plain(legacy: Visibility.good),
+        visibilityName(Visibility.good, en),
+      );
+      expect(plain(), isNull);
     });
   });
 }

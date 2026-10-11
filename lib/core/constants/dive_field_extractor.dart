@@ -53,7 +53,11 @@ extension DiveFieldExtractor on DiveField {
         // Raw metric value, consistent with maxDepth and swellHeight: the
         // UnitFormatter converts at render time. Pre-v144 dives have no
         // measurement, so they fall back to the legacy bucket's English label.
-        return dive.visibilityMeters ?? dive.visibility?.displayName;
+        // A band-picked dive (issue #3226) yields its VisibilityRange, which
+        // sorts after measured values and before legacy text.
+        return dive.visibilityMeters ??
+            dive.visibilityRange ??
+            dive.visibility?.displayName;
       case DiveField.currentDirection:
         return dive.currentDirection?.displayName;
       case DiveField.currentStrength:

@@ -3,7 +3,12 @@ import 'package:submersion/core/services/export/csv/codec/csv_unit.dart';
 /// One unit-bearing column of a Submersion CSV export, declared once so the
 /// exporter and the importer agree on its name and quantity.
 class CsvColumn {
-  const CsvColumn(this.base, this.quantity, {required this.metricDecimals});
+  const CsvColumn(
+    this.base,
+    this.quantity, {
+    required this.metricDecimals,
+    this.exact = false,
+  });
 
   /// Header text before the unit suffix.
   final String base;
@@ -13,6 +18,11 @@ class CsvColumn {
   /// Decimals the Metric export has always used for this column. Null means
   /// the value was written with `double.toString()`, which Metric mode keeps.
   final int? metricDecimals;
+
+  /// Written unrounded in every mode, My units included. For values whose
+  /// exact edge matters on the way back in: a visibility range that drifts
+  /// by rounding leaves its band (issue #3226).
+  final bool exact;
 }
 
 /// Every unit-bearing column the dives, sites, equipment and fills exports
@@ -55,6 +65,23 @@ abstract final class CsvColumns {
     'Visibility',
     CsvQuantity.depth,
     metricDecimals: 1,
+  );
+
+  /// Low end of a visibility range (issue #3226), inclusive; empty for a
+  /// measured or legacy dive.
+  static const visibilityMin = CsvColumn(
+    'Visibility Min',
+    CsvQuantity.depth,
+    metricDecimals: null,
+    exact: true,
+  );
+
+  /// High end of a visibility range, exclusive.
+  static const visibilityMax = CsvColumn(
+    'Visibility Max',
+    CsvQuantity.depth,
+    metricDecimals: null,
+    exact: true,
   );
   static const startPressure = CsvColumn(
     'Start Pressure',

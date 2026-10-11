@@ -18,6 +18,8 @@ const _diveFields = <String>[
   'bottomTemp',
   'visibility',
   'visibilityMeters',
+  'visibilityMinMeters',
+  'visibilityMaxMeters',
   'diveType',
   'diveTypeIds',
   'diveMode',

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
@@ -2823,6 +2824,12 @@ class UddfEntityImporter {
 
       final diveName = (diveData['name'] as String?)?.trim();
       final gps = _diveGps(diveData, dataSourcesByDiveRef);
+      // Every importer's range lands here (issue #3226): an unreadable one
+      // (negative, inverted) from a hand-edited file imports as no range.
+      final visibilityRange = VisibilityRange.tryParse(
+        asDoubleOrNull(diveData['visibilityMinMeters']),
+        asDoubleOrNull(diveData['visibilityMaxMeters']),
+      );
       var dive = Dive(
         id: diveId,
         diverId: diverId,
@@ -2856,6 +2863,8 @@ class UddfEntityImporter {
         notes: notes,
         visibility: _parseEnum(diveData['visibility'], Visibility.values),
         visibilityMeters: diveData['visibilityMeters'] as double?,
+        visibilityMinMeters: visibilityRange?.minM,
+        visibilityMaxMeters: visibilityRange?.maxM,
         diveTypeIds: diveTypeIds,
         profile: profile,
         tanks: tanks,

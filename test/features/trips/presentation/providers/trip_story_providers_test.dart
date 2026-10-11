@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' show DivesCompanion;
@@ -56,6 +57,54 @@ void main() {
     expect(story.trip.id, 'trip-1');
     expect(story.days, isNotEmpty);
     expect(story.days.expand((d) => d.dives).single.id, 'd1');
+  });
+
+  group('across midnight', () {
+    final trip = Trip(
+      id: 'trip-1',
+      name: 'Bonaire',
+      startDate: DateTime(2026, 3, 28),
+      endDate: DateTime(2026, 3, 30),
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    Future<List<Override>> overrides() async => [
+      ...await getBaseOverrides(),
+      tripByIdProvider('trip-1').overrideWith((ref) async => trip),
+      divesForTripProvider('trip-1').overrideWith((ref) async => []),
+      itineraryDaysProvider('trip-1').overrideWith((ref) async => []),
+      mediaForTripProvider('trip-1').overrideWith((ref) async => {}),
+      tripChecklistProvider('trip-1').overrideWith((ref) async => []),
+      tripSightingsByDiveProvider('trip-1').overrideWith((ref) async => {}),
+    ];
+
+    test('the story moves today on at midnight', () async {
+      final base = await overrides();
+      fakeAsync((async) {
+        final c = ProviderContainer(overrides: base.cast());
+        c.listen(tripStoryProvider('trip-1'), (_, _) {});
+        async.flushMicrotasks();
+        expect(c.read(tripStoryProvider('trip-1')).value!.todayIndex, 0);
+
+        async.elapse(const Duration(hours: 2));
+        async.flushMicrotasks();
+        expect(c.read(tripStoryProvider('trip-1')).value!.todayIndex, 1);
+        c.dispose();
+      }, initialTime: DateTime(2026, 3, 28, 23));
+    });
+
+    test('tripTodayProvider moves on at midnight', () {
+      fakeAsync((async) {
+        final c = ProviderContainer();
+        c.listen(tripTodayProvider, (_, _) {});
+        expect(c.read(tripTodayProvider).day, 28);
+        async.elapse(const Duration(hours: 2));
+        async.flushMicrotasks();
+        expect(c.read(tripTodayProvider).day, 29);
+        c.dispose();
+      }, initialTime: DateTime(2026, 3, 28, 23));
+    });
   });
 
   test(

@@ -484,13 +484,15 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _Field(l10n.pdf_waterTemp, units.formatTemperature(dive.waterTemp)),
       if (dive.airTemp != null)
         _Field(l10n.pdf_airTemp, units.formatTemperature(dive.airTemp)),
-      if (dive.visibilityMeters != null)
-        _Field(
-          l10n.pdf_visibility,
-          units.formatDistance(dive.visibilityMeters!),
-        )
-      else if (dive.visibility != null)
-        _Field(l10n.pdf_visibility, visibilityName(dive.visibility!, l10n)),
+      if (formatDiveVisibilityPlain(
+            meters: dive.visibilityMeters,
+            range: dive.visibilityRange,
+            legacy: dive.visibility,
+            l10n: l10n,
+            units: units,
+          )
+          case final visibility?)
+        _Field(l10n.pdf_visibility, visibility),
       if (dive.currentStrength != null)
         _Field(l10n.pdf_current, dive.currentStrength!.localizedName(l10n)),
       if (dive.currentDirection != null)

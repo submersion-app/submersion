@@ -14,8 +14,13 @@ import 'package:submersion/features/media/presentation/widgets/media_item_view.d
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
+import 'package:submersion/features/trips/domain/services/day_conditions.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/day_conditions_line.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/day_format.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/today_card_shape.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/day_rhythm_bar.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_map.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_plan.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const int _maxPhotoThumbnails = 6;
@@ -87,35 +92,42 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
         watchDiveTypeListVisibilityPredicate(ref);
 
     // The day title, subtitle, and Planned chip live in the sticky
-    // TripStoryDayHeader above this card; the card is body-only. A planned
-    // day whose itinerary has nothing to show would produce an empty card,
-    // so skip it entirely. A surface day has nothing by definition and takes
-    // the same exit: its header is the whole chapter.
-    // Blank is not content: a whitespace-only port or note would otherwise
-    // defeat this guard and render a card with nothing in it. The edit sheet
-    // normalizes empties away, but sync and import payloads do not.
-    final itinerary = day.itineraryDay;
-    final hasPlannedExtras =
-        _isPlanned &&
-        ((itinerary?.notes.trim().isNotEmpty ?? false) ||
-            (itinerary?.portName?.trim().isNotEmpty ?? false));
+    // TripStoryDayHeader above this card; the card is body-only. A day with
+    // nothing to show would produce an empty card, so skip it entirely. A
+    // surface day has nothing by definition and takes the same exit: its
+    // header is the whole chapter.
+    final historySite = TripStoryDayPlan.historySite(day);
+    final hasHistory =
+        historySite != null &&
+        (ref
+                    .watch(siteHistoryByNameProvider(historySite))
+                    .valueOrNull
+                    ?.diveCount ??
+                0) >
+            0;
+    final hasPlan = TripStoryDayPlan.hasContent(day, hasHistory: hasHistory);
     final hasBody =
         widget.mapPoints.isNotEmpty ||
         day.dives.isNotEmpty ||
         day.media.isNotEmpty ||
         day.sightings.isNotEmpty ||
-        hasPlannedExtras;
+        hasPlan;
     if (!hasBody) {
       return const SizedBox.shrink();
     }
 
+    // Today's card carries the header's emphasis down its edge; a day ahead
+    // keeps the quiet outline that marks it as only a plan.
+    final ShapeBorder? shape = switch (day.kind) {
+      TripStoryDayKind.today => todayCardShape(theme),
+      TripStoryDayKind.future => dayCardShape(
+        theme,
+        BorderSide(color: theme.colorScheme.outlineVariant),
+      ),
+      TripStoryDayKind.past => null,
+    };
     return Card(
-      shape: _isPlanned
-          ? RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: theme.colorScheme.outlineVariant),
-            )
-          : null,
+      shape: shape,
       child: Opacity(
         opacity: _isPlanned ? 0.85 : 1,
         child: Padding(
@@ -147,6 +159,16 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                   ),
                 ),
                 const SizedBox(height: 12),
+              ],
+              // The plan reads first: what the day was meant to be, then
+              // what it became.
+              if (hasPlan) ...[
+                TripStoryDayPlan(
+                  day: day,
+                  units: units,
+                  hasHistory: hasHistory,
+                ),
+                if (day.dives.isNotEmpty) const SizedBox(height: 12),
               ],
               if (day.dives.isNotEmpty) ...[
                 _DaySummaryBand(day: day, units: units),
@@ -190,7 +212,6 @@ class _TripStoryDayCardState extends ConsumerState<TripStoryDayCard> {
                 const SizedBox(height: 6),
                 _SightingChips(day: day),
               ],
-              if (_isPlanned) _PlannedExtras(day: day, units: units),
             ],
           ),
         ),
@@ -210,6 +231,7 @@ class _DaySummaryBand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final conditions = DayConditions.fromDives(day.dives);
     return Container(
       key: const Key('day-summary-band'),
       padding: const EdgeInsets.all(12),
@@ -223,6 +245,10 @@ class _DaySummaryBand extends StatelessWidget {
           _DayStatStrip(day: day, units: units),
           const SizedBox(height: 10),
           DayRhythmBar(dives: day.dives),
+          if (!conditions.isEmpty) ...[
+            const SizedBox(height: 8),
+            DayConditionsLine(conditions: conditions, units: units),
+          ],
         ],
       ),
     );
@@ -259,10 +285,7 @@ class _DayStatStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final runtime = day.totalRuntime;
-    final runtimeLabel = runtime.inHours > 0
-        ? '${runtime.inHours}h ${runtime.inMinutes % 60}m'
-        : '${runtime.inMinutes}m';
+    final runtimeLabel = formatDayRuntime(day.totalRuntime);
     final stats = <(String, String)>[
       (l10n.trips_detail_stat_totalDives, '${day.diveCount}'),
       (l10n.trips_detail_stat_totalRuntime, runtimeLabel),
@@ -419,84 +442,6 @@ class _SightingChips extends StatelessWidget {
             visualDensity: VisualDensity.compact,
           ),
       ],
-    );
-  }
-}
-
-/// Itinerary notes and site-history context pills for planned days.
-class _PlannedExtras extends ConsumerWidget {
-  final TripStoryDay day;
-  final UnitFormatter units;
-
-  const _PlannedExtras({required this.day, required this.units});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Same blank-is-absent rule the card's hasPlannedExtras guard applies, so a
-    // whitespace-only port cannot render an empty note or send a blank site
-    // name to the history lookup.
-    final itinerary = day.itineraryDay;
-    final notes = itinerary?.notes.trim() ?? '';
-    final portName = itinerary?.portName?.trim() ?? '';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (notes.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(notes, style: Theme.of(context).textTheme.bodySmall),
-        ],
-        if (portName.isNotEmpty)
-          _HistoryPills(siteName: portName, units: units),
-      ],
-    );
-  }
-}
-
-class _HistoryPills extends ConsumerWidget {
-  final String siteName;
-  final UnitFormatter units;
-
-  const _HistoryPills({required this.siteName, required this.units});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final historyAsync = ref.watch(siteHistoryByNameProvider(siteName));
-    final history = historyAsync.valueOrNull;
-    if (history == null || history.diveCount == 0) {
-      return const SizedBox.shrink();
-    }
-    final l10n = context.l10n;
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 4,
-        children: [
-          Chip(
-            label: Text(l10n.trips_story_history_dives(history.diveCount)),
-            visualDensity: VisualDensity.compact,
-          ),
-          if (history.avgWaterTemp != null)
-            Chip(
-              label: Text(
-                l10n.trips_story_history_avgTemp(
-                  units.formatTemperature(history.avgWaterTemp),
-                ),
-              ),
-              visualDensity: VisualDensity.compact,
-            ),
-          if (history.avgMaxDepth != null)
-            Chip(
-              label: Text(
-                l10n.trips_story_history_avgDepth(
-                  units.formatDepth(history.avgMaxDepth),
-                ),
-              ),
-              visualDensity: VisualDensity.compact,
-            ),
-        ],
-      ),
     );
   }
 }

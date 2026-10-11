@@ -1690,6 +1690,56 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_dayType_rest => '休息';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return '水流 $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return '能见度 $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return '水温 $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '已完成 $logged 次，计划 $planned 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个物种',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from 至 $to';
+  }
+
+  @override
   String get trips_story_planned => '已计划';
 
   @override
@@ -7085,6 +7135,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => '能见度';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => '范围';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => '精确';
 
   @override
   String get diveLog_edit_label_waterTemp => '水温';
@@ -35746,6 +35802,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String insights_conditions_visibility_legacySuffix(String band) {
     return '$band（测量功能之前记录）';
   }
+
+  @override
+  String get insights_conditions_visibility_spansBands => '跨多个等级';
 
   @override
   String common_selection_countSelected(Object count) {

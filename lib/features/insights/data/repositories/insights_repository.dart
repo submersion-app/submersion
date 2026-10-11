@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
     show dartWhitespaceSqlChars;
+import 'package:submersion/features/insights/data/repositories/visibility_band_sql.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
@@ -1186,11 +1188,7 @@ class InsightsRepository {
       // Threshold variables come first: they appear before the diver and
       // filter placeholders in the statement below, and Drift binds
       // positionally.
-      final scaleParams = [
-        scale.excellentAtOrAboveM,
-        scale.goodAtOrAboveM,
-        scale.moderateAtOrAboveM,
-      ];
+      final scaleParams = VisibilityBandSql.params(scale);
       final params = diverId != null
           ? [...scaleParams, diverId, ...df.params]
           : [...scaleParams, ...df.params];
@@ -1198,18 +1196,14 @@ class InsightsRepository {
       final results = await _db.customSelect('''
         SELECT bucket, COUNT(*) AS count FROM (
           SELECT CASE
-            WHEN visibility_meters IS NOT NULL THEN
-              CASE
-                WHEN visibility_meters >= ? THEN 'excellent'
-                WHEN visibility_meters >= ? THEN 'good'
-                WHEN visibility_meters >= ? THEN 'moderate'
-                ELSE 'poor'
-              END
+            ${VisibilityBandSql.whenBranches('')}
             ELSE 'legacy_' || visibility
           END AS bucket
           FROM dives
           WHERE (
             visibility_meters IS NOT NULL
+            OR visibility_min_meters IS NOT NULL
+            OR visibility_max_meters IS NOT NULL
             OR (visibility IS NOT NULL AND visibility != '')
           ) $diverFilter ${df.clause}
         )
@@ -1224,8 +1218,9 @@ class InsightsRepository {
       final total = counts.values.fold<int>(0, (sum, c) => sum + c);
       if (total == 0) return [];
 
-      // Calibrated bands first, best to worst, then whatever legacy buckets
-      // remain. The legacy segments shrink naturally as old dives are edited.
+      // Calibrated bands first, best to worst, then ranges that cross a band
+      // edge (issue #3226), then whatever legacy buckets remain. The legacy
+      // segments shrink naturally as old dives are edited.
       final ordered = <String>[
         ...[
           VisibilityBand.excellent,
@@ -1233,6 +1228,8 @@ class InsightsRepository {
           VisibilityBand.moderate,
           VisibilityBand.poor,
         ].map((b) => b.name).where(counts.containsKey),
+        if (counts.containsKey(visibilityRangeSpanningKey))
+          visibilityRangeSpanningKey,
         ...counts.keys.where((k) => k.startsWith('legacy_')).toList()..sort(),
       ];
 

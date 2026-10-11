@@ -61,6 +61,7 @@ QueryField _num(
   FieldDimension dimension = FieldDimension.none,
   ({double min, double max})? sanity,
   String? emptySql,
+  ({String low, String high})? rangeSql,
   List<String> tables = const [],
 }) => QueryField(
   key: key,
@@ -71,6 +72,7 @@ QueryField _num(
   emptySql: emptySql ?? '$sql IS NULL',
   labelKey: _label(key),
   sanity: sanity,
+  rangeSql: rangeSql,
   tables: tables,
 );
 
@@ -312,9 +314,16 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'visibility',
       '{r}.visibility_meters',
       dimension: FieldDimension.depth,
+      // A band pick stores a range instead (issue #3226).
+      rangeSql: (
+        low: '{r}.visibility_min_meters',
+        high: '{r}.visibility_max_meters',
+      ),
       emptySql:
-          '({r}.visibility_meters IS NULL AND ({r}.visibility IS NULL '
-          "OR TRIM({r}.visibility) = ''))",
+          '({r}.visibility_meters IS NULL '
+          'AND {r}.visibility_min_meters IS NULL '
+          'AND {r}.visibility_max_meters IS NULL '
+          "AND ({r}.visibility IS NULL OR TRIM({r}.visibility) = ''))",
     ),
     _num(
       'rating',

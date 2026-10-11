@@ -1532,7 +1532,7 @@ class SyncService {
             records: data.diveComputers,
             hasUpdatedAt: true,
           ),
-          // v278: a computer's connections, after their parent (#3106).
+          // v279: a computer's connections, after their parent (#3106).
           (
             type: 'diveComputerConnections',
             records: data.diveComputerConnections,
@@ -2804,7 +2804,7 @@ class SyncService {
     'diveComputers': [
       (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
-    // v278: a connection belongs to its computer (issue #3106).
+    // v279: a connection belongs to its computer (issue #3106).
     'diveComputerConnections': [
       (field: 'computerId', parent: 'diveComputers', nullable: false),
     ],

@@ -1750,6 +1750,59 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_dayType_rest => 'Ruhetag';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'Strömung $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'Sicht $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'Wasser $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos',
+      one: '$count Foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged von $planned geplanten Tauchgängen',
+      one: '$logged von $planned geplanten Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Arten',
+      one: '$count Art',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from bis $to';
+  }
+
+  @override
   String get trips_story_planned => 'Geplant';
 
   @override
@@ -7452,6 +7505,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => 'Sichtweite';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => 'Bereich';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'Genau';
 
   @override
   String get diveLog_edit_label_waterTemp => 'Wassertemp.';
@@ -37810,6 +37869,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String insights_conditions_visibility_legacySuffix(String band) {
     return '$band (vor der Messung erfasst)';
   }
+
+  @override
+  String get insights_conditions_visibility_spansBands => 'Über mehrere Stufen';
 
   @override
   String common_selection_countSelected(Object count) {

@@ -6,7 +6,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// Dive computer connections (v278, issue #3106) in sync: a top-level
+/// Dive computer connections (v279, issue #3106) in sync: a top-level
 /// last-writer-wins entity whose `address` and `localLastUsedAt` belong to
 /// the device that made the connection and never travel.
 void main() {

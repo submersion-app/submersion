@@ -2,7 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v278: the download connections each dive computer has reached the
+/// Schema v279: the download connections each dive computer has reached the
 /// library through (issue #3106).
 void main() {
   Future<Set<String>> columnsOf(AppDatabase db, String table) async {
@@ -15,12 +15,12 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  test('v278 is the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(278));
-    expect(AppDatabase.migrationVersions, contains(278));
+  test('v279 is the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(279));
+    expect(AppDatabase.migrationVersions, contains(279));
     expect(
-      AppDatabase.migrationStepCount(277),
-      AppDatabase.migrationStepCount(278) + 1,
+      AppDatabase.migrationStepCount(278),
+      AppDatabase.migrationStepCount(279) + 1,
     );
   });
 
@@ -46,12 +46,12 @@ void main() {
     );
   });
 
-  test('beforeOpen creates the table on a file already at 278 without '
+  test('beforeOpen creates the table on a file already at 279 without '
       'it', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) {
-          rawDb.execute('PRAGMA user_version = 278');
+          rawDb.execute('PRAGMA user_version = 279');
           rawDb.execute('CREATE TABLE divers (id TEXT PRIMARY KEY)');
           rawDb.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
           rawDb.execute(
@@ -71,7 +71,7 @@ void main() {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) {
-          rawDb.execute('PRAGMA user_version = 278');
+          rawDb.execute('PRAGMA user_version = 279');
           rawDb.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
         },
       ),

@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -71,6 +72,14 @@ class Dive extends Equatable {
   /// The good/poor adjective is derived at display time from the diver's
   /// calibration, so this stores only what was actually observed.
   final double? visibilityMeters;
+
+  /// Low end of a visibility range in meters, inclusive (v278, issue #3226).
+  /// Set when the diver picked a band rather than measuring. Never set
+  /// together with [visibilityMeters].
+  final double? visibilityMinMeters;
+
+  /// High end of a visibility range in meters, exclusive.
+  final double? visibilityMaxMeters;
 
   /// References dive_types table (>= 1; first is the representative).
   final List<String> diveTypeIds;
@@ -249,6 +258,8 @@ class Dive extends Equatable {
     this.airTemp,
     this.visibility,
     this.visibilityMeters,
+    this.visibilityMinMeters,
+    this.visibilityMaxMeters,
     this.diveTypeIds = const ['recreational'],
     this.diveType,
     this.buddy,
@@ -357,6 +368,10 @@ class Dive extends Equatable {
   /// Requires [site] to be hydrated; a dive loaded without its site reports
   /// only its own value.
   EntryMethod? get effectiveEntryMethod => entryMethod ?? site?.entryMethod;
+
+  /// The stored visibility range, or null when the dive has none.
+  VisibilityRange? get visibilityRange =>
+      VisibilityRange.fromColumns(visibilityMinMeters, visibilityMaxMeters);
 
   /// User-defined name, normalized for display: trimmed, with empty or
   /// whitespace-only values treated as unset (null). In-app writes never
@@ -674,6 +689,8 @@ class Dive extends Equatable {
     double? airTemp,
     Visibility? visibility,
     double? visibilityMeters,
+    double? visibilityMinMeters,
+    double? visibilityMaxMeters,
     List<String>? diveTypeIds,
     DiveTypeEntity? diveType,
     String? buddy,
@@ -778,6 +795,8 @@ class Dive extends Equatable {
       airTemp: airTemp ?? this.airTemp,
       visibility: visibility ?? this.visibility,
       visibilityMeters: visibilityMeters ?? this.visibilityMeters,
+      visibilityMinMeters: visibilityMinMeters ?? this.visibilityMinMeters,
+      visibilityMaxMeters: visibilityMaxMeters ?? this.visibilityMaxMeters,
       diveTypeIds: diveTypeIds ?? this.diveTypeIds,
       diveType: diveType ?? this.diveType,
       buddy: buddy ?? this.buddy,
@@ -884,6 +903,8 @@ class Dive extends Equatable {
     airTemp,
     visibility,
     visibilityMeters,
+    visibilityMinMeters,
+    visibilityMaxMeters,
     diveTypeIds,
     diveType,
     buddy,

@@ -52,6 +52,8 @@ const Set<String> kHumanDiveFields = {
   'airTemp',
   'visibility',
   'visibilityMeters',
+  'visibilityMinMeters',
+  'visibilityMaxMeters',
   'currentDirection',
   'currentStrength',
   'swellHeight',

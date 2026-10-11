@@ -11,6 +11,8 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_collection_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
 import 'package:submersion/shared/bulk_edit/bulk_membership_editor.dart';
@@ -276,6 +278,67 @@ void main() {
       expect(
         (await repository.getDiveById(d2.id))!.diverRoleIds.firstOrNull,
         DiveRole.instructorId,
+      );
+    });
+
+    testWidgets('a bulk band pick writes its range to every dive and is '
+        'remembered for the next new dive (issue #3226)', (tester) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'vis-1'),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'vis-2'),
+      );
+      final overrides = await getBaseOverrides();
+      final container = ProviderContainer(
+        overrides: buildOverrides(overrides).cast(),
+      );
+      addTearDown(container.dispose);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [d1.id, d2.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final gate = find.ancestor(
+        of: find.text('Visibility'),
+        matching: find.byType(BulkFieldGate),
+      );
+      await tester.ensureVisible(gate);
+      await tester.tap(
+        find.descendant(of: gate, matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.descendant(of: gate, matching: find.text('Range')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Good'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      // Default (tropical) scale: Good is 15-30 m.
+      for (final id in [d1.id, d2.id]) {
+        final dive = (await repository.getDiveById(id))!;
+        expect(dive.visibilityMinMeters, 15, reason: id);
+        expect(dive.visibilityMaxMeters, 30, reason: id);
+        expect(dive.visibilityMeters, isNull, reason: id);
+      }
+      expect(
+        container.read(visibilityInputModeProvider),
+        VisibilityInputMode.range,
       );
     });
 

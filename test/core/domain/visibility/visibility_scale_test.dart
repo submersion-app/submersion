@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 
 void main() {
@@ -159,6 +160,111 @@ void main() {
 
     test('scales with different thresholds are not equal', () {
       expect(VisibilityScale.coldWater, isNot(VisibilityScale.tropical));
+    });
+  });
+
+  group('VisibilityScale.rangeFor (issue #3226)', () {
+    test('cold-water bands become their metre ranges', () {
+      const scale = VisibilityScale.coldWater;
+      expect(
+        scale.rangeFor(VisibilityBand.poor),
+        const VisibilityRange(maxM: 2),
+      );
+      expect(
+        scale.rangeFor(VisibilityBand.moderate),
+        const VisibilityRange(minM: 2, maxM: 6),
+      );
+      expect(
+        scale.rangeFor(VisibilityBand.good),
+        const VisibilityRange(minM: 6, maxM: 12),
+      );
+      expect(
+        scale.rangeFor(VisibilityBand.excellent),
+        const VisibilityRange(minM: 12),
+      );
+    });
+
+    test('every band range maps back to its own band on the same scale', () {
+      for (final scale in const [
+        VisibilityScale.tropical,
+        VisibilityScale.temperate,
+        VisibilityScale.coldWater,
+      ]) {
+        for (final band in VisibilityBand.values) {
+          expect(scale.bandForRange(scale.rangeFor(band)), band);
+          expect(scale.bandMatching(scale.rangeFor(band)), band);
+        }
+      }
+    });
+  });
+
+  group('VisibilityScale.bandForRange', () {
+    const tropical = VisibilityScale.tropical;
+
+    test('a range inside one band takes that band', () {
+      expect(
+        tropical.bandForRange(const VisibilityRange(minM: 16, maxM: 25)),
+        VisibilityBand.good,
+      );
+      // Cold water's Good (6-12 m) sits inside tropical Moderate (5-15 m).
+      expect(
+        tropical.bandForRange(const VisibilityRange(minM: 6, maxM: 12)),
+        VisibilityBand.moderate,
+      );
+      expect(
+        tropical.bandForRange(const VisibilityRange(maxM: 3)),
+        VisibilityBand.poor,
+      );
+      expect(
+        tropical.bandForRange(const VisibilityRange(minM: 40)),
+        VisibilityBand.excellent,
+      );
+    });
+
+    test('a range crossing a band edge has no band', () {
+      expect(
+        tropical.bandForRange(const VisibilityRange(minM: 6, maxM: 20)),
+        isNull,
+      );
+      expect(tropical.bandForRange(const VisibilityRange(maxM: 10)), isNull);
+      expect(tropical.bandForRange(const VisibilityRange(minM: 20)), isNull);
+      expect(
+        VisibilityScale.coldWater.bandForRange(
+          const VisibilityRange(minM: 1, maxM: 3),
+        ),
+        isNull,
+      );
+    });
+
+    test('a high end equal to a threshold stays in the lower band', () {
+      expect(
+        tropical.bandForRange(const VisibilityRange(minM: 15, maxM: 30)),
+        VisibilityBand.good,
+      );
+      expect(
+        tropical.bandForRange(const VisibilityRange(maxM: 5)),
+        VisibilityBand.poor,
+      );
+    });
+  });
+
+  group('VisibilityScale.bandMatching', () {
+    test('only an exact band range selects a band', () {
+      const cold = VisibilityScale.coldWater;
+      expect(
+        cold.bandMatching(const VisibilityRange(minM: 6, maxM: 12)),
+        VisibilityBand.good,
+      );
+      expect(
+        cold.bandMatching(const VisibilityRange(minM: 6, maxM: 11)),
+        isNull,
+      );
+      expect(
+        VisibilityScale.tropical.bandMatching(
+          cold.rangeFor(VisibilityBand.good),
+        ),
+        isNull,
+      );
     });
   });
 }

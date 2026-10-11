@@ -3267,6 +3267,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             if (dive.courseId != null) _buildCourseRow(context, ref, dive),
             if (formatDiveVisibility(
                   meters: dive.visibilityMeters,
+                  range: dive.visibilityRange,
                   legacy: dive.visibility,
                   scale: ref.watch(settingsProvider).visibilityScale,
                   l10n: context.l10n,

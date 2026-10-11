@@ -28,6 +28,8 @@ void main() {
     String id, {
     double? waterTemp,
     double? visibilityMeters,
+    double? visibilityMinMeters,
+    double? visibilityMaxMeters,
     WaterType? waterType,
     String? siteId,
   }) => db
@@ -40,6 +42,8 @@ void main() {
           updatedAt: Value(now),
           waterTemp: Value(waterTemp),
           visibilityMeters: Value(visibilityMeters),
+          visibilityMinMeters: Value(visibilityMinMeters),
+          visibilityMaxMeters: Value(visibilityMaxMeters),
           waterType: Value(waterType?.name),
           siteId: Value(siteId),
         ),
@@ -121,6 +125,26 @@ void main() {
     await insertDive('none');
     await expectParity(const DiveFilterState(minVisibility: 20), {'clear'});
     await expectParity(const DiveFilterState(maxVisibility: 5), {'murky'});
+  });
+
+  test('visibility bounds match a range only when the whole range fits '
+      '(issue #3226)', () async {
+    await insertDive('poor', visibilityMaxMeters: 2);
+    await insertDive('good', visibilityMinMeters: 6, visibilityMaxMeters: 12);
+    await insertDive('excellent', visibilityMinMeters: 12);
+    // Carries a measurement of 3 m beside a range (an older device's sync):
+    // it matches by the measurement only.
+    await insertDive('both', visibilityMeters: 3, visibilityMinMeters: 12);
+
+    await expectParity(const DiveFilterState(minVisibility: 5), {
+      'good',
+      'excellent',
+    });
+    await expectParity(const DiveFilterState(maxVisibility: 20), {
+      'poor',
+      'good',
+      'both',
+    });
   });
 
   test('water types', () async {

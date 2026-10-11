@@ -276,7 +276,7 @@ const List<DiverDeleteStep> diverLibrarySteps = [
   ),
   (table: 'tank_presets', entityType: 'tankPresets', where: 'diver_id = ?1'),
   // Before their computers: `deleteComputer` tombstones a computer's
-  // connections (v278, issue #3106), so the diver delete does too.
+  // connections (v279, issue #3106), so the diver delete does too.
   (
     table: 'dive_computer_connections',
     entityType: 'diveComputerConnections',

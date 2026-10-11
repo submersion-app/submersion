@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
@@ -611,6 +612,43 @@ void main() {
       final a = dive('a', entry: DateTime.utc(2026, 7, 1, 9), runtimeMin: 30);
       final b = dive('b', entry: DateTime.utc(2026, 7, 1, 10), runtimeMin: 30);
       expect(builder.build([a, b]).previewProfile, isEmpty);
+    });
+  });
+
+  group('build - visibility (issue #3226)', () {
+    Dive at(String id, int hour) =>
+        dive(id, entry: DateTime.utc(2026, 7, 1, hour), runtimeMin: 20);
+
+    test('a measured distance from any source wins over an earlier range', () {
+      final a = at(
+        'a',
+        9,
+      ).copyWith(visibilityMinMeters: 6, visibilityMaxMeters: 12);
+      final b = at('b', 10).copyWith(visibilityMeters: 8);
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.visibilityMeters, 8);
+      expect(merged.visibilityRange, isNull);
+    });
+
+    test('a range wins over a legacy bucket', () {
+      final a = at('a', 9).copyWith(visibility: Visibility.good);
+      final b = at(
+        'b',
+        10,
+      ).copyWith(visibilityMinMeters: 6, visibilityMaxMeters: 12);
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.visibilityRange, const VisibilityRange(minM: 6, maxM: 12));
+      expect(merged.visibility, isNull);
+    });
+
+    test('the range comes whole from one source', () {
+      final a = at('a', 9).copyWith(visibilityMaxMeters: 2);
+      final b = at(
+        'b',
+        10,
+      ).copyWith(visibilityMinMeters: 6, visibilityMaxMeters: 12);
+      final merged = builder.build([a, b]).mergedDive;
+      expect(merged.visibilityRange, const VisibilityRange(maxM: 2));
     });
   });
 }

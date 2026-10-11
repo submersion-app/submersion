@@ -1733,6 +1733,59 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_dayType_rest => 'מנוחה';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'זרם $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'ראות $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'מים $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות',
+      one: '$count תמונה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged מתוך $planned צלילות מתוכננות',
+      one: '$logged מתוך צלילה אחת מתוכננת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מינים',
+      one: '$count מין',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from עד $to';
+  }
+
+  @override
   String get trips_story_planned => 'מתוכנן';
 
   @override
@@ -7293,6 +7346,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => 'ראות';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => 'טווח';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'מדויק';
 
   @override
   String get diveLog_edit_label_waterTemp => 'טמפ\' מים';
@@ -36946,6 +37005,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String insights_conditions_visibility_legacySuffix(String band) {
     return '$band (נרשם לפני מדידה)';
   }
+
+  @override
+  String get insights_conditions_visibility_spansBands => 'חוצה כמה דרגות';
 
   @override
   String common_selection_countSelected(Object count) {

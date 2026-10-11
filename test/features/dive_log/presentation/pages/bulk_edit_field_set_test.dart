@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/pages/bulk_edit_field_set.dart';
 
@@ -135,5 +136,16 @@ void main() {
     expect(c.boatCaptain.present, isTrue);
     expect(c.boatCaptain.value, isNull);
     expect(c.surfaceConditions.value, 'Calm');
+  });
+
+  test('a bulk range writes both ends and clears measurement and bucket '
+      '(issue #3226)', () {
+    final c = buildScalarCompanion({
+      BulkField.visibility,
+    }, BulkScalarInputs(visibilityMinMeters: 6, visibilityMaxMeters: 12));
+    expect(c.visibilityMinMeters, const Value<double?>(6));
+    expect(c.visibilityMaxMeters, const Value<double?>(12));
+    expect(c.visibilityMeters, const Value<double?>(null));
+    expect(c.visibility, const Value<String?>(null));
   });
 }

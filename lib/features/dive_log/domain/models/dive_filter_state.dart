@@ -103,8 +103,9 @@ class DiveFilterState {
   final double? minWaterTemp;
   final double? maxWaterTemp;
 
-  /// Visibility bounds in metres against `dives.visibility_meters` only; the
-  /// legacy `visibility` bucket column is read-only and ignored.
+  /// Visibility bounds in metres against `dives.visibility_meters`, or for a
+  /// band-picked dive its whole range (issue #3226); the legacy `visibility`
+  /// bucket column is read-only and ignored.
   final double? minVisibility;
   final double? maxVisibility;
 

@@ -239,7 +239,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     ConnectionMaps,
     // Gear packed for a trip (v248, issue #2338)
     TripEquipment,
-    // Download connections per dive computer (v278, issue #3106)
+    // Download connections per dive computer (v279, issue #3106)
     DiveComputerConnections,
     // A profile's hidden shared trips and sites (v250, issue #2594)
     TripHides,
@@ -262,7 +262,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 278;
+  static const int currentSchemaVersion = 279;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1190,9 +1190,11 @@ class AppDatabase extends _$AppDatabase {
     // v277: documents and document_pages; insurance, medical clearance and
     // certification card photos copied in (issue #2613).
     277,
-    // v278: dive_computer_connections (issue #3106). Table-only rung, no
-    // backfill; the floor does not move.
+    // v278: dives.visibility_min_meters / visibility_max_meters (issue #3226).
     278,
+    // v279: dive_computer_connections (issue #3106). Table-only rung, no
+    // backfill; the floor does not move.
+    279,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -113,4 +113,26 @@ void main() {
 
     expect(visibilityRow(l10nOf(tester)), findsNothing);
   });
+
+  testWidgets('a range dive shows its range and band (issue #3226)', (
+    tester,
+  ) async {
+    await pumpWith(
+      tester,
+      createTestDiveWithBottomTime().copyWith(
+        visibilityMinMeters: 15,
+        visibilityMaxMeters: 30,
+      ),
+    );
+
+    final l10n = l10nOf(tester);
+    // Default (tropical) scale: 15-30 m is exactly Good.
+    expect(
+      find.widgetWithText(
+        DiveDetailRow,
+        '15-30 m · ${l10n.enum_visibilityBand_good}',
+      ),
+      findsOneWidget,
+    );
+  });
 }

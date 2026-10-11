@@ -137,14 +137,7 @@ TripStory buildTripStory({
     }
     media.sort((a, b) => a.takenAt.compareTo(b.takenAt));
 
-    final TripStoryDayKind kind;
-    if (date.isBefore(todayDate)) {
-      kind = TripStoryDayKind.past;
-    } else if (date.isAfter(todayDate)) {
-      kind = TripStoryDayKind.future;
-    } else {
-      kind = TripStoryDayKind.today;
-    }
+    final kind = tripDayKind(date, todayDate);
 
     days.add(
       TripStoryDay(

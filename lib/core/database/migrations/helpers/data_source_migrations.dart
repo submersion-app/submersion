@@ -214,7 +214,7 @@ extension DataSourceMigrations on AppDatabase {
   Future<void> _healShearwaterDownloadSerials() =>
       healShearwaterDownloadSerials(this);
 
-  /// The v278 rung's one-time pass, which also converts the 8-digit serials
+  /// The v279 rung's one-time pass, which also converts the 8-digit serials
   /// the every-open heal leaves alone (issue #3106).
   Future<void> _healShearwaterDownloadSerialsOnUpgrade() =>
       healShearwaterDownloadSerials(this, includeAmbiguous: true);

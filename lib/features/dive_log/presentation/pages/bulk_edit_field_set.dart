@@ -80,6 +80,8 @@ class BulkScalarInputs {
     this.excludedFromGasStats,
     this.waterType,
     this.visibilityMeters,
+    this.visibilityMinMeters,
+    this.visibilityMaxMeters,
     this.currentDirection,
     this.currentStrength,
     this.swellHeight,
@@ -130,6 +132,11 @@ class BulkScalarInputs {
   /// applying it also clears the legacy bucket on every touched dive, matching
   /// the precedence rule in the dive repository.
   final double? visibilityMeters;
+
+  /// Low and high end of a visibility range (issue #3226), set only when the
+  /// diver picked a band. Exclusive of [visibilityMeters].
+  final double? visibilityMinMeters;
+  final double? visibilityMaxMeters;
   final String? currentDirection;
   final String? currentStrength;
   final double? swellHeight;
@@ -190,8 +197,14 @@ DivesCompanion buildScalarCompanion(
       BulkField.waterType => c.copyWith(waterType: Value(i.waterType)),
       BulkField.visibility => c.copyWith(
         visibilityMeters: Value(i.visibilityMeters),
-        // Clear the legacy bucket so a bulk-set measurement cannot leave a
-        // dive carrying a contradicting band.
+        visibilityMinMeters: Value(
+          i.visibilityMeters == null ? i.visibilityMinMeters : null,
+        ),
+        visibilityMaxMeters: Value(
+          i.visibilityMeters == null ? i.visibilityMaxMeters : null,
+        ),
+        // Clear the legacy bucket so a bulk-set value cannot leave a dive
+        // carrying a contradicting band.
         visibility: const Value(null),
       ),
       BulkField.currentDirection => c.copyWith(

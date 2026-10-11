@@ -1752,6 +1752,59 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_dayType_rest => 'Descanso';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'Corriente $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'Visibilidad $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'Agua $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos',
+      one: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged de $planned inmersiones planificadas',
+      one: '$logged de $planned inmersión planificada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count especies',
+      one: '$count especie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from a $to';
+  }
+
+  @override
   String get trips_story_planned => 'Planificado';
 
   @override
@@ -7449,6 +7502,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => 'Visibilidad';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => 'Rango';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'Preciso';
 
   @override
   String get diveLog_edit_label_waterTemp => 'Temp. del agua';
@@ -37908,6 +37967,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String insights_conditions_visibility_legacySuffix(String band) {
     return '$band (registrado antes de la medición)';
   }
+
+  @override
+  String get insights_conditions_visibility_spansBands =>
+      'Abarca varias bandas';
 
   @override
   String common_selection_countSelected(Object count) {

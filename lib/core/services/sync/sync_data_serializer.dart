@@ -9291,7 +9291,7 @@ class SyncDataSerializer {
         .toList();
   }
 
-  /// Dive computer connections (v278, issue #3106): their own clock, and
+  /// Dive computer connections (v279, issue #3106): their own clock, and
   /// this device's address and last use stripped, like [_exportDiveComputers].
   Future<List<Map<String, dynamic>>> _exportDiveComputerConnections(
     String? hlcSince,
