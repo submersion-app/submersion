@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/appearance_settings_tiles.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -65,6 +66,28 @@ void main() {
   });
 
   group('AppearanceGeneralTiles', () {
+    testWidgets('the trend gaps tile shows the threshold and saves a pick', (
+      tester,
+    ) async {
+      final notifier = await _pumpGeneralTiles(tester);
+      final tile = find.byKey(const ValueKey('settings-trend-gaps'));
+
+      expect(find.text('Collapse gaps in trend charts'), findsOneWidget);
+      expect(
+        find.descendant(of: tile, matching: find.text('1 year')),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.descendant(of: tile, matching: find.text('1 year')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('2 years').last);
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.trendGapThreshold, TrendGapThreshold.years2);
+    });
+
     testWidgets('Color Theme opens the theme gallery', (tester) async {
       await _pumpGeneralTiles(tester);
 
