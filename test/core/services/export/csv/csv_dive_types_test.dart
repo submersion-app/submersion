@@ -79,8 +79,30 @@ void main() {
     });
 
     test('appends Dive Type IDs after the pre-#1834 columns', () {
-      // Spreadsheets that address the export by position keep their offsets.
-      expect(DiveCsvColumns.fixed.last, DiveCsvColumns.diveTypeIds);
+      // Spreadsheets that address the export by position keep their offsets:
+      // Dive Type IDs still directly follows Custom Fields.
+      expect(
+        DiveCsvColumns.fixed.indexOf(DiveCsvColumns.diveTypeIds),
+        DiveCsvColumns.fixed.indexOf(DiveCsvColumns.customFields) + 1,
+      );
+    });
+
+    test('appends the #3229 columns after Dive Type IDs', () {
+      final start =
+          DiveCsvColumns.fixed.indexOf(DiveCsvColumns.diveTypeIds) + 1;
+      expect(DiveCsvColumns.fixed.sublist(start, start + 4), [
+        DiveCsvColumns.diveOperator,
+        DiveCsvColumns.boatName,
+        DiveCsvColumns.boatCaptain,
+        DiveCsvColumns.surfaceConditions,
+      ]);
+    });
+
+    test('appends the visibility range columns last (issue #3226)', () {
+      expect(DiveCsvColumns.fixed.sublist(DiveCsvColumns.fixed.length - 2), [
+        DiveCsvColumns.visibilityMin,
+        DiveCsvColumns.visibilityMax,
+      ]);
     });
   });
 }

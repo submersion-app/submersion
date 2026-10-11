@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_native_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
+import 'package:submersion/features/settings/presentation/pages/webdav_config_page.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
@@ -136,6 +137,22 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
     // S3ConfigPage activates S3 itself on save; reflect it in the draft.
     final sel = ref.read(selectedCloudProviderTypeProvider);
     if (sel == CloudProviderType.s3) {
+      ref
+          .read(setupWizardProvider(widget.mode).notifier)
+          .setConnectedProvider(sel);
+    }
+  }
+
+  Future<void> _openWebDavConfig() async {
+    // Root navigator for the same reason as _openS3Config: the onboarding
+    // redirect would bounce a go_router push back to /welcome.
+    await Navigator.of(
+      context,
+      rootNavigator: true,
+    ).push(MaterialPageRoute<void>(builder: (_) => const WebDavConfigPage()));
+    if (!mounted) return;
+    final sel = ref.read(selectedCloudProviderTypeProvider);
+    if (sel == CloudProviderType.webdav) {
       ref
           .read(setupWizardProvider(widget.mode).notifier)
           .setConnectedProvider(sel);
@@ -317,6 +334,12 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
               name: 'S3',
               onTap: _connecting ? null : _openS3Config,
             ),
+            _providerCard(
+              theme: theme,
+              icon: Icons.folder_shared,
+              name: 'WebDAV',
+              onTap: _connecting ? null : _openWebDavConfig,
+            ),
           ],
           if (connected != null)
             SwitchListTile(
@@ -360,6 +383,8 @@ class _BackupSyncStepState extends ConsumerState<BackupSyncStep> {
         return 'S3';
       case CloudProviderType.googledrive:
         return 'Google Drive';
+      case CloudProviderType.webdav:
+        return 'WebDAV';
     }
   }
 }

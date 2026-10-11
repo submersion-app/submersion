@@ -4,6 +4,7 @@ import 'package:submersion/core/services/cloud_storage/dropbox_storage_provider.
 import 'package:submersion/core/services/cloud_storage/google_drive_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/icloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/webdav_storage_provider.dart';
 
 /// Process-wide cloud storage provider singletons.
 ///
@@ -16,6 +17,7 @@ final _googleDriveProvider = GoogleDriveStorageProvider();
 final _icloudProvider = ICloudStorageProvider();
 final _s3Provider = S3StorageProvider();
 final _dropboxProvider = DropboxStorageProvider();
+final _webdavProvider = WebDavStorageProvider();
 
 /// Concrete-typed access to the S3 singleton for the configuration UI
 /// (load/save config, test connection).
@@ -24,6 +26,9 @@ S3StorageProvider get s3ProviderInstance => _s3Provider;
 /// Concrete-typed access to the Dropbox singleton for the connect UI
 /// (begin/complete authorization, account info).
 DropboxStorageProvider get dropboxProviderInstance => _dropboxProvider;
+
+/// Concrete-typed access to the WebDAV singleton for the configuration UI.
+WebDavStorageProvider get webdavProviderInstance => _webdavProvider;
 
 /// The singleton instance backing a [CloudProviderType]. Shared by the
 /// active provider resolution, old-backend cleanup (which must reach a
@@ -38,5 +43,7 @@ CloudStorageProvider cloudProviderInstanceFor(CloudProviderType type) {
       return _s3Provider;
     case CloudProviderType.dropbox:
       return _dropboxProvider;
+    case CloudProviderType.webdav:
+      return _webdavProvider;
   }
 }

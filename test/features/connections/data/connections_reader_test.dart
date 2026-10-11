@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/connections/data/connections_reader.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
@@ -134,6 +135,14 @@ void main() {
     expect(
       (await single(ConnectionKind.species)).subtitle,
       const TextSubtitle('Antennarius multiocellatus'),
+    );
+  });
+
+  test('each node carries its first dive in scope', () async {
+    await _seed(DatabaseService.instance.database);
+    expect(
+      (await single(ConnectionKind.trip)).firstDiveAt,
+      wallClockUtcFromMillis(_ms),
     );
   });
 

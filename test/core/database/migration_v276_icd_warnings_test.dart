@@ -28,9 +28,11 @@ void main() {
     );
   });
 
-  test('this rung is additive and did not move the sync floor', () {
-    // v275 raised the floor (#3091); an additive column leaves it below 276.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(276));
+  test('this rung did not raise the floor to 276', () {
+    // v275 raised it (#3091); v276 is additive. v277 (#2361) later raised
+    // it past 276 for an unrelated reason, so assert only that 276 itself
+    // was never the floor.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(276));
   });
 
   test('upgrading from v275 defaults the warnings on', () async {

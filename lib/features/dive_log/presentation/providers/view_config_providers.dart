@@ -81,6 +81,19 @@ class TableViewConfigNotifier extends StateNotifier<domain.TableViewConfig> {
     _save();
   }
 
+  /// Removes [field]'s column, pinned or not, unless it is the last one
+  /// (#2984); a sort on it is cleared. The column picker adds it back.
+  void hideColumn(DiveField field) {
+    if (state.columns.length <= 1) return;
+    final next = state.columns.where((c) => c.field != field).toList();
+    if (next.length == state.columns.length) return;
+    state = state.copyWith(
+      columns: next,
+      clearSortField: state.sortField == field,
+    );
+    _save();
+  }
+
   /// Cycle sort for [field]: unsorted -> ascending -> descending -> unsorted.
   void setSortField(DiveField field) {
     if (state.sortField != field) {

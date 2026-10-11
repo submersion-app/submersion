@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_dive_import_core.dart';
@@ -23,6 +24,7 @@ class SuuntoFileAdapter extends SuuntoDiveImportCore {
     required super.diverId,
     super.routeWriter,
     super.ref,
+    super.connectionRepository,
     this.initialFiles = const [],
   });
 
@@ -43,6 +45,12 @@ class SuuntoFileAdapter extends SuuntoDiveImportCore {
         if (r.dive != null) r.dive!,
     ]);
   }
+
+  /// Each computer imported here reached the library through a Suunto JSON
+  /// export, recorded under the import format's name (issue #3106).
+  @override
+  (DiveComputerConnectionKind, String) get importConnection =>
+      (DiveComputerConnectionKind.file, 'suuntoJson');
 
   @override
   int? get sourceFileCount => _readResults.isEmpty ? null : _readResults.length;

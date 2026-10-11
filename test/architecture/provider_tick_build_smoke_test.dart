@@ -232,8 +232,8 @@ void main() {
       read: (c) => c.read(connectionGraphProvider(80).future),
     ),
     (
-      name: 'connectionsYearSpanProvider',
-      read: (c) => c.read(connectionsYearSpanProvider.future),
+      name: 'connectionsDateSpanProvider',
+      read: (c) => c.read(connectionsDateSpanProvider.future),
     ),
     (
       name: 'connectionsSelectionDiveIdsProvider',

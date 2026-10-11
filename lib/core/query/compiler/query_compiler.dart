@@ -341,8 +341,14 @@ class _Ctx {
       case QueryOp.between:
         // A reversed pair (from JSON or the builder) still means the range.
         final items = _ascending((value as ListValue).items);
-        return '(${_cmp(f, col, '>=', items[0])} '
+        final exact =
+            '(${_cmp(f, col, '>=', items[0])} '
             'AND ${_cmp(f, col, '<=', items[1])})';
+        final range = f.rangeSql;
+        if (range == null) return exact;
+        return '($exact OR (${col()} IS NULL '
+            'AND ${_cmp(f, () => _field(range.low, alias), '>=', items[0])} '
+            'AND ${_cmp(f, () => _field(range.high, alias), '<=', items[1])}))';
       case QueryOp.inList:
         if (value is DateRangeValue) return _dateRange(col, value, f);
         final items = (value as ListValue).items;
@@ -375,7 +381,19 @@ class _Ctx {
           QueryOp.gt => '>',
           _ => '>=',
         };
-        return '(${_cmp(f, col, sym, value!)})';
+        final exact = '(${_cmp(f, col, sym, value!)})';
+        final range = f.rangeSql;
+        if (range == null) return exact;
+        // The whole range must satisfy the bound: its low end for a lower
+        // bound, its exclusive high end for an upper one (every value below
+        // a high end of X is below X, so `< X` needs high <= X). Only a row
+        // with no value is read as a range, as every other reader does.
+        final (end, endSym) = switch (sym) {
+          '>' || '>=' => (range.low, sym),
+          _ => (range.high, '<='),
+        };
+        return '($exact OR (${col()} IS NULL '
+            'AND ${_cmp(f, () => _field(end, alias), endSym, value)}))';
     }
   }
 

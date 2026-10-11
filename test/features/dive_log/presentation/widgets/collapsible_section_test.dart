@@ -27,6 +27,71 @@ void main() {
       expect(find.byIcon(Icons.show_chart), findsOneWidget);
     });
 
+    testWidgets('shows headerActions in both expanded and collapsed states', (
+      tester,
+    ) async {
+      for (final expanded in [true, false]) {
+        await tester.pumpWidget(
+          testApp(
+            child: SingleChildScrollView(
+              child: CollapsibleSection(
+                title: 'Data Sources',
+                icon: Icons.storage,
+                isExpanded: expanded,
+                onToggle: (_) {},
+                headerActions: const Icon(Icons.more_vert, key: Key('menu')),
+                child: const Text('Cards'),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byKey(const Key('menu')),
+          findsOneWidget,
+          reason: 'expanded=$expanded',
+        );
+      }
+    });
+
+    testWidgets('a compact headerActions button keeps the header height', (
+      tester,
+    ) async {
+      Future<double> headerHeight(Widget? actions) async {
+        await tester.pumpWidget(
+          testApp(
+            child: SingleChildScrollView(
+              child: CollapsibleSection(
+                title: 'Data Sources',
+                icon: Icons.storage,
+                isExpanded: true,
+                onToggle: (_) {},
+                headerActions: actions,
+                child: const Text('Cards'),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        return tester.getSize(find.byType(InkWell).first).height;
+      }
+
+      final plain = await headerHeight(null);
+      final withMenu = await headerHeight(
+        PopupMenuButton<int>(
+          icon: const Icon(Icons.more_vert, size: 20),
+          style: IconButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+          ),
+          itemBuilder: (_) => const [PopupMenuItem(value: 1, child: Text('A'))],
+        ),
+      );
+
+      expect(withMenu, plain);
+    });
+
     testWidgets('shows subtitle when collapsed and subtitle is provided', (
       tester,
     ) async {

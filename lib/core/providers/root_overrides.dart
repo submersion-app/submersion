@@ -1,11 +1,13 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/network/proxy/proxy_controller.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/features/dive_computer/data/clock_sync_preferences.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/network_proxy_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/shared/services/incoming_share.dart';
@@ -33,10 +35,16 @@ List<dynamic> rootProviderOverrides({
   required SharedPreferences prefs,
   required LogFileService logFileService,
   NavigationReadyGate<IncomingShare>? incomingShares,
+  ProxyController? proxyController,
 }) {
   return [
     if (incomingShares != null)
       incomingShareGateProvider.overrideWithValue(incomingShares),
+    // Made once per process in main(), before the first request, so the
+    // HttpOverrides and the Network settings page share one snapshot
+    // (#3217). The safety sweep's throwaway container passes none.
+    if (proxyController != null)
+      proxyControllerProvider.overrideWithValue(proxyController),
     sharedPreferencesProvider.overrideWithValue(prefs),
     logFileServiceProvider.overrideWithValue(logFileService),
     // The default is a fixed "enabled" with nothing behind it, because the

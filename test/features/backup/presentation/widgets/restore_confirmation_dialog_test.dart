@@ -26,6 +26,7 @@ void main() {
   Future<RestoreMode? Function()> pumpAndOpen(
     WidgetTester tester, {
     required bool offerReplace,
+    BackupRecord? withRecord,
   }) async {
     RestoreMode? result;
     var completed = false;
@@ -45,7 +46,7 @@ void main() {
               onPressed: () async {
                 result = await RestoreConfirmationDialog.show(
                   context,
-                  record,
+                  withRecord ?? record,
                   currentSchemaVersion: 80,
                   offerReplace: offerReplace,
                 );
@@ -64,6 +65,15 @@ void main() {
       return result;
     };
   }
+
+  testWidgets('the details card shows the backup note', (tester) async {
+    await pumpAndOpen(
+      tester,
+      offerReplace: false,
+      withRecord: record.copyWith(note: 'Before the Cozumel trip'),
+    );
+    expect(find.text('Before the Cozumel trip'), findsOneWidget);
+  });
 
   testWidgets('without offerReplace there is no mode choice', (tester) async {
     final getResult = await pumpAndOpen(tester, offerReplace: false);

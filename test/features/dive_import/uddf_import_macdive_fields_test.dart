@@ -136,6 +136,31 @@ void main() {
       );
     });
 
+    test('MacDive UDDF operator becomes a linked dive center', () async {
+      // Issue #3211: the operator reached only the free-text column, so no
+      // dive center existed and the dive linked none.
+      final diverId = await createTestDiver();
+      final parsed = await exportService.importAllDataFromUddf(
+        _macDiveRichUddf,
+      );
+
+      await importer.import(
+        data: parsed,
+        selections: UddfImportSelections.selectAll(parsed),
+        repositories: buildRepositories(),
+        diverId: diverId,
+      );
+
+      final centerRows = await db.select(db.diveCenters).get();
+      expect(centerRows, hasLength(1));
+      final center = centerRows.single;
+      expect(center.name, 'Nautilus Liveaboards');
+      expect(center.country, 'Mexico');
+      final dive = (await db.select(db.dives).get()).single;
+      expect(dive.diveCenterId, center.id);
+      expect(dive.diveOperator, 'Nautilus Liveaboards');
+    });
+
     test(
       'MacDive UDDF persists site-level metadata to dive_sites table',
       () async {

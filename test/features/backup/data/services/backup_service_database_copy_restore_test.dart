@@ -40,7 +40,7 @@ class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   String? lastRestorePath;
 
   @override
-  Future<void> backup(String destinationPath) async {
+  Future<void> backup(String destinationPath, {String? note}) async {
     backupCallCount++;
     final file = File(destinationPath);
     await file.parent.create(recursive: true);

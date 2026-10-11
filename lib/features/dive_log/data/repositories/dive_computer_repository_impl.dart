@@ -17,13 +17,17 @@ import 'package:submersion/core/database/database.dart'
         DiveTanksCompanion,
         GasSwitchesCompanion,
         DiveProfileEvent;
+import 'package:submersion/core/database/computer_serial_identity.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
+import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart'
+    show computerModelsCompatible, identityPartsCompatible;
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -221,9 +225,15 @@ class DiveComputerRepository {
   /// BLE identifiers are host-specific and are therefore only useful for a
   /// local connection. The serial number, together with manufacturer/model,
   /// identifies the physical computer across devices.
+  ///
+  /// The serial compares through the shared rule (issue #3106), so a
+  /// Shearwater's hex and decimal forms are one serial. A blank manufacturer
+  /// or model on either side is compatible: a file import usually registers
+  /// the computer without a manufacturer, and requiring one used to give a
+  /// Garmin a second record when Garmin Connect imported it after a FIT file.
   Future<domain.DiveComputer?> findByHardwareIdentity({
-    required String manufacturer,
-    required String model,
+    String? manufacturer,
+    String? model,
     required String serialNumber,
     String? diverId,
   }) async {
@@ -236,16 +246,30 @@ class DiveComputerRepository {
       }
 
       // Matched in Dart (rather than pushed into the SQL filter) because a
-      // stored serialNumber/manufacturer/model may itself carry whitespace
-      // from an older import; trimming only the input would miss that row.
+      // stored value may carry whitespace from an older import, or the other
+      // Shearwater radix.
       final rows = await query.get();
-      final normalizedSerial = serialNumber.trim();
-      final normalizedManufacturer = manufacturer.trim().toLowerCase();
-      final normalizedModel = model.trim().toLowerCase();
       for (final row in rows) {
-        if (row.serialNumber?.trim() == normalizedSerial &&
-            row.manufacturer?.trim().toLowerCase() == normalizedManufacturer &&
-            row.model?.trim().toLowerCase() == normalizedModel) {
+        if (!identityPartsCompatible(row.manufacturer, manufacturer)) continue;
+        if (!computerModelsCompatible(
+          brandA: row.manufacturer,
+          modelA: row.model,
+          brandB: manufacturer,
+          modelB: model,
+        )) {
+          continue;
+        }
+        final shearwater = shearwaterPair(
+          manufacturerA: row.manufacturer,
+          modelA: row.model,
+          manufacturerB: manufacturer,
+          modelB: model,
+        );
+        if (computerSerialsMatch(
+          row.serialNumber,
+          serialNumber,
+          shearwater: shearwater,
+        )) {
           return _mapRowToComputer(row);
         }
       }
@@ -469,6 +493,11 @@ class DiveComputerRepository {
           [id],
         );
       }
+
+      // Tombstoned before the computer goes: the FK cascade would delete
+      // the connections with no tombstone, and a peer would keep them
+      // (issue #3106).
+      await DiveComputerConnectionRepository().deleteForComputer(id);
 
       await (_db.delete(_db.diveComputers)..where((t) => t.id.equals(id))).go();
       await _syncRepository.logDeletion(
@@ -2304,6 +2333,7 @@ class DiveComputerRepository {
       final rows = await query.get();
       final match = matchImportedComputer(
         model: model,
+        manufacturer: manufacturer,
         serialNumber: serialNumber,
         diverId: diverId,
         candidates: rows.map(

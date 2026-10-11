@@ -62,6 +62,7 @@ void main() {
       'diveCenters': 'Dive center',
       'courses': 'Course',
       'certifications': 'Certification',
+      'documents': 'Document',
       'courseRequirements': 'Course requirement',
       'serviceKinds': 'Service type',
       'equipmentLocations': 'Equipment location',

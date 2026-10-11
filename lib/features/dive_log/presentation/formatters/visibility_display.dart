@@ -1,5 +1,7 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -76,15 +78,48 @@ String formatMeasuredVisibility(
   return '$distance · $band';
 }
 
+/// A visibility range as text in the diver's depth unit: "6-12 m",
+/// "under 2 m" or "12 m+" (issue #3226). Whole units, like a measured
+/// distance; the band is always decided on the unrounded meters.
+String formatVisibilityRange(
+  VisibilityRange range,
+  AppLocalizations l10n,
+  UnitFormatter units,
+) {
+  String value(double meters) =>
+      formatFixedForDisplay(units.convertDepth(meters), 0);
+  final unit = units.depthSymbol;
+  final min = range.minM;
+  final max = range.maxM;
+  if (min == null) return l10n.visibility_range_under(value(max!), unit);
+  if (max == null) return l10n.visibility_range_atLeast(value(min), unit);
+  return l10n.visibility_range_between(value(min), value(max), unit);
+}
+
+/// A range plus the adjective [scale] gives it when the whole range sits in
+/// one band ("6-12 m · Good"), or just the range when it spans bands.
+String formatRangeVisibility(
+  VisibilityRange range,
+  VisibilityScale scale,
+  AppLocalizations l10n,
+  UnitFormatter units,
+) {
+  final text = formatVisibilityRange(range, l10n, units);
+  final band = scale.bandForRange(range);
+  return band == null ? text : '$text · ${visibilityBandName(band, l10n)}';
+}
+
 /// A dive's visibility as one line of text, or null when it has none.
 ///
-/// Prefers the measured distance ([meters]) and falls back to the pre-v144
-/// bucket ([legacy]) only when no measurement exists. The order matters: the
-/// repository clears the bucket once a distance is stored, so a display that
-/// reads only [legacy] shows nothing for every dive logged or edited since
-/// v144 (#2055).
+/// Precedence is the measured distance ([meters]), then a band-picked
+/// [range] (issue #3226), then the pre-v144 bucket ([legacy]). The order
+/// matters: the repository clears the bucket once a distance or range is
+/// stored, so a display that reads only [legacy] shows nothing for every
+/// dive logged or edited since v144 (#2055). A measurement wins over a range
+/// on the same dive, which only an older device's sync can produce.
 String? formatDiveVisibility({
   required double? meters,
+  required VisibilityRange? range,
   required Visibility? legacy,
   required VisibilityScale scale,
   required AppLocalizations l10n,
@@ -93,6 +128,23 @@ String? formatDiveVisibility({
   if (meters != null) {
     return formatMeasuredVisibility(meters, scale, l10n, units);
   }
+  if (range != null) return formatRangeVisibility(range, scale, l10n, units);
+  if (legacy != null) return visibilityName(legacy, l10n);
+  return null;
+}
+
+/// A dive's visibility without an adjective, for the surfaces that never
+/// show one (the PDF logbook pages). Same precedence as
+/// [formatDiveVisibility].
+String? formatDiveVisibilityPlain({
+  required double? meters,
+  required VisibilityRange? range,
+  required Visibility? legacy,
+  required AppLocalizations l10n,
+  required UnitFormatter units,
+}) {
+  if (meters != null) return units.formatDistance(meters);
+  if (range != null) return formatVisibilityRange(range, l10n, units);
   if (legacy != null) return visibilityName(legacy, l10n);
   return null;
 }
@@ -100,7 +152,8 @@ String? formatDiveVisibility({
 /// Turns a statistics distribution key into display text.
 ///
 /// The repository emits stable keys rather than display text: a calibrated
-/// band yields its [VisibilityBand] name, and a pre-v144 dive yields
+/// band yields its [VisibilityBand] name, a range crossing a band edge yields
+/// [visibilityRangeSpanningKey] (issue #3226), and a pre-v144 dive yields
 /// `legacy_<bucket>`. A legacy key renders as the range that bucket covers,
 /// marked as pre-measurement, so it is never mistaken for a calibrated
 /// reading.
@@ -121,6 +174,9 @@ String visibilityDistributionLabel(
         ? null
         : formatLegacyVisibilityBand(bucket, l10n, units);
     return l10n.insights_conditions_visibility_legacySuffix(band ?? name);
+  }
+  if (key == visibilityRangeSpanningKey) {
+    return l10n.insights_conditions_visibility_spansBands;
   }
   final band = VisibilityBand.values.where((b) => b.name == key).firstOrNull;
   return band == null ? key : visibilityBandName(band, l10n);

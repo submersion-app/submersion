@@ -27,6 +27,8 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
   final String buddyId;
@@ -162,6 +164,10 @@ class _BuddyDetailContent extends ConsumerWidget {
             _buildNotesSection(context),
             const SizedBox(height: 24),
           ],
+          DocumentsSection(
+            owner: DocumentOwner(DocumentOwnerKind.buddy, buddy.id),
+          ),
+          const SizedBox(height: 24),
 
           // Shared dives
           BuddySharedDivesSection(buddyId: buddy.id),

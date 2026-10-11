@@ -141,3 +141,47 @@ String focusCategoryLabel(
       return key;
   }
 }
+
+/// The word after a numeric finding's size: "2.1 m shallower".
+String focusDirectionWord(
+  FocusFactorId id,
+  double difference,
+  AppLocalizations l10n,
+) {
+  final up = difference >= 0;
+  return switch (id) {
+    FocusFactorId.maxDepth || FocusFactorId.avgDepth =>
+      up
+          ? l10n.insights_focus_direction_deeper
+          : l10n.insights_focus_direction_shallower,
+    FocusFactorId.duration =>
+      up
+          ? l10n.insights_focus_direction_longer
+          : l10n.insights_focus_direction_shorter,
+    FocusFactorId.waterTemp =>
+      up
+          ? l10n.insights_focus_direction_warmer
+          : l10n.insights_focus_direction_colder,
+    FocusFactorId.tankVolume =>
+      up
+          ? l10n.insights_focus_direction_larger
+          : l10n.insights_focus_direction_smaller,
+    FocusFactorId.weight =>
+      up
+          ? l10n.insights_focus_direction_moreLead
+          : l10n.insights_focus_direction_lessLead,
+    _ => '',
+  };
+}
+
+/// An unsigned difference in display units, for a sentence that carries the
+/// direction as a word.
+String focusNumericMagnitude(
+  FocusFactorId id,
+  double difference,
+  UnitFormatter units,
+  AppLocalizations l10n,
+) {
+  final signed = focusNumericDifference(id, difference, units, l10n);
+  return signed.replaceFirstMapped(RegExp(r'^(~?)[+-]'), (m) => m.group(1)!);
+}

@@ -77,4 +77,31 @@ void main() {
     expect(mirrored.rating, isNull);
     expect(mirrored.isFavorite, isFalse);
   });
+
+  test('mirroredDiveFrom copies the boat and surface conditions (#3229)', () {
+    final source = Dive(
+      id: 'src',
+      diverId: 'eric',
+      dateTime: DateTime(2026, 6, 1, 9),
+      diveOperator: 'Buddy Dive',
+      boatName: 'Bonaire Breeze',
+      boatCaptain: 'Rik',
+      surfaceConditions: 'Choppy',
+    );
+    final mirrored = mirroredDiveFrom(
+      source,
+      targetDiverId: 'chris',
+      outingId: 'o',
+      includeSite: true,
+      tripId: null,
+      includeDiveCenter: false,
+      diveTypeIds: const ['wreck'],
+      tags: const [],
+      diverRoleIds: ['buddy'],
+    );
+    expect(mirrored.diveOperator, 'Buddy Dive');
+    expect(mirrored.boatName, 'Bonaire Breeze');
+    expect(mirrored.boatCaptain, 'Rik');
+    expect(mirrored.surfaceConditions, 'Choppy');
+  });
 }

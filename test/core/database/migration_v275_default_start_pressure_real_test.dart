@@ -53,10 +53,14 @@ void main() {
     );
   });
 
-  test('the retype raises the sync floor to 275', () {
+  test('the retype raises the sync floor to at least 275', () {
     // An older reader decodes the field with a hard int cast, so a decimal
-    // start pressure would throw in its DiverSetting.fromJson.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 275);
+    // start pressure would throw in its DiverSetting.fromJson. A later rung
+    // may raise the floor further (277, #2361), never below this one.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(275),
+    );
   });
 
   test('a fresh install stores the start pressure as REAL', () async {

@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/conflicts/conflict_enum_labels_settings.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field_format.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -175,6 +176,18 @@ void main() {
       );
     },
   );
+
+  test('an enum stored as an integer goes through the labeler too', () {
+    // diver_settings.trend_gap_collapse_months syncs as an int (#3251).
+    expect(
+      fmt(metric, FieldKind.enumValue, 12, enumLabel: trendGapThresholdLabeler),
+      '1 year',
+    );
+    expect(
+      fmt(metric, FieldKind.enumValue, 7, enumLabel: trendGapThresholdLabeler),
+      '7',
+    );
+  });
 
   test('opaque payloads never print raw', () {
     expect(fmt(metric, FieldKind.opaque, '{"a":1}'), 'Changed');

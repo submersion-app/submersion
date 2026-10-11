@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_repository.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
+import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/saved_plans_sheet.dart';
@@ -207,7 +209,9 @@ void main() {
 
     await tester.tap(button);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Share plan file').last);
+    await tester.tap(find.text('Export plan file').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Share'));
     await tester.pumpAndSettle();
 
     // Sharing writes the plan with real dart:io, which parks under the
@@ -222,6 +226,82 @@ void main() {
     }
 
     expect(sharePlatform.calls.single.sharePositionOrigin, buttonRect);
+  });
+
+  testWidgets('export can save the plan file through the save dialog', (
+    tester,
+  ) async {
+    await repository.savePlan(_plan('a', 'Reef dive'));
+    final original = FilePickerPlatform.instance;
+    addTearDown(() => FilePickerPlatform.instance = original);
+    final picker = MockFilePickerPlatform()
+      ..saveFileResult = Uri.file(p.join(documents.path, 'saved'));
+    FilePickerPlatform.instance = picker;
+
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export plan file').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+
+    // The plan is read from the database only once a destination is chosen,
+    // and the fake dialog writes with real dart:io: both need the real event
+    // loop, so wait for the confirmation that follows them.
+    for (var i = 0; i < 50 && find.byType(SnackBar).evaluate().isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+
+    expect(picker.lastSavedFileName, subplanFileName('Reef dive'));
+    expect(String.fromCharCodes(picker.lastSavedBytes!), contains('Reef dive'));
+    expect(sharePlatform.calls, isEmpty);
+    expect(find.text('Plan file saved'), findsOneWidget);
+  });
+
+  testWidgets('snackbars show inside the sheet, not behind it', (tester) async {
+    await repository.savePlan(_plan('a', 'Reef dive'));
+    final original = FilePickerPlatform.instance;
+    addTearDown(() => FilePickerPlatform.instance = original);
+    FilePickerPlatform.instance = MockFilePickerPlatform()
+      ..saveFileResult = Uri.file(p.join(documents.path, 'saved'));
+
+    // Opened as the real modal sheet: a snackbar sent to the page's
+    // messenger would render underneath it.
+    await openSheet(tester);
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export plan file').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 50 && find.byType(SnackBar).evaluate().isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('Plan file saved'),
+      ),
+      findsOneWidget,
+    );
+    // The sheet keeps its content height rather than filling the screen.
+    final screen = tester.getSize(find.byType(MaterialApp));
+    expect(
+      tester.getSize(find.byType(BottomSheet)).height,
+      lessThan(screen.height / 2),
+    );
   });
 
   testWidgets('tapping a plan opens it', (tester) async {

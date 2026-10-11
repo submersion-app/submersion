@@ -9,6 +9,7 @@ import 'package:submersion/core/services/cloud_storage/icloud_native_service.dar
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
+import 'package:submersion/features/settings/presentation/pages/webdav_config_page.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
@@ -218,11 +219,42 @@ void main() {
     expect(find.text('Connected to S3'), findsOneWidget);
   });
 
+  testWidgets('tapping WebDAV opens its config page via the root navigator', (
+    tester,
+  ) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      _englishTestApp(
+        overrides: [
+          ...overrides,
+          isApplePlatformProvider.overrideWithValue(false),
+          dropboxConfiguredProvider.overrideWithValue(false),
+          googleDriveAvailableProvider.overrideWith((ref) async => false),
+          selectedCloudProviderTypeProvider.overrideWith(
+            (ref) => CloudProviderType.webdav,
+          ),
+        ],
+        child: const BackupSyncStep(mode: SetupWizardMode.firstRun),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('WebDAV'), findsOneWidget);
+    await tester.tap(find.text('WebDAV'));
+    await tester.pumpAndSettle();
+    expect(find.byType(WebDavConfigPage), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text('Connected to WebDAV'), findsOneWidget);
+  });
+
   const connectedNames = {
     CloudProviderType.icloud: 'iCloud',
     CloudProviderType.dropbox: 'Dropbox',
     CloudProviderType.s3: 'S3',
     CloudProviderType.googledrive: 'Google Drive',
+    CloudProviderType.webdav: 'WebDAV',
   };
   for (final entry in connectedNames.entries) {
     testWidgets('settings mode shows connected UI for ${entry.value}', (

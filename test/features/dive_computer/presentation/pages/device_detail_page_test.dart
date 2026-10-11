@@ -211,7 +211,8 @@ void main() {
       expect(find.text('Manufacturer'), findsOneWidget);
       expect(find.text('Model'), findsOneWidget);
       expect(find.text('Serial Number'), findsOneWidget);
-      expect(find.text('Connection'), findsOneWidget);
+      // The single Connection row gave way to the Connections card (#3106).
+      expect(find.text('Connection'), findsNothing);
     });
 
     testWidgets('shows notes card when notes exist', (tester) async {

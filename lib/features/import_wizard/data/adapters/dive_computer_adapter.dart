@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/database/computer_serial_identity.dart';
+import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -40,6 +44,9 @@ import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/downloaded_dive_summary.dart';
 
+part 'dive_computer_adapter_connections.dart';
+part 'dive_computer_adapter_import_steps.dart';
+
 // ---------------------------------------------------------------------------
 // Bridge providers
 // ---------------------------------------------------------------------------
@@ -56,36 +63,6 @@ final dcAdapterDownloadCanAdvanceProvider = StateProvider<bool>((ref) => false);
 // ---------------------------------------------------------------------------
 // DiveComputerAdapter
 // ---------------------------------------------------------------------------
-
-/// Outcome of a single `DiveComputerAdapter._consolidateDive` call.
-///
-/// Used by `DiveComputerAdapter.performImport` to keep the import summary
-/// accurate when a consolidation cannot complete, instead of throwing and
-/// aborting the rest of the import loop.
-enum _ConsolidateOutcome {
-  /// The download was imported and successfully folded into the target.
-  consolidated,
-
-  /// Skipped without importing: the target dive already has data from the
-  /// same computer, which [DiveConsolidationService.apply] would always
-  /// reject with `ArgumentError('sameComputer...')`.
-  skippedSameComputer,
-
-  /// The download was imported as a standalone dive and KEPT that way: the
-  /// fold refused because the PRE-EXISTING target holds a series this build
-  /// cannot decode. The download itself is sound, so deleting it would lose
-  /// it for good.
-  keptStandalone,
-
-  /// The download was imported as a standalone dive, but folding it into
-  /// the target failed unexpectedly. The orphaned standalone dive was
-  /// deleted to avoid stranding it.
-  failed,
-}
-
-/// What a `_consolidateDive` call did, plus the id of the standalone dive it
-/// left behind (only [_ConsolidateOutcome.keptStandalone] leaves one).
-typedef _ConsolidateResult = ({_ConsolidateOutcome outcome, String? diveId});
 
 /// Import source adapter for dive computer downloads.
 ///
@@ -115,7 +92,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     WidgetRef? ref,
     bool forceFullDownload = false,
     PlannedDiveFillService? fillService,
+    DiveComputerConnectionRepository? connectionRepository,
   }) : _importService = importService,
+       _connectionRepository = connectionRepository,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
        _consolidationService = consolidationService,
@@ -139,6 +118,14 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   final DiveRepository _diveRepository;
   final DiveConsolidationService _consolidationService;
 
+  /// Where this download's connection is recorded (issue #3106). Read from
+  /// [_ref] when not given, and absent in a bare test, which then records
+  /// nothing.
+  final DiveComputerConnectionRepository? _connectionRepository;
+  DiveComputerConnectionRepository? get _connections =>
+      _connectionRepository ??
+      _ref?.read(diveComputerConnectionRepositoryProvider);
+
   /// Fills planned dives from downloads (issue #2002).
   final PlannedDiveFillService _fillService;
   final String _diverId;
@@ -158,6 +145,12 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   bool _downloadInterrupted = false;
   bool _deliversOldestFirst = false;
   DiveComputer? _computer;
+
+  /// Whether [_computer] came from matching the discovered address rather
+  /// than from the caller. An address is not identity: a USB port names the
+  /// cable or the host, so [ensureComputer] re-checks it against the serial
+  /// the download reports (issue #3106).
+  bool _resolvedByAddress = false;
   String? _customDeviceName;
   DateTime? _sinceCutoff;
 
@@ -251,6 +244,9 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   /// completes.
   Future<void> resolveKnownComputer(DiscoveredDevice device) async {
     if (computer != null) return;
+    if (_diverId.isNotEmpty && await _resolveByLocalConnection(device)) {
+      return;
+    }
     if (device.connectionType == DeviceConnectionType.ble ||
         device.connectionType == DeviceConnectionType.bluetoothClassic) {
       if (_diverId.isEmpty) return;
@@ -260,6 +256,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       );
       if (existing != null) {
         _computer = existing;
+        _resolvedByAddress = true;
       }
     }
   }
@@ -323,7 +320,25 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       DeviceConnectionType.infrared => 'infrared',
     };
 
-    if (computer != null) return;
+    // A computer matched only by address that reports another serial was
+    // the wrong match (two computers on one USB cable share a port): forget
+    // it and identify the unit by its hardware instead.
+    final resolved = _computer;
+    if (resolved != null &&
+        _resolvedByAddress &&
+        _reportsAnotherComputer(resolved, device, serialNumber)) {
+      _log.warning(
+        '${device.address} matched ${resolved.displayName}, but the download '
+        'reported serial ${serialNumber?.trim()}; matching by serial instead',
+      );
+      _computer = null;
+      _resolvedByAddress = false;
+    }
+
+    if (computer != null) {
+      await _recordDirectConnection(device, serialNumber);
+      return;
+    }
 
     // A BLE identifier is local to the host running this app. After a fresh
     // discovery, use the stable hardware identity to rebind this host's
@@ -332,12 +347,13 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     final normalizedManufacturer = device.manufacturer?.trim();
     final scannedModel = device.model?.trim();
     final normalizedModel = hasReported ? reported : scannedModel;
-    if (normalizedSerial?.isNotEmpty == true &&
-        normalizedManufacturer?.isNotEmpty == true &&
-        normalizedModel?.isNotEmpty == true) {
+    // Only the serial is required (#3106): a blank manufacturer or model on
+    // either side is compatible, so a computer first registered by a file
+    // import is found here too.
+    if (normalizedSerial?.isNotEmpty == true) {
       var existing = await _computerRepository.findByHardwareIdentity(
-        manufacturer: normalizedManufacturer!,
-        model: normalizedModel!,
+        manufacturer: normalizedManufacturer,
+        model: normalizedModel,
         serialNumber: normalizedSerial!,
         diverId: _diverId,
       );
@@ -367,6 +383,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
             );
         await _computerRepository.updateComputer(rebound);
         _computer = rebound;
+        await _recordDirectConnection(device, normalizedSerial);
         return;
       }
     }
@@ -393,6 +410,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         );
 
     _computer = await _computerRepository.createComputer(newComputer);
+    await _recordDirectConnection(device, serialNumber);
   }
 
   // ---------------------------------------------------------------------------
@@ -1005,131 +1023,5 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       subtitle: summary.subtitle,
       diveData: diveData,
     );
-  }
-
-  /// Consolidate a downloaded dive as a secondary computer reading on an
-  /// existing dive.
-  ///
-  /// Imports the download as a standalone new dive first -- persisting every
-  /// sample column, tanks, pressures, events, and the raw-data
-  /// `dive_data_sources` row via [DiveImportService.importSingleDiveAsNew] /
-  /// `importProfile` -- then folds it into [targetDiveId] via
-  /// [DiveConsolidationService.apply]. This gives full-fidelity
-  /// consolidation instead of a hand-rolled copy that would drop heart
-  /// rate, O2 sensors, CNS/TTS samples, tanks, and events.
-  ///
-  /// The import and the fold are NOT atomic (there is no cross-table
-  /// transaction spanning both repository calls), so this method guards
-  /// both failure modes rather than letting either strand a dangling dive:
-  ///
-  /// - **Predictable failure (pre-validated, nothing imported):**
-  ///   [DiveConsolidationService.apply] always throws `ArgumentError`
-  ///   ("sameComputer...") when the secondary shares [targetDiveId]'s
-  ///   `computerId`. Checking that up front avoids importing a dive that is
-  ///   guaranteed to fail the fold.
-  /// - **Refusal about the TARGET (kept):** [UnreadableSeriesException] says
-  ///   the pre-existing target dive holds a profile or pressure series this
-  ///   build cannot decode, so `apply` refused before writing anything. The
-  ///   download is not at fault and is the only copy of this dive: the
-  ///   fingerprint advances past it on the way out of `performImport`, so
-  ///   deleting it would lose it for good. It is kept standalone instead.
-  /// - **Unexpected failure (compensated):** if the import succeeds but
-  ///   `apply` throws for any other reason, the freshly-imported dive is
-  ///   deleted via [DiveRepository.bulkDeleteDives] (tombstone-honoring)
-  ///   instead of being left as a bare, unconsolidated duplicate.
-  ///
-  /// Returns a [_ConsolidateResult] describing what happened so the caller
-  /// can adjust the import summary's counters instead of aborting the loop.
-  Future<_ConsolidateResult> _consolidateDive(
-    DownloadedDive dive,
-    String targetDiveId,
-    DiveComputer comp, {
-    required bool retainSourceDiveNumber,
-  }) async {
-    final targetComputerId = await _diveRepository.getComputerIdForDive(
-      targetDiveId,
-    );
-    if (targetComputerId != null && targetComputerId == comp.id) {
-      return (outcome: _ConsolidateOutcome.skippedSameComputer, diveId: null);
-    }
-
-    String? newDiveId;
-    try {
-      newDiveId = await _importService.importSingleDiveAsNew(
-        dive,
-        computerId: comp.id,
-        diverId: _diverId,
-        descriptorVendor: _descriptorVendor,
-        descriptorProduct: _descriptorProduct,
-        descriptorModel: _descriptorModel,
-        libdivecomputerVersion: _libdivecomputerVersion,
-        retainSourceDiveNumber: retainSourceDiveNumber,
-      );
-      await _consolidationService.apply(
-        targetDiveId: targetDiveId,
-        secondaryDiveIds: [newDiveId],
-      );
-      return (outcome: _ConsolidateOutcome.consolidated, diveId: newDiveId);
-    } on UnreadableSeriesException catch (e) {
-      final keptId = newDiveId;
-      if (keptId != null) {
-        _log.warning(
-          'Kept downloaded dive $keptId standalone instead of folding it '
-          'into $targetDiveId: that dive holds ${e.seriesIds.length} '
-          'series this build cannot decode',
-        );
-        return (outcome: _ConsolidateOutcome.keptStandalone, diveId: keptId);
-      }
-      // Nothing was imported, so there is nothing to keep or compensate.
-      _log.error('Consolidation fold refused for $targetDiveId', error: e);
-      return (outcome: _ConsolidateOutcome.failed, diveId: null);
-    } catch (e, st) {
-      _log.error(
-        'Consolidation fold failed for dive into $targetDiveId',
-        error: e,
-        stackTrace: st,
-      );
-      if (newDiveId != null) {
-        try {
-          await _diveRepository.bulkDeleteDives([newDiveId]);
-        } catch (deleteError, deleteStack) {
-          // The compensating delete failed too -- log it and fall through
-          // rather than rethrow, so the import loop still processes the
-          // remaining dives instead of aborting on a stranded standalone
-          // dive.
-          _log.error(
-            'Compensating delete failed for orphaned dive $newDiveId',
-            error: deleteError,
-            stackTrace: deleteStack,
-          );
-        }
-      }
-      return (outcome: _ConsolidateOutcome.failed, diveId: null);
-    }
-  }
-
-  /// Update computer dive count, last download, and fingerprint after import.
-  Future<void> _updateComputerAfterImport(
-    DiveComputer comp,
-    int importedCount,
-    List<DownloadedDive> importedDives,
-  ) async {
-    if (importedCount > 0) {
-      await _computerRepository.incrementDiveCount(comp.id, by: importedCount);
-    }
-
-    await _computerRepository.updateLastDownload(comp.id);
-
-    final resumeFingerprint = selectResumeFingerprint(
-      importedDives,
-      downloadComplete: !_downloadInterrupted,
-      deliversOldestFirst: _deliversOldestFirst,
-    );
-    if (resumeFingerprint != null) {
-      await _computerRepository.updateLastFingerprint(
-        comp.id,
-        resumeFingerprint,
-      );
-    }
   }
 }

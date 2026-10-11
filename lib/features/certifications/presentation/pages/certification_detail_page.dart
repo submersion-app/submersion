@@ -22,6 +22,8 @@ import 'package:submersion/features/certifications/presentation/certification_ti
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 class CertificationDetailPage extends ConsumerStatefulWidget {
   final String certificationId;
@@ -170,6 +172,16 @@ class _CertificationDetailContent extends ConsumerWidget {
             _buildPhotosSection(context),
             const SizedBox(height: 16),
           ],
+
+          // Other papers; the card images show above (issue #2613).
+          DocumentsSection(
+            owner: DocumentOwner(
+              DocumentOwnerKind.certification,
+              certification.id,
+            ),
+            excludeCards: true,
+          ),
+          const SizedBox(height: 16),
 
           // Notes
           if (certification.notes.isNotEmpty) ...[_buildNotesSection(context)],

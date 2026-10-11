@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -72,6 +73,34 @@ void main() {
 
     test('renders null as the standard placeholder', () {
       expect(DiveField.visibility.formatValue(null, metric), '--');
+    });
+  });
+
+  group('DiveField.visibility for a range dive (issue #3226)', () {
+    test('extracts the range and formats it compactly', () {
+      final dive = Dive(
+        id: 'r',
+        dateTime: DateTime.utc(2026, 1, 1),
+        visibilityMinMeters: 6,
+        visibilityMaxMeters: 12,
+      );
+      final value = DiveField.visibility.extractFromDive(dive);
+      expect(value, const VisibilityRange(minM: 6, maxM: 12));
+      expect(DiveField.visibility.formatValue(value, metric), '6-12m');
+      expect(
+        DiveField.visibility.formatValue(
+          const VisibilityRange(maxM: 2),
+          metric,
+        ),
+        '<2m',
+      );
+      expect(
+        DiveField.visibility.formatValue(
+          const VisibilityRange(minM: 12),
+          metric,
+        ),
+        '12m+',
+      );
     });
   });
 }

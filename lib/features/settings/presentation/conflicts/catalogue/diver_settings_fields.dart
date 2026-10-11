@@ -563,6 +563,11 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_tripServiceLeadDays,
     FieldKind.number,
   ),
+  'trendGapCollapseMonths': ConflictField(
+    (l) => l.settings_conflict_field_trendGapCollapseMonths,
+    FieldKind.enumValue,
+    enumLabel: trendGapThresholdLabeler,
+  ),
   'useDiveComputerCnsData': ConflictField(
     (l) => l.settings_conflict_field_useDiveComputerCnsData,
     FieldKind.boolean,

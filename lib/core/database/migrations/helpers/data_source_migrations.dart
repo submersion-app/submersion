@@ -209,6 +209,30 @@ extension DataSourceMigrations on AppDatabase {
   Future<void> backfillImportedDiveComputersForTest() =>
       _backfillImportedDiveComputers();
 
+  /// Rewrite downloaded Shearwater serials to the hex the computer shows
+  /// (issue #3106). Body lives in `shearwater_serial_heal.dart`.
+  Future<void> _healShearwaterDownloadSerials() =>
+      healShearwaterDownloadSerials(this);
+
+  /// The v279 rung's one-time pass, which also converts the 8-digit serials
+  /// the every-open heal leaves alone (issue #3106).
+  Future<void> _healShearwaterDownloadSerialsOnUpgrade() =>
+      healShearwaterDownloadSerials(this, includeAmbiguous: true);
+
+  /// Test-only hook exercising the #3106 serial heal directly.
+  Future<int> healShearwaterDownloadSerialsForTest({
+    bool includeAmbiguous = false,
+  }) => healShearwaterDownloadSerials(this, includeAmbiguous: includeAmbiguous);
+
+  /// Seed connections for computers registered before they existed (issue
+  /// #3106). Body lives in `dive_computer_connection_seed.dart`.
+  Future<void> _seedDiveComputerConnections() =>
+      seedDiveComputerConnections(this);
+
+  /// Test-only hook exercising the #3106 connection seed directly.
+  Future<int> seedDiveComputerConnectionsForTest() =>
+      seedDiveComputerConnections(this);
+
   /// Idempotent DDL for the v159 dive_data_sources.time_offset_seconds
   /// column (issue #1177). Same dual-call contract (onUpgrade + beforeOpen
   /// backstop) as the other column-assert helpers. Nullable with no default,

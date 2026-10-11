@@ -20,6 +20,7 @@ void main() {
     groupShare: 0.5,
     baselineShare: 0.5,
     groupCount: 1,
+    strength: 0,
     standsOut: false,
   );
 

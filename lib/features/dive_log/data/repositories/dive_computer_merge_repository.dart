@@ -5,6 +5,7 @@ import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
@@ -47,13 +48,16 @@ class DiveComputerMergeRepository {
     SyncRepository? syncRepository,
     ProfileSeriesRepository? profileSeries,
     TankPressureSeriesRepository? tankSeries,
+    DiveComputerConnectionRepository? connections,
   }) : _syncRepository = syncRepository ?? SyncRepository(),
        _profileSeries = profileSeries ?? ProfileSeriesRepository(),
-       _tankSeries = tankSeries ?? TankPressureSeriesRepository();
+       _tankSeries = tankSeries ?? TankPressureSeriesRepository(),
+       _connections = connections ?? DiveComputerConnectionRepository();
 
   final SyncRepository _syncRepository;
   final ProfileSeriesRepository _profileSeries;
   final TankPressureSeriesRepository _tankSeries;
+  final DiveComputerConnectionRepository _connections;
   final _log = LoggerService.forClass(DiveComputerMergeRepository);
 
   db.AppDatabase get _db => DatabaseService.instance.database;
@@ -204,6 +208,13 @@ class DiveComputerMergeRepository {
 
         await _bumpDives(affectedDives.toList(growable: false), now);
         await _writeSurvivor(merged, now);
+        // Before the duplicates go: their connections would cascade away
+        // with no tombstone. Folded onto the survivor instead (#3106).
+        await _connections.foldInto(
+          survivorId: survivorId,
+          duplicateIds: duplicates,
+          now: now,
+        );
 
         for (final id in duplicates) {
           await (_db.delete(

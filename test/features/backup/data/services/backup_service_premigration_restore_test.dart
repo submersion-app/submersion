@@ -32,7 +32,7 @@ class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   int restoreCallCount = 0;
 
   @override
-  Future<void> backup(String destinationPath) async {
+  Future<void> backup(String destinationPath, {String? note}) async {
     final file = File(destinationPath);
     await file.parent.create(recursive: true);
     await file.writeAsString('fake backup data');

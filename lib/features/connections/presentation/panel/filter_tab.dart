@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
-import 'package:submersion/features/connections/presentation/widgets/year_range_slider.dart';
+import 'package:submersion/features/connections/presentation/widgets/timeline_control.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/show_refine_panel.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Years, the active filter axes as removable chips, the full filter sheet
-/// and Clear. Everything here writes `connectionsFilterProvider`.
+/// The timeline, the active filter axes as removable chips, the full filter
+/// sheet and Clear. Everything here writes `connectionsFilterProvider`.
 class FilterTab extends ConsumerWidget {
   const FilterTab({super.key});
 
@@ -24,7 +24,7 @@ class FilterTab extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const YearRangeSlider(),
+        const TimelineControl(),
         const SizedBox(height: 8),
         // Some axes set in All filters have no chip; the filter itself, not
         // the chip count, says whether anything is active.

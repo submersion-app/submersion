@@ -19,9 +19,7 @@ extension InsightsRepositoryFocus on InsightsRepository {
       // Drift binds positionally: the visibility thresholds and the Solo
       // role id sit in the SELECT list, ahead of the WHERE placeholders.
       final params = [
-        visibilityScale.excellentAtOrAboveM,
-        visibilityScale.goodAtOrAboveM,
-        visibilityScale.moderateAtOrAboveM,
+        ...VisibilityBandSql.params(visibilityScale),
         DiveRole.soloId,
         ?diverId,
         ...df.params,
@@ -37,13 +35,7 @@ extension InsightsRepositoryFocus on InsightsRepository {
           ${effectiveRuntimeSecondsSql('d')} / 60.0 AS duration_minutes,
           d.water_temp,
           CASE
-            WHEN d.visibility_meters IS NOT NULL THEN
-              CASE
-                WHEN d.visibility_meters >= ? THEN 'excellent'
-                WHEN d.visibility_meters >= ? THEN 'good'
-                WHEN d.visibility_meters >= ? THEN 'moderate'
-                ELSE 'poor'
-              END
+            ${VisibilityBandSql.whenBranches('d.')}
             ELSE 'legacy_' || NULLIF(d.visibility, '')
           END AS visibility_key,
           NULLIF(d.current_strength, '') AS current_strength,

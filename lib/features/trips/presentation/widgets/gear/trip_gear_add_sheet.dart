@@ -10,6 +10,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/scan_owned_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
@@ -20,10 +21,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('tripGearAddSheet');
 
-enum _Way { equipment, set, rental }
+enum _Way { equipment, set, scan, rental }
 
 /// The Gear tab's one Add (#2845): a chooser that opens the equipment
-/// picker, the set picker, or the rental cylinder form. A cylinder picked
+/// picker, the set picker, a tag scan (#2652), or the rental cylinder form. A cylinder picked
 /// from the diver's equipment becomes a slot on the board; anything else is
 /// packed.
 Future<void> showTripGearAddSheet(
@@ -51,6 +52,11 @@ Future<void> showTripGearAddSheet(
             onTap: () => Navigator.of(sheet).pop(_Way.set),
           ),
           ListTile(
+            leading: const Icon(Icons.qr_code_scanner),
+            title: Text(l10n.trips_gear_add_scan),
+            onTap: () => Navigator.of(sheet).pop(_Way.scan),
+          ),
+          ListTile(
             leading: const Icon(MdiIcons.divingScubaTank),
             title: Text(l10n.trips_gear_add_rental),
             onTap: () => Navigator.of(sheet).pop(_Way.rental),
@@ -70,6 +76,36 @@ Future<void> showTripGearAddSheet(
       if (picked == null || !context.mounted) return;
       final (set, items) = picked;
       await _apply(context, ref, trip, slots, items, setName: set.name);
+    case _Way.scan:
+      final item = await scanOwnedItem(context, ref);
+      if (item == null || !context.mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      final already =
+          packed.any((p) => p.id == item.id) ||
+          slots.any((s) => s.equipmentId == item.id);
+      if (already) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.gearPassport_scan_alreadyOnTrip(item.name)),
+          ),
+        );
+        return;
+      }
+      final added = await _apply(context, ref, trip, slots, [
+        item,
+      ], setName: null);
+      // A failure already said so. Nothing new written means the item got
+      // onto the trip after this tab last loaded.
+      if (added == null) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            added > 0
+                ? l10n.gearPassport_scan_added(item.name)
+                : l10n.gearPassport_scan_alreadyOnTrip(item.name),
+          ),
+        ),
+      );
     case _Way.rental:
       await showAddTripCylindersSheet(
         context,
@@ -124,8 +160,9 @@ Future<(EquipmentSet, List<EquipmentItem>)?> _pickSet(BuildContext context) =>
 
 /// Packs the non-cylinder items the diver may use and slots the cylinders
 /// not already on the board; says how many a set added, counting the slots
-/// with the packed items (#2877). A failure is logged and said.
-Future<void> _apply(
+/// with the packed items (#2877). A failure is logged and said. Returns
+/// how many items it packed or slotted, or null after a failure.
+Future<int?> _apply(
   BuildContext context,
   WidgetRef ref,
   Trip trip,
@@ -193,8 +230,10 @@ Future<void> _apply(
         ),
       );
     }
+    return addedCount;
   } catch (e, stackTrace) {
     _log.error('Failed to add trip gear', error: e, stackTrace: stackTrace);
     messenger.showSnackBar(SnackBar(content: Text(l10n.trips_gear_failed)));
+    return null;
   }
 }

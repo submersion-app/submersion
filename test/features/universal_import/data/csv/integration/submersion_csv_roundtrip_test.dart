@@ -63,6 +63,10 @@ void main() {
     precipitation: Precipitation.lightRain,
     humidity: 70,
     weatherDescription: 'Sunny',
+    diveOperator: 'Buddy Dive',
+    boatName: 'Bonaire Breeze',
+    boatCaptain: 'Rik',
+    surfaceConditions: 'Calm',
     // Not in alphabetical order, which is the per-key columns' order.
     customFields: const [
       DiveCustomField(id: 'cf-1', key: 'zulu', value: '  GoPro 12  '),
@@ -165,6 +169,10 @@ void main() {
     expect(d['precipitation'], 'lightRain');
     expect(d['humidity'], 70.0);
     expect(d['weatherDescription'], 'Sunny');
+    expect(d['diveOperator'], 'Buddy Dive');
+    expect(d['boatName'], 'Bonaire Breeze');
+    expect(d['boatCaptain'], 'Rik');
+    expect(d['surfaceConditions'], 'Calm');
     // From the Custom Fields column: the dive's own order, empty value kept.
     expect(d['customFields'], [
       {'key': 'zulu', 'value': '  GoPro 12  '},
@@ -206,6 +214,11 @@ void main() {
         DiveCsvColumns.hePercent,
         DiveCsvColumns.customFields,
         DiveCsvColumns.diveTypeIds,
+        // Added later still (#3229), so a pre-#1814 file lacks them too.
+        DiveCsvColumns.diveOperator,
+        DiveCsvColumns.boatName,
+        DiveCsvColumns.boatCaptain,
+        DiveCsvColumns.surfaceConditions,
       };
       final rows = const CsvToListConverter(
         shouldParseNumbers: false,
@@ -237,6 +250,44 @@ void main() {
       ]);
     },
   );
+
+  test('a pre-#3229 export without the boat columns still imports', () async {
+    // The Submersion preset's signature is DiveCsvColumns.fixed, which #3229
+    // grew by four; a diver's older export must still be recognised.
+    const newColumns = {
+      DiveCsvColumns.diveOperator,
+      DiveCsvColumns.boatName,
+      DiveCsvColumns.boatCaptain,
+      DiveCsvColumns.surfaceConditions,
+    };
+    final rows = const CsvToListConverter(
+      shouldParseNumbers: false,
+    ).convert(csv);
+    final legacy = const ListToCsvConverter().convert([
+      for (final row in rows)
+        [
+          for (var i = 0; i < row.length; i++)
+            if (!newColumns.contains(headers[i])) row[i],
+        ],
+    ]);
+
+    final matches = PresetRegistry(
+      builtInPresets: builtInCsvPresets,
+    ).detectPreset(headersOf(legacy));
+    expect(matches.first.preset.id, 'submersion_native');
+
+    final d = (await parse(legacy)).entitiesOf(ImportEntityType.dives).single;
+    expect(d['name'], 'Probe dive');
+    expect(d['weatherDescription'], 'Sunny');
+    for (final key in [
+      'diveOperator',
+      'boatName',
+      'boatCaptain',
+      'surfaceConditions',
+    ]) {
+      expect(d[key], isNull, reason: key);
+    }
+  });
 
   group('custom dive types (#1834)', () {
     DiveTypeEntity type(String id, String name) => DiveTypeEntity(

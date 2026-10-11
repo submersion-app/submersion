@@ -7,6 +7,9 @@ import 'package:submersion/core/database/database.dart';
 /// [BulkCollectionType] + the engine's collection ops.
 enum BulkField {
   diveCenter,
+  diveOperator,
+  boatName,
+  boatCaptain,
   trip,
   course,
   rating,
@@ -18,6 +21,7 @@ enum BulkField {
   currentDirection,
   currentStrength,
   swellHeight,
+  surfaceConditions,
   entryMethod,
   exitMethod,
   altitude,
@@ -65,6 +69,9 @@ enum BulkCollectionType {
 class BulkScalarInputs {
   BulkScalarInputs({
     this.diveCenterId,
+    this.diveOperator,
+    this.boatName,
+    this.boatCaptain,
     this.tripId,
     this.courseId,
     this.rating,
@@ -73,9 +80,12 @@ class BulkScalarInputs {
     this.excludedFromGasStats,
     this.waterType,
     this.visibilityMeters,
+    this.visibilityMinMeters,
+    this.visibilityMaxMeters,
     this.currentDirection,
     this.currentStrength,
     this.swellHeight,
+    this.surfaceConditions,
     this.entryMethod,
     this.exitMethod,
     this.altitude,
@@ -104,6 +114,9 @@ class BulkScalarInputs {
   });
 
   final String? diveCenterId;
+  final String? diveOperator;
+  final String? boatName;
+  final String? boatCaptain;
   final String? tripId;
   final String? courseId;
   final int? rating;
@@ -119,9 +132,15 @@ class BulkScalarInputs {
   /// applying it also clears the legacy bucket on every touched dive, matching
   /// the precedence rule in the dive repository.
   final double? visibilityMeters;
+
+  /// Low and high end of a visibility range (issue #3226), set only when the
+  /// diver picked a band. Exclusive of [visibilityMeters].
+  final double? visibilityMinMeters;
+  final double? visibilityMaxMeters;
   final String? currentDirection;
   final String? currentStrength;
   final double? swellHeight;
+  final String? surfaceConditions;
   final String? entryMethod;
   final String? exitMethod;
   final double? altitude;
@@ -160,6 +179,9 @@ DivesCompanion buildScalarCompanion(
   for (final f in enabled) {
     c = switch (f) {
       BulkField.diveCenter => c.copyWith(diveCenterId: Value(i.diveCenterId)),
+      BulkField.diveOperator => c.copyWith(diveOperator: Value(i.diveOperator)),
+      BulkField.boatName => c.copyWith(boatName: Value(i.boatName)),
+      BulkField.boatCaptain => c.copyWith(boatCaptain: Value(i.boatCaptain)),
       BulkField.trip => c.copyWith(tripId: Value(i.tripId)),
       BulkField.course => c.copyWith(courseId: Value(i.courseId)),
       BulkField.rating => c.copyWith(rating: Value(i.rating)),
@@ -175,8 +197,14 @@ DivesCompanion buildScalarCompanion(
       BulkField.waterType => c.copyWith(waterType: Value(i.waterType)),
       BulkField.visibility => c.copyWith(
         visibilityMeters: Value(i.visibilityMeters),
-        // Clear the legacy bucket so a bulk-set measurement cannot leave a
-        // dive carrying a contradicting band.
+        visibilityMinMeters: Value(
+          i.visibilityMeters == null ? i.visibilityMinMeters : null,
+        ),
+        visibilityMaxMeters: Value(
+          i.visibilityMeters == null ? i.visibilityMaxMeters : null,
+        ),
+        // Clear the legacy bucket so a bulk-set value cannot leave a dive
+        // carrying a contradicting band.
         visibility: const Value(null),
       ),
       BulkField.currentDirection => c.copyWith(
@@ -186,6 +214,9 @@ DivesCompanion buildScalarCompanion(
         currentStrength: Value(i.currentStrength),
       ),
       BulkField.swellHeight => c.copyWith(swellHeight: Value(i.swellHeight)),
+      BulkField.surfaceConditions => c.copyWith(
+        surfaceConditions: Value(i.surfaceConditions),
+      ),
       BulkField.entryMethod => c.copyWith(entryMethod: Value(i.entryMethod)),
       BulkField.exitMethod => c.copyWith(exitMethod: Value(i.exitMethod)),
       BulkField.altitude => c.copyWith(altitude: Value(i.altitude)),

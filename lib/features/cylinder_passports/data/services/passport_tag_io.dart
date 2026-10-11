@@ -15,7 +15,7 @@ class TagWritten extends PassportTagWrite {
     required this.typeLabel,
   });
 
-  final PassportNdefPlan plan;
+  final TagNdefPlan plan;
   final int capacity;
   final String? typeLabel;
 }
@@ -49,19 +49,16 @@ class TagWriteFailed extends PassportTagWrite {
   final Object error;
 }
 
-/// Writes [payload] to [tag] (spec 13.3): fits it to the tag, writes the
-/// whole message, and reads it back to confirm. Never throws. A partial
-/// write is not resumed; the caller's Retry writes the whole message again.
-Future<PassportTagWrite> writePassportTo(
+/// Writes the message [planFor] builds for [tag]'s capacity (spec 13.3),
+/// whole, then reads it back to confirm. Never throws. A partial write is
+/// not resumed; the caller's Retry writes the whole message again.
+Future<PassportTagWrite> writeTagTo(
   NdefTagHandle? tag,
-  CylinderPassportPayload payload,
+  TagNdefPlan? Function(int maxMessageBytes) planFor,
 ) async {
   if (tag == null) return const TagNotNdef();
   if (!tag.isWritable) return const TagReadOnly();
-  final plan = planPassportMessage(
-    payload,
-    maxMessageBytes: tag.maxMessageBytes,
-  );
+  final plan = planFor(tag.maxMessageBytes);
   if (plan == null) return TagTooSmall(tag.maxMessageBytes);
   try {
     await tag.write(plan.message);
@@ -76,6 +73,15 @@ Future<PassportTagWrite> writePassportTo(
     return TagWriteFailed(e);
   }
 }
+
+/// [writeTagTo] for a cylinder passport.
+Future<PassportTagWrite> writePassportTo(
+  NdefTagHandle? tag,
+  CylinderPassportPayload payload,
+) => writeTagTo(
+  tag,
+  (max) => planPassportMessage(payload, maxMessageBytes: max),
+);
 
 /// How a passport read ended.
 sealed class PassportTagRead {

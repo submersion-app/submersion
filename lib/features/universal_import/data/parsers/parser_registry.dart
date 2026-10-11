@@ -1,5 +1,6 @@
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/dan_dl7_import_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/divemate_ddb_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/divinglog_sqlite_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/fit_import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
@@ -24,6 +25,7 @@ ImportParser parserForFormat(ImportFormat format) {
     ImportFormat.macdiveXml => const MacDiveXmlParser(),
     ImportFormat.macdiveSqlite => const MacDiveSqliteParser(),
     ImportFormat.divingLogSqlite => const DivingLogSqliteParser(),
+    ImportFormat.diveMateDdb => const DiveMateDdbParser(),
     ImportFormat.subsurfaceXml => SubsurfaceXmlParser(),
     ImportFormat.danDl7 => const DanDl7Parser(),
     ImportFormat.fit => const FitImportParser(),

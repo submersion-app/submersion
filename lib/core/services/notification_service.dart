@@ -6,6 +6,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/util/time_zone_database.dart';
+import 'package:submersion/features/documents/domain/document_reminder_plan.dart';
 
 /// Deterministic 32-bit notification id for [key].
 ///
@@ -21,6 +22,20 @@ int _stableNotificationId(String key) {
     hash = (hash * 0x01000193) & 0xFFFFFFFF; // FNV prime, wrap to 32 bits
   }
   return hash & 0x7FFFFFFF; // positive, within int32
+}
+
+/// The payload prefix of a document reminder: `document:<id>`.
+const String _documentPayloadPrefix = 'document:';
+
+/// The route a tapped reminder opens: a document reminder (payload
+/// `document:<id>`, issue #2613) opens the document, any other payload is
+/// an equipment id. Null for an empty payload.
+String? notificationPayloadRoute(String payload) {
+  if (payload.startsWith(_documentPayloadPrefix)) {
+    final id = payload.substring(_documentPayloadPrefix.length);
+    return id.isEmpty ? null : '/documents/$id';
+  }
+  return payload.isEmpty ? null : '/equipment/$payload';
 }
 
 /// Service for managing local notifications
@@ -92,6 +107,8 @@ class NotificationService {
   void _onNotificationTapped(NotificationResponse response) {
     _log.info('Notification tapped: ${response.payload}');
     if (response.payload != null) {
+      // A document reminder carries `document:<id>`; the router maps every
+      // payload to its route (notificationPayloadRoute).
       _selectedEquipmentId = response.payload;
       onNotificationTapped?.call(response.payload!);
     }
@@ -360,6 +377,76 @@ class NotificationService {
 
     _log.info('Showed backup notification (success: $success)');
   }
+
+  /// One-shot document expiry reminder (issue #2613). The id is stable per
+  /// document and stage, so rescheduling replaces rather than duplicates.
+  /// [title] and [body] arrive localized from the scheduler.
+  Future<int> scheduleDocumentReminder({
+    required String documentId,
+    required String title,
+    required String body,
+    required DocumentReminderStage stage,
+    required DateTime scheduledDate,
+  }) async {
+    if (!_isMobilePlatform) return 0;
+    final notificationId = _documentReminderId(documentId, stage);
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'document_expiry_reminders',
+        'Document Expiry Reminders',
+        channelDescription:
+            'Reminders before insurance, medical clearance and other '
+            'documents expire',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        category: AndroidNotificationCategory.reminder,
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+    final scheduledTz = tz.TZDateTime.from(scheduledDate, tz.local);
+    await _plugin.zonedSchedule(
+      id: notificationId,
+      title: title,
+      body: body,
+      scheduledDate: scheduledTz,
+      notificationDetails: details,
+      payload: '$_documentPayloadPrefix$documentId',
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+    _log.info(
+      'Scheduled document notification $notificationId for $documentId '
+      'at $scheduledTz',
+    );
+    return notificationId;
+  }
+
+  /// Cancels both of [documentId]'s reminders, scheduled or not.
+  Future<void> cancelDocumentReminders(String documentId) async {
+    for (final stage in DocumentReminderStage.values) {
+      await cancelNotification(_documentReminderId(documentId, stage));
+    }
+  }
+
+  /// The ids of documents with a reminder pending in the OS, read from the
+  /// payloads, so a full schedule can cancel the ones whose document was
+  /// deleted elsewhere (a sync, an owner delete) or no longer reminds.
+  Future<Set<String>> pendingDocumentReminderIds() async {
+    if (!_isMobilePlatform) return const {};
+    final pending = await _plugin.pendingNotificationRequests();
+    return {
+      for (final p in pending)
+        if (p.payload case final payload?
+            when payload.startsWith(_documentPayloadPrefix))
+          payload.substring(_documentPayloadPrefix.length),
+    };
+  }
+
+  int _documentReminderId(String documentId, DocumentReminderStage stage) =>
+      _stableNotificationId('document#$documentId#${stage.name}');
 
   /// Cancel a specific notification
   Future<void> cancelNotification(int notificationId) async {

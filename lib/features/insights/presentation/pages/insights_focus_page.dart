@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/insights/presentation/widgets/focus/focus_results.dart';
-import 'package:submersion/features/insights/presentation/widgets/focus/focus_selector.dart';
+import 'package:submersion/features/insights/presentation/widgets/focus/focus_sentence.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -23,7 +23,9 @@ class InsightsFocusPage extends StatelessWidget {
           padding: EdgeInsets.all(16),
           sliver: SliverMainAxisGroup(
             slivers: [
-              SliverToBoxAdapter(child: FocusSelector()),
+              SliverToBoxAdapter(child: _Intro()),
+              SliverToBoxAdapter(child: SizedBox(height: 12)),
+              SliverToBoxAdapter(child: FocusSentence()),
               SliverToBoxAdapter(child: SizedBox(height: 16)),
               FocusResults(),
             ],
@@ -44,6 +46,22 @@ class InsightsFocusPage extends StatelessWidget {
           InsightsFilterBar(),
           Expanded(child: content),
         ],
+      ),
+    );
+  }
+}
+
+/// One line saying what the page is for, since the name alone does not.
+class _Intro extends StatelessWidget {
+  const _Intro();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      context.l10n.insights_focus_intro,
+      style: theme.textTheme.bodyLarge?.copyWith(
+        color: theme.colorScheme.onSurfaceVariant,
       ),
     );
   }

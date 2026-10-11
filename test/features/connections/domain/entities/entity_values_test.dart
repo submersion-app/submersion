@@ -110,4 +110,15 @@ void main() {
       expect(map, isNot(map.copyWith(sortOrder: 1)));
     });
   });
+
+  test('a node keeps its first dive through copyWith and compares on it', () {
+    final n = ConnectionNode(
+      ref: const NodeRef(ConnectionKind.site, 's'),
+      label: 'S',
+      diveCount: 1,
+      firstDiveAt: DateTime.utc(2021, 5, 1),
+    );
+    expect(n.copyWith(label: 'T').firstDiveAt, DateTime.utc(2021, 5, 1));
+    expect(n, isNot(n.copyWith(firstDiveAt: DateTime.utc(2022))));
+  });
 }

@@ -196,8 +196,15 @@ void main() {
     );
     // The diver and settings reads are SettingsNotifier's own unawaited
     // load, which lands inside or outside this window depending on timing.
-    // Count the statements the evaluation itself issues.
-    const bootstrap = ['"settings"', '"divers"', '"diver_settings"'];
+    // A diver read also reads the diver's insurance and clearance documents
+    // (issue #2613). Count the statements the evaluation itself issues.
+    const bootstrap = [
+      '"settings"',
+      '"divers"',
+      '"diver_settings"',
+      '"documents"',
+      'FROM documents',
+    ];
     return logged
         .where((l) => l.startsWith('Drift: Sent'))
         .where((l) => !bootstrap.any(l.contains))

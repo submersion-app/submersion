@@ -77,9 +77,9 @@ KindTable kindTable(ConnectionKind kind) => switch (kind) {
   final limitClause = limit == null ? '' : '\nLIMIT ?';
   final sql =
       '''
-SELECT t.id AS id, t.${t.labelColumn} AS label$extra, c.dive_count AS dive_count
+SELECT t.id AS id, t.${t.labelColumn} AS label$extra, c.dive_count AS dive_count, c.first_ms AS first_ms
 FROM (
-  SELECT m.entity_id, COUNT(DISTINCT d.id) AS dive_count
+  SELECT m.entity_id, COUNT(DISTINCT d.id) AS dive_count, MIN(d.dive_date_time) AS first_ms
   FROM (${membershipSql(kind)}) m
   JOIN dives d ON d.id = m.dive_id
   WHERE ${where.join(' AND ')}

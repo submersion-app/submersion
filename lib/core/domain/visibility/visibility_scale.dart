@@ -1,3 +1,5 @@
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
+
 /// Which calibration a diver has chosen for visibility adjectives.
 enum VisibilityScalePreset { tropical, temperate, coldWater, custom }
 
@@ -94,6 +96,46 @@ class VisibilityScale {
     if (meters >= moderateAtOrAboveM) return VisibilityBand.moderate;
     return VisibilityBand.poor;
   }
+
+  /// The metres [band] covers on this scale (issue #3226). What a band pick
+  /// in the edit form saves: Good on cold water is 6-12 m.
+  VisibilityRange rangeFor(VisibilityBand band) => switch (band) {
+    VisibilityBand.poor => VisibilityRange(maxM: moderateAtOrAboveM),
+    VisibilityBand.moderate => VisibilityRange(
+      minM: moderateAtOrAboveM,
+      maxM: goodAtOrAboveM,
+    ),
+    VisibilityBand.good => VisibilityRange(
+      minM: goodAtOrAboveM,
+      maxM: excellentAtOrAboveM,
+    ),
+    VisibilityBand.excellent => VisibilityRange(minM: excellentAtOrAboveM),
+  };
+
+  /// The band that wholly contains [range], or null when it crosses a band
+  /// edge. A saved range keeps its metres when the diver changes scale, so
+  /// under a different scale it may honestly belong to no single band.
+  ///
+  /// `VisibilityBandSql` in the Insights repositories is the SQL twin of
+  /// this; keep the two in step.
+  VisibilityBand? bandForRange(VisibilityRange range) {
+    final lo = range.minM ?? double.negativeInfinity;
+    final hi = range.maxM ?? double.infinity;
+    if (lo >= excellentAtOrAboveM) return VisibilityBand.excellent;
+    if (lo >= goodAtOrAboveM && hi <= excellentAtOrAboveM) {
+      return VisibilityBand.good;
+    }
+    if (lo >= moderateAtOrAboveM && hi <= goodAtOrAboveM) {
+      return VisibilityBand.moderate;
+    }
+    if (hi <= moderateAtOrAboveM) return VisibilityBand.poor;
+    return null;
+  }
+
+  /// The band whose [rangeFor] is exactly [range], or null. Decides which
+  /// chip the edit form shows selected for a stored range.
+  VisibilityBand? bandMatching(VisibilityRange range) =>
+      VisibilityBand.values.where((b) => rangeFor(b) == range).firstOrNull;
 
   @override
   bool operator ==(Object other) =>

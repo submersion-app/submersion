@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -46,6 +47,9 @@ class RestoreStep extends ConsumerWidget {
     if (picked == null || !context.mounted) return;
 
     final file = File(picked.path);
+    // A plaintext backup carries its note inside; an encrypted one cannot
+    // be read before decryption and shows none.
+    final note = await readBackupNote(picked.path);
     final record = BackupRecord(
       id: 'setup-wizard',
       filename: picked.name,
@@ -54,6 +58,7 @@ class RestoreStep extends ConsumerWidget {
       location: BackupLocation.local,
       diveCount: 0,
       siteCount: 0,
+      note: note,
     );
     if (!context.mounted) return;
 

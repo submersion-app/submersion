@@ -37,9 +37,11 @@ List<ObservationTag> observationTagsFor(EquipmentType type) {
     EquipmentType.undersuit ||
     EquipmentType.baselayer ||
     EquipmentType.rashGuard ||
+    EquipmentType.vest ||
     EquipmentType.hood ||
     EquipmentType.gloves ||
-    EquipmentType.boots => const [
+    EquipmentType.boots ||
+    EquipmentType.socks => const [
       ObservationTag.tear,
       ObservationTag.seamFailure,
     ],

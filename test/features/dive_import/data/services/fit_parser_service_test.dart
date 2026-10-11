@@ -361,6 +361,25 @@ void main() {
     service = const FitParserService();
   });
 
+  group('fitManufacturerName (#3106)', () {
+    test('maps Garmin and Suunto, nothing else', () {
+      expect(fitManufacturerName(1), 'Garmin');
+      expect(fitManufacturerName(23), 'Suunto');
+      expect(fitManufacturerName(255), isNull);
+      expect(fitManufacturerName(null), isNull);
+    });
+
+    test('parseFitFile records the manufacturer from file_id', () async {
+      final bytes = buildTestDiveFitFile(
+        startTime: DateTime(2024, 6, 15, 10, 30),
+        durationSeconds: 600,
+        depthSamples: [0.0, 10.0, 0.0],
+      );
+      final result = await service.parseFitFile(bytes);
+      expect(result?.computerManufacturer, 'Garmin');
+    });
+  });
+
   group('parseFitFile', () {
     test('returns ImportedDive for valid dive FIT file', () async {
       final startTime = DateTime(2024, 6, 15, 10, 30, 0);

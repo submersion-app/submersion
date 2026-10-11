@@ -6,6 +6,7 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The account roster with per-device sign-in status. Statuses are derived
@@ -75,6 +76,7 @@ class _AccountTile extends ConsumerWidget {
 
   IconData get _icon => switch (account.kind) {
     AccountKind.s3 => Icons.dns_outlined,
+    AccountKind.webdav => Icons.folder_shared_outlined,
     AccountKind.dropbox => Icons.cloud_outlined,
     AccountKind.googledrive => Icons.add_to_drive_outlined,
     AccountKind.icloud => Icons.cloud_circle_outlined,
@@ -151,6 +153,11 @@ class _AccountTile extends ConsumerWidget {
                   .delete(account.id);
           }
           ref.invalidate(connectedAccountsWithStatusProvider);
+          // Disconnecting the WebDAV sync account clears the sync settings
+          // too; the Cloud Sync tile reads them through this provider.
+          if (account.kind == AccountKind.webdav) {
+            ref.invalidate(webdavConfigProvider);
+          }
         },
         itemBuilder: (_) => [
           if (status == AccountStatus.signedIn)

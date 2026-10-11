@@ -116,6 +116,7 @@ class ConflictReferenceResolver {
     'diveCenterId': 'diveCenters',
     'courseId': 'courses',
     'certificationId': 'certifications',
+    'documentId': 'documents',
     'requirementId': 'courseRequirements',
     'serviceKindId': 'serviceKinds',
     'locationId': 'equipmentLocations',

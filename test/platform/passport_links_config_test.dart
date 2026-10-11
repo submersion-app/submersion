@@ -174,15 +174,18 @@ void main() {
       expect(meta.getAttribute('value', namespaceUri: android), 'false');
     });
 
-    test('verifies https://submersion.app/c as an app link', () {
+    test('verifies submersion.app /c and /g as app links (issue #2652)', () {
       final filter = viewFiltersWithScheme('https').first;
       expect(filter.getAttribute('autoVerify', namespaceUri: android), 'true');
-      final data = filter.findElements('data').single;
+      final data = filter.findElements('data');
       expect(
-        data.getAttribute('host', namespaceUri: android),
-        'submersion.app',
+        data.map((d) => d.getAttribute('host', namespaceUri: android)).toSet(),
+        {'submersion.app'},
       );
-      expect(data.getAttribute('path', namespaceUri: android), '/c');
+      expect(
+        data.map((d) => d.getAttribute('path', namespaceUri: android)),
+        containsAll(['/c', '/g']),
+      );
     });
 
     test('every https filter is a complete app link', () {
@@ -225,11 +228,14 @@ void main() {
       }
     });
 
-    test('opens submersion://c links', () {
+    test('opens submersion://c and submersion://g links', () {
       final data = viewFiltersWithScheme(
         'submersion',
-      ).single.findElements('data').single;
-      expect(data.getAttribute('host', namespaceUri: android), 'c');
+      ).single.findElements('data');
+      expect(
+        data.map((d) => d.getAttribute('host', namespaceUri: android)),
+        containsAll(['c', 'g']),
+      );
     });
 
     test('asks for the camera without requiring one', () {
@@ -274,7 +280,7 @@ void main() {
       expect(feature.getAttribute('required', namespaceUri: android), 'false');
     });
 
-    test('a tapped passport tag launches the app', () {
+    test('a tapped cylinder or gear tag launches the app', () {
       final filter = activity
           .findElements('intent-filter')
           .singleWhere(
@@ -292,13 +298,21 @@ void main() {
             .map((c) => c.getAttribute('name', namespaceUri: android)),
         contains('android.intent.category.DEFAULT'),
       );
-      final data = filter.findElements('data').single;
-      expect(data.getAttribute('scheme', namespaceUri: android), 'https');
+      final data = filter.findElements('data');
       expect(
-        data.getAttribute('host', namespaceUri: android),
-        'submersion.app',
+        data
+            .map((d) => d.getAttribute('scheme', namespaceUri: android))
+            .toSet(),
+        {'https'},
       );
-      expect(data.getAttribute('path', namespaceUri: android), '/c');
+      expect(
+        data.map((d) => d.getAttribute('host', namespaceUri: android)).toSet(),
+        {'submersion.app'},
+      );
+      expect(
+        data.map((d) => d.getAttribute('path', namespaceUri: android)),
+        containsAll(['/c', '/g']),
+      );
     });
   });
 }

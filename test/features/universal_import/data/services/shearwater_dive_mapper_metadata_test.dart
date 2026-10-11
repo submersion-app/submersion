@@ -63,7 +63,21 @@ void main() {
         expect(result['siteName'], 'Maclearie Park');
         expect(result['diveComputerModel'], 'Teric');
         expect(result['diveComputerSerial'], '69FE56D7');
+        expect(result['diveComputerManufacturer'], 'Shearwater');
         expect(result['notes'], contains('Great dive'));
+      });
+
+      test('uppercases a lowercase filename serial (#3106)', () {
+        const rawDive = ShearwaterRawDive(
+          diveId: 'test',
+          fileName: 'Perdix 2[a1b2c3d4]#12 2024-1-1 10-00-00.swlogzp',
+          footerJson: {'UnitSystem': 1},
+        );
+
+        final result = ShearwaterDiveMapper.mapDiveMetadata(rawDive);
+
+        expect(result['diveComputerSerial'], 'A1B2C3D4');
+        expect(result['diveComputerManufacturer'], 'Shearwater');
       });
 
       test('maps conditions to structured enums', () {

@@ -31,6 +31,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 QualityUnitFormatters buildQualityUnitFormatters(WidgetRef ref) =>
     qualityUnitFormattersFor(UnitFormatter(ref.watch(settingsProvider)));
@@ -131,7 +132,11 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
     QualityRepairAction action, {
     required DiveIdentityLabel? Function(String? diveId) identityOf,
   }) async {
-    final executor = QualityRepairExecutor();
+    // An undone duplicate delete restores the dive's documents through the
+    // mutations, which re-arm their expiry reminders too.
+    final executor = QualityRepairExecutor(
+      restoreDocuments: ref.read(documentMutationsProvider).restoreSnapshot,
+    );
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
 

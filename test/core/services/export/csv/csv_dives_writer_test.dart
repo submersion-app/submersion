@@ -73,6 +73,7 @@ void main() {
       buddy: '@ana',
       diveComputerSerial: '+001',
       weatherDescription: '=1+1',
+      boatName: '=cmd',
       waterTemp: -1.6,
     );
     final r = rowOf(CsvDivesWriter(CsvExportUnits.metric).write([dive]), 1);
@@ -81,6 +82,19 @@ void main() {
     expect(r['Buddy'], "'@ana");
     expect(r['Serial Number'], "'+001");
     expect(r['Weather Description'], "'=1+1");
+    expect(r['Boat Name'], "'=cmd");
     expect(r['Water Temp (°C)'], '-2');
+  });
+
+  test('a measured dive writes no range beside its measurement (#3226)', () {
+    // Visibility 21.3 m plus a stale range, as an old device's sync leaves.
+    final dive = goldenDives().first.copyWith(
+      visibilityMinMeters: 6,
+      visibilityMaxMeters: 12,
+    );
+    final r = rowOf(CsvDivesWriter(CsvExportUnits.metric).write([dive]), 1);
+    expect(r['Visibility (m)'], '21.3');
+    expect(r['Visibility Min (m)'], '');
+    expect(r['Visibility Max (m)'], '');
   });
 }

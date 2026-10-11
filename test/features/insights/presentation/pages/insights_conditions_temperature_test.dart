@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
+import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
@@ -26,6 +27,7 @@ void main() {
       ProviderScope(
         overrides: [
           ...overrides,
+          conditionsRowsProvider.overrideWith((ref) async => const []),
           waterTempTrendProvider.overrideWith(
             (ref) async => List.generate(
               20,

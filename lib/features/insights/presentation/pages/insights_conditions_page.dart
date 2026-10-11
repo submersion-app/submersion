@@ -13,6 +13,10 @@ import 'package:submersion/features/insights/presentation/formatters/distributio
 import 'package:submersion/features/insights/presentation/formatters/water_temp_band_label.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
+import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
+import 'package:submersion/features/insights/presentation/widgets/conditions/site_access_condition_cards.dart';
+import 'package:submersion/features/insights/presentation/widgets/conditions/surface_weather_group.dart';
+import 'package:submersion/features/insights/presentation/widgets/conditions/water_movement_group.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
@@ -36,19 +40,31 @@ class InsightsConditionsPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          ConditionsGroupHeader(
+            title: context.l10n.insights_conditions_group_water,
+            isFirst: true,
+          ),
           _buildVisibilitySection(context, ref),
           const SizedBox(height: 16),
           _buildWaterTypeSection(context, ref),
-          const SizedBox(height: 16),
-          _buildSiteTypeSection(context, ref),
-          const SizedBox(height: 16),
-          _buildEntryMethodSection(context, ref),
           const SizedBox(height: 16),
           _buildTemperatureTrendSection(context, ref, units),
           const SizedBox(height: 16),
           _buildTemperatureSection(context, ref, units),
           const SizedBox(height: 16),
           _buildTemperatureBandSection(context, ref, units),
+          // Each new group brings its own header and top spacing, and hides
+          // itself when nothing in it is recorded (issue #3118).
+          const SurfaceWeatherGroup(),
+          const WaterMovementGroup(),
+          ConditionsGroupHeader(
+            title: context.l10n.insights_conditions_group_siteAccess,
+          ),
+          _buildSiteTypeSection(context, ref),
+          const AltitudeConditionsCard(),
+          const SizedBox(height: 16),
+          _buildEntryMethodSection(context, ref),
+          const ExitMethodConditionsCard(),
         ],
       ),
     );
@@ -110,6 +126,9 @@ class InsightsConditionsPage extends ConsumerWidget {
                 Colors.blue.shade400,
                 Colors.orange.shade400,
                 Colors.grey.shade400,
+                // A fifth segment (ranges spanning bands, issue #3226)
+                // would otherwise reuse green.
+                Colors.purple.shade300,
               ],
             ),
           );
@@ -291,7 +310,8 @@ class InsightsConditionsPage extends ConsumerWidget {
       errorMessage: context.l10n.insights_conditions_tempTrend_error,
       lineColor: Colors.teal,
       valueFormatter: (value) => units.formatTemperature(value),
-      rateFormatter: (value) => units.formatTemperature(value),
+      // A per-year rate is a difference: no 32-degree offset in F.
+      rateFormatter: (value) => units.formatTemperatureDelta(value),
     );
   }
 

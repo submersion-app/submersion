@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 
 void main() {
   S3Config config({
@@ -91,5 +93,20 @@ void main() {
 
   test('the namespace constant is frozen', () {
     expect(kConnectedAccountNamespace, 'c622faae-974f-4310-a5e7-36c2fb773684');
+  });
+  test('webdavNaturalKey ignores credentials and separates folders', () {
+    final a = WebDavConfig(
+      preset: WebDavPreset.other,
+      serverUrl: 'https://dav.test/dav',
+      username: 'alice',
+      password: 'one',
+    );
+    expect(webdavNaturalKey(a), webdavNaturalKey(a.copyWith(password: 'two')));
+    expect(
+      webdavNaturalKey(a),
+      isNot(webdavNaturalKey(a.copyWith(folder: kDefaultWebDavMediaFolder))),
+    );
+    expect(webdavNaturalKey(a), isNot(contains('one')));
+    expect(naturalKeyForKind(AccountKind.webdav), isNull);
   });
 }

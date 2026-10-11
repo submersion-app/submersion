@@ -17,7 +17,7 @@ import '../../../../helpers/test_database.dart';
 
 class _NoopAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {}
+  Future<void> backup(String destinationPath, {String? note}) async {}
 
   @override
   Future<void> restore(
@@ -41,22 +41,28 @@ class _FakeBackupService extends BackupService {
   bool blockedByEncryptionLock = false;
   bool lockCheckThrows = false;
   BackupLocation location = BackupLocation.local;
+  String? lastNote;
 
   _FakeBackupService(BackupPreferences prefs)
     : super(dbAdapter: _NoopAdapter(), preferences: prefs);
 
   @override
-  Future<BackupRecord> performBackup({bool isAutomatic = false}) async =>
-      BackupRecord(
-        id: 'r1',
-        filename: 'submersion_backup_test.db',
-        timestamp: DateTime(2026, 10, 9),
-        sizeBytes: 2048,
-        location: location,
-        diveCount: 0,
-        siteCount: 0,
-        type: BackupType.manual,
-      );
+  Future<BackupRecord> performBackup({
+    bool isAutomatic = false,
+    String? note,
+  }) async {
+    lastNote = note;
+    return BackupRecord(
+      id: 'r1',
+      filename: 'submersion_backup_test.db',
+      timestamp: DateTime(2026, 10, 9),
+      sizeBytes: 2048,
+      location: location,
+      diveCount: 0,
+      siteCount: 0,
+      type: BackupType.manual,
+    );
+  }
 
   @override
   Future<bool> isCloudBackupBlockedByEncryptionLock() async {
@@ -95,6 +101,14 @@ void main() {
     addTearDown(container.dispose);
     return container;
   }
+
+  test('Backup Now hands the note to the service', () async {
+    final container = makeContainer();
+    await container
+        .read(backupOperationProvider.notifier)
+        .performBackup(note: 'Before the trip');
+    expect(service.lastNote, 'Before the trip');
+  });
 
   group('manual backup message (issue #3089)', () {
     test('says the backup stayed on the device when encryption is '

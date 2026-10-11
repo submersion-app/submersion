@@ -28,6 +28,7 @@ class TrendChartSection extends ConsumerWidget {
     this.yAxisFormatter,
     this.rateFormatter,
     this.onDiveSelected,
+    this.footer,
   });
 
   /// Key into [trendChartSettingsProvider]. Use a [TrendChartIds] constant.
@@ -49,9 +50,14 @@ class TrendChartSection extends ConsumerWidget {
   /// Opens the dive behind a tapped point. Only fires in per-dive mode.
   final void Function(String diveId)? onDiveSelected;
 
+  /// Shown under the controls once the points have loaded, for a caller that
+  /// says something about the data, such as how many dives it covers.
+  final Widget? footer;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(trendChartSettingsProvider(chartId));
+    final gapThreshold = ref.watch(trendGapThresholdProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -81,6 +87,7 @@ class TrendChartSection extends ConsumerWidget {
                 dateFormat: ref.watch(dateFormatProvider),
                 onDiveSelected: onDiveSelected,
                 range: settings.range,
+                gapThreshold: gapThreshold,
                 onRangeChanged: (range) =>
                     _update(ref, settings.copyWith(range: range)),
                 aggregation: settings.aggregation,
@@ -113,6 +120,9 @@ class TrendChartSection extends ConsumerWidget {
                 rateColor: rateColor,
                 rateLabel: rate,
                 range: settings.range,
+                gapThreshold: gapThreshold,
+                onGapThresholdSelected: (t) =>
+                    ref.read(settingsProvider.notifier).setTrendGapThreshold(t),
                 onRangePresetSelected: (preset) =>
                     preset == TrendRangePreset.custom
                     ? _pickCustomRange(context, ref, points)
@@ -121,6 +131,7 @@ class TrendChartSection extends ConsumerWidget {
                         settings.copyWith(range: TrendRange.preset(preset)),
                       ),
               ),
+              ?footer,
             ],
           );
         },

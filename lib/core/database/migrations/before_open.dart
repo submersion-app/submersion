@@ -61,7 +61,11 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertLateGasSwitchSettingColumn();
     // v276 backstop: diver_settings.icd_warnings_enabled.
     await _assertIcdWarningsColumn();
-    // v277 backstop: dive_plan_segments.split_at_configured_rate.
+    // v278 backstop: the dives visibility range columns.
+    await _assertVisibilityRangeColumns();
+    // v281 backstop: diver_settings.trend_gap_collapse_months.
+    await _assertTrendGapCollapseColumn();
+    // v282 backstop: dive_plan_segments.split_at_configured_rate.
     await _assertSegmentSplitAtRateColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
@@ -571,6 +575,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // every row read selects (before_open_child_columns.dart).
     await _assertChildRowColumns();
 
+    // A restored backup's note table (before_open_backup_note.dart).
+    await _dropRestoredBackupNoteTable();
+
     // v145 backstop: re-assert the gps_tracks provenance and trim columns.
     await _assertGpsTrackColumns();
 
@@ -731,10 +738,21 @@ extension BeforeOpenBackstops on AppDatabase {
     // the backfill above.
     await _backfillDiveComputerIds();
 
+    // Data self-heal (issue #3106): store downloaded Shearwater serials in
+    // the hex the computer shows, before the #1288 pass below matches file
+    // imports against them. Local-only, no HLC bump.
+    await _healShearwaterDownloadSerials();
+
     // Data self-heal (issue #1288): register the computers that
     // file-imported dives name, so they reach the filter at all. AFTER
     // the #1064 heal above, which resolves the same column from the
     // stronger download-derived signal.
     await _backfillImportedDiveComputers();
+
+    // Data self-heal (issue #3106): give computers registered before
+    // connections existed the connections their data proves. AFTER the
+    // #1288 pass, so a computer it just registered gets its file
+    // connections too. Local-only, deterministic ids, no HLC bump.
+    await _seedDiveComputerConnections();
   }
 }

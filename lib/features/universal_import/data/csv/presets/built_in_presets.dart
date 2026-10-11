@@ -645,6 +645,14 @@ const _submersionNative = CsvPreset(
           transform: ValueTransform.visibilityScale,
         ),
         ColumnMapping(
+          sourceColumn: DiveCsvColumns.visibilityMin,
+          targetField: 'visibilityMinMeters',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.visibilityMax,
+          targetField: 'visibilityMaxMeters',
+        ),
+        ColumnMapping(
           sourceColumn: DiveCsvColumns.diveType,
           targetField: 'diveTypeNames',
         ),
@@ -720,6 +728,22 @@ const _submersionNative = CsvPreset(
         ColumnMapping(
           sourceColumn: DiveCsvColumns.weatherDescription,
           targetField: 'weatherDescription',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.diveOperator,
+          targetField: 'diveOperator',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.boatName,
+          targetField: 'boatName',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.boatCaptain,
+          targetField: 'boatCaptain',
+        ),
+        ColumnMapping(
+          sourceColumn: DiveCsvColumns.surfaceConditions,
+          targetField: 'surfaceConditions',
         ),
         ColumnMapping(
           sourceColumn: DiveCsvColumns.siteCity,

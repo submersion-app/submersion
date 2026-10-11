@@ -1,5 +1,7 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/database/computer_serial_identity.dart';
+
 /// Namespace for deterministic dive computer ids derived from file imports.
 /// Frozen: every device must derive the same id from the same device
 /// identity, so changing this would fork the registry across the fleet.
@@ -41,7 +43,10 @@ class ImportedComputerCandidate {
 /// tiers:
 ///
 /// - With a serial, match on the serial alone. The file's model spelling must
-///   not defeat it, exactly as on the download path.
+///   not defeat it, exactly as on the download path. The serial comparison is
+///   the shared rule in `computer_serial_identity.dart` (Shearwater hex and
+///   decimal are one serial, #3106); [manufacturer] only helps decide whether
+///   that rule's Shearwater case applies.
 /// - Without one, match a candidate that also has no serial and whose model,
 ///   or whose manufacturer + model, normalizes to the same string. Comparing
 ///   the combined form is what lets a file's `'Shearwater Perdix'` find a
@@ -55,6 +60,7 @@ class ImportedComputerCandidate {
 /// first) so every device resolves a tie the same way.
 ImportedComputerCandidate? matchImportedComputer({
   required String model,
+  String? manufacturer,
   String? serialNumber,
   String? diverId,
   required Iterable<ImportedComputerCandidate> candidates,
@@ -73,7 +79,22 @@ ImportedComputerCandidate? matchImportedComputer({
       candidate.serialNumber,
     );
     if (normalizedSerial.isNotEmpty) {
-      if (candidateSerial == normalizedSerial) return candidate;
+      // The shared serial rule (#3106): a Shearwater file keeps the hex the
+      // computer shows, a download stored the decimal libdivecomputer
+      // reports, and both name one device.
+      final shearwater = shearwaterPair(
+        manufacturerA: manufacturer,
+        modelA: model,
+        manufacturerB: candidate.manufacturer,
+        modelB: candidate.model,
+      );
+      if (computerSerialsMatch(
+        serialNumber,
+        candidate.serialNumber,
+        shearwater: shearwater,
+      )) {
+        return candidate;
+      }
       continue;
     }
     if (candidateSerial.isNotEmpty) continue;

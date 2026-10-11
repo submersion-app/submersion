@@ -29,6 +29,7 @@ class LayoutMorph {
       positions,
       settled: clamped >= 1,
       appear: appear,
+      guides: to.guides,
     );
   }
 }

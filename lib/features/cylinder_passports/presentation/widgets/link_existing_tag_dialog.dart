@@ -2,30 +2,55 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
-import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Paste a tag's link to give this cylinder that tag's passport id, so labels
-/// already on the metal keep working after a row was re-created (spec
-/// section 6.5). Resolves with the tag's payload once linked, or null.
-Future<CylinderPassportPayload?> showLinkExistingTagDialog(
+/// The passport id of a cylinder tag link, or null for anything else.
+String? cylinderPassportIdOf(String text) =>
+    switch (PassportPayloadCodec.decode(text)) {
+      PassportDecoded(:final payload) => payload.passportId,
+      PassportRejected() => null,
+    };
+
+/// Paste a tag's link to give this item that tag's passport id, so labels
+/// already on the gear keep working after a row was re-created (spec
+/// section 6.5). [passportIdOf] reads the kind of tag this item takes:
+/// cylinder links by default, either kind for other gear (issue
+/// #2652). Resolves with the linked passport id, or null.
+Future<String?> showLinkExistingTagDialog(
   BuildContext context, {
   required String equipmentId,
   String? diverId,
-}) => showDialog<CylinderPassportPayload>(
+  String? Function(String text) passportIdOf = cylinderPassportIdOf,
+  String Function(AppLocalizations l10n)? invalidText,
+}) => showDialog<String>(
   context: context,
-  builder: (context) =>
-      _LinkExistingTagDialog(equipmentId: equipmentId, diverId: diverId),
+  builder: (context) => _LinkExistingTagDialog(
+    equipmentId: equipmentId,
+    diverId: diverId,
+    passportIdOf: passportIdOf,
+    invalidText: invalidText,
+  ),
 );
 
 class _LinkExistingTagDialog extends ConsumerStatefulWidget {
-  const _LinkExistingTagDialog({required this.equipmentId, this.diverId});
+  const _LinkExistingTagDialog({
+    required this.equipmentId,
+    this.diverId,
+    required this.passportIdOf,
+    this.invalidText,
+  });
 
   final String equipmentId;
   final String? diverId;
+  final String? Function(String text) passportIdOf;
+
+  /// What a link [passportIdOf] refuses is called; the cylinder wording
+  /// when null.
+  final String Function(AppLocalizations l10n)? invalidText;
 
   @override
   ConsumerState<_LinkExistingTagDialog> createState() =>
@@ -46,9 +71,12 @@ class _LinkExistingTagDialogState
 
   Future<void> _link() async {
     final l10n = context.l10n;
-    final result = PassportPayloadCodec.decode(_controller.text);
-    if (result is! PassportDecoded) {
-      setState(() => _error = l10n.passport_tag_linkInvalid);
+    final passportId = widget.passportIdOf(_controller.text);
+    if (passportId == null) {
+      setState(
+        () => _error =
+            widget.invalidText?.call(l10n) ?? l10n.passport_tag_linkInvalid,
+      );
       return;
     }
     setState(() => _busy = true);
@@ -57,7 +85,7 @@ class _LinkExistingTagDialogState
           .read(cylinderPassportRepositoryProvider)
           .assignPassportId(
             equipmentId: widget.equipmentId,
-            passportId: result.payload.passportId,
+            passportId: passportId,
             diverId: widget.diverId,
           );
     } on PassportIdInUse catch (e) {
@@ -83,7 +111,7 @@ class _LinkExistingTagDialogState
     ref.invalidate(passportIdProvider(widget.equipmentId));
     ref.invalidate(fillsForEquipmentProvider(widget.equipmentId));
     if (!mounted) return;
-    Navigator.of(context).pop(result.payload);
+    Navigator.of(context).pop(passportId);
   }
 
   @override

@@ -20,6 +20,11 @@ class OverlaidProfileChart extends StatefulWidget {
   final String? incomingLabel;
   final double height;
 
+  /// Whether the legend prefixes each label with its role. False when the
+  /// labels already say which side is which, as for two copies of one dive
+  /// from the same import (#3110), neither of which is stored yet.
+  final bool prefixRoles;
+
   const OverlaidProfileChart({
     super.key,
     this.existingProfile = const [],
@@ -27,6 +32,7 @@ class OverlaidProfileChart extends StatefulWidget {
     this.existingLabel,
     this.incomingLabel,
     this.height = 80,
+    this.prefixRoles = true,
   });
 
   @override
@@ -170,14 +176,18 @@ class _OverlaidProfileChartState extends State<OverlaidProfileChart> {
               if (widget.existingProfile.isNotEmpty)
                 _LegendCheckbox(
                   color: _existingColor,
-                  label: 'Existing: ${widget.existingLabel ?? "Unknown"}',
+                  label: widget.prefixRoles
+                      ? 'Existing: ${widget.existingLabel ?? "Unknown"}'
+                      : widget.existingLabel ?? 'Unknown',
                   checked: !existingHidden,
                   onTap: () => _toggleSeries(_existingKey),
                 ),
               if (widget.incomingProfile.isNotEmpty)
                 _LegendCheckbox(
                   color: _incomingColor,
-                  label: 'Incoming: ${widget.incomingLabel ?? "Unknown"}',
+                  label: widget.prefixRoles
+                      ? 'Incoming: ${widget.incomingLabel ?? "Unknown"}'
+                      : widget.incomingLabel ?? 'Unknown',
                   checked: !incomingHidden,
                   onTap: () => _toggleSeries(_incomingKey),
                 ),

@@ -123,14 +123,24 @@ Each dive Submersion downloads stays linked to the computer that recorded it. On
 
 ## Your computer's page
 
-Tap any saved computer to open its detail page. It shows the model, serial number, connection type, and notes, plus **Statistics** for the dives imported and the last download. From here you can:
+Tap any saved computer to open its detail page. It shows the model, serial number and notes, its **Connections**, and **Statistics** for the dives imported and the last download. From here you can:
 
-- **Download Dives**: pull new dives from this computer.
+- **Download Dives**: pull new dives from this computer, over the connection this device used for it last.
 - **View Dives from This Computer**: open the [Dives](dive-logging.md) list filtered to this computer.
 - **Re-import all dives**: force a full re-download (shown once a download history exists).
 - **Re-parse all dives**: rebuild the dives from the raw data Submersion kept from each download, without connecting to the computer. Useful after an update that reads more from your model.
-- **Merge with another computer**: when the same physical computer ended up as two entries (for example, after a reinstall), fold one into the other. A banner offers **Merge** when two entries share a serial number.
+- **Merge with another computer**: when the same physical computer ended up as two entries (for example, after a reinstall, or one entry from a file import and one from a Bluetooth download), fold one into the other. A banner offers **Merge** when two entries share a serial number. The kept entry gets both entries' connections.
 - Mark it as a favorite with the star, **Edit** its name and notes, or **Delete** it.
+
+### Connections
+
+One computer can reach Submersion in several ways: over Bluetooth or USB, from a file such as a Garmin FIT file or a Shearwater Cloud export, or from Garmin Connect or the Suunto app. The **Connections** card lists each way this computer has come in, with when it was last used.
+
+- **This device** marks a Bluetooth, USB or infrared connection this phone, tablet or computer has used. Each device keeps its own: downloading over Bluetooth on your phone and over USB on your laptop no longer overwrites one with the other.
+- The download button beside a connection marked **This device** downloads over that connection instead of the last one used.
+- Every download and import path now finds the computer by its serial number, so the same computer stays one entry.
+
+Shearwater serial numbers show in the 8-character form the computer itself shows (for example `A1B2C3D4`). A download used to store them as a long decimal number, which is why a Shearwater Cloud import and a Bluetooth download could create two entries for one Perdix. Existing entries are converted when you open this version.
 
 ## Using more than one computer
 

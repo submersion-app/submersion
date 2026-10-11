@@ -1,79 +1,81 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/insights/domain/focus/focus_factor.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/domain/focus/focus_selection.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_focus_providers.dart';
 
-void main() {
-  final rmv = [
-    for (var i = 0; i < 6; i++)
-      TrendDataPoint(
-        date: DateTime.utc(2025, 1, i + 1),
-        value: 10.0 + i,
-        diveId: 'd$i',
-      ),
-  ];
-  final depth = [
-    TrendDataPoint(date: DateTime.utc(2025), value: 30, diveId: 'd0'),
-  ];
-  final rows = [
-    for (var i = 0; i < 6; i++)
-      FocusFactorRow(
-        diveId: 'd$i',
-        dateTime: DateTime.utc(2025, 1, i + 1),
-        maxDepth: i < 3 ? 10 : 30,
-      ),
-    FocusFactorRow(diveId: 'noRmv', dateTime: DateTime.utc(2025), maxDepth: 99),
-  ];
+import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_database.dart';
 
-  ProviderContainer container() {
+void main() {
+  setUp(() async => setUpTestDatabase());
+  tearDown(() async => tearDownTestDatabase());
+
+  Future<ProviderContainer> container(List<TrendDataPoint> cns) async {
     final c = ProviderContainer(
       overrides: [
+        ...await getBaseOverrides(),
         focusMetricSeriesProvider(
-          FocusMetric.rmv,
-        ).overrideWith((ref) async => rmv),
-        focusMetricSeriesProvider(
-          FocusMetric.maxDepth,
-        ).overrideWith((ref) async => depth),
-        focusFactorRowsProvider.overrideWith((ref) async => rows),
+          FocusMetric.cns,
+        ).overrideWith((ref) async => cns),
       ],
     );
     addTearDown(c.dispose);
     return c;
   }
 
-  test('the default group is the best ten RMV dives', () async {
-    final c = container();
-    final group = await c.read(focusGroupProvider.future);
-    expect(group.members.first.diveId, 'd0');
-    expect(group.members, hasLength(6));
+  test('the threshold default is the mean of the selected metric', () async {
+    final c = await container([
+      TrendDataPoint(date: DateTime.utc(2025), value: 10, diveId: 'a'),
+      TrendDataPoint(date: DateTime.utc(2025, 2), value: 30, diveId: 'b'),
+    ]);
+    c.read(focusSelectionProvider.notifier).state = const FocusSelection(
+      metric: FocusMetric.cns,
+      mode: FocusMode.above,
+    );
+    expect(await c.read(focusThresholdDefaultProvider.future), 20);
   });
 
-  test('changing the selection re-picks the group', () async {
-    final c = container();
+  test('an empty series gives no default', () async {
+    final c = await container(const []);
     c.read(focusSelectionProvider.notifier).state = const FocusSelection(
-      metric: FocusMetric.maxDepth,
-      mode: FocusMode.highest,
-      count: 1,
+      metric: FocusMetric.cns,
+      mode: FocusMode.above,
     );
-    final group = await c.read(focusGroupProvider.future);
-    expect(group.members.single.value, 30);
+    expect(await c.read(focusThresholdDefaultProvider.future), isNull);
   });
 
-  test('the baseline is only the dives that have the metric', () async {
-    final c = container();
-    c.read(focusSelectionProvider.notifier).state = const FocusSelection(
-      count: 3,
+  test('every metric has a series provider that resolves', () async {
+    final c = ProviderContainer(overrides: await getBaseOverrides());
+    addTearDown(c.dispose);
+    for (final m in FocusMetric.values) {
+      expect(
+        await c.read(focusMetricSeriesProvider(m).future),
+        isEmpty,
+        reason: '$m',
+      );
+    }
+  });
+
+  test('factor rows are keyed by dive id once per load', () async {
+    final rows = [
+      FocusFactorRow(diveId: 'a', dateTime: DateTime.utc(2025)),
+      FocusFactorRow(diveId: 'b', dateTime: DateTime.utc(2025, 2)),
+    ];
+    final c = ProviderContainer(
+      overrides: [
+        ...await getBaseOverrides(),
+        focusFactorRowsProvider.overrideWith((ref) async => rows),
+      ],
     );
-    final report = await c.read(focusFactorReportProvider.future);
-    final depthFactor =
-        report.factors.firstWhere((f) => f.id == FocusFactorId.maxDepth)
-            as NumericFactor;
-    expect(depthFactor.groupMean, 10);
-    // Mean of d0..d5 only; the 99 m dive without an RMV is not baseline.
-    expect(depthFactor.baselineMean, 20);
+    addTearDown(c.dispose);
+    await c.read(focusFactorRowsProvider.future);
+    final byId = c.read(focusFactorRowsByIdProvider);
+    expect(byId.keys, ['a', 'b']);
+    expect(byId['b'], same(rows[1]));
+    // The same map object comes back until the rows reload.
+    expect(c.read(focusFactorRowsByIdProvider), same(byId));
   });
 }

@@ -35,6 +35,7 @@
 		E9F0A1B42F0D4567001F5061 /* LocalMediaHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9F0A1B32F0D4567001F5061 /* LocalMediaHandler.swift */; };
 		DEAD1234BEEF56780022AABC /* PhotoMetadataHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAD1234BEEF56780022AABB /* PhotoMetadataHandler.swift */; };
 		BB05C0DEBB05C0DE00000012 /* BackupBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB05C0DEBB05C0DE00000011 /* BackupBookmarkHandler.swift */; };
+		5E5C0DE05E5C0DE000000012 /* SystemProxyHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5C0DE05E5C0DE000000011 /* SystemProxyHandler.swift */; };
 		F00D1234ABCDEF0011223345 /* ICloudContainerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00D1234ABCDEF0011223344 /* ICloudContainerHandler.swift */; };
 /* End PBXBuildFile section */
 
@@ -101,6 +102,7 @@
 		E9F0A1B32F0D4567001F5061 /* LocalMediaHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalMediaHandler.swift; sourceTree = "<group>"; };
 		DEAD1234BEEF56780022AABB /* PhotoMetadataHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoMetadataHandler.swift; sourceTree = "<group>"; };
 		BB05C0DEBB05C0DE00000011 /* BackupBookmarkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupBookmarkHandler.swift; sourceTree = "<group>"; };
+		5E5C0DE05E5C0DE000000011 /* SystemProxyHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemProxyHandler.swift; sourceTree = "<group>"; };
 		F00D1234ABCDEF0011223344 /* ICloudContainerHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICloudContainerHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -210,6 +212,7 @@
 				E9F0A1B32F0D4567001F5061 /* LocalMediaHandler.swift */,
 				DEAD1234BEEF56780022AABB /* PhotoMetadataHandler.swift */,
 				BB05C0DEBB05C0DE00000011 /* BackupBookmarkHandler.swift */,
+				5E5C0DE05E5C0DE000000011 /* SystemProxyHandler.swift */,
 				A1B2C3D4E5F6A7B80011AABB /* PrivacyInfo.xcprivacy */,
 				33E51913231747F40026EE4D /* DebugProfile.entitlements */,
 				33E51914231749380026EE4D /* Release.entitlements */,
@@ -503,6 +506,7 @@
 				DEAD1234BEEF56780022AABC /* PhotoMetadataHandler.swift in Sources */,
 				E9F0A1B42F0D4567001F5061 /* LocalMediaHandler.swift in Sources */,
 				BB05C0DEBB05C0DE00000012 /* BackupBookmarkHandler.swift in Sources */,
+				5E5C0DE05E5C0DE000000012 /* SystemProxyHandler.swift in Sources */,
 				335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

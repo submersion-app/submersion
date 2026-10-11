@@ -22,6 +22,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 class CourseDetailPage extends ConsumerWidget {
   final String courseId;
@@ -248,6 +250,10 @@ class CourseDetailPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
           ],
+          DocumentsSection(
+            owner: DocumentOwner(DocumentOwnerKind.course, course.id),
+          ),
+          const SizedBox(height: 16),
 
           // Actions
           if (!course.isCompleted) ...[

@@ -10,6 +10,7 @@ import workmanager_apple
   private var localMediaHandler: LocalMediaHandler?
   private var backupBookmarkHandler: BackupBookmarkHandler?
   private var deviceNameHandler: DeviceNameHandler?
+  private var systemProxyHandler: SystemProxyHandler?
 
   override func application(
     _ application: UIApplication,
@@ -41,6 +42,9 @@ import workmanager_apple
     }
     if let deviceNameRegistrar = self.registrar(forPlugin: "DeviceNameHandler") {
       deviceNameHandler = DeviceNameHandler(messenger: deviceNameRegistrar.messenger())
+    }
+    if let systemProxyRegistrar = self.registrar(forPlugin: "SystemProxyHandler") {
+      systemProxyHandler = SystemProxyHandler(messenger: systemProxyRegistrar.messenger())
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

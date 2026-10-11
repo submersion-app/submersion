@@ -21,9 +21,10 @@ import 'package:submersion/features/connections/presentation/pages/connections_p
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_timeline_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
-import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
+import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -83,8 +84,9 @@ Future<ProviderContainer> _pump(
         connectionGraphProvider.overrideWith(
           (ref, budget) async => graph == null ? _graph : graph(ref, budget),
         ),
-        connectionsYearSpanProvider.overrideWith(
-          (ref) async => (first: 2019, last: 2024),
+        connectionsDateSpanProvider.overrideWith(
+          (ref) async =>
+              (start: DateTime(2019, 1, 1), end: DateTime(2024, 12, 31)),
         ),
         savedConnectionMapsProvider.overrideWith((ref) async => savedMaps),
         connectionsSelectionDiveIdsProvider.overrideWith(
@@ -657,32 +659,37 @@ void main() {
     expect(painter.groupOf.length, 2);
   });
 
-  testWidgets('the play pill sits on the canvas and a load moves play on', (
+  testWidgets('the timeline bar sits on the canvas and a load moves play on', (
     tester,
   ) async {
     final c = await _pump(
       tester,
       size: _phone,
       // Like the real provider, the graph reloads when the filter changes;
-      // play waits for that reload before its next beat.
+      // the timeline writes its next range only after that reload.
       graph: (ref, budget) {
         ref.watch(connectionsFilterProvider);
         return _graph;
       },
     );
-    expect(find.byKey(const ValueKey('year-play-pill')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('year-play-button')));
-    await tester.pump();
-    expect(c.read(yearPlayProvider), 2019);
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.pump(YearPlayNotifier.beat);
-    await tester.pump(const Duration(milliseconds: 50));
     expect(
-      c.read(yearPlayProvider),
-      2020,
-      reason: 'the reload settled and the beat passed',
+      find.byKey(const ValueKey('connections-timeline-bar')),
+      findsOneWidget,
     );
-    c.read(yearPlayProvider.notifier).pause();
+    await tester.tap(find.byKey(const ValueKey('timeline-play-button')));
+    await tester.pump();
+    expect(c.read(connectionsTimelineProvider).playing, isTrue);
+    expect(c.read(connectionsFilterProvider).endDate, DateTime(2019, 1, 1));
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(
+      c.read(connectionsFilterProvider).endDate!.isAfter(DateTime(2019, 6, 1)),
+      isTrue,
+      reason: 'loads settled and the sweep moved on about 219 days',
+    );
+    c.read(connectionsTimelineProvider.notifier).pause();
+    await tester.pump(const Duration(milliseconds: 100));
   });
   testWidgets('the share button opens the share sheet', (tester) async {
     await _pump(tester);
@@ -749,7 +756,57 @@ void main() {
       );
     }
   });
-  testWidgets('play carries on through a year with an empty map', (
+  testWidgets('a drag during the first load still reaches the map', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      // A slow first load: the page's listener never hears it start.
+      graph: (ref, budget) async {
+        ref.watch(connectionsFilterProvider);
+        await Future<void>.delayed(const Duration(seconds: 1));
+        return _graph;
+      },
+    );
+    await tester.tap(find.text('Filter'));
+    await tester.pump(const Duration(milliseconds: 100));
+    final slider = tester.widget<RangeSlider>(
+      find.byKey(const ValueKey('timeline-slider')),
+    );
+    slider.onChangeStart!(slider.values);
+    slider.onChanged!(const RangeValues(31, 59));
+    slider.onChangeEnd!(const RangeValues(31, 90));
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(c.read(connectionsFilterProvider).endDate, DateTime(2019, 4, 1));
+  });
+  testWidgets('an empty map keeps its message clear of the timeline bar', (
+    tester,
+  ) async {
+    // A short phone: the canvas above the sheet is only a few hundred
+    // pixels tall.
+    await _pump(
+      tester,
+      size: const Size(400, 600),
+      graph: (ref, budget) => ConnectionGraph.empty,
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    final message = find
+        .descendant(
+          of: find.byType(ConnectionsEmptyState),
+          matching: find.byType(Column),
+        )
+        .first;
+    final bar = find.byKey(const ValueKey('connections-timeline-bar'));
+    expect(bar, findsOneWidget);
+    expect(
+      tester.getBottomLeft(message).dy,
+      lessThanOrEqualTo(tester.getTopLeft(bar).dy),
+    );
+  });
+
+  testWidgets('play carries on through a range with an empty map', (
     tester,
   ) async {
     final c = await _pump(
@@ -757,22 +814,29 @@ void main() {
       size: _phone,
       graph: (ref, budget) {
         final end = ref.watch(connectionsFilterProvider).endDate;
-        return end != null && end.year == 2019 ? ConnectionGraph.empty : _graph;
+        return end != null && end.isBefore(DateTime(2019, 2, 1))
+            ? ConnectionGraph.empty
+            : _graph;
       },
     );
-    await tester.tap(find.byKey(const ValueKey('year-play-button')));
+    await tester.tap(find.byKey(const ValueKey('timeline-play-button')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
-    expect(c.read(yearPlayProvider), 2019);
     expect(
-      find.byKey(const ValueKey('year-play-pill')),
+      find.byKey(const ValueKey('connections-timeline-bar')),
       findsOneWidget,
-      reason: 'the pill stays over the empty state so play can be paused',
+      reason: 'the bar stays over the empty state so play can be paused',
     );
-    await tester.pump(YearPlayNotifier.beat);
-    await tester.pump(const Duration(milliseconds: 50));
-    expect(c.read(yearPlayProvider), 2020);
-    c.read(yearPlayProvider.notifier).pause();
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(c.read(connectionsTimelineProvider).playing, isTrue);
+    expect(
+      c.read(connectionsFilterProvider).endDate!.isAfter(DateTime(2019, 2, 1)),
+      isTrue,
+    );
+    c.read(connectionsTimelineProvider.notifier).pause();
+    await tester.pump(const Duration(milliseconds: 100));
   });
   testWidgets('beside the tiles, the strip band still reaches the canvas', (
     tester,

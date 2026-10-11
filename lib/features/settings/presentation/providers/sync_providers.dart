@@ -28,6 +28,7 @@ import 'package:submersion/core/services/cloud_storage/icloud_native_service.dar
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/s3_storage_provider.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_sweep.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
@@ -60,6 +61,7 @@ import 'package:submersion/features/settings/presentation/providers/storage_prov
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
 
 /// Sync repository provider
 final syncRepositoryProvider = Provider<SyncRepository>((ref) {
@@ -313,13 +315,29 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
   ConnectedAccountsRepository repo, {
   SyncRepository? syncRepository,
   S3CredentialsStore? s3Credentials,
+  WebDavCredentialsStore? webdavCredentials,
 }) async {
   final kind = AccountKind.fromCloudProviderType(type);
+  // A WebDAV account is its endpoint: after a server or folder edit the
+  // persisted account names the old one, and reusing it would mirror the
+  // new settings under the old id (and over a media account sharing it).
+  final webdavConfig = kind == AccountKind.webdav
+      ? await (webdavCredentials ?? WebDavCredentialsStore()).load()
+      : null;
   final persistedId = await (syncRepository ?? SyncRepository())
       .getSyncAccountId();
   if (persistedId != null) {
     final persisted = await repo.getById(persistedId);
-    if (persisted != null && persisted.kind == kind) return persisted;
+    final sameEndpoint =
+        webdavConfig == null ||
+        persisted?.id ==
+            accountIdFor(
+              kind: AccountKind.webdav,
+              naturalKey: webdavNaturalKey(webdavConfig),
+            );
+    if (persisted != null && persisted.kind == kind && sameEndpoint) {
+      return persisted;
+    }
   }
   if (kind == AccountKind.s3) {
     // S3 accounts are instances, so the endpoint identifies them. Read the
@@ -339,6 +357,22 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
       kind: kind,
       naturalKey: s3NaturalKey(config),
       label: '${config.bucket} @ ${config.displayHost}',
+    );
+  }
+  if (kind == AccountKind.webdav) {
+    // An instance kind like S3: the endpoint in the legacy blob identifies
+    // the account, and without it a fresh row waits for the deduplicator.
+    final config = webdavConfig;
+    if (config == null) {
+      return repo.create(
+        kind: kind,
+        label: cloudProviderInstanceFor(type).providerName,
+      );
+    }
+    return repo.ensure(
+      kind: kind,
+      naturalKey: webdavNaturalKey(config),
+      label: config.displayLabel,
     );
   }
   return repo.ensure(
@@ -381,6 +415,7 @@ final selectedSyncAccountProvider = FutureProvider<domain.ConnectedAccount?>((
       repo,
       syncRepository: ref.read(syncRepositoryProvider),
       s3Credentials: ref.read(s3CredentialsStoreProvider),
+      webdavCredentials: ref.read(webdavCredentialsStoreProvider),
     );
     await ref
         .read(syncRepositoryProvider)
@@ -421,6 +456,7 @@ Future<void> _mirrorLegacyCredentials(
 ) async {
   final legacyKey = switch (account.kind) {
     AccountKind.s3 => S3CredentialsStore.storageKey,
+    AccountKind.webdav => WebDavCredentialsStore.storageKey,
     AccountKind.dropbox => DropboxAuthStore.storageKey,
     // Session-managed / not a sync kind: no keychain blob to mirror.
     AccountKind.googledrive ||
@@ -1540,13 +1576,14 @@ class SyncNotifier extends StateNotifier<SyncState> {
 
   /// Sign out from the cloud provider
   ///
-  /// For S3 the credentials are hand-entered, so disconnecting only
+  /// For S3 and WebDAV the credentials are hand-entered, so disconnecting only
   /// deselects the provider; the stored configuration survives and the
   /// S3 settings page offers the explicit, destructive
   /// "Remove Configuration" instead.
   Future<void> signOut() async {
     final selected = _ref.read(selectedCloudProviderTypeProvider);
-    if (selected != CloudProviderType.s3) {
+    if (selected != CloudProviderType.s3 &&
+        selected != CloudProviderType.webdav) {
       await _syncService.signOut();
       // Account-first resolution means _syncService.signOut() cleared the
       // PER-ACCOUNT Dropbox blob (and revoked); also clear the legacy
@@ -1578,6 +1615,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
     // The S3 tile watches this; a sign-out (or future config change) must
     // not leave it showing stale state.
     _ref.invalidate(s3ConfigProvider);
+    _ref.invalidate(webdavConfigProvider);
     state = const SyncState();
   }
 

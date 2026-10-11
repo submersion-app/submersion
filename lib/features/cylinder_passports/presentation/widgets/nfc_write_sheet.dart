@@ -35,23 +35,52 @@ String tagFieldLabel(AppLocalizations l10n, String key) => switch (key) {
   _ => key,
 };
 
-/// Writes [payload] to an NFC tag (spec 13.3) and reports the tag type, its
-/// capacity and which fields fit.
+/// Everything the write sheet needs about the tag it writes, whatever its
+/// kind: the full link (noted as possibly on the tag when a write fails
+/// part-way), how to fit it to a tag's capacity, and the readable name of a
+/// key left off a small tag.
+class TagWriteRequest {
+  const TagWriteRequest({
+    required this.fullUrl,
+    required this.planFor,
+    required this.fieldLabel,
+  });
+
+  final String fullUrl;
+  final TagNdefPlan? Function(int maxMessageBytes) planFor;
+  final String Function(AppLocalizations l10n, String key) fieldLabel;
+}
+
+/// A cylinder passport write: the full payload, never the label-bounded one.
+TagWriteRequest cylinderTagWriteRequest(CylinderPassportPayload payload) =>
+    TagWriteRequest(
+      fullUrl: PassportPayloadCodec.httpsUrl(payload),
+      planFor: (max) => planPassportMessage(payload, maxMessageBytes: max),
+      fieldLabel: tagFieldLabel,
+    );
+
 Future<void> showNfcWriteSheet(
   BuildContext context, {
   required CylinderPassportPayload payload,
+}) => showTagWriteSheet(context, request: cylinderTagWriteRequest(payload));
+
+/// Writes [request]'s tag to an NFC tag (spec 13.3) and reports the tag
+/// type, its capacity and which fields fit.
+Future<void> showTagWriteSheet(
+  BuildContext context, {
+  required TagWriteRequest request,
 }) => showModalBottomSheet<void>(
   context: context,
   useSafeArea: true,
-  builder: (_) => NfcWriteSheet(payload: payload),
+  builder: (_) => NfcWriteSheet(request: request),
 );
 
 class NfcWriteSheet extends ConsumerStatefulWidget {
-  const NfcWriteSheet({super.key, required this.payload});
+  const NfcWriteSheet({super.key, required this.request});
 
-  /// The full payload, never the label-bounded one: the tag's own capacity
-  /// decides what is left off.
-  final CylinderPassportPayload payload;
+  /// The tag to write, whatever its kind; its full payload, never the
+  /// label-bounded one, so the tag's own capacity decides what is left off.
+  final TagWriteRequest request;
 
   @override
   ConsumerState<NfcWriteSheet> createState() => _NfcWriteSheetState();
@@ -94,7 +123,7 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
       result = await _service.withTag(
         promptIos: l10n.passport_nfc_holdNear,
         onTag: (tag) async {
-          final outcome = await writePassportTo(tag, widget.payload);
+          final outcome = await writeTagTo(tag, widget.request.planFor);
           _noteHeld(recent, tag, outcome);
           return outcome;
         },
@@ -136,11 +165,11 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
       if (firstPassportUri(found) case final held?) recent.note(held);
     }
     final written = switch (outcome) {
-      TagWritten(:final plan) => plan.payload,
-      TagReadBackMismatch() || TagWriteFailed() => widget.payload,
+      TagWritten(:final plan) => plan.url,
+      TagReadBackMismatch() || TagWriteFailed() => widget.request.fullUrl,
       TagNotNdef() || TagReadOnly() || TagTooSmall() => null,
     };
-    if (written != null) recent.note(PassportPayloadCodec.httpsUrl(written));
+    if (written != null) recent.note(written);
   }
 
   void _cancel() {
@@ -216,12 +245,12 @@ class _NfcWriteSheetState extends ConsumerState<NfcWriteSheet> {
                   ? l10n.passport_nfc_allFields
                   : l10n.passport_nfc_fieldsDropped(
                       written.plan.droppedKeys
-                          .map((k) => tagFieldLabel(l10n, k))
+                          .map((k) => widget.request.fieldLabel(l10n, k))
                           .join(', '),
                     ),
               textAlign: TextAlign.center,
             ),
-            if (written.plan.payload.fill != null) ...[
+            if (written.plan.includesFill) ...[
               const SizedBox(height: 4),
               Text(l10n.passport_nfc_fillIncluded, textAlign: TextAlign.center),
             ],

@@ -15,6 +15,11 @@ import 'package:submersion/features/equipment/presentation/providers/exposure_th
 import 'package:submersion/features/notifications/data/repositories/scheduled_notification_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/document_reminder_plan.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/document_l10n.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Schedules service-clock reminder notifications plus one pre-trip nag per
 /// upcoming trip with gear due before the trip ends.
@@ -26,6 +31,7 @@ class NotificationScheduler {
   final ServiceRecordRepository _serviceRecordRepository;
   final TripRepository _tripRepository;
   final ScheduledNotificationRepository _scheduledNotificationRepository;
+  final DocumentRepository _documentRepository;
   final _log = LoggerService.forClass(NotificationScheduler);
 
   NotificationScheduler({
@@ -36,7 +42,9 @@ class NotificationScheduler {
     ServiceRecordRepository? serviceRecordRepository,
     TripRepository? tripRepository,
     ScheduledNotificationRepository? scheduledNotificationRepository,
-  }) : _notificationService =
+    DocumentRepository? documentRepository,
+  }) : _documentRepository = documentRepository ?? DocumentRepository(),
+       _notificationService =
            notificationService ?? NotificationService.instance,
        _equipmentRepository = equipmentRepository ?? EquipmentRepository(),
        _serviceScheduleRepository =
@@ -97,6 +105,8 @@ class NotificationScheduler {
       settings: settings,
       diverId: diverId,
     );
+
+    await _scheduleDocumentReminders(settings: settings, diverId: diverId);
 
     _log.info('Notification scheduling complete');
   }
@@ -432,6 +442,61 @@ class NotificationScheduler {
         item: item,
         status: status,
         globalSettings: globalSettings,
+      );
+    }
+  }
+
+  /// Expiry reminders for every reminding document of [diverId] (#2613).
+  Future<void> _scheduleDocumentReminders({
+    required AppSettings settings,
+    String? diverId,
+  }) async {
+    // Pending reminders, known only from their payloads. One whose document
+    // is gone (deleted on another device, or with its owner) or no longer
+    // reminds is cancelled. One of another profile, which the loop below
+    // never reaches, is rebuilt from the document as it is now: a renewal
+    // synced in must not leave the old expiry announcing itself.
+    for (final id in await _notificationService.pendingDocumentReminderIds()) {
+      final document = await _documentRepository.getById(id);
+      if (document == null || !document.remindsOnExpiry) {
+        await _notificationService.cancelDocumentReminders(id);
+      } else if (document.diverId != diverId) {
+        await updateForDocument(document, settings);
+      }
+    }
+    if (diverId == null) return;
+    final documents = await _documentRepository.getRemindingForDiver(diverId);
+    for (final document in documents) {
+      await updateForDocument(document, settings);
+    }
+  }
+
+  /// Replaces [document]'s reminders with the ones its expiry calls for
+  /// now; after an edit that cleared the expiry, that is none.
+  Future<void> updateForDocument(
+    Document document,
+    AppSettings settings,
+  ) async {
+    await _notificationService.cancelDocumentReminders(document.id);
+    if (!settings.notificationsEnabled) return;
+    final l10n = l10nForLocaleTag(settings.locale);
+    final title = documentDisplayTitle(l10n, document);
+    for (final r in documentReminderPlan(
+      document,
+      DateTime.now(),
+      settings.reminderTime,
+    )) {
+      final expiryDay = r.stage == DocumentReminderStage.expiryDay;
+      await _notificationService.scheduleDocumentReminder(
+        documentId: document.id,
+        title: expiryDay
+            ? l10n.notifications_document_expiresToday_title(title)
+            : l10n.notifications_document_expiresSoon_title(title),
+        body: expiryDay
+            ? l10n.notifications_document_expiresToday_body
+            : l10n.notifications_document_expiresSoon_body(r.daysLeft),
+        stage: r.stage,
+        scheduledDate: r.fireAt,
       );
     }
   }

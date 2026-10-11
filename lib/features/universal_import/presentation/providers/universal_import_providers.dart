@@ -39,6 +39,7 @@ import 'package:submersion/features/universal_import/data/parsers/parser_registr
 import 'package:submersion/features/dive_import/data/services/fit_parser_service.dart';
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
+import 'package:submersion/features/universal_import/data/services/divemate_schema.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/default_diver_mapping.dart';
@@ -167,12 +168,20 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         );
       } else if (DivingLogDbReader.matchesTables(tables)) {
         // Checked last: its marker table is a single common name, so the
-        // more specific flavours claim their own files first.
-        detection = const DetectionResult(
-          format: ImportFormat.divingLogSqlite,
-          sourceApp: SourceApp.divingLog,
-          confidence: 0.95,
-        );
+        // more specific flavours claim their own files first. DiveMate
+        // writes the same schema, so the file is asked which program wrote
+        // it before it is called Diving Log (#3110).
+        detection = await DiveMateSchema.isDiveMateDb(bytes)
+            ? const DetectionResult(
+                format: ImportFormat.diveMateDdb,
+                sourceApp: SourceApp.diveMate,
+                confidence: 0.95,
+              )
+            : const DetectionResult(
+                format: ImportFormat.divingLogSqlite,
+                sourceApp: SourceApp.divingLog,
+                confidence: 0.95,
+              );
       }
     }
 
@@ -1128,6 +1137,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       existingDiveTypes: existingDiveTypes,
       existingSourceUuidByDiveId: existingSourceUuidByDiveId,
       checkIntraBatch: (payload.metadata['batchFileCount'] as int? ?? 1) > 1,
+      checkWithinFile: (payload.metadata['batchFileCount'] as int? ?? 1) <= 1,
       units: UnitFormatter(_ref.read(settingsProvider)),
       certificationCatalog: await _ref.read(
         allCustomCertificationsCatalogProvider.future,

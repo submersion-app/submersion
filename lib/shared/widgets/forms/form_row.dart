@@ -37,6 +37,7 @@ class FormRow extends StatefulWidget {
     this.placeholder,
     this.suffixText,
     this.keyboardType,
+    this.textCapitalization = TextCapitalization.none,
     this.inputFormatters,
     this.maxLines = 1,
     this.alwaysEditing = false,
@@ -74,6 +75,7 @@ class FormRow extends StatefulWidget {
        controller = null,
        suffixText = null,
        keyboardType = null,
+       textCapitalization = TextCapitalization.none,
        inputFormatters = null,
        maxLines = 1,
        alwaysEditing = false,
@@ -99,6 +101,7 @@ class FormRow extends StatefulWidget {
       placeholder = null,
       suffixText = null,
       keyboardType = null,
+      textCapitalization = TextCapitalization.none,
       maxLines = 1,
       alwaysEditing = false,
       validator = null,
@@ -134,6 +137,7 @@ class FormRow extends StatefulWidget {
        placeholder = null,
        suffixText = null,
        keyboardType = null,
+       textCapitalization = TextCapitalization.none,
        maxLines = 1,
        alwaysEditing = false,
        validator = null,
@@ -164,6 +168,7 @@ class FormRow extends StatefulWidget {
        placeholder = null,
        suffixText = null,
        keyboardType = null,
+       textCapitalization = TextCapitalization.none,
        maxLines = 1,
        alwaysEditing = false,
        validator = null,
@@ -188,6 +193,7 @@ class FormRow extends StatefulWidget {
       placeholder = null,
       suffixText = null,
       keyboardType = null,
+      textCapitalization = TextCapitalization.none,
       maxLines = 1,
       alwaysEditing = false,
       validator = null,
@@ -213,6 +219,9 @@ class FormRow extends StatefulWidget {
   final String? placeholder;
   final String? suffixText;
   final TextInputType? keyboardType;
+
+  /// How the keyboard capitalizes typed text. Text rows only.
+  final TextCapitalization textCapitalization;
   final List<TextInputFormatter>? inputFormatters;
   final int maxLines;
   final bool alwaysEditing;
@@ -378,6 +387,7 @@ class _FormRowState extends State<FormRow> {
                     autofocus: _editing && !_alwaysMounted,
                     maxLines: widget.maxLines,
                     keyboardType: widget.keyboardType,
+                    textCapitalization: widget.textCapitalization,
                     inputFormatters: widget.inputFormatters,
                     validator: widget.validator ?? widget.inputValidator,
                     autovalidateMode: widget.inputValidator != null

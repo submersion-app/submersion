@@ -8,13 +8,21 @@ import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/insights/domain/trend_range.dart';
+import 'package:submersion/features/insights/domain/trend_time_scale.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_axis.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_overview_strip.dart';
 import 'package:submersion/features/insights/presentation/widgets/date_axis.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart_input.dart';
+import 'package:submersion/features/insights/presentation/formatters/trend_gap_label.dart';
+import 'package:submersion/features/insights/presentation/widgets/trend_break_band_painter.dart';
+import 'package:submersion/features/insights/presentation/widgets/trend_break_spots.dart';
+import 'package:submersion/features/insights/presentation/widgets/trend_reference_line.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_window_seater.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+part 'dive_trend_chart_touch.dart';
 
 /// A per-dive trend chart on a real date axis.
 ///
@@ -38,10 +46,14 @@ class TrendSeries {
   final List<TrendDataPoint> points;
   final Color color;
 
+  /// Dot radius in raw mode; null draws the primary's size.
+  final double? pointRadius;
+
   const TrendSeries({
     required this.label,
     required this.points,
     required this.color,
+    this.pointRadius,
   });
 }
 
@@ -66,7 +78,13 @@ class DiveTrendChart extends StatefulWidget {
     this.dateFormat = DateFormatPreference.mmmDYYYY,
     this.range = TrendRange.all,
     this.onRangeChanged,
+    this.gapThreshold = TrendGapThreshold.off,
+    this.referenceLine,
   });
+
+  /// Stretches with no dives longer than this collapse into a hatched band
+  /// (issue #3251). Callers pass the diver's `trendGapThresholdProvider`.
+  final TrendGapThreshold gapThreshold;
 
   /// Raw per-dive points, in any order. Never pre-aggregated by the caller.
   /// May be empty when [secondarySeries] carries the data.
@@ -82,6 +100,9 @@ class DiveTrendChart extends StatefulWidget {
 
   /// A time span shaded behind the series, for a finding's evidence window.
   final ({DateTime start, DateTime end})? highlightRange;
+
+  /// A dashed horizontal marker, such as a threshold the diver set.
+  final TrendReferenceLine? referenceLine;
 
   /// The diver's date order, threaded in by the caller rather than read from
   /// the ambient locale, so the axis and the tooltip match Manage - Units
@@ -141,7 +162,60 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   static const _tooltipLabelWidth = 16;
   static const _tooltipValueWidth = 12;
 
-  static double _x(DateTime date) => date.millisecondsSinceEpoch.toDouble();
+  /// The x scale as last built, and what it was built from.
+  TrendTimeScale _scale = TrendTimeScale.identity;
+  Object? _scaleKey;
+
+  /// Bucket index behind each drawn spot of the primary and each secondary
+  /// data bar; null at a break's null spot.
+  List<int?> _drawnSource = const [];
+  List<List<int?>> _drawnSecondarySource = const [];
+
+  /// Axis position of the pointer over the plot, from the touch callback,
+  /// so the readout can tell a hover over a band from one over the data.
+  double? _pointerAxisX;
+
+  @visibleForTesting
+  TrendTimeScale get debugScale => _scale;
+
+  @visibleForTesting
+  set debugPointerAxisX(double? x) => _pointerAxisX = x;
+
+  /// The dive behind spot [spotIndex] of bar [barIndex], as a tap resolves
+  /// it.
+  @visibleForTesting
+  String? debugDiveIdForSpot(int barIndex, int spotIndex) =>
+      _diveIdForSpot(barIndex, spotIndex);
+
+  double _x(DateTime date) => _scale.toAxis(date);
+
+  /// The collapsed gap under the pointer, or null.
+  TrendGapBreak? get _pointerInBreak {
+    final x = _pointerAxisX;
+    return x == null ? null : _scale.breakAt(x);
+  }
+
+  /// The dive behind spot [spotIndex] of bar [barIndex], or null for a
+  /// break's null spot, an overlay bar, or a bucket of several dives (an
+  /// aggregated bucket has no single dive to open).
+  String? _diveIdForSpot(int barIndex, int spotIndex) {
+    final List<TrendBucket> drawn;
+    final List<int?> source;
+    if (barIndex == 0) {
+      drawn = _drawnBuckets;
+      source = _drawnSource;
+    } else if (_secondaryBarStart >= 0 &&
+        barIndex >= _secondaryBarStart &&
+        barIndex - _secondaryBarStart < _drawnSecondary.length) {
+      drawn = _drawnSecondary[barIndex - _secondaryBarStart];
+      source = _drawnSecondarySource[barIndex - _secondaryBarStart];
+    } else {
+      return null;
+    }
+    if (spotIndex < 0 || spotIndex >= source.length) return null;
+    final bucket = source[spotIndex];
+    return bucket == null ? null : drawn[bucket].diveId;
+  }
 
   /// Room fl_chart reserves for the rotated y-axis name, left of the tick
   /// labels. The overview strip has to clear it to line up with the plot.
@@ -237,7 +311,14 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   Widget _interactiveChart(BuildContext context, Size box) {
     // Built before the layer is handed the viewport: building the chart can
     // re-seat the viewport (a new range or a new data span).
-    final chart = _buildChart(context);
+    final chart = _buildChart(
+      context,
+      (box.width -
+              trendChartPlotInsets.left -
+              _yAxisNameSize -
+              trendChartPlotInsets.right)
+          .clamp(1.0, double.infinity),
+    );
     return TrendChartInputLayer(
       box: box,
       viewport: _viewport,
@@ -247,7 +328,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     );
   }
 
-  Widget _buildChart(BuildContext context) {
+  Widget _buildChart(BuildContext context, double plotWidth) {
     final points = widget.points;
     final aggregation = widget.aggregation;
     final height = widget.height;
@@ -267,6 +348,28 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     // One pass for the ends: sorting every bucket of every series just to
     // read its first and last would cost n log n on each pan and zoom.
     final allBuckets = [...buckets, ...secondary.expand((b) => b)];
+    // Every plotted date feeds the scale, so no point (a month bucket dated
+    // the 1st included) can land inside a band. Rebuilt only when what it
+    // reads changes: pan and zoom rebuild on every pointer move.
+    final scaleKey = (
+      points,
+      widget.secondarySeries,
+      aggregation,
+      widget.gapThreshold,
+    );
+    if (scaleKey != _scaleKey) {
+      _scaleKey = scaleKey;
+      // Per dive, every bucket is a dive, so the bucket dates are the lot.
+      final raw = aggregation == TrendAggregation.none;
+      _scale = TrendTimeScale.build([
+        for (final b in allBuckets) b.date,
+        if (!raw) ...[
+          for (final p in points) p.date,
+          for (final s in widget.secondarySeries)
+            for (final p in s.points) p.date,
+        ],
+      ], widget.gapThreshold);
+    }
     var firstDate = allBuckets.first.date;
     var lastDate = firstDate;
     for (final b in allBuckets) {
@@ -281,12 +384,20 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     final fullMax = _x(lastDate);
     final fullSpan = (fullMax - fullMin).clamp(1.0, double.infinity);
     // Runs inside build, before anything reads the viewport.
-    _viewport = _seater.seat(widget.range, _viewport, fullMin, fullMax);
+    _viewport = _seater.seat(
+      widget.range,
+      _viewport,
+      fullMin,
+      fullMax,
+      scale: _scale,
+    );
     final visibleMin = fullMin + _viewport.offsetX * fullSpan;
     final visibleMax = visibleMin + fullSpan * _viewport.visibleWidth;
-    final dateAxis = DateAxis.forRange(
-      DateTime.fromMillisecondsSinceEpoch(visibleMin.toInt(), isUtc: true),
-      DateTime.fromMillisecondsSinceEpoch(visibleMax.toInt(), isUtc: true),
+    final dateAxis = DateAxis.forAxisRange(
+      visibleMin,
+      visibleMax,
+      scale: _scale,
+      plotWidth: plotWidth,
       dateFormat: widget.dateFormat,
     );
 
@@ -296,7 +407,10 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     // paid for the same O(n) fit three times on every rebuild, and pan/zoom
     // rebuilds on every pointer move.
     final smoothed = widget.showRollingMean
-        ? rollingMean(points)
+        ? rollingMean(
+            points,
+            periodOf: _scale.isIdentity ? null : _scale.periodOf,
+          )
         : const <TrendDataPoint>[];
     final fit = widget.showLinearFit && points.isNotEmpty
         ? linearFit(points)
@@ -305,6 +419,8 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       ...allBuckets.expand((b) => [b.min, b.max]),
       ...smoothed.map((p) => p.value),
       if (fit != null) ...[fit.valueAt(firstDate), fit.valueAt(lastDate)],
+      // A threshold outside the data would otherwise sit off the plot.
+      ?widget.referenceLine?.value,
     ]);
 
     // Only rebuilt when what it is drawn from changes: pan and zoom rebuild
@@ -360,44 +476,72 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
           : context.l10n.insights_chart_trendSemanticLabel(pointCount),
       child: SizedBox(
         height: height,
-        child: LineChart(
-          duration: Duration.zero,
-          LineChartData(
-            minX: visibleMin,
-            maxX: visibleMax,
-            clipData: const FlClipData.horizontal(),
-            minY: yAxis.min,
-            maxY: yAxis.max,
-            lineTouchData: _touchData(context, bars, seriesLabels),
-            titlesData: _titles(context, dateAxis, yAxis),
-            // Framed like the dive profile chart: an unbounded plot floats
-            // on the card with nothing to read the axes against.
-            borderData: FlBorderData(
-              show: true,
-              border: Border.all(color: theme.colorScheme.outlineVariant),
+        child: Stack(
+          children: [
+            _lineChart(
+              visibleMin: visibleMin,
+              visibleMax: visibleMax,
+              yAxis: yAxis,
+              dateAxis: dateAxis,
+              bars: bars,
+              seriesLabels: seriesLabels,
+              isRaw: isRaw,
+              highlight: highlight,
             ),
-            gridData: FlGridData(
-              show: true,
-              drawVerticalLine: false,
-              horizontalInterval: yAxis.interval,
-              getDrawingHorizontalLine: (value) => FlLine(
-                color: theme.colorScheme.outlineVariant,
-                strokeWidth: 1,
+            if (!_scale.isIdentity)
+              _breakBands(context, visibleMin, visibleMax, plotWidth, height),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _lineChart({
+    required double visibleMin,
+    required double visibleMax,
+    required ChartAxis yAxis,
+    required DateAxis dateAxis,
+    required List<LineChartBarData> bars,
+    required List<String> seriesLabels,
+    required bool isRaw,
+    required ({DateTime start, DateTime end})? highlight,
+  }) {
+    final theme = Theme.of(context);
+    return LineChart(
+      duration: Duration.zero,
+      LineChartData(
+        minX: visibleMin,
+        maxX: visibleMax,
+        clipData: const FlClipData.horizontal(),
+        minY: yAxis.min,
+        maxY: yAxis.max,
+        lineTouchData: _touchData(context, bars, seriesLabels),
+        titlesData: _titles(context, dateAxis, yAxis),
+        // Framed like the dive profile chart: an unbounded plot floats
+        // on the card with nothing to read the axes against.
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: yAxis.interval,
+          getDrawingHorizontalLine: (value) =>
+              FlLine(color: theme.colorScheme.outlineVariant, strokeWidth: 1),
+        ),
+        lineBarsData: bars,
+        extraLinesData: trendReferenceLines(context, widget.referenceLine),
+        betweenBarsData: _bands(context, isRaw),
+        rangeAnnotations: RangeAnnotations(
+          verticalRangeAnnotations: [
+            if (highlight != null)
+              VerticalRangeAnnotation(
+                x1: _x(highlight.start),
+                x2: _x(highlight.end),
+                color: theme.colorScheme.tertiary.withValues(alpha: 0.18),
               ),
-            ),
-            lineBarsData: bars,
-            betweenBarsData: _bands(context, isRaw),
-            rangeAnnotations: RangeAnnotations(
-              verticalRangeAnnotations: [
-                if (highlight != null)
-                  VerticalRangeAnnotation(
-                    x1: _x(highlight.start),
-                    x2: _x(highlight.end),
-                    color: theme.colorScheme.tertiary.withValues(alpha: 0.18),
-                  ),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );
@@ -431,6 +575,9 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
 
   /// Index 0 is always the data series. When aggregating, indices 1 and 2 are
   /// the invisible bucket min and max that [_bands] fills between.
+  ///
+  /// Every series is placed through [_scale] and lifts the pen at each
+  /// collapsed gap (issue #3251); the bar indices are the same either way.
   List<LineChartBarData> _bars(
     BuildContext context,
     List<TrendBucket> buckets,
@@ -440,7 +587,9 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     LinearFit? fit,
     List<List<TrendBucket>> secondary,
   ) {
-    final bars = <LineChartBarData>[_dataBar(buckets, color, isRaw)];
+    final primary = _bucketSpots(buckets, (b) => b.mean);
+    _drawnSource = primary.source;
+    final bars = <LineChartBarData>[_dataBar(primary.spots, color, isRaw)];
 
     if (!isRaw) {
       for (final selector in <double Function(TrendBucket)>[
@@ -449,9 +598,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       ]) {
         bars.add(
           LineChartBarData(
-            spots: buckets
-                .map((b) => FlSpot(_x(b.date), selector(b)))
-                .toList(growable: false),
+            spots: _bucketSpots(buckets, selector).spots,
             isCurved: false,
             barWidth: 0,
             color: Colors.transparent,
@@ -466,63 +613,76 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     // dropdown changed, implying the underlying trend had changed when only
     // the drawing did.
     if (smoothed.isNotEmpty) {
-      {
-        bars.add(
-          LineChartBarData(
-            spots: smoothed
-                .map((p) => FlSpot(_x(p.date), p.value))
-                .toList(growable: false),
-            isCurved: false,
-            color: widget.rollingColor ?? Theme.of(context).colorScheme.primary,
-            barWidth: 2.2,
-            isStrokeCapRound: true,
-            dotData: const FlDotData(show: false),
-          ),
-        );
-      }
+      bars.add(
+        LineChartBarData(
+          spots: spotsAcrossBreaks(
+            smoothed,
+            (p) => p.date,
+            (p) => p.value,
+            _scale,
+          ).spots,
+          isCurved: false,
+          color: widget.rollingColor ?? Theme.of(context).colorScheme.primary,
+          barWidth: 2.2,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+        ),
+      );
     }
 
     if (fit != null && buckets.isNotEmpty) {
-      {
-        final first = buckets.first.date;
-        final last = buckets.last.date;
-        bars.add(
-          LineChartBarData(
-            spots: [
-              FlSpot(_x(first), fit.valueAt(first)),
-              FlSpot(_x(last), fit.valueAt(last)),
-            ],
-            isCurved: false,
-            color: widget.rateColor ?? Theme.of(context).colorScheme.tertiary,
-            barWidth: 1.8,
-            dashArray: const [6, 4],
-            dotData: const FlDotData(show: false),
-          ),
-        );
-      }
+      bars.add(
+        LineChartBarData(
+          // One fit, drawn only across the periods with dives, so it steps
+          // at a band rather than sloping through years with no dives.
+          spots: fitAcrossBreaks(fit, [
+            for (final b in buckets) b.date,
+          ], _scale),
+          isCurved: false,
+          color: widget.rateColor ?? Theme.of(context).colorScheme.tertiary,
+          barWidth: 1.8,
+          dashArray: const [6, 4],
+          dotData: const FlDotData(show: false),
+        ),
+      );
     }
 
     // Secondaries come last so every index above is unchanged by them.
     _secondaryBarStart = secondary.isEmpty ? -1 : bars.length;
+    final secondarySource = <List<int?>>[];
     for (var i = 0; i < secondary.length; i++) {
-      bars.add(_dataBar(secondary[i], widget.secondarySeries[i].color, isRaw));
+      final placed = _bucketSpots(secondary[i], (b) => b.mean);
+      secondarySource.add(placed.source);
+      bars.add(
+        _dataBar(
+          placed.spots,
+          widget.secondarySeries[i].color,
+          isRaw,
+          radius: widget.secondarySeries[i].pointRadius,
+        ),
+      );
     }
+    _drawnSecondarySource = secondarySource;
 
     return bars;
   }
+
+  ({List<FlSpot> spots, List<int?> source}) _bucketSpots(
+    List<TrendBucket> buckets,
+    double Function(TrendBucket) valueOf,
+  ) => spotsAcrossBreaks(buckets, (b) => b.date, valueOf, _scale);
 
   /// A per-dive series: dots only in raw mode (a stroke between two dives
   /// eight months apart would assert something happened in between), dotted
   /// line when aggregated so the buckets stay findable without hovering.
   LineChartBarData _dataBar(
-    List<TrendBucket> buckets,
+    List<FlSpot> spots,
     Color color,
-    bool isRaw,
-  ) {
+    bool isRaw, {
+    double? radius,
+  }) {
     return LineChartBarData(
-      spots: buckets
-          .map((b) => FlSpot(_x(b.date), b.mean))
-          .toList(growable: false),
+      spots: spots,
       isCurved: false,
       color: color,
       barWidth: isRaw ? 0 : 2,
@@ -530,7 +690,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       dotData: FlDotData(
         show: true,
         getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-          radius: isRaw ? 2.2 : 3,
+          radius: radius ?? (isRaw ? 2.2 : 3),
           color: color.withValues(alpha: isRaw ? 0.7 : 1),
           strokeWidth: 0,
         ),
@@ -550,171 +710,6 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
         color: color.withValues(alpha: 0.15),
       ),
     ];
-  }
-
-  LineTouchData _touchData(
-    BuildContext context,
-    List<LineChartBarData> bars,
-    List<String> seriesLabels,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final dataBar = bars.first;
-    final secondaryBars = _secondaryBarStart < 0
-        ? const <LineChartBarData>[]
-        : bars.sublist(_secondaryBarStart);
-    return LineTouchData(
-      // Generous, so the readout follows the pointer anywhere over the plot
-      // rather than only within a few pixels of a dot.
-      touchSpotThreshold: 1000,
-      // Full-height hover line. fl_chart's default stops at the touched spot,
-      // so for a series sitting near zero it is a few pixels tall and reads as
-      // no line at all.
-      getTouchLineStart: (_, _) => double.negativeInfinity,
-      getTouchLineEnd: (_, _) => double.infinity,
-      // Highlight the touched point on the data series only. The band bounds
-      // and the fitted overlays would each contribute their own dot and line,
-      // stacking several markers on one touch.
-      getTouchedSpotIndicator: (barData, spotIndexes) {
-        if (!identical(barData, dataBar) &&
-            !secondaryBars.any((b) => identical(b, barData))) {
-          return List<TouchedSpotIndicatorData?>.filled(
-            spotIndexes.length,
-            null,
-          );
-        }
-        return defaultTouchedIndicators(barData, spotIndexes);
-      },
-      touchCallback: (event, response) {
-        if (event is! FlTapUpEvent) return;
-        final onDiveSelected = widget.onDiveSelected;
-        if (onDiveSelected == null) return;
-        // Every series reports its own nearest spot, so the first one
-        // listed need not be the touched one: take the nearest of all.
-        final spot = nearestTouchedDataSpot(
-          response?.lineBarSpots ?? const [],
-          (barIndex) =>
-              barIndex == 0 ||
-              (_secondaryBarStart >= 0 &&
-                  barIndex >= _secondaryBarStart &&
-                  barIndex - _secondaryBarStart < _drawnSecondary.length),
-        );
-        if (spot == null) return;
-        final List<TrendBucket> drawn;
-        if (spot.barIndex == 0) {
-          drawn = _drawnBuckets;
-        } else if (_secondaryBarStart >= 0 &&
-            spot.barIndex >= _secondaryBarStart &&
-            spot.barIndex - _secondaryBarStart < _drawnSecondary.length) {
-          drawn = _drawnSecondary[spot.barIndex - _secondaryBarStart];
-        } else {
-          return;
-        }
-        if (spot.spotIndex < 0 || spot.spotIndex >= drawn.length) return;
-        // Only a bucket standing for exactly one dive can be opened; an
-        // aggregated bucket has no single dive behind it.
-        final diveId = drawn[spot.spotIndex].diveId;
-        if (diveId != null) onDiveSelected(diveId);
-      },
-      touchTooltipData: LineTouchTooltipData(
-        // Wide enough for a labelled row such as "Rolling avg 85 psi/min"
-        // without wrapping. Narrower readouts still size to their content;
-        // this is only a cap, matching the dive profile chart.
-        maxContentWidth: 320,
-        getTooltipColor: (_) => colorScheme.inverseSurface,
-        // Above the plot rather than over it: the bubble used to land on the
-        // very point it was describing.
-        showOnTopOfTheChartBoxArea: true,
-        tooltipMargin: 0,
-        fitInsideHorizontally: true,
-        fitInsideVertically: false,
-        getTooltipItems: (touchedSpots) {
-          if (touchedSpots.isEmpty) return const <LineTooltipItem?>[];
-          // Matches the dive profile chart's readout: monospace with tabular
-          // figures so the value column lines up between rows.
-          final style = TextStyle(
-            fontFamily: 'RobotoMono',
-            fontSize: 14,
-            color: colorScheme.onInverseSurface,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          );
-          final date = DateTime.fromMillisecondsSinceEpoch(
-            touchedSpots.first.x.toInt(),
-            isUtc: true,
-          );
-
-          return [
-            for (var i = 0; i < touchedSpots.length; i++)
-              if (i == 0)
-                LineTooltipItem(
-                  DateFormat(widget.dateFormat.pattern).format(date),
-                  style,
-                  children: [
-                    for (final spot in touchedSpots)
-                      TextSpan(
-                        text:
-                            '\n${DiveProfileChart.tooltipRowText(spot.barIndex < seriesLabels.length ? seriesLabels[spot.barIndex] : '', widget.valueFormatter?.call(spot.y) ?? spot.y.toStringAsFixed(1), _tooltipLabelWidth, _tooltipValueWidth)}',
-                        style: style,
-                      ),
-                  ],
-                  textAlign: TextAlign.start,
-                )
-              else
-                null,
-          ];
-        },
-      ),
-    );
-  }
-
-  FlTitlesData _titles(
-    BuildContext context,
-    DateAxis dateAxis,
-    ChartAxis yAxis,
-  ) {
-    return FlTitlesData(
-      show: true,
-      bottomTitles: AxisTitles(
-        sideTitles: SideTitles(
-          showTitles: true,
-          reservedSize: 30,
-          // fl_chart samples this interval to decide where to ask for a
-          // label. Leaving it null lets fl_chart pick its own values, which
-          // then never match a nominated tick and the axis renders blank.
-          interval: dateAxis.labelInterval,
-          getTitlesWidget: (value, meta) {
-            final label = dateAxis.labelFor(value, step: meta.appliedInterval);
-            if (label == null) return const Text('');
-            return Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(label, style: Theme.of(context).textTheme.bodySmall),
-            );
-          },
-        ),
-      ),
-      leftTitles: AxisTitles(
-        axisNameWidget: widget.yAxisLabel != null
-            ? Text(
-                widget.yAxisLabel!,
-                style: Theme.of(context).textTheme.bodySmall,
-              )
-            : null,
-        axisNameSize: _yAxisNameSize,
-        sideTitles: SideTitles(
-          showTitles: true,
-          reservedSize: 50,
-          interval: yAxis.interval,
-          getTitlesWidget: (value, meta) {
-            final formatter = widget.yAxisFormatter ?? widget.valueFormatter;
-            return Text(
-              formatter?.call(value) ?? value.toStringAsFixed(0),
-              style: Theme.of(context).textTheme.bodySmall,
-            );
-          },
-        ),
-      ),
-      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-    );
   }
 }
 

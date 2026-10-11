@@ -607,6 +607,36 @@ void main() {
           );
       return [('dive_computers', 'diveComputers', 'dc-a')];
     },
+    'a dive computer connection': () async {
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: 'dc-c',
+              name: 'Perdix',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.diveComputerConnections)
+          .insert(
+            DiveComputerConnectionsCompanion.insert(
+              id: 'conn-a',
+              computerId: 'dc-c',
+              kind: 'ble',
+              firstUsedAt: stale,
+              lastUsedAt: stale,
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [
+        ('dive_computer_connections', 'diveComputerConnections', 'conn-a'),
+        ('dive_computers', 'diveComputers', 'dc-c'),
+      ];
+    },
     'a weight entry': () async {
       await db
           .into(db.diverWeightEntries)

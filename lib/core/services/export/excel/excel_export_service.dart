@@ -234,6 +234,9 @@ class ExcelExportService {
       // column carries a pre-v144 dive's bucket label.
       'Visibility (m)',
       'Visibility Rating',
+      // A band-picked dive's range (issue #3226).
+      'Visibility Min (m)',
+      'Visibility Max (m)',
       'Dive Type',
       'Dive Mode',
       'Buddy',
@@ -251,6 +254,10 @@ class ExcelExportService {
       'Precipitation',
       'Humidity (%)',
       'Weather Description',
+      'Dive Operator',
+      'Boat Name',
+      'Boat Captain',
+      'Surface Conditions',
     ];
 
     for (var col = 0; col < headers.length; col++) {
@@ -279,6 +286,14 @@ class ExcelExportService {
         convertTemperature(dive.airTemp, temperatureUnit),
         dive.visibilityMeters?.toStringAsFixed(1) ?? '',
         dive.visibility?.displayName ?? '',
+        // Empty beside a measurement, which every reader prefers.
+        if (dive.visibilityMeters == null) ...[
+          dive.visibilityMinMeters?.toStringAsFixed(1) ?? '',
+          dive.visibilityMaxMeters?.toStringAsFixed(1) ?? '',
+        ] else ...[
+          '',
+          '',
+        ],
         dive.diveTypeNamesFrom(diveTypesById).join('; '),
         dive.diveMode.displayName,
         dive.resolvedBuddyNames,
@@ -296,6 +311,10 @@ class ExcelExportService {
         dive.precipitation?.displayName ?? '',
         dive.humidity?.toStringAsFixed(0) ?? '',
         dive.weatherDescription ?? '',
+        dive.diveOperator ?? '',
+        dive.boatName ?? '',
+        dive.boatCaptain ?? '',
+        dive.surfaceConditions ?? '',
       ];
 
       for (var col = 0; col < rowData.length; col++) {

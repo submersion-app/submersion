@@ -307,11 +307,46 @@ extension RungsFromV231 on AppDatabase {
       await _assertIcdWarningsColumn();
     }
     if (from < 276) await reportProgress();
-    // v277: dive_plan_segments.split_at_configured_rate (issue #3264).
-    // Column only, defaulting off; re-asserted in beforeOpen.
+    // v277: documents store (issue #2613). Tables re-asserted in beforeOpen;
+    // the data copy runs here only, never on open.
     if (from < 277) {
-      await _assertSegmentSplitAtRateColumn();
+      await _assertDocumentsSchema();
+      await _migrateLegacyDocuments();
     }
     if (from < 277) await reportProgress();
+    // v278: dives.visibility_min_meters / visibility_max_meters (issue
+    // #3226). Columns only; re-asserted in beforeOpen.
+    if (from < 278) {
+      await _assertVisibilityRangeColumns();
+    }
+    if (from < 278) await reportProgress();
+    // v279: dive_computer_connections (issue #3106). Table only;
+    // re-asserted in beforeOpen.
+    if (from < 279) {
+      await _assertDiveComputerConnectionSchema();
+      // Once, before this build writes any hex: every 8-digit Shearwater
+      // download serial is still libdivecomputer's decimal here. The
+      // every-open heal leaves 8 digits alone, since afterwards they can be
+      // hex (issue #3106).
+      await _healShearwaterDownloadSerialsOnUpgrade();
+    }
+    if (from < 279) await reportProgress();
+    // v280: no data change (issue #2361). Carries the sync floor past the
+    // builds that cannot parse AccountKind.webdav.
+    if (from < 280) await reportProgress();
+    // v281: diver_settings.trend_gap_collapse_months (issue #3251). Column
+    // only, defaulting to a year; re-asserted in beforeOpen. Renumbered from
+    // 278, 279 and 280, which #3226, #3106 and #2361 shipped first.
+    if (from < 281) {
+      await _assertTrendGapCollapseColumn();
+    }
+    if (from < 281) await reportProgress();
+    // v282: dive_plan_segments.split_at_configured_rate (issue #3264).
+    // Column only, defaulting off; re-asserted in beforeOpen. Renumbered
+    // from 277, which #2613's documents store shipped first.
+    if (from < 282) {
+      await _assertSegmentSplitAtRateColumn();
+    }
+    if (from < 282) await reportProgress();
   }
 }

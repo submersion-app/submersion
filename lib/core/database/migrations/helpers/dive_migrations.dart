@@ -504,6 +504,13 @@ extension DiveMigrations on AppDatabase {
     }
   }
 
+  /// v278: the visibility range columns (issue #3226). Idempotent, so the
+  /// ladder rung and the beforeOpen backstop can both call it.
+  Future<void> _assertVisibilityRangeColumns() async {
+    await _addColumnIfMissing('dives', 'visibility_min_meters', 'REAL');
+    await _addColumnIfMissing('dives', 'visibility_max_meters', 'REAL');
+  }
+
   /// v179: site_suggestion_dismissed_at on dives. Null means the site
   /// suggestion (from photo GPS or dive-computer GPS) was never dismissed.
   Future<void> _assertSiteSuggestionDismissedAtColumn() async {

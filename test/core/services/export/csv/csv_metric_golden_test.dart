@@ -21,6 +21,11 @@ import 'csv_test_fixtures.dart';
 /// The equipment golden moved once, for equipment locations (v268): a
 /// Location column is APPENDED after Notes, for the same reason.
 ///
+/// The dives golden moved twice, each time by APPENDING after Dive Type IDs
+/// so every earlier column keeps its position: for issue #3229 (Dive
+/// Operator, Boat Name, Boat Captain and Surface Conditions), then for
+/// visibility ranges (v278, issue #3226: Visibility Min and Visibility Max).
+///
 /// The fills golden (cylinder passports phase 5) was written by the new
 /// writer on 2026-09-29; it exists so a later change to the sheet is a
 /// deliberate one.

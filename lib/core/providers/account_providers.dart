@@ -8,7 +8,9 @@ import 'package:submersion/core/services/accounts/adapters/google_drive_account_
 import 'package:submersion/core/services/accounts/adapters/icloud_account_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/lightroom_account_adapter.dart';
 import 'package:submersion/core/services/accounts/adapters/s3_account_adapter.dart';
+import 'package:submersion/core/services/accounts/adapters/webdav_account_adapter.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
 
 final connectedAccountsRepositoryProvider =
     Provider<ConnectedAccountsRepository>(
@@ -30,6 +32,12 @@ final s3CredentialsStoreProvider = Provider<S3CredentialsStore>(
   (ref) => S3CredentialsStore(),
 );
 
+/// The legacy WebDAV sync blob (`sync_webdav_config`) the WebDAV settings
+/// page writes; overridable for tests like [s3CredentialsStoreProvider].
+final webdavCredentialsStoreProvider = Provider<WebDavCredentialsStore>(
+  (ref) => WebDavCredentialsStore(),
+);
+
 /// One adapter instance per kind for the process lifetime (token caches and
 /// single-flight refresh live inside adapters).
 ///
@@ -41,6 +49,10 @@ final s3CredentialsStoreProvider = Provider<S3CredentialsStore>(
 final accountProviderRegistryProvider = Provider<AccountProviderRegistry>(
   (ref) => AccountProviderRegistry([
     S3AccountAdapter(credentials: ref.watch(accountCredentialsStoreProvider)),
+    WebDavAccountAdapter(
+      credentials: ref.watch(accountCredentialsStoreProvider),
+      legacySync: ref.watch(webdavCredentialsStoreProvider),
+    ),
     DropboxAccountAdapter(),
     GoogleDriveAccountAdapter(),
     ICloudAccountAdapter(),

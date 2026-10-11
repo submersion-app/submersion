@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/max_operating_depth.dart';
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -72,11 +73,25 @@ class Dive extends Equatable {
   /// calibration, so this stores only what was actually observed.
   final double? visibilityMeters;
 
+  /// Low end of a visibility range in meters, inclusive (v278, issue #3226).
+  /// Set when the diver picked a band rather than measuring. Never set
+  /// together with [visibilityMeters].
+  final double? visibilityMinMeters;
+
+  /// High end of a visibility range in meters, exclusive.
+  final double? visibilityMaxMeters;
+
   /// References dive_types table (>= 1; first is the representative).
   final List<String> diveTypeIds;
   final DiveTypeEntity? diveType; // Loaded dive type entity (for display)
   final String? buddy;
   final String? diveMaster;
+
+  /// Who ran the dive, the boat it left from and that boat's captain, as
+  /// the diver wrote them (#3229). MacDive and UDDF imports fill these too.
+  final String? diveOperator;
+  final String? boatName;
+  final String? boatCaptain;
 
   /// Buddies and dive guides recorded on this dive via the many-to-many
   /// `dive_buddies` junction (#553), each paired with their [DiveRole].
@@ -96,6 +111,10 @@ class Dive extends Equatable {
   final CurrentDirection? currentDirection;
   final CurrentStrength? currentStrength;
   final double? swellHeight; // meters
+
+  /// The sea state at the surface in the diver's words, such as "Calm" or
+  /// "Choppy" (#3229).
+  final String? surfaceConditions;
   final EntryMethod? entryMethod;
   final EntryMethod? exitMethod;
   final WaterType? waterType;
@@ -239,16 +258,22 @@ class Dive extends Equatable {
     this.airTemp,
     this.visibility,
     this.visibilityMeters,
+    this.visibilityMinMeters,
+    this.visibilityMaxMeters,
     this.diveTypeIds = const ['recreational'],
     this.diveType,
     this.buddy,
     this.diveMaster,
+    this.diveOperator,
+    this.boatName,
+    this.boatCaptain,
     this.buddies = const [],
     this.diverRoleIds = const [],
     this.rating,
     this.currentDirection,
     this.currentStrength,
     this.swellHeight,
+    this.surfaceConditions,
     this.entryMethod,
     this.exitMethod,
     this.waterType,
@@ -343,6 +368,10 @@ class Dive extends Equatable {
   /// Requires [site] to be hydrated; a dive loaded without its site reports
   /// only its own value.
   EntryMethod? get effectiveEntryMethod => entryMethod ?? site?.entryMethod;
+
+  /// The stored visibility range, or null when the dive has none.
+  VisibilityRange? get visibilityRange =>
+      VisibilityRange.fromColumns(visibilityMinMeters, visibilityMaxMeters);
 
   /// User-defined name, normalized for display: trimmed, with empty or
   /// whitespace-only values treated as unset (null). In-app writes never
@@ -523,6 +552,15 @@ class Dive extends Equatable {
     );
   }
 
+  /// The volume of [sacReferenceTank], its own or its matched partner's
+  /// (issue #3109): what turns a SAC in bar of that cylinder into L/min.
+  /// Never another cylinder's: a stage's size says nothing about the back
+  /// gas. Null when neither is known.
+  double? get sacReferenceVolume {
+    final reference = sacReferenceTank;
+    return reference == null ? null : consumptionVolume(reference, tanks);
+  }
+
   /// SAC: surface air consumption as a tank-pressure drop rate, in bar/min
   /// at the surface, in bar of [sacReferenceTank]. Every other breathed
   /// cylinder adds its drop converted to that cylinder's size (issue #3109,
@@ -651,16 +689,22 @@ class Dive extends Equatable {
     double? airTemp,
     Visibility? visibility,
     double? visibilityMeters,
+    double? visibilityMinMeters,
+    double? visibilityMaxMeters,
     List<String>? diveTypeIds,
     DiveTypeEntity? diveType,
     String? buddy,
     String? diveMaster,
+    String? diveOperator,
+    String? boatName,
+    String? boatCaptain,
     List<BuddyWithRole>? buddies,
     List<String>? diverRoleIds,
     int? rating,
     CurrentDirection? currentDirection,
     CurrentStrength? currentStrength,
     double? swellHeight,
+    String? surfaceConditions,
     EntryMethod? entryMethod,
     EntryMethod? exitMethod,
     WaterType? waterType,
@@ -751,16 +795,22 @@ class Dive extends Equatable {
       airTemp: airTemp ?? this.airTemp,
       visibility: visibility ?? this.visibility,
       visibilityMeters: visibilityMeters ?? this.visibilityMeters,
+      visibilityMinMeters: visibilityMinMeters ?? this.visibilityMinMeters,
+      visibilityMaxMeters: visibilityMaxMeters ?? this.visibilityMaxMeters,
       diveTypeIds: diveTypeIds ?? this.diveTypeIds,
       diveType: diveType ?? this.diveType,
       buddy: buddy ?? this.buddy,
       diveMaster: diveMaster ?? this.diveMaster,
+      diveOperator: diveOperator ?? this.diveOperator,
+      boatName: boatName ?? this.boatName,
+      boatCaptain: boatCaptain ?? this.boatCaptain,
       buddies: buddies ?? this.buddies,
       diverRoleIds: diverRoleIds ?? this.diverRoleIds,
       rating: rating ?? this.rating,
       currentDirection: currentDirection ?? this.currentDirection,
       currentStrength: currentStrength ?? this.currentStrength,
       swellHeight: swellHeight ?? this.swellHeight,
+      surfaceConditions: surfaceConditions ?? this.surfaceConditions,
       entryMethod: entryMethod ?? this.entryMethod,
       exitMethod: exitMethod ?? this.exitMethod,
       waterType: waterType ?? this.waterType,
@@ -853,16 +903,22 @@ class Dive extends Equatable {
     airTemp,
     visibility,
     visibilityMeters,
+    visibilityMinMeters,
+    visibilityMaxMeters,
     diveTypeIds,
     diveType,
     buddy,
     diveMaster,
+    diveOperator,
+    boatName,
+    boatCaptain,
     buddies,
     diverRoleIds,
     rating,
     currentDirection,
     currentStrength,
     swellHeight,
+    surfaceConditions,
     entryMethod,
     exitMethod,
     waterType,

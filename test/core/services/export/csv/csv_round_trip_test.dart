@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart' show EquipmentCompanion;
+import 'package:submersion/core/domain/visibility/visibility_range.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
@@ -16,6 +18,7 @@ import 'package:submersion/features/cylinder_passports/data/repositories/cylinde
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
@@ -168,6 +171,83 @@ void main() {
           stored['Mk25']!.id,
           stored['Long hose']!.id,
         ]);
+      });
+
+      test('visibility ranges come back (issue #3226)', () async {
+        final dives = [
+          Dive(
+            id: 'range-closed',
+            diveNumber: 21,
+            dateTime: DateTime.utc(2026, 3, 1, 9),
+            visibilityMinMeters: 6,
+            visibilityMaxMeters: 12,
+          ),
+          Dive(
+            id: 'range-open',
+            diveNumber: 22,
+            dateTime: DateTime.utc(2026, 3, 2, 9),
+            visibilityMinMeters: 12,
+          ),
+          // A custom-scale band edge in feet (15 ft and 30 ft).
+          Dive(
+            id: 'range-custom',
+            diveNumber: 24,
+            dateTime: DateTime.utc(2026, 3, 4, 9),
+            visibilityMinMeters: 4.572,
+            visibilityMaxMeters: 9.144,
+          ),
+          // A custom edge entered as one decimal in feet (8.2 ft is
+          // 2.49936 m): sub-millimetre, and still exact (Copilot review).
+          Dive(
+            id: 'range-sub-mm',
+            diveNumber: 25,
+            dateTime: DateTime.utc(2026, 3, 5, 9),
+            visibilityMinMeters: 2.49936,
+          ),
+          // A hand-edited inverted range imports as no range.
+          Dive(
+            id: 'range-inverted',
+            diveNumber: 23,
+            dateTime: DateTime.utc(2026, 3, 3, 9),
+            visibilityMinMeters: 12,
+            visibilityMaxMeters: 6,
+          ),
+        ];
+        await importCsv(
+          CsvDivesWriter(units).write(dives),
+          ImportFormat.submersionDivesCsv,
+        );
+        final repo = DiveRepository();
+        Future<Dive> back(int number) async {
+          final all = await repo.getAllDives();
+          final summary = all.firstWhere((d) => d.diveNumber == number);
+          return (await repo.getDiveById(summary.id))!;
+        }
+
+        // Exact, not near: a band edge that drifts by rounding (6-12 m
+        // written as 19.7-39.4 ft comes back as 6.005-12.009 m) leaves its
+        // band and loses its adjective, chip and Insights bin (review #2).
+        final closed = await back(21);
+        expect(closed.visibilityMeters, isNull);
+        expect(
+          closed.visibilityRange,
+          const VisibilityRange(minM: 6, maxM: 12),
+        );
+        expect(
+          VisibilityScale.coldWater.bandForRange(closed.visibilityRange!),
+          VisibilityBand.good,
+        );
+        final open = await back(22);
+        expect(open.visibilityRange, const VisibilityRange(minM: 12));
+        expect(
+          (await back(24)).visibilityRange,
+          const VisibilityRange(minM: 4.572, maxM: 9.144),
+        );
+        expect(
+          (await back(25)).visibilityRange,
+          const VisibilityRange(minM: 2.49936),
+        );
+        expect((await back(23)).visibilityRange, isNull);
       });
 
       test('dives come back', () async {

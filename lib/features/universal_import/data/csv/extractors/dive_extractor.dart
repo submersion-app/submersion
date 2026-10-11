@@ -18,6 +18,8 @@ const _diveFields = <String>[
   'bottomTemp',
   'visibility',
   'visibilityMeters',
+  'visibilityMinMeters',
+  'visibilityMaxMeters',
   'diveType',
   'diveTypeIds',
   'diveMode',
@@ -41,6 +43,10 @@ const _diveFields = <String>[
   'precipitation',
   'humidity',
   'weatherDescription',
+  'diveOperator',
+  'boatName',
+  'boatCaptain',
+  'surfaceConditions',
   'customFields',
 ];
 

@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_text_suggestion_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
@@ -94,6 +95,8 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
@@ -1750,16 +1753,33 @@ class DiveRepository {
                 waterTemp: Value(dive.waterTemp),
                 airTemp: Value(dive.airTemp),
                 visibilityMeters: Value(dive.visibilityMeters),
-                // A measured distance supersedes the legacy bucket. Value(null)
-                // rather than Value.absent(): absent() preserves the existing
-                // column on a companion write, which would leave the dive
-                // carrying both a measurement and a contradicting bucket.
-                visibility: dive.visibilityMeters != null
+                // One visibility shape per dive (issue #3226): a measured distance
+                // wins over a range, and either supersedes the legacy bucket.
+                // Value(null) rather than Value.absent(): absent() preserves the
+                // existing column on a companion write, which would leave the dive
+                // carrying two shapes.
+                visibilityMinMeters: Value(
+                  dive.visibilityMeters == null
+                      ? dive.visibilityMinMeters
+                      : null,
+                ),
+                visibilityMaxMeters: Value(
+                  dive.visibilityMeters == null
+                      ? dive.visibilityMaxMeters
+                      : null,
+                ),
+                visibility:
+                    dive.visibilityMeters != null ||
+                        dive.visibilityRange != null
                     ? const Value(null)
                     : Value(dive.visibility?.name),
                 diveType: Value(dive.diveTypeId),
                 buddy: Value(dive.buddy),
                 diveMaster: Value(dive.diveMaster),
+                diveOperator: Value(dive.diveOperator),
+                boatName: Value(dive.boatName),
+                boatCaptain: Value(dive.boatCaptain),
+                surfaceConditions: Value(dive.surfaceConditions),
                 diverRole: Value(DiveRoleSet.primary(dive.diverRoleIds)),
                 notes: Value(dive.notes),
                 name: Value(dive.name),
@@ -2076,16 +2096,28 @@ class DiveRepository {
             waterTemp: Value(dive.waterTemp),
             airTemp: Value(dive.airTemp),
             visibilityMeters: Value(dive.visibilityMeters),
-            // A measured distance supersedes the legacy bucket. Value(null)
-            // rather than Value.absent(): absent() preserves the existing column
-            // on a companion write, which would leave the dive carrying both a
-            // measurement and a contradicting bucket.
-            visibility: dive.visibilityMeters != null
+            // One visibility shape per dive (issue #3226): a measured distance
+            // wins over a range, and either supersedes the legacy bucket.
+            // Value(null) rather than Value.absent(): absent() preserves the
+            // existing column on a companion write, which would leave the dive
+            // carrying two shapes.
+            visibilityMinMeters: Value(
+              dive.visibilityMeters == null ? dive.visibilityMinMeters : null,
+            ),
+            visibilityMaxMeters: Value(
+              dive.visibilityMeters == null ? dive.visibilityMaxMeters : null,
+            ),
+            visibility:
+                dive.visibilityMeters != null || dive.visibilityRange != null
                 ? const Value(null)
                 : Value(dive.visibility?.name),
             diveType: Value(dive.diveTypeId),
             buddy: Value(dive.buddy),
             diveMaster: Value(dive.diveMaster),
+            diveOperator: Value(dive.diveOperator),
+            boatName: Value(dive.boatName),
+            boatCaptain: Value(dive.boatCaptain),
+            surfaceConditions: Value(dive.surfaceConditions),
             diverRole: Value(DiveRoleSet.primary(dive.diverRoleIds)),
             notes: Value(dive.notes),
             name: Value(dive.name),
@@ -2354,13 +2386,28 @@ class DiveRepository {
   /// action and would fail the delete. One transaction, so a failed delete
   /// leaves the plans linked. Chunked, so "select all" on a logbook past
   /// SQLite's bound-variable limit still deletes (issue #1953).
-  Future<void> _deleteDiveRows(List<String> ids) => _db.transaction(() async {
+  Future<void> _deleteDiveRows(
+    List<String> ids, {
+    required bool deleteDocuments,
+  }) => _db.transaction(() async {
     await clearPlanLinksToDives(
       _db,
       _syncRepository,
       ids,
       now: DateTime.now().millisecondsSinceEpoch,
     );
+    // The dives' documents go with them, tombstoned (issue #2613). A merge
+    // re-points them to the merged dive first, so it never loses them here.
+    // A restore-safe delete (a merge undo) leaves them to the FK's SET NULL
+    // and points them back at the restored dives itself, as it does media.
+    if (deleteDocuments) {
+      for (final chunk in seriesIdChunks(ids)) {
+        await DocumentRepository().deleteForOwners(
+          DocumentOwnerKind.dive,
+          chunk,
+        );
+      }
+    }
     for (final chunk in seriesIdChunks(ids)) {
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(chunk))).go();
     }
@@ -2383,7 +2430,7 @@ class DiveRepository {
       // way to tell which routes it just unlinked from which were already
       // unlinked.
       final linkedRouteIds = await _navTrackRepository.routeIdsLinkedToDive(id);
-      await _deleteDiveRows([id]);
+      await _deleteDiveRows([id], deleteDocuments: cascadeMedia);
       await _navTrackRepository.normalizeAfterDiveDeletion(linkedRouteIds);
       // The FK cascade took this dive's dive_data_sources rows, which may
       // have held the last reference to a stored import file (issue #478).
@@ -2425,7 +2472,7 @@ class DiveRepository {
       final linkedRouteIds = await _navTrackRepository.routeIdsLinkedToDives(
         dives,
       );
-      await _deleteDiveRows(dives);
+      await _deleteDiveRows(dives, deleteDocuments: cascadeMedia);
       await _navTrackRepository.normalizeAfterDiveDeletion(linkedRouteIds);
       // See deleteDive: the cascade may have orphaned a stored import file.
       if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();
@@ -2870,6 +2917,32 @@ class DiveRepository {
         )
         .get();
     return rows.map((r) => r.read<String>('buddy')).toList();
+  }
+
+  /// The diver's distinct non-blank values of one free-text column, most
+  /// recently used first, for the dive editor's suggestions (#3229). Values
+  /// that differ only by surrounding whitespace collapse into one.
+  // stats-scope-exempt: a suggestion list, not an aggregate; an excluded
+  // dive's boat is still one the diver may type again.
+  Future<List<String>> getRecentTextValues(
+    DiveTextSuggestionField field, {
+    String? diverId,
+    int limit = 50,
+  }) async {
+    final column = field.column;
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final rows = await _db
+        .customSelect(
+          'SELECT TRIM($column) AS value FROM dives '
+          "WHERE $column IS NOT NULL AND TRIM($column) <> '' $diverFilter "
+          'GROUP BY TRIM($column) '
+          'ORDER BY MAX(dive_date_time) DESC, value '
+          'LIMIT ?',
+          variables: [if (diverId != null) Variable(diverId), Variable(limit)],
+          readsFrom: {_db.dives},
+        )
+        .get();
+    return rows.map((r) => r.read<String>('value')).toList();
   }
 
   /// Drift tables by their SQL names, for `readsFrom` and [watchTables].
@@ -4033,9 +4106,15 @@ class DiveRepository {
             )
           : null,
       visibilityMeters: row.visibilityMeters,
+      visibilityMinMeters: row.visibilityMinMeters,
+      visibilityMaxMeters: row.visibilityMaxMeters,
       diveTypeIds: diveTypeIds ?? [row.diveType],
       buddy: row.buddy,
       diveMaster: row.diveMaster,
+      diveOperator: row.diveOperator,
+      boatName: row.boatName,
+      boatCaptain: row.boatCaptain,
+      surfaceConditions: row.surfaceConditions,
       buddies: buddies,
       diverRoleIds: diverRoleIds ?? [?row.diverRole],
       notes: row.notes,
@@ -4478,9 +4557,15 @@ class DiveRepository {
             )
           : null,
       visibilityMeters: row.visibilityMeters,
+      visibilityMinMeters: row.visibilityMinMeters,
+      visibilityMaxMeters: row.visibilityMaxMeters,
       diveTypeIds: diveTypeIds,
       buddy: row.buddy,
       diveMaster: row.diveMaster,
+      diveOperator: row.diveOperator,
+      boatName: row.boatName,
+      boatCaptain: row.boatCaptain,
+      surfaceConditions: row.surfaceConditions,
       diverRoleIds: diverRoleIds,
       notes: row.notes,
       name: row.name,
@@ -5474,6 +5559,38 @@ class DiveRepository {
         stackTrace: stackTrace,
       );
       return null;
+    }
+  }
+
+  /// Every dive's surface interval keyed by id (#2984): the stored value,
+  /// else the gap [diveSurfaceIntervalSecondsSql] computes, which is what
+  /// [getSurfaceInterval] gives the detail page. One statement over the
+  /// whole log, so filtering the table never changes the dive a gap is
+  /// measured from.
+  // stats-scope-exempt: physiological interval between real dives, not a statistic
+  Future<Map<String, Duration?>> getSurfaceIntervals() async {
+    try {
+      final rows = await _db
+          .customSelect(
+            'SELECT d.id AS id, ${diveSurfaceIntervalSecondsSql('d')} AS si '
+            'FROM dives d',
+            readsFrom: {_db.dives, _db.diveProfileSeries},
+          )
+          .get();
+      return {
+        for (final row in rows)
+          row.read<String>('id'): switch (row.readNullable<int>('si')) {
+            null => null,
+            final seconds => Duration(seconds: seconds),
+          },
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to calculate surface intervals',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 

@@ -42,6 +42,11 @@ enum EquipmentType {
   // rather than in warmth, and a diver owns one for the reason they own a
   // baselayer for the opposite one.
   rashGuard('Rash Guard'),
+  // Requested in #3108. A neoprene vest worn with a wetsuit: the hooded ice
+  // vest over it or a core warmer under it. A layer rather than a second
+  // suit, so a dive in a full suit and a vest still has one suit for the
+  // suit statistics, the suit-thickness filter and the buoyancy history.
+  vest('Vest'),
   fins('Fins'),
   mask('Mask'),
   snorkel('Snorkel'),
@@ -76,6 +81,10 @@ enum EquipmentType {
   hood('Hood'),
   gloves('Gloves'),
   boots('Boots'),
+  // Requested in #2900. Neoprene socks worn in open-heel fins or under boots
+  // and thermal socks worn inside a drysuit's feet are one type, told apart
+  // by sock_type the way gloves are told apart by glove_type.
+  socks('Socks'),
   dpv('DPV'),
   // Requested in #2952. A bag carries gear rather than being worn, so it
   // has no place on the diver figure or in a body order, and adds no mass

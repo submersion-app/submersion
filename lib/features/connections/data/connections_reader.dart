@@ -87,6 +87,7 @@ class ConnectionsReader {
           ref: NodeRef(kind, r.read<String>('id')),
           label: r.read<String>('label'),
           diveCount: r.read<int>('dive_count'),
+          firstDiveAt: wallClockUtcFromMillis(r.read<int>('first_ms')),
           subtitle: _subtitle(kind, r),
           photo: kind == ConnectionKind.buddy
               ? r.readNullable<Uint8List>('photo')

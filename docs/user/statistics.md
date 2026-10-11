@@ -110,20 +110,68 @@ rolling average and an overall trend line, and let you choose the range shown.
 
 <!-- screenshot: images/statistics/gas-sac.png: air consumption dashboard -->
 
+### Connections
+
+Connections draws how your buddies, sites, trips, gear, species and dive
+centers link through the dives they share. **Map** shows a whole kind-to-kind
+map; **Around** centres on one entity and what it links to.
+
+**Views.** The view button in the top bar switches between:
+
+- **Graph**: the map itself.
+- **Pairs**: one row per connection, with the dives the two share and the
+  last and first shared dive.
+- **Entities**: one row per entity, with its dives, how many entities it links
+  to and its strongest connection.
+- **Matrix**: a grid of shared dives between every pair. On a map of two kinds
+  (buddies and sites, for example) one kind runs down the side and the other
+  across the top.
+
+Tap a column heading to sort a table, and again to reverse it. Tapping a row,
+a cell or a heading selects that entity or pair, just as tapping the graph does.
+
+**Layouts.** In the Graph view, the **Display** section of the **View** tab
+chooses how nodes are arranged:
+
+| Layout | Arrangement |
+|--------|-------------|
+| **Web** | Linked entities pull together (Map only) |
+| **Radial** | The centre in the middle, the rest in rings (Around only) |
+| **Circle** | Every entity on one ring, grouped by kind |
+| **Columns** | One column per kind, busiest at the top |
+| **Clusters** | Each group of entities that dive together in its own cluster |
+| **Timeline** | Left to right by the year of each entity's first dive, one row per kind |
+
+**Display options.** **Labels** shows names automatically as you zoom, on
+every node, or not at all. **Node size** sizes each node by its dives or draws
+them all the same. **Lines** draws connections by strength, all thin, or only
+for what you select. **Hide unconnected** leaves out entities with no link on
+the map. **Spacing** spreads the map out or packs it tighter. Connections
+remembers these on this device.
+
+**Moving a node.** With a mouse or trackpad, press on a node and drag it. On a
+touch screen, press and hold a node, then drag. A moved node stays where you
+put it until the map changes; **Lay out again** puts every node back.
+
 ### Dive focus
 
-Dive focus picks out a group of dives and shows what sets them apart. Choose a
-metric (**RMV**, **SAC**, **Max depth**, **Bottom time**, **Weight** or
-**Water temp**) and how to pick the group:
+Dive focus shows what a group of your dives has in common. Build the group as
+a sentence: "Show the **10** dives with the **best** **RMV**", or "Show the
+dives with **RMV** **above** **15 L/min**". Fourteen metrics are available,
+grouped as Gas (RMV, SAC, gas used), Depth and time (max depth, average
+depth, bottom time, surface interval), Conditions (water temp, air temp,
+visibility, altitude), Exposure (CNS at end, OTU) and Kit (weight). Gas
+metrics offer **best** and **worst**; the others offer **lowest** and
+**highest**. A threshold starts at your average for that metric.
 
-- the **Best** or **Worst** N dives for SAC and RMV, or the **Lowest** or
-  **Highest** N for the others, or
-- every dive **Above** or **Below** a value you enter.
-
-Dive focus then charts the group over time, lists its dives, and compares it
-with every other dive that has a value. **Common factors** covers the dive's
-depth and length, conditions, month, time of day, site, dive type, gas, tank
-size, weight, suit and buddy, and marks what **Stands out** in the group. It needs at least three dives to compare.
+**What stands out** lists the strongest differences between the group and
+every dive that has the value: "All 10 were boat entries (64% of all your
+dives)", "Average depth 2.1 m shallower (11.3 m vs 13.4 m)". The chart
+below marks the group in the accent colour and draws your threshold as a
+dashed line. **Full comparison** gives every factor with the group's value,
+the value across all dives and the difference; rows that say nothing fold
+behind **Show more factors**. **The dives** lists the group, five at a time,
+and opens any dive you tap. Dive focus needs at least three dives to compare.
 
 ### Profile Analysis
 

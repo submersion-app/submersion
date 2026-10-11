@@ -26,6 +26,11 @@ abstract final class DiveCsvColumns {
   // column carries a pre-v144 dive's bucket label.
   static const visibility = 'Visibility (m)';
   static const visibilityRating = 'Visibility Rating';
+
+  /// A band-picked dive's visibility range (issue #3226). Appended after
+  /// [diveTypeIds] so position-addressed spreadsheets keep their offsets.
+  static const visibilityMin = 'Visibility Min (m)';
+  static const visibilityMax = 'Visibility Max (m)';
   static const diveType = 'Dive Type';
   static const buddy = 'Buddy';
   static const diveMaster = 'Dive Master';
@@ -66,6 +71,13 @@ abstract final class DiveCsvColumns {
   /// its id: slugging drops characters like `&`, and a colliding custom type
   /// carries a suffix. Ids are slugs, so they never contain the separator.
   static const diveTypeIds = 'Dive Type IDs';
+
+  // Appended after Dive Type IDs so spreadsheets that address the export
+  // by column position keep their offsets (#3229).
+  static const diveOperator = 'Dive Operator';
+  static const boatName = 'Boat Name';
+  static const boatCaptain = 'Boat Captain';
+  static const surfaceConditions = 'Surface Conditions';
 
   /// Separator between a dive's types in the [diveType] cell.
   static const diveTypeSeparator = '; ';
@@ -115,5 +127,11 @@ abstract final class DiveCsvColumns {
     hePercent,
     customFields,
     diveTypeIds,
+    diveOperator,
+    boatName,
+    boatCaptain,
+    surfaceConditions,
+    visibilityMin,
+    visibilityMax,
   ];
 }

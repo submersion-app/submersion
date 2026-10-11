@@ -73,6 +73,9 @@ class ExistingImportRecords {
       existingDiveTypes: diveTypes,
       existingSourceUuidByDiveId: sourceUuidByDiveId,
       checkIntraBatch: checkIntraBatch,
+      // A single file is checked against itself too: a logbook can hold the
+      // same dive twice (#3110).
+      checkWithinFile: !checkIntraBatch,
       units: units,
       certificationCatalog: certificationCatalog,
     );

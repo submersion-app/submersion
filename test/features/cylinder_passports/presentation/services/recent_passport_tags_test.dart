@@ -69,4 +69,11 @@ void main() {
     expect(recent.wasJustHandled(read), isFalse);
     expect(recent.takeJustHandled(read), isFalse);
   });
+
+  test('a gear tag the app just wrote is dropped once (issue #2652)', () {
+    const gear = 'https://submersion.app/g#f=1&p=$id&t=bcd';
+    recent.note(gear);
+    expect(recent.takeJustHandled('submersion://g?f=1&p=$id&t=bcd'), isTrue);
+    expect(recent.takeJustHandled(gear), isFalse);
+  });
 }

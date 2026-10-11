@@ -8,7 +8,9 @@ import 'package:submersion/core/services/export/models/currency_backup_data.dart
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/core/services/export/uddf/uddf_certification_currency.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
+import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
@@ -547,6 +549,7 @@ class UddfExportBuilders {
             if (dive.exitMethod != null) {
               builder.element('exittype', nest: dive.exitMethod!.name);
             }
+            UddfDiveLogistics.write(builder, dive);
             buildDiveGpsElements(builder, 'exit', dive.exitLocation);
             // Weight system
             if (dive.weightAmount != null) {
@@ -793,6 +796,9 @@ class UddfExportBuilders {
     // The dives whose computer-reported tissue state goes in the
     // <computertissue> block (issue #2557); a dive without any writes none.
     List<Dive>? computerTissueDives,
+    // The dives whose visibility range goes in the <visibilityranges> block
+    // (issue #3226); a dive without one writes none.
+    List<Dive>? visibilityRangeDives,
     // A file shared with other people carries no purchase date, price or
     // currency on its items; a backup keeps them.
     bool omitPurchaseDetails = false,
@@ -827,6 +833,7 @@ class UddfExportBuilders {
         linkDives.isNotEmpty ||
         roleRows.isNotEmpty ||
         (computerTissueDives?.any(UddfComputerTissue.hasData) ?? false) ||
+        (visibilityRangeDives?.any(UddfVisibilityRange.hasData) ?? false) ||
         (certifications?.isNotEmpty ?? false) ||
         !currency.isEmpty ||
         (diveCenters?.isNotEmpty ?? false) ||
@@ -1471,6 +1478,13 @@ class UddfExportBuilders {
             UddfComputerTissue.write(
               builder,
               computerTissueDives ?? const <Dive>[],
+            );
+
+            // Each band-picked dive's visibility range, which the standard
+            // <visibility> element cannot hold.
+            UddfVisibilityRange.write(
+              builder,
+              visibilityRangeDives ?? const <Dive>[],
             );
 
             // Courses (no UDDF equivalent)

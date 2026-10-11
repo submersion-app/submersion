@@ -112,6 +112,8 @@ void main() {
           (type: 'buddies', table: db.buddies.actualTableName),
           (type: 'diveBuddies', table: db.diveBuddies.actualTableName),
           (type: 'certifications', table: db.certifications.actualTableName),
+          (type: 'documents', table: db.documents.actualTableName),
+          (type: 'documentPages', table: db.documentPages.actualTableName),
           (type: 'courses', table: db.courses.actualTableName),
           (
             type: 'courseRequirements',
@@ -167,6 +169,10 @@ void main() {
           ),
           (type: 'tankPresets', table: db.tankPresets.actualTableName),
           (type: 'diveComputers', table: db.diveComputers.actualTableName),
+          (
+            type: 'diveComputerConnections',
+            table: db.diveComputerConnections.actualTableName,
+          ),
           (type: 'cylinderFills', table: db.cylinderFills.actualTableName),
           (type: 'savedQueries', table: db.savedQueries.actualTableName),
           (
