@@ -81,6 +81,39 @@ void main() {
     expect(find.text('Insurer'), findsOneWidget);
   });
 
+  testWidgets('a first insurance starts as the primary one', (t) async {
+    await pumpEditor(t, initialType: DocumentType.insurance);
+    final toggle = t.widget<SwitchListTile>(
+      find.widgetWithText(SwitchListTile, 'Primary insurance'),
+    );
+    expect(toggle.value, isTrue);
+    await t.enterText(find.byKey(const Key('document-title')), 'DAN');
+    await t.tap(find.text('Save'));
+    await t.pumpAndSettle();
+    final saved = (await DocumentRepository().getAllForDiver('d1')).single;
+    expect(saved.document.isPrimary, isTrue);
+  });
+
+  testWidgets('a second insurance does not take over the primary', (t) async {
+    await DocumentRepository().save(
+      Document(
+        id: '',
+        diverId: 'd1',
+        owner: const DocumentOwner.personal(),
+        type: DocumentType.insurance,
+        isPrimary: true,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+      const [],
+    );
+    await pumpEditor(t, initialType: DocumentType.insurance);
+    final toggle = t.widget<SwitchListTile>(
+      find.widgetWithText(SwitchListTile, 'Primary insurance'),
+    );
+    expect(toggle.value, isFalse);
+  });
+
   testWidgets('a permit has no phones or primary toggle', (t) async {
     await pumpEditor(t, initialType: DocumentType.permit);
     expect(find.text('24-hour emergency line'), findsNothing);

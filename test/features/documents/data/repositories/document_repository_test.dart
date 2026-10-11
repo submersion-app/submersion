@@ -147,6 +147,26 @@ void main() {
     expect((await repo.getById(d.id))!.isPrimary, isFalse);
   });
 
+  test('with no primary, the newest insurance stands in', () async {
+    await repo.save(newDoc(type: DocumentType.insurance), const []);
+    final newer = await repo.save(
+      newDoc(type: DocumentType.insurance),
+      const [],
+    );
+    expect((await repo.primaryInsuranceByDiver())['d1']!.id, newer.id);
+    expect(await repo.hasPrimaryInsurance('d1'), isFalse);
+  });
+
+  test('a marked primary beats a newer unmarked insurance', () async {
+    final primary = await repo.save(
+      newDoc(type: DocumentType.insurance, primary: true),
+      const [],
+    );
+    await repo.save(newDoc(type: DocumentType.insurance), const []);
+    expect((await repo.primaryInsuranceByDiver())['d1']!.id, primary.id);
+    expect(await repo.hasPrimaryInsurance('d1'), isTrue);
+  });
+
   test('two primaries from a sync merge resolve to the newest', () async {
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final (id, at) in [('x', now - 1000), ('y', now)]) {

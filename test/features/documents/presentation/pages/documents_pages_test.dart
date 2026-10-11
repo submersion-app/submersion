@@ -84,7 +84,8 @@ void main() {
           routes: [
             GoRoute(
               path: 'new',
-              builder: (context, state) => const Scaffold(body: Text('NEW')),
+              builder: (context, state) =>
+                  Scaffold(body: Text('NEW ${state.uri.query}')),
             ),
             GoRoute(
               path: ':id',
@@ -157,6 +158,15 @@ void main() {
     await pump(t, '/documents?type=insurance');
     expect(find.text('DAN'), findsOneWidget);
     expect(find.text('Clearance'), findsNothing);
+  });
+
+  testWidgets('adding from a filtered list keeps the filter\'s type', (
+    t,
+  ) async {
+    await pump(t, '/documents?type=insurance');
+    await t.tap(find.byType(FloatingActionButton));
+    await t.pumpAndSettle();
+    expect(find.text('NEW type=insurance'), findsOneWidget);
   });
 
   testWidgets('an empty library says so', (t) async {

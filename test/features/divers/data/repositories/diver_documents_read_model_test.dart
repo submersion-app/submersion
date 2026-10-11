@@ -68,7 +68,7 @@ void main() {
     expect((await divers.getDefaultDiver())!.insurance.providerLabel, 'DAN');
   });
 
-  test('a non-primary insurance is not the diver insurance', () async {
+  test('a lone unmarked insurance stands in as the diver insurance', () async {
     final divers = DiverRepository();
     await divers.createDiver(diver());
     await DocumentRepository().save(
@@ -83,7 +83,10 @@ void main() {
       ),
       const [],
     );
-    expect((await divers.getDiverById('d1'))!.insurance.providerLabel, isNull);
+    expect(
+      (await divers.getDiverById('d1'))!.insurance.providerLabel,
+      'Travel',
+    );
   });
 
   test('an insurance without an issuer falls back to its title', () async {

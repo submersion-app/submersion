@@ -33,10 +33,24 @@ class DocumentsPage extends ConsumerWidget {
     final l10n = context.l10n;
     final fab = FloatingActionButton.extended(
       onPressed: () {
+        // Adding from a filtered list (the insurance chip's) starts the
+        // new document as that type.
+        final type = initialType;
         if (ResponsiveBreakpoints.isMasterDetail(context)) {
-          context.go('${GoRouterState.of(context).uri.path}?mode=new');
+          final uri = GoRouterState.of(context).uri;
+          context.go(
+            uri
+                .replace(
+                  queryParameters: {...uri.queryParameters, 'mode': 'new'},
+                )
+                .toString(),
+          );
         } else {
-          context.push('/documents/new');
+          context.push(
+            type == null
+                ? '/documents/new'
+                : '/documents/new?type=${type.storage}',
+          );
         }
       },
       tooltip: l10n.documents_add,
@@ -87,6 +101,7 @@ class DocumentsPage extends ConsumerWidget {
       ),
       createBuilder: (context, onSaved, onCancel) => DocumentEditPage(
         embedded: true,
+        initialType: initialType,
         onSaved: onSaved,
         onCancel: onCancel,
       ),

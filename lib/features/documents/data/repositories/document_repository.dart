@@ -430,18 +430,17 @@ class DocumentRepository {
     }
   }
 
-  /// Each diver's primary insurance. Two primaries (a sync merge of two
-  /// devices' edits) resolve to the most recently updated, then by id.
+  /// Each diver's insurance for the emergency card and home chip: the one
+  /// marked primary, else (none marked, as after the primary was deleted or
+  /// before one was chosen) the most recently updated. Two marked primaries
+  /// (a sync merge of two devices' edits) resolve to the newer, then by id.
   Future<Map<String, Document>> primaryInsuranceByDiver({
     String? diverId,
   }) async {
     final q = _db.select(_db.documents)
-      ..where(
-        (t) =>
-            t.type.equals(DocumentType.insurance.storage) &
-            t.isPrimary.equals(true),
-      )
+      ..where((t) => t.type.equals(DocumentType.insurance.storage))
       ..orderBy([
+        (t) => OrderingTerm.desc(t.isPrimary),
         (t) => OrderingTerm.desc(t.updatedAt),
         (t) => OrderingTerm.desc(t.id),
       ]);
@@ -451,6 +450,21 @@ class DocumentRepository {
       out.putIfAbsent(row.diverId, () => documentFromRow(row));
     }
     return out;
+  }
+
+  /// Whether [diverId] has an insurance explicitly marked primary.
+  Future<bool> hasPrimaryInsurance(String diverId) async {
+    final row =
+        await (_db.select(_db.documents)
+              ..where(
+                (t) =>
+                    t.diverId.equals(diverId) &
+                    t.type.equals(DocumentType.insurance.storage) &
+                    t.isPrimary.equals(true),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
   }
 
   /// The latest medical clearance expiry per diver.

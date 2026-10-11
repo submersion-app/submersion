@@ -90,6 +90,15 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
 
   Future<void> _load() async {
     final id = widget.documentId;
+    if (id == null) {
+      // A diver's first insurance is the one the emergency card and the
+      // home chip use; a later one leaves the existing primary alone.
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (diverId != null) {
+        final repo = ref.read(documentRepositoryProvider);
+        _isPrimary = !await repo.hasPrimaryInsurance(diverId);
+      }
+    }
     if (id != null) {
       final repo = ref.read(documentRepositoryProvider);
       final doc = await repo.getById(id);
