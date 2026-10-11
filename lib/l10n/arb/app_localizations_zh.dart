@@ -14473,6 +14473,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_thicknessDesignationHint => '例如：5, 5/4, 7/5/3';
 
   @override
+  String get equipment_edit_focalLengthHint => '例如 60 或 15-45';
+
+  @override
   String get equipment_edit_webLinkHint => '例如 shop.example.com/product';
 
   @override
@@ -34054,6 +34057,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';
+
+  @override
+  String get equipment_edit_invalidFocalLength => '请输入 60 或 15-45';
 
   @override
   String get equipment_edit_invalidWebLink => '请输入网址，例如 shop.example.com';

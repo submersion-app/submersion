@@ -24545,6 +24545,12 @@ abstract class AppLocalizations {
   /// **'e.g., 5, 5/4, 7/5/3'**
   String get equipment_edit_thicknessDesignationHint;
 
+  /// No description provided for @equipment_edit_focalLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., 60 or 15-45'**
+  String get equipment_edit_focalLengthHint;
+
   /// No description provided for @equipment_edit_webLinkHint.
   ///
   /// In en, this message translates to:
@@ -57222,6 +57228,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use 5, 5/4 or 7/5/3'**
   String get equipment_edit_invalidThickness;
+
+  /// No description provided for @equipment_edit_invalidFocalLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 60 or 15-45'**
+  String get equipment_edit_invalidFocalLength;
 
   /// No description provided for @equipment_edit_invalidWebLink.
   ///

@@ -14937,6 +14937,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_edit_thicknessDesignationHint => 'e.g., 5, 5/4, 7/5/3';
 
   @override
+  String get equipment_edit_focalLengthHint => 'e.g., 60 or 15-45';
+
+  @override
   String get equipment_edit_webLinkHint => 'e.g., shop.example.com/product';
 
   @override
@@ -35488,6 +35491,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_edit_invalidThickness => 'Use 5, 5/4 or 7/5/3';
+
+  @override
+  String get equipment_edit_invalidFocalLength => 'Use 60 or 15-45';
 
   @override
   String get equipment_edit_invalidWebLink =>

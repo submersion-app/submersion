@@ -1,6 +1,7 @@
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/focal_length.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
@@ -124,6 +125,11 @@ String formatAttributeValue(
           ? raw.substring(0, raw.length - 2).trim()
           : raw;
       return base.isEmpty ? '' : '$base mm';
+    case AttributeKind.focalLength:
+      return formatFocalLength(
+        valueText: attr.valueText,
+        valueNum: attr.valueNum,
+      );
     case AttributeKind.number:
       if (attr.valueNum == null) return '';
       final text = formatAttributeNumberForEditing(

@@ -113,9 +113,10 @@ void main() {
         'wet_lens',
         'diopter',
       ]);
-      // Focal length is quoted in millimetres in every unit system, so it is
-      // a plain number rather than a converted length.
-      expect(def('focal_length_mm').kind, AttributeKind.number);
+      // Focal length is quoted in millimetres in every unit system, and a
+      // zoom is written as a range (issue #3050), so it is its own kind
+      // rather than a converted length.
+      expect(def('focal_length_mm').kind, AttributeKind.focalLength);
       expect(def('focal_length_mm').dimension, AttributeDimension.none);
       expect(def('port_type').choiceKeys, ['dome', 'flat', 'macro']);
       expect(def('tray_style').choiceKeys, [

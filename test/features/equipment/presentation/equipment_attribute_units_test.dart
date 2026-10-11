@@ -444,4 +444,34 @@ void main() {
       expect(formatAttributeValue(withValue('Red'), def, units, l10n), '');
     });
   });
+
+  group('focal length (#3050)', () {
+    final def = EquipmentAttributeCatalog.defFor('focal_length_mm');
+    EquipmentAttribute focal({String? text, double? num}) =>
+        EquipmentAttribute.curated(
+          equipmentId: 'e',
+          key: 'focal_length_mm',
+          valueText: text,
+          valueNum: num,
+        );
+
+    test('a zoom shows its range with the unit once', () {
+      expect(
+        formatAttributeValue(focal(text: '15-45', num: 15), def, units, l10n),
+        '15-45 mm',
+      );
+      expect(
+        formatAttributeValue(focal(text: '8-16mm', num: 8), def, units, l10n),
+        '8-16 mm',
+      );
+    });
+
+    test('a lens saved as a single number still shows it', () {
+      expect(formatAttributeValue(focal(num: 60), def, units, l10n), '60 mm');
+    });
+
+    test('is empty when unset', () {
+      expect(formatAttributeValue(focal(), def, units, l10n), '');
+    });
+  });
 }
