@@ -125,6 +125,25 @@ void main() {
     expect(socks.requests.single.host, 'example.test');
   });
 
+  group('currentAppProxy', () {
+    test('is the snapshot the app overrides route by', () {
+      final proxy = _proxy(ProxyKind.http, 3128);
+      final current = HttpOverrides.runWithHttpOverrides(
+        currentAppProxy,
+        AppHttpOverrides(
+          currentProxy: () => proxy,
+          fallbackContext: () => null,
+        ),
+      );
+
+      expect(current, proxy);
+    });
+
+    test('is direct under overrides that are not the app\'s', () {
+      expect(currentAppProxy(), const EffectiveProxy.direct());
+    });
+  });
+
   test('installs AppHttpOverrides in an isolate that has none', () async {
     final installed = await Isolate.run(() {
       ensureIsolateHttpOverrides(const EffectiveProxy.direct());

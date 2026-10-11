@@ -85,7 +85,26 @@ void main() {
       );
     });
 
-    test('defaults to a direct connection', () async {
+    test('defaults to the proxy the app routes by when it is built', () async {
+      final overrides = AppHttpOverrides(
+        currentProxy: () => const EffectiveProxy(
+          kind: ProxyKind.http,
+          host: 'app.example.test',
+          port: 8080,
+          source: ProxySource.manual,
+        ),
+        fallbackContext: () => null,
+      );
+
+      final layer = HttpOverrides.runWithHttpOverrides(
+        () => regionDownloadTileLayer(urlTemplate: url, maxZoom: 16),
+        overrides,
+      );
+
+      expect(await _proxyForEarlyClient(layer), 'PROXY app.example.test:8080');
+    });
+
+    test('defaults to a direct connection without the app overrides', () async {
       final layer = regionDownloadTileLayer(urlTemplate: url, maxZoom: 16);
 
       expect(await _proxyForEarlyClient(layer), 'DIRECT');
