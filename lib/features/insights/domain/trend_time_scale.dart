@@ -180,6 +180,15 @@ class TrendTimeScale {
     return null;
   }
 
+  /// Whether [x] lies inside a gap's region: its band or either margin,
+  /// where no dive can be and no date label belongs.
+  bool inGap(double x) {
+    for (final (from, to) in _regions) {
+      if (x > from && x < to) return true;
+    }
+    return false;
+  }
+
   /// Which period [date] belongs to: 0 before the first break, and one more
   /// for each break that ends at or before it.
   int periodOf(DateTime date) {

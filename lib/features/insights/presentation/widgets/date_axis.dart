@@ -41,9 +41,17 @@ class DateAxis {
   /// label keep clear of a break band by a pixel distance.
   final double? axisPerPixel;
 
-  /// Pixels a date label keeps from a band, leaving room for the band's own
-  /// length label under the axis.
-  static const double breakLabelClearancePx = 36;
+  /// Half the width of a band's length label ("6y 7m"), in pixels, plus the
+  /// gap kept between it and a date label.
+  static const double breakLabelClearancePx = 26;
+
+  /// Half the width of a date label of each granularity, in pixels.
+  static const Map<DateAxisGranularity, double> _labelHalfWidthPx = {
+    DateAxisGranularity.year: 16,
+    DateAxisGranularity.quarter: 24,
+    DateAxisGranularity.month: 24,
+    DateAxisGranularity.day: 24,
+  };
 
   /// Narrowest spacing, in pixels, between two labels of each granularity at
   /// the chart's bodySmall size: "2014" and "Mar '25" plus a gap.
@@ -122,14 +130,17 @@ class DateAxis {
 
   DateTime _dateOf(double value) => scale.toDate(value);
 
-  /// Whether a label at [value] would sit in a band or crowd its length
-  /// label.
+  /// Whether a label at [value] would sit in a gap (where it would name a
+  /// date with no dives) or overlap a band's length label, which is centred
+  /// on the band.
   bool _crowdsBreak(double value) {
-    final reach = (axisPerPixel ?? 0) * breakLabelClearancePx;
+    if (scale.inGap(value)) return true;
+    final perPx = axisPerPixel;
+    if (perPx == null) return false;
+    final reach =
+        (breakLabelClearancePx + _labelHalfWidthPx[granularity]!) * perPx;
     for (final b in scale.breaks) {
-      if (value > b.axisStart - reach && value < b.axisEnd + reach) {
-        return true;
-      }
+      if ((value - (b.axisStart + b.axisEnd) / 2).abs() < reach) return true;
     }
     return false;
   }
@@ -198,13 +209,19 @@ class DateAxis {
 
     final start = scale.toDate(lo);
     final end = scale.toDate(hi);
+    final candidates =
+        granularity == DateAxisGranularity.day && !scale.isIdentity
+        ? _dayTicksOnAxis(lo, hi, days, scale)
+        : _ticksFor(start, end, granularity);
     var ticks = [
-      for (final t in _ticksFor(start, end, granularity))
-        if (scale.breakAt(scale.toAxis(t)) == null) t,
+      for (final t in candidates)
+        if (!scale.inGap(scale.toAxis(t))) t,
     ];
     if (ticks.isEmpty) ticks = [start];
 
-    final steps = ticks.length > 1 ? ticks.length - 1 : 1;
+    // The step comes from every candidate, gap ones included: dropping the
+    // ticks a gap swallows must not widen the spacing of the rest.
+    final steps = candidates.length > 1 ? candidates.length - 1 : 1;
     var interval = (hi - lo) / steps;
     final width = plotWidth;
     final hasWidth = width != null && width > 0;
@@ -223,6 +240,21 @@ class DateAxis {
       scale: scale,
       axisPerPixel: hasWidth ? (hi - lo) / width : null,
     );
+  }
+
+  /// Day ticks for a collapsed axis, stepped through axis space so the step
+  /// follows the [days] with dives in view rather than the calendar span,
+  /// which can run to years across a gap and leave a single tick.
+  static List<DateTime> _dayTicksOnAxis(
+    double lo,
+    double hi,
+    int days,
+    TrendTimeScale scale,
+  ) {
+    final stepMs =
+        (days <= 5 ? 1 : (days / 5).ceil()) *
+        Duration.millisecondsPerDay.toDouble();
+    return [for (var x = lo; x <= hi; x += stepMs) scale.toDate(x)];
   }
 
   static List<DateTime> _ticksFor(
