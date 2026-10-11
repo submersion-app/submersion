@@ -97,6 +97,59 @@ void main() {
     });
   });
 
+  group('findProxyFromEnvironment', () {
+    // Asked on every request by a client built before the overrides were
+    // installed, as in an FMTC download isolate: dart:io's default findProxy
+    // is HttpClient.findProxyFromEnvironment, which defers to the overrides.
+    final url = Uri.parse('https://tile.example.test/1/2/3.png');
+
+    AppHttpOverrides overridesFor(EffectiveProxy proxy) => AppHttpOverrides(
+      currentProxy: () => proxy,
+      fallbackContext: () => null,
+    );
+
+    test('answers with the HTTP proxy directive, ignoring the environment', () {
+      expect(
+        overridesFor(
+          http(3128, user: 'ann', pass: 'pw'),
+        ).findProxyFromEnvironment(url, {'https_proxy': 'other:1'}),
+        'PROXY ann:pw@127.0.0.1:3128',
+      );
+    });
+
+    test('is DIRECT with no proxy set', () {
+      expect(
+        overridesFor(
+          const EffectiveProxy.direct(),
+        ).findProxyFromEnvironment(url, {'https_proxy': 'other:1'}),
+        'DIRECT',
+      );
+    });
+
+    test('is DIRECT for a host the routing policy keeps direct', () {
+      expect(
+        overridesFor(
+          socks(1080),
+        ).findProxyFromEnvironment(Uri.parse('http://127.0.0.1:8080/'), null),
+        'DIRECT',
+      );
+    });
+
+    test('refuses a SOCKS5 proxy, which such a client cannot use, rather '
+        'than going direct', () {
+      expect(
+        () => overridesFor(socks(1080)).findProxyFromEnvironment(url, null),
+        throwsA(
+          isA<HttpException>().having(
+            (e) => e.message,
+            'message',
+            contains('SOCKS5'),
+          ),
+        ),
+      );
+    });
+  });
+
   test('direct snapshot reaches the target without a proxy', () async {
     final c = clientFor(() => const EffectiveProxy.direct());
     expect(await get(c, 'http://127.0.0.1:${target.port}/a'), 'ok /a');

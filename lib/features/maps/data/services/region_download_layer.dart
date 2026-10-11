@@ -1,5 +1,8 @@
 import 'package:flutter_map/flutter_map.dart';
 
+import 'package:submersion/core/network/proxy/effective_proxy.dart';
+import 'package:submersion/core/network/proxy/isolate_http_overrides.dart';
+
 /// A tile provider that holds no HTTP client, used only to describe a download.
 ///
 /// FMTC copies the whole [TileLayer] to its download isolate. A layer built
@@ -13,21 +16,40 @@ import 'package:flutter_map/flutter_map.dart';
 ///
 /// The download isolate only reads this provider's headers and tile URL, so a
 /// provider with no client does the job and can be sent on every platform.
+///
+/// Those isolates also start without the app's `AppHttpOverrides` (statics
+/// are per isolate), and FMTC builds each download thread's client before any
+/// app code runs there (#3269). [getTileUrl] is the first app code to run in
+/// them, so it installs the overrides, routed by [proxy]: that keeps the
+/// Windows trust and the HTTP proxy for every tile request, and refuses a
+/// SOCKS5 proxy the thread's client cannot use rather than going around it.
 class DownloadTileProvider extends TileProvider {
-  DownloadTileProvider();
+  DownloadTileProvider({this.proxy = const EffectiveProxy.direct()});
+
+  /// The proxy the download isolates route by, as it stood when the download
+  /// started.
+  final EffectiveProxy proxy;
+
+  @override
+  String getTileUrl(TileCoordinates coordinates, TileLayer options) {
+    ensureIsolateHttpOverrides(proxy);
+    return super.getTileUrl(coordinates, options);
+  }
 }
 
 /// The [TileLayer] handed to FMTC to describe [urlTemplate] for a region
 /// download or a tile-count estimate.
 ///
 /// `TileCacheService` builds its layers with this, so no caller can pass one
-/// that cannot be sent to the download isolate.
+/// that cannot be sent to the download isolate. The download routes by
+/// [proxy], by default the app's proxy at the moment the layer is built.
 TileLayer regionDownloadTileLayer({
   required String urlTemplate,
   required double maxZoom,
+  EffectiveProxy? proxy,
 }) => TileLayer(
   urlTemplate: urlTemplate,
   userAgentPackageName: 'app.submersion',
   maxZoom: maxZoom,
-  tileProvider: DownloadTileProvider(),
+  tileProvider: DownloadTileProvider(proxy: proxy ?? currentAppProxy()),
 );

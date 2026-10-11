@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/network/proxy/app_http_overrides.dart';
@@ -8,6 +9,21 @@ import 'package:submersion/core/network/proxy/effective_proxy.dart';
 import 'package:submersion/features/maps/data/services/region_download_layer.dart';
 
 void _noop(Object? _) {}
+
+/// What a fresh isolate's early-built client would be told to use for a tile
+/// request, after [layer]'s provider has resolved one tile URL there.
+///
+/// Top-level so the closure sent to the isolate captures only [layer].
+Future<String> _proxyForEarlyClient(TileLayer layer) => Isolate.run(() {
+  // FMTC's download thread builds its client first, then asks the provider.
+  final client = HttpClient();
+  final url = layer.tileProvider.getTileUrl(
+    const TileCoordinates(1, 2, 3),
+    layer,
+  );
+  client.close(force: true);
+  return HttpClient.findProxyFromEnvironment(Uri.parse(url));
+});
 
 void main() {
   const url = 'https://example.test/{z}/{x}/{y}.png';
@@ -49,5 +65,30 @@ void main() {
         }, overrides);
       },
     );
+
+    test('resolving a tile URL in a download isolate routes that isolate '
+        'through the proxy it was built with', () async {
+      final layer = regionDownloadTileLayer(
+        urlTemplate: url,
+        maxZoom: 16,
+        proxy: const EffectiveProxy(
+          kind: ProxyKind.http,
+          host: 'proxy.example.test',
+          port: 3128,
+          source: ProxySource.manual,
+        ),
+      );
+
+      expect(
+        await _proxyForEarlyClient(layer),
+        'PROXY proxy.example.test:3128',
+      );
+    });
+
+    test('defaults to a direct connection', () async {
+      final layer = regionDownloadTileLayer(urlTemplate: url, maxZoom: 16);
+
+      expect(await _proxyForEarlyClient(layer), 'DIRECT');
+    });
   });
 }
