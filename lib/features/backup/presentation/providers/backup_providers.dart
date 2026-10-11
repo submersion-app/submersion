@@ -729,11 +729,13 @@ final backupOperationProvider =
 /// fresh install the local history is empty, the cloud copies are not).
 final backupHistoryProvider = FutureProvider<List<BackupRecord>>((ref) async {
   final service = ref.watch(backupServiceProvider);
-  final (history, cloudFiles) = await (
-    service.getValidatedBackupHistory(),
-    service.getCloudBackups(),
-  ).wait;
-  return mergeCloudBackups(history, cloudFiles);
+  // Started first so the listing overlaps the local read. Not joined with a
+  // record `.wait`, which would wrap a history failure in ParallelWaitError
+  // and hide the real message; getCloudBackups never throws, so leaving it
+  // unawaited on that path cannot surface an unhandled error.
+  final cloudFiles = service.getCloudBackups();
+  final history = await service.getValidatedBackupHistory();
+  return mergeCloudBackups(history, await cloudFiles);
 });
 
 // =============================================================================

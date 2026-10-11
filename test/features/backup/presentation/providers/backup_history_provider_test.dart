@@ -49,4 +49,29 @@ void main() {
     // Display-only: nothing is written back, so retention never prunes it.
     expect(preferences.getHistory(), isEmpty);
   });
+
+  test('a history failure surfaces its own error, not a wrapper', () async {
+    SharedPreferences.setMockInitialValues({});
+    final service = _FailingHistoryService(
+      BackupPreferences(await SharedPreferences.getInstance()),
+    );
+    final container = ProviderContainer(
+      overrides: [backupServiceProvider.overrideWithValue(service)],
+    );
+    addTearDown(container.dispose);
+
+    await expectLater(
+      container.read(backupHistoryProvider.future),
+      throwsA(isA<StateError>()),
+    );
+  });
+}
+
+class _FailingHistoryService extends BackupService {
+  _FailingHistoryService(BackupPreferences preferences)
+    : super(dbAdapter: UnusedBackupDatabaseAdapter(), preferences: preferences);
+
+  @override
+  Future<List<BackupRecord>> getValidatedBackupHistory() async =>
+      throw StateError('history unreadable');
 }
