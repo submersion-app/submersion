@@ -48,4 +48,11 @@ void main() {
     );
     expect(bands.single.left, plot.left);
   });
+
+  test('a length label near an edge stays inside the chart', () {
+    // A 40px label centred 5px from the right edge of a 600px chart.
+    expect(TrendBreakBandPainter.labelLeft(595, 40, 600), 560);
+    expect(TrendBreakBandPainter.labelLeft(5, 40, 600), 0);
+    expect(TrendBreakBandPainter.labelLeft(300, 40, 600), 280);
+  });
 }

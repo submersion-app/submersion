@@ -53,6 +53,15 @@ class TrendBreakBandPainter extends CustomPainter {
     ];
   }
 
+  /// Left edge for a label [width] wide centred on [centre], kept inside a
+  /// chart [chartWidth] wide so a band at the edge of a zoomed window does
+  /// not paint its length past the chart.
+  static double labelLeft(double centre, double width, double chartWidth) {
+    final left = centre - width / 2;
+    final maxLeft = math.max(0.0, chartWidth - width);
+    return left.clamp(0.0, maxLeft);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final linePaint = Paint()
@@ -79,7 +88,10 @@ class TrendBreakBandPainter extends CustomPainter {
         textDirection: textDirection,
       )..layout();
       final centre = (band.left + band.right) / 2;
-      text.paint(canvas, Offset(centre - text.width / 2, plot.bottom + 8));
+      text.paint(
+        canvas,
+        Offset(labelLeft(centre, text.width, size.width), plot.bottom + 8),
+      );
       text.dispose();
     }
   }
