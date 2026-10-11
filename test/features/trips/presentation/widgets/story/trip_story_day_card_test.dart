@@ -570,7 +570,8 @@ void main() {
         day,
         extra: [
           siteHistoryByNameProvider('Kralendijk').overrideWith(
-            (ref) async => (diveCount: 0, avgWaterTemp: null, avgMaxDepth: null),
+            (ref) async =>
+                (diveCount: 0, avgWaterTemp: null, avgMaxDepth: null),
           ),
         ],
       );
@@ -591,7 +592,8 @@ void main() {
         day,
         extra: [
           siteHistoryByNameProvider('Kralendijk').overrideWith(
-            (ref) async => (diveCount: 3, avgWaterTemp: null, avgMaxDepth: null),
+            (ref) async =>
+                (diveCount: 3, avgWaterTemp: null, avgMaxDepth: null),
           ),
         ],
       );
