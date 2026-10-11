@@ -1,19 +1,20 @@
 part of 'insights_repository.dart';
 
-/// Per-dive series for the Dive focus metrics that are not read from a
-/// trend chart's own query. Each reads one expression over `dives`, scoped
-/// like every other descriptive aggregate, and skips dives without the value.
+/// Per-dive series for Dive focus metrics. Most have no trend chart of their
+/// own; runtime is also the Progression page's Runtime Trend query. Each reads
+/// one expression over `dives`, scoped like every other descriptive
+/// aggregate, and skips dives without the value.
 extension InsightsRepositoryFocusSeries on InsightsRepository {
-  /// Run time in minutes (issue #3059): the duration the dive measured, from
+  /// Runtime in minutes (issue #3059): the duration the dive measured, from
   /// [measuredRuntimeSecondsSql]. A dive with only a bottom time, or a zero
-  /// runtime, has no run time and is absent. Shared by Dive focus and the
-  /// Progression page's run time chart.
+  /// runtime, has no runtime and is absent. Shared by Dive focus and the
+  /// Progression page's Runtime Trend chart.
   Future<List<TrendDataPoint>> getRuntimePerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) => _columnSeries(
     "NULLIF(${measuredRuntimeSecondsSql('d')}, 0) / 60.0",
-    'run time',
+    'runtime',
     diverId,
     filter,
   );

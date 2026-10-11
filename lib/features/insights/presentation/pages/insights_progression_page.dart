@@ -16,6 +16,10 @@ import 'package:submersion/features/insights/presentation/widgets/insights_filte
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Whole minutes, for the runtime and bottom time charts' axis and tooltips.
+String _minutes(BuildContext context, double value) =>
+    context.l10n.surfaceInterval_format_minutes(value.toStringAsFixed(0));
+
 class InsightsProgressionPage extends ConsumerWidget {
   final bool embedded;
 
@@ -85,8 +89,7 @@ class InsightsProgressionPage extends ConsumerWidget {
   }
 
   Widget _buildRuntimeSection(BuildContext context, WidgetRef ref) {
-    String minutes(double value) =>
-        context.l10n.surfaceInterval_format_minutes(value.toStringAsFixed(0));
+    String minutes(double value) => _minutes(context, value);
 
     return TrendChartSection(
       chartId: TrendChartIds.runtime,
@@ -102,8 +105,7 @@ class InsightsProgressionPage extends ConsumerWidget {
   }
 
   Widget _buildBottomTimeSection(BuildContext context, WidgetRef ref) {
-    String minutes(double value) =>
-        context.l10n.surfaceInterval_format_minutes(value.toStringAsFixed(0));
+    String minutes(double value) => _minutes(context, value);
 
     return TrendChartSection(
       chartId: TrendChartIds.bottomTime,

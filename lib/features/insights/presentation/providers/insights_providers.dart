@@ -232,7 +232,7 @@ final depthProgressionTrendProvider = FutureProvider<List<TrendDataPoint>>((
   return repository.getDepthPerDive(diverId: currentDiverId, filter: filter);
 });
 
-/// Run time per dive (issue #3059), for the Progression chart and Dive focus.
+/// Runtime per dive (issue #3059), for the Progression chart and Dive focus.
 final runtimeTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);

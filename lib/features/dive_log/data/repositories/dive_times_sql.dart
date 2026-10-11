@@ -49,8 +49,8 @@ String profileSpanSecondsSql(String alias) =>
 
 /// The first three steps of the chain: a duration the dive actually
 /// measured, in seconds, or NULL. Bottom time is left out because it is
-/// derived from a depth threshold, so Insights' run time (issue #3059) never
-/// reports one as a run time.
+/// derived from a depth threshold, so Insights' runtime (issue #3059) never
+/// reports one as a runtime.
 ///
 /// `COALESCE` short-circuits in SQLite, so the correlated profile subquery is
 /// only executed for the dives that actually reach that step. A dive with an
