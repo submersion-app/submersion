@@ -196,6 +196,14 @@ void main() {
             visibilityMinMeters: 4.572,
             visibilityMaxMeters: 9.144,
           ),
+          // A custom edge entered as one decimal in feet (8.2 ft is
+          // 2.49936 m): sub-millimetre, and still exact (Copilot review).
+          Dive(
+            id: 'range-sub-mm',
+            diveNumber: 25,
+            dateTime: DateTime.utc(2026, 3, 5, 9),
+            visibilityMinMeters: 2.49936,
+          ),
           // A hand-edited inverted range imports as no range.
           Dive(
             id: 'range-inverted',
@@ -234,6 +242,10 @@ void main() {
         expect(
           (await back(24)).visibilityRange,
           const VisibilityRange(minM: 4.572, maxM: 9.144),
+        );
+        expect(
+          (await back(25)).visibilityRange,
+          const VisibilityRange(minM: 2.49936),
         );
         expect((await back(23)).visibilityRange, isNull);
       });

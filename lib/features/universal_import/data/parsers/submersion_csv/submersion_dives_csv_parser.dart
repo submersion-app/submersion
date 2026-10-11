@@ -353,15 +353,17 @@ class SubmersionDivesCsvParser implements ImportParser {
   }
 }
 
-/// A range end snapped to the millimetre (issue #3226). The export writes
-/// range ends unrounded, but feet to metres and back leaves float noise
-/// (12 m returns as 12.000000000000002) that would push a band edge out of
-/// its band; no visibility is known to better than a millimetre.
-double? _toMillimeter(double? meters) =>
-    meters == null ? null : (meters * 1000).roundToDouble() / 1000;
+/// A range end with conversion noise removed (issue #3226). The export
+/// writes range ends unrounded, but feet to metres and back leaves float
+/// noise (12 m returns as 12.000000000000002) that would push a band edge
+/// out of its band. Snapping to the nanometre removes that noise and nothing
+/// else: a custom edge entered in feet (8.2 ft is 2.49936 m) keeps every
+/// digit, where millimetre rounding would move it off its band.
+double? _withoutConversionNoise(double? meters) =>
+    meters == null ? null : (meters * 1e9).roundToDouble() / 1e9;
 
-/// A row's visibility range ends in meters (issue #3226), snapped to the
-/// millimetre. A cell that is present but unreadable makes the whole range
+/// A row's visibility range ends in meters (issue #3226), without
+/// conversion noise. A cell that is present but unreadable makes the whole range
 /// unreadable: keeping the other end would import an open range ("under
 /// 12 m") the diver never logged. The unreadable cell is still reported.
 ({double? min, double? max}) _visibilityRange(
@@ -375,5 +377,5 @@ double? _toMillimeter(double? meters) =>
   final maxUnreadable =
       max == null && table.text(row, CsvColumns.visibilityMax.base) != null;
   if (minUnreadable || maxUnreadable) return (min: null, max: null);
-  return (min: _toMillimeter(min), max: _toMillimeter(max));
+  return (min: _withoutConversionNoise(min), max: _withoutConversionNoise(max));
 }
