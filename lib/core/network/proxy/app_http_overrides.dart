@@ -22,6 +22,8 @@ String proxyDirective(EffectiveProxy proxy) {
 
 /// The app's one hook into every HttpClient the Dart VM creates: flutter_map
 /// and FMTC tiles, NetworkImage, and every package:http client included.
+/// Overrides are per isolate, so a spawned isolate has none until
+/// ensureIsolateHttpOverrides installs them there.
 ///
 /// It keeps the Windows trust fix (the platform-trusted SecurityContext from
 /// [appSecurityContext], which Dart's bundled BoringSSL cannot otherwise
