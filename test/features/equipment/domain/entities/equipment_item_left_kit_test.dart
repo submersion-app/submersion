@@ -41,24 +41,4 @@ void main() {
       expect(_item(EquipmentStatus.wanted, isActive: false).hasLeftKit, false);
     });
   });
-
-  group('leftKitStatus (#3210)', () {
-    test('sold gear reads Sold', () {
-      expect(
-        _item(EquipmentStatus.sold, isActive: false).leftKitStatus,
-        EquipmentStatus.sold,
-      );
-    });
-
-    test('retired gear reads Retired, a legacy isActive-only row too', () {
-      expect(
-        _item(EquipmentStatus.retired, isActive: false).leftKitStatus,
-        EquipmentStatus.retired,
-      );
-      expect(
-        _item(EquipmentStatus.active, isActive: false).leftKitStatus,
-        EquipmentStatus.retired,
-      );
-    });
-  });
 }

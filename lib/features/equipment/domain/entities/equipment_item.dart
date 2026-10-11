@@ -144,17 +144,11 @@ class EquipmentItem extends Equatable {
   /// On the diver's wishlist rather than in the kit (#2025).
   bool get isWanted => status == EquipmentStatus.wanted;
 
-  /// Retired or sold: owned once, gone now. Still worth offering on a past
-  /// dive's pickers, since it was really used there (#3210). Wishlist gear
-  /// never joined the kit, so it has not left it.
+  /// Owned once, out of the active list now: retired, sold, or lost and
+  /// marked inactive (`departedStatusOf` names which). Still worth offering
+  /// on a past dive's pickers, since it was really used there (#3210).
+  /// Wishlist gear never joined the kit, so it has not left it.
   bool get hasLeftKit => !isFitted && !isWanted;
-
-  /// The status a diver reads for gear that [hasLeftKit]. is_active pairs
-  /// with retired and sold only, so a legacy row retired by is_active alone
-  /// still says Active and reads Retired, as the repository counts it (#636).
-  EquipmentStatus get leftKitStatus => status == EquipmentStatus.sold
-      ? EquipmentStatus.sold
-      : EquipmentStatus.retired;
 
   /// Wing/BCD rated lift capacity in kg (curated attribute; see the BCD entry
   /// in [EquipmentAttributeCatalog]). Feeds the buoyancy twin's peak-lift

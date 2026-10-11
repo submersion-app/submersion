@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -60,6 +61,7 @@ Future<void> _pump(
   bool offerLeftKit = true,
   EquipmentType? typeFilter,
   Set<String> selectedIds = const {},
+  EquipmentPickerFilter filter = EquipmentPickerFilter.none,
   void Function(EquipmentItem)? onSelected,
 }) async {
   tester.view.physicalSize = const Size(900, 2400);
@@ -72,6 +74,7 @@ Future<void> _pump(
           (ref) async => all.where((e) => e.isFitted).toList(),
         ),
         allEquipmentProvider.overrideWith((ref) async => all),
+        equipmentPickerFilterProvider.overrideWith((ref) => filter),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         allDiversProvider.overrideWith((ref) async => const []),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
@@ -187,6 +190,47 @@ void main() {
 
       expect(find.text(_showLabel), findsOneWidget);
       expect(find.text('Add equipment from the Equipment tab'), findsNothing);
+    });
+
+    testWidgets('inactive lost gear keeps its Lost label', (tester) async {
+      // Lost gear can be inactive too; it is gone, not retired.
+      const lostMask = EquipmentItem(
+        id: 'lost-mask',
+        name: 'Lost Mask',
+        type: EquipmentType.mask,
+        status: EquipmentStatus.lost,
+        isActive: false,
+      );
+      await _pump(tester, all: const [_bcd, lostMask]);
+      await _showLeftKit(tester);
+
+      expect(find.text('Lost Mask'), findsOneWidget);
+      expect(find.text('Lost'), findsOneWidget);
+      expect(find.textContaining('Retired'), findsNothing);
+    });
+
+    testWidgets('offers no switch when the diver filter rules it all out', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        all: const [_bcd, _oldReg],
+        filter: const EquipmentPickerFilter(type: EquipmentType.bcd),
+      );
+
+      expect(find.text(_showLabel), findsNothing);
+    });
+
+    testWidgets('offers the switch when the diver filter keeps some', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        all: const [_bcd, _oldReg],
+        filter: const EquipmentPickerFilter(type: EquipmentType.regulator),
+      );
+
+      expect(find.text(_showLabel), findsOneWidget);
     });
 
     testWidgets('leaves out gear already on the dive', (tester) async {

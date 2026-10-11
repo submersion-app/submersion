@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_a
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
@@ -87,7 +88,8 @@ class EquipmentPickerSheet extends ConsumerWidget {
   }) {
     final all = [
       if (showTypeLabel) item.type.localizedName(context.l10n),
-      if (item.hasLeftKit) item.leftKitStatus.localizedName(context.l10n),
+      // Sold, Lost or Retired, as the equipment badges read it.
+      if (item.hasLeftKit) ?departedStatusOf(item)?.localizedName(context.l10n),
       ...parts,
     ];
     final text = all.isEmpty ? null : Text(all.join(' · '));
@@ -133,14 +135,19 @@ class EquipmentPickerSheet extends ConsumerWidget {
     final equipmentAsync = showLeftKit
         ? activeAsync.whenData((active) => [...active, ...leftKit])
         : activeAsync;
-    // The switch only when it would add something, or to switch it back.
-    final offersLeftKitSwitch =
-        showLeftKit ||
-        _callerAllowed(
-          leftKit.where((e) => !selectedEquipmentIds.contains(e.id)),
-        ).isNotEmpty;
     final arrangement = ref.watch(equipmentArrangementProvider);
     final filter = ref.watch(equipmentPickerFilterProvider);
+    // The switch only when it would add something the list then shows,
+    // after the diver's own filter too, or to switch it back.
+    final offersLeftKitSwitch =
+        showLeftKit ||
+        filter
+            .apply(
+              _callerAllowed(
+                leftKit.where((e) => !selectedEquipmentIds.contains(e.id)),
+              ).toList(),
+            )
+            .isNotEmpty;
     // Shared gear (issue #2046) gets its own section and an owner chip.
     final multipleDivers = ref.watch(hasMultipleDiversProvider);
     final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
