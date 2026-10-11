@@ -20718,6 +20718,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_cloudSync_provider_s3_title => 'S3-kompatibler Speicher';
 
   @override
+  String get settings_cloudSync_provider_webdav_edit =>
+      'WebDAV-Konfiguration bearbeiten';
+
+  @override
+  String get settings_cloudSync_provider_webdav_subtitle =>
+      'Nextcloud, ownCloud, Synology, Koofr und andere WebDAV-Server';
+
+  @override
+  String get settings_cloudSync_provider_webdav_title => 'WebDAV';
+
+  @override
   String get settings_cloudSync_resolveConflicts => 'Konflikte lösen';
 
   @override
@@ -24334,6 +24345,224 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_s3Config_warning_http =>
       'Dieser Endpunkt verwendet unverschlüsseltes HTTP. Zugangsdaten und Tauchdaten werden unverschlüsselt übertragen; nur in vertrauenswürdigen Netzwerken verwenden.';
+
+  @override
+  String get settings_webdavConfig_action_forgetCertificate => 'Vergessen';
+
+  @override
+  String get settings_webdavConfig_action_remove => 'Konfiguration entfernen';
+
+  @override
+  String get settings_webdavConfig_action_testConnection => 'Verbindung testen';
+
+  @override
+  String get settings_webdavConfig_appBar_title => 'WebDAV';
+
+  @override
+  String get settings_webdavConfig_davRoot_label => 'WebDAV-Adresse';
+
+  @override
+  String get settings_webdavConfig_error_conflict =>
+      'Der Ordner konnte auf dem Server nicht angelegt werden.';
+
+  @override
+  String get settings_webdavConfig_error_forbidden =>
+      'Sie haben keine Berechtigung für diesen Ordner auf dem Server.';
+
+  @override
+  String get settings_webdavConfig_error_insufficientStorage =>
+      'Der Speicher des Servers ist voll.';
+
+  @override
+  String get settings_webdavConfig_error_invalidConfig =>
+      'Prüfen Sie die Serverangaben';
+
+  @override
+  String get settings_webdavConfig_error_locked =>
+      'Die Datei ist auf dem Server gesperrt. Versuchen Sie es gleich noch einmal.';
+
+  @override
+  String get settings_webdavConfig_error_notFound =>
+      'Unter dieser Adresse gibt es keinen WebDAV-Ordner. Prüfen Sie Servertyp und Adresse.';
+
+  @override
+  String get settings_webdavConfig_error_notWebDav =>
+      'Diese Adresse ist kein WebDAV-Server.';
+
+  @override
+  String settings_webdavConfig_error_redirected(String location) {
+    return 'Der Server hat auf $location weitergeleitet. Verwenden Sie stattdessen diese Adresse.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_server =>
+      'Der Server hat einen Fehler gemeldet. Versuchen Sie es später erneut.';
+
+  @override
+  String settings_webdavConfig_error_tooLarge(String size) {
+    return 'Der Server hat eine $size-MB-Datei als zu groß abgelehnt. Erhöhen Sie sein Upload-Limit.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_unauthorized =>
+      'Der Server hat Benutzername oder Passwort abgelehnt. Wenn das Konto die Zwei-Faktor-Anmeldung nutzt, erstellen Sie ein App-Passwort.';
+
+  @override
+  String get settings_webdavConfig_error_unexpected =>
+      'Der Server hat unerwartet geantwortet.';
+
+  @override
+  String settings_webdavConfig_error_unreachable(String host) {
+    return '$host ist nicht erreichbar.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_untrusted =>
+      'Das Serverzertifikat ist nicht vertrauenswürdig.';
+
+  @override
+  String get settings_webdavConfig_error_secureStorage =>
+      'Auf den sicheren Speicher konnte nicht zugegriffen werden';
+
+  @override
+  String get settings_webdavConfig_field_folder_helper =>
+      'Wird auf dem Server angelegt, falls er nicht existiert';
+
+  @override
+  String get settings_webdavConfig_field_folder_label => 'Ordner';
+
+  @override
+  String get settings_webdavConfig_field_password_appPasswordHelper =>
+      'Verwenden Sie ein App-Passwort, wenn das Konto die Zwei-Faktor-Anmeldung nutzt';
+
+  @override
+  String get settings_webdavConfig_field_password_label => 'Passwort';
+
+  @override
+  String get settings_webdavConfig_field_preset_label => 'Servertyp';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintDav =>
+      'https://example.com/dav';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintHost =>
+      'https://cloud.example.com';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintSynology =>
+      'https://nas.local:5006';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_label => 'Serveradresse';
+
+  @override
+  String get settings_webdavConfig_field_username_label => 'Benutzername';
+
+  @override
+  String get settings_webdavConfig_preset_fastmail => 'Fastmail Files';
+
+  @override
+  String get settings_webdavConfig_preset_koofr => 'Koofr';
+
+  @override
+  String get settings_webdavConfig_preset_nextcloud => 'Nextcloud';
+
+  @override
+  String get settings_webdavConfig_preset_other => 'Anderer WebDAV-Server';
+
+  @override
+  String get settings_webdavConfig_preset_owncloud => 'ownCloud';
+
+  @override
+  String get settings_webdavConfig_preset_pcloudEu => 'pCloud (EU)';
+
+  @override
+  String get settings_webdavConfig_preset_pcloudUs => 'pCloud (USA)';
+
+  @override
+  String get settings_webdavConfig_preset_synology => 'Synology-NAS';
+
+  @override
+  String get settings_webdavConfig_preset_yandex => 'Yandex Disk';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_action => 'Entfernen';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_body =>
+      'Serverangaben und Passwort werden von diesem Gerät entfernt. Die Dateien auf dem Server bleiben erhalten.';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_title =>
+      'WebDAV-Konfiguration entfernen?';
+
+  @override
+  String get settings_webdavConfig_removed => 'WebDAV-Konfiguration entfernt';
+
+  @override
+  String get settings_webdavConfig_saved => 'WebDAV-Konfiguration gespeichert';
+
+  @override
+  String get settings_webdavConfig_synology_helper =>
+      'Aktivieren Sie WebDAV Server im Paket-Zentrum. Der HTTPS-Port ist meist 5006.';
+
+  @override
+  String get settings_webdavConfig_test_success => 'Verbindung erfolgreich';
+
+  @override
+  String get settings_webdavConfig_trust_action =>
+      'Diesem Zertifikat vertrauen';
+
+  @override
+  String settings_webdavConfig_trust_body(String host) {
+    return '$host hat ein Zertifikat vorgelegt, das keine vertrauenswürdige Stelle signiert hat. Heimserver mit selbstsigniertem Zertifikat tun das. Vertrauen Sie ihm nur, wenn der Fingerabdruck mit dem auf Ihrem Server übereinstimmt.';
+  }
+
+  @override
+  String settings_webdavConfig_trust_changedBody(String host) {
+    return 'Das Zertifikat von $host hat sich geändert, seit Sie ihm vertraut haben. Das passiert bei einem erneuerten Zertifikat, aber auch, wenn jemand die Verbindung abfängt. Vertrauen Sie dem neuen nur, wenn sein Fingerabdruck mit dem auf Ihrem Server übereinstimmt.';
+  }
+
+  @override
+  String get settings_webdavConfig_trust_expires => 'Läuft ab';
+
+  @override
+  String get settings_webdavConfig_trust_fingerprint => 'SHA-256-Fingerabdruck';
+
+  @override
+  String get settings_webdavConfig_trust_issuer => 'Ausgestellt von';
+
+  @override
+  String get settings_webdavConfig_trust_previousFingerprint =>
+      'Bisher vertraut';
+
+  @override
+  String get settings_webdavConfig_trust_subject => 'Ausgestellt für';
+
+  @override
+  String get settings_webdavConfig_trust_title =>
+      'Nicht vertrauenswürdiges Zertifikat';
+
+  @override
+  String settings_webdavConfig_trustedCertificate(String fingerprint) {
+    return 'Vertrauenswürdiges Zertifikat: $fingerprint';
+  }
+
+  @override
+  String get settings_webdavConfig_validation_folder =>
+      'Ordnernamen dürfen keine Segmente . oder .. enthalten';
+
+  @override
+  String get settings_webdavConfig_validation_required => 'Erforderlich';
+
+  @override
+  String get settings_webdavConfig_validation_url =>
+      'Geben Sie eine Adresse ein, die mit https:// oder http:// beginnt';
+
+  @override
+  String get settings_webdavConfig_warning_http =>
+      'Dieser Server verwendet http://, daher werden Passwort und Tauchdaten unverschlüsselt übertragen. Nur in vertrauenswürdigen Netzwerken verwenden.';
 
   @override
   String get settings_section_about_subtitle => 'App-Info & Lizenzen';
@@ -33266,6 +33495,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_provider_label => 'Anbieter';
+
+  @override
+  String get settings_mediaStorage_provider_webdav => 'WebDAV';
+
+  @override
+  String get settings_mediaStorage_webdav_useSyncServer =>
+      'Meinen Sync-Server verwenden';
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>

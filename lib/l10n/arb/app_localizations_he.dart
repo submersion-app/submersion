@@ -20274,6 +20274,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_cloudSync_provider_s3_title => 'אחסון תואם S3';
 
   @override
+  String get settings_cloudSync_provider_webdav_edit => 'עריכת תצורת WebDAV';
+
+  @override
+  String get settings_cloudSync_provider_webdav_subtitle =>
+      'Nextcloud, ownCloud, Synology, Koofr ושרתי WebDAV אחרים';
+
+  @override
+  String get settings_cloudSync_provider_webdav_title => 'WebDAV';
+
+  @override
   String get settings_cloudSync_resolveConflicts => 'פתור התנגשויות';
 
   @override
@@ -23764,6 +23774,219 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_s3Config_warning_http =>
       'נקודת קצה זו משתמשת ב-HTTP לא מוצפן. פרטי הגישה ונתוני הצלילה יועברו ללא הצפנה; השתמשו רק ברשת מהימנה.';
+
+  @override
+  String get settings_webdavConfig_action_forgetCertificate => 'שכחה';
+
+  @override
+  String get settings_webdavConfig_action_remove => 'הסרת התצורה';
+
+  @override
+  String get settings_webdavConfig_action_testConnection => 'בדיקת חיבור';
+
+  @override
+  String get settings_webdavConfig_appBar_title => 'WebDAV';
+
+  @override
+  String get settings_webdavConfig_davRoot_label => 'כתובת WebDAV';
+
+  @override
+  String get settings_webdavConfig_error_conflict =>
+      'לא ניתן ליצור את התיקייה בשרת.';
+
+  @override
+  String get settings_webdavConfig_error_forbidden =>
+      'אין לך הרשאה להשתמש בתיקייה זו בשרת.';
+
+  @override
+  String get settings_webdavConfig_error_insufficientStorage =>
+      'נגמר שטח האחסון בשרת.';
+
+  @override
+  String get settings_webdavConfig_error_invalidConfig => 'בדקו את פרטי השרת';
+
+  @override
+  String get settings_webdavConfig_error_locked =>
+      'הקובץ נעול בשרת. נסו שוב בעוד רגע.';
+
+  @override
+  String get settings_webdavConfig_error_notFound =>
+      'אין תיקיית WebDAV בכתובת זו. בדקו את סוג השרת ואת הכתובת.';
+
+  @override
+  String get settings_webdavConfig_error_notWebDav =>
+      'כתובת זו אינה שרת WebDAV.';
+
+  @override
+  String settings_webdavConfig_error_redirected(String location) {
+    return 'השרת הפנה אל $location. השתמשו בכתובת זו במקום.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_server =>
+      'השרת דיווח על שגיאה. נסו שוב מאוחר יותר.';
+
+  @override
+  String settings_webdavConfig_error_tooLarge(String size) {
+    return 'השרת דחה קובץ בגודל $size MB כגדול מדי. הגדילו את מגבלת ההעלאה שלו.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_unauthorized =>
+      'השרת דחה את שם המשתמש או הסיסמה. אם החשבון משתמש בכניסה דו-שלבית, צרו סיסמת אפליקציה.';
+
+  @override
+  String get settings_webdavConfig_error_unexpected =>
+      'השרת החזיר תשובה לא צפויה.';
+
+  @override
+  String settings_webdavConfig_error_unreachable(String host) {
+    return 'לא ניתן להגיע אל $host.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_untrusted => 'אישור השרת אינו מהימן.';
+
+  @override
+  String get settings_webdavConfig_error_secureStorage =>
+      'לא ניתן לגשת לאחסון המאובטח';
+
+  @override
+  String get settings_webdavConfig_field_folder_helper =>
+      'תיווצר בשרת אם אינה קיימת';
+
+  @override
+  String get settings_webdavConfig_field_folder_label => 'תיקייה';
+
+  @override
+  String get settings_webdavConfig_field_password_appPasswordHelper =>
+      'השתמשו בסיסמת אפליקציה אם בחשבון מופעלת כניסה דו-שלבית';
+
+  @override
+  String get settings_webdavConfig_field_password_label => 'סיסמה';
+
+  @override
+  String get settings_webdavConfig_field_preset_label => 'סוג שרת';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintDav =>
+      'https://example.com/dav';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintHost =>
+      'https://cloud.example.com';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintSynology =>
+      'https://nas.local:5006';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_label => 'כתובת השרת';
+
+  @override
+  String get settings_webdavConfig_field_username_label => 'שם משתמש';
+
+  @override
+  String get settings_webdavConfig_preset_fastmail => 'Fastmail Files';
+
+  @override
+  String get settings_webdavConfig_preset_koofr => 'Koofr';
+
+  @override
+  String get settings_webdavConfig_preset_nextcloud => 'Nextcloud';
+
+  @override
+  String get settings_webdavConfig_preset_other => 'שרת WebDAV אחר';
+
+  @override
+  String get settings_webdavConfig_preset_owncloud => 'ownCloud';
+
+  @override
+  String get settings_webdavConfig_preset_pcloudEu => 'pCloud (האיחוד האירופי)';
+
+  @override
+  String get settings_webdavConfig_preset_pcloudUs => 'pCloud (ארה\"ב)';
+
+  @override
+  String get settings_webdavConfig_preset_synology => 'Synology NAS';
+
+  @override
+  String get settings_webdavConfig_preset_yandex => 'Yandex Disk';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_action => 'הסרה';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_body =>
+      'פרטי השרת והסיסמה יוסרו ממכשיר זה. הקבצים בשרת יישמרו.';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_title =>
+      'להסיר את תצורת WebDAV?';
+
+  @override
+  String get settings_webdavConfig_removed => 'תצורת WebDAV הוסרה';
+
+  @override
+  String get settings_webdavConfig_saved => 'תצורת WebDAV נשמרה';
+
+  @override
+  String get settings_webdavConfig_synology_helper =>
+      'הפעילו את WebDAV Server במרכז החבילות. פורט ה-HTTPS שלו הוא בדרך כלל 5006.';
+
+  @override
+  String get settings_webdavConfig_test_success => 'החיבור הצליח';
+
+  @override
+  String get settings_webdavConfig_trust_action => 'סמכו על אישור זה';
+
+  @override
+  String settings_webdavConfig_trust_body(String host) {
+    return '$host הציג אישור שאף רשות מהימנה לא חתמה עליו. שרתים ביתיים עם אישור בחתימה עצמית עושים זאת. סמכו עליו רק אם טביעת האצבע תואמת לזו שהשרת שלכם מציג.';
+  }
+
+  @override
+  String settings_webdavConfig_trust_changedBody(String host) {
+    return 'האישור של $host השתנה מאז שסמכתם עליו. זה קורה כשאישור מחודש, אבל גם כשמישהו מיירט את החיבור. סמכו על החדש רק אם טביעת האצבע שלו תואמת לזו שהשרת שלכם מציג.';
+  }
+
+  @override
+  String get settings_webdavConfig_trust_expires => 'תפוגה';
+
+  @override
+  String get settings_webdavConfig_trust_fingerprint => 'טביעת אצבע SHA-256';
+
+  @override
+  String get settings_webdavConfig_trust_issuer => 'הונפק על ידי';
+
+  @override
+  String get settings_webdavConfig_trust_previousFingerprint => 'מהימן בעבר';
+
+  @override
+  String get settings_webdavConfig_trust_subject => 'הונפק עבור';
+
+  @override
+  String get settings_webdavConfig_trust_title => 'אישור לא מהימן';
+
+  @override
+  String settings_webdavConfig_trustedCertificate(String fingerprint) {
+    return 'אישור מהימן: $fingerprint';
+  }
+
+  @override
+  String get settings_webdavConfig_validation_folder =>
+      'שמות תיקיות אינם יכולים להכיל מקטעי . או ..';
+
+  @override
+  String get settings_webdavConfig_validation_required => 'שדה חובה';
+
+  @override
+  String get settings_webdavConfig_validation_url =>
+      'הזינו כתובת שמתחילה ב-https:// או ב-http://';
+
+  @override
+  String get settings_webdavConfig_warning_http =>
+      'שרת זה משתמש ב-http://, ולכן הסיסמה ונתוני הצלילה עוברים ללא הצפנה. השתמשו בו רק ברשת מהימנה.';
 
   @override
   String get settings_section_about_subtitle => 'מידע על האפליקציה ורישיונות';
@@ -32504,6 +32727,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_provider_label => 'ספק';
+
+  @override
+  String get settings_mediaStorage_provider_webdav => 'WebDAV';
+
+  @override
+  String get settings_mediaStorage_webdav_useSyncServer =>
+      'שימוש בשרת הסנכרון שלי';
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>

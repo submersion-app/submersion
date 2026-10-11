@@ -19709,6 +19709,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_provider_s3_title => 'S3 兼容存储';
 
   @override
+  String get settings_cloudSync_provider_webdav_edit => '编辑 WebDAV 配置';
+
+  @override
+  String get settings_cloudSync_provider_webdav_subtitle =>
+      'Nextcloud、ownCloud、Synology、Koofr 及其他 WebDAV 服务器';
+
+  @override
+  String get settings_cloudSync_provider_webdav_title => 'WebDAV';
+
+  @override
   String get settings_cloudSync_resolveConflicts => '解决冲突';
 
   @override
@@ -23033,6 +23043,208 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_s3Config_warning_http =>
       '此终端节点使用未加密的 HTTP。凭证和潜水数据将以明文传输；仅在可信网络中使用。';
+
+  @override
+  String get settings_webdavConfig_action_forgetCertificate => '忘记';
+
+  @override
+  String get settings_webdavConfig_action_remove => '移除配置';
+
+  @override
+  String get settings_webdavConfig_action_testConnection => '测试连接';
+
+  @override
+  String get settings_webdavConfig_appBar_title => 'WebDAV';
+
+  @override
+  String get settings_webdavConfig_davRoot_label => 'WebDAV 地址';
+
+  @override
+  String get settings_webdavConfig_error_conflict => '无法在服务器上创建文件夹。';
+
+  @override
+  String get settings_webdavConfig_error_forbidden => '您无权使用服务器上的此文件夹。';
+
+  @override
+  String get settings_webdavConfig_error_insufficientStorage => '服务器存储空间已满。';
+
+  @override
+  String get settings_webdavConfig_error_invalidConfig => '请检查服务器信息';
+
+  @override
+  String get settings_webdavConfig_error_locked => '该文件在服务器上被锁定。请稍后重试。';
+
+  @override
+  String get settings_webdavConfig_error_notFound =>
+      '此地址没有 WebDAV 文件夹。请检查服务器类型和地址。';
+
+  @override
+  String get settings_webdavConfig_error_notWebDav => '此地址不是 WebDAV 服务器。';
+
+  @override
+  String settings_webdavConfig_error_redirected(String location) {
+    return '服务器已重定向到 $location。请改用该地址。';
+  }
+
+  @override
+  String get settings_webdavConfig_error_server => '服务器报告了错误。请稍后重试。';
+
+  @override
+  String settings_webdavConfig_error_tooLarge(String size) {
+    return '服务器以文件过大为由拒绝了一个 $size MB 的文件。请提高其上传限制。';
+  }
+
+  @override
+  String get settings_webdavConfig_error_unauthorized =>
+      '服务器拒绝了用户名或密码。如果该账户启用了两步登录，请创建应用专用密码。';
+
+  @override
+  String get settings_webdavConfig_error_unexpected => '服务器返回了意外的响应。';
+
+  @override
+  String settings_webdavConfig_error_unreachable(String host) {
+    return '无法连接到 $host。';
+  }
+
+  @override
+  String get settings_webdavConfig_error_untrusted => '服务器证书不受信任。';
+
+  @override
+  String get settings_webdavConfig_error_secureStorage => '无法访问安全存储';
+
+  @override
+  String get settings_webdavConfig_field_folder_helper => '如不存在，将在服务器上创建';
+
+  @override
+  String get settings_webdavConfig_field_folder_label => '文件夹';
+
+  @override
+  String get settings_webdavConfig_field_password_appPasswordHelper =>
+      '如果账户启用了两步登录，请使用应用专用密码';
+
+  @override
+  String get settings_webdavConfig_field_password_label => '密码';
+
+  @override
+  String get settings_webdavConfig_field_preset_label => '服务器类型';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintDav =>
+      'https://example.com/dav';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintHost =>
+      'https://cloud.example.com';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintSynology =>
+      'https://nas.local:5006';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_label => '服务器地址';
+
+  @override
+  String get settings_webdavConfig_field_username_label => '用户名';
+
+  @override
+  String get settings_webdavConfig_preset_fastmail => 'Fastmail Files';
+
+  @override
+  String get settings_webdavConfig_preset_koofr => 'Koofr';
+
+  @override
+  String get settings_webdavConfig_preset_nextcloud => 'Nextcloud';
+
+  @override
+  String get settings_webdavConfig_preset_other => '其他 WebDAV 服务器';
+
+  @override
+  String get settings_webdavConfig_preset_owncloud => 'ownCloud';
+
+  @override
+  String get settings_webdavConfig_preset_pcloudEu => 'pCloud（欧盟）';
+
+  @override
+  String get settings_webdavConfig_preset_pcloudUs => 'pCloud（美国）';
+
+  @override
+  String get settings_webdavConfig_preset_synology => 'Synology NAS';
+
+  @override
+  String get settings_webdavConfig_preset_yandex => 'Yandex Disk';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_action => '移除';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_body =>
+      '服务器信息和密码将从此设备中移除。服务器上的文件将保留。';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_title => '要移除 WebDAV 配置吗？';
+
+  @override
+  String get settings_webdavConfig_removed => 'WebDAV 配置已移除';
+
+  @override
+  String get settings_webdavConfig_saved => 'WebDAV 配置已保存';
+
+  @override
+  String get settings_webdavConfig_synology_helper =>
+      '在套件中心启用 WebDAV Server。其 HTTPS 端口通常为 5006。';
+
+  @override
+  String get settings_webdavConfig_test_success => '连接成功';
+
+  @override
+  String get settings_webdavConfig_trust_action => '信任此证书';
+
+  @override
+  String settings_webdavConfig_trust_body(String host) {
+    return '$host 出示的证书未经任何受信任的机构签名。使用自签名证书的家用服务器会这样。只有当指纹与您的服务器显示的一致时才信任它。';
+  }
+
+  @override
+  String settings_webdavConfig_trust_changedBody(String host) {
+    return '自您信任 $host 的证书以来，该证书已更改。证书续期会出现这种情况，但有人拦截连接时也会如此。只有当新证书的指纹与您的服务器显示的一致时才信任它。';
+  }
+
+  @override
+  String get settings_webdavConfig_trust_expires => '到期';
+
+  @override
+  String get settings_webdavConfig_trust_fingerprint => 'SHA-256 指纹';
+
+  @override
+  String get settings_webdavConfig_trust_issuer => '颁发者';
+
+  @override
+  String get settings_webdavConfig_trust_previousFingerprint => '之前信任的';
+
+  @override
+  String get settings_webdavConfig_trust_subject => '颁发给';
+
+  @override
+  String get settings_webdavConfig_trust_title => '不受信任的证书';
+
+  @override
+  String settings_webdavConfig_trustedCertificate(String fingerprint) {
+    return '已信任的证书：$fingerprint';
+  }
+
+  @override
+  String get settings_webdavConfig_validation_folder => '文件夹名称不能包含 . 或 .. 段';
+
+  @override
+  String get settings_webdavConfig_validation_required => '必填';
+
+  @override
+  String get settings_webdavConfig_validation_url =>
+      '请输入以 https:// 或 http:// 开头的地址';
+
+  @override
+  String get settings_webdavConfig_warning_http =>
+      '此服务器使用 http://，因此您的密码和潜水数据将以明文传输。仅在可信网络中使用。';
 
   @override
   String get settings_section_about_subtitle => '应用信息与许可证';
@@ -31403,6 +31615,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_provider_label => '服务商';
+
+  @override
+  String get settings_mediaStorage_provider_webdav => 'WebDAV';
+
+  @override
+  String get settings_mediaStorage_webdav_useSyncServer => '使用我的同步服务器';
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>

@@ -21005,6 +21005,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_cloudSync_provider_s3_title => 'تخزين متوافق مع S3';
 
   @override
+  String get settings_cloudSync_provider_webdav_edit => 'تعديل إعدادات WebDAV';
+
+  @override
+  String get settings_cloudSync_provider_webdav_subtitle =>
+      'Nextcloud وownCloud وSynology وKoofr وخوادم WebDAV أخرى';
+
+  @override
+  String get settings_cloudSync_provider_webdav_title => 'WebDAV';
+
+  @override
   String get settings_cloudSync_resolveConflicts => 'حل التعارضات';
 
   @override
@@ -24555,6 +24565,224 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_s3Config_warning_http =>
       'تستخدم نقطة النهاية هذه HTTP غير مشفّر. ستنتقل بيانات الاعتماد وبيانات الغوص دون تشفير؛ استخدمه فقط على شبكة موثوقة.';
+
+  @override
+  String get settings_webdavConfig_action_forgetCertificate => 'نسيان';
+
+  @override
+  String get settings_webdavConfig_action_remove => 'إزالة الإعدادات';
+
+  @override
+  String get settings_webdavConfig_action_testConnection => 'اختبار الاتصال';
+
+  @override
+  String get settings_webdavConfig_appBar_title => 'WebDAV';
+
+  @override
+  String get settings_webdavConfig_davRoot_label => 'عنوان WebDAV';
+
+  @override
+  String get settings_webdavConfig_error_conflict =>
+      'تعذر إنشاء المجلد على الخادم.';
+
+  @override
+  String get settings_webdavConfig_error_forbidden =>
+      'ليس لديك إذن لاستخدام هذا المجلد على الخادم.';
+
+  @override
+  String get settings_webdavConfig_error_insufficientStorage =>
+      'نفدت مساحة التخزين على الخادم.';
+
+  @override
+  String get settings_webdavConfig_error_invalidConfig =>
+      'تحقق من بيانات الخادم';
+
+  @override
+  String get settings_webdavConfig_error_locked =>
+      'الملف مقفل على الخادم. حاول مرة أخرى بعد قليل.';
+
+  @override
+  String get settings_webdavConfig_error_notFound =>
+      'لا يوجد مجلد WebDAV على هذا العنوان. تحقق من نوع الخادم والعنوان.';
+
+  @override
+  String get settings_webdavConfig_error_notWebDav =>
+      'هذا العنوان ليس خادم WebDAV.';
+
+  @override
+  String settings_webdavConfig_error_redirected(String location) {
+    return 'أعاد الخادم التوجيه إلى $location. استخدم هذا العنوان بدلاً من ذلك.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_server =>
+      'أبلغ الخادم عن خطأ. حاول مرة أخرى لاحقاً.';
+
+  @override
+  String settings_webdavConfig_error_tooLarge(String size) {
+    return 'رفض الخادم ملفاً بحجم $size ميغابايت لأنه كبير جداً. ارفع حد الرفع لديه.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_unauthorized =>
+      'رفض الخادم اسم المستخدم أو كلمة المرور. إذا كان الحساب يستخدم تسجيل الدخول بخطوتين، فأنشئ كلمة مرور للتطبيق.';
+
+  @override
+  String get settings_webdavConfig_error_unexpected =>
+      'أعاد الخادم رداً غير متوقع.';
+
+  @override
+  String settings_webdavConfig_error_unreachable(String host) {
+    return 'تعذر الوصول إلى $host.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_untrusted =>
+      'شهادة الخادم غير موثوقة.';
+
+  @override
+  String get settings_webdavConfig_error_secureStorage =>
+      'تعذر الوصول إلى التخزين الآمن';
+
+  @override
+  String get settings_webdavConfig_field_folder_helper =>
+      'يُنشأ على الخادم إن لم يكن موجوداً';
+
+  @override
+  String get settings_webdavConfig_field_folder_label => 'المجلد';
+
+  @override
+  String get settings_webdavConfig_field_password_appPasswordHelper =>
+      'استخدم كلمة مرور للتطبيق إذا كان الحساب يستخدم تسجيل الدخول بخطوتين';
+
+  @override
+  String get settings_webdavConfig_field_password_label => 'كلمة المرور';
+
+  @override
+  String get settings_webdavConfig_field_preset_label => 'نوع الخادم';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintDav =>
+      'https://example.com/dav';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintHost =>
+      'https://cloud.example.com';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintSynology =>
+      'https://nas.local:5006';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_label => 'عنوان الخادم';
+
+  @override
+  String get settings_webdavConfig_field_username_label => 'اسم المستخدم';
+
+  @override
+  String get settings_webdavConfig_preset_fastmail => 'Fastmail Files';
+
+  @override
+  String get settings_webdavConfig_preset_koofr => 'Koofr';
+
+  @override
+  String get settings_webdavConfig_preset_nextcloud => 'Nextcloud';
+
+  @override
+  String get settings_webdavConfig_preset_other => 'خادم WebDAV آخر';
+
+  @override
+  String get settings_webdavConfig_preset_owncloud => 'ownCloud';
+
+  @override
+  String get settings_webdavConfig_preset_pcloudEu =>
+      'pCloud (الاتحاد الأوروبي)';
+
+  @override
+  String get settings_webdavConfig_preset_pcloudUs =>
+      'pCloud (الولايات المتحدة)';
+
+  @override
+  String get settings_webdavConfig_preset_synology => 'Synology NAS';
+
+  @override
+  String get settings_webdavConfig_preset_yandex => 'Yandex Disk';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_action => 'إزالة';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_body =>
+      'تُزال بيانات الخادم وكلمة المرور من هذا الجهاز. تبقى الملفات على الخادم.';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_title =>
+      'إزالة إعدادات WebDAV؟';
+
+  @override
+  String get settings_webdavConfig_removed => 'تمت إزالة إعدادات WebDAV';
+
+  @override
+  String get settings_webdavConfig_saved => 'تم حفظ إعدادات WebDAV';
+
+  @override
+  String get settings_webdavConfig_synology_helper =>
+      'فعّل WebDAV Server في مركز الحزم. منفذ HTTPS الخاص به عادةً 5006.';
+
+  @override
+  String get settings_webdavConfig_test_success => 'نجح الاتصال';
+
+  @override
+  String get settings_webdavConfig_trust_action => 'الوثوق بهذه الشهادة';
+
+  @override
+  String settings_webdavConfig_trust_body(String host) {
+    return 'قدّم $host شهادة لم توقّعها أي جهة موثوقة. تفعل ذلك الخوادم المنزلية ذات الشهادات الموقّعة ذاتياً. لا تثق بها إلا إذا طابقت البصمة تلك التي يعرضها خادمك.';
+  }
+
+  @override
+  String settings_webdavConfig_trust_changedBody(String host) {
+    return 'تغيّرت شهادة $host منذ أن وثقت بها. يحدث هذا عند تجديد الشهادة، ولكنه يحدث أيضاً عندما يعترض أحدهم الاتصال. لا تثق بالشهادة الجديدة إلا إذا طابقت بصمتها تلك التي يعرضها خادمك.';
+  }
+
+  @override
+  String get settings_webdavConfig_trust_expires => 'ينتهي';
+
+  @override
+  String get settings_webdavConfig_trust_fingerprint => 'بصمة SHA-256';
+
+  @override
+  String get settings_webdavConfig_trust_issuer => 'صادرة عن';
+
+  @override
+  String get settings_webdavConfig_trust_previousFingerprint =>
+      'الموثوق سابقاً';
+
+  @override
+  String get settings_webdavConfig_trust_subject => 'صادرة إلى';
+
+  @override
+  String get settings_webdavConfig_trust_title => 'شهادة غير موثوقة';
+
+  @override
+  String settings_webdavConfig_trustedCertificate(String fingerprint) {
+    return 'شهادة موثوقة: $fingerprint';
+  }
+
+  @override
+  String get settings_webdavConfig_validation_folder =>
+      'لا يمكن أن تحتوي أسماء المجلدات على مقاطع . أو ..';
+
+  @override
+  String get settings_webdavConfig_validation_required => 'مطلوب';
+
+  @override
+  String get settings_webdavConfig_validation_url =>
+      'أدخل عنواناً يبدأ بـ https:// أو http://';
+
+  @override
+  String get settings_webdavConfig_warning_http =>
+      'يستخدم هذا الخادم http://، لذا تنتقل كلمة المرور وبيانات الغوص دون تشفير. استخدمه فقط على شبكة موثوقة.';
 
   @override
   String get settings_section_about_subtitle => 'معلومات التطبيق والتراخيص';
@@ -33799,6 +34027,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_provider_label => 'المزود';
+
+  @override
+  String get settings_mediaStorage_provider_webdav => 'WebDAV';
+
+  @override
+  String get settings_mediaStorage_webdav_useSyncServer =>
+      'استخدام خادم المزامنة الخاص بي';
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>

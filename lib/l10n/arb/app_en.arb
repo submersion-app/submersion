@@ -12827,6 +12827,9 @@
   "settings_cloudSync_provider_s3_edit": "Edit S3 configuration",
   "settings_cloudSync_provider_s3_subtitle": "Works with any S3-compatible storage service",
   "settings_cloudSync_provider_s3_title": "S3-Compatible Storage",
+  "settings_cloudSync_provider_webdav_edit": "Edit WebDAV configuration",
+  "settings_cloudSync_provider_webdav_subtitle": "Nextcloud, ownCloud, Synology, Koofr and other WebDAV servers",
+  "settings_cloudSync_provider_webdav_title": "WebDAV",
   "settings_cloudSync_resolveConflicts": "Resolve Conflicts",
   "settings_cloudSync_selectProviderHint": "Select a cloud provider to enable sync",
   "settings_cloudSync_signOut": "Sign Out",
@@ -14078,6 +14081,108 @@
   "settings_s3Config_validation_endpointPath": "Endpoint URL must not include a path",
   "settings_s3Config_validation_required": "Required",
   "settings_s3Config_warning_http": "This endpoint uses plain HTTP. Credentials and dive data will travel unencrypted; use only on a trusted network.",
+  "settings_webdavConfig_action_forgetCertificate": "Forget",
+  "settings_webdavConfig_action_remove": "Remove configuration",
+  "settings_webdavConfig_action_testConnection": "Test connection",
+  "settings_webdavConfig_appBar_title": "WebDAV",
+  "settings_webdavConfig_davRoot_label": "WebDAV address",
+  "settings_webdavConfig_error_conflict": "The folder could not be created on the server.",
+  "settings_webdavConfig_error_forbidden": "You do not have permission to use this folder on the server.",
+  "settings_webdavConfig_error_insufficientStorage": "The server is out of storage.",
+  "settings_webdavConfig_error_invalidConfig": "Check the server details",
+  "settings_webdavConfig_error_locked": "The file is locked on the server. Try again shortly.",
+  "settings_webdavConfig_error_notFound": "No WebDAV folder at this address. Check the server type and address.",
+  "settings_webdavConfig_error_notWebDav": "This address is not a WebDAV server.",
+  "settings_webdavConfig_error_redirected": "The server redirected to {location}. Use that address instead.",
+  "@settings_webdavConfig_error_redirected": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_webdavConfig_error_server": "The server reported an error. Try again later.",
+  "settings_webdavConfig_error_tooLarge": "The server refused a {size} MB file as too large. Raise its upload limit.",
+  "@settings_webdavConfig_error_tooLarge": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_webdavConfig_error_unauthorized": "The server rejected the username or password. If the account uses two-factor sign-in, create an app password.",
+  "settings_webdavConfig_error_unexpected": "The server gave an unexpected reply.",
+  "settings_webdavConfig_error_unreachable": "Could not reach {host}.",
+  "@settings_webdavConfig_error_unreachable": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_webdavConfig_error_untrusted": "The server certificate is not trusted.",
+  "settings_webdavConfig_error_secureStorage": "Could not access secure storage",
+  "settings_webdavConfig_field_folder_helper": "Created on the server if it does not exist",
+  "settings_webdavConfig_field_folder_label": "Folder",
+  "settings_webdavConfig_field_password_appPasswordHelper": "Use an app password if the account has two-factor sign-in",
+  "settings_webdavConfig_field_password_label": "Password",
+  "settings_webdavConfig_field_preset_label": "Server type",
+  "settings_webdavConfig_field_serverUrl_hintDav": "https://example.com/dav",
+  "settings_webdavConfig_field_serverUrl_hintHost": "https://cloud.example.com",
+  "settings_webdavConfig_field_serverUrl_hintSynology": "https://nas.local:5006",
+  "settings_webdavConfig_field_serverUrl_label": "Server address",
+  "settings_webdavConfig_field_username_label": "Username",
+  "settings_webdavConfig_preset_fastmail": "Fastmail Files",
+  "settings_webdavConfig_preset_koofr": "Koofr",
+  "settings_webdavConfig_preset_nextcloud": "Nextcloud",
+  "settings_webdavConfig_preset_other": "Other WebDAV server",
+  "settings_webdavConfig_preset_owncloud": "ownCloud",
+  "settings_webdavConfig_preset_pcloudEu": "pCloud (EU)",
+  "settings_webdavConfig_preset_pcloudUs": "pCloud (US)",
+  "settings_webdavConfig_preset_synology": "Synology NAS",
+  "settings_webdavConfig_preset_yandex": "Yandex Disk",
+  "settings_webdavConfig_remove_confirm_action": "Remove",
+  "settings_webdavConfig_remove_confirm_body": "The server details and password are removed from this device. Files on the server are kept.",
+  "settings_webdavConfig_remove_confirm_title": "Remove WebDAV configuration?",
+  "settings_webdavConfig_removed": "WebDAV configuration removed",
+  "settings_webdavConfig_saved": "WebDAV configuration saved",
+  "settings_webdavConfig_synology_helper": "Turn on WebDAV Server in Package Center. Its HTTPS port is usually 5006.",
+  "settings_webdavConfig_test_success": "Connection successful",
+  "settings_webdavConfig_trust_action": "Trust this certificate",
+  "settings_webdavConfig_trust_body": "{host} presented a certificate that no trusted authority signed. Home servers with a self-signed certificate do this. Trust it only if the fingerprint matches the one your server shows.",
+  "@settings_webdavConfig_trust_body": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_webdavConfig_trust_changedBody": "The certificate for {host} changed since you trusted it. A renewed certificate does this, but so does someone intercepting the connection. Trust the new one only if its fingerprint matches the one your server shows.",
+  "@settings_webdavConfig_trust_changedBody": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_webdavConfig_trust_expires": "Expires",
+  "settings_webdavConfig_trust_fingerprint": "SHA-256 fingerprint",
+  "settings_webdavConfig_trust_issuer": "Issued by",
+  "settings_webdavConfig_trust_previousFingerprint": "Previously trusted",
+  "settings_webdavConfig_trust_subject": "Issued to",
+  "settings_webdavConfig_trust_title": "Untrusted certificate",
+  "settings_webdavConfig_trustedCertificate": "Trusted certificate: {fingerprint}",
+  "@settings_webdavConfig_trustedCertificate": {
+    "placeholders": {
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_webdavConfig_validation_folder": "Folder names cannot contain . or .. segments",
+  "settings_webdavConfig_validation_required": "Required",
+  "settings_webdavConfig_validation_url": "Enter an address starting with https:// or http://",
+  "settings_webdavConfig_warning_http": "This server uses http://, so your password and dive data travel unencrypted. Use it only on a network you trust.",
   "settings_section_about_subtitle": "App info & licenses",
   "settings_section_about_title": "About",
   "settings_section_appearance_subtitle": "Theme & display",
@@ -20659,6 +20764,8 @@
   "settings_mediaStorage_policy_autoUpload": "Upload photos automatically",
   "settings_mediaStorage_policy_photosOnCellular": "Upload photos on cellular",
   "settings_mediaStorage_provider_label": "Provider",
+  "settings_mediaStorage_provider_webdav": "WebDAV",
+  "settings_mediaStorage_webdav_useSyncServer": "Use my sync server",
   "settings_mediaStorage_connect_dropbox_hint": "Uses your Dropbox connection from Cloud Sync. Media is stored in your Dropbox app folder.",
   "settings_mediaStorage_connect_gdrive_hint": "Signs in with Google. Media is stored in this app's private Drive space.",
   "settings_mediaStorage_connect_icloud_hint": "Media is stored in this app's iCloud container and syncs through your Apple ID.",

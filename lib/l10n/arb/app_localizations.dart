@@ -33130,6 +33130,24 @@ abstract class AppLocalizations {
   /// **'S3-Compatible Storage'**
   String get settings_cloudSync_provider_s3_title;
 
+  /// No description provided for @settings_cloudSync_provider_webdav_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit WebDAV configuration'**
+  String get settings_cloudSync_provider_webdav_edit;
+
+  /// No description provided for @settings_cloudSync_provider_webdav_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nextcloud, ownCloud, Synology, Koofr and other WebDAV servers'**
+  String get settings_cloudSync_provider_webdav_subtitle;
+
+  /// No description provided for @settings_cloudSync_provider_webdav_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV'**
+  String get settings_cloudSync_provider_webdav_title;
+
   /// No description provided for @settings_cloudSync_resolveConflicts.
   ///
   /// In en, this message translates to:
@@ -39331,6 +39349,366 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This endpoint uses plain HTTP. Credentials and dive data will travel unencrypted; use only on a trusted network.'**
   String get settings_s3Config_warning_http;
+
+  /// No description provided for @settings_webdavConfig_action_forgetCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget'**
+  String get settings_webdavConfig_action_forgetCertificate;
+
+  /// No description provided for @settings_webdavConfig_action_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove configuration'**
+  String get settings_webdavConfig_action_remove;
+
+  /// No description provided for @settings_webdavConfig_action_testConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Test connection'**
+  String get settings_webdavConfig_action_testConnection;
+
+  /// No description provided for @settings_webdavConfig_appBar_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV'**
+  String get settings_webdavConfig_appBar_title;
+
+  /// No description provided for @settings_webdavConfig_davRoot_label.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV address'**
+  String get settings_webdavConfig_davRoot_label;
+
+  /// No description provided for @settings_webdavConfig_error_conflict.
+  ///
+  /// In en, this message translates to:
+  /// **'The folder could not be created on the server.'**
+  String get settings_webdavConfig_error_conflict;
+
+  /// No description provided for @settings_webdavConfig_error_forbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to use this folder on the server.'**
+  String get settings_webdavConfig_error_forbidden;
+
+  /// No description provided for @settings_webdavConfig_error_insufficientStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is out of storage.'**
+  String get settings_webdavConfig_error_insufficientStorage;
+
+  /// No description provided for @settings_webdavConfig_error_invalidConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the server details'**
+  String get settings_webdavConfig_error_invalidConfig;
+
+  /// No description provided for @settings_webdavConfig_error_locked.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is locked on the server. Try again shortly.'**
+  String get settings_webdavConfig_error_locked;
+
+  /// No description provided for @settings_webdavConfig_error_notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No WebDAV folder at this address. Check the server type and address.'**
+  String get settings_webdavConfig_error_notFound;
+
+  /// No description provided for @settings_webdavConfig_error_notWebDav.
+  ///
+  /// In en, this message translates to:
+  /// **'This address is not a WebDAV server.'**
+  String get settings_webdavConfig_error_notWebDav;
+
+  /// No description provided for @settings_webdavConfig_error_redirected.
+  ///
+  /// In en, this message translates to:
+  /// **'The server redirected to {location}. Use that address instead.'**
+  String settings_webdavConfig_error_redirected(String location);
+
+  /// No description provided for @settings_webdavConfig_error_server.
+  ///
+  /// In en, this message translates to:
+  /// **'The server reported an error. Try again later.'**
+  String get settings_webdavConfig_error_server;
+
+  /// No description provided for @settings_webdavConfig_error_tooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The server refused a {size} MB file as too large. Raise its upload limit.'**
+  String settings_webdavConfig_error_tooLarge(String size);
+
+  /// No description provided for @settings_webdavConfig_error_unauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'The server rejected the username or password. If the account uses two-factor sign-in, create an app password.'**
+  String get settings_webdavConfig_error_unauthorized;
+
+  /// No description provided for @settings_webdavConfig_error_unexpected.
+  ///
+  /// In en, this message translates to:
+  /// **'The server gave an unexpected reply.'**
+  String get settings_webdavConfig_error_unexpected;
+
+  /// No description provided for @settings_webdavConfig_error_unreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach {host}.'**
+  String settings_webdavConfig_error_unreachable(String host);
+
+  /// No description provided for @settings_webdavConfig_error_untrusted.
+  ///
+  /// In en, this message translates to:
+  /// **'The server certificate is not trusted.'**
+  String get settings_webdavConfig_error_untrusted;
+
+  /// No description provided for @settings_webdavConfig_error_secureStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not access secure storage'**
+  String get settings_webdavConfig_error_secureStorage;
+
+  /// No description provided for @settings_webdavConfig_field_folder_helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Created on the server if it does not exist'**
+  String get settings_webdavConfig_field_folder_helper;
+
+  /// No description provided for @settings_webdavConfig_field_folder_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get settings_webdavConfig_field_folder_label;
+
+  /// No description provided for @settings_webdavConfig_field_password_appPasswordHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Use an app password if the account has two-factor sign-in'**
+  String get settings_webdavConfig_field_password_appPasswordHelper;
+
+  /// No description provided for @settings_webdavConfig_field_password_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get settings_webdavConfig_field_password_label;
+
+  /// No description provided for @settings_webdavConfig_field_preset_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Server type'**
+  String get settings_webdavConfig_field_preset_label;
+
+  /// No description provided for @settings_webdavConfig_field_serverUrl_hintDav.
+  ///
+  /// In en, this message translates to:
+  /// **'https://example.com/dav'**
+  String get settings_webdavConfig_field_serverUrl_hintDav;
+
+  /// No description provided for @settings_webdavConfig_field_serverUrl_hintHost.
+  ///
+  /// In en, this message translates to:
+  /// **'https://cloud.example.com'**
+  String get settings_webdavConfig_field_serverUrl_hintHost;
+
+  /// No description provided for @settings_webdavConfig_field_serverUrl_hintSynology.
+  ///
+  /// In en, this message translates to:
+  /// **'https://nas.local:5006'**
+  String get settings_webdavConfig_field_serverUrl_hintSynology;
+
+  /// No description provided for @settings_webdavConfig_field_serverUrl_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Server address'**
+  String get settings_webdavConfig_field_serverUrl_label;
+
+  /// No description provided for @settings_webdavConfig_field_username_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get settings_webdavConfig_field_username_label;
+
+  /// No description provided for @settings_webdavConfig_preset_fastmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Fastmail Files'**
+  String get settings_webdavConfig_preset_fastmail;
+
+  /// No description provided for @settings_webdavConfig_preset_koofr.
+  ///
+  /// In en, this message translates to:
+  /// **'Koofr'**
+  String get settings_webdavConfig_preset_koofr;
+
+  /// No description provided for @settings_webdavConfig_preset_nextcloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Nextcloud'**
+  String get settings_webdavConfig_preset_nextcloud;
+
+  /// No description provided for @settings_webdavConfig_preset_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other WebDAV server'**
+  String get settings_webdavConfig_preset_other;
+
+  /// No description provided for @settings_webdavConfig_preset_owncloud.
+  ///
+  /// In en, this message translates to:
+  /// **'ownCloud'**
+  String get settings_webdavConfig_preset_owncloud;
+
+  /// No description provided for @settings_webdavConfig_preset_pcloudEu.
+  ///
+  /// In en, this message translates to:
+  /// **'pCloud (EU)'**
+  String get settings_webdavConfig_preset_pcloudEu;
+
+  /// No description provided for @settings_webdavConfig_preset_pcloudUs.
+  ///
+  /// In en, this message translates to:
+  /// **'pCloud (US)'**
+  String get settings_webdavConfig_preset_pcloudUs;
+
+  /// No description provided for @settings_webdavConfig_preset_synology.
+  ///
+  /// In en, this message translates to:
+  /// **'Synology NAS'**
+  String get settings_webdavConfig_preset_synology;
+
+  /// No description provided for @settings_webdavConfig_preset_yandex.
+  ///
+  /// In en, this message translates to:
+  /// **'Yandex Disk'**
+  String get settings_webdavConfig_preset_yandex;
+
+  /// No description provided for @settings_webdavConfig_remove_confirm_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get settings_webdavConfig_remove_confirm_action;
+
+  /// No description provided for @settings_webdavConfig_remove_confirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The server details and password are removed from this device. Files on the server are kept.'**
+  String get settings_webdavConfig_remove_confirm_body;
+
+  /// No description provided for @settings_webdavConfig_remove_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove WebDAV configuration?'**
+  String get settings_webdavConfig_remove_confirm_title;
+
+  /// No description provided for @settings_webdavConfig_removed.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV configuration removed'**
+  String get settings_webdavConfig_removed;
+
+  /// No description provided for @settings_webdavConfig_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV configuration saved'**
+  String get settings_webdavConfig_saved;
+
+  /// No description provided for @settings_webdavConfig_synology_helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on WebDAV Server in Package Center. Its HTTPS port is usually 5006.'**
+  String get settings_webdavConfig_synology_helper;
+
+  /// No description provided for @settings_webdavConfig_test_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection successful'**
+  String get settings_webdavConfig_test_success;
+
+  /// No description provided for @settings_webdavConfig_trust_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Trust this certificate'**
+  String get settings_webdavConfig_trust_action;
+
+  /// No description provided for @settings_webdavConfig_trust_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} presented a certificate that no trusted authority signed. Home servers with a self-signed certificate do this. Trust it only if the fingerprint matches the one your server shows.'**
+  String settings_webdavConfig_trust_body(String host);
+
+  /// No description provided for @settings_webdavConfig_trust_changedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The certificate for {host} changed since you trusted it. A renewed certificate does this, but so does someone intercepting the connection. Trust the new one only if its fingerprint matches the one your server shows.'**
+  String settings_webdavConfig_trust_changedBody(String host);
+
+  /// No description provided for @settings_webdavConfig_trust_expires.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires'**
+  String get settings_webdavConfig_trust_expires;
+
+  /// No description provided for @settings_webdavConfig_trust_fingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'SHA-256 fingerprint'**
+  String get settings_webdavConfig_trust_fingerprint;
+
+  /// No description provided for @settings_webdavConfig_trust_issuer.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued by'**
+  String get settings_webdavConfig_trust_issuer;
+
+  /// No description provided for @settings_webdavConfig_trust_previousFingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Previously trusted'**
+  String get settings_webdavConfig_trust_previousFingerprint;
+
+  /// No description provided for @settings_webdavConfig_trust_subject.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued to'**
+  String get settings_webdavConfig_trust_subject;
+
+  /// No description provided for @settings_webdavConfig_trust_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Untrusted certificate'**
+  String get settings_webdavConfig_trust_title;
+
+  /// No description provided for @settings_webdavConfig_trustedCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted certificate: {fingerprint}'**
+  String settings_webdavConfig_trustedCertificate(String fingerprint);
+
+  /// No description provided for @settings_webdavConfig_validation_folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder names cannot contain . or .. segments'**
+  String get settings_webdavConfig_validation_folder;
+
+  /// No description provided for @settings_webdavConfig_validation_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get settings_webdavConfig_validation_required;
+
+  /// No description provided for @settings_webdavConfig_validation_url.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an address starting with https:// or http://'**
+  String get settings_webdavConfig_validation_url;
+
+  /// No description provided for @settings_webdavConfig_warning_http.
+  ///
+  /// In en, this message translates to:
+  /// **'This server uses http://, so your password and dive data travel unencrypted. Use it only on a network you trust.'**
+  String get settings_webdavConfig_warning_http;
 
   /// No description provided for @settings_section_about_subtitle.
   ///
@@ -52425,6 +52803,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Provider'**
   String get settings_mediaStorage_provider_label;
+
+  /// No description provided for @settings_mediaStorage_provider_webdav.
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV'**
+  String get settings_mediaStorage_provider_webdav;
+
+  /// No description provided for @settings_mediaStorage_webdav_useSyncServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my sync server'**
+  String get settings_mediaStorage_webdav_useSyncServer;
 
   /// No description provided for @settings_mediaStorage_connect_dropbox_hint.
   ///
