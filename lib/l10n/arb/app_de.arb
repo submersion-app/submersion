@@ -5599,6 +5599,8 @@
   "plannerCanvas_name_dialogTitle": "Plan benennen",
   "plannerCanvas_name_defaultFallback": "Tauchplan",
   "plannerCanvas_scrub_bailout": "BO {minutes}′",
+  "plannerCanvas_chartMode_showBailout": "Bailout",
+  "plannerCanvas_chartMode_showCcr": "CCR",
   "plannerCanvas_scrub_tts": "TTS {minutes}′",
   "plannerCanvas_scrub_readout": "RT {minutes}′ · {depth}",
   "plannerCanvas_share_import": "Importieren",

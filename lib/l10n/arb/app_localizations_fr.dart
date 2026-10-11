@@ -19293,6 +19293,12 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chartMode_showBailout => 'Bailout';
+
+  @override
+  String get plannerCanvas_chartMode_showCcr => 'CCR';
+
+  @override
   String plannerCanvas_scrub_tts(String minutes) {
     return 'TTS $minutes′';
   }

@@ -30805,6 +30805,18 @@ abstract class AppLocalizations {
   /// **'BO {minutes}′'**
   String plannerCanvas_scrub_bailout(String minutes);
 
+  /// No description provided for @plannerCanvas_chartMode_showBailout.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout'**
+  String get plannerCanvas_chartMode_showBailout;
+
+  /// No description provided for @plannerCanvas_chartMode_showCcr.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR'**
+  String get plannerCanvas_chartMode_showCcr;
+
   /// No description provided for @plannerCanvas_scrub_tts.
   ///
   /// In en, this message translates to:

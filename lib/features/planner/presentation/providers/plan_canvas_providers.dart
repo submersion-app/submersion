@@ -171,13 +171,78 @@ class PlanCanvasSeries {
   }
 }
 
+/// Which picture the chart draws: the live CCR plan, or -- toggled by the
+/// chart's Bailout/CCR button -- the worst-case bailout picture (CCR up to
+/// the worst-case instant, then the OC ascent it was sized from). Reset to
+/// [ChartDisplayMode.ccr] whenever the plan stops being CCR or carries no
+/// bailout, so a stale toggle never strands the chart on a picture its own
+/// button can no longer show.
+enum ChartDisplayMode { ccr, bailout }
+
+final chartDisplayModeProvider = StateProvider<ChartDisplayMode>(
+  (_) => ChartDisplayMode.ccr,
+);
+
 /// Chart series for the current plan: user segments plus the computed
-/// ascent tail (travel legs + stops), ceiling approximation, and markers.
+/// ascent tail (travel legs + stops), ceiling approximation, and markers --
+/// or, in [ChartDisplayMode.bailout], the worst-case bailout picture.
 final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   final outcome = ref.watch(planOutcomeProvider);
+  if (ref.watch(chartDisplayModeProvider) == ChartDisplayMode.bailout) {
+    final bailout = ref.watch(planBailoutProvider);
+    if (bailout != null) return buildBailoutCanvasSeries(bailout);
+  }
   return buildCanvasSeries(plan: divePlanFromState(state), outcome: outcome);
 });
+
+/// The worst-case bailout picture as chart series: CCR up to the worst-case
+/// instant, then the OC ascent it was sized from -- exactly
+/// [BailoutOutcome.worstCaseRows], which already carries both halves as one
+/// continuous, absolutely-timed line. No ceiling trace: the OC ascent half
+/// follows its own gas-specific schedule, not the CCR ceiling the rest of
+/// the chart tracks, so drawing that trace here would show a no-go band
+/// that disagrees with the bailout profile crossing it.
+PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
+  final rows = bailout.worstCaseRows;
+  final profile = <CanvasPoint>[const CanvasPoint(0, 0)];
+  final gasSwitches = <CanvasMarker>[];
+  final stopLabels = <CanvasMarker>[];
+  var maxDepth = 0.0;
+  for (var i = 0; i < rows.length; i++) {
+    final row = rows[i];
+    profile.add(CanvasPoint(row.runtimeSeconds.toDouble(), row.depthMeters));
+    if (row.depthMeters > maxDepth) maxDepth = row.depthMeters;
+    if (row.kind == PlanScheduleRowKind.stop) {
+      stopLabels.add(
+        CanvasMarker(
+          row.startRuntimeSeconds.toDouble(),
+          row.depthMeters,
+          '',
+          durationSeconds: row.durationSeconds,
+        ),
+      );
+    }
+    // The first row's own gas is the starting gas, not a switch into it.
+    if (row.gasSwitch && i > 0) {
+      gasSwitches.add(
+        CanvasMarker(
+          row.startRuntimeSeconds.toDouble(),
+          row.depthMeters,
+          GasMix(o2: row.gasFO2 * 100.0, he: row.gasFHe * 100.0).name,
+        ),
+      );
+    }
+  }
+  return PlanCanvasSeries(
+    profile: profile,
+    ceiling: const [],
+    gasSwitches: gasSwitches,
+    stopLabels: stopLabels,
+    maxTimeSeconds: rows.isEmpty ? 0.0 : rows.last.runtimeSeconds.toDouble(),
+    maxDepth: maxDepth,
+  );
+}
 
 /// Builds the chart series for any (plan, outcome) pair — the live plan or a
 /// contingency variant (ghost overlay). [outcome] is [plan]'s own computed
