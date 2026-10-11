@@ -127,6 +127,34 @@ void main() {
       expect(cell('Visibility (m)'), anyOf(isNull, ''));
     });
 
+    test('a measured dive leaves the range columns empty', () async {
+      // A measurement beside a stale range, as an old device's sync leaves.
+      final bytes = await service.generateExcelBytes(
+        dives: [
+          makeDive(id: 'd1', diveNumber: 1).copyWith(
+            visibilityMeters: 8,
+            visibilityMinMeters: 6,
+            visibilityMaxMeters: 12,
+          ),
+        ],
+        sites: const [],
+        equipment: const [],
+        depthUnit: DepthUnit.meters,
+        temperatureUnit: TemperatureUnit.celsius,
+        pressureUnit: PressureUnit.bar,
+        volumeUnit: VolumeUnit.liters,
+        dateFormat: DateFormatPreference.yyyymmdd,
+      );
+
+      final sheet = xl.Excel.decodeBytes(bytes).tables['Dives']!;
+      final header = [for (final c in sheet.rows.first) c?.value?.toString()];
+      final row = [for (final c in sheet.rows[1]) c?.value?.toString()];
+      String? cell(String name) => row[header.indexOf(name)];
+      expect(cell('Visibility (m)'), '8.0');
+      expect(cell('Visibility Min (m)'), anyOf(isNull, ''));
+      expect(cell('Visibility Max (m)'), anyOf(isNull, ''));
+    });
+
     test('generates Excel with null bottomTime', () async {
       final dives = [makeDive(id: 'd1', diveNumber: 1, maxDepth: 20.0)];
 
