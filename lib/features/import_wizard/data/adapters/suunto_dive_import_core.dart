@@ -399,11 +399,16 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
     for (final entry in importedCountByComputerId.entries) {
       await _computerRepository.incrementDiveCount(entry.key, by: entry.value);
       await _computerRepository.updateLastDownload(entry.key);
-      final (kind, detail) = importConnection;
+    }
+    // Every computer the read dives came from was reached through this
+    // source, including one whose dives were all skipped as duplicates
+    // (issue #3106).
+    final (kind, detail) = importConnection;
+    for (final computerId in {for (final c in _computersByKey.values) c.id}) {
       await recordImportConnection(
         _connectionRepository ??
             _ref?.read(diveComputerConnectionRepositoryProvider),
-        computerId: entry.key,
+        computerId: computerId,
         kind: kind,
         detail: detail,
         log: _log,

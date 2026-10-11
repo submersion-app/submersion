@@ -448,6 +448,32 @@ void main() {
 
   group('performImport()', () {
     test(
+      'an import whose every dive is skipped still records the Garmin Connect '
+      'connection (#3106)',
+      () async {
+        final connections = FakeDiveComputerConnections();
+        final recording = GarminCloudAdapter(
+          importService: mockImportService,
+          computerRepository: mockComputerRepo,
+          diveRepository: mockDiveRepo,
+          consolidationService: mockConsolidationService,
+          diverId: diverId,
+          connectionRepository: connections,
+        );
+        recording.setParsedDives([makeParsedDive()]);
+        final bundle = await recording.buildBundle();
+
+        await recording.performImport(bundle, {
+          ImportEntityType.dives: <int>{},
+        }, {});
+
+        expect(connections.recorded.map((r) => (r.kind, r.detail)), [
+          (DiveComputerConnectionKind.cloud, 'garminConnect'),
+        ]);
+      },
+    );
+
+    test(
       'records the Garmin Connect connection on the computer (#3106)',
       () async {
         final connections = FakeDiveComputerConnections();

@@ -455,10 +455,15 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     for (final entry in importedCountByComputerId.entries) {
       await _computerRepository.incrementDiveCount(entry.key, by: entry.value);
       await _computerRepository.updateLastDownload(entry.key);
+    }
+    // Every computer the fetched dives came from was reached through
+    // Garmin Connect this time, including one whose dives were all skipped
+    // as duplicates or replaced in place (issue #3106).
+    for (final computerId in {for (final c in _computersByKey.values) c.id}) {
       await recordImportConnection(
         _connectionRepository ??
             _ref?.read(diveComputerConnectionRepositoryProvider),
-        computerId: entry.key,
+        computerId: computerId,
         kind: DiveComputerConnectionKind.cloud,
         detail: 'garminConnect',
         log: _log,
