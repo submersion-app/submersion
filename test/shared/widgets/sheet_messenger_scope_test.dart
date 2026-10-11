@@ -30,6 +30,10 @@ class _ContentState extends State<_Content> {
         onPressed: () => setState(() => _height += 100),
         child: const Text('grow'),
       ),
+      TextButton(
+        onPressed: () => setState(() => _height -= 100),
+        child: const Text('shrink'),
+      ),
     ],
   );
 }
@@ -94,6 +98,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(scopeHeight(tester), before + 100);
+    expect(scopeHeight(tester), contentHeight(tester));
+  });
+
+  testWidgets('shrinkWrap follows the content as it shrinks', (tester) async {
+    await openSheet(tester, shrinkWrap: true);
+    final before = scopeHeight(tester);
+
+    await tester.tap(find.text('shrink'));
+    await tester.pumpAndSettle();
+
+    expect(scopeHeight(tester), before - 100);
     expect(scopeHeight(tester), contentHeight(tester));
   });
 
