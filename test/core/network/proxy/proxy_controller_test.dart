@@ -44,6 +44,27 @@ class _SlowKeychain extends InMemoryKeychain {
   }
 }
 
+/// A keychain read that takes its value at once but answers only when the
+/// test releases it, as a read already in flight when a write lands does.
+class _SnapshotKeychain extends InMemoryKeychain {
+  final release = Completer<void>();
+
+  @override
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    final value = await super.read(key: key);
+    await release.future;
+    return value;
+  }
+}
+
 const _fixed = SystemProxyFixed(type: ProxyType.http, host: 'corp', port: 8080);
 
 void main() {
@@ -235,6 +256,38 @@ void main() {
     expect(c.state.settings.mode, ProxyMode.none);
     expect(c.current.isDirect, isTrue);
   });
+
+  test(
+    'a keychain read in flight never replaces a newer saved password',
+    () async {
+      final keychain = _SnapshotKeychain();
+      final slowStore = ProxySettingsStore(
+        await SharedPreferences.getInstance(),
+        storage: keychain,
+      );
+      const manual = ProxySettings(
+        mode: ProxyMode.manual,
+        type: ProxyType.http,
+        host: 'm',
+        port: 3128,
+        username: 'ann',
+      );
+      await slowStore.save(manual.copyWith(mode: ProxyMode.none));
+      await slowStore.savePassword('old');
+      final c = ProxyController(resolver: _Resolver());
+      addTearDown(c.dispose);
+      await c.initialize(slowStore);
+      // Switching to Manual starts the lazy read, which has already seen 'old'.
+      final toManual = c.saveSettings(manual);
+      await pumpEventQueue();
+      await c.saveSettings(manual, password: 'new', updatePassword: true);
+      keychain.release.complete();
+      await toManual;
+      await c.refresh();
+      expect(c.manualPassword, 'new');
+      expect(c.current.password, 'new');
+    },
+  );
 
   test('a resolver that throws leaves the app direct', () async {
     final c = ProxyController(resolver: _Throwing());

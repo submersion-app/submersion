@@ -127,9 +127,12 @@ class ProxyController {
     if (settings.mode == ProxyMode.manual &&
         !_passwordLoaded &&
         store != null) {
-      _password = await _loadPassword(store, settings);
-      _passwordLoaded = true;
+      final loaded = await _loadPassword(store, settings);
+      // A newer recompute owns the password now: a Save may have set it
+      // while this read was in flight, and the read holds the old value.
       if (generation != _generation) return;
+      _password = loaded;
+      _passwordLoaded = true;
     }
     if (settings.mode != ProxyMode.system) {
       _apply(settings, _state.system, detecting: false);

@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/network/proxy/proxy_controller.dart';
 import 'package:submersion/core/network/proxy/proxy_settings.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/network_proxy_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/network/proxy_manual_form.dart';
 import 'package:submersion/features/settings/presentation/widgets/network/proxy_mode_selector.dart';
@@ -23,6 +25,8 @@ class NetworkSettingsPage extends ConsumerStatefulWidget {
 }
 
 class _NetworkSettingsPageState extends ConsumerState<NetworkSettingsPage> {
+  static const _log = LoggerService('ProxySettings');
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +63,22 @@ class _NetworkSettingsPageState extends ConsumerState<NetworkSettingsPage> {
     return discard == true;
   }
 
+  /// Applies a mode at once; a failed write keeps the old mode and says so,
+  /// as the manual form's Save does.
+  Future<void> _changeMode(
+    ProxyController controller,
+    ProxySettings settings,
+  ) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final failed = context.l10n.settings_network_manual_saveFailed;
+    try {
+      await controller.saveSettings(settings);
+    } catch (e, st) {
+      _log.error('Could not save the proxy mode', error: e, stackTrace: st);
+      messenger?.showSnackBar(SnackBar(content: Text(failed)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -91,7 +111,7 @@ class _NetworkSettingsPageState extends ConsumerState<NetworkSettingsPage> {
           ProxyModeSelector(
             mode: mode,
             onChanged: (value) => unawaited(
-              controller.saveSettings(state.settings.copyWith(mode: value)),
+              _changeMode(controller, state.settings.copyWith(mode: value)),
             ),
           ),
           const Divider(),

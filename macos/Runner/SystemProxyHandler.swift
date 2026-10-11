@@ -48,7 +48,13 @@ class SystemProxyHandler: NSObject {
         guard let settings = CFNetworkCopySystemProxySettings()?.takeRetainedValue() else {
             return ["kind": "none"]
         }
-        let bypass = ((settings as NSDictionary)["ExceptionsList"] as? [String]) ?? []
+        let dict = settings as NSDictionary
+        var bypass = (dict["ExceptionsList"] as? [String]) ?? []
+        // Dart routes each request by this list, so "Exclude simple hostnames"
+        // travels as the `<local>` entry the Dart side already reads.
+        if (dict["ExcludeSimpleHostnames"] as? NSNumber)?.boolValue == true {
+            bypass.append("<local>")
+        }
         let proxies = CFNetworkCopyProxiesForURL(url as CFURL, settings)
             .takeRetainedValue() as? [[String: Any]] ?? []
         return firstUsable(proxies, url: url, bypass: bypass, viaPac: false)

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+
 import 'package:submersion/core/network/proxy/proxy_controller.dart';
 import 'package:submersion/core/network/proxy/proxy_credentials.dart';
 import 'package:submersion/core/network/proxy/proxy_settings.dart';
@@ -83,11 +86,12 @@ class _ProxyManualFormState extends ConsumerState<ProxyManualForm> {
     final username = _username.text;
     final password = _password.text;
     final problem = checkProxyCredentials(_type, username, password);
+    // The SOCKS limit is in UTF-8 bytes, so the long value is found by bytes.
     final onUsername =
         problem != null &&
         (problem.isUsernameProblem ||
             (problem == ProxyCredentialsProblem.tooLong &&
-                username.length >= password.length));
+                utf8.encode(username).length > 255));
     setState(() {
       _hostError = host.isEmpty
           ? l10n.settings_network_validation_hostRequired
@@ -244,7 +248,9 @@ class _ProxyManualFormState extends ConsumerState<ProxyManualForm> {
 /// The host a user meant in [text], tolerating a pasted URL: a scheme, a
 /// path and a `:port` are removed (the port is returned so an empty Port
 /// field can take it). Empty when what is left cannot be a host name, so
-/// `proxy corp` is refused rather than saved as a proxy that never connects.
+/// `proxy corp` is refused rather than saved as a proxy that never connects,
+/// and so is a list separator: `a;b` would break the proxy directive dart:io
+/// parses for every request.
 ({String host, int? port}) parseProxyHostInput(String text) {
   var rest = text.trim();
   final scheme = rest.indexOf('://');
@@ -263,7 +269,7 @@ class _ProxyManualFormState extends ConsumerState<ProxyManualForm> {
     port = readProxyPort(rest.substring(colon + 1));
     rest = rest.substring(0, colon);
   }
-  if (rest.isEmpty || RegExp(r'[\s@]').hasMatch(rest)) {
+  if (rest.isEmpty || RegExp(r'[\s@;,/\\?#\[\]]').hasMatch(rest)) {
     return (host: '', port: null);
   }
   return (host: rest, port: port);

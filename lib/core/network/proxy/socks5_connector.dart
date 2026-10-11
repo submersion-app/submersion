@@ -76,10 +76,12 @@ Future<Socks5Tunnel> connectViaSocks5({
     throw const Socks5Exception(Socks5Failure.hostnameTooLong);
   }
 
+  // One deadline for the TCP connect and the handshake together: an
+  // unreachable proxy host would otherwise wait for the OS connect timeout,
+  // and a slow connect must not restart the clock for the handshake.
+  final deadline = DateTime.now().add(handshakeTimeout);
   final Socket socket;
   try {
-    // The deadline covers the TCP connect too: an unreachable proxy host
-    // would otherwise wait for the OS connect timeout.
     socket = await Socket.connect(
       proxyHost,
       proxyPort,
@@ -115,7 +117,6 @@ Future<Socks5Tunnel> connectViaSocks5({
     },
   );
 
-  final deadline = DateTime.now().add(handshakeTimeout);
   Future<List<int>> need(int n) async {
     while (pending.length < n) {
       if (closed) {
