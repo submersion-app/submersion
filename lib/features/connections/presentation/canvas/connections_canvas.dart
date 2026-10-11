@@ -559,6 +559,12 @@ const Set<PointerDeviceKind> _precise = {
   PointerDeviceKind.invertedStylus,
 };
 
+/// How far a mouse or stylus must move from the press before a node drag
+/// begins. Flutter's precise-pointer pan slop is 2 px, so a click that
+/// wobbles would otherwise become a drag, pin the node and cancel a double
+/// click.
+const double kNodeDragSlop = 8;
+
 /// A press-drag that starts on a node, for mouse and stylus only. Touch
 /// keeps long-press, so a finger landing on a node can still pan the map.
 class _NodeDragGestureRecognizer extends PanGestureRecognizer {
@@ -567,9 +573,39 @@ class _NodeDragGestureRecognizer extends PanGestureRecognizer {
 
   final bool Function(Offset local) isOnNode;
 
+  /// Where each tracked pointer went down, and the farthest it has moved.
+  final Map<int, Offset> _downAt = {};
+  double _farthest = 0;
+
   @override
   bool isPointerAllowed(PointerEvent event) =>
       super.isPointerAllowed(event) && isOnNode(event.localPosition);
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    _downAt[event.pointer] = event.position;
+    _farthest = 0;
+    super.addAllowedPointer(event);
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    final down = _downAt[event.pointer];
+    if (down != null && event is PointerMoveEvent) {
+      final moved = (event.position - down).distance;
+      if (moved > _farthest) _farthest = moved;
+    }
+    if (event is PointerUpEvent || event is PointerCancelEvent) {
+      _downAt.remove(event.pointer);
+    }
+    super.handleEvent(event);
+  }
+
+  @override
+  bool hasSufficientGlobalDistanceToAccept(
+    PointerDeviceKind pointerDeviceKind,
+    double? deviceTouchSlop,
+  ) => _farthest > kNodeDragSlop;
 }
 
 class _HoverTooltip extends StatelessWidget {

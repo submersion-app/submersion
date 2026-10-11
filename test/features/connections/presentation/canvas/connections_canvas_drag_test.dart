@@ -144,4 +144,30 @@ void main() {
       SystemMouseCursors.grab,
     );
   });
+
+  testWidgets('a click that wobbles a few pixels is still a click', (
+    tester,
+  ) async {
+    NodeRef? focused;
+    await tester.pumpWidget(
+      _Host(onSelect: (_) {}, onFocus: (r) => focused = r),
+    );
+    await tester.pumpAndSettle();
+    final centre = tester.getCenter(find.byType(ConnectionsCanvas));
+    Future<void> wobblyClick() async {
+      final g = await tester.startGesture(
+        centre,
+        kind: PointerDeviceKind.mouse,
+      );
+      await g.moveBy(const Offset(4, 0));
+      await g.up();
+    }
+
+    await wobblyClick();
+    await tester.pump(const Duration(milliseconds: 50));
+    await wobblyClick();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(_controller(tester).frame.positions[_me], GraphPoint.zero);
+    expect(focused, _me);
+  });
 }
