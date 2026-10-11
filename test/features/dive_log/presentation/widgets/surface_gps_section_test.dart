@@ -308,6 +308,8 @@ void main() {
     final image = await tester.runAsync(
       () => createTestImage(width: 256, height: 256),
     );
+    // The cache holds clones; this handle is the test's own.
+    addTearDown(() => image?.dispose());
 
     final controller = MapController();
     await _pump(tester, dive: _tightDive(), controller: controller);
