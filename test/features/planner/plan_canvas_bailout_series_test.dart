@@ -82,6 +82,63 @@ void main() {
     ]);
   });
 
+  test('a gas switch on a depth-changing CCR leg marks the leg\'s own start, '
+      'not its end depth, so the marker lands on the drawn line', () {
+    final bailout = BailoutOutcome(
+      points: [_worstCase()],
+      worstCase: _worstCase(),
+      availableLiters: 1200,
+      // The inserted gas-switch stop (#3263) can keep the OLD diluent
+      // (whichever is more conservative), so the switch is flagged on
+      // the NEXT leg instead -- here a 40 m -> 60 m descent, not a flat
+      // leg, so its end depth (60 m) differs from where it starts (40
+      // m, where the switch and the leg both actually begin).
+      ccrRows: const [
+        PlanScheduleRow(
+          kind: PlanScheduleRowKind.descent,
+          depthMeters: 40,
+          durationSeconds: 600,
+          runtimeSeconds: 600,
+          gasFO2: 0.18,
+          gasFHe: 0.45,
+          tankId: 'dilA',
+          gasSwitch: true,
+        ),
+        PlanScheduleRow(
+          kind: PlanScheduleRowKind.descent,
+          depthMeters: 60,
+          durationSeconds: 120,
+          runtimeSeconds: 720,
+          gasFO2: 0.10,
+          gasFHe: 0.70,
+          tankId: 'dilB',
+          gasSwitch: true,
+        ),
+      ],
+      worstCaseRows: const [],
+      ocStops: const [],
+      bailoutTanks: const [],
+      bailoutTankUsages: const [],
+      ceilingTrace: const [],
+    );
+
+    final series = buildBailoutCanvasSeries(bailout);
+
+    expect(series.gasSwitches, hasLength(1));
+    final marker = series.gasSwitches.single;
+    expect(marker.timeSeconds, 600, reason: 'the second leg\'s own start');
+    expect(
+      marker.depth,
+      40,
+      reason: 'the depth the second leg starts from, not its end depth (60)',
+    );
+    // The marker's own point must actually sit on the drawn profile line.
+    expect(
+      series.profile.map((p) => (p.timeSeconds, p.depth)),
+      contains((600.0, 40.0)),
+    );
+  });
+
   test('no CCR rows and no stops yields a single surface point', () {
     final bailout = BailoutOutcome(
       points: [_worstCase()],

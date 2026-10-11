@@ -214,22 +214,28 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
   double? previousFHe;
 
   final ccrRows = bailout.ccrRows;
+  var legStartDepth = 0.0;
   for (var i = 0; i < ccrRows.length; i++) {
     final row = ccrRows[i];
     profile.add(CanvasPoint(row.runtimeSeconds.toDouble(), row.depthMeters));
     if (row.depthMeters > maxDepth) maxDepth = row.depthMeters;
     // The first row's own gas is the starting gas, not a switch into it.
+    // Marked at the row's own START (time and depth): depthMeters is its
+    // END depth, which for a depth-changing leg (a descent/ascent, not a
+    // flat hold) is not where the leg -- and so the switch into its gas --
+    // actually begins, landing the marker off the drawn line entirely.
     if (row.gasSwitch && i > 0) {
       gasSwitches.add(
         CanvasMarker(
           row.startRuntimeSeconds.toDouble(),
-          row.depthMeters,
+          legStartDepth,
           GasMix(o2: row.gasFO2 * 100.0, he: row.gasFHe * 100.0).name,
         ),
       );
     }
     previousFO2 = row.gasFO2;
     previousFHe = row.gasFHe;
+    legStartDepth = row.depthMeters;
   }
 
   for (final stop in bailout.ocStops) {
