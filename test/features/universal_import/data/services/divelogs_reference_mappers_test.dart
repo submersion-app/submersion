@@ -139,6 +139,9 @@ void main() {
         'Drysuit socks': EquipmentType.socks,
         // A Füßling has a sole: it stays a boot.
         'Füßling': EquipmentType.boots,
+        // A bag named for what it holds is a bag, as in the MacDive reader.
+        'Sock bag': EquipmentType.bag,
+        'Sockentasche': EquipmentType.bag,
       };
       cases.forEach((input, expected) {
         expect(

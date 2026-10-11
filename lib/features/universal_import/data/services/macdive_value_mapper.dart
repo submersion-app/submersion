@@ -123,9 +123,10 @@ class MacDiveValueMapper {
 
   /// Socks, wet or dry (#2900): the English word whole, so "socket" and
   /// "windsock" stay out, and the German "Socke(n)" at the end of a
-  /// compound ("Neoprensocken"). Shared with the divelogs.de geartype table
-  /// so the two readers agree.
-  static final socks = RegExp(r'\bsocks?\b|socken?\b');
+  /// compound ("Neoprensocken"), which is why that alternative has no
+  /// leading word boundary. The divelogs.de table asks [equipmentType]
+  /// rather than this pattern, so a "Sock bag" stays a bag in both readers.
+  static final _socks = RegExp(r'\bsocks?\b|socken?\b');
 
   /// Maps MacDive's free-text equipment type onto [EquipmentType].
   ///
@@ -154,7 +155,7 @@ class MacDiveValueMapper {
 
     // Socks (#2900) come before the suits and layers, because the garment
     // they go with ("Drysuit socks", "Undersuit socks") would claim them.
-    if (socks.hasMatch(s)) return EquipmentType.socks;
+    if (_socks.hasMatch(s)) return EquipmentType.socks;
 
     // Ordered longest-idea-first: "drysuit" must beat "suit", and the
     // regulator family must not swallow "octopus", which is its own type in
