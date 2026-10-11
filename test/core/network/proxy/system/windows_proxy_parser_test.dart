@@ -29,6 +29,20 @@ void main() {
         port: 3,
       ));
     });
+    test('a port outside 1 to 65535 is unusable, so the next entry is '
+        'used', () {
+      expect(pickWindowsProxy('proxy:0'), isNull);
+      expect(pickWindowsProxy('https=a:0;http=b:1'), (
+        type: ProxyType.http,
+        host: 'b',
+        port: 1,
+      ));
+      expect(pickWindowsProxy('http=a:70000;socks=c:3'), (
+        type: ProxyType.socks5,
+        host: 'c',
+        port: 3,
+      ));
+    });
     test('scheme prefix and missing port', () {
       expect(pickWindowsProxy('http://proxy:3128'), (
         type: ProxyType.http,

@@ -1,4 +1,5 @@
 import 'package:submersion/core/network/proxy/proxy_settings.dart';
+import 'package:submersion/core/network/proxy/system/written_proxy_port.dart';
 import 'package:submersion/core/network/proxy/system_proxy_result.dart';
 
 /// The proxy named by the curl-style environment variables, or null.
@@ -58,6 +59,8 @@ _parseProxyUrl(String value) {
     default:
       return null;
   }
+  final written = writtenProxyPort(value);
+  if (written.written && written.port == null) return null;
   String? user;
   String? pass;
   if (uri.userInfo.isNotEmpty) {
@@ -77,7 +80,7 @@ _parseProxyUrl(String value) {
   return (
     type: type,
     host: uri.host,
-    port: uri.hasPort ? uri.port : defaultPort,
+    port: written.port ?? defaultPort,
     username: user,
     password: pass,
   );

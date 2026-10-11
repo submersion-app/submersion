@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:submersion/core/network/proxy/proxy_settings.dart';
@@ -21,15 +22,8 @@ class LinuxSystemProxyResolver implements SystemProxyResolver {
   final Map<String, String> _environment;
   final GSettingsReader _gsettings;
 
-  static Future<String?> _runGSettings(String schema, String key) async {
-    try {
-      final r = await Process.run('gsettings', ['get', schema, key]);
-      return r.exitCode == 0 ? r.stdout as String : null;
-    } on ProcessException {
-      // Not a GNOME desktop: no gsettings binary.
-      return null;
-    }
-  }
+  static Future<String?> _runGSettings(String schema, String key) =>
+      runBoundedProcess('gsettings', ['get', schema, key]);
 
   @override
   Future<SystemProxyResult> resolve(Uri probe) async {
@@ -74,4 +68,33 @@ class LinuxSystemProxyResolver implements SystemProxyResolver {
       );
     }
   }
+}
+
+/// What [executable] printed, or null when it is missing, fails, or is still
+/// running after [timeout]. A stalled settings service (gsettings waits on
+/// D-Bus) must not leave a process, and the status line's spinner, behind
+/// every refresh, so a late process is killed.
+Future<String?> runBoundedProcess(
+  String executable,
+  List<String> arguments, {
+  Duration timeout = const Duration(seconds: 2),
+}) async {
+  final Process process;
+  try {
+    process = await Process.start(executable, arguments);
+  } on ProcessException {
+    // Not a GNOME desktop: no gsettings binary.
+    return null;
+  }
+  final stdout = process.stdout.transform(systemEncoding.decoder).join();
+  unawaited(process.stderr.drain<void>());
+  final exitCode = await process.exitCode.timeout(
+    timeout,
+    onTimeout: () {
+      process.kill();
+      return -1;
+    },
+  );
+  if (exitCode != 0) return null;
+  return stdout;
 }

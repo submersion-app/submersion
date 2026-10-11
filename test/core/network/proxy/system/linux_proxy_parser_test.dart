@@ -60,6 +60,15 @@ void main() {
         const SystemProxyFixed(type: ProxyType.http, host: 'good', port: 2),
       );
     });
+    test('a port outside 1 to 65535 skips to the next variable', () {
+      final r = parseProxyEnvironment({
+        'https_proxy': 'http://a:0',
+        'HTTPS_PROXY': 'http://b:65536',
+        'http_proxy': 'http://c:8080',
+      });
+      expect(r, isA<SystemProxyFixed>().having((f) => f.host, 'host', 'c'));
+    });
+
     test('an unusable value is ignored', () {
       expect(parseProxyEnvironment({'https_proxy': 'ftp://x:1'}), isNull);
       expect(parseProxyEnvironment({'https_proxy': '  '}), isNull);

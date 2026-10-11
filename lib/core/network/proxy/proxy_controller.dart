@@ -51,6 +51,7 @@ class ProxyController {
   String? _password;
   bool _passwordLoaded = false;
   int _generation = 0;
+  Future<void> _writes = Future.value();
   var _state = const ProxyControllerState(
     settings: ProxySettings.defaults,
     system: null,
@@ -85,21 +86,40 @@ class ProxyController {
 
   /// Persists [settings] and applies them. The password changes only when
   /// [updatePassword] is true (null or empty deletes it).
+  ///
+  /// The storage writes run one at a time in the order the saves were made,
+  /// so a slow write can never let an older choice land after a newer one.
+  /// Only the writes queue: each save's recompute starts after its writes,
+  /// in the same order, and a newer one supersedes it as usual.
   Future<void> saveSettings(
     ProxySettings settings, {
     String? password,
     bool updatePassword = false,
   }) async {
-    final store = _store;
-    if (store != null) {
-      await store.save(settings);
-      if (updatePassword) await store.savePassword(password);
-    }
+    final writes = _writes.then(
+      (_) => _persist(settings, password, updatePassword: updatePassword),
+    );
+    _writes = writes.catchError((Object _) {});
+    await writes;
     if (updatePassword) {
       _password = password == null || password.isEmpty ? null : password;
       _passwordLoaded = true;
     }
     await _recompute(settings);
+  }
+
+  Future<void> _persist(
+    ProxySettings settings,
+    String? password, {
+    required bool updatePassword,
+  }) async {
+    final store = _store;
+    if (store == null) return;
+    // The password first: when the keychain refuses it (locked), the saved
+    // settings stay as they were, so a restart never loads Manual without
+    // the password that goes with it.
+    if (updatePassword) await store.savePassword(password);
+    await store.save(settings);
   }
 
   /// Asks the OS again (system mode) and re-applies the current settings.

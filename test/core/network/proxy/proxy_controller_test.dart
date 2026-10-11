@@ -65,6 +65,35 @@ class _SnapshotKeychain extends InMemoryKeychain {
   }
 }
 
+/// A keychain that refuses every write, as a locked keychain does.
+class _LockedKeychain extends InMemoryKeychain {
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async => throw Exception('keychain locked');
+}
+
+/// A store whose first settings write waits until the test releases it.
+class _SlowFirstSaveStore extends ProxySettingsStore {
+  _SlowFirstSaveStore(super.prefs, {super.storage});
+
+  final release = Completer<void>();
+  var _saves = 0;
+
+  @override
+  Future<void> save(ProxySettings settings) async {
+    if (_saves++ == 0) await release.future;
+    await super.save(settings);
+  }
+}
+
 const _fixed = SystemProxyFixed(type: ProxyType.http, host: 'corp', port: 8080);
 
 void main() {
@@ -288,6 +317,60 @@ void main() {
       expect(c.current.password, 'new');
     },
   );
+
+  test(
+    'a refused password write leaves the saved settings as they were',
+    () async {
+      final locked = ProxySettingsStore(
+        await SharedPreferences.getInstance(),
+        storage: _LockedKeychain(),
+      );
+      await locked.save(ProxySettings.defaults.copyWith(mode: ProxyMode.none));
+      final c = ProxyController(resolver: _Resolver());
+      addTearDown(c.dispose);
+      await c.initialize(locked);
+      await expectLater(
+        c.saveSettings(
+          const ProxySettings(
+            mode: ProxyMode.manual,
+            type: ProxyType.http,
+            host: 'm',
+            port: 3128,
+            username: 'ann',
+          ),
+          password: 'pw',
+          updatePassword: true,
+        ),
+        throwsException,
+      );
+      // A restart must not load Manual without the password that goes with it.
+      expect(locked.load().mode, ProxyMode.none);
+      expect(locked.load().host, '');
+    },
+  );
+
+  test('saves apply in the order they were made, however long each write '
+      'takes', () async {
+    await store.save(ProxySettings.defaults.copyWith(mode: ProxyMode.none));
+    final c = ProxyController(resolver: _Resolver());
+    addTearDown(c.dispose);
+    final reopened = _SlowFirstSaveStore(
+      await SharedPreferences.getInstance(),
+      storage: InMemoryKeychain(),
+    );
+    await c.initialize(reopened);
+    final first = c.saveSettings(
+      ProxySettings.defaults.copyWith(mode: ProxyMode.manual),
+    );
+    final second = c.saveSettings(
+      ProxySettings.defaults.copyWith(mode: ProxyMode.none),
+    );
+    await pumpEventQueue();
+    reopened.release.complete();
+    await Future.wait([first, second]);
+    expect(c.state.settings.mode, ProxyMode.none);
+    expect(reopened.load().mode, ProxyMode.none);
+  });
 
   test('a resolver that throws leaves the app direct', () async {
     final c = ProxyController(resolver: _Throwing());

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/network/proxy/proxy_settings.dart';
+import 'package:submersion/core/network/proxy/system/written_proxy_port.dart';
 import 'package:submersion/core/network/proxy/system_proxy_result.dart';
 
 /// What WinHTTP reported, copied out of native memory so parsing is testable.
@@ -96,9 +97,16 @@ List<String> _bypass(String? value) =>
     if (scheme == 'http') http ??= value;
     if (scheme == 'socks') socks ??= value;
   }
-  final chosen = https ?? http;
-  if (chosen != null) return _endpoint(chosen, ProxyType.http, 80);
-  if (socks != null) return _endpoint(socks, ProxyType.socks5, 1080);
+  // An unusable entry (a bad port) gives way to the next one in order.
+  for (final (value, type, defaultPort) in [
+    (https, ProxyType.http, 80),
+    (http, ProxyType.http, 80),
+    (socks, ProxyType.socks5, 1080),
+  ]) {
+    if (value == null) continue;
+    final endpoint = _endpoint(value, type, defaultPort);
+    if (endpoint != null) return endpoint;
+  }
   return null;
 }
 
@@ -109,9 +117,7 @@ List<String> _bypass(String? value) =>
 ) {
   final uri = Uri.tryParse(value.contains('://') ? value : 'x://$value');
   if (uri == null || uri.host.isEmpty) return null;
-  return (
-    type: type,
-    host: uri.host,
-    port: uri.hasPort ? uri.port : defaultPort,
-  );
+  final written = writtenProxyPort(value);
+  if (written.written && written.port == null) return null;
+  return (type: type, host: uri.host, port: written.port ?? defaultPort);
 }

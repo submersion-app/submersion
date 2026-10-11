@@ -98,6 +98,9 @@ class AppHttpOverrides extends HttpOverrides {
             detail: 'The server sent data before the TLS handshake',
           );
         }
+        // SecureSocket.secure detaches the raw socket, and dart:io offers no
+        // public handle to it, so a cancel during this handshake cannot
+        // close the tunnel: a stalled TLS server holds it until it gives up.
         return SecureSocket.secure(
           tunnel.socket,
           host: url.host,

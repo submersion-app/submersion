@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/network/proxy/proxy_settings.dart';
 import 'package:submersion/core/network/proxy/system/linux_system_proxy_resolver.dart';
@@ -92,5 +94,29 @@ void main() {
       ).resolve(probe),
       const SystemProxyNone(),
     );
+  });
+
+  group('runBoundedProcess', () {
+    // Real processes, so POSIX only; `sleep` and `echo` are not executables
+    // on Windows, and the resolver runs only on Linux.
+    final skip = Platform.isWindows ? 'POSIX commands' : null;
+
+    test('returns what a quick command printed', () async {
+      expect(await runBoundedProcess('echo', ['hi']), 'hi\n');
+    }, skip: skip);
+
+    test('a command that hangs is stopped at the deadline', () async {
+      final watch = Stopwatch()..start();
+      final out = await runBoundedProcess('sleep', [
+        '30',
+      ], timeout: const Duration(milliseconds: 200));
+      expect(out, isNull);
+      expect(watch.elapsed, lessThan(const Duration(seconds: 5)));
+    }, skip: skip);
+
+    test('a missing command or a failing exit is null', () async {
+      expect(await runBoundedProcess('no-such-command-3217', []), isNull);
+      expect(await runBoundedProcess('false', []), isNull);
+    }, skip: skip);
   });
 }
