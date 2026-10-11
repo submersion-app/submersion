@@ -235,20 +235,50 @@ class SessionItemTile extends ConsumerWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-        for (final entry in serviceEntries)
-          Text(
-            '${entry.kindName}: '
-            '${formatServiceTriggerText(context, units: UnitFormatter(ref.watch(settingsProvider)), now: serviceAsOf, dueDate: entry.dueDate, divesSinceAnchor: entry.divesSinceAnchor, divesRemaining: entry.divesRemaining, hoursSinceAnchor: entry.hoursSinceAnchor, hoursRemaining: entry.hoursRemaining, usageByUnit: entry.usageByUnit)}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              // serviceSeverityDotColor returns surfaceContainerHighest for
-              // an OK entry -- right for a small dot meant to stay quiet,
-              // but near-invisible as full-line text on a light theme.
-              // Ordinary body text reads fine for "everything's fine".
-              color: entry.severity == ServiceClockSeverity.ok
-                  ? theme.colorScheme.onSurfaceVariant
-                  : serviceSeverityDotColor(context, entry.severity),
+        // A bullet header per entry, due/usage lines indented underneath and
+        // a gap before the next entry: a wall of same-indent lines read as
+        // one continuous block on a narrow phone screen (issue #3272),
+        // especially once a trigger line itself wraps to two lines.
+        for (final entry in serviceEntries) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              '• ${entry.kindName}',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                // serviceSeverityDotColor returns surfaceContainerHighest for
+                // an OK entry -- right for a small dot meant to stay quiet,
+                // but near-invisible as full-line text on a light theme.
+                // Ordinary body text reads fine for "everything's fine".
+                color: entry.severity == ServiceClockSeverity.ok
+                    ? theme.colorScheme.onSurfaceVariant
+                    : serviceSeverityDotColor(context, entry.severity),
+              ),
             ),
           ),
+          for (final line in formatServiceTriggerLines(
+            context,
+            units: UnitFormatter(ref.watch(settingsProvider)),
+            now: serviceAsOf,
+            dueDate: entry.dueDate,
+            divesSinceAnchor: entry.divesSinceAnchor,
+            divesRemaining: entry.divesRemaining,
+            hoursSinceAnchor: entry.hoursSinceAnchor,
+            hoursRemaining: entry.hoursRemaining,
+            usageByUnit: entry.usageByUnit,
+          ))
+            Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Text(
+                line,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: entry.severity == ServiceClockSeverity.ok
+                      ? theme.colorScheme.onSurfaceVariant
+                      : serviceSeverityDotColor(context, entry.severity),
+                ),
+              ),
+            ),
+        ],
       ],
       // Same block, same tone, after the clocks: a significant condition
       // finding is as informative as an overdue clock and just as much the
