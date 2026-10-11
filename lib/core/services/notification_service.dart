@@ -25,6 +25,18 @@ int _stableNotificationId(String key) {
 }
 
 /// Service for managing local notifications
+/// The route a tapped reminder opens: a document reminder (payload
+/// `document:<id>`, issue #2613) opens the document, any other payload is
+/// an equipment id. Null for an empty payload.
+String? notificationPayloadRoute(String payload) {
+  const documentPrefix = 'document:';
+  if (payload.startsWith(documentPrefix)) {
+    final id = payload.substring(documentPrefix.length);
+    return id.isEmpty ? null : '/documents/$id';
+  }
+  return payload.isEmpty ? null : '/equipment/$payload';
+}
+
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   static NotificationService get instance => _instance;
@@ -93,6 +105,8 @@ class NotificationService {
   void _onNotificationTapped(NotificationResponse response) {
     _log.info('Notification tapped: ${response.payload}');
     if (response.payload != null) {
+      // A document reminder carries `document:<id>`; the router maps every
+      // payload to its route (notificationPayloadRoute).
       _selectedEquipmentId = response.payload;
       onNotificationTapped?.call(response.payload!);
     }

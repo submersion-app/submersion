@@ -117,6 +117,7 @@ void main() {
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
         ].cast(),
         child: MaterialApp.router(
+          locale: const Locale('en'),
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

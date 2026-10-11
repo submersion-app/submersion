@@ -294,4 +294,36 @@ void main() {
     expect(await _docCount(db), 0);
     expect(await _tombstones(db, 'documents'), 1);
   });
+
+  test('deleting a diver cancels their documents\' reminders', () async {
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd2',
+            name: 'Ben',
+            createdAt: _now,
+            updatedAt: _now,
+          ),
+        );
+    final doc = await DocumentRepository().save(
+      Document(
+        id: '',
+        diverId: 'd2',
+        owner: const DocumentOwner.personal(),
+        type: DocumentType.permit,
+        expiryDate: DateTime(2030),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+      const [],
+    );
+    final cancelled = <String>[];
+    await DiverRepository(
+      documentRepository: DocumentRepository(
+        cancelReminders: (id) async => cancelled.add(id),
+      ),
+    ).deleteDiverWithReassignment('d2');
+    expect(cancelled, [doc.id]);
+  });
 }

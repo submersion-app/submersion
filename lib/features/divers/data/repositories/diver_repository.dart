@@ -73,7 +73,9 @@ class DiverRepository {
     ImportedFileReclaimer? importedFileReclaimer,
     MediaDeletionCoordinator? mediaDeletionCoordinator,
     EquipmentTransferService? equipmentTransferService,
-  }) : _importedFileReclaimer =
+    DocumentRepository? documentRepository,
+  }) : _documentRepository = documentRepository ?? DocumentRepository(),
+       _importedFileReclaimer =
            importedFileReclaimer ?? ImportedFileReclaimer(),
        _injectedMediaDeletionCoordinator = mediaDeletionCoordinator,
        _equipmentTransfer =
@@ -81,6 +83,7 @@ class DiverRepository {
 
   AppDatabase get _db => DatabaseService.instance.database;
   final ImportedFileReclaimer _importedFileReclaimer;
+  final DocumentRepository _documentRepository;
   final MediaDeletionCoordinator? _injectedMediaDeletionCoordinator;
   final EquipmentTransferService _equipmentTransfer;
 
@@ -546,6 +549,18 @@ class DiverRepository {
 
       // Set inside the transaction, applied after it commits.
       late final MediaCascadePlan mediaPlan;
+      // The delete steps remove documents with raw SQL, so their expiry
+      // reminders are cancelled here once the delete commits (#2613).
+      final documentIds = [
+        for (final r
+            in await _db
+                .customSelect(
+                  'SELECT id FROM documents WHERE diver_id = ?',
+                  variables: [Variable.withString(id)],
+                )
+                .get())
+          r.read<String>('id'),
+      ];
 
       await _db.transaction(() async {
         // Step 0a: Hand over the gear other profiles need (issue #2852),
@@ -865,6 +880,7 @@ class DiverRepository {
         await _syncRepository.logDeletion(entityType: 'divers', recordId: id);
       });
       await _applyMediaCascade(id, mediaPlan);
+      await _documentRepository.cancelRemindersFor(documentIds);
       // The cascade above took dive_data_sources rows that can have been the
       // last references to a stored import file (issue #478). Swept after the
       // transaction commits, so a failure leaks a row rather than stranding a

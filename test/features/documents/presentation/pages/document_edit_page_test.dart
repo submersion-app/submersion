@@ -49,6 +49,7 @@ void main() {
     final overrides = await getBaseOverrides();
     await t.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           ...overrides,
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),

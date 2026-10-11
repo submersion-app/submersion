@@ -271,7 +271,9 @@ class DiverProfileHubPage extends ConsumerWidget {
                     .watch(
                       documentsForOwnerProvider(const DocumentOwner.personal()),
                     )
-                    .valueOrNull;
+                    // .value keeps the last count through a reload; a
+                    // document change would otherwise flash "None yet".
+                    .value;
                 return _buildSectionTile(
                   context,
                   icon: Icons.folder_copy_outlined,

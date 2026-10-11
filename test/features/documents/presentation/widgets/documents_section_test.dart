@@ -62,6 +62,7 @@ void main() {
           documentFirstPageProvider.overrideWith((ref, id) async => null),
         ],
         child: MaterialApp.router(
+          locale: const Locale('en'),
           routerConfig: router,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

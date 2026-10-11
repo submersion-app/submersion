@@ -34,6 +34,7 @@ void main() {
   testWidgets('badge shows expired and due soon, nothing when ok', (t) async {
     await t.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         child: const Column(
           children: [
             DocumentExpiryBadge(
@@ -64,6 +65,7 @@ void main() {
     var tapped = false;
     await t.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         child: DocumentTile(
           document: Document(
             id: 'x',
@@ -90,7 +92,12 @@ void main() {
   testWidgets('viewer shows a Word page as a file tile with Open with', (
     t,
   ) async {
-    await t.pumpWidget(testApp(child: DocumentPageViewer(pages: [_page()])));
+    await t.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: DocumentPageViewer(pages: [_page()]),
+      ),
+    );
     expect(find.text('policy.docx'), findsOneWidget);
     expect(find.text('Open with...'), findsOneWidget);
   });
@@ -98,6 +105,7 @@ void main() {
   testWidgets('viewer counts pages when there is more than one', (t) async {
     await t.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         child: DocumentPageViewer(
           pages: [
             _page(),
@@ -112,6 +120,7 @@ void main() {
   testWidgets('viewer shows a placeholder for a corrupt image', (t) async {
     await t.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         child: DocumentPageViewer(
           pages: [
             _page(

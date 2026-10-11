@@ -230,11 +230,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/welcome';
       }
 
-      // Check for notification deep link (reading clears the value)
-      final equipmentId = NotificationService.instance.selectedEquipmentId;
-      if (equipmentId != null) {
-        return '/equipment/$equipmentId';
-      }
+      // Check for notification deep link (reading clears the value). A
+      // document reminder's payload opens the document, not equipment.
+      final payload = NotificationService.instance.selectedEquipmentId;
+      final tapped = payload == null ? null : notificationPayloadRoute(payload);
+      if (tapped != null) return tapped;
 
       // If has divers and on welcome, redirect to dashboard
       if (hasDivers && isOnWelcome) {

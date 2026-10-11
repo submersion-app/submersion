@@ -43,6 +43,22 @@ class DocumentRepository {
 
   final Future<void> Function(String documentId) _cancelReminders;
 
+  /// Cancels the reminders of documents a caller deleted without going
+  /// through this repository (the diver delete's raw steps).
+  Future<void> cancelRemindersFor(Iterable<String> documentIds) async {
+    for (final id in documentIds) {
+      try {
+        await _cancelReminders(id);
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Could not cancel reminders of document $id',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  }
+
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
@@ -171,20 +187,40 @@ class DocumentRepository {
   /// image. A PDF, Word or text page shows an icon, so its (up to 10 MB)
   /// bytes are not read.
   Future<DocumentPage?> getFirstPage(String documentId) async {
+    // Metadata only: the BLOB column is read below, and only for an image.
     final meta = await _db
         .customSelect(
-          'SELECT id, mime_type FROM document_pages WHERE document_id = ? '
-          'ORDER BY page_index LIMIT 1',
+          'SELECT id, document_id, page_index, side, file_name, mime_type, '
+          'size_bytes, created_at, updated_at FROM document_pages '
+          'WHERE document_id = ? ORDER BY page_index LIMIT 1',
           variables: [Variable.withString(documentId)],
           readsFrom: {_db.documentPages},
         )
         .getSingleOrNull();
     if (meta == null) return null;
-    final row = await (_db.select(
-      _db.documentPages,
-    )..where((t) => t.id.equals(meta.read<String>('id')))).getSingle();
-    final page = pageFromRow(row);
-    return page.isImage ? page : page.withoutBytes();
+    final page = DocumentPage(
+      id: meta.read<String>('id'),
+      documentId: meta.read<String>('document_id'),
+      pageIndex: meta.read<int>('page_index'),
+      side: DocumentPageSide.fromStorage(meta.readNullable<String>('side')),
+      fileName: meta.read<String>('file_name'),
+      mimeType: meta.read<String>('mime_type'),
+      sizeBytes: meta.read<int>('size_bytes'),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        meta.read<int>('created_at'),
+      ),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(
+        meta.read<int>('updated_at'),
+      ),
+    );
+    if (!page.isImage) return page;
+    final bytes =
+        await (_db.selectOnly(_db.documentPages)
+              ..addColumns([_db.documentPages.bytes])
+              ..where(_db.documentPages.id.equals(page.id)))
+            .map((r) => r.read(_db.documentPages.bytes))
+            .getSingleOrNull();
+    return page.copyWith(bytes: bytes);
   }
 
   /// Saves [document] and makes [pages] its exact page list, in order: new
