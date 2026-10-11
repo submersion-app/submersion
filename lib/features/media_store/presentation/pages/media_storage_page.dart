@@ -18,6 +18,7 @@ import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_transfer_summary_row.dart';
+import 'package:submersion/features/media_store/presentation/widgets/webdav_media_form.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/cloud_provider_authenticate.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -547,6 +548,10 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                     value: CloudProviderType.dropbox,
                     label: Text('Dropbox'),
                   ),
+                  ButtonSegment(
+                    value: CloudProviderType.webdav,
+                    label: Text(l10n.settings_mediaStorage_provider_webdav),
+                  ),
                   // Hidden where Google sign-in cannot run (a Windows/Linux
                   // build with no Desktop-app OAuth client compiled in);
                   // otherwise the connect flow offers an account it can
@@ -567,8 +572,11 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                     setState(() => _selectedProvider = selection.single),
               ),
               const SizedBox(height: 16),
-              if (_selectedProvider != CloudProviderType.s3)
+              if (_selectedProvider != CloudProviderType.s3 &&
+                  _selectedProvider != CloudProviderType.webdav)
                 ..._managedConnectPanel(l10n),
+              if (_selectedProvider == CloudProviderType.webdav)
+                const WebDavMediaForm(),
             ],
             if (!connected && _selectedProvider == CloudProviderType.s3) ...[
               if (_isInsecureEndpoint)
