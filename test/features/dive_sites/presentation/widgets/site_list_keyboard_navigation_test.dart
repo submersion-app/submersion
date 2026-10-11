@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_grouping_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_list_content.dart';
@@ -80,7 +81,7 @@ Future<void> _press(WidgetTester tester, LogicalKeyboardKey key) async {
   await tester.pumpAndSettle();
 }
 
-Finder _header(String label) => find.widgetWithText(SiteCountryHeader, label);
+Finder _header(String label) => find.widgetWithText(SiteGroupHeader, label);
 
 void main() {
   testWidgets('arrows walk countries and sites; Left and Right fold them', (

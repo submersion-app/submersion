@@ -18526,6 +18526,12 @@ abstract class AppLocalizations {
   /// **'No country'**
   String get diveSites_group_noCountry;
 
+  /// No description provided for @diveSites_group_noBodyOfWater.
+  ///
+  /// In en, this message translates to:
+  /// **'No body of water'**
+  String get diveSites_group_noBodyOfWater;
+
   /// No description provided for @diveSites_group_siteCount.
   ///
   /// In en, this message translates to:
@@ -18550,11 +18556,23 @@ abstract class AppLocalizations {
   /// **'Country & region'**
   String get diveSites_list_groupBy_location;
 
+  /// No description provided for @diveSites_list_groupBy_locationAndWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Country & body of water'**
+  String get diveSites_list_groupBy_locationAndWater;
+
   /// No description provided for @diveSites_list_groupBy_none.
   ///
   /// In en, this message translates to:
   /// **'None'**
   String get diveSites_list_groupBy_none;
+
+  /// No description provided for @diveSites_list_groupBy_water.
+  ///
+  /// In en, this message translates to:
+  /// **'Body of water'**
+  String get diveSites_list_groupBy_water;
 
   /// No description provided for @diveSites_list_tile_diveCount.
   ///

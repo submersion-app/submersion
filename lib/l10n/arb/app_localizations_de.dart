@@ -11563,6 +11563,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_group_noCountry => 'Kein Land';
 
   @override
+  String get diveSites_group_noBodyOfWater => 'Kein Gewässer';
+
+  @override
   String diveSites_group_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11583,7 +11586,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_list_groupBy_location => 'Land und Region';
 
   @override
+  String get diveSites_list_groupBy_locationAndWater => 'Land und Gewässer';
+
+  @override
   String get diveSites_list_groupBy_none => 'Keine';
+
+  @override
+  String get diveSites_list_groupBy_water => 'Gewässer';
 
   @override
   String diveSites_list_tile_diveCount(int count) {
