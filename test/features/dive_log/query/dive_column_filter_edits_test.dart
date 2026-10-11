@@ -91,6 +91,22 @@ void main() {
       },
     );
 
+    test('a top-level scoped relation rule counts and resets', () {
+      // `buddies[name contains "Sam"]` limits the Buddy column on its own.
+      final scoped = ScopedNode(
+        FieldPath(['buddies']),
+        c('name', QueryOp.contains, const StringValue('Sam')),
+      );
+      final f = const DiveFilterState().copyWith(
+        query: AndNode([scoped, deep]),
+      );
+      expect(isDiveColumnFiltered(f, DiveField.buddy), isTrue);
+      expect(resetDiveColumnFilter(f, DiveField.buddy).query, deep);
+      final negated = const DiveFilterState().copyWith(query: NotNode(scoped));
+      expect(isDiveColumnFiltered(negated, DiveField.buddy), isTrue);
+      expect(isDiveColumnFiltered(f, DiveField.siteName), isFalse);
+    });
+
     test('an unfilterable column is never filtered', () {
       expect(
         isDiveColumnFiltered(const DiveFilterState(), DiveField.altitude),
