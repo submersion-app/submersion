@@ -111,6 +111,59 @@ void main() {
       expect(bailout.reserveViolation, isFalse);
     });
 
+    test('a second diluent switched to mid-dive is charged its own leg\'s '
+        'loop fill, not left at 0 L (regression: a two-diluent profile used '
+        'to charge the whole dive\'s fill to whichever diluent the resolver '
+        'found first)', () {
+      const deepDiluent = GasMix(o2: 10, he: 70);
+      const deepTank = DiveTank(
+        id: 'deep-dil',
+        volume: 11.1,
+        startPressure: 200,
+        gasMix: deepDiluent,
+        role: TankRole.diluent,
+      );
+      final outcome = engine.compute(
+        _plan(
+          tanks: [_diluentTank, deepTank, _o2Tank, _bailoutTank],
+          segments: [
+            PlanSegment.travel(
+              id: 'seg-1',
+              fromDepth: 0,
+              targetDepth: 60.0,
+              tankId: 'dil',
+              gasMix: _diluent,
+              order: 0,
+              ratePerMinute: 18.0,
+            ),
+            PlanSegment.travel(
+              id: 'seg-2',
+              fromDepth: 60.0,
+              targetDepth: 100.0,
+              tankId: 'deep-dil',
+              gasMix: deepDiluent,
+              order: 1,
+              ratePerMinute: 18.0,
+            ),
+            PlanSegment.hold(
+              id: 'seg-3',
+              depth: 100.0,
+              durationMinutes: 10,
+              tankId: 'deep-dil',
+              gasMix: deepDiluent,
+              order: 2,
+            ),
+          ],
+        ),
+      );
+      final shallow = outcome.tankUsages.firstWhere((u) => u.tankId == 'dil');
+      final deep = outcome.tankUsages.firstWhere((u) => u.tankId == 'deep-dil');
+      // 6 L loop x 6 bar (0 -> 60 m) on the first diluent, x 4 bar (60 ->
+      // 100 m) on the second; neither is 0.
+      expect(shallow.litersUsed, closeTo(36.0, 0.5));
+      expect(deep.litersUsed, closeTo(24.0, 0.5));
+    });
+
     test('CCR ppO2 and CNS run on the setpoint, not the diluent', () {
       final outcome = engine.compute(_plan());
       // At 1.3 bar setpoint no ppO2 issue should fire even at 60 m, where

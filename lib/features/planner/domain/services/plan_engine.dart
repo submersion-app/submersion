@@ -512,6 +512,7 @@ class PlanEngine {
     final tankUsages = isCcr
         ? _computeCcrTankUsages(
             plan,
+            legs: legs,
             totalRuntimeSeconds: runtime + schedule.ttsSeconds,
             environment: environment,
           )
@@ -680,11 +681,12 @@ class PlanEngine {
   }
 
   /// CCR consumption: metabolic O2 over the whole runtime charged to the
-  /// oxygen-supply tank, descent loop-fill diluent charged to the diluent
-  /// tank (else the first segment's tank). Bailout tanks consume nothing in
-  /// the main plan — they are sized by the bailout solver.
+  /// oxygen-supply tank, descent loop-fill diluent charged leg by leg to
+  /// whichever diluent that leg actually breathes. Bailout tanks consume
+  /// nothing in the main plan — they are sized by the bailout solver.
   List<PlanTankUsage> _computeCcrTankUsages(
     domain.DivePlan plan, {
+    required List<ResolvedLeg> legs,
     required int totalRuntimeSeconds,
     required DiveEnvironment environment,
   }) {
@@ -704,18 +706,29 @@ class PlanEngine {
           config.o2MetabolicRateLpm * (totalRuntimeSeconds / 60.0);
     }
 
-    final diluentTankId =
-        tankIdByRole(TankRole.diluent) ??
-        (plan.segments.isNotEmpty &&
-                liters.containsKey(plan.segments.first.tankId)
-            ? plan.segments.first.tankId
-            : null);
-    if (diluentTankId != null) {
-      liters[diluentTankId] =
-          (liters[diluentTankId] ?? 0) +
-          config.loopVolumeLiters *
-              (environment.pressureAtDepth(plan.maxDepth) -
-                  environment.surfacePressureBar);
+    // Loop-fill gas: as the diver goes deeper, the counterlung needs more
+    // actual gas volume to hold the same breathing volume at the higher
+    // ambient pressure. A dive can carry more than one diluent and switch
+    // between them per segment (#3220, #3263); charging the whole dive's
+    // fill to a single tank picked by role left every diluent past the
+    // first reading a flat 0 L no matter how long it was actually
+    // breathed (confirmed: a two-diluent profile showed 0 L on the first
+    // diluent even after ten real minutes on it). Each leg is now charged
+    // to its own tank instead, and only for the portion of the leg that
+    // actually goes deeper -- a flat leg (including a rate-split leg's
+    // hold half, #3264) or an ascent needs no extra fill -- and only while
+    // the loop itself is running (a per-segment OC override breathes no
+    // loop gas at all).
+    for (final leg in legs) {
+      if (modeFor(plan, leg.segment) == domain.PlanMode.ccr &&
+          leg.endDepth > leg.startDepth &&
+          liters.containsKey(leg.tankId)) {
+        liters[leg.tankId] =
+            (liters[leg.tankId] ?? 0) +
+            config.loopVolumeLiters *
+                (environment.pressureAtDepth(leg.endDepth) -
+                    environment.pressureAtDepth(leg.startDepth));
+      }
     }
 
     return [
