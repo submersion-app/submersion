@@ -61,6 +61,18 @@ void main() {
         expect(item['type'], 'regulator');
       });
 
+      test('a category outside the German list is read as a name', () {
+        final book = logbook({
+          1: const DivingLogRawEquipment(
+            id: 1,
+            name: 'Black',
+            category: 'Hood',
+          ),
+        });
+        final item = DivingLogEquipmentMapper.entities(book).values.single;
+        expect(item['type'], 'hood');
+      });
+
       test('a set is not gear; a dive using it gets its members', () {
         const dive = DivingLogRawDive(id: 1, equipmentIds: [10, 3]);
         final book = logbook(

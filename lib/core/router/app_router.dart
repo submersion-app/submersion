@@ -115,6 +115,7 @@ import 'package:submersion/features/settings/presentation/pages/lightroom_settin
 import 'package:submersion/features/settings/presentation/pages/photos_media_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/pages/s3_config_page.dart';
+import 'package:submersion/features/settings/presentation/pages/webdav_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/fix_dive_times_page.dart';
 import 'package:submersion/features/settings/presentation/pages/link_buddy_names_page.dart';
 import 'package:submersion/features/settings/presentation/pages/retype_other_gear_page.dart';
@@ -1475,6 +1476,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 's3-config',
                     name: 's3Config',
                     builder: (context, state) => const S3ConfigPage(),
+                  ),
+                  GoRoute(
+                    path: 'webdav-config',
+                    name: 'webdavConfig',
+                    builder: (context, state) => const WebDavConfigPage(),
                   ),
                 ],
               ),

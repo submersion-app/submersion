@@ -8,11 +8,14 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
 /// CRUD for the synced, secret-free `connected_accounts` roster. Writes are
 /// marked pending for sync (mirrors MediaStoresRepository).
 class ConnectedAccountsRepository {
+  static final _log = LoggerService.forClass(ConnectedAccountsRepository);
+
   ConnectedAccountsRepository({
     AppDatabase? database,
     SyncRepository? syncRepository,
@@ -118,7 +121,7 @@ class ConnectedAccountsRepository {
       // Only the writer that actually inserted marks pending, so a losing
       // racer cannot stamp a second HLC on someone else's row.
       await _markPending(id, now);
-      return _toDomain(inserted);
+      return _toDomain(inserted)!;
     }
 
     final existing = await getById(id);
@@ -141,7 +144,7 @@ class ConnectedAccountsRepository {
     final rows = await (_db.select(
       _db.connectedAccounts,
     )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
-    return rows.map(_toDomain).toList();
+    return rows.map(_toDomain).nonNulls.toList();
   }
 
   Future<domain.ConnectedAccount?> getById(String id) async {
@@ -205,10 +208,17 @@ class ConnectedAccountsRepository {
     SyncEventBus.notifyLocalChange();
   }
 
-  domain.ConnectedAccount _toDomain(ConnectedAccount row) {
+  /// Null for a row whose kind this build does not know (a newer peer's
+  /// account synced here); callers skip it rather than fail the whole read.
+  domain.ConnectedAccount? _toDomain(ConnectedAccount row) {
+    final kind = AccountKind.values.asNameMap()[row.kind];
+    if (kind == null) {
+      _log.warning('Skipping connected account ${row.id}: unknown kind');
+      return null;
+    }
     return domain.ConnectedAccount(
       id: row.id,
-      kind: AccountKind.values.byName(row.kind),
+      kind: kind,
       label: row.label,
       accountIdentifier: row.accountIdentifier,
       createdAt: DateTime.fromMillisecondsSinceEpoch(

@@ -715,6 +715,7 @@ class SubsurfaceXmlParser implements ImportParser {
     // sample, so an omitted attribute means "unchanged", not "unknown".
     // Carry the last seen value forward; samples before the first
     // occurrence stay null.
+    double? lastTemp;
     int? lastNdl;
     int? lastTts;
     int? lastRbt;
@@ -730,8 +731,12 @@ class SubsurfaceXmlParser implements ImportParser {
       final depth = _parseDouble(sample.getAttribute('depth'));
       if (timestamp == null || depth == null) continue;
       final point = <String, dynamic>{'timestamp': timestamp, 'depth': depth};
-      final temp = _parseDouble(sample.getAttribute('temp'));
+      // Temperature is delta-encoded too (issue #3055), and Subsurface draws
+      // it as steps. Interpolating between two readings turned a 1 C
+      // computer's "30 for ten minutes, then 29" into a ten-minute ramp.
+      final temp = _parseDouble(sample.getAttribute('temp')) ?? lastTemp;
       if (temp != null) point['temperature'] = temp;
+      lastTemp = temp;
       final heartRate = _parseInt(sample.getAttribute('heartbeat'));
       if (heartRate != null) point['heartRate'] = heartRate;
       final ndl = _parseDurationSeconds(sample.getAttribute('ndl')) ?? lastNdl;
@@ -817,6 +822,8 @@ class SubsurfaceXmlParser implements ImportParser {
     for (final tankIdx in sortedTankIndices) {
       _fillSparseField(points, '_pressure_$tankIdx');
     }
+    // Temperature is already carried forward above, so this only back-fills
+    // the samples before the first reading.
     _fillSparseField(points, 'temperature');
 
     // Convert per-tank pressure fields into allTankPressures arrays
@@ -840,9 +847,10 @@ class SubsurfaceXmlParser implements ImportParser {
   /// between known readings, with forward-fill after the last known value
   /// and back-fill before the first.
   ///
-  /// Subsurface dive computers transmit pressure and temperature on a subset
-  /// of samples. This fills the gaps so the profile chart displays smooth
-  /// curves instead of alternating between values and null.
+  /// Subsurface dive computers transmit pressure on a subset of samples. This
+  /// fills the gaps so the profile chart displays smooth curves instead of
+  /// alternating between values and null. Temperature reaches it already
+  /// carried forward, so for that field only the back-fill applies.
   static void _fillSparseField(
     List<Map<String, dynamic>> points,
     String field,

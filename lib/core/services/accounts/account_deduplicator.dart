@@ -8,6 +8,7 @@ import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/established_provider_store.dart';
 
@@ -158,6 +159,16 @@ class AccountDeduplicator {
       return accountIdFor(
         kind: AccountKind.s3,
         naturalKey: s3NaturalKey(config),
+      );
+    }
+    if (row.kind == AccountKind.webdav) {
+      // Always written by the accounts layer, so the per-account blob is
+      // the endpoint's identity on both the sync and the media path.
+      final config = decodeWebDavConfig(await _credentials.read(row.id));
+      if (config == null) return null;
+      return accountIdFor(
+        kind: AccountKind.webdav,
+        naturalKey: webdavNaturalKey(config),
       );
     }
     final key = naturalKeyForKind(row.kind);

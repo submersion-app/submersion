@@ -5,6 +5,9 @@ import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -107,4 +110,72 @@ void main() {
     expect(second.id, first.id);
     expect((await repo.getAll()).length, 1);
   });
+  test(
+    'WebDAV resolves to the deterministic account for its endpoint',
+    () async {
+      final keychain = InMemoryKeychain();
+      final legacy = WebDavCredentialsStore(storage: keychain);
+      final config = WebDavConfig(
+        preset: WebDavPreset.other,
+        serverUrl: 'https://dav.test/dav',
+        username: 'alice',
+        password: 'secret',
+      );
+      await legacy.save(config);
+
+      final account = await ensureAccountForProviderType(
+        CloudProviderType.webdav,
+        repo,
+        webdavCredentials: legacy,
+      );
+      expect(account.kind, AccountKind.webdav);
+      expect(
+        account.id,
+        accountIdFor(
+          kind: AccountKind.webdav,
+          naturalKey: webdavNaturalKey(config),
+        ),
+      );
+      expect(account.label, 'alice @ dav.test');
+    },
+  );
+
+  test(
+    'editing the WebDAV server moves sync to the new endpoint account',
+    () async {
+      final legacy = WebDavCredentialsStore(storage: keychain);
+      final first = WebDavConfig(
+        preset: WebDavPreset.other,
+        serverUrl: 'https://dav.test/dav',
+        username: 'alice',
+        password: 'secret',
+      );
+      await legacy.save(first);
+      final before = await ensureAccountForProviderType(
+        CloudProviderType.webdav,
+        repo,
+        webdavCredentials: legacy,
+      );
+      await SyncRepository().setSyncAccount(
+        accountId: before.id,
+        providerType: CloudProviderType.webdav,
+      );
+
+      final moved = first.copyWith(folder: 'Elsewhere');
+      await legacy.save(moved);
+      final after = await ensureAccountForProviderType(
+        CloudProviderType.webdav,
+        repo,
+        webdavCredentials: legacy,
+      );
+      expect(after.id, isNot(before.id));
+      expect(
+        after.id,
+        accountIdFor(
+          kind: AccountKind.webdav,
+          naturalKey: webdavNaturalKey(moved),
+        ),
+      );
+    },
+  );
 }

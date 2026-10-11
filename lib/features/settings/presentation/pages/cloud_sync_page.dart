@@ -31,6 +31,7 @@ import 'package:submersion/features/settings/presentation/widgets/cloud_provider
 import 'package:submersion/features/settings/presentation/widgets/conflict_resolution_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/dropbox_connect_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/encryption_settings_section.dart';
+import 'package:submersion/features/settings/presentation/widgets/webdav_provider_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -548,6 +549,12 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
         ),
         _buildGoogleDriveProviderTile(context, ref, selectedProvider),
         _buildS3ProviderTile(context, ref, selectedProvider),
+        WebDavProviderTile(
+          isSelected: selectedProvider == CloudProviderType.webdav,
+          onSelect: () =>
+              _selectProvider(context, ref, CloudProviderType.webdav),
+          onEdit: () => context.push('/settings/cloud-sync/webdav-config'),
+        ),
         // The tile disappears in builds without a Dropbox app key
         // (dropboxAppKey empty) so users never see a connect dialog that
         // immediately errors.
@@ -951,6 +958,8 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
         return l10n.settings_cloudSync_provider_s3_title;
       case CloudProviderType.dropbox:
         return l10n.settings_cloudSync_provider_dropbox_title;
+      case CloudProviderType.webdav:
+        return l10n.settings_cloudSync_provider_webdav_title;
     }
   }
 

@@ -21,6 +21,7 @@ import 'package:submersion/features/universal_import/data/services/zip_expansion
 import 'package:submersion/features/universal_import/domain/services/import_media_resolver.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
+import '../../../../fixtures/divemate/build_divemate_ddb.dart';
 import '../../../../fixtures/macdive_sqlite/build_synthetic_db.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 
@@ -1447,6 +1448,18 @@ void main() {
           expect(payload.entitiesOf(ImportEntityType.equipment).length, 1);
         },
       );
+    });
+
+    group('UniversalImportNotifier - DiveMate database', () {
+      test('detects a DiveMate .ddb as DiveMate, not Diving Log', () async {
+        final detection = await notifier.loadFileFromBytes(
+          buildDiveMateDdb(),
+          'DiveMate.ddb',
+        );
+
+        expect(detection.format, ImportFormat.diveMateDdb);
+        expect(detection.sourceApp, SourceApp.diveMate);
+      });
     });
 
     group('UniversalImportNotifier - MacDive SQLite', () {

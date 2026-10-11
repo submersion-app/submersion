@@ -4,7 +4,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 void main() {
   group('ImportFormat', () {
     test('has all expected values', () {
-      expect(ImportFormat.values, hasLength(22));
+      expect(ImportFormat.values, hasLength(23));
     });
 
     test('displayName for each format', () {
@@ -31,6 +31,7 @@ void main() {
       expect(ImportFormat.subsurfaceXml.displayName, 'Subsurface XML');
       expect(ImportFormat.divingLogXml.displayName, 'Diving Log XML');
       expect(ImportFormat.divingLogSqlite.displayName, 'Diving Log');
+      expect(ImportFormat.diveMateDdb.displayName, 'DiveMate');
       expect(ImportFormat.suuntoSml.displayName, 'Suunto SML');
       expect(ImportFormat.suuntoDm5.displayName, 'Suunto DM5');
       expect(ImportFormat.fit.displayName, 'Garmin FIT');
@@ -183,7 +184,7 @@ void main() {
   group('SourceOverrideOption', () {
     group('supported list', () {
       test('contains expected number of entries', () {
-        expect(SourceOverrideOption.supported.length, 24);
+        expect(SourceOverrideOption.supported.length, 25);
       });
 
       test('contains Submersion Fills CSV entry', () {

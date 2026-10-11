@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:submersion/core/domain/models/incoming_dive_data.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
@@ -363,8 +365,17 @@ class _EntityReviewListState extends State<EntityReviewList> {
         onChangeFillTarget: widget.onChangeFillTarget == null
             ? null
             : () => widget.onChangeFillTarget!(index),
+        inBatchPartner: _inBatchPartner(matchResult),
       ),
     );
+  }
+
+  /// The other copy's dive data when [match] is another row of this import.
+  IncomingDiveData? _inBatchPartner(DiveMatchResult match) {
+    final partner = match.inBatchIndex;
+    final items = widget.group.items;
+    if (partner == null || partner < 0 || partner >= items.length) return null;
+    return items[partner].diveData;
   }
 
   List<int> _nonDuplicateIndices() {

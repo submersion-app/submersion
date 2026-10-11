@@ -19,6 +19,20 @@ void main() {
 
   tearDown(() => tearDownTestDatabase());
 
+  test('rows of an unknown kind are skipped instead of throwing', () async {
+    final known = await repo.create(kind: AccountKind.dropbox, label: 'D');
+    await db.customStatement(
+      'INSERT INTO connected_accounts '
+      '(id, kind, label, account_identifier, created_at, updated_at) '
+      "VALUES ('future-1', 'someFutureKind', 'F', NULL, 0, 0)",
+    );
+
+    final all = await repo.getAll();
+    expect(all.map((a) => a.id), [known.id]);
+    expect(await repo.getById('future-1'), isNull);
+    expect(await repo.getByKind(AccountKind.dropbox), isNotNull);
+  });
+
   test('create then getByKind round-trips secret-free fields', () async {
     final created = await repo.create(
       kind: AccountKind.s3,

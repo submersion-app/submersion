@@ -53,6 +53,38 @@ class DiveComparisonResult {
   });
 }
 
+/// The fields a comparison reads, from whichever side supplies them.
+class _Side {
+  final DateTime? startTime;
+  final double? maxDepth;
+  final double? avgDepth;
+  final double? durationSeconds;
+  final double? waterTemp;
+  final String computer;
+
+  const _Side({
+    required this.startTime,
+    required this.maxDepth,
+    required this.avgDepth,
+    required this.durationSeconds,
+    required this.waterTemp,
+    required this.computer,
+  });
+
+  factory _Side.incoming(IncomingDiveData dive) => _Side(
+    startTime: dive.startTime,
+    maxDepth: dive.maxDepth,
+    avgDepth: dive.avgDepth,
+    durationSeconds: dive.durationSeconds?.toDouble(),
+    waterTemp: dive.waterTemp,
+    computer: _formatComputer(
+      name: dive.computerName,
+      model: dive.computerModel,
+      serial: dive.computerSerial,
+    ),
+  );
+}
+
 /// Compare an existing dive with incoming data, classifying each field
 /// as same (within tolerance) or different.
 ///
@@ -61,14 +93,41 @@ DiveComparisonResult compareForConsolidation(
   Dive existing,
   IncomingDiveData incoming, {
   String? existingComputerName,
-}) {
+}) => _compare(
+  _Side(
+    startTime: existing.effectiveEntryTime,
+    maxDepth: existing.maxDepth,
+    avgDepth: existing.avgDepth,
+    // Runtime is total time, not bottom time.
+    durationSeconds: existing.runtime?.inSeconds.toDouble(),
+    waterTemp: existing.waterTemp,
+    computer: _formatComputer(
+      name: existingComputerName ?? existing.diveComputerModel,
+      model: existing.diveComputerModel,
+      serial: existing.diveComputerSerial,
+    ),
+  ),
+  _Side.incoming(incoming),
+);
+
+/// Compare two dives from the same import, [other] in the "existing" slot,
+/// with the same tolerances as [compareForConsolidation].
+///
+/// Used when a file holds the same dive twice (#3110): neither copy is in
+/// the database yet, so there is no stored dive to load.
+DiveComparisonResult compareIncomingPair(
+  IncomingDiveData other,
+  IncomingDiveData incoming,
+) => _compare(_Side.incoming(other), _Side.incoming(incoming));
+
+DiveComparisonResult _compare(_Side existing, _Side incoming) {
   final same = <SameField>[];
   final diff = <DiffField>[];
 
   // --- Time ---
-  final existingTime = existing.effectiveEntryTime;
+  final existingTime = existing.startTime;
   final incomingTime = incoming.startTime;
-  if (incomingTime != null) {
+  if (existingTime != null && incomingTime != null) {
     final diffSec = existingTime.difference(incomingTime).inSeconds.abs();
     if (diffSec <= 60) {
       same.add(
@@ -86,7 +145,6 @@ DiveComparisonResult compareForConsolidation(
     }
   }
 
-  // --- Max Depth ---
   _compareNumeric(
     name: 'max depth',
     type: ComparisonFieldType.depth,
@@ -96,8 +154,6 @@ DiveComparisonResult compareForConsolidation(
     same: same,
     diff: diff,
   );
-
-  // --- Avg Depth ---
   _compareNumeric(
     name: 'avg depth',
     type: ComparisonFieldType.depth,
@@ -107,19 +163,15 @@ DiveComparisonResult compareForConsolidation(
     same: same,
     diff: diff,
   );
-
-  // --- Duration (runtime = total time, not bottom time) ---
   _compareNumeric(
     name: 'duration',
     type: ComparisonFieldType.duration,
-    existingVal: existing.runtime?.inSeconds.toDouble(),
-    incomingVal: incoming.durationSeconds?.toDouble(),
+    existingVal: existing.durationSeconds,
+    incomingVal: incoming.durationSeconds,
     tolerance: 60,
     same: same,
     diff: diff,
   );
-
-  // --- Water Temp ---
   _compareNumeric(
     name: 'water temp',
     type: ComparisonFieldType.temperature,
@@ -131,25 +183,15 @@ DiveComparisonResult compareForConsolidation(
   );
 
   // --- Computer ---
-  final existingComputer = _formatComputer(
-    name: existingComputerName ?? existing.diveComputerModel,
-    model: existing.diveComputerModel,
-    serial: existing.diveComputerSerial,
-  );
-  final incomingComputer = _formatComputer(
-    name: incoming.computerName,
-    model: incoming.computerModel,
-    serial: incoming.computerSerial,
-  );
-  if (existingComputer == incomingComputer) {
+  if (existing.computer == incoming.computer) {
     same.add(const SameField(name: 'computer', type: ComparisonFieldType.text));
   } else {
     diff.add(
       DiffField(
         name: 'computer',
         type: ComparisonFieldType.text,
-        existingText: existingComputer,
-        incomingText: incomingComputer,
+        existingText: existing.computer,
+        incomingText: incoming.computer,
       ),
     );
   }

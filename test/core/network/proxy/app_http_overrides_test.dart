@@ -8,6 +8,7 @@ import 'package:submersion/core/network/proxy/effective_proxy.dart';
 import '../../../helpers/fake_http_proxy.dart';
 import '../../../helpers/fake_socks5_server.dart';
 import '../../../helpers/recording_tcp_server.dart';
+import '../../../helpers/self_signed_tls.dart';
 
 /// Tests run every endpoint on loopback, which the production policy always
 /// sends direct; this policy proxies everything the snapshot allows.
@@ -198,5 +199,45 @@ void main() {
     ).createHttpClient(null);
     addTearDown(() => c.close(force: true));
     expect(asked, isTrue);
+  });
+
+  group('bad certificate callback', () {
+    late SelfSignedTls tls;
+    late HttpServer secure;
+
+    setUpAll(() async => tls = await SelfSignedTls.generate());
+
+    setUp(() async {
+      secure = await tls.serve();
+      addTearDown(() => secure.close(force: true));
+    });
+
+    Future<String> get(HttpClient client) async {
+      final request = await client.getUrl(
+        Uri.parse('https://127.0.0.1:${secure.port}/'),
+      );
+      final response = await request.close();
+      return response.transform(utf8.decoder).join();
+    }
+
+    test(
+      'a direct connection consults the callback set for the client',
+      () async {
+        final client = clientFor(() => const EffectiveProxy.direct());
+        final seen = <String>[];
+        AppHttpOverrides.setBadCertificateCallback(client, (cert, host, port) {
+          seen.add('$host:$port');
+          return true;
+        });
+        expect(await get(client), 'ok');
+        expect(seen, ['127.0.0.1:${secure.port}']);
+      },
+    );
+
+    test('a rejecting callback fails the handshake', () async {
+      final client = clientFor(() => const EffectiveProxy.direct());
+      AppHttpOverrides.setBadCertificateCallback(client, (_, _, _) => false);
+      await expectLater(get(client), throwsA(isA<HandshakeException>()));
+    });
   });
 }

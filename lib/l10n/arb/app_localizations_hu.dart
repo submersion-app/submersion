@@ -353,10 +353,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_legend_old => 'Régi';
 
   @override
-  String get connections_yearPlay_play => 'Évek lejátszása';
+  String get connections_yearPlay_pause => 'Szünet';
 
   @override
-  String get connections_yearPlay_pause => 'Szünet';
+  String get connections_timeline_play => 'Idővonal lejátszása';
 
   @override
   String get connections_share_tooltip => 'Kép megosztása';
@@ -5078,8 +5078,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_legend_title => 'Jelmagyarázat';
 
   @override
-  String connections_yearRange_label(int first, int last) {
-    return '$first és $last közötti évek';
+  String connections_timeline_range(String start, String end) {
+    return '$start és $end között';
   }
 
   @override
@@ -13765,6 +13765,21 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String gearPassport_scan_retired(String name) {
+    return '$name állapota: Kivonva';
+  }
+
+  @override
+  String gearPassport_scan_sold(String name) {
+    return '$name állapota: Eladva';
+  }
+
+  @override
+  String gearPassport_scan_lost(String name) {
+    return '$name állapota: Elveszett';
+  }
+
+  @override
   String get pdf_unknownSite => 'Ismeretlen merülőhely';
 
   @override
@@ -20942,6 +20957,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_cloudSync_provider_s3_title => 'S3-kompatibilis tároló';
 
   @override
+  String get settings_cloudSync_provider_webdav_edit =>
+      'WebDAV-konfiguráció szerkesztése';
+
+  @override
+  String get settings_cloudSync_provider_webdav_subtitle =>
+      'Nextcloud, ownCloud, Synology, Koofr és más WebDAV-kiszolgálók';
+
+  @override
+  String get settings_cloudSync_provider_webdav_title => 'WebDAV';
+
+  @override
   String get settings_cloudSync_resolveConflicts => 'Ütközések feloldása';
 
   @override
@@ -24880,6 +24906,231 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_s3Config_warning_http =>
       'Ez a végpont titkosítatlan HTTP-t használ. A hitelesítő adatok és a merülési adatok titkosítatlanul utaznak; csak megbízható hálózaton használja.';
+
+  @override
+  String get settings_webdavConfig_action_forgetCertificate => 'Elfelejtés';
+
+  @override
+  String get settings_webdavConfig_action_remove => 'Konfiguráció eltávolítása';
+
+  @override
+  String get settings_webdavConfig_action_testConnection =>
+      'Kapcsolat tesztelése';
+
+  @override
+  String get settings_webdavConfig_appBar_title => 'WebDAV';
+
+  @override
+  String get settings_webdavConfig_davRoot_label => 'WebDAV-cím';
+
+  @override
+  String get settings_webdavConfig_error_conflict =>
+      'A mappát nem sikerült létrehozni a kiszolgálón.';
+
+  @override
+  String get settings_webdavConfig_error_forbidden =>
+      'Nincs jogosultsága ennek a mappának a használatához a kiszolgálón.';
+
+  @override
+  String get settings_webdavConfig_error_insufficientStorage =>
+      'A kiszolgáló tárhelye megtelt.';
+
+  @override
+  String get settings_webdavConfig_error_invalidConfig =>
+      'Ellenőrizze a kiszolgáló adatait';
+
+  @override
+  String get settings_webdavConfig_error_locked =>
+      'A fájl zárolva van a kiszolgálón. Próbálja újra hamarosan.';
+
+  @override
+  String get settings_webdavConfig_error_notFound =>
+      'Ezen a címen nincs WebDAV-mappa. Ellenőrizze a kiszolgáló típusát és címét.';
+
+  @override
+  String get settings_webdavConfig_error_notWebDav =>
+      'Ez a cím nem WebDAV-kiszolgáló.';
+
+  @override
+  String settings_webdavConfig_error_redirected(String location) {
+    return 'A kiszolgáló ide irányított át: $location. Használja inkább ezt a címet.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_server =>
+      'A kiszolgáló hibát jelzett. Próbálja újra később.';
+
+  @override
+  String settings_webdavConfig_error_tooLarge(String size) {
+    return 'A kiszolgáló túl nagynak ítélt és elutasított egy $size MB-os fájlt. Emelje meg a feltöltési korlátját.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_unauthorized =>
+      'A kiszolgáló elutasította a felhasználónevet vagy a jelszót. Ha a fiók kétlépcsős bejelentkezést használ, hozzon létre alkalmazásjelszót.';
+
+  @override
+  String get settings_webdavConfig_error_unexpected =>
+      'A kiszolgáló váratlan választ adott.';
+
+  @override
+  String settings_webdavConfig_error_unreachable(String host) {
+    return 'A(z) $host nem érhető el.';
+  }
+
+  @override
+  String get settings_webdavConfig_error_untrusted =>
+      'A kiszolgáló tanúsítványa nem megbízható.';
+
+  @override
+  String get settings_webdavConfig_error_secureStorage =>
+      'Nem sikerült hozzáférni a biztonságos tárolóhoz';
+
+  @override
+  String get settings_webdavConfig_field_folder_helper =>
+      'Ha nem létezik, létrejön a kiszolgálón';
+
+  @override
+  String get settings_webdavConfig_field_folder_label => 'Mappa';
+
+  @override
+  String get settings_webdavConfig_field_password_appPasswordHelper =>
+      'Használjon alkalmazásjelszót, ha a fiók kétlépcsős bejelentkezést használ';
+
+  @override
+  String get settings_webdavConfig_field_password_label => 'Jelszó';
+
+  @override
+  String get settings_webdavConfig_field_preset_label => 'Kiszolgáló típusa';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintDav =>
+      'https://example.com/dav';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintHost =>
+      'https://cloud.example.com';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_hintSynology =>
+      'https://nas.local:5006';
+
+  @override
+  String get settings_webdavConfig_field_serverUrl_label => 'Kiszolgáló címe';
+
+  @override
+  String get settings_webdavConfig_field_username_label => 'Felhasználónév';
+
+  @override
+  String get settings_webdavConfig_preset_fastmail => 'Fastmail Files';
+
+  @override
+  String get settings_webdavConfig_preset_koofr => 'Koofr';
+
+  @override
+  String get settings_webdavConfig_preset_nextcloud => 'Nextcloud';
+
+  @override
+  String get settings_webdavConfig_preset_other => 'Egyéb WebDAV-kiszolgáló';
+
+  @override
+  String get settings_webdavConfig_preset_owncloud => 'ownCloud';
+
+  @override
+  String get settings_webdavConfig_preset_pcloudEu => 'pCloud (EU)';
+
+  @override
+  String get settings_webdavConfig_preset_pcloudUs => 'pCloud (USA)';
+
+  @override
+  String get settings_webdavConfig_preset_synology => 'Synology NAS';
+
+  @override
+  String get settings_webdavConfig_preset_yandex => 'Yandex Disk';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_action => 'Eltávolítás';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_body =>
+      'A kiszolgáló adatai és a jelszó törlődnek erről az eszközről. A kiszolgálón lévő fájlok megmaradnak.';
+
+  @override
+  String get settings_webdavConfig_remove_confirm_title =>
+      'Eltávolítja a WebDAV-konfigurációt?';
+
+  @override
+  String get settings_webdavConfig_removed => 'WebDAV-konfiguráció eltávolítva';
+
+  @override
+  String get settings_webdavConfig_saved => 'WebDAV-konfiguráció mentve';
+
+  @override
+  String get settings_webdavConfig_synology_helper =>
+      'Kapcsolja be a WebDAV Servert a Csomagkezelőben. A HTTPS-port általában 5006.';
+
+  @override
+  String get settings_webdavConfig_test_success => 'Sikeres kapcsolat';
+
+  @override
+  String get settings_webdavConfig_trust_action => 'Tanúsítvány elfogadása';
+
+  @override
+  String settings_webdavConfig_trust_body(String host) {
+    return 'A(z) $host olyan tanúsítványt mutatott be, amelyet nem írt alá megbízható hitelesítő. Az önaláírt tanúsítványú otthoni kiszolgálók ilyenek. Csak akkor fogadja el, ha az ujjlenyomat egyezik a kiszolgálón láthatóval.';
+  }
+
+  @override
+  String settings_webdavConfig_trust_changedBody(String host) {
+    return 'A(z) $host tanúsítványa megváltozott, mióta elfogadta. Ez megújított tanúsítványnál előfordul, de akkor is, ha valaki lehallgatja a kapcsolatot. Csak akkor fogadja el az újat, ha az ujjlenyomata egyezik a kiszolgálón láthatóval.';
+  }
+
+  @override
+  String get settings_webdavConfig_trust_expires => 'Lejár';
+
+  @override
+  String get settings_webdavConfig_trust_fingerprint => 'SHA-256 ujjlenyomat';
+
+  @override
+  String get settings_webdavConfig_trust_issuer => 'Kiállító';
+
+  @override
+  String get settings_webdavConfig_trust_previousFingerprint =>
+      'Korábban elfogadott';
+
+  @override
+  String get settings_webdavConfig_trust_subject => 'Kiállítva';
+
+  @override
+  String get settings_webdavConfig_trust_title => 'Nem megbízható tanúsítvány';
+
+  @override
+  String settings_webdavConfig_trustedCertificate(String fingerprint) {
+    return 'Elfogadott tanúsítvány: $fingerprint';
+  }
+
+  @override
+  String get settings_webdavConfig_validation_folder =>
+      'A mappanevek nem tartalmazhatnak . vagy .. szegmenst';
+
+  @override
+  String get settings_webdavConfig_validation_required => 'Kötelező';
+
+  @override
+  String get settings_webdavConfig_validation_url =>
+      'Adjon meg https:// vagy http:// kezdetű címet';
+
+  @override
+  String get settings_webdavConfig_validation_urlCredentials =>
+      'A felhasználónevet és a jelszót a saját mezőjükbe írja, ne a címbe';
+
+  @override
+  String get settings_webdavConfig_validation_urlQuery =>
+      'Törölje a cím ? vagy # utáni részét';
+
+  @override
+  String get settings_webdavConfig_warning_http =>
+      'Ez a kiszolgáló http://-t használ, így a jelszó és a merülési adatok titkosítatlanul utaznak. Csak megbízható hálózaton használja.';
 
   @override
   String get settings_section_about_subtitle => 'Alkalmazás info és licencek';
@@ -30348,6 +30599,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Egy másik merülés duplikátuma ebben az importálási kötegben.';
 
   @override
+  String get universalImport_review_inFileDuplicateHint =>
+      'Ez a merülés kétszer szerepel az importban. A Kihagyás a másik példányt tartja meg, az Importálás újként helyette ezt.';
+
+  @override
+  String get universalImport_compare_otherCopy => 'Másik példány';
+
+  @override
   String get universalImport_summary_filesTitle => 'Fájlok';
 
   @override
@@ -33978,6 +34236,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_mediaStorage_provider_label => 'Szolgáltató';
+
+  @override
+  String get settings_mediaStorage_provider_webdav => 'WebDAV';
+
+  @override
+  String get settings_mediaStorage_webdav_useSyncServer =>
+      'Saját szinkronizálási kiszolgáló használata';
 
   @override
   String get settings_mediaStorage_connect_dropbox_hint =>

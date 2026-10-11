@@ -19,8 +19,10 @@ void main() {
     );
   });
 
-  test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(278));
+  test('this rung is additive and never was the sync floor', () {
+    // v278 is additive; v279 (#2361) later raised the floor for an
+    // unrelated reason, so assert only that 278 itself was never the floor.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(278));
   });
 
   test('a fresh database has both range columns', () async {

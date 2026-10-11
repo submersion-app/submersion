@@ -1122,9 +1122,15 @@ class UniversalAdapter implements ImportSourceAdapter {
       unreached: unreachedDives,
     );
     final diveActions = reached.actions;
+    // A copy of another row in this import (inBatchIndex) has an empty dive
+    // id, so folding it would fail and the compensating delete would remove
+    // the copy just imported. The review never offers Consolidate for one;
+    // if it arrives anyway the copy stays a standalone dive.
     final consolidateIndices = <int>{
       for (final entry in diveActions.entries)
-        if (entry.value == DuplicateAction.consolidate) entry.key,
+        if (entry.value == DuplicateAction.consolidate &&
+            reached.matches[entry.key]?.inBatchIndex == null)
+          entry.key,
     };
 
     var consolidated = 0;

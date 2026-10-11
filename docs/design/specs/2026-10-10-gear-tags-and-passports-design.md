@@ -228,9 +228,14 @@ it.
 
 Each scan point uses `PassportScanSheet`, whose title becomes the generic
 "Scan a tag" everywhere. Phones get camera and NFC,
-macOS the camera, and Windows and Linux Paste link. A wishlist item scanned
-in the dive or trip flow is refused with "On your wishlist", as the pickers
-hide wishlist items.
+macOS the camera, and Windows and Linux Paste link. Gear out of the kit
+scanned in the dive or trip flow is refused, as the pickers hide it: not
+`isFitted`, named by the status the app shows (`departedStatusOf`), so
+"{name} is marked Wanted", "... Retired" (an inactive item reads as
+Retired), "... Sold" or "... Lost". Lost gear still marked active is added,
+as the pickers offer it. Spare gear is added too, although the pickers hide
+it (`hideSpare`): they hide spares to keep the list short, and a scanned
+spare is one the diver means to use.
 
 ## 9. The gear passport page
 
@@ -339,9 +344,9 @@ Tests first throughout.
   finds a `/g` record; re-dispatch suppression.
 - **Widgets.** The gear passport in its states (no service history, history,
   stale tag, wishlist); the entry card; the foreign page with and without
-  `ls`; the dive edit Scan (own, already added, foreign, wishlist, cylinder
-  tag); the trip Scan (own gear packed, own tank slotted, foreign); imperial
-  units on dates and usage where shown.
+  `ls`; the dive edit Scan (own, already added, foreign, out of the kit,
+  cylinder tag); the trip Scan (own gear packed, own tank slotted, foreign);
+  imperial units on dates and usage where shown.
 - **Labels.** A mixed selection gives one PDF with both label kinds, and the
   gear label's QR decodes to the link.
 - **Guards.** `test/architecture/` and `test/shared/` after new files under

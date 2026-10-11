@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/dive_computer_gear_identity.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_type_from_name.dart';
+import 'package:submersion/features/universal_import/data/services/divemate_values.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_row_values.dart';
 
@@ -54,11 +55,18 @@ class DivingLogEquipmentMapper {
       // A zero here is the format's "not recorded", and a dry weight of
       // zero is not harmless: it feeds the buoyancy maths as a real value.
       final weight = positiveOrNull(item.weightKg);
-      if (weight != null) {
-        map['attributes'] = <Map<String, dynamic>>[
+      final material = DiveMateValues.tankMaterial(item.materialCode);
+      final isCylinder = read?.type == EquipmentType.tank;
+      final attributes = <Map<String, dynamic>>[
+        if (weight != null)
           {'key': EquipmentAttrKeys.dryWeightKg, 'valueNum': weight},
-        ];
-      }
+        // DiveMate keeps a cylinder's size and material on the gear row.
+        if (isCylinder && item.volumeLiters != null)
+          {'key': EquipmentAttrKeys.volumeL, 'valueNum': item.volumeLiters},
+        if (isCylinder && material != null)
+          {'key': EquipmentAttrKeys.tankMaterial, 'valueText': material.name},
+      ];
+      if (attributes.isNotEmpty) map['attributes'] = attributes;
       // The importer reads `purchasePrice`; `price` is silently dropped. A
       // zero is this format's "not recorded", and a purchase price of zero
       // would import the item as free and skew any gear cost total.
@@ -132,12 +140,28 @@ class DivingLogEquipmentMapper {
     return object;
   }
 
-  /// The type read from the name, then from DiveMate's category when the
-  /// name says nothing: an item called "Main" filed under "Regulators".
+  /// The item's type, from the most certain signal down.
+  ///
+  /// DiveMate's `TypeID` fixes cylinders, weights and computers. A suit
+  /// category says only that the item is a suit, so its German name decides
+  /// which (`Trocki` is a drysuit). Then the name as for any Diving Log
+  /// item, then DiveMate's category, in German or English: an item called
+  /// "Ghost" filed under "Wing" (#3110).
   static TypeFromName? _typeOf(DivingLogRawEquipment item, String name) {
+    final byName = typeFromName(name);
+    final fixed = DiveMateValues.equipmentTypeFromCode(item.typeId);
+    if (fixed != null) return (type: fixed, thickness: byName?.thickness);
+    if (DiveMateValues.isSuitCategory(item.category)) {
+      final suit = DiveMateValues.suitFromName(name);
+      if (suit != null) return (type: suit, thickness: byName?.thickness);
+    }
+    if (byName != null) return byName;
     final category = item.category?.trim();
-    return typeFromName(name) ??
-        (category == null || category.isEmpty ? null : typeFromName(category));
+    if (category == null || category.isEmpty) return null;
+    final byCategory = DiveMateValues.equipmentTypeFromCategory(category);
+    return byCategory != null
+        ? (type: byCategory, thickness: null)
+        : typeFromName(category);
   }
 
   /// Whether [item] becomes an entity, which is also what decides whether a

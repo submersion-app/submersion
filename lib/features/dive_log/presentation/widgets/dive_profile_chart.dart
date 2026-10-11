@@ -44,6 +44,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor
 import 'package:submersion/features/dive_log/presentation/widgets/partial_pressure_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_metric_labels.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_tick_format.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
@@ -4091,13 +4092,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     final metricColor = effectiveRightAxisMetric.getColor(
                       colorScheme,
                     );
+                    // Metric distance to the neighbouring tick, so the
+                    // label carries enough decimals to differ from it.
+                    final tickStep =
+                        metricBand.unmap(
+                          -(value + meta.appliedInterval),
+                          rightAxisRange.min,
+                          rightAxisRange.max,
+                        ) -
+                        metricValue;
                     return SideTitleWidget(
                       meta: meta,
                       child: Text(
-                        _formatRightAxisValue(
+                        formatRightAxisTick(
                           effectiveRightAxisMetric,
                           metricValue,
                           units,
+                          tickStep: tickStep,
                         ),
                         style: Theme.of(
                           context,
@@ -7196,54 +7207,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     o2CellMvMax: _o2CellMvMax,
     ascentRateAxisRange: _ascentRateAxisRange,
   );
-
-  /// Format right axis tick values as plain numbers (units shown in axis label).
-  ///
-  /// Values from [_getMetricRange] are in storage units (bar, meters, etc.).
-  /// Temperature is pre-converted in [_getMetricRange]; all others are
-  /// converted here at display time to match the user's unit preferences.
-  String _formatRightAxisValue(
-    ProfileRightAxisMetric metric,
-    double value,
-    UnitFormatter units,
-  ) {
-    switch (metric) {
-      // Temperature range is already in user units (converted in _getMetricRange)
-      case ProfileRightAxisMetric.temperature:
-        return value.toStringAsFixed(0);
-      // Pressure stored in bar -> convert to user unit
-      case ProfileRightAxisMetric.pressure:
-        return units.convertPressure(value).toStringAsFixed(0);
-      // SAC stored in bar/min -> convert pressure component to user unit
-      case ProfileRightAxisMetric.sac:
-        return units.convertPressure(value).toStringAsFixed(1);
-      // Ascent rate stored in m/min -> convert depth component to user unit
-      case ProfileRightAxisMetric.ascentRate:
-        return units.convertDepth(value).toStringAsFixed(0);
-      // Mean depth stored in meters -> convert to user unit
-      case ProfileRightAxisMetric.meanDepth:
-        return units.convertDepth(value).toStringAsFixed(0);
-      // Universal units - no conversion needed
-      case ProfileRightAxisMetric.heartRate:
-      case ProfileRightAxisMetric.gf:
-      case ProfileRightAxisMetric.surfaceGf:
-        return value.toStringAsFixed(0);
-      case ProfileRightAxisMetric.ppO2:
-      case ProfileRightAxisMetric.ppN2:
-      case ProfileRightAxisMetric.ppHe:
-      case ProfileRightAxisMetric.gasDensity:
-        return value.toStringAsFixed(1);
-      case ProfileRightAxisMetric.ndl:
-      case ProfileRightAxisMetric.tts:
-      case ProfileRightAxisMetric.gtr:
-        return (value / 60).round().toString();
-      case ProfileRightAxisMetric.cns:
-      case ProfileRightAxisMetric.otu:
-        return value.toStringAsFixed(0);
-      case ProfileRightAxisMetric.o2CellMv:
-        return value.toStringAsFixed(0);
-    }
-  }
 
   /// Build axis label text for the right axis (e.g. "Temp (°C)").
   String _rightAxisLabel(ProfileRightAxisMetric metric, UnitFormatter units) =>

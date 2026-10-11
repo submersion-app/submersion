@@ -96,7 +96,9 @@ void main() {
       AppDatabase.migrationStepCount(276),
       AppDatabase.migrationStepCount(277) + 1,
     );
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(277));
+    // v277 is additive; v278 (#2361) later raised the floor for an
+    // unrelated reason, so assert only that 277 itself was never the floor.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(277));
   });
 
   test('insurance becomes a primary insurance document', () async {

@@ -21,7 +21,7 @@ import 'package:submersion/features/connections/presentation/canvas/connections_
 import 'package:submersion/features/connections/presentation/providers/connections_display_provider.dart';
 import 'package:submersion/features/connections/presentation/views/table_header_bar.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
-import 'package:submersion/features/connections/presentation/widgets/year_play_pill.dart';
+import 'package:submersion/features/connections/presentation/widgets/timeline_control.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -80,8 +80,9 @@ Future<ProviderContainer> _pump(
         connectionGraphProvider.overrideWith(
           (ref, budget) async => graph == null ? _graph : graph(ref, budget),
         ),
-        connectionsYearSpanProvider.overrideWith(
-          (ref) async => (first: 2019, last: 2024),
+        connectionsDateSpanProvider.overrideWith(
+          (ref) async =>
+              (start: DateTime(2019, 1, 1), end: DateTime(2024, 12, 31)),
         ),
         savedConnectionMapsProvider.overrideWith((ref) async => savedMaps),
         connectionsSelectionDiveIdsProvider.overrideWith(
@@ -179,23 +180,24 @@ void main() {
     expect(find.byTooltip('Lay out again'), findsNothing);
   });
 
-  testWidgets('a table view hides the graph chrome and keeps the play pill', (
-    tester,
-  ) async {
-    final c = await _pump(tester);
-    await tester.pumpAndSettle();
-    await c
-        .read(connectionsDisplayProvider.notifier)
-        .update((d) => d.copyWith(view: ConnectionsViewKind.pairs));
-    await tester.pumpAndSettle();
-    expect(find.byType(ConnectionsCanvas), findsNothing);
-    expect(find.byType(InsightStrip), findsNothing);
-    expect(find.byKey(const ValueKey('connections-share')), findsNothing);
-    expect(find.byTooltip('Lay out again'), findsNothing);
-    expect(find.byType(YearPlayPill), findsOneWidget);
-    expect(find.byType(TableHeaderBar), findsOneWidget);
-    expect(find.byKey(const ValueKey('connections-display')), findsNothing);
-  });
+  testWidgets(
+    'a table view hides the graph chrome and keeps the timeline bar',
+    (tester) async {
+      final c = await _pump(tester);
+      await tester.pumpAndSettle();
+      await c
+          .read(connectionsDisplayProvider.notifier)
+          .update((d) => d.copyWith(view: ConnectionsViewKind.pairs));
+      await tester.pumpAndSettle();
+      expect(find.byType(ConnectionsCanvas), findsNothing);
+      expect(find.byType(InsightStrip), findsNothing);
+      expect(find.byKey(const ValueKey('connections-share')), findsNothing);
+      expect(find.byTooltip('Lay out again'), findsNothing);
+      expect(find.byType(ConnectionsTimelineBar), findsOneWidget);
+      expect(find.byType(TableHeaderBar), findsOneWidget);
+      expect(find.byKey(const ValueKey('connections-display')), findsNothing);
+    },
+  );
 
   testWidgets('a static map layout with nothing pinned offers no relayout', (
     tester,

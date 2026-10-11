@@ -167,12 +167,12 @@ void main() {
     expect(after.edges.single.weight, 2);
   });
 
-  test('year span and selection dive ids', () async {
-    final sub1 = c.listen(connectionsYearSpanProvider, (_, _) {});
+  test('date span and selection dive ids', () async {
+    final sub1 = c.listen(connectionsDateSpanProvider, (_, _) {});
     addTearDown(sub1.close);
-    expect(await c.read(connectionsYearSpanProvider.future), (
-      first: 2024,
-      last: 2024,
+    expect(await c.read(connectionsDateSpanProvider.future), (
+      start: DateTime(2024, 1, 10),
+      end: DateTime(2024, 1, 10),
     ));
     const sel = NodeSelection(NodeRef(ConnectionKind.buddy, 'jane'));
     final sub2 = c.listen(connectionsSelectionDiveIdsProvider(sel), (_, _) {});

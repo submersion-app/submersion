@@ -13,6 +13,10 @@ enum ImportFormat {
   subsurfaceXml,
   divingLogXml,
   divingLogSqlite,
+
+  /// DiveMate's `.ddb` logbook: Diving Log's SQLite schema, written by
+  /// DiveMate (#3110).
+  diveMateDdb,
   suuntoSml,
   suuntoDm5,
   fit,
@@ -49,6 +53,7 @@ enum ImportFormat {
     subsurfaceXml => 'Subsurface XML',
     divingLogXml => 'Diving Log XML',
     divingLogSqlite => 'Diving Log',
+    diveMateDdb => 'DiveMate',
     suuntoSml => 'Suunto SML',
     suuntoDm5 => 'Suunto DM5',
     fit => 'Garmin FIT',
@@ -88,6 +93,7 @@ enum ImportFormat {
     macdiveXml ||
     macdiveSqlite ||
     divingLogSqlite ||
+    diveMateDdb ||
     danDl7 ||
     ratioXml => true,
     _ => false,
@@ -242,6 +248,11 @@ class SourceOverrideOption {
       sourceApp: SourceApp.diveMate,
       format: ImportFormat.csv,
       displayName: 'DiveMate (CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.diveMate,
+      format: ImportFormat.diveMateDdb,
+      displayName: 'DiveMate (database)',
     ),
     SourceOverrideOption(
       sourceApp: SourceApp.shearwater,

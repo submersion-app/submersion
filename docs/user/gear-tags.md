@@ -64,6 +64,13 @@ service date becomes the starting point of its service clocks. In the dive
 editor and on a trip, a tag that is not yours says so, with **View** to open
 that page.
 
+The dive editor and a trip only take gear you still use, as their pickers
+do. Scanning an item marked Wanted, Retired or Sold, or Lost and no longer
+active, says so and adds nothing; set the item back in service on its edit
+page first. Lost gear still marked active is added, as the pickers offer
+it. Spare gear is added when you scan it, though the pickers leave spares
+out to keep their lists short.
+
 Scanning a tag with a phone camera outside the app opens Submersion directly
 where it is installed. Without the app, the link opens a page on
 submersion.app that shows what the tag says. The tag's details sit after the

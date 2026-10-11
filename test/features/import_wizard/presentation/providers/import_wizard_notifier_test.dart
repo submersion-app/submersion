@@ -821,6 +821,151 @@ void main() {
           isNull,
         );
       });
+
+      group('a copy of another dive in the same import (#3110)', () {
+        // Dive 1 is flagged as the same dive as dive 0, which stays selected.
+        ImportBundle pair() => buildBundle(
+          diveItems: [makeItem('Dive 0'), makeItem('Dive 1')],
+          diveDuplicateIndices: {1},
+          diveMatchResults: {
+            1: const DiveMatchResult(
+              diveId: '',
+              inBatchIndex: 0,
+              score: 1.0,
+              timeDifferenceMs: 0,
+            ),
+          },
+        );
+
+        Set<int> selected() =>
+            notifier.state.selections[ImportEntityType.dives] ?? const {};
+
+        test('defaults to keeping the other copy', () {
+          notifier.setBundle(pair());
+          expect(selected(), {0});
+        });
+
+        test('keeping this copy drops the other', () {
+          notifier.setBundle(pair());
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.importAsNew,
+          );
+          expect(selected(), {1});
+        });
+
+        test('skipping it again brings the other back', () {
+          notifier.setBundle(pair());
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.importAsNew,
+          );
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.skip,
+          );
+          expect(selected(), {0});
+        });
+
+        test('skipping one of three copies does not bring the kept one back '
+            'while another copy is kept', () {
+          // Dives 1 and 2 are both copies of dive 0.
+          const copyOf0 = DiveMatchResult(
+            diveId: '',
+            inBatchIndex: 0,
+            score: 1.0,
+            timeDifferenceMs: 0,
+          );
+          notifier.setBundle(
+            buildBundle(
+              diveItems: [
+                makeItem('Dive 0'),
+                makeItem('Dive 1'),
+                makeItem('Dive 2'),
+              ],
+              diveDuplicateIndices: {1, 2},
+              diveMatchResults: {1: copyOf0, 2: copyOf0},
+            ),
+          );
+          for (final i in [1, 2]) {
+            notifier.setDuplicateAction(
+              ImportEntityType.dives,
+              i,
+              DuplicateAction.importAsNew,
+            );
+          }
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.skip,
+          );
+          expect(selected(), {2});
+        });
+
+        test('a partner that is itself flagged keeps its own decision', () {
+          // Dive 0 matches a stored dive and the diver chose to import it;
+          // dive 1 is an in-batch copy of dive 0.
+          notifier.setBundle(
+            buildBundle(
+              diveItems: [makeItem('Dive 0'), makeItem('Dive 1')],
+              diveDuplicateIndices: {0, 1},
+              diveMatchResults: {
+                0: makeMatchResult(0.85),
+                1: const DiveMatchResult(
+                  diveId: '',
+                  inBatchIndex: 0,
+                  score: 1.0,
+                  timeDifferenceMs: 0,
+                ),
+              },
+            ),
+          );
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            0,
+            DuplicateAction.importAsNew,
+          );
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.importAsNew,
+          );
+          expect(selected(), {0, 1});
+        });
+
+        test('the other copy can still be ticked to keep both', () {
+          notifier.setBundle(pair());
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.importAsNew,
+          );
+          notifier.toggleSelection(ImportEntityType.dives, 0);
+          expect(selected(), {0, 1});
+        });
+
+        test('cannot be consolidated, having no stored dive to fold into', () {
+          when(mockAdapter.duplicateActionsFor(any)).thenReturn({
+            DuplicateAction.skip,
+            DuplicateAction.importAsNew,
+            DuplicateAction.consolidate,
+          });
+          notifier.setBundle(pair());
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.consolidate,
+          );
+          expect(
+            notifier.state.duplicateActions[ImportEntityType.dives]?[1],
+            isNot(DuplicateAction.consolidate),
+          );
+          expect(selected(), {0});
+        });
+      });
     });
 
     // -------------------------------------------------------------------------

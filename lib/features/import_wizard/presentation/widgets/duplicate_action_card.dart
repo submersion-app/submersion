@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/presentation/widgets/dive_comparison_card.dart';
 import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
+import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -53,6 +54,10 @@ class DuplicateActionCard extends StatefulWidget {
   final String? plannedDiveLabel;
   final VoidCallback? onChangeFillTarget;
 
+  /// The other copy, when this row matches another dive in the same import
+  /// (#3110); the expanded card compares the two.
+  final IncomingDiveData? inBatchPartner;
+
   const DuplicateActionCard({
     super.key,
     required this.item,
@@ -65,6 +70,7 @@ class DuplicateActionCard extends StatefulWidget {
     this.isPending = false,
     this.plannedDiveLabel,
     this.onChangeFillTarget,
+    this.inBatchPartner,
   });
 
   @override
@@ -157,9 +163,14 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
       incomingLabel: context.l10n.universalImport_compare_incoming,
       selectedAction: widget.selectedAction,
       onActionChanged: widget.onActionChanged,
-      availableActions: widget.availableActions,
+      // A copy of another row in this import has no stored dive to fold
+      // into, so Consolidate is never offered for it.
+      availableActions: widget.matchResult.inBatchIndex == null
+          ? widget.availableActions
+          : widget.availableActions.difference({DuplicateAction.consolidate}),
       isPending: widget.isPending,
       showFillPlanned: widget.matchResult.isPlannedFill,
+      inBatchPartner: widget.inBatchPartner,
     );
   }
 }

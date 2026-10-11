@@ -4,7 +4,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// A peer still on v279 exports no trend_gap_collapse_months. The column
+/// A peer still on v280 exports no trend_gap_collapse_months. The column
 /// is NOT NULL, so an unseeded import would throw in DiverSetting.fromJson.
 void main() {
   late SyncDataSerializer serializer;
@@ -19,7 +19,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  test('applies a pre-v280 payload missing the trend gap threshold', () async {
+  test('applies a pre-v281 payload missing the trend gap threshold', () async {
     await db.customStatement('PRAGMA foreign_keys = OFF');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db

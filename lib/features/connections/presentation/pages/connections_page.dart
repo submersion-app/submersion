@@ -24,9 +24,9 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_timeline_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
-import 'package:submersion/features/connections/presentation/providers/year_play_provider.dart';
 import 'package:submersion/features/connections/presentation/share/connections_share_action.dart';
 import 'package:submersion/features/connections/presentation/share/connections_share_caption.dart';
 import 'package:submersion/features/connections/presentation/share/connections_share_renderer.dart';
@@ -34,7 +34,7 @@ import 'package:submersion/features/connections/presentation/widgets/connections
 import 'package:submersion/features/connections/presentation/widgets/connections_legend.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
-import 'package:submersion/features/connections/presentation/widgets/year_play_pill.dart';
+import 'package:submersion/features/connections/presentation/widgets/timeline_control.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -252,7 +252,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       view: view,
       graph: graph,
       filter: ref.read(connectionsFilterProvider),
-      span: ref.read(connectionsYearSpanProvider).value,
+      span: switch (ref.read(connectionsDateSpanProvider).value) {
+        null => null,
+        final s => (first: s.start.year, last: s.end.year),
+      },
       savedMapNames: {
         for (final m in ref.read(savedConnectionMapsProvider).value ?? const [])
           m.id: m.name,
@@ -337,24 +340,33 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     final layoutChoice = display.layoutFor(
       around: view.mode == ConnectionsMode.around,
     );
+    // Select, so a play sweep moving the range does not rebuild the page.
+    final timelineInset =
+        ref.watch(connectionsTimelineRangeProvider.select((r) => r != null))
+        ? ConnectionsTimelineBar.reserveOf(context)
+        : 0.0;
 
+    // The listener below misses an initial load, so each build reports it.
+    ref
+        .read(connectionsTimelineProvider.notifier)
+        .syncLoading(graphAsync.isLoading);
     ref.listen(connectionGraphProvider(budget), (_, next) {
       if (next.hasError && next.error is FocusNotFoundException) {
         _warnFocusMissing();
       }
       if (!next.isLoading && next.hasValue) _dropStaleSelection(next.value!);
-      // Year play steps to the next year only once this one has loaded.
-      final play = ref.read(yearPlayProvider.notifier);
+      // The timeline writes its next range only once the last has loaded.
+      final timeline = ref.read(connectionsTimelineProvider.notifier);
       if (next.isLoading) {
-        play.loadStarted();
+        timeline.loadStarted();
       } else {
-        play.loadSettled(failed: next.hasError);
+        timeline.loadSettled(failed: next.hasError);
       }
     });
     ref.listen<GraphSelection?>(connectionsSelectionProvider, _onSelection);
-    // Year play lives as long as the page, not only while the pill shows:
-    // an empty year swaps the canvas out, and play must carry on past it.
-    ref.listen<int?>(yearPlayProvider, (_, _) {});
+    // The timeline lives as long as the page, not only while its bar shows:
+    // an empty range swaps the canvas out, and play must carry on past it.
+    ref.listen<TimelineState>(connectionsTimelineProvider, (_, _) {});
     // A saved map edited or deleted elsewhere (sync, another device) must
     // not leave its card selected over a stale drawing.
     ref.listen(savedConnectionMapsProvider, (_, next) {
@@ -409,11 +421,12 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           ? 0.0
           : InsightStrip.heightOf(context) + 8;
       final belowStrip = stripHeight + (_insights.isEmpty ? 12 : 8);
-      // Shown over the canvas and over an empty played year alike.
-      final playPill = Positioned(
+      // Shown over the canvas, the tables and an empty played range alike.
+      final timelineBar = Positioned(
         left: 12,
+        right: 12,
         bottom: bottomInset + 12,
-        child: const YearPlayPill(),
+        child: const ConnectionsTimelineBar(),
       );
       if (held == null && graphAsync.hasError) {
         return graphAsync.error is FocusNotFoundException
@@ -441,15 +454,21 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         // previous map is still held for the reload.
         final empty = ConnectionsEmptyState(
           view: view,
-          hasAnyDives: ref.watch(connectionsYearSpanProvider).value != null,
+          hasAnyDives: ref.watch(connectionsDateSpanProvider).value != null,
           hasActiveFilter: hasActiveFilter,
         );
         if (view.isAroundWithoutFocus) return empty;
         // A played year can be empty; the pill stays so play can be paused.
         return Stack(
           children: [
-            Positioned.fill(child: empty),
-            playPill,
+            // Centred in the canvas above the sheet and the bar.
+            Positioned.fill(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: bottomInset + timelineInset),
+                child: empty,
+              ),
+            ),
+            timelineBar,
           ],
         );
       }
@@ -462,8 +481,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           onSelect: (s) =>
               ref.read(connectionsSelectionProvider.notifier).state = s,
           onShowAll: showAll,
-          bottomInset: bottomInset,
-          playPill: playPill,
+          bottomInset: bottomInset + timelineInset,
+          timelineBar: timelineBar,
           loading: graphAsync.isLoading,
         );
       }
@@ -474,7 +493,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         colors: colors,
         selection: selection,
         animate: animate,
-        bottomInset: bottomInset,
+        bottomInset: bottomInset + timelineInset,
         stripHeight: stripHeight,
         belowStrip: belowStrip,
         highlight: view.highlight,
@@ -498,7 +517,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         onShowAll: showAll,
         reloadFailed: reloadFailed,
         onRetry: () => ref.invalidate(connectionGraphProvider(budget)),
-        playPill: playPill,
+        timelineBar: timelineBar,
         loading: graphAsync.isLoading,
       );
     }
