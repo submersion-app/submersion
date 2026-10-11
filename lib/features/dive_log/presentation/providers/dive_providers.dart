@@ -1376,31 +1376,15 @@ final allDivesForTableProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
   return ref.watch(sortedFilteredDivesProvider);
 });
 
-/// Pre-computed surface intervals for the table view.
-///
-/// Sorts dives chronologically and computes the gap between consecutive
-/// dives (previous exit -> current entry). The first dive in the list
-/// gets a null interval.
-final surfaceIntervalsProvider = Provider<Map<String, Duration?>>((ref) {
-  final divesAsync = ref.watch(allDivesForTableProvider);
-  return divesAsync.whenOrNull(
-        data: (dives) {
-          final sorted = [...dives]
-            ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
-          final intervals = <String, Duration?>{};
-          for (var i = 0; i < sorted.length; i++) {
-            if (i == 0) {
-              intervals[sorted[i].id] = null;
-            } else {
-              final prevExit = sorted[i - 1].exitTime ?? sorted[i - 1].dateTime;
-              final thisEntry = sorted[i].entryTime ?? sorted[i].dateTime;
-              intervals[sorted[i].id] = thisEntry.difference(prevExit);
-            }
-          }
-          return intervals;
-        },
-      ) ??
-      {};
+/// Every dive's surface interval for the table (#2984), over the whole log
+/// so a filter never changes the dive a gap is measured from. Reloaded on
+/// any write to `dives`, which is where entry, exit and runtime live.
+final diveSurfaceIntervalsProvider = FutureProvider<Map<String, Duration?>>((
+  ref,
+) async {
+  final repository = ref.watch(diveRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  return repository.getSurfaceIntervals();
 });
 
 /// Provider for getting the surface interval to the previous dive
