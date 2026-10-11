@@ -150,10 +150,15 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
   String _formatEstimatedSize(int tiles) {
     // Learned from the regions already downloaded (their measured bytes per
     // tile), because real tiles average far below a flat guess: open water is
-    // mostly skipped or tiny. With no measured region it is the generous flat
-    // 30 KB per tile.
+    // mostly skipped or tiny. Only regions with their own store were
+    // measured. With none it is the generous flat 30 KB per tile.
     final regions = ref.watch(cachedRegionsProvider).value ?? const [];
-    final bytes = estimateRegionBytes(tiles, regions);
+    final measuredIds = ref.watch(regionStoreIdsProvider).value ?? const {};
+    final bytes = estimateRegionBytes(
+      tiles,
+      regions,
+      measuredRegionIds: measuredIds,
+    );
     if (bytes < 1024 * 1024) {
       return '${(bytes / 1024).toStringAsFixed(0)} KB';
     }

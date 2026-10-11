@@ -59,6 +59,9 @@ void main() {
           cachedRegionsProvider.overrideWith((ref) async => <CachedRegion>[]),
         ],
         child: const MaterialApp(
+          // Pinned: the assertions read English labels, and the host locale
+          // would otherwise reach the app.
+          locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
