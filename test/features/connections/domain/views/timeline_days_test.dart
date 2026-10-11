@@ -58,13 +58,24 @@ void main() {
     expect(whole.endDate, isNull);
   });
 
-  test('filterWithDays writes both days for any narrower range', () {
-    final f = filterWithDays(const DiveFilterState(), (
+  test('filterWithDays leaves an end at the span edge open', () {
+    // An open end keeps dives logged later on the map; a date at the last
+    // dive day would silently drop them.
+    final toEnd = filterWithDays(const DiveFilterState(), (
+      start: DateTime(2020, 3, 4),
+      end: DateTime(2022, 12, 31),
+    ), span);
+    expect(toEnd.startDate, DateTime(2020, 3, 4));
+    expect(toEnd.endDate, isNull);
+    final fromStart = filterWithDays(const DiveFilterState(), (
       start: DateTime(2019, 1, 1),
       end: DateTime(2020, 3, 4),
     ), span);
-    expect(f.startDate, DateTime(2019, 1, 1));
-    expect(f.endDate, DateTime(2020, 3, 4));
+    expect(fromStart.startDate, isNull);
+    expect(fromStart.endDate, DateTime(2020, 3, 4));
+  });
+
+  test('filterWithDays writes both days for a range inside the span', () {
     final one = filterWithDays(const DiveFilterState(), (
       start: DateTime(2021, 7, 7),
       end: DateTime(2021, 7, 7),

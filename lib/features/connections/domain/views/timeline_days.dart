@@ -44,16 +44,21 @@ DayRange filteredDays(DiveFilterState filter, DayRange span) => clampDays((
   end: filter.endDate ?? span.end,
 ), span);
 
-/// [filter] narrowed to [range]. The whole span is no date filter at all, so
-/// its dates are cleared rather than stored as bounds that keep every dive.
+/// [filter] narrowed to [range]. An end at the edge of the span is left
+/// open rather than stored as a bound: an open end keeps dives logged later
+/// on the map, and the whole span is no date filter at all.
 DiveFilterState filterWithDays(
   DiveFilterState filter,
   DayRange range,
   DayRange span,
 ) {
   final days = clampDays(range, span);
-  if (!days.start.isAfter(span.start) && !days.end.isBefore(span.end)) {
-    return filter.copyWith(clearStartDate: true, clearEndDate: true);
-  }
-  return filter.copyWith(startDate: days.start, endDate: days.end);
+  final openStart = !days.start.isAfter(span.start);
+  final openEnd = !days.end.isBefore(span.end);
+  return filter.copyWith(
+    startDate: openStart ? null : days.start,
+    clearStartDate: openStart,
+    endDate: openEnd ? null : days.end,
+    clearEndDate: openEnd,
+  );
 }

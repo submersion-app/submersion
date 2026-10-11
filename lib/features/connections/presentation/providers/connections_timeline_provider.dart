@@ -59,6 +59,9 @@ class ConnectionsTimelineNotifier extends Notifier<TimelineState> {
   /// settles before then was for the old filter.
   bool _started = false;
 
+  /// Whether the graph is loading, as the page last reported it.
+  bool _loading = false;
+
   /// The last filter written here, to tell its own writes from the diver's.
   DiveFilterState? _written;
 
@@ -126,9 +129,12 @@ class ConnectionsTimelineNotifier extends Notifier<TimelineState> {
     state = TimelineState(pending: _shown(span));
   }
 
+  /// Any move of a thumb, including a screen reader's adjustment, which
+  /// arrives with no [dragStart], stops the sweep.
   void dragTo(DayRange range) {
     final span = _span();
     if (span == null) return;
+    _cancel();
     state = TimelineState(pending: clampDays(range, span));
     _commit();
   }
@@ -139,14 +145,24 @@ class ConnectionsTimelineNotifier extends Notifier<TimelineState> {
     dragTo(range);
   }
 
+  /// The page reports, from each build, whether the graph is loading. Its
+  /// listener never hears about an initial load (the first one, or a new
+  /// node budget), and a write during one restarts it without a word.
+  void syncLoading(bool loading) {
+    _loading = loading;
+    if (loading && _inFlight) _started = true;
+  }
+
   /// The page reports each load of the graph that starts.
   void loadStarted() {
+    _loading = true;
     if (_inFlight) _started = true;
   }
 
   /// The page reports each settled load of the graph. A failed load stops
   /// everything; the page shows the reload error.
   void loadSettled({required bool failed}) {
+    _loading = false;
     if (failed) {
       if (state.playing || state.pending != null || _inFlight) _reset();
       return;
@@ -189,7 +205,9 @@ class ConnectionsTimelineNotifier extends Notifier<TimelineState> {
     // load during it, and that report must find the write in flight.
     _written = next;
     _inFlight = true;
-    _started = false;
+    // A load already running restarts with the new filter, and only its
+    // settle will be reported.
+    _started = _loading;
     ref.read(connectionsFilterProvider.notifier).state = next;
   }
 

@@ -346,6 +346,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         ? ConnectionsTimelineBar.reserve
         : 0.0;
 
+    // The listener below misses an initial load, so each build reports it.
+    ref
+        .read(connectionsTimelineProvider.notifier)
+        .syncLoading(graphAsync.isLoading);
     ref.listen(connectionGraphProvider(budget), (_, next) {
       if (next.hasError && next.error is FocusNotFoundException) {
         _warnFocusMissing();

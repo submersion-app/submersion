@@ -20,6 +20,14 @@ final DayRange _span = (
 /// Lets a test move the span, as a synced dive would.
 final _spanState = StateProvider<DayRange?>((ref) => _span);
 
+/// Stands in for the page's graph: reloads on every filter change and takes
+/// a second, like a large log.
+final _graph = FutureProvider.autoDispose<int>((ref) async {
+  ref.watch(connectionsFilterProvider);
+  await Future<void>.delayed(const Duration(seconds: 1));
+  return 1;
+});
+
 /// Riverpod refreshes dependent providers on a zero-length timer, not a
 /// microtask, so fake time has to step past it.
 void flush(FakeAsync async) => async.elapse(Duration.zero);
@@ -72,7 +80,7 @@ void main() {
         start: DateTime(2019, 1, 1),
         end: DateTime(2019, 1, 1),
       ));
-      expect(filter(c).startDate, DateTime(2019, 1, 1));
+      expect(filter(c).startDate, isNull, reason: 'the span start is open');
       expect(filter(c).endDate, DateTime(2019, 1, 1));
       notifier(c).pause();
     });
@@ -192,7 +200,7 @@ void main() {
       async.elapse(ConnectionsTimelineNotifier.sweep);
       settle(n);
       expect(filter(c).startDate, DateTime(2020, 1, 1));
-      expect(filter(c).endDate, DateTime(2022, 12, 31));
+      expect(filter(c).endDate, isNull, reason: 'the span end is open');
     });
   });
 
@@ -367,6 +375,72 @@ void main() {
       );
       notifier(c).play();
       expect(timeline(c), TimelineState.idle);
+      expect(sweepTimers(async), isEmpty);
+    });
+  });
+
+  /// Wires [_graph] to the notifier the way ConnectionsPage does: the
+  /// listener reports changes, and each build reports whether it is loading.
+  void wireGraph(ProviderContainer c) {
+    final n = notifier(c);
+    c.listen<AsyncValue<int>>(_graph, (_, next) {
+      if (next.isLoading) {
+        n.loadStarted();
+      } else {
+        n.loadSettled(failed: next.hasError);
+      }
+    });
+    n.syncLoading(c.read(_graph).isLoading);
+  }
+
+  test('a write during an unrelated reload still reaches the map', () {
+    fakeAsync((async) {
+      final c = container();
+      flush(async);
+      wireGraph(c);
+      async.elapse(const Duration(seconds: 1));
+      // A reload the timeline did not cause, for instance a view change.
+      c.invalidate(_graph);
+      async.elapse(const Duration(milliseconds: 500));
+      final n = notifier(c)..dragStart();
+      n.dragTo((start: DateTime(2020, 3, 1), end: DateTime(2020, 6, 1)));
+      n.dragTo((start: DateTime(2020, 3, 1), end: DateTime(2020, 7, 1)));
+      n.dragEnd((start: DateTime(2020, 3, 1), end: DateTime(2020, 7, 1)));
+      async.elapse(const Duration(seconds: 3));
+      expect(filter(c).endDate, DateTime(2020, 7, 1));
+      expect(timeline(c), TimelineState.idle);
+    });
+  });
+
+  test('a drag during the first load still reaches the map', () {
+    fakeAsync((async) {
+      final c = container();
+      flush(async);
+      wireGraph(c);
+      final n = notifier(c)..dragStart();
+      n.dragTo((start: DateTime(2020, 3, 1), end: DateTime(2020, 6, 1)));
+      n.dragEnd((start: DateTime(2020, 3, 1), end: DateTime(2020, 7, 1)));
+      async.elapse(const Duration(seconds: 3));
+      expect(filter(c).endDate, DateTime(2020, 7, 1));
+      expect(timeline(c), TimelineState.idle);
+    });
+  });
+
+  test('moving a thumb by a screen reader during play stops the sweep', () {
+    fakeAsync((async) {
+      final c = container();
+      flush(async);
+      final n = notifier(c)..play();
+      async.elapse(const Duration(seconds: 1));
+      // Semantic increase and decrease call onChanged with no onChangeStart.
+      final DayRange moved = (
+        start: DateTime(2019, 1, 1),
+        end: DateTime(2021, 5, 5),
+      );
+      n.dragTo(moved);
+      async.elapse(const Duration(seconds: 2));
+      expect(timeline(c).playing, isFalse);
+      expect(timeline(c).pending, moved);
       expect(sweepTimers(async), isEmpty);
     });
   });

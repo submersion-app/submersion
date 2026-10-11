@@ -58,12 +58,16 @@ today. Its state:
 Whenever `pending` differs from the filter's range and no graph load is in
 flight, the notifier writes `pending` into `connectionsFilterProvider`:
 
-- A range covering the whole span clears both dates (no filter at all), as
-  the year slider does today.
-- Any other range writes both `startDate` and `endDate` as calendar dates.
+- An end at the edge of the span is left open (no `startDate` at the first
+  dive day, no `endDate` at the last), so dives logged later stay on the map.
+  A range covering the whole span therefore clears both dates (no filter at
+  all), as the year slider does today.
+- Any end inside the span is written as a calendar date.
 
 It then waits for the page's existing `loadStarted` / `loadSettled` reports
-before writing again. Several drag moves during one load produce one write,
+before writing again. The page also reports from each build whether the graph
+is loading, because its listener never hears about an initial load (the
+first one, or a new node budget), and a write during one restarts it silently. Several drag moves during one load produce one write,
 of the latest value. A write that starts no load (the graph is already
 cached) counts as settled at once, so commits never stall. When a settle
 finds `pending` equal to the filter's range, `pending` clears to null.
