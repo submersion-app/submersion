@@ -13,7 +13,10 @@ import 'package:submersion/features/dive_planner/presentation/widgets/simple_pla
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
+import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -31,6 +34,32 @@ class SegmentList extends ConsumerWidget {
     // the authoring order (stateFromDivePlan sorts, and the notifier keeps
     // `order` in step with the list), which is what SegmentChain chains.
     final legs = const SegmentChain().resolve(planState.segments);
+
+    // The configured gas-switch stop time (#3263) stretches the switching
+    // segment's effective duration past what the diver typed into it, and
+    // PlanEngine.compute/buildCanvasSeries add it before computing the RT
+    // this list's subtitle claims to match -- so this list must add it too,
+    // or its own RT silently falls behind the computed schedule it promises
+    // to agree with (confirmed: a 5-minute configured gas-switch time never
+    // showed up here at all). Only [legs]' own runtimeSeconds is replaced,
+    // through a second, separately-resolved chain -- not the segment [legs]
+    // itself, which must keep showing the diver's own typed duration, and
+    // must keep its own id-for-id correspondence to [planState.segments]
+    // that edit/delete/reorder rely on. withDiluentSwitchTime never adds or
+    // removes a segment (only a switching one's own duration), so the two
+    // chains stay the same length and index-for-index comparable;
+    // expandRateSplitSegments (#3264) would not -- it can add a hold leg of
+    // its own -- so it is deliberately left out here.
+    //
+    // No extra sort here: [legs] above trusts the state's list order as-is,
+    // and this must stay index-for-index comparable with it, not sorted by
+    // a possibly different key.
+    final resolvedPlan = const TankRoleResolver().apply(
+      divePlanFromState(planState),
+    );
+    final adjustedLegs = const SegmentChain().resolve(
+      withDiluentSwitchTime(resolvedPlan.segments, resolvedPlan),
+    );
 
     return Card(
       child: Padding(
@@ -81,6 +110,7 @@ class SegmentList extends ConsumerWidget {
                   return _SegmentTile(
                     key: ValueKey(segment.id),
                     leg: leg,
+                    runtimeSeconds: adjustedLegs[index].runtimeSeconds,
                     // A gas switch is not a segment: it is this leg
                     // breathing a different tank than the one before it.
                     switchedGas:
@@ -182,6 +212,13 @@ class SegmentList extends ConsumerWidget {
 
 class _SegmentTile extends StatelessWidget {
   final ResolvedLeg leg;
+
+  /// Elapsed dive time at the end of this leg, same convention as
+  /// [ResolvedLeg.runtimeSeconds] -- but taken from a second chain that
+  /// also carries the configured gas-switch stop time (#3263), so this
+  /// matches the computed deco schedule's RT column even when [leg]'s own
+  /// runtimeSeconds, resolved from the plain authored segments, does not.
+  final int runtimeSeconds;
   final bool switchedGas;
   final UnitFormatter units;
   final int index;
@@ -193,6 +230,7 @@ class _SegmentTile extends StatelessWidget {
   const _SegmentTile({
     super.key,
     required this.leg,
+    required this.runtimeSeconds,
     required this.switchedGas,
     required this.units,
     required this.index,
@@ -278,7 +316,7 @@ class _SegmentTile extends StatelessWidget {
   /// the durations up in their head. Ceiled to whole minutes to match the
   /// computed deco schedule's RT column.
   String _formatSubtitle(AppLocalizations l10n) {
-    final runtime = (leg.runtimeSeconds / 60).ceil();
+    final runtime = (runtimeSeconds / 60).ceil();
     final rt = '${l10n.plannerCanvas_table_runtime} $runtime\u2032';
     final gas = switchedGas
         ? l10n.divePlanner_segmentList_gasSwitch(segment.gasMix.name)

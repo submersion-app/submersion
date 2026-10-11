@@ -167,6 +167,46 @@ void main() {
     });
   });
 
+  group('RT includes the configured gas-switch stop time (#3263)', () {
+    testWidgets(
+      'the switching leg\'s RT is pushed out by the configured stop time, '
+      'matching the computed schedule instead of just the authored '
+      'durations',
+      (tester) async {
+        await tester.pumpWidget(harness());
+        final container = containerOf(tester);
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        notifier.updateMode(PlanMode.ccr);
+        const deep = DiveTank(
+          id: 'deep',
+          name: 'Deep dil',
+          gasMix: GasMix(o2: 10, he: 70),
+          role: TankRole.diluent,
+          order: 1,
+        );
+        notifier.addTank(deep);
+        notifier.updateGasOptions(gasSwitchStopSeconds: 300);
+
+        final shallowDiluent = container
+            .read(divePlanNotifierProvider)
+            .tanks
+            .firstWhere((t) => t.id != deep.id);
+        addSegment(container, id: 's1', depth: 60, minutes: 5);
+        addSegment(container, id: 's2', depth: 100, minutes: 10, tank: deep);
+        // Confirm the fixture actually switches diluent, same as the
+        // screenshot that reported this (two different tanks, both CCR
+        // diluent-eligible).
+        expect(shallowDiluent.id, isNot(deep.id));
+        await tester.pumpAndSettle();
+
+        // Without the fix this read '15′' -- the two authored durations
+        // (5 + 10 min) with the 5-minute configured gas-switch stop time
+        // silently dropped, instead of 20'.
+        expect(subtitleAt(tester, 1), contains('RT 20′'));
+      },
+    );
+  });
+
   group('subtitle', () {
     testWidgets(
       'a leg breathing a different tank is labelled as a gas switch',
