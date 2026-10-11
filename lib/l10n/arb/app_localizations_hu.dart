@@ -19009,6 +19009,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_convert_view => 'Megtekintés';
 
   @override
+  String plannerCanvas_export_failed(String error) {
+    return 'Az exportálás sikertelen: $error';
+  }
+
+  @override
   String plannerCanvas_follow_chip(String name) {
     return '$name követése';
   }

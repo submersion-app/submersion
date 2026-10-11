@@ -18158,6 +18158,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_convert_view => '查看';
 
   @override
+  String plannerCanvas_export_failed(String error) {
+    return '导出失败：$error';
+  }
+
+  @override
   String plannerCanvas_follow_chip(String name) {
     return '跟随 $name';
   }

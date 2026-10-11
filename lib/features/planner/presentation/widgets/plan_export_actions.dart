@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
+
+const _log = LoggerService('PlanExport');
 
 /// A planner export once it has been built: what to write and what to call it.
 typedef PlanExportFile = ({List<int> bytes, String fileName, String mimeType});
@@ -36,8 +40,9 @@ typedef PlanExportSave =
 /// left to export. [title] heads both the sheet and the save dialog.
 /// [savedMessage] confirms a completed save; a cancelled save says nothing.
 /// [shareAnchor] is the iPad popover's anchor, resolved by the caller while
-/// the control that opened the menu is certainly mounted. Failures propagate
-/// to the caller.
+/// the control that opened the menu is certainly mounted. A failure to build
+/// or deliver the file is logged and reported in a snackbar, so a save the
+/// system refuses does not end in silence.
 Future<void> deliverPlanExport(
   BuildContext context, {
   required String title,
@@ -48,30 +53,38 @@ Future<void> deliverPlanExport(
   PlanExportSave? save,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
+  final l10n = context.l10n;
   final destination = await showExportDestinationSheet(context, title: title);
   if (destination == null) return;
 
-  final file = await build();
-  if (file == null) return;
+  try {
+    final file = await build();
+    if (file == null) return;
 
-  switch (destination) {
-    case ExportDestination.share:
-      await (share ?? _share)(
-        file.bytes,
-        file.fileName,
-        file.mimeType,
-        shareAnchor,
-      );
-    case ExportDestination.saveToFile:
-      final saved = await (save ?? _save)(
-        file.bytes,
-        file.fileName,
-        file.mimeType,
-        title,
-      );
-      if (saved != null) {
-        messenger.showSnackBar(SnackBar(content: Text(savedMessage)));
-      }
+    switch (destination) {
+      case ExportDestination.share:
+        await (share ?? _share)(
+          file.bytes,
+          file.fileName,
+          file.mimeType,
+          shareAnchor,
+        );
+      case ExportDestination.saveToFile:
+        final saved = await (save ?? _save)(
+          file.bytes,
+          file.fileName,
+          file.mimeType,
+          title,
+        );
+        if (saved != null) {
+          messenger.showSnackBar(SnackBar(content: Text(savedMessage)));
+        }
+    }
+  } catch (e, st) {
+    _log.error('Could not export "$title"', error: e, stackTrace: st);
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.plannerCanvas_export_failed(e.toString()))),
+    );
   }
 }
 

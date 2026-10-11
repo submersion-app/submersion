@@ -5439,6 +5439,14 @@
   "plannerCanvas_contingency_turnRule": "Keerdruk-regel",
   "plannerCanvas_convert_success": "Duik aangemaakt vanuit plan",
   "plannerCanvas_convert_view": "Bekijk",
+  "plannerCanvas_export_failed": "Exporteren mislukt: {error}",
+  "@plannerCanvas_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_follow_chip": "Volgt {name}",
   "plannerCanvas_follow_empty": "Nog geen gelogde duiken",
   "plannerCanvas_follow_noTissues": "Geen profielgegevens voor die duik — oppervlakte-interval ingesteld zonder weefselverzadiging",

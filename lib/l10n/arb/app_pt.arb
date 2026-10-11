@@ -5439,6 +5439,14 @@
   "plannerCanvas_contingency_turnRule": "Regra de pressão de retorno",
   "plannerCanvas_convert_success": "Mergulho criado a partir do plano",
   "plannerCanvas_convert_view": "Ver",
+  "plannerCanvas_export_failed": "Falha na exportação: {error}",
+  "@plannerCanvas_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_follow_chip": "Seguindo {name}",
   "plannerCanvas_follow_empty": "Ainda não há mergulhos registrados",
   "plannerCanvas_follow_noTissues": "Sem dados de perfil nesse mergulho — intervalo de superfície definido sem saturação dos tecidos",

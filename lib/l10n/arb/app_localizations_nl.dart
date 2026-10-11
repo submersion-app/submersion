@@ -18947,6 +18947,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_convert_view => 'Bekijk';
 
   @override
+  String plannerCanvas_export_failed(String error) {
+    return 'Exporteren mislukt: $error';
+  }
+
+  @override
   String plannerCanvas_follow_chip(String name) {
     return 'Volgt $name';
   }

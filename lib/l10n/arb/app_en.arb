@@ -11932,6 +11932,14 @@
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
   "plannerCanvas_convert_success": "Dive created from plan",
   "plannerCanvas_convert_view": "View",
+  "plannerCanvas_export_failed": "Export failed: {error}",
+  "@plannerCanvas_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_follow_chip": "Following {name}",
   "@plannerCanvas_follow_chip": {
     "placeholders": {

@@ -30547,6 +30547,12 @@ abstract class AppLocalizations {
   /// **'View'**
   String get plannerCanvas_convert_view;
 
+  /// No description provided for @plannerCanvas_export_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String plannerCanvas_export_failed(String error);
+
   /// No description provided for @plannerCanvas_follow_chip.
   ///
   /// In en, this message translates to:

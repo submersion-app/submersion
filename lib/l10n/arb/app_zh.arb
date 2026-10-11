@@ -5590,6 +5590,14 @@
   "plannerCanvas_contingency_turnRule": "折返压力规则",
   "plannerCanvas_convert_success": "已从计划创建潜水",
   "plannerCanvas_convert_view": "查看",
+  "plannerCanvas_export_failed": "导出失败：{error}",
+  "@plannerCanvas_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_follow_chip": "跟随 {name}",
   "plannerCanvas_follow_empty": "还没有记录的潜水",
   "plannerCanvas_follow_noTissues": "该潜水没有剖面数据 — 已设置水面间隔但未载入组织饱和度",

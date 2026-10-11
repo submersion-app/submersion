@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
@@ -33,12 +35,16 @@ void main() {
   late List<_Delivery> saved;
   late int builds;
   late String? saveResult;
+  Object? buildError;
+  Object? deliveryError;
 
   setUp(() {
     shared = [];
     saved = [];
     builds = 0;
     saveResult = '/exports/Reef_slate.pdf';
+    buildError = null;
+    deliveryError = null;
   });
 
   Widget harness({PlanExportFile? built = file}) => testApp(
@@ -51,11 +57,15 @@ void main() {
           shareAnchor: anchor,
           build: () async {
             builds++;
+            if (buildError != null) throw buildError!;
             return built;
           },
-          share: (bytes, fileName, mimeType, origin) async =>
-              shared.add(_Delivery(bytes, fileName, mimeType, origin: origin)),
+          share: (bytes, fileName, mimeType, origin) async {
+            if (deliveryError != null) throw deliveryError!;
+            shared.add(_Delivery(bytes, fileName, mimeType, origin: origin));
+          },
           save: (bytes, fileName, mimeType, dialogTitle) async {
+            if (deliveryError != null) throw deliveryError!;
             saved.add(_Delivery(bytes, fileName, mimeType, title: dialogTitle));
             return saveResult;
           },
@@ -148,5 +158,41 @@ void main() {
     expect(builds, 1);
     expect(saved, isEmpty);
     expect(shared, isEmpty);
+  });
+
+  testWidgets('a failed build says the export failed', (tester) async {
+    buildError = StateError('no outcome');
+    await openSheet(tester);
+
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+
+    expect(saved, isEmpty);
+    expect(find.text('Export failed: Bad state: no outcome'), findsOneWidget);
+  });
+
+  testWidgets('a failed save says the export failed', (tester) async {
+    deliveryError = const FileSystemException('Access is denied');
+    await openSheet(tester);
+
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Export failed: '), findsOneWidget);
+    expect(find.textContaining('Access is denied'), findsOneWidget);
+    expect(find.text('Slate saved'), findsNothing);
+  });
+
+  testWidgets('a failed share says the export failed', (tester) async {
+    deliveryError = StateError('no share target');
+    await openSheet(tester);
+
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Export failed: Bad state: no share target'),
+      findsOneWidget,
+    );
   });
 }

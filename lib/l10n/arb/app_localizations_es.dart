@@ -19068,6 +19068,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerCanvas_convert_view => 'Ver';
 
   @override
+  String plannerCanvas_export_failed(String error) {
+    return 'Error al exportar: $error';
+  }
+
+  @override
   String plannerCanvas_follow_chip(String name) {
     return 'Siguiendo $name';
   }

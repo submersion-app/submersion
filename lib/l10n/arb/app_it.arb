@@ -5337,6 +5337,14 @@
   "plannerCanvas_contingency_turnRule": "Regola pressione di rientro",
   "plannerCanvas_convert_success": "Immersione creata dal piano",
   "plannerCanvas_convert_view": "Vedi",
+  "plannerCanvas_export_failed": "Esportazione non riuscita: {error}",
+  "@plannerCanvas_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_follow_chip": "Segue {name}",
   "plannerCanvas_follow_empty": "Nessuna immersione registrata",
   "plannerCanvas_follow_noTissues": "Nessun dato di profilo per quell'immersione — intervallo di superficie impostato senza saturazione dei tessuti",

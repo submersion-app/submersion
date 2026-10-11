@@ -5337,6 +5337,14 @@
   "plannerCanvas_contingency_turnRule": "Fordulónyomás-szabály",
   "plannerCanvas_convert_success": "Merülés létrehozva a tervből",
   "plannerCanvas_convert_view": "Megtekintés",
+  "plannerCanvas_export_failed": "Az exportálás sikertelen: {error}",
+  "@plannerCanvas_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_follow_chip": "{name} követése",
   "plannerCanvas_follow_empty": "Még nincsenek naplózott merülések",
   "plannerCanvas_follow_noTissues": "Nincs profiladat ehhez a merüléshez — a felszíni intervallum szövettelítés nélkül lett beállítva",

@@ -18648,6 +18648,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_convert_view => 'הצג';
 
   @override
+  String plannerCanvas_export_failed(String error) {
+    return 'הייצוא נכשל: $error';
+  }
+
+  @override
   String plannerCanvas_follow_chip(String name) {
     return 'עוקב אחרי $name';
   }

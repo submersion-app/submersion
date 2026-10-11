@@ -18786,6 +18786,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_convert_view => 'View';
 
   @override
+  String plannerCanvas_export_failed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
   String plannerCanvas_follow_chip(String name) {
     return 'Following $name';
   }

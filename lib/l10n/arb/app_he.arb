@@ -5337,6 +5337,14 @@
   "plannerCanvas_contingency_turnRule": "כלל לחץ פנייה",
   "plannerCanvas_convert_success": "נוצרה צלילה מהתוכנית",
   "plannerCanvas_convert_view": "הצג",
+  "plannerCanvas_export_failed": "הייצוא נכשל: {error}",
+  "@plannerCanvas_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_follow_chip": "עוקב אחרי {name}",
   "plannerCanvas_follow_empty": "אין עדיין צלילות מתועדות",
   "plannerCanvas_follow_noTissues": "אין נתוני פרופיל לצלילה זו — מרווח הפנים נקבע ללא העמסת רקמות",
