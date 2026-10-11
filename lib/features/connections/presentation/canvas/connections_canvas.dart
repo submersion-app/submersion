@@ -273,11 +273,13 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
     );
   }
 
-  void _beginDrag(Offset p) {
+  /// Starts dragging [pressed], the node under the press, or else whatever
+  /// node is at [p] now.
+  void _beginDrag(Offset p, {NodeRef? pressed}) {
     _autoFit = false;
     _userMoved = true;
     _glide.stop();
-    final node = _nodeAt(p);
+    final node = pressed ?? _nodeAt(p);
     setState(() => _dragging = node);
     if (node != null) widget.onSelect(NodeSelection(node));
   }
@@ -365,13 +367,11 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
                 GestureRecognizerFactoryWithHandlers<
                   _NodeDragGestureRecognizer
                 >(
-                  () => _NodeDragGestureRecognizer(
-                    isOnNode: (p) => _nodeAt(p) != null,
-                  ),
+                  () => _NodeDragGestureRecognizer(nodeAt: _nodeAt),
                   (r) => r
                     ..dragStartBehavior = DragStartBehavior.down
                     ..onStart = (d) {
-                      _beginDrag(d.localPosition);
+                      _beginDrag(d.localPosition, pressed: r.pressed);
                     }
                     ..onUpdate = (d) {
                       _dragTo(d.localPosition);
@@ -568,10 +568,15 @@ const double kNodeDragSlop = 8;
 /// A press-drag that starts on a node, for mouse and stylus only. Touch
 /// keeps long-press, so a finger landing on a node can still pan the map.
 class _NodeDragGestureRecognizer extends PanGestureRecognizer {
-  _NodeDragGestureRecognizer({required this.isOnNode})
+  _NodeDragGestureRecognizer({required this.nodeAt})
     : super(supportedDevices: _precise);
 
-  final bool Function(Offset local) isOnNode;
+  final NodeRef? Function(Offset local) nodeAt;
+
+  /// The node under the last press. The drag carries this one even when a
+  /// settling layout has moved it off the press point by the time the
+  /// slop is passed.
+  NodeRef? pressed;
 
   /// Where each tracked pointer went down, and the farthest it has moved.
   final Map<int, Offset> _downAt = {};
@@ -579,10 +584,11 @@ class _NodeDragGestureRecognizer extends PanGestureRecognizer {
 
   @override
   bool isPointerAllowed(PointerEvent event) =>
-      super.isPointerAllowed(event) && isOnNode(event.localPosition);
+      super.isPointerAllowed(event) && nodeAt(event.localPosition) != null;
 
   @override
   void addAllowedPointer(PointerDownEvent event) {
+    pressed = nodeAt(event.localPosition);
     _downAt[event.pointer] = event.position;
     _farthest = 0;
     super.addAllowedPointer(event);

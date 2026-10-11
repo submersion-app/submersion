@@ -170,4 +170,24 @@ void main() {
     expect(_controller(tester).frame.positions[_me], GraphPoint.zero);
     expect(focused, _me);
   });
+
+  testWidgets('the node under the press is dragged even if it moves away', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_Host(onSelect: (_) {}, onFocus: (_) {}));
+    await tester.pumpAndSettle();
+    final centre = tester.getCenter(find.byType(ConnectionsCanvas));
+    final g = await tester.startGesture(centre, kind: PointerDeviceKind.mouse);
+    // A settling layout carries the node off before the drag begins.
+    _controller(tester).moveNode(_me, const GraphPoint(900, 900));
+    await tester.pump();
+    await g.moveBy(const Offset(30, 0));
+    await g.moveBy(const Offset(30, 0));
+    await g.up();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      _controller(tester).frame.positions[_me],
+      isNot(const GraphPoint(900, 900)),
+    );
+  });
 }
