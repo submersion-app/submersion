@@ -10758,7 +10758,7 @@
   "incidentCategory_planning": "תכנון",
   "incidentCategory_other": "אחר",
   "safetyHub_incidentsLink": "יומן כמעט-תאונות",
-  "safetyHub_incidentsLink_subtitle": "הערות אירועים פרטיות ולא ענישתיות",
+  "safetyHub_incidentsLink_count": "{count, plural, =0{אין עדיין} =1{רשומה אחת} other{{count} רשומות}}",
   "diveLog_detail_menu_logNearMiss": "רישום כמעט-תאונה",
   "diveLog_planned_chip": "מתוכננת",
   "diveLog_planned_bannerTitle": "צלילה מתוכננת",

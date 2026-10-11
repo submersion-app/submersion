@@ -10758,7 +10758,7 @@
   "incidentCategory_planning": "Tervezés",
   "incidentCategory_other": "Egyéb",
   "safetyHub_incidentsLink": "Kvázibaleset-napló",
-  "safetyHub_incidentsLink_subtitle": "Privát, nem büntető jellegű eseményjegyzetek",
+  "safetyHub_incidentsLink_count": "{count, plural, =0{Még nincs} =1{{count} bejegyzés} other{{count} bejegyzés}}",
   "diveLog_detail_menu_logNearMiss": "Kvázibaleset rögzítése",
   "diveLog_planned_chip": "Tervezett",
   "diveLog_planned_bannerTitle": "Tervezett merülés",

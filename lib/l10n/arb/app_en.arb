@@ -22351,7 +22351,14 @@
   "incidentCategory_planning": "Planning",
   "incidentCategory_other": "Other",
   "safetyHub_incidentsLink": "Near-miss log",
-  "safetyHub_incidentsLink_subtitle": "Private, non-punitive incident notes",
+  "safetyHub_incidentsLink_count": "{count, plural, =0{None yet} =1{{count} entry} other{{count} entries}}",
+  "@safetyHub_incidentsLink_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_detail_menu_logNearMiss": "Log near-miss",
   "diveLog_planned_chip": "Planned",
   "diveLog_planned_bannerTitle": "Planned dive",

@@ -44,6 +44,12 @@ chambers, and your medical and insurance details. See [Safety](safety.md).
 The medical clearance shows **Expiring Soon** within 30 days of its expiry
 date, and **Expired** after it.
 
+### Near-miss log
+
+Your private, non-punitive notes on dives where something almost went wrong.
+The tile shows how many entries you have, or "None yet". See
+[Safety](safety.md#near-miss-log).
+
 ### Insurance
 
 **Insurance Provider**, **Policy Number**, **24h Emergency Assistance Number**,

@@ -36611,8 +36611,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get safetyHub_incidentsLink => 'Registro de casi incidentes';
 
   @override
-  String get safetyHub_incidentsLink_subtitle =>
-      'Notas de incidentes privadas y sin ánimo punitivo';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entradas',
+      one: '$count entrada',
+      zero: 'Ninguna aún',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Registrar casi incidente';

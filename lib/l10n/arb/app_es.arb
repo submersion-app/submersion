@@ -10758,7 +10758,7 @@
   "incidentCategory_planning": "Planificación",
   "incidentCategory_other": "Otro",
   "safetyHub_incidentsLink": "Registro de casi incidentes",
-  "safetyHub_incidentsLink_subtitle": "Notas de incidentes privadas y sin ánimo punitivo",
+  "safetyHub_incidentsLink_count": "{count, plural, =0{Ninguna aún} =1{{count} entrada} other{{count} entradas}}",
   "diveLog_detail_menu_logNearMiss": "Registrar casi incidente",
   "diveLog_planned_chip": "Planificada",
   "diveLog_planned_bannerTitle": "Inmersión planificada",

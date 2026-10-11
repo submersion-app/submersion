@@ -37039,8 +37039,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetyHub_incidentsLink => 'سجل الحوادث الوشيكة';
 
   @override
-  String get safetyHub_incidentsLink_subtitle =>
-      'ملاحظات حوادث خاصة وغير عقابية';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count إدخال',
+      many: '$count إدخالًا',
+      few: '$count إدخالات',
+      two: 'إدخالان',
+      one: 'إدخال واحد',
+      zero: 'لا يوجد بعد',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'تسجيل حادث وشيك';

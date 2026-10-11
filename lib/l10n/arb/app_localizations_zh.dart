@@ -34523,7 +34523,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetyHub_incidentsLink => '未遂事件日志';
 
   @override
-  String get safetyHub_incidentsLink_subtitle => '私密、非惩罚性的事件记录';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条记录',
+      one: '$count 条记录',
+      zero: '暂无',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => '记录未遂事件';

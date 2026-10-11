@@ -40,7 +40,8 @@ void main() {
       100,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('Near-miss log'), findsOneWidget);
+    // The near-miss log lives on the Diver Profile hub now (issue #3061).
+    expect(find.text('Near-miss log'), findsNothing);
     expect(
       find.byKey(const ValueKey('settings-manage-nav-routes')),
       findsNothing,

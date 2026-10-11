@@ -36381,8 +36381,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get safetyHub_incidentsLink => 'Kvázibaleset-napló';
 
   @override
-  String get safetyHub_incidentsLink_subtitle =>
-      'Privát, nem büntető jellegű eseményjegyzetek';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bejegyzés',
+      one: '$count bejegyzés',
+      zero: 'Még nincs',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Kvázibaleset rögzítése';

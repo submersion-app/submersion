@@ -35693,8 +35693,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetyHub_incidentsLink => 'יומן כמעט-תאונות';
 
   @override
-  String get safetyHub_incidentsLink_subtitle =>
-      'הערות אירועים פרטיות ולא ענישתיות';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count רשומות',
+      one: 'רשומה אחת',
+      zero: 'אין עדיין',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'רישום כמעט-תאונה';

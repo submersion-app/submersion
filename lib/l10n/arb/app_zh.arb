@@ -10758,7 +10758,7 @@
   "incidentCategory_planning": "计划",
   "incidentCategory_other": "其他",
   "safetyHub_incidentsLink": "未遂事件日志",
-  "safetyHub_incidentsLink_subtitle": "私密、非惩罚性的事件记录",
+  "safetyHub_incidentsLink_count": "{count, plural, =0{暂无} =1{{count} 条记录} other{{count} 条记录}}",
   "diveLog_detail_menu_logNearMiss": "记录未遂事件",
   "diveLog_planned_chip": "计划中",
   "diveLog_planned_bannerTitle": "计划的潜水",

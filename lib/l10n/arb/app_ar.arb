@@ -10758,7 +10758,7 @@
   "incidentCategory_planning": "التخطيط",
   "incidentCategory_other": "أخرى",
   "safetyHub_incidentsLink": "سجل الحوادث الوشيكة",
-  "safetyHub_incidentsLink_subtitle": "ملاحظات حوادث خاصة وغير عقابية",
+  "safetyHub_incidentsLink_count": "{count, plural, =0{لا يوجد بعد} =1{إدخال واحد} two{إدخالان} few{{count} إدخالات} many{{count} إدخالًا} other{{count} إدخال}}",
   "diveLog_detail_menu_logNearMiss": "تسجيل حادث وشيك",
   "diveLog_planned_chip": "مخططة",
   "diveLog_planned_bannerTitle": "غوصة مخططة",

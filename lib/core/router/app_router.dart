@@ -1251,7 +1251,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 underwaterTrackSeascapeLocation(state.pathParameters['id']!),
           ),
 
-          // Near-miss incident log (entry point: Settings > Manage)
+          // Near-miss incident log (entry point: Settings > Diver Profile)
           GoRoute(
             path: '/incidents',
             name: 'incidents',

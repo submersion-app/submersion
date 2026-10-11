@@ -10891,7 +10891,7 @@
   "incidentCategory_planning": "Planung",
   "incidentCategory_other": "Sonstiges",
   "safetyHub_incidentsLink": "Beinahe-Unfall-Log",
-  "safetyHub_incidentsLink_subtitle": "Private, nicht wertende Vorfallnotizen",
+  "safetyHub_incidentsLink_count": "{count, plural, =0{Noch keine} =1{{count} Eintrag} other{{count} Einträge}}",
   "diveLog_detail_menu_logNearMiss": "Beinahe-Unfall erfassen",
   "diveLog_planned_chip": "Geplant",
   "diveLog_planned_bannerTitle": "Geplanter Tauchgang",

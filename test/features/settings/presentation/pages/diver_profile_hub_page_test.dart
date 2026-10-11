@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/safety/domain/entities/incident.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -559,6 +560,7 @@ void main() {
     Future<void> pumpHubRouter(
       WidgetTester tester, {
       List<Document> personalDocuments = const [],
+      List<Incident> incidents = const [],
     }) async {
       tester.view.physicalSize = const Size(800, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -566,6 +568,7 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       final overrides = await getBaseOverrides(
         ownerDocuments: personalDocuments,
+        incidents: incidents,
       );
       final diver = makeDiver();
       final router = GoRouter(
@@ -579,6 +582,11 @@ void main() {
             path: '/documents',
             builder: (context, state) =>
                 Scaffold(body: Text('DOCUMENTS ${state.uri.query}')),
+          ),
+          GoRoute(
+            path: '/incidents',
+            builder: (context, state) =>
+                const Scaffold(body: Text('INCIDENTS_PAGE')),
           ),
         ],
       );
@@ -632,6 +640,53 @@ void main() {
       await tester.tap(find.byIcon(Icons.folder_copy_outlined));
       await tester.pumpAndSettle();
       expect(find.text('DOCUMENTS owner=personal'), findsOneWidget);
+    });
+
+    Incident makeIncident(String id) => Incident(
+      id: id,
+      diverId: 'diver-1',
+      occurredAt: DateTime(2026, 5, 1),
+      category: IncidentCategory.buoyancy,
+      severity: IncidentSeverity.minor,
+      narrative: 'Rapid ascent from 18 m',
+      createdAt: DateTime(2026, 5, 1),
+      updatedAt: DateTime(2026, 5, 1),
+    );
+
+    // The near-miss log moved here from Settings > Manage (issue #3061):
+    // incidents are the active diver's own safety records.
+    testWidgets('the Near-miss log tile says None yet with no entries', (
+      tester,
+    ) async {
+      await pumpHubRouter(tester);
+      expect(find.text('Near-miss log'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'Near-miss log'),
+          matching: find.text('None yet'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the Near-miss log tile counts a single entry', (tester) async {
+      await pumpHubRouter(tester, incidents: [makeIncident('i1')]);
+      expect(find.text('1 entry'), findsOneWidget);
+    });
+
+    testWidgets('the Near-miss log tile counts entries and opens the log', (
+      tester,
+    ) async {
+      await pumpHubRouter(
+        tester,
+        incidents: [
+          for (final id in ['i1', 'i2', 'i3']) makeIncident(id),
+        ],
+      );
+      expect(find.text('3 entries'), findsOneWidget);
+      await tester.tap(find.text('Near-miss log'));
+      await tester.pumpAndSettle();
+      expect(find.text('INCIDENTS_PAGE'), findsOneWidget);
     });
 
     testWidgets('tapping Prior Experience tile navigates to route', (

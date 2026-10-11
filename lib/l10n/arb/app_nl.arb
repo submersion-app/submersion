@@ -10758,7 +10758,7 @@
   "incidentCategory_planning": "Planning",
   "incidentCategory_other": "Overig",
   "safetyHub_incidentsLink": "Bijna-ongevallenlog",
-  "safetyHub_incidentsLink_subtitle": "Privé, niet-bestraffende incidentnotities",
+  "safetyHub_incidentsLink_count": "{count, plural, =0{Nog geen} =1{{count} melding} other{{count} meldingen}}",
   "diveLog_detail_menu_logNearMiss": "Bijna-ongeval vastleggen",
   "diveLog_planned_chip": "Gepland",
   "diveLog_planned_bannerTitle": "Geplande duik",

@@ -36336,8 +36336,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get safetyHub_incidentsLink => 'Bijna-ongevallenlog';
 
   @override
-  String get safetyHub_incidentsLink_subtitle =>
-      'Privé, niet-bestraffende incidentnotities';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meldingen',
+      one: '$count melding',
+      zero: 'Nog geen',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Bijna-ongeval vastleggen';

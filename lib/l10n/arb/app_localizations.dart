@@ -58039,11 +58039,11 @@ abstract class AppLocalizations {
   /// **'Near-miss log'**
   String get safetyHub_incidentsLink;
 
-  /// No description provided for @safetyHub_incidentsLink_subtitle.
+  /// No description provided for @safetyHub_incidentsLink_count.
   ///
   /// In en, this message translates to:
-  /// **'Private, non-punitive incident notes'**
-  String get safetyHub_incidentsLink_subtitle;
+  /// **'{count, plural, =0{None yet} =1{{count} entry} other{{count} entries}}'**
+  String safetyHub_incidentsLink_count(int count);
 
   /// No description provided for @diveLog_detail_menu_logNearMiss.
   ///
