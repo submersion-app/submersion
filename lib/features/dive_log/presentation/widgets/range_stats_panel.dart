@@ -6,7 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/range_gas_consumption.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -145,15 +145,22 @@ class RangeStatsPanel extends ConsumerWidget {
     return fitting.clamp(_minColumns, math.max(_minColumns, maxColumns));
   }
 
-  /// SAC and RMV over the selection, from the pressure series SAC analysis
-  /// reads (the primary source wherever two computers logged one cylinder).
+  /// SAC and RMV over the selection, from the pressure series of the
+  /// source the chart draws, the same one [profile] (and so the range's
+  /// average depth) comes from.
+  ///
+  /// The duration is the selection's own span, so a range holding a single
+  /// sample of a sparse profile still has one; it needs only a sample for
+  /// the depth.
   RangeGasConsumption _gasConsumption(
     WidgetRef ref,
     RangeSelectionState rangeState,
     _RangeStats stats,
   ) {
-    final pressures = ref.watch(tankPressuresProvider(diveId)).value;
-    if (pressures == null || pressures.isEmpty || stats.elapsedSeconds <= 0) {
+    final pressures = ref
+        .watch(activeSourceTankPressuresProvider(diveId))
+        .value;
+    if (pressures == null || pressures.isEmpty || stats.sampleCount == 0) {
       return (sac: null, rmv: null);
     }
     return rangeGasConsumption(
@@ -398,6 +405,7 @@ class RangeStatsPanel extends ConsumerWidget {
 
     if (rangePoints.isEmpty) {
       return const _RangeStats(
+        sampleCount: 0,
         elapsedSeconds: 0,
         depthDelta: 0,
         minDepth: 0,
@@ -425,6 +433,7 @@ class RangeStatsPanel extends ConsumerWidget {
     // Guard: zero-duration range has no meaningful rates
     if (elapsedSeconds <= 0) {
       return _RangeStats(
+        sampleCount: rangePoints.length,
         elapsedSeconds: 0,
         depthDelta: depthDelta,
         minDepth: minDepth,
@@ -479,6 +488,7 @@ class RangeStatsPanel extends ConsumerWidget {
     }
 
     return _RangeStats(
+      sampleCount: rangePoints.length,
       elapsedSeconds: elapsedSeconds,
       depthDelta: depthDelta,
       minDepth: minDepth,
@@ -497,6 +507,8 @@ class RangeStatsPanel extends ConsumerWidget {
 
 /// Internal class to hold range statistics
 class _RangeStats {
+  /// Profile samples inside the range.
+  final int sampleCount;
   final int elapsedSeconds;
   final double depthDelta;
   final double minDepth;
@@ -511,6 +523,7 @@ class _RangeStats {
   final int? maxHR;
 
   const _RangeStats({
+    required this.sampleCount,
     required this.elapsedSeconds,
     required this.depthDelta,
     required this.minDepth,

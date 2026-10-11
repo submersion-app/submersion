@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
@@ -52,7 +53,13 @@ Future<void> _pumpPanel(
 
   final container = ProviderContainer(
     overrides: [
-      tankPressuresProvider.overrideWith((ref, id) async => tankPressures),
+      // The chart's own source. The primary-source union differs from it
+      // only on a multi-computer dive; leaving it empty proves the panel
+      // reads the pressures drawn beside its depth stats.
+      activeSourceTankPressuresProvider.overrideWith(
+        (ref, id) async => tankPressures,
+      ),
+      tankPressuresProvider.overrideWith((ref, id) async => const {}),
       gasModelProvider.overrideWithValue(GasModel.ideal),
       gasConsumptionDisplayProvider.overrideWithValue(display),
     ],
@@ -163,6 +170,25 @@ void main() {
       expect(find.text('60.0 L/min'), findsOneWidget);
     });
 
+    testWidgets('a range holding a single profile sample still shows SAC', (
+      tester,
+    ) async {
+      // Samples every 5 min: the 150 s to 450 s range holds only t=300.
+      await _pumpPanel(
+        tester,
+        width: 1400,
+        profile: [
+          for (var t = 0; t <= 600; t += 300)
+            DiveProfilePoint(timestamp: t, depth: 10),
+        ],
+        tanks: const [backGas],
+        tankPressures: _backGasPressures,
+      );
+
+      expect(find.text('5.0 bar/min'), findsOneWidget);
+      expect(find.text('60.0 L/min'), findsOneWidget);
+    });
+
     testWidgets('follows a SAC-only display preference', (tester) async {
       await pumpGas(tester, display: GasConsumptionDisplay.sac);
 
@@ -204,32 +230,27 @@ void main() {
       expect(find.text('RMV'), findsNothing);
     });
 
+    const ccrTanks = [
+      DiveTank(id: 'dil', volume: 3, role: TankRole.diluent),
+      DiveTank(
+        id: 'o2',
+        volume: 3,
+        role: TankRole.oxygenSupply,
+        gasMix: GasMix(o2: 100),
+        order: 1,
+      ),
+    ];
+    final ccrPressures = {
+      'dil': _backGasPressures['bg']!,
+      'o2': [
+        for (var t = 0; t <= 600; t += 30)
+          TankPressurePoint(tankId: 'o2', timestamp: t, pressure: 200 - t / 12),
+      ],
+    };
+
     testWidgets('a rebreather reads SAC from the diluent alone', (
       tester,
     ) async {
-      const ccrTanks = [
-        DiveTank(id: 'dil', volume: 3, role: TankRole.diluent),
-        DiveTank(
-          id: 'o2',
-          volume: 3,
-          role: TankRole.oxygenSupply,
-          gasMix: GasMix(o2: 100),
-          order: 1,
-        ),
-      ];
-      final ccrPressures = {
-        'dil': _backGasPressures['bg']!,
-        'o2': [
-          for (var t = 0; t <= 600; t += 30)
-            TankPressurePoint(
-              tankId: 'o2',
-              timestamp: t,
-              pressure: 200 - t / 12,
-            ),
-        ],
-      };
-
-      // Diluent alone: 50 bar over 5 min at 2 bar ambient.
       await pumpGas(
         tester,
         tanks: ccrTanks,
@@ -237,15 +258,22 @@ void main() {
         display: GasConsumptionDisplay.sac,
         isRebreather: true,
       );
-      expect(find.text('5.0 bar/min'), findsOneWidget);
 
-      // Open circuit adds the oxygen cylinder's 25 bar of the same size.
+      // Diluent alone: 50 bar over 5 min at 2 bar ambient.
+      expect(find.text('5.0 bar/min'), findsOneWidget);
+    });
+
+    testWidgets('open circuit adds every breathed cylinder to SAC', (
+      tester,
+    ) async {
       await pumpGas(
         tester,
         tanks: ccrTanks,
         tankPressures: ccrPressures,
         display: GasConsumptionDisplay.sac,
       );
+
+      // The oxygen cylinder's 25 bar, of the same size, joins the 50.
       expect(find.text('7.5 bar/min'), findsOneWidget);
     });
   });
