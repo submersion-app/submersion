@@ -634,8 +634,9 @@ class ProfileSeriesRepository {
     now: now,
   );
 
-  /// True when [sourceId] (or an unattributed pre-v154 series) owns a live
-  /// manual edit of [diveId]: a primary series with no computer.
+  /// True when [sourceId] owns a live manual edit of [diveId]: a primary
+  /// series with no computer. An unattributed series never counts: a merge's
+  /// synthetic surface fill has that shape too, and is no edit.
   Future<bool> hasLiveEdit(String diveId, {required String sourceId}) async {
     final rows =
         await (_db.selectOnly(_db.diveProfileSeries)
@@ -644,8 +645,7 @@ class ProfileSeriesRepository {
                 _db.diveProfileSeries.diveId.equals(diveId) &
                     _db.diveProfileSeries.isPrimary.equals(true) &
                     _db.diveProfileSeries.computerId.isNull() &
-                    (_db.diveProfileSeries.sourceId.equals(sourceId) |
-                        _db.diveProfileSeries.sourceId.isNull()),
+                    _db.diveProfileSeries.sourceId.equals(sourceId),
               )
               ..limit(1))
             .get();

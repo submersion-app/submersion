@@ -333,6 +333,13 @@ void main() {
     });
 
     test('hasLiveEdit sees only a primary series with no computer', () async {
+      // A merge's synthetic surface fill: primary, no computer, no source.
+      await seriesRepo.insertSeries(
+        id: 'surface-fill',
+        diveId: 'dive-1',
+        samples: span(0),
+        now: now,
+      );
       await seriesRepo.insertSeries(
         id: 'demoted-edit',
         diveId: 'dive-1',
