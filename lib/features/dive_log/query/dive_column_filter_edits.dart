@@ -40,17 +40,16 @@ DiveFilterState resetDiveColumnFilter(DiveFilterState filter, DiveField field) {
   final withoutRules = kept.length == top.length
       ? filter
       : filter.copyWith(query: _join(kept), clearQuery: kept.isEmpty);
-  return _hasAxis(withoutRules, field)
-      ? _clearAxis(withoutRules, field)
-      : withoutRules;
+  return _clearAxis(withoutRules, field);
 }
 
-/// Whether [field]'s column has a top-level rule or its axis set.
+/// Whether [field]'s column has a top-level rule or its axis set. An axis
+/// "All dives" suspends is not filtering anything, so it does not count.
 bool isDiveColumnFiltered(DiveFilterState filter, DiveField field) {
   final key = kDiveColumnFilters[field]?.key;
   if (key == null) return false;
   return _topLevel(filter.query).any((n) => _isOnKey(n, key)) ||
-      _hasAxis(filter, field);
+      (!filter.axesSuspended && _hasAxis(filter, field));
 }
 
 bool _hasAxis(DiveFilterState f, DiveField field) => switch (field) {

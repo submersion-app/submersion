@@ -211,6 +211,24 @@ void main() {
       expect(options(DiveField.totalWeight, base), isEmpty);
     });
 
+    test('an entry time on another day than the dive date', () {
+      // The cell shows the entry time; the date field reads dive_date_time.
+      final d = Dive(
+        id: 'd',
+        dateTime: DateTime.utc(2026, 4, 1, 23, 30),
+        entryTime: DateTime.utc(2026, 4, 2, 0, 10),
+      );
+      expect(options(DiveField.dateTime, d), isEmpty);
+    });
+
+    test('a dive name stored with padding', () {
+      // The cell trims it; the name field compares the stored text.
+      expect(
+        options(DiveField.diveName, base.copyWith(name: ' Night dive ')),
+        isEmpty,
+      );
+    });
+
     test('a dive name shown from its site', () {
       expect(
         options(

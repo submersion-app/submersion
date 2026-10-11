@@ -2,6 +2,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_menu.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+
+import '../../../helpers/test_app.dart';
 
 import 'entity_table_test_harness.dart';
 
@@ -129,5 +134,40 @@ void main() {
       find.byKey(const ValueKey('entity-table-filtered-entityName')),
       findsNothing,
     );
+  });
+
+  testWidgets('an action chosen after the table is gone does nothing', (
+    tester,
+  ) async {
+    final show = ValueNotifier(true);
+    addTearDown(show.dispose);
+    TestField? hidden;
+    await tester.pumpWidget(
+      testApp(
+        child: ValueListenableBuilder<bool>(
+          valueListenable: show,
+          builder: (_, visible, _) => visible
+              ? EntityTableView<TestEntity, TestField>(
+                  entities: rows,
+                  idExtractor: (e) => e.id,
+                  adapter: TestAdapter(),
+                  config: testTableConfig,
+                  units: const UnitFormatter(AppSettings()),
+                  onSortFieldChanged: (_) {},
+                  onResizeColumn: (_, _) {},
+                  onEntityTap: (_) {},
+                  onHideColumn: (f) => hidden = f,
+                )
+              : const SizedBox(),
+        ),
+      ),
+    );
+    await rightClick(tester, find.text('Count'));
+    // The table goes while its menu, on the app's navigator, stays open.
+    show.value = false;
+    await tester.pump();
+    await tester.tap(find.text('Hide column'));
+    await tester.pumpAndSettle();
+    expect(hidden, isNull);
   });
 }

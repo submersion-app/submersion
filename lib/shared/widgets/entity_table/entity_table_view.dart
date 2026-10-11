@@ -130,7 +130,7 @@ class _EntityTableViewState<T, F extends EntityField>
 
   /// Widths of columns being dragged right now (#2984): the column redraws
   /// on every move, and the config is written once, on drag end.
-  final Map<F, double> _liveWidths = {};
+  Map<F, double> _liveWidths = const {};
 
   late final LinkedScrollControllerGroup _horizontalGroup;
   late final ScrollController _headerHorizontalController;
@@ -262,13 +262,18 @@ class _EntityTableViewState<T, F extends EntityField>
   }
 
   void _resizeLive(F field, double width) =>
-      setState(() => _liveWidths[field] = width);
+      setState(() => _liveWidths = {..._liveWidths, field: width});
 
   void _resizeCommit(F field) {
     final width = _liveWidths[field];
     if (width == null) return;
     widget.onResizeColumn(field, width);
-    setState(() => _liveWidths.remove(field));
+    setState(
+      () => _liveWidths = {
+        for (final e in _liveWidths.entries)
+          if (e.key != field) e.key: e.value,
+      },
+    );
   }
 
   // ---------------------------------------------------------------------------

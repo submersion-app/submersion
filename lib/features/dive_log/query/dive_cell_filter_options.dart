@@ -199,6 +199,9 @@ List<CellFilterOption> diveCellFilterOptions({
   }
 }
 
+bool _sameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
 QueryField _fieldOf(DiveColumnFilter spec) =>
     resolvePath(appQueryRegistry, diveQueryEntity, spec.path).field!;
 
@@ -249,8 +252,13 @@ Object? _queriedValue(
   DiveField.bottomTime => dive.bottomTime,
   DiveField.runtime => dive.runtime,
   DiveField.surfaceInterval => _surfaceInterval(dive, surfaceIntervals),
-  DiveField.dateTime => dive.effectiveEntryTime,
-  DiveField.diveName => dive.effectiveName,
+  // The `date` field reads dive_date_time; the cell shows the entry time.
+  // On another calendar day they would disagree, so nothing is offered.
+  DiveField.dateTime =>
+    _sameDay(dive.dateTime, dive.effectiveEntryTime) ? dive.dateTime : null,
+  // The `name` field compares the stored text; the cell shows it trimmed.
+  DiveField.diveName =>
+    dive.name == dive.effectiveName ? dive.effectiveName : null,
   DiveField.currentStrength => dive.currentStrength,
   DiveField.entryMethod => dive.entryMethod,
   DiveField.exitMethod => dive.exitMethod,

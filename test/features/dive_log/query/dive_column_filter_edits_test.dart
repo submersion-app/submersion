@@ -80,6 +80,17 @@ void main() {
       expect(depth.siteId, 's1');
     });
 
+    test(
+      'a suspended axis does not mark the column, Reset still clears it',
+      () {
+        final f = const DiveFilterState(
+          siteId: 's1',
+        ).copyWith(axesSuspended: true);
+        expect(isDiveColumnFiltered(f, DiveField.siteName), isFalse);
+        expect(resetDiveColumnFilter(f, DiveField.siteName).siteId, isNull);
+      },
+    );
+
     test('an unfilterable column is never filtered', () {
       expect(
         isDiveColumnFiltered(const DiveFilterState(), DiveField.altitude),

@@ -55,5 +55,8 @@ Future<void> showEntityTableMenu(
       ],
     ],
   );
-  chosen?.onSelected();
+  // The table may have gone while its menu was open (a navigation, a sync
+  // rebuild); its actions must not run against a disposed widget.
+  if (chosen == null || !context.mounted) return;
+  chosen.onSelected();
 }
