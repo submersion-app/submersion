@@ -71,12 +71,13 @@ class FitDeviceMapper {
   /// names, and otherwise plain "Garmin". It ignores `product_name`: the
   /// Garmin cloud import matches a serial against the stored model, so
   /// renaming a device it already registered as "Garmin" would split it
-  /// into a second record. A Suunto
-  /// file uses `product_name`, then its product code, then plain "Suunto".
-  /// Any other manufacturer has only `product_name` to go on and is left
-  /// without a model when that is absent, so the importer leaves the dive
-  /// unattributed rather than naming it a Garmin. A file with no
-  /// manufacturer at all keeps the old Garmin lookup.
+  /// into a second record. A file with no manufacturer at all keeps that
+  /// same Garmin lookup.
+  ///
+  /// A Suunto file uses `product_name`, then its product code, then plain
+  /// "Suunto". Any other manufacturer has only `product_name` to go on and
+  /// is left without a model when that is absent, so the importer leaves
+  /// the dive unattributed rather than naming it a Garmin.
   ///
   /// [manufacturerName] is stripped from the front of `product_name`, so
   /// "Suunto Nautic S" becomes "Nautic S" beside manufacturer "Suunto".
