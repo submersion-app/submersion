@@ -1207,15 +1207,15 @@ void main() {
       expect(result.diveMatches.keys, [1]);
     });
 
-    test('a third copy is flagged against the copy kept', () {
+    test('of three copies the richest is kept, the others point at it', () {
       final result = checkFile([
-        dive(start, extra: {'notes': 'kept'}),
         dive(start),
-        dive(start, extra: {'notes': 'richer', 'rating': 4}),
+        dive(start, extra: {'notes': 'medium'}),
+        dive(start, extra: {'notes': 'rich', 'rating': 4}),
       ]);
-      expect(result.diveMatches.keys, unorderedEquals([1, 2]));
-      expect(result.diveMatches[1]!.inBatchIndex, 0);
-      expect(result.diveMatches[2]!.inBatchIndex, 0);
+      expect(result.diveMatches.keys, unorderedEquals([0, 1]));
+      expect(result.diveMatches[0]!.inBatchIndex, 2);
+      expect(result.diveMatches[1]!.inBatchIndex, 2);
     });
 
     test('dives a full minute apart are not flagged', () {

@@ -62,8 +62,11 @@ off the repo) still loses or misstates a lot:
 - `SourceApp.diveMate` with a new override option "DiveMate (database)"
   beside "DiveMate (CSV)".
 - `DiveMateDdbParser` reuses `DivingLogDbReader` and `DivingLogDiveMapper`
-  and then applies `DiveMateDiveMapper` for the extra fields. Its messages
-  say DiveMate, and its payload metadata source is `divemate_ddb`.
+  through the shared `parseDivingLogFamily`. The reader attaches DiveMate's
+  extra columns to each raw dive and cylinder, and `DivingLogDiveMapper`
+  hands them to `DiveMateDiveFields`, which writes the extra payload keys.
+  The parser's messages say DiveMate, and the payload metadata source is
+  `divemate_ddb`.
 - Detection and the reader share one test, `DiveMateSchema.matches`
   (`DBInfo.PrgName` when the file names its program, else the `TypeOfDive`
   column), so the DiveMate-only
@@ -74,7 +77,7 @@ off the repo) still loses or misstates a lot:
 
 ### 2. Fields
 
-Dive (`DiveMateDiveMapper`, new file):
+Dive (`DiveMateDiveFields` and `DiveMateValues`, new files):
 
 | DiveMate | Payload key | Rule |
 | --- | --- | --- |
@@ -129,9 +132,11 @@ review card for such a pair shows text only.
   duration, site, buddies, profile presence) instead of the text-only line.
 - Choosing which copy to keep is symmetric: keeping the flagged copy
   deselects its partner, skipping it reselects the partner.
-- Default: the copy carrying more data (site, buddies, notes, profile)
-  stays selected. In this file that is the unnumbered-status copy for every
-  pair where they differ.
+- Default: copies of one dive form a cluster (three copies are one
+  cluster), and the copy carrying the most data (site, buddies, notes,
+  profile and the like) stays selected; every other copy is flagged against
+  it. In this file that is the unnumbered-status copy for every pair where
+  they differ.
 
 This touches `lib/features/import_wizard/presentation/`, so the PR needs
 before and after screenshots per the repo's PR rules.

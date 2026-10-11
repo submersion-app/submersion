@@ -14,12 +14,12 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 /// twice, which minute buckets would miss. Profiles are
 /// not compared: the copies' samples differ in 83 of those 186 pairs.
 ///
-/// Of each pair, the copy carrying less data is the one flagged, pointing at
-/// the other through [DiveMatchResult.inBatchIndex], so the review's default
-/// (skip the flagged row) keeps the fuller copy. On a tie the later row is
-/// flagged, as the batch pass does. A third copy pairs with the copy already
-/// kept and is flagged itself, so the kept copy never also becomes a flagged
-/// one.
+/// Copies of one dive form a cluster: every dive matched to any member
+/// belongs to it, so three copies are one cluster, not a pair and a
+/// leftover. The copy carrying the most data is kept and every other copy is
+/// flagged, pointing at it through [DiveMatchResult.inBatchIndex], so the
+/// review's default (skip the flagged rows) keeps the fullest copy. On a tie
+/// the earliest row is kept, as the batch pass keeps the earlier dive.
 abstract final class WithinFileDiveDuplicates {
   /// The score a pair starting under a minute apart must reach.
   static const double minScore = 0.95;
@@ -29,49 +29,73 @@ abstract final class WithinFileDiveDuplicates {
     List<Map<String, dynamic>> dives,
     DiveMatcher matcher,
   ) {
+    // Union-find over the matching pairs, so clusters join transitively.
+    final parent = <int, int>{};
+    int root(int i) {
+      var r = i;
+      while (parent[r] != null && parent[r] != r) {
+        r = parent[r]!;
+      }
+      return r;
+    }
+
+    for (final MapEntry(key: i, value: earlier) in _earlierWithinAMinute(
+      dives,
+    ).entries) {
+      for (final j in earlier) {
+        if (!_isSameDive(dives[i], dives[j], matcher)) continue;
+        final ri = root(i);
+        final rj = root(j);
+        if (ri != rj) parent[ri > rj ? ri : rj] = ri < rj ? ri : rj;
+      }
+    }
+
+    final clusters = <int, List<int>>{};
+    for (final i in parent.keys.toSet()..addAll(parent.values)) {
+      (clusters[root(i)] ??= []).add(i);
+    }
+
     final matches = <int, DiveMatchResult>{};
-    // A flagged dive pairs once; a kept one stays the target for any further
-    // copy of the same dive.
-    final flaggedSet = <int>{};
-    final keptSet = <int>{};
-    final near = _earlierWithinAMinute(dives);
-
-    for (var i = 1; i < dives.length; i++) {
-      final at = dives[i]['dateTime'] as DateTime?;
-      final candidates = near[i];
-      if (at == null || candidates == null) continue;
-      if (keptSet.contains(i)) continue;
-      for (final j in candidates) {
-        if (flaggedSet.contains(j)) continue;
-        final otherAt = dives[j]['dateTime'] as DateTime;
-        final gap = at.difference(otherAt).abs();
-        final score = matcher.calculateMatchScore(
-          wearableStartTime: at,
-          wearableMaxDepth: _depth(dives[i]),
-          wearableDurationSeconds: _seconds(dives[i]),
-          existingStartTime: otherAt,
-          existingMaxDepth: _depth(dives[j]),
-          existingDurationSeconds: _seconds(dives[j]),
-        );
-        if (score < minScore) continue;
-
-        final flagJ =
-            !keptSet.contains(j) && richness(dives[j]) < richness(dives[i]);
-        final flagged = flagJ ? j : i;
-        final kept = flagJ ? i : j;
-        matches[flagged] = DiveMatchResult(
+    for (final members in clusters.values) {
+      if (members.length < 2) continue;
+      members.sort();
+      var kept = members.first;
+      for (final m in members) {
+        if (richness(dives[m]) > richness(dives[kept])) kept = m;
+      }
+      final keptAt = dives[kept]['dateTime'] as DateTime;
+      for (final m in members) {
+        if (m == kept) continue;
+        final at = dives[m]['dateTime'] as DateTime;
+        matches[m] = DiveMatchResult(
           diveId: '',
           inBatchIndex: kept,
-          score: score,
-          timeDifferenceMs: gap.inMilliseconds,
+          score: _score(dives[m], dives[kept], matcher),
+          timeDifferenceMs: at.difference(keptAt).inMilliseconds.abs(),
         );
-        flaggedSet.add(flagged);
-        keptSet.add(kept);
-        break;
       }
     }
     return matches;
   }
+
+  static bool _isSameDive(
+    Map<String, dynamic> a,
+    Map<String, dynamic> b,
+    DiveMatcher matcher,
+  ) => _score(a, b, matcher) >= minScore;
+
+  static double _score(
+    Map<String, dynamic> a,
+    Map<String, dynamic> b,
+    DiveMatcher matcher,
+  ) => matcher.calculateMatchScore(
+    wearableStartTime: a['dateTime'] as DateTime,
+    wearableMaxDepth: _depth(a),
+    wearableDurationSeconds: _seconds(a),
+    existingStartTime: b['dateTime'] as DateTime,
+    existingMaxDepth: _depth(b),
+    existingDurationSeconds: _seconds(b),
+  );
 
   /// For each dive, the earlier rows (by payload order, ascending) that start
   /// less than a minute from it.
