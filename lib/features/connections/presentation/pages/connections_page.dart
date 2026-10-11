@@ -201,6 +201,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     required ConnectionsLayout layout,
     required double spacing,
     required bool animate,
+    GraphGroups? groups,
   }) {
     if (identical(_laidOut, graph) &&
         _laidOutFocus == focus &&
@@ -218,6 +219,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       focus: focus,
       spacing: spacing,
       animate: animate,
+      groups: groups,
     );
     _hadGraph = true;
   }
@@ -378,6 +380,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       keep: focus,
     );
     if (showCanvas) {
+      // Groups first: the clusters layout reuses them. Hiding unconnected
+      // nodes never changes them, since a node with no edge is in no group.
+      _story(graph, focus);
       if (display.view == ConnectionsViewKind.graph) {
         _syncLayout(
           canvasGraph,
@@ -385,9 +390,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           layout: layoutChoice,
           spacing: display.spacing,
           animate: animate,
+          groups: _groups,
         );
       }
-      _story(graph, focus);
     }
     final VoidCallback? showAll = budget >= ConnectionsPage.maxBudget
         ? null

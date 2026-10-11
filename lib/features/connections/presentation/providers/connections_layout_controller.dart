@@ -34,6 +34,10 @@ class ConnectionsLayoutController extends ChangeNotifier {
 
   ConnectionGraph _graph = ConnectionGraph.empty;
   ConnectionsLayout _layout = ConnectionsLayout.web;
+
+  /// Groups the caller already found for [_graph], reused by clusters
+  /// instead of running label propagation again.
+  GraphGroups? _groups;
   double _spacing = 1;
   WholeWebLayout? _web;
 
@@ -79,8 +83,10 @@ class ConnectionsLayoutController extends ChangeNotifier {
     double spacing = 1,
     bool warmStart = true,
     bool animate = false,
+    GraphGroups? groups,
   }) {
     final previous = _frame;
+    _groups = groups;
     _graph = graph;
     _layout = layout;
     _spacing = spacing;
@@ -272,7 +278,7 @@ class ConnectionsLayoutController extends ChangeNotifier {
     final order = _byDives(_graph);
     List<List<NodeRef>>? islands;
     if (_layout == ConnectionsLayout.clusters) {
-      final groupOf = LabelPropagation.communities(_graph).groupOf;
+      final groupOf = (_groups ?? LabelPropagation.communities(_graph)).groupOf;
       final byGroup = <int, List<NodeRef>>{};
       for (final ref in order) {
         final g = groupOf[ref];

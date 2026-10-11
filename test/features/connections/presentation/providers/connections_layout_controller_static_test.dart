@@ -4,6 +4,7 @@ import 'package:submersion/features/connections/domain/entities/connection_graph
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/insights/label_propagation.dart';
 import 'package:submersion/features/connections/domain/layout/circle_layout.dart';
 import 'package:submersion/features/connections/domain/layout/connections_layout.dart';
 import 'package:submersion/features/connections/domain/layout/graph_point.dart';
@@ -124,5 +125,45 @@ void main() {
     expect(c.frame.positions.length, 4);
     c.moveNode(_b('a'), const GraphPoint(400, 400));
     expect(c.hasPins, isTrue);
+  });
+
+  test('clusters uses the groups it is given instead of finding its own', () {
+    // Label propagation would make one group of this triangle plus tail;
+    // the caller's groups split it in two.
+    final graph = ConnectionGraph(
+      nodes: [
+        for (final id in ['a', 'b', 'c', 'd'])
+          ConnectionNode(ref: _b(id), label: id, diveCount: 1),
+      ],
+      edges: [
+        for (final (x, y) in [('a', 'b'), ('b', 'c'), ('a', 'c'), ('c', 'd')])
+          ConnectionEdge(
+            source: _b(x),
+            target: _b(y),
+            weight: 2,
+            firstDiveAt: DateTime.utc(2024),
+            lastDiveAt: DateTime.utc(2024),
+          ),
+      ],
+    );
+    final groups = GraphGroups(
+      groupOf: {_b('a'): 0, _b('d'): 0, _b('b'): 1, _b('c'): 1},
+      count: 2,
+    );
+    c.setGraph(graph, layout: ConnectionsLayout.clusters, groups: groups);
+    while (!c.settled) {
+      c.stepForTest();
+    }
+    final p = c.frame.positions;
+    GraphBounds box(List<String> ids) =>
+        GraphBounds.of([for (final id in ids) p[_b(id)]!]);
+    final ad = box(['a', 'd']);
+    final bc = box(['b', 'c']);
+    final apart =
+        ad.right < bc.left ||
+        bc.right < ad.left ||
+        ad.bottom < bc.top ||
+        bc.bottom < ad.top;
+    expect(apart, isTrue);
   });
 }
