@@ -48,16 +48,36 @@ class CellFilterOption {
 /// site, a legacy free-text buddy, a legacy visibility bucket, a dive name
 /// shown from its site), there are no items rather than a rule that would
 /// drop the dive that was clicked.
+///
+/// [surfaceIntervals] is null while the computed intervals are loading, and
+/// [knownComputerIds] lists the computer rows that exist (null while
+/// loading); a cell that depends on either offers nothing until it is known.
 List<CellFilterOption> diveCellFilterOptions({
   required DiveField field,
   required Dive dive,
   required UnitFormatter units,
   required UnitPrefs prefs,
   String Function(String id)? diveTypeLabel,
-  Map<String, Duration?> surfaceIntervals = const {},
+  Map<String, Duration?>? surfaceIntervals = const {},
+  Set<String>? knownComputerIds,
 }) {
   final spec = kDiveColumnFilters[field];
   if (spec == null || spec.kind == DiveColumnFilterKind.headerOnly) {
+    return const [];
+  }
+  // An unstored interval shows "--" until the computed map arrives, though
+  // the query may compute one: "no value" would then drop the dive.
+  if (field == DiveField.surfaceInterval &&
+      surfaceIntervals == null &&
+      dive.surfaceInterval == null) {
+    return const [];
+  }
+  // `computer` joins dive_computers, so a link whose row is missing (or not
+  // loaded yet) would drop the dive the cell shows a stored model for.
+  final computerId = dive.computerId;
+  if (field == DiveField.diveComputerModel &&
+      computerId != null &&
+      !(knownComputerIds?.contains(computerId) ?? false)) {
     return const [];
   }
   ConditionNode cond(QueryOp op, QueryValue? v) =>
@@ -223,15 +243,17 @@ bool _sameDay(DateTime a, DateTime b) =>
 QueryField _fieldOf(DiveColumnFilter spec) =>
     resolvePath(appQueryRegistry, diveQueryEntity, spec.path).field!;
 
-Duration? _surfaceInterval(Dive dive, Map<String, Duration?> computed) =>
-    computed.containsKey(dive.id) ? computed[dive.id] : dive.surfaceInterval;
+Duration? _surfaceInterval(Dive dive, Map<String, Duration?>? computed) =>
+    computed != null && computed.containsKey(dive.id)
+    ? computed[dive.id]
+    : dive.surfaceInterval;
 
 /// The value the column's query field reads for [dive], or null when it
 /// reads nothing (an empty cell, or a cell showing a derived value).
 Object? _queriedValue(
   DiveField field,
   Dive dive,
-  Map<String, Duration?> surfaceIntervals,
+  Map<String, Duration?>? surfaceIntervals,
   String Function(String id)? diveTypeLabel,
 ) => switch (field) {
   DiveField.siteName => switch (dive.site) {

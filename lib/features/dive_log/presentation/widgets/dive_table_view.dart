@@ -5,12 +5,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/table/dive_field_adapter.dart';
 import 'package:submersion/features/dive_log/presentation/table/dive_table_menus.dart';
 import 'package:submersion/features/dive_log/query/dive_column_filter_edits.dart';
-import 'package:submersion/features/dive_log/query/dive_column_filters.dart';
+import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+import 'package:submersion/features/dive_log/query/dive_cell_filter_options.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 
@@ -53,11 +55,30 @@ class DiveTableView extends ConsumerWidget {
     final config = ref.watch(tableViewConfigProvider);
     final notifier = ref.read(tableViewConfigProvider.notifier);
     final settings = ref.watch(settingsProvider);
-    final intervals =
-        ref.watch(diveSurfaceIntervalsProvider).value ??
-        const <String, Duration?>{};
+    final intervalsAsync = ref.watch(diveSurfaceIntervalsProvider);
+    final intervals = intervalsAsync.value ?? const <String, Duration?>{};
+    final computers = ref.watch(allDiveComputersProvider);
+    final prefs = ref.watch(queryUnitPrefsProvider);
     final filter = ref.watch(diveFilterProvider);
     final units = UnitFormatter(settings);
+    // Cell menus read only settled data: a value still loading could offer
+    // a rule that drops the dive it was offered on.
+    final menuIntervals = intervalsAsync.isLoading
+        ? null
+        : intervalsAsync.value;
+    final computerIds = computers.isLoading
+        ? null
+        : computers.value?.map((c) => c.id).toSet();
+    List<CellFilterOption> cellOptions(Dive dive, DiveField field) =>
+        diveCellFilterOptions(
+          field: field,
+          dive: dive,
+          units: units,
+          prefs: prefs,
+          diveTypeLabel: diveTypeLabelResolver,
+          surfaceIntervals: menuIntervals,
+          knownComputerIds: computerIds,
+        );
     return EntityTableView<Dive, DiveField>(
       entities: dives,
       idExtractor: (d) => d.id,
@@ -79,20 +100,12 @@ class DiveTableView extends ConsumerWidget {
       highlightedId: highlightedId,
       headerMenuBuilder: (context, field) =>
           diveHeaderMenuItems(context, ref, field),
-      cellMenuBuilder: (context, dive, field) => diveCellMenuItems(
-        context,
-        ref,
-        dive,
-        field,
-        units: units,
-        diveTypeLabel: diveTypeLabelResolver,
-        surfaceIntervals: intervals,
-      ),
+      cellMenuBuilder: (context, dive, field) =>
+          diveCellMenuItems(context, ref, field, cellOptions(dive, field)),
       isColumnFiltered: (field) => isDiveColumnFiltered(filter, field),
-      hasCellMenu: (field) => switch (kDiveColumnFilters[field]?.kind) {
-        null || DiveColumnFilterKind.headerOnly => false,
-        _ => true,
-      },
+      // Only a cell with items gets the gesture, so a hold elsewhere stays
+      // the row's.
+      hasCellMenu: (dive, field) => cellOptions(dive, field).isNotEmpty,
     );
   }
 }

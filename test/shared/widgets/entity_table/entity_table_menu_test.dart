@@ -115,7 +115,7 @@ void main() {
         cellMenuBuilder: (_, e, f) => [
           EntityTableMenuAction(label: 'Pick', onSelected: () {}),
         ],
-        hasCellMenu: (f) => f == TestField.entityName,
+        hasCellMenu: (_, f) => f == TestField.entityName,
       ),
     );
     bool longPressAbove(Finder cell) => tester
@@ -125,6 +125,27 @@ void main() {
         .any((d) => d.onLongPressStart != null);
     expect(longPressAbove(find.text('Alpha')), isTrue);
     expect(longPressAbove(find.text('1')), isFalse);
+  });
+
+  testWidgets('a cell with no menu items keeps its row free of long-press', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildTestTable(
+        entities: rows,
+        cellMenuBuilder: (_, e, f) => [
+          EntityTableMenuAction(label: 'Pick', onSelected: () {}),
+        ],
+        hasCellMenu: (e, f) => e.id == 'a',
+      ),
+    );
+    bool longPressAbove(Finder cell) => tester
+        .widgetList<GestureDetector>(
+          find.ancestor(of: cell, matching: find.byType(GestureDetector)),
+        )
+        .any((d) => d.onLongPressStart != null);
+    expect(longPressAbove(find.text('Alpha')), isTrue);
+    expect(longPressAbove(find.text('Beta')), isFalse);
   });
 
   testWidgets('without a cell builder no row registers a long-press', (

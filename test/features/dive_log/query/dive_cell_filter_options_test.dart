@@ -36,13 +36,15 @@ void main() {
     Dive d, {
     UnitFormatter units = metric,
     UnitPrefs prefs = kMetricPrefs,
-    Map<String, Duration?> si = const {},
+    Map<String, Duration?>? si = const {},
+    Set<String>? computers,
   }) => diveCellFilterOptions(
     field: f,
     dive: d,
     units: units,
     prefs: prefs,
     surfaceIntervals: si,
+    knownComputerIds: computers,
   );
 
   (double, double) betweenOf(QueryNode n) {
@@ -123,6 +125,52 @@ void main() {
       si: const {'d': Duration(minutes: 65)},
     );
     expect((o.first.rule as ConditionNode).value, const NumberValue(65, null));
+  });
+
+  test('an unloaded interval map offers nothing for an unstored interval', () {
+    // The cell shows "--" until the map arrives; "no value" would then drop
+    // a dive whose interval the query computes.
+    expect(options(DiveField.surfaceInterval, base, si: null), isEmpty);
+  });
+
+  test('an unloaded interval map still offers a stored interval', () {
+    final o = options(
+      DiveField.surfaceInterval,
+      base.copyWith(surfaceInterval: const Duration(minutes: 40)),
+      si: null,
+    );
+    expect((o.first.rule as ConditionNode).value, const NumberValue(40, null));
+  });
+
+  group('dive computer', () {
+    final linked = base.copyWith(
+      computerId: 'c1',
+      diveComputerModel: 'Perdix 2',
+    );
+
+    test('a confirmed computer row offers Only and Exclude', () {
+      final o = options(DiveField.diveComputerModel, linked, computers: {'c1'});
+      expect(o.map((x) => x.kind), [
+        CellFilterKind.only,
+        CellFilterKind.exclude,
+      ]);
+      expect(
+        (o.first.rule as ConditionNode).value,
+        const RefValue('c1', 'Perdix 2'),
+      );
+    });
+
+    test('a link with no computer row offers nothing', () {
+      // `computer = c1` joins dive_computers: with no row it drops the dive.
+      expect(
+        options(DiveField.diveComputerModel, linked, computers: {'c2'}),
+        isEmpty,
+      );
+    });
+
+    test('unloaded computers offer nothing', () {
+      expect(options(DiveField.diveComputerModel, linked), isEmpty);
+    });
   });
 
   test('a date offers Only, On or after, On or before by day', () {

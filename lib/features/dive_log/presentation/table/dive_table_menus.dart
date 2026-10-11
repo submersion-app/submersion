@@ -6,8 +6,6 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/presentation/query_ref_picker_sheet.dart';
 import 'package:submersion/core/query/presentation/query_value_editor.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/refine/show_refine_panel.dart';
 import 'package:submersion/features/dive_log/query/dive_cell_filter_options.dart';
@@ -15,7 +13,6 @@ import 'package:submersion/features/dive_log/query/dive_column_filter_edits.dart
 import 'package:submersion/features/dive_log/query/dive_column_filters.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/query/presentation/entity_query_editor.dart';
-import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_menu.dart';
@@ -44,25 +41,15 @@ List<EntityTableMenuAction> diveHeaderMenuItems(
   ];
 }
 
-/// Cell menu items for [dive] in [field]'s column; each applies at once.
+/// Cell menu items for a cell in [field]'s column, from its [options]
+/// (see `diveCellFilterOptions`); each applies at once.
 List<EntityTableMenuAction> diveCellMenuItems(
   BuildContext context,
   WidgetRef ref,
-  Dive dive,
-  DiveField field, {
-  required UnitFormatter units,
-  required String Function(String id) diveTypeLabel,
-  required Map<String, Duration?> surfaceIntervals,
-}) {
+  DiveField field,
+  List<CellFilterOption> options,
+) {
   final l10n = context.l10n;
-  final options = diveCellFilterOptions(
-    field: field,
-    dive: dive,
-    units: units,
-    prefs: ref.read(queryUnitPrefsProvider),
-    diveTypeLabel: diveTypeLabel,
-    surfaceIntervals: surfaceIntervals,
-  );
   return [
     for (final o in options)
       EntityTableMenuAction(

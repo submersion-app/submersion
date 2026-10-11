@@ -88,10 +88,10 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
   /// Whether [field]'s column is filtered (shown as a header icon).
   final bool Function(F field)? isColumnFiltered;
 
-  /// Whether [field]'s cells have a menu at all. A column answering false
-  /// gets no cell gestures, so a hold there stays the row's. Every column
-  /// has one when null.
-  final bool Function(F field)? hasCellMenu;
+  /// Whether [entity]'s cell in [field]'s column has any menu items. A cell
+  /// answering false gets no cell gestures, so a hold there stays the row's.
+  /// Every cell has one when null.
+  final bool Function(T entity, F field)? hasCellMenu;
 
   const EntityTableView({
     super.key,
@@ -366,7 +366,8 @@ class _EntityTableViewState<T, F extends EntityField>
       ),
     );
     final menu = widget.cellMenuBuilder;
-    if (menu == null || !(widget.hasCellMenu?.call(column.field) ?? true)) {
+    if (menu == null ||
+        !(widget.hasCellMenu?.call(entity, column.field) ?? true)) {
       return cell;
     }
     return Builder(
