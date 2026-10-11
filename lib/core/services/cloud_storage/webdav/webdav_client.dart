@@ -94,15 +94,16 @@ class WebDavClient {
 
   /// Decoded segments of the DAV root. `Uri.pathSegments` is decoded, and
   /// `Uri.replace(pathSegments:)` encodes, so building from the raw `path`
-  /// would double-encode a root like `files/alice%40example.com/`.
-  List<String> get _rootSegments =>
-      config.davRoot.pathSegments.where((s) => s.isNotEmpty).toList();
+  /// would double-encode a root like `files/alice%40example.com/`. Computed
+  /// once: [config] is final, and a listing consults it for every entry.
+  late final List<String> _rootSegments = _davRoot.pathSegments
+      .where((s) => s.isNotEmpty)
+      .toList();
+  late final Uri _davRoot = config.davRoot;
 
   Uri uriFor(String path, {bool collection = false}) {
     final segments = [..._rootSegments, ..._segments(path)];
-    return config.davRoot.replace(
-      pathSegments: [...segments, if (collection) ''],
-    );
+    return _davRoot.replace(pathSegments: [...segments, if (collection) '']);
   }
 
   /// Sends one request with retry. Statuses in [accept] are returned to the

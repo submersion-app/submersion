@@ -170,6 +170,10 @@ class WebDavStorageProvider
     _invalidate();
   }
 
+  /// Drops the cached config and client, for when the stored config was
+  /// changed or removed by someone other than this provider.
+  void forgetCachedConfig() => _invalidate();
+
   @override
   Future<String?> getUserEmail() async => (await _loadConfig())?.displayLabel;
 

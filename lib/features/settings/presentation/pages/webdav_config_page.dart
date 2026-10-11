@@ -165,16 +165,21 @@ class _WebDavConfigPageState extends ConsumerState<WebDavConfigPage> {
       ),
     );
     if (confirmed != true || !mounted) return;
+    // As in _save: the app-level container outlives this page, so leaving
+    // mid-remove cannot strand the password copy or the backup setting.
+    final container = ProviderScope.containerOf(context, listen: false);
     setState(() => _busy = true);
     try {
-      final provider = ref.read(webdavStorageProviderInstanceProvider);
+      final provider = container.read(webdavStorageProviderInstanceProvider);
       final existing = await provider.loadConfig();
-      final selectedAccount = ref.read(selectedSyncAccountProvider).value;
+      final selectedAccount = container.read(selectedSyncAccountProvider).value;
       await provider.signOut();
       // Saving also copied the config, password included, under the sync
       // account's own key; the confirmation promises it leaves this device.
       // A media account on another folder has its own key and stays.
-      final accountCredentials = ref.read(accountCredentialsStoreProvider);
+      final accountCredentials = container.read(
+        accountCredentialsStoreProvider,
+      );
       if (existing != null) {
         await accountCredentials.delete(
           accountIdFor(
@@ -187,12 +192,14 @@ class _WebDavConfigPageState extends ConsumerState<WebDavConfigPage> {
           selectedAccount.kind == AccountKind.webdav) {
         await accountCredentials.delete(selectedAccount.id);
       }
-      if (ref.read(selectedCloudProviderTypeProvider) ==
+      if (container.read(selectedCloudProviderTypeProvider) ==
           CloudProviderType.webdav) {
-        await ref.read(syncStateProvider.notifier).signOut();
-        await ref.read(backupSettingsProvider.notifier).disableCloudBackup();
+        await container.read(syncStateProvider.notifier).signOut();
+        await container
+            .read(backupSettingsProvider.notifier)
+            .disableCloudBackup();
       }
-      ref.invalidate(webdavConfigProvider);
+      container.invalidate(webdavConfigProvider);
       if (!mounted) return;
       _showSnack(context.l10n.settings_webdavConfig_removed);
       await Navigator.maybePop(context);

@@ -95,4 +95,34 @@ void main() {
       expect(await legacy.load(), isNull);
     },
   );
+
+  test(
+    'disconnecting the sync endpoint drops the settings provider cache',
+    () async {
+      final keychain = InMemoryKeychain();
+      final legacy = WebDavCredentialsStore(storage: keychain);
+      await legacy.save(config);
+      final settings = WebDavStorageProvider(store: legacy);
+      expect(await settings.loadConfig(), isNotNull); // now cached
+      final adapter = WebDavAccountAdapter(
+        credentials: AccountCredentialsStore(storage: keychain),
+        legacySync: legacy,
+        syncSettings: settings,
+      );
+      await adapter.disconnect(
+        ConnectedAccount(
+          id: accountIdFor(
+            kind: AccountKind.webdav,
+            naturalKey: webdavNaturalKey(config),
+          ),
+          kind: AccountKind.webdav,
+          label: 's',
+          createdAt: DateTime.utc(2026),
+          updatedAt: DateTime.utc(2026),
+        ),
+      );
+      expect(await settings.loadConfig(), isNull);
+      expect(await settings.isAuthenticated(), isFalse);
+    },
+  );
 }
