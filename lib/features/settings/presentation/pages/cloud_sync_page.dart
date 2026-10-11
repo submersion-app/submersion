@@ -951,6 +951,8 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage> {
         return l10n.settings_cloudSync_provider_s3_title;
       case CloudProviderType.dropbox:
         return l10n.settings_cloudSync_provider_dropbox_title;
+      case CloudProviderType.webdav:
+        return l10n.settings_cloudSync_provider_webdav_title;
     }
   }
 

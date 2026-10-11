@@ -75,6 +75,7 @@ class _AccountTile extends ConsumerWidget {
 
   IconData get _icon => switch (account.kind) {
     AccountKind.s3 => Icons.dns_outlined,
+    AccountKind.webdav => Icons.folder_shared_outlined,
     AccountKind.dropbox => Icons.cloud_outlined,
     AccountKind.googledrive => Icons.add_to_drive_outlined,
     AccountKind.icloud => Icons.cloud_circle_outlined,

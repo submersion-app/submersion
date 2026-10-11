@@ -15,8 +15,8 @@ class SyncMetadata extends Table {
   IntColumn get lastSyncTimestamp =>
       integer().nullable()(); // Unix timestamp ms of last successful sync
   TextColumn get deviceId => text()(); // This device's unique UUID
-  TextColumn get syncProvider =>
-      text().nullable()(); // 'icloud', 'googledrive', or 's3'
+  TextColumn get syncProvider => text()
+      .nullable()(); // CloudProviderType.name ('icloud', 's3', 'webdav'...)
 
   /// The connected account driving sync, or null pre-account-migration.
   /// syncProvider stays populated (kind name) for backward compatibility.

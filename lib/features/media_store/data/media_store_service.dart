@@ -69,6 +69,11 @@ Future<MediaObjectStore?> buildMediaObjectStore(
       final availability = await ICloudNativeService.getAvailability();
       if (availability != ICloudAvailability.available) return null;
       return ICloudMediaObjectStore(platform: NativeICloudMediaPlatform());
+    case CloudProviderType.webdav:
+      // WebDAV media is always attached through an account, so the runtime
+      // resolves it with buildMediaObjectStoreForAccount; there is no
+      // pre-account WebDAV attachment to rebuild here.
+      return null;
   }
 }
 

@@ -5,6 +5,9 @@ import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -107,4 +110,33 @@ void main() {
     expect(second.id, first.id);
     expect((await repo.getAll()).length, 1);
   });
+  test(
+    'WebDAV resolves to the deterministic account for its endpoint',
+    () async {
+      final keychain = InMemoryKeychain();
+      final legacy = WebDavCredentialsStore(storage: keychain);
+      final config = WebDavConfig(
+        preset: WebDavPreset.other,
+        serverUrl: 'https://dav.test/dav',
+        username: 'alice',
+        password: 'secret',
+      );
+      await legacy.save(config);
+
+      final account = await ensureAccountForProviderType(
+        CloudProviderType.webdav,
+        repo,
+        webdavCredentials: legacy,
+      );
+      expect(account.kind, AccountKind.webdav);
+      expect(
+        account.id,
+        accountIdFor(
+          kind: AccountKind.webdav,
+          naturalKey: webdavNaturalKey(config),
+        ),
+      );
+      expect(account.label, 'alice @ dav.test');
+    },
+  );
 }
