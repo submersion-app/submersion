@@ -139,6 +139,8 @@ class DocumentsListContent extends ConsumerStatefulWidget {
 
 class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   late DocumentType? _type = widget.initialType;
+  late bool _personalOnly = widget.initialPersonalOnly;
+  late bool _expiringOnly = widget.initialExpiringOnly;
 
   @override
   void didUpdateWidget(DocumentsListContent oldWidget) {
@@ -148,6 +150,12 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
     if (oldWidget.initialType != widget.initialType) {
       _type = widget.initialType;
     }
+    if (oldWidget.initialPersonalOnly != widget.initialPersonalOnly) {
+      _personalOnly = widget.initialPersonalOnly;
+    }
+    if (oldWidget.initialExpiringOnly != widget.initialExpiringOnly) {
+      _expiringOnly = widget.initialExpiringOnly;
+    }
   }
 
   String _query = '';
@@ -155,7 +163,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   bool _matches(DocumentListEntry e) {
     final d = e.document;
     if (_type != null && d.type != _type) return false;
-    if (widget.initialPersonalOnly && !d.owner.isPersonal) return false;
+    if (_personalOnly && !d.owner.isPersonal) return false;
     final q = _query.trim().toLowerCase();
     if (q.isEmpty) return true;
     return [
@@ -176,7 +184,7 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
       data: (entries) {
         final presentTypes = {for (final e in entries) e.document.type};
         final shown = entries.where(_matches).toList();
-        final listed = widget.initialExpiringOnly
+        final listed = _expiringOnly
             ? [
                 for (final (e, _) in DocumentsExpiringStrip.due(
                   shown,
@@ -229,7 +237,35 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
                   ),
                 ),
               ),
-            if (!widget.initialExpiringOnly)
+            // Filters that came from the route (the profile hub, the home
+            // chip) are shown, so the diver sees why the list is short and
+            // can clear them.
+            if (_personalOnly || _expiringOnly)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: Wrap(
+                    spacing: 8,
+                    children: [
+                      if (_personalOnly)
+                        InputChip(
+                          key: const ValueKey('documents-filter-personal'),
+                          label: Text(l10n.documents_owner_personal),
+                          onDeleted: () =>
+                              setState(() => _personalOnly = false),
+                        ),
+                      if (_expiringOnly)
+                        InputChip(
+                          key: const ValueKey('documents-filter-expiring'),
+                          label: Text(l10n.documents_expiring_title),
+                          onDeleted: () =>
+                              setState(() => _expiringOnly = false),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            if (!_expiringOnly)
               SliverToBoxAdapter(
                 child: DocumentsExpiringStrip(
                   entries: shown,

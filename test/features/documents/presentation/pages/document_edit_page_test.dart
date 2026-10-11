@@ -40,6 +40,7 @@ void main() {
     DocumentType? initialType,
     DocumentOwner owner = const DocumentOwner.personal(),
     DocumentPageCapture? capture,
+    VoidCallback? onCancel,
   }) async {
     t.view.physicalSize = const Size(900, 1600);
     t.view.devicePixelRatio = 1;
@@ -58,7 +59,7 @@ void main() {
           owner: owner,
           embedded: true,
           onSaved: (_) {},
-          onCancel: () {},
+          onCancel: onCancel ?? () {},
           capture: capture,
         ),
       ),
@@ -112,6 +113,22 @@ void main() {
       find.widgetWithText(SwitchListTile, 'Primary insurance'),
     );
     expect(toggle.value, isFalse);
+  });
+
+  testWidgets('closing the pane with changes asks before discarding', (
+    t,
+  ) async {
+    var cancelled = 0;
+    await pumpEditor(
+      t,
+      initialType: DocumentType.permit,
+      onCancel: () => cancelled++,
+    );
+    await t.enterText(find.byKey(const Key('document-title')), 'Draft');
+    await t.tap(find.byIcon(Icons.close).first);
+    await t.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(cancelled, 0);
   });
 
   testWidgets('a permit has no phones or primary toggle', (t) async {

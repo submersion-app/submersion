@@ -279,6 +279,14 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
     }
   }
 
+  /// The pane's close button asks before discarding, as Back does.
+  Future<void> _closeEmbedded() async {
+    if (_hasChanges && await _confirmDiscard() != true) return;
+    if (!mounted) return;
+    _hasChanges = false;
+    widget.onCancel?.call();
+  }
+
   Future<bool?> _confirmDiscard() => showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
@@ -387,7 +395,7 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
               ? IconButton(
                   icon: const Icon(Icons.close),
                   tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                  onPressed: widget.onCancel,
+                  onPressed: _closeEmbedded,
                 )
               : null,
           actions: [saveAction],

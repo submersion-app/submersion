@@ -80,6 +80,8 @@ void main() {
           builder: (context, state) => DocumentsPage(
             initialType: DocumentType.values
                 .asNameMap()[state.uri.queryParameters['type']],
+            initialPersonalOnly:
+                state.uri.queryParameters['owner'] == 'personal',
           ),
           routes: [
             GoRoute(
@@ -167,6 +169,24 @@ void main() {
     await t.tap(find.byType(FloatingActionButton));
     await t.pumpAndSettle();
     expect(find.text('NEW type=insurance'), findsOneWidget);
+  });
+
+  testWidgets('the personal filter from the hub is shown and can be cleared', (
+    t,
+  ) async {
+    await _save('Clearance', DocumentType.medicalClearance);
+    await _save(
+      'Park permit',
+      DocumentType.permit,
+      owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+    );
+    await pump(t, '/documents?owner=personal');
+    expect(find.text('Park permit'), findsNothing);
+    final chip = find.byKey(const ValueKey('documents-filter-personal'));
+    expect(chip, findsOneWidget);
+    t.widget<InputChip>(chip).onDeleted!();
+    await t.pumpAndSettle();
+    expect(find.text('Park permit'), findsOneWidget);
   });
 
   testWidgets('an empty library says so', (t) async {

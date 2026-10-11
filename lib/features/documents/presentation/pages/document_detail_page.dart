@@ -56,10 +56,13 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    // A full page on a wide screen belongs in the list's detail pane.
+    // A full page reached directly (a deep link, the home chip) belongs in
+    // the list's detail pane on a wide screen. One pushed from an owner
+    // page's Documents section stays a page, so Back returns to the owner.
     if (!widget.embedded &&
         !_redirected &&
-        ResponsiveBreakpoints.isMasterDetail(context)) {
+        ResponsiveBreakpoints.isMasterDetail(context) &&
+        !context.canPop()) {
       _redirected = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.go('/documents?selected=${widget.documentId}');
