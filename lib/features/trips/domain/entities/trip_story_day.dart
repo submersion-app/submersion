@@ -9,6 +9,52 @@ import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 /// Temporal position of a story day relative to "today" (date-only).
 enum TripStoryDayKind { past, today, future }
 
+/// Total time in the water across [dives].
+///
+/// Runtime (surface to surface) is what divers add up when they talk about
+/// how long they were in the water, and it is what the rest of the app sums
+/// (`COALESCE(runtime, bottom_time)` in the statistics and dive-log queries).
+/// Bottom time stays as the fallback so hand-logged dives that only carry one
+/// still contribute.
+Duration diveDayRuntime(Iterable<Dive> dives) => dives.fold(
+  Duration.zero,
+  (sum, dive) => sum + (dive.runtime ?? dive.bottomTime ?? Duration.zero),
+);
+
+/// The deepest of [dives], or null when none logged a depth.
+double? diveDayMaxDepth(Iterable<Dive> dives) {
+  double? max;
+  for (final dive in dives) {
+    final depth = dive.maxDepth;
+    if (depth != null && (max == null || depth > max)) max = depth;
+  }
+  return max;
+}
+
+/// Day-level weather from [dives], or null when no dive logged any.
+///
+/// Each field is the first non-null value across the dives in dive order, so
+/// a morning dive that logged only air temperature and an afternoon dive that
+/// logged only sky conditions still combine into one complete summary.
+TripStoryDayWeather? diveDayWeather(Iterable<Dive> dives) {
+  double? airTemp;
+  CloudCover? cloudCover;
+  Precipitation? precipitation;
+  for (final dive in dives) {
+    airTemp ??= dive.airTemp;
+    cloudCover ??= dive.cloudCover;
+    precipitation ??= dive.precipitation;
+  }
+  if (airTemp == null && cloudCover == null && precipitation == null) {
+    return null;
+  }
+  return TripStoryDayWeather(
+    airTemp: airTemp,
+    cloudCover: cloudCover,
+    precipitation: precipitation,
+  );
+}
+
 /// One calendar day of a trip story: real dives when they exist, itinerary
 /// metadata when it exists, or neither (a surface day).
 class TripStoryDay extends Equatable {
@@ -32,26 +78,10 @@ class TripStoryDay extends Equatable {
 
   int get diveCount => dives.length;
 
-  /// Total time in the water for the day.
-  ///
-  /// Runtime (surface to surface) is what divers add up when they talk about
-  /// how long they were in the water, and it is what the rest of the app sums
-  /// (`COALESCE(runtime, bottom_time)` in the statistics and dive-log
-  /// queries). Bottom time stays as the fallback so hand-logged dives that
-  /// only carry one still contribute.
-  Duration get totalRuntime => dives.fold(
-    Duration.zero,
-    (sum, dive) => sum + (dive.runtime ?? dive.bottomTime ?? Duration.zero),
-  );
+  /// Total time in the water for the day; see [diveDayRuntime].
+  Duration get totalRuntime => diveDayRuntime(dives);
 
-  double? get maxDepth {
-    double? max;
-    for (final dive in dives) {
-      final depth = dive.maxDepth;
-      if (depth != null && (max == null || depth > max)) max = depth;
-    }
-    return max;
-  }
+  double? get maxDepth => diveDayMaxDepth(dives);
 
   /// Unique site names in dive order (deduped by display name, for subtitles).
   List<String> get siteNames {
@@ -76,30 +106,9 @@ class TripStoryDay extends Equatable {
     return ids.length;
   }
 
-  /// Day-level weather summary, or null when no dive logged any weather.
-  ///
-  /// Each field is the first non-null value across the day's dives in dive
-  /// order, so a morning dive that logged only air temperature and an
-  /// afternoon dive that logged only sky conditions still combine into one
-  /// complete summary.
-  TripStoryDayWeather? get weather {
-    double? airTemp;
-    CloudCover? cloudCover;
-    Precipitation? precipitation;
-    for (final dive in dives) {
-      airTemp ??= dive.airTemp;
-      cloudCover ??= dive.cloudCover;
-      precipitation ??= dive.precipitation;
-    }
-    if (airTemp == null && cloudCover == null && precipitation == null) {
-      return null;
-    }
-    return TripStoryDayWeather(
-      airTemp: airTemp,
-      cloudCover: cloudCover,
-      precipitation: precipitation,
-    );
-  }
+  /// Day-level weather summary, or null when no dive logged any weather;
+  /// see [diveDayWeather].
+  TripStoryDayWeather? get weather => diveDayWeather(dives);
 
   bool get hasContent =>
       dives.isNotEmpty || media.isNotEmpty || itineraryDay != null;
@@ -159,6 +168,16 @@ class TripStoryDayWeather extends Equatable {
       airTemp != null ||
       cloudCover != null ||
       (precipitation != null && precipitation != Precipitation.none);
+
+  /// The weather a day shows: what the diver logged wins when it can draw
+  /// something, since a stored day summary only ever stands in for days that
+  /// logged none. A dive whose lookup resolved nothing still carries
+  /// [Precipitation.none], and letting that mask a stored row would leave the
+  /// day blank.
+  static TripStoryDayWeather? resolve({
+    TripStoryDayWeather? logged,
+    TripStoryDayWeather? stored,
+  }) => (logged != null && logged.isRenderable) ? logged : (stored ?? logged);
 
   @override
   List<Object?> get props => [airTemp, cloudCover, precipitation];

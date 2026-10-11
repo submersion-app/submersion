@@ -2449,6 +2449,8 @@
   "diveLog_edit_label_surfaceConditions": "Oppervlakteomstandigheden",
   "diveLog_edit_label_type": "Type",
   "diveLog_edit_label_visibility": "Zicht",
+  "diveLog_edit_visibility_modeRange": "Bereik",
+  "diveLog_edit_visibility_modePrecise": "Exact",
   "diveLog_edit_label_waterTemp": "Watertemp.",
   "diveLog_edit_label_waterType": "Watertype",
   "diveLog_edit_label_weightName": "Naam (optioneel)",
@@ -8720,6 +8722,13 @@
   "trips_itinerary_empty": "Nog geen reisschema. Maak er een van de reisdata.",
   "trips_itinerary_fillMissing": "Ontbrekende dagen aanvullen",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 duik gepland} other{{count} duiken gepland}}",
+  "trips_day_conditionCurrent": "Stroming {value}",
+  "trips_day_conditionVisibility": "Zicht {value}",
+  "trips_day_conditionWater": "Water {value}",
+  "trips_day_photoCount": "{count, plural, one{{count} foto} other{{count} foto's}}",
+  "trips_day_planProgress": "{planned, plural, one{{logged} van {planned} geplande duik} other{{logged} van {planned} geplande duiken}}",
+  "trips_day_speciesCount": "{count, plural, one{{count} soort} other{{count} soorten}}",
+  "trips_day_valueRange": "{from} tot {to}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {
@@ -11499,6 +11508,7 @@
   "settings_visibilityScale_customUnset": "Stel je eigen afstanden in",
   "settings_visibilityScale_customHelp": "Voer per niveau de kortste afstand in die nog meetelt.",
   "insights_conditions_visibility_legacySuffix": "{band} (vastgelegd vóór meting)",
+  "insights_conditions_visibility_spansBands": "Beslaat meerdere klassen",
   "common_selection_countSelected": "{count} geselecteerd",
   "common_listCount_shownOfTotal": "{shown} van {total}",
   "common_selection_enterTooltip": "Items selecteren",

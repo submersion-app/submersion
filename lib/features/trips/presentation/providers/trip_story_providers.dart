@@ -1,4 +1,7 @@
+import 'package:clock/clock.dart';
+
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -40,12 +43,24 @@ final tripSightingsByDiveProvider =
       return repository.getSightingsForDives(diveIds);
     });
 
+/// Now, for the trip screens that mark today (the itinerary's Today card
+/// and where it opens). Rebuilt when the local calendar day changes, so a
+/// screen left open across midnight moves today on with the clock rather
+/// than waiting for some data write to rebuild it.
+final tripTodayProvider = Provider.autoDispose<DateTime>((ref) {
+  ref.invalidateSelfWhen(localDayChanges());
+  return clock.now();
+});
+
 /// The composed story for a trip. Watches all source providers so sync
 /// invalidations cascade.
 final tripStoryProvider = FutureProvider.family<TripStory, String>((
   ref,
   tripId,
 ) async {
+  // The story sorts its days into past, today and future; a story left open
+  // across midnight re-sorts them rather than keeping yesterday as Today.
+  ref.invalidateSelfWhen(localDayChanges());
   final trip = await ref.watch(tripByIdProvider(tripId).future);
   if (trip == null) {
     throw StateError('Trip not found: $tripId');
@@ -84,7 +99,7 @@ final tripStoryProvider = FutureProvider.family<TripStory, String>((
     mediaByDiveId: mediaByDiveId,
     sightingsByDiveId: sightingsByDiveId,
     checklistItems: checklistItems,
-    today: DateTime.now(),
+    today: clock.now(),
     liveaboardDetails: liveaboardDetails,
   );
 });

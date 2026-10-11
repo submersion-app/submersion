@@ -1755,6 +1755,57 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_dayType_rest => 'Riposo';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'Corrente $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'Visibilità $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'Acqua $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged di $planned immersioni pianificate',
+      one: '$logged di $planned immersione pianificata',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count specie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return 'da $from a $to';
+  }
+
+  @override
   String get trips_story_planned => 'Pianificato';
 
   @override
@@ -7448,6 +7499,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => 'Visibilità';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => 'Intervallo';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'Preciso';
 
   @override
   String get diveLog_edit_label_waterTemp => 'Temp. acqua';
@@ -38074,6 +38131,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String insights_conditions_visibility_legacySuffix(String band) {
     return '$band (registrato prima della misurazione)';
   }
+
+  @override
+  String get insights_conditions_visibility_spansBands => 'Copre più fasce';
 
   @override
   String common_selection_countSelected(Object count) {

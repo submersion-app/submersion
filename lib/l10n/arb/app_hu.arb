@@ -2347,6 +2347,8 @@
   "diveLog_edit_label_surfaceConditions": "Felszíni körülmények",
   "diveLog_edit_label_type": "Típus",
   "diveLog_edit_label_visibility": "Látásviszonyok",
+  "diveLog_edit_visibility_modeRange": "Tartomány",
+  "diveLog_edit_visibility_modePrecise": "Pontos",
   "diveLog_edit_label_waterTemp": "Víz hőm.",
   "diveLog_edit_label_waterType": "Víz típusa",
   "diveLog_edit_label_weightName": "Név (nem kötelező)",
@@ -8618,6 +8620,13 @@
   "trips_itinerary_empty": "Még nincs útiterv. Készíts egyet az utazás dátumaiból.",
   "trips_itinerary_fillMissing": "Hiányzó napok kitöltése",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 tervezett merülés} other{{count} tervezett merülés}}",
+  "trips_day_conditionCurrent": "Áramlás {value}",
+  "trips_day_conditionVisibility": "Látótáv {value}",
+  "trips_day_conditionWater": "Víz {value}",
+  "trips_day_photoCount": "{count, plural, other{{count} fotó}}",
+  "trips_day_planProgress": "{planned, plural, other{{logged} / {planned} tervezett merülés}}",
+  "trips_day_speciesCount": "{count, plural, other{{count} faj}}",
+  "trips_day_valueRange": "{from}–{to}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {
@@ -11499,6 +11508,7 @@
   "settings_visibilityScale_customUnset": "Add meg a saját távolságaidat",
   "settings_visibilityScale_customHelp": "Add meg minden szinthez a legrövidebb távolságot, amely még oda számít.",
   "insights_conditions_visibility_legacySuffix": "{band} (mérés előtt rögzítve)",
+  "insights_conditions_visibility_spansBands": "Több sávot átfog",
   "common_selection_countSelected": "{count} kijelölve",
   "common_listCount_shownOfTotal": "{shown} / {total}",
   "common_selection_enterTooltip": "Elemek kijelölése",

@@ -661,6 +661,7 @@ class UddfExportService {
           components: components,
           gearLinkDives: gearLinkDives,
           computerTissueDives: dives,
+          visibilityRangeDives: dives,
           diveBuddies: diveBuddies,
           customDiveRoles: customRoles,
           dataSources: sources,

@@ -2474,6 +2474,8 @@
   "diveLog_edit_label_surfaceConditions": "Oberflächenbedingungen",
   "diveLog_edit_label_type": "Typ",
   "diveLog_edit_label_visibility": "Sichtweite",
+  "diveLog_edit_visibility_modeRange": "Bereich",
+  "diveLog_edit_visibility_modePrecise": "Genau",
   "diveLog_edit_label_waterTemp": "Wassertemp.",
   "diveLog_edit_label_waterType": "Wasserart",
   "diveLog_edit_label_weightName": "Name (optional)",
@@ -8837,6 +8839,13 @@
   "trips_itinerary_empty": "Noch keine Reiseroute. Erstelle eine aus den Reisedaten.",
   "trips_itinerary_fillMissing": "Fehlende Tage ergänzen",
   "trips_itinerary_plannedDives": "{count, plural, =1{1 Tauchgang geplant} other{{count} Tauchgänge geplant}}",
+  "trips_day_conditionCurrent": "Strömung {value}",
+  "trips_day_conditionVisibility": "Sicht {value}",
+  "trips_day_conditionWater": "Wasser {value}",
+  "trips_day_photoCount": "{count, plural, one{{count} Foto} other{{count} Fotos}}",
+  "trips_day_planProgress": "{planned, plural, one{{logged} von {planned} geplanten Tauchgang} other{{logged} von {planned} geplanten Tauchgängen}}",
+  "trips_day_speciesCount": "{count, plural, one{{count} Art} other{{count} Arten}}",
+  "trips_day_valueRange": "{from} bis {to}",
   "@trips_itinerary_plannedDives": {
     "placeholders": {
       "count": {
@@ -11632,6 +11641,7 @@
   "settings_visibilityScale_customUnset": "Eigene Entfernungen festlegen",
   "settings_visibilityScale_customHelp": "Gib für jede Stufe die kürzeste Entfernung ein, die noch dazu zählt.",
   "insights_conditions_visibility_legacySuffix": "{band} (vor der Messung erfasst)",
+  "insights_conditions_visibility_spansBands": "Über mehrere Stufen",
   "common_selection_countSelected": "{count} ausgewählt",
   "common_listCount_shownOfTotal": "{shown} von {total}",
   "common_selection_enterTooltip": "Elemente auswählen",

@@ -48,6 +48,16 @@ class Dives extends Table {
   /// good/poor adjective be calibrated per diver: six meters is six meters in
   /// Cozumel and in Puget Sound, only the adjective differs.
   RealColumn get visibilityMeters => real().nullable()();
+
+  /// v278: low end of a visibility range in meters, inclusive (issue #3226).
+  /// Set when the diver picked a band instead of measuring. Null with
+  /// [visibilityMaxMeters] set means "under that". Never set together with
+  /// [visibilityMeters]: the repository writes one shape or the other.
+  RealColumn get visibilityMinMeters => real().nullable()();
+
+  /// v278: high end of a visibility range in meters, exclusive. Null with
+  /// [visibilityMinMeters] set means "that or more".
+  RealColumn get visibilityMaxMeters => real().nullable()();
   TextColumn get diveType =>
       text().withDefault(const Constant('recreational'))();
   TextColumn get buddy => text().nullable()();

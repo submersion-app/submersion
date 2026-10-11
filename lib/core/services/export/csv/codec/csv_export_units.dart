@@ -89,7 +89,10 @@ class CsvExportUnits {
           : metricValue.toStringAsFixed(decimals);
     }
     final unit = unitFor(column.quantity);
-    return unit.fromMetric(metricValue).toStringAsFixed(unit.myUnitsDecimals);
+    final converted = unit.fromMetric(metricValue);
+    return column.exact
+        ? converted.toString()
+        : converted.toStringAsFixed(unit.myUnitsDecimals);
   }
 
   String dateHeader(String base) =>

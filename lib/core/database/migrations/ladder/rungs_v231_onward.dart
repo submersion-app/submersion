@@ -314,8 +314,14 @@ extension RungsFromV231 on AppDatabase {
       await _migrateLegacyDocuments();
     }
     if (from < 277) await reportProgress();
-    // v278: no data change (issue #2361). Carries the sync floor past the
-    // builds that cannot parse AccountKind.webdav.
+    // v278: dives.visibility_min_meters / visibility_max_meters (issue
+    // #3226). Columns only; re-asserted in beforeOpen.
+    if (from < 278) {
+      await _assertVisibilityRangeColumns();
+    }
     if (from < 278) await reportProgress();
+    // v279: no data change (issue #2361). Carries the sync floor past the
+    // builds that cannot parse AccountKind.webdav.
+    if (from < 279) await reportProgress();
   }
 }

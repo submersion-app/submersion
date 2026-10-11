@@ -32,6 +32,7 @@ Future<void> pumpHeader(
   MockSettingsNotifier? settingsNotifier,
   TripStoryDayWeather? storedWeather,
   List<Override> extra = const [],
+  ThemeData? theme,
 }) async {
   // The header dates itself with DateFormat.MMMEd(), which resolves against
   // Intl.defaultLocale - a process global that app.dart sets from the app
@@ -47,6 +48,7 @@ Future<void> pumpHeader(
     ProviderScope(
       overrides: [...overrides, ...extra],
       child: MaterialApp(
+        theme: theme,
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
@@ -573,5 +575,78 @@ void main() {
       tester.getSize(find.byType(TripStoryDayHeader)).height,
       greaterThan(TripStoryDayHeader.minHeight),
     );
+  });
+
+  group('today', () {
+    final today = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.today,
+    );
+
+    Material band(WidgetTester tester) => tester.widget<Material>(
+      find
+          .descendant(
+            of: find.byType(TripStoryDayHeader),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+
+    testWidgets('band is primaryContainer with a Today chip', (tester) async {
+      await pumpHeader(tester, today);
+      final context = tester.element(find.byType(TripStoryDayHeader));
+      expect(
+        band(tester).color,
+        Theme.of(context).colorScheme.primaryContainer,
+      );
+      expect(find.byKey(const Key('today-chip')), findsOneWidget);
+    });
+
+    testWidgets('date reads onPrimaryContainer in a dark theme', (
+      tester,
+    ) async {
+      await pumpHeader(
+        tester,
+        today,
+        theme: ThemeData(brightness: Brightness.dark),
+      );
+      final context = tester.element(find.byType(TripStoryDayHeader));
+      final scheme = Theme.of(context).colorScheme;
+      expect(scheme.brightness, Brightness.dark);
+      final date = tester.widget<Text>(find.textContaining('Mar 8'));
+      expect(date.style?.color, scheme.onPrimaryContainer);
+    });
+
+    testWidgets('the day badge flips to primary on the tinted band', (
+      tester,
+    ) async {
+      await pumpHeader(tester, today);
+      final context = tester.element(find.byType(TripStoryDayHeader));
+      final badge = tester.widget<Container>(
+        find.byKey(const Key('day-number-badge')),
+      );
+      expect(
+        (badge.decoration! as BoxDecoration).color,
+        Theme.of(context).colorScheme.primary,
+      );
+    });
+
+    testWidgets('other days keep the grey band and no chip', (tester) async {
+      await pumpHeader(
+        tester,
+        TripStoryDay(
+          date: DateTime(2026, 3, 8),
+          dayNumber: 2,
+          kind: TripStoryDayKind.past,
+        ),
+      );
+      final context = tester.element(find.byType(TripStoryDayHeader));
+      expect(
+        band(tester).color,
+        Theme.of(context).colorScheme.surfaceContainer,
+      );
+      expect(find.byKey(const Key('today-chip')), findsNothing);
+    });
   });
 }

@@ -33,6 +33,8 @@ class SubmersionDivesCsvParser implements ImportParser {
     CsvColumns.waterTemp,
     CsvColumns.airTemp,
     CsvColumns.visibility,
+    CsvColumns.visibilityMin,
+    CsvColumns.visibilityMax,
     CsvColumns.startPressure,
     CsvColumns.endPressure,
     CsvColumns.tankVolume,
@@ -117,6 +119,7 @@ class SubmersionDivesCsvParser implements ImportParser {
       );
       final time = table.time(row, 'Time');
       final visibilityMeters = table.quantity(row, CsvColumns.visibility);
+      final visibilityRange = _visibilityRange(table, row);
 
       final dive = <String, dynamic>{
         // Dive times are wall clocks stored UTC-flagged, like every other
@@ -137,6 +140,9 @@ class SubmersionDivesCsvParser implements ImportParser {
         'waterTemp': table.quantity(row, CsvColumns.waterTemp),
         'airTemp': table.quantity(row, CsvColumns.airTemp),
         'visibilityMeters': visibilityMeters,
+        // A band-picked range (issue #3226); the importer validates it.
+        'visibilityMinMeters': visibilityRange.min,
+        'visibilityMaxMeters': visibilityRange.max,
         // A pre-v144 dive carries only the bucket; a measured distance wins.
         'visibility': visibilityMeters == null
             ? _enumName(
@@ -349,4 +355,37 @@ class SubmersionDivesCsvParser implements ImportParser {
       'order': 0,
     }..removeWhere((_, value) => value == null);
   }
+}
+
+/// A range end with conversion noise removed (issue #3226). The export
+/// writes range ends unrounded, but feet to metres and back leaves float
+/// noise (12 m returns as 12.000000000000002) that would push a band edge
+/// out of its band. Snapping to the nanometre removes that noise and nothing
+/// else: a custom edge entered in feet (8.2 ft is 2.49936 m) keeps every
+/// digit, where millimetre rounding would move it off its band. A metres
+/// column went through no conversion, so its value is kept verbatim.
+double? _withoutConversionNoise(double? meters, CsvUnit? unit) =>
+    meters == null || unit == CsvUnit.meters
+    ? meters
+    : (meters * 1e9).roundToDouble() / 1e9;
+
+/// A row's visibility range ends in meters (issue #3226), without
+/// conversion noise. A cell that is present but unreadable makes the whole range
+/// unreadable: keeping the other end would import an open range ("under
+/// 12 m") the diver never logged. The unreadable cell is still reported.
+({double? min, double? max}) _visibilityRange(
+  SubmersionCsvTable table,
+  List<String> row,
+) {
+  final min = table.quantity(row, CsvColumns.visibilityMin);
+  final max = table.quantity(row, CsvColumns.visibilityMax);
+  final minUnreadable =
+      min == null && table.text(row, CsvColumns.visibilityMin.base) != null;
+  final maxUnreadable =
+      max == null && table.text(row, CsvColumns.visibilityMax.base) != null;
+  if (minUnreadable || maxUnreadable) return (min: null, max: null);
+  return (
+    min: _withoutConversionNoise(min, table.unitOf(CsvColumns.visibilityMin)),
+    max: _withoutConversionNoise(max, table.unitOf(CsvColumns.visibilityMax)),
+  );
 }

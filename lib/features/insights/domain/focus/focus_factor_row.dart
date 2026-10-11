@@ -41,7 +41,8 @@ class FocusFactorRow {
   final double? durationMinutes;
   final double? waterTemp;
 
-  /// A `VisibilityBand` name or `legacy_<Visibility>`, as
+  /// A `VisibilityBand` name, `range_spanning` for a band-picked range that
+  /// crosses a band edge (issue #3226), or `legacy_<Visibility>`, as
   /// `getVisibilityDistribution` emits.
   final String? visibilityKey;
 

@@ -100,6 +100,13 @@ class QueryField {
   /// the SQL for `= true` and for `= false`. When set, [sql] is unused.
   final ({String whenTrue, String whenFalse})? boolSql;
 
+  /// For a number field whose rows may hold a range instead of a value: the
+  /// SQL of the range's inclusive low end and exclusive high end (issue
+  /// #3226). An ordering comparison then also matches a row whose value is
+  /// NULL and whose whole range satisfies it. Equality never matches a
+  /// range. Null for ordinary fields.
+  final ({String low, String high})? rangeSql;
+
   /// Validation range in storage units, inclusive.
   final ({double min, double max})? sanity;
 
@@ -123,6 +130,7 @@ class QueryField {
     this.customValueSubject,
     this.enumSqlValues,
     this.boolSql,
+    this.rangeSql,
     this.sanity,
     this.dateFrame = DateFrame.wallClockUtc,
     this.tables = const [],
