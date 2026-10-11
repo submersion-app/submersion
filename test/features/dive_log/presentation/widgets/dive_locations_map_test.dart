@@ -79,13 +79,53 @@ void main() {
   testWidgets('the decorative map shows tiles instantly, without a fade', (
     tester,
   ) async {
+    // The header's configuration: a pinned camera nothing can move.
     await _pump(
       tester,
-      const DiveLocationsMap(entry: GeoPoint(12.34567, 98.76543)),
+      const DiveLocationsMap(
+        entry: GeoPoint(12.34567, 98.76543),
+        initialCenter: LatLng(12.34567, 98.76543),
+        initialZoom: 12,
+      ),
     );
 
     final tileLayer = tester.widget<TileLayer>(find.byType(TileLayer));
     expect(tileLayer.tileDisplay, const TileDisplay.instantaneous());
+  });
+
+  // Instantaneous display prunes against a stale camera when a tile loads
+  // synchronously from the image cache, which blanked a map whose camera had
+  // just moved (issue #3285). Only a map whose camera never moves skips the
+  // fade.
+  group('a locked map whose camera can move fades its tiles in (#3285)', () {
+    testWidgets('when a controller can move it', (tester) async {
+      await _pump(
+        tester,
+        DiveLocationsMap(
+          entry: const GeoPoint(12.34567, 98.76543),
+          initialCenter: const LatLng(12.34567, 98.76543),
+          controller: MapController(),
+        ),
+      );
+
+      final tileLayer = tester.widget<TileLayer>(find.byType(TileLayer));
+      expect(tileLayer.tileDisplay, const TileDisplay.fadeIn());
+    });
+
+    testWidgets('when it fits its points after the first frame', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const DiveLocationsMap(
+          entry: GeoPoint(12.34567, 98.76543),
+          exit: GeoPoint(12.34612, 98.76489),
+        ),
+      );
+
+      final tileLayer = tester.widget<TileLayer>(find.byType(TileLayer));
+      expect(tileLayer.tileDisplay, const TileDisplay.fadeIn());
+    });
   });
 
   testWidgets('a locked map takes no gestures, trackpad included (#3156)', (
