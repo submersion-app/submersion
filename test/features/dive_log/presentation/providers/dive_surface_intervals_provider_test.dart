@@ -104,10 +104,7 @@ void main() {
       await db
           .into(db.diveTanks)
           .insert(
-            const DiveTanksCompanion(
-              id: Value('t-a'),
-              diveId: Value('a'),
-            ),
+            const DiveTanksCompanion(id: Value('t-a'), diveId: Value('a')),
           );
       await Future<void>.delayed(const Duration(milliseconds: 600));
 
