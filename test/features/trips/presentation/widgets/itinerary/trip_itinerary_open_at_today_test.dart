@@ -68,7 +68,7 @@ void main() {
       id: 'trip-1',
       name: 'Bonaire',
       startDate: DateTime(2026, 3, 1),
-      endDate: DateTime(2026, 3, 20),
+      endDate: DateTime(2026, 3, 30),
       tripType: TripType.resort,
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
@@ -81,12 +81,13 @@ void main() {
       expect(itineraryAnchorIndex(rows([8, 9]), now), isNull);
     });
 
+    // Thirty rows, so plenty follows today and it can open at the top.
     testWidgets('an in-progress trip opens with today on top', (tester) async {
       await withClock(Clock.fixed(DateTime(2026, 3, 15, 9)), () async {
         await _pumpTab(
           tester,
           trip: longTrip(),
-          days: rows([for (var d = 1; d <= 20; d++) d]),
+          days: rows([for (var d = 1; d <= 30; d++) d]),
         );
       });
       final chip = find.byKey(const Key('today-chip'));
@@ -124,7 +125,7 @@ void main() {
           tester,
           trip: longTrip(),
           days: rows([
-            for (var d = 1; d <= 20; d++)
+            for (var d = 1; d <= 30; d++)
               if (d != 15) d,
           ]),
         );
@@ -142,6 +143,24 @@ void main() {
         );
       });
       expect(find.text('Day 1'), findsOneWidget);
+    });
+
+    testWidgets('the last day fills the window with the days before it', (
+      tester,
+    ) async {
+      await withClock(Clock.fixed(DateTime(2026, 3, 20, 9)), () async {
+        await _pumpTab(
+          tester,
+          trip: longTrip(),
+          days: rows([for (var d = 1; d <= 20; d++) d]),
+        );
+      });
+      // Today is the last row: rather than sit at the top over a blank
+      // window, it ends the window with the days before it above.
+      final chip = find.byKey(const Key('today-chip'));
+      expect(tester.getTopLeft(chip).dy, greaterThan(300));
+      expect(find.text('Day 19'), findsOneWidget);
+      expect(find.text('Day 18'), findsOneWidget);
     });
   });
 }

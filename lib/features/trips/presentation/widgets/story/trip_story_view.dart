@@ -7,6 +7,7 @@ import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart'
 import 'package:submersion/features/trips/presentation/pages/trip_day_map_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_cylinders_summary_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/today_anchored_scroll_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_flight_countdown_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
@@ -45,7 +46,7 @@ class TripStoryView extends ConsumerWidget {
     // above via the table tick, so a row landing re-renders its day header.
     ref.watch(tripDayWeatherBackfillProvider(tripId));
 
-    return CustomScrollView(
+    return TodayAnchoredScrollView(
       center: story.todayIndex == null ? null : _todayKey,
       slivers: _contentSlivers(context, storedWeather),
     );

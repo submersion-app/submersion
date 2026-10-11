@@ -13,6 +13,7 @@ import 'package:submersion/features/trips/presentation/providers/liveaboard_prov
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/today_anchored_scroll_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary/itinerary_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary/trip_itinerary_generate_button.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -154,7 +155,7 @@ class TripItineraryTab extends ConsumerWidget {
         : null;
 
     if (anchor == null) {
-      return CustomScrollView(
+      return TodayAnchoredScrollView(
         slivers: [
           gap,
           ?headerSliver,
@@ -172,7 +173,7 @@ class TripItineraryTab extends ConsumerWidget {
     // offset 0 is its top. The list stays in reading order; slivers before
     // the center are laid out upward from it, so the earlier rows' list
     // builds its index 0 nearest the center (the row just before today).
-    return CustomScrollView(
+    return TodayAnchoredScrollView(
       center: _anchorKey,
       slivers: [
         gap,

@@ -161,7 +161,8 @@ void main() {
       final today = _dayOnly(now);
       final trip = _trip(
         start: today.subtract(Duration(days: todayOffset)),
-        end: today.add(const Duration(days: 3)),
+        // Two weeks still to come, so plenty follows today in the window.
+        end: today.add(const Duration(days: 15)),
       );
       return _story(
         trip,
@@ -216,6 +217,31 @@ void main() {
       await tester.drag(find.byType(CustomScrollView), const Offset(0, 900));
       await tester.pump(const Duration(milliseconds: 200));
       expect(find.byType(TripStoryHero), findsOneWidget);
+    });
+
+    testWidgets('the last day fills the window with the days before it', (
+      tester,
+    ) async {
+      final now = DateTime.now();
+      final today = _dayOnly(now);
+      final trip = _trip(
+        start: today.subtract(const Duration(days: 9)),
+        end: today,
+      );
+      final story = _story(
+        trip,
+        today: now,
+        dives: [
+          for (var i = 0; i < 9; i++)
+            _dive('d$i', today.subtract(Duration(days: 9 - i, hours: -9))),
+        ],
+      );
+      await pumpView(tester, story, viewSize: const Size(800, 900));
+      // Today is the last day, a header with nothing after it: it ends the
+      // window instead of sitting at the top over a blank screen.
+      final chip = find.byKey(const Key('today-chip'));
+      expect(tester.getTopLeft(chip).dy, greaterThan(400));
+      expect(find.byType(TripStoryDayHeader), findsAtLeastNWidgets(2));
     });
 
     testWidgets('the Today divider is gone; the header carries it', (
@@ -483,7 +509,7 @@ void main() {
     final today = _dayOnly(now);
     final trip = _trip(
       start: today.subtract(const Duration(days: 8)),
-      end: today.add(const Duration(days: 3)),
+      end: today.add(const Duration(days: 15)),
     );
     final story = _story(
       trip,
