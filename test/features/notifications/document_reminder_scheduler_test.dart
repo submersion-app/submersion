@@ -15,6 +15,12 @@ class _FakeNotificationService implements NotificationService {
       <({String documentId, String title, DocumentReminderStage stage})>[];
   final cancelled = <String>[];
 
+  /// Document ids with a reminder pending in the OS, as payloads report.
+  Set<String> pending = {};
+
+  @override
+  Future<Set<String>> pendingDocumentReminderIds() async => pending;
+
   @override
   Future<int> scheduleDocumentReminder({
     required String documentId,
@@ -120,6 +126,19 @@ void main() {
       diverId: 'd1',
     );
     expect(service.scheduled, isEmpty);
+  });
+
+  test('a full schedule cancels reminders of documents that are gone or no '
+      'longer remind', () async {
+    final permit = await save(
+      DocumentType.permit,
+      DateTime(now.year, now.month, now.day + 60),
+    );
+    final undated = await save(DocumentType.permit, null);
+    service.pending = {permit.id, undated.id, 'deleted-elsewhere'};
+    await scheduler.scheduleAll(settings: const AppSettings(), diverId: 'd1');
+    expect(service.cancelled, containsAll([undated.id, 'deleted-elsewhere']));
+    expect(service.scheduled.map((s) => s.documentId).toSet(), {permit.id});
   });
 
   test('a deleted document has its reminders cancelled', () async {

@@ -11,6 +11,7 @@ import 'package:submersion/features/documents/data/repositories/document_row_map
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
+import 'package:submersion/core/services/notification_service.dart';
 
 /// A document as the global list shows it.
 class DocumentListEntry {
@@ -32,6 +33,16 @@ typedef DocumentSnapshotEntry = ({Document document, List<DocumentPage> pages});
 /// read models other features build on (a diver's primary insurance and
 /// latest clearance, a certification's card images).
 class DocumentRepository {
+  /// [cancelReminders] cancels a deleted document's expiry reminders; it
+  /// defaults to the platform notifications (a no-op on desktop).
+  DocumentRepository({
+    Future<void> Function(String documentId)? cancelReminders,
+  }) : _cancelReminders =
+           cancelReminders ??
+           NotificationService.instance.cancelDocumentReminders;
+
+  final Future<void> Function(String documentId) _cancelReminders;
+
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
@@ -341,6 +352,19 @@ class DocumentRepository {
       recordIds: pageIds,
     );
     await _syncRepository.logDeletions(entityType: _docEntity, recordIds: ids);
+    // Every delete path comes through here, owner deletes included, so a
+    // deleted permit can never still announce its expiry.
+    for (final id in ids) {
+      try {
+        await _cancelReminders(id);
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Could not cancel reminders of document $id',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
   }
 
   /// Moves every document of [fromIds] to [toId], for a merge that is

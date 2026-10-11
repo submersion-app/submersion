@@ -220,6 +220,24 @@ void main() {
     expect(await tombstones(db, 'documentPages'), 1);
   });
 
+  test(
+    'deleting documents cancels their reminders, owner deletes too',
+    () async {
+      final cancelled = <String>[];
+      final withHook = DocumentRepository(
+        cancelReminders: (id) async => cancelled.add(id),
+      );
+      final a = await withHook.save(
+        newDoc(owner: const DocumentOwner(DocumentOwnerKind.trip, 't1')),
+        const [],
+      );
+      final b = await withHook.save(newDoc(), const []);
+      await withHook.deleteForOwner(DocumentOwnerKind.trip, 't1');
+      await withHook.delete(b.id);
+      expect(cancelled, [a.id, b.id]);
+    },
+  );
+
   test('deleteForOwner refuses the personal kind', () async {
     expect(
       () => repo.deleteForOwner(DocumentOwnerKind.personal, 'd1'),

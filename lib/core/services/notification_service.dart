@@ -399,6 +399,7 @@ class NotificationService {
       body: body,
       scheduledDate: scheduledTz,
       notificationDetails: details,
+      payload: '$_documentPayloadPrefix$documentId',
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     );
     _log.info(
@@ -413,6 +414,22 @@ class NotificationService {
     for (final stage in DocumentReminderStage.values) {
       await cancelNotification(_documentReminderId(documentId, stage));
     }
+  }
+
+  static const _documentPayloadPrefix = 'document:';
+
+  /// The ids of documents with a reminder pending in the OS, read from the
+  /// payloads, so a full schedule can cancel the ones whose document was
+  /// deleted elsewhere (a sync, an owner delete) or no longer reminds.
+  Future<Set<String>> pendingDocumentReminderIds() async {
+    if (!_isMobilePlatform) return const {};
+    final pending = await _plugin.pendingNotificationRequests();
+    return {
+      for (final p in pending)
+        if (p.payload case final payload?
+            when payload.startsWith(_documentPayloadPrefix))
+          payload.substring(_documentPayloadPrefix.length),
+    };
   }
 
   int _documentReminderId(String documentId, DocumentReminderStage stage) =>

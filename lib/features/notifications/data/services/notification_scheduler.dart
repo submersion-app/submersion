@@ -451,6 +451,14 @@ class NotificationScheduler {
     required AppSettings settings,
     String? diverId,
   }) async {
+    // Reminders whose document is gone (deleted on another device, or with
+    // its owner) or no longer reminds: their ids live only in the payloads.
+    for (final id in await _notificationService.pendingDocumentReminderIds()) {
+      final document = await _documentRepository.getById(id);
+      if (document == null || !document.remindsOnExpiry) {
+        await _notificationService.cancelDocumentReminders(id);
+      }
+    }
     if (diverId == null) return;
     final documents = await _documentRepository.getRemindingForDiver(diverId);
     for (final document in documents) {
