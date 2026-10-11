@@ -487,13 +487,22 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
                   bottom: 8,
                   child: Align(
                     alignment: Alignment.bottomLeft,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ContingencyChips(overlay: true),
-                        SizedBox(width: 6),
-                        ChartModeToggle(),
-                      ],
+                    // Both chip groups scroll together, not just
+                    // ContingencyChips' own inner scroll view: nested inside
+                    // a plain Row here, that inner view took its full
+                    // natural width instead of yielding to the Bailout/CCR
+                    // chips, overflowing this bar on a narrow phone (the
+                    // combined width of every chip no longer fits #3130).
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ContingencyChips(overlay: true),
+                          SizedBox(width: 6),
+                          ChartModeToggle(),
+                        ],
+                      ),
                     ),
                   ),
                 ),

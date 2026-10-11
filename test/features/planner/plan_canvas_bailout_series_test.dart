@@ -6,54 +6,45 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 
 const _schedule = DecoSchedule(stops: [], ttsSeconds: 0);
 
-BailoutPoint _worstCase() => const BailoutPoint(
+BailoutPoint _worstCase({int ttsSeconds = 0}) => BailoutPoint(
   runtimeSeconds: 600,
   depthMeters: 40,
-  ttsSeconds: 300,
+  ttsSeconds: ttsSeconds,
   litersRequired: 1000,
   schedule: _schedule,
 );
 
 void main() {
-  test('worst-case rows become one continuous profile: CCR legs then the OC '
-      'ascent, both already absolutely timed', () {
+  test('ccrRows then ocStops become one continuous, stepped profile: a flat '
+      'hold at each stop, not a smooth diagonal between them', () {
     final bailout = BailoutOutcome(
-      points: [_worstCase()],
-      worstCase: _worstCase(),
+      points: [_worstCase(ttsSeconds: 420)],
+      worstCase: _worstCase(ttsSeconds: 420),
       availableLiters: 1200,
-      worstCaseRows: const [
-        // The CCR leg down to the worst-case instant.
+      // The CCR leg down to the worst-case instant.
+      ccrRows: const [
         PlanScheduleRow(
           kind: PlanScheduleRowKind.descent,
           depthMeters: 40,
           durationSeconds: 600,
           runtimeSeconds: 600,
-          gasFO2: 18,
-          gasFHe: 45,
+          gasFO2: 0.18,
+          gasFHe: 0.45,
           tankId: 'dil',
           gasSwitch: true,
         ),
-        // The OC ascent from the worst-case instant, with a stop and a
-        // gas switch to a deco tank on the way up.
-        PlanScheduleRow(
-          kind: PlanScheduleRowKind.ascent,
-          depthMeters: 21,
-          durationSeconds: 60,
-          runtimeSeconds: 660,
-          gasFO2: 18,
-          gasFHe: 45,
-          tankId: 'bailout1',
-          gasSwitch: true,
-        ),
-        PlanScheduleRow(
-          kind: PlanScheduleRowKind.stop,
+      ],
+      worstCaseRows: const [],
+      // The OC ascent from the worst-case instant: a stop at 21 m on a
+      // deco gas, arriving 60 s after leaving 40 m and holding 120 s.
+      ocStops: const [
+        PlanStop(
           depthMeters: 21,
           durationSeconds: 120,
-          runtimeSeconds: 780,
-          gasFO2: 50,
-          gasFHe: 0,
+          gasFO2: 0.50,
+          gasFHe: 0.0,
           tankId: 'deco',
-          gasSwitch: true,
+          arrivalRuntimeSeconds: 660,
         ),
       ],
       bailoutTanks: const [],
@@ -65,24 +56,25 @@ void main() {
 
     expect(series.profile.map((p) => (p.timeSeconds, p.depth)), [
       (0.0, 0.0),
-      (600.0, 40.0),
-      (660.0, 21.0),
-      (780.0, 21.0),
+      (600.0, 40.0), // CCR leg ends at the worst-case instant
+      (660.0, 21.0), // travel up to the stop
+      (780.0, 21.0), // flat hold for the stop's own duration
+      (1020.0, 0.0), // worst.runtimeSeconds + worst.ttsSeconds (600+420)
     ]);
     expect(series.maxDepth, 40);
-    expect(series.maxTimeSeconds, 780);
+    expect(series.maxTimeSeconds, 1020);
 
-    // The very first row's gas is the starting gas, not a switch into it.
-    expect(series.gasSwitches, hasLength(2));
-    expect(series.gasSwitches[0].timeSeconds, 600); // ascent begins
-    expect(series.gasSwitches[1].timeSeconds, 660); // stop begins
+    // The CCR leg's own gas is the starting gas, not a switch into it;
+    // the stop's gas differs from the CCR leg's, so that is one.
+    expect(series.gasSwitches, hasLength(1));
+    expect(series.gasSwitches.single.timeSeconds, 660);
 
     expect(series.stopLabels, hasLength(1));
     expect(series.stopLabels.single.timeSeconds, 660);
     expect(series.stopLabels.single.durationSeconds, 120);
 
-    // BailoutOutcome.ceilingTrace maps straight through, not the CCR plan's
-    // own ceiling.
+    // BailoutOutcome.ceilingTrace maps straight through, not the CCR
+    // plan's own ceiling.
     expect(series.ceiling.map((p) => (p.timeSeconds, p.depth)), [
       (600.0, 0.0),
       (660.0, 6.0),
@@ -90,12 +82,14 @@ void main() {
     ]);
   });
 
-  test('an empty row list yields a single surface point', () {
+  test('no CCR rows and no stops yields a single surface point', () {
     final bailout = BailoutOutcome(
       points: [_worstCase()],
       worstCase: _worstCase(),
       availableLiters: 1200,
+      ccrRows: const [],
       worstCaseRows: const [],
+      ocStops: const [],
       bailoutTanks: const [],
       bailoutTankUsages: const [],
       ceilingTrace: const [],

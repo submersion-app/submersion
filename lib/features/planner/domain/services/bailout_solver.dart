@@ -57,6 +57,15 @@ class BailoutOutcome {
   /// (#3138's convention, kept consistent here).
   final List<PlanScheduleRow> worstCaseRows;
 
+  /// The CCR portion of [worstCaseRows] alone (one row per authored leg up
+  /// to the worst-case instant, unfolded) -- the chart's Bailout toggle
+  /// draws its profile from this plus [worstCase].schedule.stops, not from
+  /// [worstCaseRows]: a stop after the first folds its own travel time into
+  /// one table line (#3138's printing convention), which has no separate
+  /// arrival point to draw and would render as a smooth diagonal instead of
+  /// the flat-hold-then-climb steps every other stop shows.
+  final List<PlanScheduleRow> ccrRows;
+
   /// The bailout-role cylinders [availableLiters] was summed from -- shown
   /// here rather than in the main per-tank gas list, since they carry no
   /// normal-loop consumption to chart there.
@@ -76,14 +85,26 @@ class BailoutOutcome {
   /// disagrees with the bailout profile crossing it.
   final List<(int runtimeSeconds, double ceilingMeters)> ceilingTrace;
 
+  /// The worst-case point's OC ascent stops, unfolded -- one entry per
+  /// actual stop, each with its own arrival time and gas, unlike
+  /// [worstCaseRows] where a stop after the first folds its own travel
+  /// time into one printed table line (#3138's convention). The chart's
+  /// Bailout toggle draws its profile from [ccrRows] plus this, not from
+  /// [worstCaseRows]: a folded row has no separate arrival point to draw
+  /// and would render as a smooth diagonal between stops instead of the
+  /// flat-hold-then-climb steps every other stop shows.
+  final List<PlanStop> ocStops;
+
   const BailoutOutcome({
     required this.points,
     required this.worstCase,
     required this.availableLiters,
     required this.worstCaseRows,
+    required this.ccrRows,
     required this.bailoutTanks,
     required this.bailoutTankUsages,
     required this.ceilingTrace,
+    required this.ocStops,
   });
 
   bool get sufficient => worstCase.litersRequired <= availableLiters;
@@ -276,6 +297,7 @@ class BailoutSolver {
       }
     }
     final worst = points[worstIndex];
+    final ccrRows = _legRowsUpTo(worst, legs, plan, environment);
     final ocSchedule = _scheduleRowsFor(
       worst,
       bailoutTanks: bailoutTanks,
@@ -288,10 +310,14 @@ class BailoutSolver {
       points: points,
       worstCase: worst,
       availableLiters: availableLiters,
-      worstCaseRows: [
-        ..._legRowsUpTo(worst, legs, plan, environment),
-        ...ocSchedule.rows,
-      ],
+      ccrRows: ccrRows,
+      worstCaseRows: [...ccrRows, ...ocSchedule.rows],
+      ocStops: _unfoldedOcStops(
+        worst,
+        bailoutPlan: bailoutPlan,
+        policy: policy,
+        bailoutTanks: bailoutTanks,
+      ),
       ceilingTrace: _worstCaseCeilingTrace(
         model: model,
         points: points,
@@ -446,6 +472,61 @@ class BailoutSolver {
     }
 
     return trace;
+  }
+
+  /// [point]'s OC ascent stops, unfolded -- one [PlanStop] per actual
+  /// stop, its own arrival time and gas, mirroring PlanEngine._mapStops
+  /// but driven by [bailoutPlan] since a bailout point starts mid-dive
+  /// with no PlanEngine instance of its own. Does not split the first
+  /// travel leg at crossed gas-switch depths the way [_scheduleRowsFor]
+  /// does for the printed table (#3225): the chart only needs the stop
+  /// shape right, not an extra marker partway down an already-straight
+  /// travel line.
+  List<PlanStop> _unfoldedOcStops(
+    BailoutPoint point, {
+    required AscentGasPlan bailoutPlan,
+    required SchedulePolicy policy,
+    required List<DiveTank> bailoutTanks,
+  }) {
+    String? tankForGas(double fO2, double fHe) {
+      for (final tank in bailoutTanks) {
+        final tankFO2 = tank.gasMix.o2 / 100.0;
+        final tankFHe = tank.gasMix.he / 100.0;
+        if ((tankFO2 - fO2).abs() < 0.005 && (tankFHe - fHe).abs() < 0.005) {
+          return tank.id;
+        }
+      }
+      return null;
+    }
+
+    final stops = <PlanStop>[];
+    var arrival = point.runtimeSeconds;
+    var depth = point.depthMeters;
+    var phase = AscentPhase.toFirstStop;
+    for (final stop in point.schedule.stops) {
+      arrival += policy.ascentSeconds(
+        fromDepth: depth,
+        toDepth: stop.depthMeters,
+        phase: phase,
+      );
+      final gas = bailoutPlan.gasForDepth(stop.depthMeters);
+      final fO2 = 1.0 - gas.fN2 - gas.fHe;
+      stops.add(
+        PlanStop(
+          depthMeters: stop.depthMeters,
+          durationSeconds: stop.durationSeconds,
+          airBreakSeconds: stop.airBreakSeconds,
+          gasFO2: fO2,
+          gasFHe: gas.fHe,
+          tankId: tankForGas(fO2, gas.fHe),
+          arrivalRuntimeSeconds: arrival,
+        ),
+      );
+      arrival += stop.durationSeconds;
+      depth = stop.depthMeters;
+      phase = AscentPhase.betweenStops;
+    }
+    return stops;
   }
 
   /// The authored descent/bottom-phase lines up to (and including, cut off

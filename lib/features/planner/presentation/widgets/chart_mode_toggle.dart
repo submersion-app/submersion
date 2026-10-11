@@ -9,12 +9,11 @@ import 'package:submersion/features/planner/presentation/widgets/plan_status_chi
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Switches the chart between the live CCR plan and the worst-case bailout
-/// picture. Hidden for an OC plan or a CCR plan with nothing to bail out to
+/// picture: one chip per picture, the active one emphasized, same
+/// selection style as the Base/+depth/+time contingency chips right next
+/// to it. Hidden for an OC plan or a CCR plan with nothing to bail out to
 /// (no bailout-role tank carried), same gate [planBailoutProvider] already
-/// uses. The button itself names the OTHER picture, not the current one --
-/// tapping it moves forward, so it reads like every other mode switch in the
-/// app (a Settings toggle shown as what tapping it turns ON, not what it
-/// currently is).
+/// uses.
 class ChartModeToggle extends ConsumerWidget {
   const ChartModeToggle({super.key});
 
@@ -26,19 +25,23 @@ class ChartModeToggle extends ConsumerWidget {
     if (bailout == null) return const SizedBox.shrink();
 
     final mode = ref.watch(chartDisplayModeProvider);
-    final showingBailout = mode == ChartDisplayMode.bailout;
-    final label = showingBailout
-        ? context.l10n.plannerCanvas_chartMode_showCcr
-        : context.l10n.plannerCanvas_chartMode_showBailout;
 
-    return InkWell(
+    Widget chip(ChartDisplayMode value, String label) => InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        ref.read(chartDisplayModeProvider.notifier).state = showingBailout
-            ? ChartDisplayMode.ccr
-            : ChartDisplayMode.bailout;
-      },
-      child: PlanChip(label: label, emphasized: showingBailout),
+      onTap: () => ref.read(chartDisplayModeProvider.notifier).state = value,
+      child: PlanChip(label: label, emphasized: mode == value),
+    );
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        chip(ChartDisplayMode.ccr, context.l10n.plannerCanvas_chartMode_ccr),
+        const SizedBox(width: 6),
+        chip(
+          ChartDisplayMode.bailout,
+          context.l10n.plannerCanvas_chartMode_bailout,
+        ),
+      ],
     );
   }
 }

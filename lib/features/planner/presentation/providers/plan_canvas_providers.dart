@@ -197,32 +197,27 @@ final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
 });
 
 /// The worst-case bailout picture as chart series: CCR up to the worst-case
-/// instant, then the OC ascent it was sized from -- exactly
-/// [BailoutOutcome.worstCaseRows], which already carries both halves as one
-/// continuous, absolutely-timed line, same as [BailoutOutcome.ceilingTrace]
-/// does for the ceiling -- computed on the same gas plan the profile
-/// itself switches to past the worst-case instant, so the two always
-/// agree, unlike the CCR ceiling the rest of the chart tracks.
+/// instant ([BailoutOutcome.ccrRows]), then the OC ascent it was sized from
+/// ([BailoutOutcome.worstCase].schedule.stops) -- built from the same two
+/// unfolded sources [BailoutOutcome.ceilingTrace] continues from, not from
+/// [BailoutOutcome.worstCaseRows]: a stop after the first folds its own
+/// travel time into one table line (#3138's printing convention for the
+/// text table), which has no separate arrival point to draw and would
+/// render as a smooth diagonal between stops instead of the flat-hold-
+/// then-climb steps the CCR profile itself shows for every stop.
 PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
-  final rows = bailout.worstCaseRows;
   final profile = <CanvasPoint>[const CanvasPoint(0, 0)];
   final gasSwitches = <CanvasMarker>[];
   final stopLabels = <CanvasMarker>[];
   var maxDepth = 0.0;
-  for (var i = 0; i < rows.length; i++) {
-    final row = rows[i];
+  double? previousFO2;
+  double? previousFHe;
+
+  final ccrRows = bailout.ccrRows;
+  for (var i = 0; i < ccrRows.length; i++) {
+    final row = ccrRows[i];
     profile.add(CanvasPoint(row.runtimeSeconds.toDouble(), row.depthMeters));
     if (row.depthMeters > maxDepth) maxDepth = row.depthMeters;
-    if (row.kind == PlanScheduleRowKind.stop) {
-      stopLabels.add(
-        CanvasMarker(
-          row.startRuntimeSeconds.toDouble(),
-          row.depthMeters,
-          '',
-          durationSeconds: row.durationSeconds,
-        ),
-      );
-    }
     // The first row's own gas is the starting gas, not a switch into it.
     if (row.gasSwitch && i > 0) {
       gasSwitches.add(
@@ -233,7 +228,61 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
         ),
       );
     }
+    previousFO2 = row.gasFO2;
+    previousFHe = row.gasFHe;
   }
+
+  for (final stop in bailout.ocStops) {
+    profile.add(
+      CanvasPoint(stop.arrivalRuntimeSeconds.toDouble(), stop.depthMeters),
+    );
+    profile.add(
+      CanvasPoint(
+        (stop.arrivalRuntimeSeconds + stop.durationSeconds).toDouble(),
+        stop.depthMeters,
+      ),
+    );
+    if (stop.depthMeters > maxDepth) maxDepth = stop.depthMeters;
+    stopLabels.add(
+      CanvasMarker(
+        stop.arrivalRuntimeSeconds.toDouble(),
+        stop.depthMeters,
+        '',
+        durationSeconds: stop.durationSeconds,
+      ),
+    );
+    final switched =
+        previousFO2 == null ||
+        previousFHe == null ||
+        (stop.gasFO2 - previousFO2).abs() > 0.005 ||
+        (stop.gasFHe - previousFHe).abs() > 0.005;
+    if (switched && previousFO2 != null) {
+      gasSwitches.add(
+        CanvasMarker(
+          stop.arrivalRuntimeSeconds.toDouble(),
+          stop.depthMeters,
+          GasMix(o2: stop.gasFO2 * 100.0, he: stop.gasFHe * 100.0).name,
+        ),
+      );
+    }
+    previousFO2 = stop.gasFO2;
+    previousFHe = stop.gasFHe;
+  }
+  if (profile.isNotEmpty && profile.last.depth > 0) {
+    // ttsSeconds is relative to the worst-case instant, not an absolute
+    // runtime -- it is [BailoutPoint.ttsSeconds]'s own definition, the
+    // time to surface FROM that point, so it has to be added onto where
+    // that point already sits on the timeline.
+    profile.add(
+      CanvasPoint(
+        (bailout.worstCase.runtimeSeconds +
+                bailout.worstCase.schedule.ttsSeconds)
+            .toDouble(),
+        0,
+      ),
+    );
+  }
+
   return PlanCanvasSeries(
     profile: profile,
     ceiling: [
@@ -242,7 +291,7 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
     ],
     gasSwitches: gasSwitches,
     stopLabels: stopLabels,
-    maxTimeSeconds: rows.isEmpty ? 0.0 : rows.last.runtimeSeconds.toDouble(),
+    maxTimeSeconds: profile.isEmpty ? 0.0 : profile.last.timeSeconds,
     maxDepth: maxDepth,
   );
 }
