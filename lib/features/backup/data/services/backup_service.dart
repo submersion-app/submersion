@@ -1152,6 +1152,20 @@ class BackupService {
   /// Unpin a backup record so it is subject to automatic pruning again.
   Future<void> unpinBackup(String id) => _setPinned(id, false);
 
+  /// Pin [record], adopting it into history first when it is a cloud backup
+  /// the history has no record of (a row from `mergeCloudBackups`, issue
+  /// #3214). Adopted pinned, it stays exempt from retention.
+  ///
+  /// Only a record with a cloud copy is adopted: an unknown local record is
+  /// one that has since been deleted or pruned, and a stale tile must not
+  /// bring it back.
+  Future<void> pinRecord(BackupRecord record) async {
+    final tracked = _preferences.getHistory().any((r) => r.id == record.id);
+    if (tracked) return pinBackup(record.id);
+    if (record.cloudFileId == null) return;
+    await _preferences.addRecord(record.copyWith(pinned: true));
+  }
+
   Future<void> _setPinned(String id, bool pinned) async {
     final history = _preferences.getHistory();
     BackupRecord? match;
@@ -1212,10 +1226,16 @@ class BackupService {
   // ===========================================================================
 
   /// List backup files available in cloud storage.
+  ///
+  /// Empty when no provider is connected or it is signed out: the history
+  /// page calls this on every load (issue #3214), and a provider chosen but
+  /// not yet reconnected after a reinstall must not turn that into a failed
+  /// request.
   Future<List<CloudFileInfo>> getCloudBackups() async {
     if (_cloudProvider == null) return [];
 
     try {
+      if (!await _cloudProvider.isAuthenticated()) return [];
       final folderId = await _getOrCreateCloudBackupFolder();
       if (folderId == null) return [];
 

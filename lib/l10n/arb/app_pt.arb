@@ -14639,6 +14639,7 @@
   "startup_diveLogUnavailable_startNew_confirmBody": "É criado um registo de mergulho vazio em {folder}. Se o seu registo antigo voltar mais tarde, por exemplo quando uma sincronização terminar, vai entrar em conflito com o novo.",
   "startup_diveLogUnavailable_startNew_confirm": "Começar novo registo",
   "backup_history_preDowngradeSubtitle": "Base de dados mais recente, guardada ao recuar - {size}",
+  "backup_history_cloudOnlySubtitle": "No armazenamento na nuvem ({size})",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{{diveCount} mergulho} other{{diveCount} mergulhos}}, {siteCount, plural, =1{{siteCount} local} other{{siteCount} locais}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{{diveCount} mergulho} other{{diveCount} mergulhos}}, {siteCount, plural, =1{{siteCount} local} other{{siteCount} locais}} - {size} (automático)",
   "settings_manage_transmitters": "Transmissores",

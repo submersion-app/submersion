@@ -14639,6 +14639,7 @@
   "startup_diveLogUnavailable_startNew_confirmBody": "将在 {folder} 中创建一个空白潜水日志。如果旧潜水日志之后又回来了（例如同步完成时），它会与新日志冲突。",
   "startup_diveLogUnavailable_startNew_confirm": "新建潜水日志",
   "backup_history_preDowngradeSubtitle": "较新的数据库，回退时保留 - {size}",
+  "backup_history_cloudOnlySubtitle": "在云存储中 ({size})",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{{diveCount} 次潜水} other{{diveCount} 次潜水}}, {siteCount, plural, =1{{siteCount} 个潜点} other{{siteCount} 个潜点}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{{diveCount} 次潜水} other{{diveCount} 次潜水}}, {siteCount, plural, =1{{siteCount} 个潜点} other{{siteCount} 个潜点}} - {size}（自动）",
   "settings_manage_transmitters": "发射器",

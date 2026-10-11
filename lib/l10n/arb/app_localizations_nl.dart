@@ -49003,6 +49003,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'In cloudopslag ($size)';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,

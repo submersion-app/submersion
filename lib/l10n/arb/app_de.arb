@@ -14772,6 +14772,7 @@
   "startup_diveLogUnavailable_startNew_confirmBody": "In {folder} wird ein leeres Logbuch angelegt. Wenn Ihr altes Logbuch später zurückkommt, etwa wenn eine Synchronisierung abgeschlossen ist, gerät es mit dem neuen in Konflikt.",
   "startup_diveLogUnavailable_startNew_confirm": "Neues Logbuch beginnen",
   "backup_history_preDowngradeSubtitle": "Neuere Datenbank, beim Zurückwechseln behalten - {size}",
+  "backup_history_cloudOnlySubtitle": "Im Cloud-Speicher ({size})",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size} (automatisch)",
   "settings_manage_transmitters": "Sender",

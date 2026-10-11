@@ -14639,6 +14639,7 @@
   "startup_diveLogUnavailable_startNew_confirmBody": "In {folder} viene creato un diario immersioni vuoto. Se il vecchio diario torna in seguito, ad esempio al termine di una sincronizzazione, entrerà in conflitto con quello nuovo.",
   "startup_diveLogUnavailable_startNew_confirm": "Inizia nuovo diario",
   "backup_history_preDowngradeSubtitle": "Database più recente, conservato tornando indietro - {size}",
+  "backup_history_cloudOnlySubtitle": "Nell'archivio cloud ({size})",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 immersione} other{{diveCount} immersioni}}, {siteCount, plural, =1{1 sito} other{{siteCount} siti}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 immersione} other{{diveCount} immersioni}}, {siteCount, plural, =1{1 sito} other{{siteCount} siti}} - {size} (auto)",
   "settings_manage_transmitters": "Trasmettitori",

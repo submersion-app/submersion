@@ -14639,6 +14639,7 @@
   "startup_diveLogUnavailable_startNew_confirmBody": "ייווצר יומן צלילה ריק בתיקייה {folder}. אם יומן הצלילה הישן יחזור מאוחר יותר, למשל בסיום סנכרון, הוא יתנגש עם היומן החדש.",
   "startup_diveLogUnavailable_startNew_confirm": "התחלת יומן צלילה חדש",
   "backup_history_preDowngradeSubtitle": "מסד נתונים חדש יותר, נשמר בעת החזרה - {size}",
+  "backup_history_cloudOnlySubtitle": "באחסון בענן ({size})",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{צלילה אחת} other{{diveCount} צלילות}}, {siteCount, plural, =1{אתר אחד} other{{siteCount} אתרים}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{צלילה אחת} other{{diveCount} צלילות}}, {siteCount, plural, =1{אתר אחד} other{{siteCount} אתרים}} - {size} (אוטומטי)",
   "settings_manage_transmitters": "משדרים",

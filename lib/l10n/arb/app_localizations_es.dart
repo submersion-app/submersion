@@ -49368,6 +49368,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'En el almacenamiento en la nube ($size)';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,

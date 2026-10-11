@@ -49946,6 +49946,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'في التخزين السحابي ($size)';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,

@@ -451,7 +451,8 @@ class BackupSettingsPage extends ConsumerWidget {
       if (record.pinned) {
         await service.unpinBackup(record.id);
       } else {
-        await service.pinBackup(record.id);
+        // Adopts a cloud backup the history had no record of.
+        await service.pinRecord(record);
       }
       ref.invalidate(backupHistoryProvider);
     } catch (e, stackTrace) {

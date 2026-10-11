@@ -49315,6 +49315,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'Nell\'archivio cloud ($size)';
+  }
+
+  @override
   String backup_history_manualSubtitle(
     int diveCount,
     int siteCount,

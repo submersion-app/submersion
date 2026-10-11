@@ -11,6 +11,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart'
     show WrongPassphraseException;
@@ -723,10 +724,16 @@ final backupOperationProvider =
 // History
 // =============================================================================
 
-/// Backup history sorted newest-first
+/// Backup history sorted newest-first, plus the backups in the connected
+/// cloud folder that the local history has no record of (issue #3214: after a
+/// fresh install the local history is empty, the cloud copies are not).
 final backupHistoryProvider = FutureProvider<List<BackupRecord>>((ref) async {
   final service = ref.watch(backupServiceProvider);
-  return service.getValidatedBackupHistory();
+  final (history, cloudFiles) = await (
+    service.getValidatedBackupHistory(),
+    service.getCloudBackups(),
+  ).wait;
+  return mergeCloudBackups(history, cloudFiles);
 });
 
 // =============================================================================

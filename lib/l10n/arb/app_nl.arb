@@ -14639,6 +14639,7 @@
   "startup_diveLogUnavailable_startNew_confirmBody": "Er wordt een leeg logboek aangemaakt in {folder}. Als je oude logboek later terugkomt, bijvoorbeeld wanneer een synchronisatie klaar is, conflicteert het met het nieuwe.",
   "startup_diveLogUnavailable_startNew_confirm": "Nieuw logboek beginnen",
   "backup_history_preDowngradeSubtitle": "Nieuwere database, bewaard bij het teruggaan - {size}",
+  "backup_history_cloudOnlySubtitle": "In cloudopslag ({size})",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 duik} other{{diveCount} duiken}}, {siteCount, plural, =1{1 duikstek} other{{siteCount} duikstekken}} - {size} (automatisch)",
   "settings_manage_transmitters": "Zenders",

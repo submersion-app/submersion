@@ -211,7 +211,10 @@ void main() {
       if (tempDir.existsSync()) await tempDir.delete(recursive: true);
     });
 
-    Widget buildApp(BackupService service) {
+    Widget buildApp(
+      BackupService service, {
+      List<BackupRecord> Function()? history,
+    }) {
       return ProviderScope(
         overrides: [
           localeProvider.overrideWithValue('en'),
@@ -220,7 +223,7 @@ void main() {
           cloudStorageProviderProvider.overrideWithValue(null),
           quarantinedDatabasesProvider.overrideWith((ref) async => const []),
           backupHistoryProvider.overrideWith(
-            (ref) async => backupPrefs.getHistory(),
+            (ref) async => (history ?? backupPrefs.getHistory)(),
           ),
         ],
         child: const MaterialApp(
@@ -279,6 +282,45 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(backupPrefs.getHistory().single.pinned, isFalse);
+    });
+
+    testWidgets('pinning a cloud backup with no record adopts it', (
+      tester,
+    ) async {
+      // After a fresh install the history lists cloud backups it has no record
+      // of (issue #3214); pinning one is how the diver keeps it tracked.
+      await backupPrefs.setHistory(const []);
+      final cloudOnly = BackupRecord(
+        id: 'cloud:x',
+        filename: 'submersion_backup_2026-03-14_093015.db',
+        timestamp: _kNow,
+        sizeBytes: 2048,
+        location: BackupLocation.cloud,
+        cloudFileId: 'x',
+      );
+      final service = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(),
+        preferences: backupPrefs,
+        cloudProvider: null,
+      );
+
+      tester.view.physicalSize = const Size(1200, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await tester.pumpWidget(buildApp(service, history: () => [cloudOnly]));
+      await tester.pumpAndSettle();
+
+      expect(find.text('In cloud storage (2.0 KB)'), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.push_pin_outlined));
+      await tester.pumpAndSettle();
+
+      final adopted = backupPrefs.getHistory().single;
+      expect(adopted.id, 'cloud:x');
+      expect(adopted.cloudFileId, 'x');
+      expect(adopted.pinned, isTrue);
     });
 
     testWidgets('pin failure shows SnackBar with user-facing message', (

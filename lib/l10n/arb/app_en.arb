@@ -29491,6 +29491,14 @@
       }
     }
   },
+  "backup_history_cloudOnlySubtitle": "In cloud storage ({size})",
+  "@backup_history_cloudOnlySubtitle": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 dive} other{{diveCount} dives}}, {siteCount, plural, =1{1 site} other{{siteCount} sites}} - {size}",
   "@backup_history_manualSubtitle": {
     "placeholders": {

@@ -1,0 +1,63 @@
+import 'dart:typed_data';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+
+import '../../../../helpers/fake_cloud_storage_provider.dart';
+
+/// The history provider never touches the database.
+class _UnusedDatabaseAdapter implements BackupDatabaseAdapter {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
+    'database not expected: ${invocation.memberName}',
+  );
+
+  @override
+  AppDatabase get database => throw UnimplementedError();
+}
+
+void main() {
+  test('history includes cloud backups the local history has lost '
+      '(issue #3214)', () async {
+    // A fresh install: SharedPreferences is empty, but the connected cloud
+    // folder still holds the backups the previous install made.
+    SharedPreferences.setMockInitialValues({});
+    final preferences = BackupPreferences(
+      await SharedPreferences.getInstance(),
+    );
+    final cloud = FakeCloudStorageProvider()
+      ..seedFile(
+        'submersion_backup_2026-03-14_093015.db',
+        Uint8List.fromList(List.filled(64, 1)),
+      )
+      ..seedFile('submersion_sync_device.json', Uint8List(4));
+    final service = BackupService(
+      dbAdapter: _UnusedDatabaseAdapter(),
+      preferences: preferences,
+      cloudProvider: cloud,
+    );
+    final container = ProviderContainer(
+      overrides: [backupServiceProvider.overrideWithValue(service)],
+    );
+    addTearDown(container.dispose);
+
+    final history = await container.read(backupHistoryProvider.future);
+
+    expect(history, hasLength(1));
+    expect(history.single.filename, 'submersion_backup_2026-03-14_093015.db');
+    expect(history.single.location, BackupLocation.cloud);
+    expect(
+      history.single.cloudFileId,
+      'submersion_backup_2026-03-14_093015.db',
+    );
+    // Display-only: nothing is written back, so retention never prunes it.
+    expect(preferences.getHistory(), isEmpty);
+  });
+}

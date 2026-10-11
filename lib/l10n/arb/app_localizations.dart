@@ -78245,6 +78245,12 @@ abstract class AppLocalizations {
   /// **'Newer database, kept when going back - {size}'**
   String backup_history_preDowngradeSubtitle(String size);
 
+  /// No description provided for @backup_history_cloudOnlySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'In cloud storage ({size})'**
+  String backup_history_cloudOnlySubtitle(String size);
+
   /// No description provided for @backup_history_manualSubtitle.
   ///
   /// In en, this message translates to:
