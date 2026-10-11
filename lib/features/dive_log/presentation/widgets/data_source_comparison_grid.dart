@@ -181,10 +181,7 @@ class _SourceComparisonGrid extends StatelessWidget {
       return [
         (
           l10n.diveLog_sources_detail_times,
-          (s) => l10n.diveLog_sources_timeRange(
-            units.formatTime(s.entryTime!),
-            units.formatTime(s.exitTime!),
-          ),
+          (s) => _timeRangeText(l10n, units, s.entryTime!, s.exitTime!),
         ),
       ];
     }

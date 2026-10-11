@@ -27,6 +27,18 @@ SourceNameLabels _labelsOf(BuildContext context) {
 String? _cnsText(DiveDataSource s) =>
     s.cns != null ? '${s.cns!.toStringAsFixed(0)}%' : null;
 
+/// Entry to exit as one localized range. Shared by the provenance list and
+/// the comparison grid so a span reads the same in both.
+String _timeRangeText(
+  AppLocalizations l10n,
+  UnitFormatter units,
+  DateTime entry,
+  DateTime exit,
+) => l10n.diveLog_sources_timeRange(
+  units.formatTime(entry),
+  units.formatTime(exit),
+);
+
 /// A collapsible section showing data source provenance for a dive.
 ///
 /// Handles three scenarios:
@@ -48,9 +60,10 @@ class DataSourcesSection extends StatefulWidget {
   /// The multi-source comparison table.
   static const comparisonGridKey = Key('data-sources-comparison-grid');
 
-  /// The widest a value cell grows when three or more sources make the
-  /// comparison table scroll sideways, so one long file name cannot stretch
-  /// its column across the screen.
+  /// The widest a source column's cells (its name header and its values)
+  /// grow when three or more sources make the comparison table scroll
+  /// sideways, so one long file name cannot stretch its column across the
+  /// screen.
   static const double maxScrollingCellWidth = 200;
 
   /// The card for one source.
@@ -559,10 +572,7 @@ class _ProvenanceList extends StatelessWidget {
       return [
         (
           l10n.diveLog_sources_detail_times,
-          l10n.diveLog_sources_timeRange(
-            units.formatTime(entry),
-            units.formatTime(exit),
-          ),
+          _timeRangeText(l10n, units, entry, exit),
         ),
       ];
     }

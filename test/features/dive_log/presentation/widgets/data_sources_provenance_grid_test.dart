@@ -13,6 +13,9 @@ import '../../../../helpers/test_app.dart';
 
 const _units = UnitFormatter(AppSettings());
 
+// The glyph a missing cell shows, built from its code point.
+final _placeholder = String.fromCharCode(0x2014);
+
 final _entry = DateTime(2026, 3, 20, 9, 12);
 final _exit = DateTime(2026, 3, 20, 10, 4);
 
@@ -59,7 +62,6 @@ DiveDataSource _perdix({String? fileName = 'perdix_dive14.xml'}) => _source(
 
 DiveDataSource _teric({
   String? fileName = 'teric_dive14.fit',
-  DateTime? exitTime,
   bool keepExit = true,
 }) => _source(
   id: 'src-2',
@@ -68,9 +70,7 @@ DiveDataSource _teric({
   sourceFormat: 'FIT',
   sourceFileName: fileName,
   entryTime: _entry,
-  exitTime: keepExit
-      ? (exitTime ?? _exit.add(const Duration(minutes: 1)))
-      : null,
+  exitTime: keepExit ? _exit.add(const Duration(minutes: 1)) : null,
   importedAt: DateTime(2026, 3, 22, 8),
 );
 
@@ -178,7 +178,7 @@ void main() {
 
       expect(_inGrid(find.text('File')), findsOneWidget);
       expect(_inGrid(find.text('perdix_dive14.xml')), findsOneWidget);
-      expect(_inGrid(find.text('—')), findsWidgets);
+      expect(_inGrid(find.text(_placeholder)), findsWidgets);
     });
 
     testWidgets('one Times row with a range per source when all are known', (
