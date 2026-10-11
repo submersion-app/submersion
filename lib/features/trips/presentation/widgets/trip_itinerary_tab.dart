@@ -23,6 +23,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Groups dives by date under each itinerary day. Each day row is tappable
 /// to edit day type, port name, and notes via a bottom sheet.
 class TripItineraryTab extends ConsumerWidget {
+  /// Marks the sliver an in-progress trip opens on.
+  static const _anchorKey = ValueKey('itinerary-today');
+
   final String tripId;
 
   const TripItineraryTab({super.key, required this.tripId});
@@ -119,35 +122,90 @@ class TripItineraryTab extends ConsumerWidget {
             ),
           );
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: days.length + (header == null ? 0 : 1),
-      itemBuilder: (context, index) {
-        if (header != null) {
-          if (index == 0) return header;
-          index -= 1;
-        }
-        final day = days[index];
-        final dayDives = sortedDivesByDate[_dateKey(day.date)] ?? [];
-        final storyDay = story?.days.firstWhereOrNull(
-          (d) => tripDay(d.date) == tripDay(day.date),
-        );
-        return ItineraryDayCard(
-          day: day,
-          dives: dayDives,
-          tripId: tripId,
-          isLiveaboard: trip?.isLiveaboard ?? false,
-          kind: tripDayKind(day.date, now),
-          media: storyDay?.media ?? const [],
-          sightings: storyDay?.sightings ?? const [],
-          storedWeather: storedWeather[tripDayMillis(day.date)]
-              ?.toStoryWeather(),
-        );
-      },
+    Widget card(int index) {
+      final day = days[index];
+      final dayDives = sortedDivesByDate[_dateKey(day.date)] ?? [];
+      final storyDay = story?.days.firstWhereOrNull(
+        (d) => tripDay(d.date) == tripDay(day.date),
+      );
+      return ItineraryDayCard(
+        day: day,
+        dives: dayDives,
+        tripId: tripId,
+        isLiveaboard: trip?.isLiveaboard ?? false,
+        kind: tripDayKind(day.date, now),
+        media: storyDay?.media ?? const [],
+        sightings: storyDay?.sightings ?? const [],
+        storedWeather: storedWeather[tripDayMillis(day.date)]?.toStoryWeather(),
+      );
+    }
+
+    Widget padded(Widget sliver) => SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: sliver,
+    );
+
+    final headerSliver = header == null
+        ? null
+        : padded(SliverToBoxAdapter(child: header));
+    const gap = SliverToBoxAdapter(child: SizedBox(height: 16));
+    final anchor = trip != null && trip.isInProgress
+        ? itineraryAnchorIndex(days, now)
+        : null;
+
+    if (anchor == null) {
+      return CustomScrollView(
+        slivers: [
+          gap,
+          ?headerSliver,
+          padded(
+            SliverList.builder(
+              itemCount: days.length,
+              itemBuilder: (context, i) => card(i),
+            ),
+          ),
+          gap,
+        ],
+      );
+    }
+    // Opening at today: the anchor row starts the center sliver, so scroll
+    // offset 0 is its top. The list stays in reading order; slivers before
+    // the center are laid out upward from it, so the earlier rows' list
+    // builds its index 0 nearest the center (the row just before today).
+    return CustomScrollView(
+      center: _anchorKey,
+      slivers: [
+        gap,
+        ?headerSliver,
+        padded(
+          SliverList.builder(
+            itemCount: anchor,
+            itemBuilder: (context, i) => card(anchor - 1 - i),
+          ),
+        ),
+        SliverPadding(
+          key: _anchorKey,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          sliver: SliverList.builder(
+            itemCount: days.length - anchor,
+            itemBuilder: (context, i) => card(anchor + i),
+          ),
+        ),
+        gap,
+      ],
     );
   }
 
   String _dateKey(DateTime date) {
     return '${date.year}-${date.month}-${date.day}';
   }
+}
+
+/// The row an in-progress trip opens on: the first dated today or later, so
+/// a day without a row anchors on the next planned one. Null when every row
+/// is in the past.
+int? itineraryAnchorIndex(List<ItineraryDay> days, DateTime now) {
+  final today = tripDay(now);
+  final index = days.indexWhere((d) => !tripDay(d.date).isBefore(today));
+  return index < 0 ? null : index;
 }

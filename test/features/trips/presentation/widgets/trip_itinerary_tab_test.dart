@@ -81,10 +81,11 @@ Future<void> _pumpTab(
   List<Object> extra = const [],
   TripStory? story,
   Map<int, TripDayWeather>? tripDayWeather,
+  Size viewSize = const Size(800, 2000),
 }) async {
   var loads = 0;
   var tripReads = 0;
-  tester.view.physicalSize = const Size(800, 2000);
+  tester.view.physicalSize = viewSize;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
   final overrides = await getBaseOverrides(tripDayWeather: tripDayWeather);
@@ -482,6 +483,10 @@ void main() {
     final ahead = _row('a', DateTime(2026, 3, 9), 4).copyWith(plannedDives: 2);
     await withClock(Clock.fixed(DateTime(2026, 3, 8, 10)), () async {
       await _pumpTab(tester, trip: _resortTrip(), days: [past, ahead]);
+      // The trip is under way, so the tab opens at the next day; the past
+      // day is above it.
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, 600));
+      await tester.pumpAndSettle();
     });
     expect(find.text('3 dives planned'), findsNothing);
     expect(find.text('0 of 3 planned dives'), findsOneWidget);
@@ -703,6 +708,95 @@ void main() {
         );
       });
       expect(find.text('1 of 3 planned dives'), findsOneWidget);
+    });
+  });
+
+  group('opens at today', () {
+    List<ItineraryDay> rows(List<int> days) => [
+      for (final d in days) _row('r$d', DateTime(2026, 3, d), d),
+    ];
+    Trip longTrip() => Trip(
+      id: 'trip-1',
+      name: 'Bonaire',
+      startDate: DateTime(2026, 3, 1),
+      endDate: DateTime(2026, 3, 20),
+      tripType: TripType.resort,
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+    test('anchor is the first row today or later', () {
+      final now = DateTime(2026, 3, 10, 9);
+      expect(itineraryAnchorIndex(rows([8, 10, 12]), now), 1);
+      expect(itineraryAnchorIndex(rows([8, 11, 12]), now), 1);
+      expect(itineraryAnchorIndex(rows([8, 9]), now), isNull);
+    });
+
+    testWidgets('an in-progress trip opens with today on top', (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 3, 15, 9)), () async {
+        await _pumpTab(
+          tester,
+          trip: longTrip(),
+          days: rows([for (var d = 1; d <= 20; d++) d]),
+          viewSize: const Size(800, 700),
+        );
+      });
+      final chip = find.byKey(const Key('today-chip'));
+      expect(chip, findsOneWidget);
+      expect(tester.getTopLeft(chip).dy, lessThan(150));
+      expect(find.text('Day 1'), findsNothing);
+    });
+
+    testWidgets('earlier days are above, by scrolling up', (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 3, 15, 9)), () async {
+        await _pumpTab(
+          tester,
+          trip: longTrip(),
+          days: rows([for (var d = 1; d <= 20; d++) d]),
+          viewSize: const Size(800, 700),
+        );
+        for (var i = 0; i < 6; i++) {
+          await tester.drag(
+            find.byType(Scrollable).first,
+            const Offset(0, 700),
+          );
+          await tester.pump(const Duration(milliseconds: 200));
+        }
+      });
+      expect(find.text('Day 1'), findsOneWidget);
+      // Day 1 reads above Day 2: the list stays in reading order.
+      expect(
+        tester.getTopLeft(find.text('Day 1')).dy,
+        lessThan(tester.getTopLeft(find.text('Day 2')).dy),
+      );
+    });
+
+    testWidgets('a day without a row anchors on the next one', (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 3, 15, 9)), () async {
+        await _pumpTab(
+          tester,
+          trip: longTrip(),
+          days: rows([
+            for (var d = 1; d <= 20; d++)
+              if (d != 15) d,
+          ]),
+          viewSize: const Size(800, 700),
+        );
+      });
+      expect(find.text('Day 1'), findsNothing);
+      expect(tester.getTopLeft(find.text('Day 16')).dy, lessThan(150));
+    });
+
+    testWidgets('a trip that has ended opens at Day 1', (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 4, 15, 9)), () async {
+        await _pumpTab(
+          tester,
+          trip: longTrip(),
+          days: rows([for (var d = 1; d <= 20; d++) d]),
+          viewSize: const Size(800, 700),
+        );
+      });
+      expect(find.text('Day 1'), findsOneWidget);
     });
   });
 }
