@@ -54,11 +54,14 @@ String focalLengthEditText({String? valueText, double? valueNum}) {
 }
 
 /// The detail page's display: any `mm` the diver typed is dropped and the
-/// unit appended exactly once ("15mm-45mm" reads "15-45 mm").
+/// unit appended exactly once ("15mm-45mm" reads "15-45 mm"). Text that is
+/// not a focal length (a CSV import keeps it as written) is shown as is,
+/// never as "wide mm".
 String formatFocalLength({String? valueText, double? valueNum}) {
-  final written = (valueText ?? '').replaceAll(_unit, '').trim();
-  final base = written.isNotEmpty
-      ? written
-      : (valueNum == null ? '' : _plain(valueNum));
-  return base.isEmpty ? '' : '$base mm';
+  final raw = valueText?.trim() ?? '';
+  final written = raw.replaceAll(_unit, '').trim();
+  if (written.isEmpty) {
+    return valueNum == null ? '' : '${_plain(valueNum)} mm';
+  }
+  return isValidFocalLength(raw) ? '$written mm' : raw;
 }

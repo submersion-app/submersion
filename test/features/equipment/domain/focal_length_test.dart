@@ -101,6 +101,15 @@ void main() {
       );
     });
 
+    test('shows text that is not a focal length as written', () {
+      // A CSV import keeps an unreadable value rather than dropping it.
+      expect(formatFocalLength(valueText: 'wide', valueNum: null), 'wide');
+      expect(
+        formatFocalLength(valueText: '60 macro', valueNum: null),
+        '60 macro',
+      );
+    });
+
     test('shows a lens saved as a single number', () {
       expect(formatFocalLength(valueText: null, valueNum: 60), '60 mm');
     });

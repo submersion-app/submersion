@@ -264,6 +264,17 @@ void main() {
       ));
     });
 
+    test('My units writes the range unchanged under the same key', () {
+      // Quoted in mm in every unit system, so nothing converts or renames.
+      expect(
+        formatAttributePair(
+          focal(text: '15-45', num: 15),
+          CsvExportUnits.fromSettings(_imperial),
+        ),
+        'focal_length_mm=15-45',
+      );
+    });
+
     test('a lens saved as a single number reads back unchanged', () {
       // Files written before #3050 carry the number alone, as "60.0".
       final pair = formatAttributePair(focal(num: 60), CsvExportUnits.metric);
