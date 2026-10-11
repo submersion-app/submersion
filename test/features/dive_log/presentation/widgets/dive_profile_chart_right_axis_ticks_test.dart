@@ -31,6 +31,11 @@ void main() {
         temperature: 29.0 + (i % 3),
       ),
     );
+    // A desktop-sized chart, as in the issue's screenshots: tall enough that
+    // fl_chart lays out ticks finer than a whole degree apart.
+    tester.view.physicalSize = const Size(1800, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -41,8 +46,8 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SizedBox(
-              width: 400,
-              height: 300,
+              width: 1700,
+              height: 900,
               child: DiveProfileChart(profile: profile),
             ),
           ),
@@ -51,33 +56,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final data = tester.widget<LineChart>(find.byType(LineChart).first).data;
-    final right = data.titlesData.rightTitles.sideTitles;
-    expect(right.showTitles, isTrue);
-
-    // Walk the depth grid the way fl_chart does and collect each label.
-    const interval = 2.0;
-    final labels = <String>[];
-    for (var v = data.minY; v <= data.maxY + 1e-9; v += interval) {
-      final widget = right.getTitlesWidget(
-        v,
-        TitleMeta(
-          min: data.minY,
-          max: data.maxY,
-          parentAxisSize: 300,
-          axisPosition: 0,
-          appliedInterval: interval,
-          sideTitles: right,
-          formattedValue: '$v',
-          axisSide: AxisSide.right,
-          rotationQuarterTurns: 0,
-        ),
-      );
-      // Out-of-band and near-boundary ticks come back as an empty box.
-      if (widget is SideTitleWidget) {
-        labels.add((widget.child as Text).data!);
-      }
-    }
+    // The labels fl_chart actually laid out on the right axis, at the tick
+    // interval it chose itself (the right axis sets none).
+    final labels = [
+      for (final title in tester.widgetList<SideTitleWidget>(
+        find.byType(SideTitleWidget),
+      ))
+        if (title.meta.axisSide == AxisSide.right) (title.child as Text).data!,
+    ];
 
     expect(labels.length, greaterThan(3));
     expect(labels.toSet().length, labels.length, reason: '$labels');
