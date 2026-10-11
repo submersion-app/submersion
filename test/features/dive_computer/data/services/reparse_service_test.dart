@@ -1354,6 +1354,57 @@ void main() {
       ]);
     });
 
+    test('a re-parse under a live edit lands demoted and unstamped '
+        '(#3189)', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+      );
+      await insertProfileSeries(
+        id: 'prof-original',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        sourceId: 'src-1',
+        timestamp: 0,
+        depth: 0.0,
+        isPrimary: false,
+      );
+      // The diver's edit: live, owned by the source, no computer.
+      await insertProfileSeries(
+        id: 'prof-edit',
+        diveId: 'dive-1',
+        sourceId: 'src-1',
+        timestamp: 0,
+        depth: 0.0,
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: makeParsedDive(
+          samples: [
+            pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0),
+            pigeon.ProfileSample(timeSeconds: 30, depthMeters: 5.0),
+          ],
+        ),
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final all = await profileSeries.getSeriesForDive('dive-1');
+      final edit = all.singleWhere((s) => s.id == 'prof-edit');
+      expect(edit.isPrimary, isTrue);
+      final reparsed = all.singleWhere((s) => s.computerId == 'comp-1');
+      expect(reparsed.isPrimary, isFalse);
+      expect(reparsed.activatedAt, isNull);
+    });
+
     test('re-parsing a consolidated source re-bases its profile onto the '
         "dive's time base, not the raw download's (#1177)", () async {
       await insertDive('dive-1');

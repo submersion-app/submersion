@@ -613,17 +613,44 @@ class ProfileSeriesRepository {
     return (count.read(_db.diveProfileSeries.id.count()) ?? 0) > 0;
   }
 
+  ///
+  /// Stamps `activated_at` like [activateSeriesForDive]: the restore chose
+  /// these series, so a later swap must not rank an older edit above them.
   Future<int> promoteByComputer(String diveId, String computerId, {int? now}) =>
       _setPrimary(
         (t) => t.diveId.equals(diveId) & t.computerId.equals(computerId),
         value: true,
+        activate: true,
         now: now,
       );
 
   /// Sets `is_primary` on every series of [diveId]. The single-computer
   /// branch of a profile restore, where nothing else can be the live series.
-  Future<int> promoteAll(String diveId, {int? now}) =>
-      _setPrimary((t) => t.diveId.equals(diveId), value: true, now: now);
+  /// Stamps `activated_at`, as [promoteByComputer] does.
+  Future<int> promoteAll(String diveId, {int? now}) => _setPrimary(
+    (t) => t.diveId.equals(diveId),
+    value: true,
+    activate: true,
+    now: now,
+  );
+
+  /// True when [sourceId] (or an unattributed pre-v154 series) owns a live
+  /// manual edit of [diveId]: a primary series with no computer.
+  Future<bool> hasLiveEdit(String diveId, {required String sourceId}) async {
+    final rows =
+        await (_db.selectOnly(_db.diveProfileSeries)
+              ..addColumns([_db.diveProfileSeries.id])
+              ..where(
+                _db.diveProfileSeries.diveId.equals(diveId) &
+                    _db.diveProfileSeries.isPrimary.equals(true) &
+                    _db.diveProfileSeries.computerId.isNull() &
+                    (_db.diveProfileSeries.sourceId.equals(sourceId) |
+                        _db.diveProfileSeries.sourceId.isNull()),
+              )
+              ..limit(1))
+            .get();
+    return rows.isNotEmpty;
+  }
 
   /// Stamps [sourceId] on every series of [diveId] that has no source yet
   /// (the first `dive_data_sources` row of a dive adopts the unattributed
@@ -696,6 +723,7 @@ class ProfileSeriesRepository {
     Expression<bool> Function($DiveProfileSeriesTable t) where, {
     required bool value,
     required int? now,
+    bool activate = false,
   }) async {
     final nowMs = now ?? DateTime.now().millisecondsSinceEpoch;
     final ids = await _ids(where);
@@ -705,6 +733,7 @@ class ProfileSeriesRepository {
       DiveProfileSeriesCompanion(
         isPrimary: Value(value),
         updatedAt: Value(nowMs),
+        activatedAt: activate ? Value(nowMs) : const Value.absent(),
       ),
       nowMs,
     );

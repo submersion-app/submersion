@@ -317,6 +317,49 @@ void main() {
       expect(promoted, ['aa-edit']);
     });
 
+    test('the restore fallback stamps what it promotes', () async {
+      await seriesRepo.insertSeries(
+        id: 'original',
+        diveId: 'dive-1',
+        sourceId: 'src-a',
+        isPrimary: false,
+        samples: span(20),
+        now: now,
+      );
+
+      await seriesRepo.promoteAll('dive-1', now: now + 10);
+
+      expect(await activatedAtOf('original'), now + 10);
+    });
+
+    test('hasLiveEdit sees only a primary series with no computer', () async {
+      await seriesRepo.insertSeries(
+        id: 'demoted-edit',
+        diveId: 'dive-1',
+        sourceId: 'src-a',
+        isPrimary: false,
+        samples: span(20),
+        now: now,
+      );
+      expect(
+        await seriesRepo.hasLiveEdit('dive-1', sourceId: 'src-a'),
+        isFalse,
+      );
+
+      await seriesRepo.insertSeries(
+        id: 'live-edit',
+        diveId: 'dive-1',
+        sourceId: 'src-a',
+        samples: span(28),
+        now: now,
+      );
+      expect(await seriesRepo.hasLiveEdit('dive-1', sourceId: 'src-a'), isTrue);
+      expect(
+        await seriesRepo.hasLiveEdit('dive-1', sourceId: 'src-z'),
+        isFalse,
+      );
+    });
+
     test('activating a series stamps it as the chosen generation', () async {
       await seriesRepo.insertSeries(
         id: 'original',
