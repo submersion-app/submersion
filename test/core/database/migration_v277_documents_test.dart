@@ -8,6 +8,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
+import 'package:submersion/core/services/sync/changeset_log/rebase_request.dart';
 
 /// v277 (issue #2613): the documents tables, and the copy of insurance,
 /// medical clearance and certification card photos into them.
@@ -33,6 +34,11 @@ const _parents = [
   'CREATE TABLE equipment (id TEXT NOT NULL PRIMARY KEY)',
   'CREATE TABLE courses (id TEXT NOT NULL PRIMARY KEY)',
   'CREATE TABLE dive_centers (id TEXT NOT NULL PRIMARY KEY)',
+  'CREATE TABLE local_publish_states (provider TEXT NOT NULL PRIMARY KEY, '
+      'base_seq INTEGER, base_part_count INTEGER, base_bytes INTEGER, '
+      'head_seq INTEGER NOT NULL DEFAULT 0, published_hlc_high TEXT, '
+      'changeset_bytes_since_base INTEGER NOT NULL DEFAULT 0, '
+      'updated_at INTEGER NOT NULL DEFAULT 0)',
 ];
 
 void _seed(sqlite.Database raw) {
@@ -40,6 +46,10 @@ void _seed(sqlite.Database raw) {
   for (final sql in _parents) {
     raw.execute(sql);
   }
+  raw.execute(
+    "INSERT INTO local_publish_states (provider, base_seq, base_bytes, "
+    "changeset_bytes_since_base) VALUES ('icloud', 3, 1000, 12)",
+  );
   raw.execute(
     'INSERT INTO divers (id, name, is_default, insurance_provider, '
     'insurance_policy_number, insurance_expiry_date, '
@@ -182,6 +192,44 @@ void main() {
         "WHERE document_id = '${documentCertificationCardId('c1')}'",
       );
       expect(pages.map((p) => p['updated_at']), everyElement(1660000000000));
+    },
+  );
+
+  test('the rung asks for a fresh base so a device joining later gets the '
+      'migrated documents', () async {
+    final db = AppDatabase(seeded());
+    addTearDown(db.close);
+    final r = await rows(
+      db,
+      'SELECT changeset_bytes_since_base AS b FROM local_publish_states',
+    );
+    expect(isRebaseRequested(r.single['b'] as int), isTrue);
+  });
+
+  test(
+    'with nothing to migrate the rung leaves the publish state alone',
+    () async {
+      final db = AppDatabase(
+        NativeDatabase.memory(
+          setup: (raw) {
+            raw.execute('PRAGMA user_version = 276');
+            for (final sql in _parents) {
+              raw.execute(sql);
+            }
+            raw.execute(
+              "INSERT INTO local_publish_states (provider, "
+              "changeset_bytes_since_base) VALUES ('icloud', 12)",
+            );
+            raw.execute("INSERT INTO divers (id, name) VALUES ('d1', 'Ana')");
+          },
+        ),
+      );
+      addTearDown(db.close);
+      final r = await rows(
+        db,
+        'SELECT changeset_bytes_since_base AS b FROM local_publish_states',
+      );
+      expect(r.single['b'], 12);
     },
   );
 

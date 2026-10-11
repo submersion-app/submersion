@@ -174,5 +174,18 @@ extension DocumentMigrations on AppDatabase {
         );
       }
     }
+    await _requestRebaseIfDocumentsMigrated();
+  }
+
+  /// The migrated rows carry no clock, so no changeset ever selects them;
+  /// a device that joins later adopts this device's base, which predates
+  /// them. Ask the changeset writer for one fresh base (issue #2613).
+  Future<void> _requestRebaseIfDocumentsMigrated() async {
+    if (!await _tableExists('local_publish_states')) return;
+    final migrated = await customSelect(
+      'SELECT 1 FROM documents LIMIT 1',
+    ).getSingleOrNull();
+    if (migrated == null) return;
+    await requestRebase(this);
   }
 }

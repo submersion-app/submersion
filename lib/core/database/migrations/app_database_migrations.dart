@@ -28,6 +28,7 @@ import 'package:submersion/core/database/equipment_share_uniqueness.dart';
 import 'package:submersion/core/database/tag_uniqueness.dart';
 import 'package:submersion/core/database/tank_shared_computer_backfill.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/sync/changeset_log/rebase_request.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_scope.dart';
 import 'package:submersion/features/documents/domain/document_ids.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
