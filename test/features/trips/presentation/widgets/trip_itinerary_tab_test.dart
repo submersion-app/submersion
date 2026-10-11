@@ -608,8 +608,8 @@ void main() {
         'Water 26°C to 28°C',
       );
       expect(find.text('29°C'), findsOneWidget);
-      expect(find.text('50m'), findsNWidgets(2));
-      expect(find.text('26°C'), findsOneWidget);
+      expect(find.text('09:00 · 50m · 27.0m · 26°C'), findsOneWidget);
+      expect(find.text('14:00 · 50m · 32.0m · 28°C'), findsOneWidget);
     });
 
     testWidgets('stored weather fills in when no dive logged any', (

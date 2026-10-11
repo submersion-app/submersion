@@ -39,6 +39,7 @@ class ItineraryDiveRow extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               '#${dive.diveNumber ?? '-'}',
@@ -48,18 +49,27 @@ class ItineraryDiveRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
+            // The site gets the full width; the values sit on a second line,
+            // so four of them never squeeze the name away on a phone.
             Expanded(
-              child: Text(
-                dive.site?.name ?? '-',
-                style: theme.textTheme.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    dive.site?.name ?? '-',
+                    style: theme.textTheme.bodySmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    values.join(' · '),
+                    style: muted,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
-            for (final (i, value) in values.indexed) ...[
-              if (i > 0) const SizedBox(width: 8),
-              Text(value, style: muted),
-            ],
           ],
         ),
       ),
