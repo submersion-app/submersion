@@ -96,5 +96,33 @@ void main() {
       expect(fast.currentPHe, lessThan(status.inspiredHeBar!));
       expect(status.isOffgassing(fast), isFalse);
     });
+
+    test('a compartment within floating-point noise of equilibrium still '
+        'reads as off-gassing, not falsely on-gassing', () {
+      // Regression for a compartment projected across many small
+      // off-gassing steps (TissueLiveService.surfaceIntervalTimeline)
+      // landing a few bits on the wrong side of its exact equilibrium
+      // tension from accumulated rounding.
+      final algorithm = BuhlmannAlgorithm();
+      final status = algorithm.getDecoStatus(currentDepth: 0);
+      final comp = status.compartments.first.copyWith(
+        currentPN2: status.inspiredN2Bar! - 1e-13,
+      );
+
+      expect(status.isOffgassing(comp), isTrue);
+    });
+
+    test(
+      'a compartment genuinely below equilibrium still reads as on-gassing',
+      () {
+        final algorithm = BuhlmannAlgorithm();
+        final status = algorithm.getDecoStatus(currentDepth: 0);
+        final comp = status.compartments.first.copyWith(
+          currentPN2: status.inspiredN2Bar! - 0.05,
+        );
+
+        expect(status.isOffgassing(comp), isFalse);
+      },
+    );
   });
 }

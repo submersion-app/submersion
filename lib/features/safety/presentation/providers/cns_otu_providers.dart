@@ -61,6 +61,9 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
     dailyOtu: totals.daily,
     weeklyOtu: totals.weekly,
     computedAt: now,
+    // Independent of exposure: empty for a gauge-mode or gas-segment-less
+    // rebreather dive even when exposure is known (see CnsOtuSnapshot's doc).
+    endOfDiveCompartments: analysis?.decoStatuses.lastOrNull?.compartments,
   );
 });
 

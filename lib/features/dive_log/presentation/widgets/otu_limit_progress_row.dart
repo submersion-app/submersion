@@ -37,30 +37,37 @@ class OtuLimitProgressRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
-              Text(
-                '${value.toStringAsFixed(0)} / ${limit.toStringAsFixed(0)} OTU '
-                '(${percent.toStringAsFixed(0)}%)',
-                style: textTheme.bodySmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: color,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  '${value.toStringAsFixed(0)} / ${limit.toStringAsFixed(0)} OTU '
+                  '(${percent.toStringAsFixed(0)}%)',
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
           ClipRRect(
-            borderRadius: BorderRadius.circular(3),
+            borderRadius: BorderRadius.circular(5),
             child: LinearProgressIndicator(
               value: (percent / 100).clamp(0.0, 1.0),
-              minHeight: 6,
+              minHeight: 10,
               backgroundColor: colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
