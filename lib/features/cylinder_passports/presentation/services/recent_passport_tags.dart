@@ -1,5 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
+import 'package:submersion/features/gear_passports/domain/services/tag_link_codec.dart';
 
 /// The passports the app read or wrote over NFC in the last three seconds.
 ///
@@ -46,11 +46,7 @@ class RecentPassportTags {
     return true;
   }
 
-  static String? _passportIdOf(String text) =>
-      switch (PassportPayloadCodec.decode(text)) {
-        PassportDecoded(:final payload) => payload.passportId.toLowerCase(),
-        PassportRejected() => null,
-      };
+  static String? _passportIdOf(String text) => TagLinkCodec.passportIdOf(text);
 }
 
 final recentPassportTagsProvider = Provider<RecentPassportTags>(

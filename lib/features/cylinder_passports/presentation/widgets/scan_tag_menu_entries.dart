@@ -17,7 +17,7 @@ List<PopupMenuEntry<String>> scanTagMenuEntries(BuildContext context) => [
         const Icon(Icons.qr_code_scanner, size: 20),
         const SizedBox(width: 12),
         // Wraps rather than overflows: some translations are long.
-        Flexible(child: Text(context.l10n.passport_scan_title)),
+        Flexible(child: Text(context.l10n.tagScan_title)),
       ],
     ),
   ),

@@ -17,6 +17,9 @@ class GearBuoyancyTraits extends Equatable {
   final String? insulationLevel;
   final String? sockType;
 
+  /// Whether a vest has its hood attached (#3108); null when not recorded.
+  final bool? hooded;
+
   const GearBuoyancyTraits({
     this.primaryThicknessMm,
     this.panelThicknessesMm = const [],
@@ -27,6 +30,7 @@ class GearBuoyancyTraits extends Equatable {
     this.gloveType,
     this.insulationLevel,
     this.sockType,
+    this.hooded,
   });
 
   static final RegExp _panelSeparators = RegExp(r'[/,\-]');
@@ -59,5 +63,6 @@ class GearBuoyancyTraits extends Equatable {
     gloveType,
     insulationLevel,
     sockType,
+    hooded,
   ];
 }

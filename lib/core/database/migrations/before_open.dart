@@ -569,6 +569,9 @@ extension BeforeOpenBackstops on AppDatabase {
     // every row read selects (before_open_child_columns.dart).
     await _assertChildRowColumns();
 
+    // A restored backup's note table (before_open_backup_note.dart).
+    await _dropRestoredBackupNoteTable();
+
     // v145 backstop: re-assert the gps_tracks provenance and trim columns.
     await _assertGpsTrackColumns();
 

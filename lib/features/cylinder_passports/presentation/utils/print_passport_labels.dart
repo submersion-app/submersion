@@ -10,9 +10,16 @@ import 'package:submersion/features/cylinder_passports/presentation/providers/cy
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_tag_card.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/gear_passports/domain/entities/gear_tag_payload.dart';
+import 'package:submersion/features/gear_passports/domain/services/gear_tag_codec.dart';
+import 'package:submersion/features/gear_passports/domain/services/gear_tag_fit.dart';
+import 'package:submersion/features/gear_passports/domain/services/gear_tag_rules.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Hands finished labels on: the PDF share sheet in the app, a capture in
@@ -36,10 +43,11 @@ Future<void> _shareLabelPdf(
   localization: localization,
 );
 
-/// Builds one label per cylinder among [equipmentIds] (other types are
-/// skipped), minting passport ids where missing, and passes them to
-/// [export], the PDF share sheet by default. Exports nothing when no
-/// cylinder was selected.
+/// Builds one label per selected item not on the wishlist, in selection
+/// order: the cylinder label for a tank, the gear label for anything else
+/// (issue #2652). Mints passport ids where missing and passes the labels to
+/// [export], the PDF share sheet by default. Exports nothing when no item
+/// qualifies.
 Future<void> printPassportLabels(
   BuildContext context,
   WidgetRef ref,
@@ -65,15 +73,18 @@ Future<void> printPassportLabels(
             .getEquipmentByIds(equipmentIds))
       item.id: item,
   };
-  final tanks = [
+  final items = [
     for (final id in equipmentIds)
-      if (byId[id] case final item? when item.type == EquipmentType.tank) item,
+      if (byId[id] case final item? when !item.isWanted) item,
   ];
-  if (tanks.isEmpty || !context.mounted) return;
-  final tankIds = [for (final t in tanks) t.id];
+  if (items.isEmpty || !context.mounted) return;
   final recordsById = await ref
       .read(serviceRecordRepositoryProvider)
-      .getRecordsForEquipmentIds(tankIds);
+      .getRecordsForEquipmentIds([for (final i in items) i.id]);
+  final tankIds = [
+    for (final i in items)
+      if (i.type == EquipmentType.tank) i.id,
+  ];
   if (!context.mounted) return;
   final clocksById = Map.fromIterables(
     tankIds,
@@ -84,11 +95,28 @@ Future<void> printPassportLabels(
   );
 
   final labels = <PassportLabelData>[];
-  for (final item in tanks) {
+  for (final item in items) {
     final stored = item.attrText(EquipmentAttrKeys.passportId);
     final passportId = stored != null && stored.trim().isNotEmpty
         ? stored.trim()
         : await passportRepo.ensurePassportId(item.id, diverId: diverId);
+    if (item.type != EquipmentType.tank) {
+      labels.add(
+        _gearLabel(
+          l10n,
+          item,
+          GearTagFit.fitForLabel(
+            gearPayloadForItem(
+              item: item,
+              passportId: passportId,
+              now: now,
+              lastService: lastServiceDate(recordsById[item.id] ?? const []),
+            ),
+          ),
+        ),
+      );
+      continue;
+    }
     final payload = currentPayloadFor(
       item,
       passportId: passportId,
@@ -132,3 +160,23 @@ Future<void> printPassportLabels(
     PdfLocalization.forLanguageCode(l10n.localeName),
   );
 }
+
+/// A gear label (gear tag spec 11): the name, brand and model, the type and
+/// serial, and the gear link.
+PassportLabelData _gearLabel(
+  AppLocalizations l10n,
+  EquipmentItem item,
+  GearTagPayload payload,
+) => PassportLabelData(
+  title: item.name,
+  subtitle: [
+    if (item.brand?.trim().isNotEmpty ?? false) item.brand!.trim(),
+    if (item.model?.trim().isNotEmpty ?? false) item.model!.trim(),
+  ].join(' '),
+  specLine: [
+    item.type.localizedName(l10n),
+    if (item.serialNumber?.trim().isNotEmpty ?? false)
+      item.serialNumber!.trim(),
+  ].join(', '),
+  url: GearTagCodec.httpsUrl(payload),
+);

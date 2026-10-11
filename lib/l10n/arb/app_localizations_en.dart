@@ -2258,6 +2258,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_backupNow => 'Backup Now';
 
   @override
+  String get backup_note_dialog_title => 'Back up now';
+
+  @override
+  String get backup_note_label => 'Note (optional)';
+
+  @override
+  String get backup_note_hint => 'e.g. Before the Cozumel trip';
+
+  @override
+  String get backup_note_dialog_confirm => 'Back Up';
+
+  @override
   String get backup_cloud_enabled => 'Cloud backup';
 
   @override
@@ -12383,6 +12395,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentType_rashGuard => 'Rash Guard';
 
   @override
+  String get enum_equipmentType_vest => 'Vest';
+
+  @override
   String get enum_equipmentType_wing => 'Wing';
 
   @override
@@ -13357,6 +13372,81 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get passport_logFill_saveFailed =>
       'Could not save the fill. Try again.';
+
+  @override
+  String get tagScan_title => 'Scan a tag';
+
+  @override
+  String get tagScan_linkInvalid => 'That is not a Submersion tag';
+
+  @override
+  String get gearPassport_title => 'Gear passport';
+
+  @override
+  String gearPassport_entry_lastService(String date) {
+    return 'Last serviced $date';
+  }
+
+  @override
+  String get gearPassport_entry_noService => 'No service recorded';
+
+  @override
+  String get gearPassport_recent_title => 'Recent service';
+
+  @override
+  String get gearPassport_recent_none => 'No service recorded yet';
+
+  @override
+  String get gearPassport_recent_seeAll => 'See all';
+
+  @override
+  String get gearPassport_unknownType => 'Gear';
+
+  @override
+  String get gearPassport_foreign_title => 'Gear tag';
+
+  @override
+  String get gearPassport_foreign_notInGear =>
+      'This gear is not in your library.';
+
+  @override
+  String get gearPassport_foreign_addFailed =>
+      'Could not add the gear. Try again.';
+
+  @override
+  String get gearPassport_field_lastService => 'Last service date';
+
+  @override
+  String get gearPassport_tag_linkInvalid => 'That is not a gear tag';
+
+  @override
+  String get gearPassport_scan_action => 'Scan';
+
+  @override
+  String gearPassport_scan_added(String name) {
+    return 'Added $name';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnDive(String name) {
+    return '$name is already on this dive';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnTrip(String name) {
+    return '$name is already on this trip';
+  }
+
+  @override
+  String get gearPassport_scan_notYours => 'Not in your gear';
+
+  @override
+  String get gearPassport_scan_view => 'View';
+
+  @override
+  String gearPassport_scan_wishlist(String name) {
+    return '$name is marked Wanted';
+  }
 
   @override
   String get pdf_unknownSite => 'Unknown Site';
@@ -18789,6 +18879,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_convert_view => 'View';
 
   @override
+  String plannerCanvas_export_failed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
   String plannerCanvas_follow_chip(String name) {
     return 'Following $name';
   }
@@ -18952,13 +19047,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_share_menu => 'Share plan file';
+  String get plannerCanvas_share_menu => 'Export plan file';
+
+  @override
+  String get plannerCanvas_share_saved => 'Plan file saved';
 
   @override
   String get plannerCanvas_slate_menu => 'Export slate (PDF)';
 
   @override
   String get plannerCanvas_slate_minGas => 'Min gas';
+
+  @override
+  String get plannerCanvas_slate_saved => 'Slate saved';
 
   @override
   String get plannerCanvas_slate_turn => 'Turn';
@@ -24004,6 +24105,190 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_section_manage_title => 'Manage';
 
   @override
+  String get settings_network_mode_header => 'Proxy';
+
+  @override
+  String get settings_network_mode_system => 'System proxy';
+
+  @override
+  String get settings_network_mode_system_subtitle =>
+      'Use the proxy configured in your device\'s network settings';
+
+  @override
+  String get settings_network_mode_manual => 'Manual';
+
+  @override
+  String get settings_network_mode_manual_subtitle => 'Enter a proxy server';
+
+  @override
+  String get settings_network_mode_none => 'No proxy';
+
+  @override
+  String get settings_network_mode_none_subtitle => 'Always connect directly';
+
+  @override
+  String get settings_network_status_detecting =>
+      'Checking this device\'s proxy settings';
+
+  @override
+  String get settings_network_status_none =>
+      'No proxy configured on this device';
+
+  @override
+  String settings_network_status_fixed(String endpoint) {
+    return 'Using $endpoint';
+  }
+
+  @override
+  String settings_network_status_fixedPac(String endpoint) {
+    return 'Using $endpoint (from automatic configuration)';
+  }
+
+  @override
+  String settings_network_status_fixedSocks(String endpoint) {
+    return 'Using $endpoint (SOCKS5)';
+  }
+
+  @override
+  String get settings_network_status_pacUnsupported =>
+      'Automatic proxy configuration isn\'t supported on this device. Choose Manual and enter the proxy.';
+
+  @override
+  String get settings_network_status_pacFailed =>
+      'The automatic proxy configuration couldn\'t be read. Choose Manual and enter the proxy.';
+
+  @override
+  String get settings_network_status_error =>
+      'This device\'s proxy settings couldn\'t be read.';
+
+  @override
+  String get settings_network_status_refresh => 'Check again';
+
+  @override
+  String get settings_network_manual_typeHttp => 'HTTP';
+
+  @override
+  String get settings_network_manual_typeSocks => 'SOCKS5';
+
+  @override
+  String get settings_network_manual_host => 'Host';
+
+  @override
+  String get settings_network_manual_port => 'Port';
+
+  @override
+  String get settings_network_manual_username => 'Username (optional)';
+
+  @override
+  String get settings_network_manual_password => 'Password (optional)';
+
+  @override
+  String get settings_network_manual_showPassword => 'Show password';
+
+  @override
+  String get settings_network_manual_hidePassword => 'Hide password';
+
+  @override
+  String get settings_network_manual_save => 'Save';
+
+  @override
+  String get settings_network_manual_saved => 'Proxy settings saved';
+
+  @override
+  String get settings_network_manual_saveFailed =>
+      'Couldn\'t save the proxy settings.';
+
+  @override
+  String get settings_network_manual_nativeNote =>
+      'Sign-in screens provided by the operating system use the system proxy.';
+
+  @override
+  String get settings_network_validation_hostRequired => 'Enter the proxy host';
+
+  @override
+  String get settings_network_validation_portInvalid =>
+      'Enter a port from 1 to 65535';
+
+  @override
+  String get settings_network_validation_passwordRequired =>
+      'Enter the password for this username';
+
+  @override
+  String get settings_network_validation_usernameColon =>
+      'The username can\'t contain a colon';
+
+  @override
+  String get settings_network_validation_usernameSemicolon =>
+      'The username can\'t contain a semicolon';
+
+  @override
+  String get settings_network_validation_usernameWhitespace =>
+      'The username can\'t start or end with a space';
+
+  @override
+  String get settings_network_validation_passwordSemicolon =>
+      'The password can\'t contain a semicolon';
+
+  @override
+  String get settings_network_validation_passwordWhitespace =>
+      'The password can\'t start or end with a space';
+
+  @override
+  String get settings_network_validation_tooLong =>
+      'Must be 255 bytes or fewer';
+
+  @override
+  String get settings_network_test_button => 'Test connection';
+
+  @override
+  String get settings_network_test_running => 'Testing';
+
+  @override
+  String settings_network_test_successProxy(
+    String endpoint,
+    String type,
+    int ms,
+  ) {
+    return 'Connected through $endpoint ($type) in $ms ms';
+  }
+
+  @override
+  String settings_network_test_successDirect(int ms) {
+    return 'Connected directly in $ms ms';
+  }
+
+  @override
+  String settings_network_test_unreachable(String endpoint) {
+    return 'Couldn\'t reach $endpoint. Check the host and port.';
+  }
+
+  @override
+  String get settings_network_test_authRejected =>
+      'The proxy rejected the username or password.';
+
+  @override
+  String get settings_network_test_authRequiredSystem =>
+      'This proxy requires a username and password. Choose Manual and enter them.';
+
+  @override
+  String get settings_network_test_tls =>
+      'Secure connection failed. Your network may inspect HTTPS traffic; its certificate must be trusted by this device.';
+
+  @override
+  String get settings_network_test_timeout => 'The connection timed out.';
+
+  @override
+  String settings_network_test_failed(String detail) {
+    return 'The connection failed: $detail. The debug log has the full error.';
+  }
+
+  @override
+  String get settings_section_network_subtitle => 'Proxy server';
+
+  @override
+  String get settings_section_network_title => 'Network';
+
+  @override
   String get settings_section_notifications_subtitle => 'Service reminders';
 
   @override
@@ -28448,6 +28733,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_gear_add_rental => 'Rental cylinders';
+
+  @override
+  String get trips_gear_add_scan => 'Scan a tag';
 
   @override
   String get trips_gear_section_packed => 'Packed';
@@ -33701,6 +33989,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_upf_rating => 'UPF rating';
 
   @override
+  String get attrLabel_hooded => 'Hooded';
+
+  @override
+  String get attrLabel_vest_layer => 'Worn';
+
+  @override
+  String get attrLabel_vest_closure => 'Closure';
+
+  @override
   String get attrLabel_snorkel_type => 'Type';
 
   @override
@@ -34132,6 +34429,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_sleeve_length_sleeveless => 'Sleeveless';
+
+  @override
+  String get attrChoice_vest_layer_over_suit => 'Over the suit';
+
+  @override
+  String get attrChoice_vest_layer_under_suit => 'Under the suit';
+
+  @override
+  String get attrChoice_vest_closure_front_zip => 'Front zip';
+
+  @override
+  String get attrChoice_vest_closure_side_zip => 'Side zip';
+
+  @override
+  String get attrChoice_vest_closure_pullover => 'Pullover';
 
   @override
   String get attrChoice_snorkel_type_classic => 'Classic';

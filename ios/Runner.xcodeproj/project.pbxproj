@@ -20,6 +20,7 @@
 		A1B2C3D41ED2DC5600515810 /* SecurityScopedBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D31ED2DC5600515810 /* SecurityScopedBookmarkHandler.swift */; };
 		B6F7A1C22F0A1234001C2D3E /* ICloudContainerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F7A1C12F0A1234001C2D3E /* ICloudContainerHandler.swift */; };
 		BB05C0DEBB05C0DE00000002 /* BackupBookmarkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB05C0DEBB05C0DE00000001 /* BackupBookmarkHandler.swift */; };
+		5E5C0DE05E5C0DE000000002 /* SystemProxyHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E5C0DE05E5C0DE000000001 /* SystemProxyHandler.swift */; };
 		C7F8A2D42F0B2345001D3E4F /* MetadataWriteHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7F8A2D32F0B2345001D3E4F /* MetadataWriteHandler.swift */; };
 		D8E9F0A22F0C3456001E4F50 /* LocalMediaHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0A12F0C3456001E4F50 /* LocalMediaHandler.swift */; };
 		D8E9F0B22F0C3456001E4F60 /* DeviceNameHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9F0B12F0C3456001E4F60 /* DeviceNameHandler.swift */; };
@@ -74,6 +75,7 @@
 		A1B2C3D31ED2DC5600515810 /* SecurityScopedBookmarkHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecurityScopedBookmarkHandler.swift; sourceTree = "<group>"; };
 		B6F7A1C12F0A1234001C2D3E /* ICloudContainerHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ICloudContainerHandler.swift; sourceTree = "<group>"; };
 		BB05C0DEBB05C0DE00000001 /* BackupBookmarkHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackupBookmarkHandler.swift; sourceTree = "<group>"; };
+		5E5C0DE05E5C0DE000000001 /* SystemProxyHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SystemProxyHandler.swift; sourceTree = "<group>"; };
 		C7F8A2D32F0B2345001D3E4F /* MetadataWriteHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MetadataWriteHandler.swift; sourceTree = "<group>"; };
 		D48C3D26F3310C3983763F37 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8E9F0A12F0C3456001E4F50 /* LocalMediaHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalMediaHandler.swift; sourceTree = "<group>"; };
@@ -160,6 +162,7 @@
 				D8E9F0A12F0C3456001E4F50 /* LocalMediaHandler.swift */,
 				D8E9F0B12F0C3456001E4F60 /* DeviceNameHandler.swift */,
 				BB05C0DEBB05C0DE00000001 /* BackupBookmarkHandler.swift */,
+				5E5C0DE05E5C0DE000000001 /* SystemProxyHandler.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -433,6 +436,7 @@
 				D8E9F0A22F0C3456001E4F50 /* LocalMediaHandler.swift in Sources */,
 				D8E9F0B22F0C3456001E4F60 /* DeviceNameHandler.swift in Sources */,
 				BB05C0DEBB05C0DE00000002 /* BackupBookmarkHandler.swift in Sources */,
+				5E5C0DE05E5C0DE000000002 /* SystemProxyHandler.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

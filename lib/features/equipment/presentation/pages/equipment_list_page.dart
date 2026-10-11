@@ -367,7 +367,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         icon: Icon(Icons.more_vert, size: iconSize),
         onSelected: (value) {
           if (value == scanTagMenuValue) {
-            unawaited(scanAndOpenCylinderTag(context, ref));
+            unawaited(scanAndOpenTag(context, ref));
           } else if (value.startsWith('view_')) {
             final mode = ListViewMode.fromName(value.replaceFirst('view_', ''));
             ref.read(equipmentListViewModeProvider.notifier).state = mode;

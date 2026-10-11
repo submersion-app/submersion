@@ -447,6 +447,27 @@ void main() {
       expect(undergarment.kg, closeTo(2.5, 1e-9));
     });
 
+    test('a vest listed first rides beside the wetsuit (#3108)', () {
+      // The vest is a layer: even ahead of the suit in the gear list, the
+      // wetsuit keeps the suit slot and the vest adds a term of its own.
+      const vest = EquipmentItem(
+        id: 'vest1',
+        name: 'Ice vest',
+        type: EquipmentType.vest,
+      );
+      final input = BuoyancyTwinAssembler.assemble(
+        dive: diveWith(tanks: [tank('t1')], equipment: const [vest, wetsuit]),
+        tankPressures: const {},
+        model: emptyModel(),
+        bodyWeightKg: 75,
+      )!;
+
+      expect(input.suit.kind, TwinSuitKind.wetsuit);
+      expect(input.suit.anchorKg, closeTo(5.0, 1e-9));
+      final term = input.staticTerms.firstWhere((t) => t.label == 'Ice vest');
+      expect(term.kg, closeTo(1.0, 1e-9));
+    });
+
     test('warmth moves the term', () {
       double termFor(String insulation) => BuoyancyTwinAssembler.assemble(
         dive: diveWith(

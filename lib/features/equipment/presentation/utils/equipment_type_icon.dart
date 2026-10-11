@@ -72,6 +72,10 @@ IconData equipmentTypeIcon(EquipmentType type) {
     // rather than the wardrobe family, so it does not read as a third layer.
     case EquipmentType.rashGuard:
       return MdiIcons.tshirtCrew;
+    // Sleeveless and hooded (#3108), so it reads apart from the suits, the
+    // base layer and the hood at 20px.
+    case EquipmentType.vest:
+      return SubmersionIcons.vest;
     case EquipmentType.mask:
       return MdiIcons.divingScubaMask;
     case EquipmentType.fins:

@@ -1,11 +1,15 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:uuid/uuid.dart';
+
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -15,7 +19,11 @@ void main() {
   late CylinderPassportRepository repo;
   const id = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
 
-  Future<void> seedEquipment(String eq, {String diver = 'd1'}) async {
+  Future<void> seedEquipment(
+    String eq, {
+    String diver = 'd1',
+    String type = 'tank',
+  }) async {
     final t = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.equipment)
@@ -23,7 +31,7 @@ void main() {
           EquipmentCompanion.insert(
             id: eq,
             name: eq,
-            type: 'tank',
+            type: type,
             createdAt: t,
             updatedAt: t,
             diverId: Value(diver),
@@ -291,7 +299,7 @@ void main() {
       );
 
   test(
-    'an item retyped away from a cylinder no longer holds the tag',
+    'an item retyped away from a cylinder still answers for its id',
     () async {
       await repo.assignPassportId(
         equipmentId: 'eq-1',
@@ -299,17 +307,47 @@ void main() {
         diverId: 'd1',
       );
       await retype('eq-1', 'regulator');
-      expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd1'), isNull);
+      expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd1'), 'eq-1');
+      expect(
+        (await repo.findHolderByPassportId(id, diverId: 'd1'))?.type,
+        EquipmentType.regulator,
+      );
+      expect(
+        await repo.findEquipmentIdByPassportId(
+          id,
+          diverId: 'd1',
+          type: EquipmentType.tank,
+        ),
+        isNull,
+      );
     },
   );
 
-  test('linking a tag a retyped item still carries moves it', () async {
+  test('a retyped item in service keeps its id when a tank links it', () async {
     await repo.assignPassportId(
       equipmentId: 'eq-1',
       passportId: id,
       diverId: 'd1',
     );
     await retype('eq-1', 'regulator');
+    await expectLater(
+      repo.assignPassportId(equipmentId: 'eq-2', passportId: id, diverId: 'd1'),
+      throwsA(isA<PassportIdInUse>()),
+    );
+    expect(await repo.getPassportId('eq-1'), id);
+    expect(await repo.getPassportId('eq-2'), isNull);
+  });
+
+  test('a retired retyped item gives its id up', () async {
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    await retype('eq-1', 'regulator');
+    await (db.update(db.equipment)..where((t) => t.id.equals('eq-1'))).write(
+      const EquipmentCompanion(status: Value('retired')),
+    );
     await repo.assignPassportId(
       equipmentId: 'eq-2',
       passportId: id,
@@ -317,6 +355,66 @@ void main() {
     );
     expect(await repo.getPassportId('eq-2'), id);
     expect(await repo.getPassportId('eq-1'), isNull);
+  });
+
+  test(
+    'a regulator mints its id from its equipment id (issue #2652)',
+    () async {
+      await seedEquipment('reg-1', type: 'regulator');
+      final minted = await repo.ensurePassportId('reg-1', diverId: 'd1');
+      expect(minted, const Uuid().v5(kCylinderPassportNamespace, 'reg-1'));
+      expect(
+        await repo.findEquipmentIdByPassportId(minted, diverId: 'd1'),
+        'reg-1',
+      );
+    },
+  );
+
+  test('fills under an id never follow it onto other gear', () async {
+    await seedEquipment('reg-1', type: 'regulator');
+    final fills = CylinderFillRepository();
+    final t = DateTime(2026, 9, 1);
+    await fills.create(
+      CylinderFill(
+        id: 'a',
+        passportId: id,
+        filledAt: t,
+        o2Percent: 21,
+        createdAt: t,
+        updatedAt: t,
+      ),
+    );
+    await repo.assignPassportId(
+      equipmentId: 'reg-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    expect((await fills.getById('a'))!.equipmentId, isNull);
+  });
+
+  test('every stale holder an old import left gives the id up', () async {
+    for (final eq in ['old-1', 'old-2']) {
+      await seedEquipment(eq, type: 'regulator');
+      await (db.update(db.equipment)..where((t) => t.id.equals(eq))).write(
+        const EquipmentCompanion(status: Value('retired')),
+      );
+      // Written straight to the row, as an old import did, so both hold it.
+      await EquipmentRepository().saveAttributes(eq, [
+        EquipmentAttribute.curated(
+          equipmentId: eq,
+          key: EquipmentAttrKeys.passportId,
+          valueText: id,
+        ),
+      ]);
+    }
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    expect(await repo.getPassportId('eq-1'), id);
+    expect(await repo.getPassportId('old-1'), isNull);
+    expect(await repo.getPassportId('old-2'), isNull);
   });
 
   test('a retype undone keeps the tag', () async {

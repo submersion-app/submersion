@@ -79,6 +79,29 @@ void main() {
       });
     });
 
+    test('maps vest geartypes, but not a BCD or a bare vest (#3108)', () {
+      // "Weste" alone is what a German diver calls a BCD ("Tarierweste"),
+      // so only the garment's own names land on the vest.
+      const cases = {
+        'Eisweste': EquipmentType.vest,
+        'Haubenweste': EquipmentType.vest,
+        'Ice vest': EquipmentType.vest,
+        'Hooded vest': EquipmentType.vest,
+        'Kopfhaubenweste': EquipmentType.vest,
+        'Neoprenweste': EquipmentType.vest,
+        'Tarierweste': EquipmentType.bcd,
+        'Weste': EquipmentType.other,
+        'Haube': EquipmentType.hood,
+      };
+      for (final MapEntry(key: input, value: expected) in cases.entries) {
+        expect(
+          DivelogsReferenceMappers.equipmentTypeForGeartypeName(input),
+          expected,
+          reason: input,
+        );
+      }
+    });
+
     test('maps bag geartypes, but not a lift bag or a weight pouch', () {
       // #2952. The German "Tasche" also names a pocket, so the lead pouch's
       // "Blei" must still win over it.

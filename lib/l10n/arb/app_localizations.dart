@@ -3559,6 +3559,30 @@ abstract class AppLocalizations {
   /// **'Backup Now'**
   String get backup_backupNow;
 
+  /// No description provided for @backup_note_dialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get backup_note_dialog_title;
+
+  /// No description provided for @backup_note_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get backup_note_label;
+
+  /// No description provided for @backup_note_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Before the Cozumel trip'**
+  String get backup_note_hint;
+
+  /// No description provided for @backup_note_dialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Back Up'**
+  String get backup_note_dialog_confirm;
+
   /// No description provided for @backup_cloud_enabled.
   ///
   /// In en, this message translates to:
@@ -20317,6 +20341,12 @@ abstract class AppLocalizations {
   /// **'Rash Guard'**
   String get enum_equipmentType_rashGuard;
 
+  /// No description provided for @enum_equipmentType_vest.
+  ///
+  /// In en, this message translates to:
+  /// **'Vest'**
+  String get enum_equipmentType_vest;
+
   /// No description provided for @enum_equipmentType_wing.
   ///
   /// In en, this message translates to:
@@ -22050,6 +22080,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not save the fill. Try again.'**
   String get passport_logFill_saveFailed;
+
+  /// No description provided for @tagScan_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a tag'**
+  String get tagScan_title;
+
+  /// No description provided for @tagScan_linkInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not a Submersion tag'**
+  String get tagScan_linkInvalid;
+
+  /// No description provided for @gearPassport_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear passport'**
+  String get gearPassport_title;
+
+  /// The newest service date of a piece of gear, such as Last serviced 2 Mar 2026.
+  ///
+  /// In en, this message translates to:
+  /// **'Last serviced {date}'**
+  String gearPassport_entry_lastService(String date);
+
+  /// No description provided for @gearPassport_entry_noService.
+  ///
+  /// In en, this message translates to:
+  /// **'No service recorded'**
+  String get gearPassport_entry_noService;
+
+  /// No description provided for @gearPassport_recent_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent service'**
+  String get gearPassport_recent_title;
+
+  /// No description provided for @gearPassport_recent_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No service recorded yet'**
+  String get gearPassport_recent_none;
+
+  /// No description provided for @gearPassport_recent_seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get gearPassport_recent_seeAll;
+
+  /// No description provided for @gearPassport_unknownType.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get gearPassport_unknownType;
+
+  /// No description provided for @gearPassport_foreign_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear tag'**
+  String get gearPassport_foreign_title;
+
+  /// No description provided for @gearPassport_foreign_notInGear.
+  ///
+  /// In en, this message translates to:
+  /// **'This gear is not in your library.'**
+  String get gearPassport_foreign_notInGear;
+
+  /// No description provided for @gearPassport_foreign_addFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add the gear. Try again.'**
+  String get gearPassport_foreign_addFailed;
+
+  /// No description provided for @gearPassport_field_lastService.
+  ///
+  /// In en, this message translates to:
+  /// **'Last service date'**
+  String get gearPassport_field_lastService;
+
+  /// No description provided for @gearPassport_tag_linkInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not a gear tag'**
+  String get gearPassport_tag_linkInvalid;
+
+  /// No description provided for @gearPassport_scan_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan'**
+  String get gearPassport_scan_action;
+
+  /// Said after a scanned item was added to a dive or a trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {name}'**
+  String gearPassport_scan_added(String name);
+
+  /// Said when a scanned item is already in the dive's gear.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is already on this dive'**
+  String gearPassport_scan_alreadyOnDive(String name);
+
+  /// Said when a scanned item is already packed for the trip.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is already on this trip'**
+  String gearPassport_scan_alreadyOnTrip(String name);
+
+  /// No description provided for @gearPassport_scan_notYours.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in your gear'**
+  String get gearPassport_scan_notYours;
+
+  /// No description provided for @gearPassport_scan_view.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get gearPassport_scan_view;
+
+  /// Said when a scanned item has the Wanted status, so it is not gear the diver owns yet.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is marked Wanted'**
+  String gearPassport_scan_wishlist(String name);
 
   /// No description provided for @pdf_unknownSite.
   ///
@@ -30553,6 +30709,12 @@ abstract class AppLocalizations {
   /// **'View'**
   String get plannerCanvas_convert_view;
 
+  /// No description provided for @plannerCanvas_export_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String plannerCanvas_export_failed(String error);
+
   /// No description provided for @plannerCanvas_follow_chip.
   ///
   /// In en, this message translates to:
@@ -30808,8 +30970,14 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_share_menu.
   ///
   /// In en, this message translates to:
-  /// **'Share plan file'**
+  /// **'Export plan file'**
   String get plannerCanvas_share_menu;
+
+  /// No description provided for @plannerCanvas_share_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan file saved'**
+  String get plannerCanvas_share_saved;
 
   /// No description provided for @plannerCanvas_slate_menu.
   ///
@@ -30822,6 +30990,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Min gas'**
   String get plannerCanvas_slate_minGas;
+
+  /// No description provided for @plannerCanvas_slate_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Slate saved'**
+  String get plannerCanvas_slate_saved;
 
   /// No description provided for @plannerCanvas_slate_turn.
   ///
@@ -39410,6 +39584,304 @@ abstract class AppLocalizations {
   /// **'Manage'**
   String get settings_section_manage_title;
 
+  /// No description provided for @settings_network_mode_header.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy'**
+  String get settings_network_mode_header;
+
+  /// No description provided for @settings_network_mode_system.
+  ///
+  /// In en, this message translates to:
+  /// **'System proxy'**
+  String get settings_network_mode_system;
+
+  /// No description provided for @settings_network_mode_system_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the proxy configured in your device\'s network settings'**
+  String get settings_network_mode_system_subtitle;
+
+  /// No description provided for @settings_network_mode_manual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get settings_network_mode_manual;
+
+  /// No description provided for @settings_network_mode_manual_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a proxy server'**
+  String get settings_network_mode_manual_subtitle;
+
+  /// No description provided for @settings_network_mode_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No proxy'**
+  String get settings_network_mode_none;
+
+  /// No description provided for @settings_network_mode_none_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Always connect directly'**
+  String get settings_network_mode_none_subtitle;
+
+  /// No description provided for @settings_network_status_detecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking this device\'s proxy settings'**
+  String get settings_network_status_detecting;
+
+  /// No description provided for @settings_network_status_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No proxy configured on this device'**
+  String get settings_network_status_none;
+
+  /// No description provided for @settings_network_status_fixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {endpoint}'**
+  String settings_network_status_fixed(String endpoint);
+
+  /// No description provided for @settings_network_status_fixedPac.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {endpoint} (from automatic configuration)'**
+  String settings_network_status_fixedPac(String endpoint);
+
+  /// No description provided for @settings_network_status_fixedSocks.
+  ///
+  /// In en, this message translates to:
+  /// **'Using {endpoint} (SOCKS5)'**
+  String settings_network_status_fixedSocks(String endpoint);
+
+  /// No description provided for @settings_network_status_pacUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic proxy configuration isn\'t supported on this device. Choose Manual and enter the proxy.'**
+  String get settings_network_status_pacUnsupported;
+
+  /// No description provided for @settings_network_status_pacFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The automatic proxy configuration couldn\'t be read. Choose Manual and enter the proxy.'**
+  String get settings_network_status_pacFailed;
+
+  /// No description provided for @settings_network_status_error.
+  ///
+  /// In en, this message translates to:
+  /// **'This device\'s proxy settings couldn\'t be read.'**
+  String get settings_network_status_error;
+
+  /// No description provided for @settings_network_status_refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Check again'**
+  String get settings_network_status_refresh;
+
+  /// No description provided for @settings_network_manual_typeHttp.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP'**
+  String get settings_network_manual_typeHttp;
+
+  /// No description provided for @settings_network_manual_typeSocks.
+  ///
+  /// In en, this message translates to:
+  /// **'SOCKS5'**
+  String get settings_network_manual_typeSocks;
+
+  /// No description provided for @settings_network_manual_host.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get settings_network_manual_host;
+
+  /// No description provided for @settings_network_manual_port.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get settings_network_manual_port;
+
+  /// No description provided for @settings_network_manual_username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username (optional)'**
+  String get settings_network_manual_username;
+
+  /// No description provided for @settings_network_manual_password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password (optional)'**
+  String get settings_network_manual_password;
+
+  /// No description provided for @settings_network_manual_showPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get settings_network_manual_showPassword;
+
+  /// No description provided for @settings_network_manual_hidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get settings_network_manual_hidePassword;
+
+  /// No description provided for @settings_network_manual_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get settings_network_manual_save;
+
+  /// No description provided for @settings_network_manual_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy settings saved'**
+  String get settings_network_manual_saved;
+
+  /// No description provided for @settings_network_manual_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the proxy settings.'**
+  String get settings_network_manual_saveFailed;
+
+  /// No description provided for @settings_network_manual_nativeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in screens provided by the operating system use the system proxy.'**
+  String get settings_network_manual_nativeNote;
+
+  /// No description provided for @settings_network_validation_hostRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the proxy host'**
+  String get settings_network_validation_hostRequired;
+
+  /// No description provided for @settings_network_validation_portInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a port from 1 to 65535'**
+  String get settings_network_validation_portInvalid;
+
+  /// No description provided for @settings_network_validation_passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the password for this username'**
+  String get settings_network_validation_passwordRequired;
+
+  /// No description provided for @settings_network_validation_usernameColon.
+  ///
+  /// In en, this message translates to:
+  /// **'The username can\'t contain a colon'**
+  String get settings_network_validation_usernameColon;
+
+  /// No description provided for @settings_network_validation_usernameSemicolon.
+  ///
+  /// In en, this message translates to:
+  /// **'The username can\'t contain a semicolon'**
+  String get settings_network_validation_usernameSemicolon;
+
+  /// No description provided for @settings_network_validation_usernameWhitespace.
+  ///
+  /// In en, this message translates to:
+  /// **'The username can\'t start or end with a space'**
+  String get settings_network_validation_usernameWhitespace;
+
+  /// No description provided for @settings_network_validation_passwordSemicolon.
+  ///
+  /// In en, this message translates to:
+  /// **'The password can\'t contain a semicolon'**
+  String get settings_network_validation_passwordSemicolon;
+
+  /// No description provided for @settings_network_validation_passwordWhitespace.
+  ///
+  /// In en, this message translates to:
+  /// **'The password can\'t start or end with a space'**
+  String get settings_network_validation_passwordWhitespace;
+
+  /// No description provided for @settings_network_validation_tooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Must be 255 bytes or fewer'**
+  String get settings_network_validation_tooLong;
+
+  /// No description provided for @settings_network_test_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Test connection'**
+  String get settings_network_test_button;
+
+  /// No description provided for @settings_network_test_running.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing'**
+  String get settings_network_test_running;
+
+  /// No description provided for @settings_network_test_successProxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected through {endpoint} ({type}) in {ms} ms'**
+  String settings_network_test_successProxy(
+    String endpoint,
+    String type,
+    int ms,
+  );
+
+  /// No description provided for @settings_network_test_successDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected directly in {ms} ms'**
+  String settings_network_test_successDirect(int ms);
+
+  /// No description provided for @settings_network_test_unreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach {endpoint}. Check the host and port.'**
+  String settings_network_test_unreachable(String endpoint);
+
+  /// No description provided for @settings_network_test_authRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The proxy rejected the username or password.'**
+  String get settings_network_test_authRejected;
+
+  /// No description provided for @settings_network_test_authRequiredSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'This proxy requires a username and password. Choose Manual and enter them.'**
+  String get settings_network_test_authRequiredSystem;
+
+  /// No description provided for @settings_network_test_tls.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure connection failed. Your network may inspect HTTPS traffic; its certificate must be trusted by this device.'**
+  String get settings_network_test_tls;
+
+  /// No description provided for @settings_network_test_timeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection timed out.'**
+  String get settings_network_test_timeout;
+
+  /// No description provided for @settings_network_test_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection failed: {detail}. The debug log has the full error.'**
+  String settings_network_test_failed(String detail);
+
+  /// No description provided for @settings_section_network_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy server'**
+  String get settings_section_network_subtitle;
+
+  /// No description provided for @settings_section_network_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get settings_section_network_title;
+
   /// No description provided for @settings_section_notifications_subtitle.
   ///
   /// In en, this message translates to:
@@ -46060,6 +46532,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rental cylinders'**
   String get trips_gear_add_rental;
+
+  /// No description provided for @trips_gear_add_scan.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a tag'**
+  String get trips_gear_add_scan;
 
   /// No description provided for @trips_gear_section_packed.
   ///
@@ -54142,6 +54620,24 @@ abstract class AppLocalizations {
   /// **'UPF rating'**
   String get attrLabel_upf_rating;
 
+  /// No description provided for @attrLabel_hooded.
+  ///
+  /// In en, this message translates to:
+  /// **'Hooded'**
+  String get attrLabel_hooded;
+
+  /// No description provided for @attrLabel_vest_layer.
+  ///
+  /// In en, this message translates to:
+  /// **'Worn'**
+  String get attrLabel_vest_layer;
+
+  /// No description provided for @attrLabel_vest_closure.
+  ///
+  /// In en, this message translates to:
+  /// **'Closure'**
+  String get attrLabel_vest_closure;
+
   /// No description provided for @attrLabel_snorkel_type.
   ///
   /// In en, this message translates to:
@@ -55005,6 +55501,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sleeveless'**
   String get attrChoice_sleeve_length_sleeveless;
+
+  /// No description provided for @attrChoice_vest_layer_over_suit.
+  ///
+  /// In en, this message translates to:
+  /// **'Over the suit'**
+  String get attrChoice_vest_layer_over_suit;
+
+  /// No description provided for @attrChoice_vest_layer_under_suit.
+  ///
+  /// In en, this message translates to:
+  /// **'Under the suit'**
+  String get attrChoice_vest_layer_under_suit;
+
+  /// No description provided for @attrChoice_vest_closure_front_zip.
+  ///
+  /// In en, this message translates to:
+  /// **'Front zip'**
+  String get attrChoice_vest_closure_front_zip;
+
+  /// No description provided for @attrChoice_vest_closure_side_zip.
+  ///
+  /// In en, this message translates to:
+  /// **'Side zip'**
+  String get attrChoice_vest_closure_side_zip;
+
+  /// No description provided for @attrChoice_vest_closure_pullover.
+  ///
+  /// In en, this message translates to:
+  /// **'Pullover'**
+  String get attrChoice_vest_closure_pullover;
 
   /// No description provided for @attrChoice_snorkel_type_classic.
   ///

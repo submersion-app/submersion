@@ -14,7 +14,9 @@ const _perItemAttrKeys = {
 /// The item the Clone form starts from (issue #3184): [source] with no id,
 /// owner or creation time (the save assigns them), the name from [copyName],
 /// no serial number, none of the frozen legacy service fields, and without
-/// the per-item attributes above. Everything else on the form is kept.
+/// the per-item attributes above, nor any system attribute: a passport id
+/// names one physical item, so a clone starts untagged (issue #2652).
+/// Everything else on the form is kept.
 ///
 /// Every attribute leaves the source's rows behind: saveAttributes upserts a
 /// custom field by its id, so a kept id would move the original's field onto
@@ -39,7 +41,9 @@ EquipmentItem cloneFormSeed(
     isActive: source.isActive,
     attributes: [
       for (final a in source.attributes)
-        if (a.isCustom || !_perItemAttrKeys.contains(a.key))
+        if (a.isCustom ||
+            (!_perItemAttrKeys.contains(a.key) &&
+                !EquipmentAttributeCatalog.isSystemKey(a.key)))
           a.copyWith(id: a.isCustom ? uuid.v4() : '', equipmentId: ''),
     ],
     customReminderEnabled: source.customReminderEnabled,

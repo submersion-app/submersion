@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
+import 'package:submersion/features/gear_passports/domain/services/tag_link_codec.dart';
 
 /// Where incoming links come from. An interface so tests, and the app's own
 /// widget tests, never open the platform channel.
@@ -52,8 +52,9 @@ final incomingLinkSourceProvider = Provider<IncomingLinkSource>((ref) {
   };
 });
 
-/// Turns incoming links into opened passports (spec 13.2): passport tags
-/// only, each once, and none before the app can show one.
+/// Turns incoming links into opened passports (spec 13.2): tags of either
+/// kind, cylinder or gear (issue #2652), each once, and none before the app
+/// can show one.
 class PassportLinkDispatcher {
   PassportLinkDispatcher({
     required IncomingLinkSource source,
@@ -119,7 +120,7 @@ class PassportLinkDispatcher {
 
   void _onLink(String text) {
     // An OAuth callback, a future /f record link, any other page: not ours.
-    if (PassportPayloadCodec.extractQuery(text) == null) return;
+    if (!TagLinkCodec.isTagLink(text)) return;
     if (_alreadyHandled?.call(text) ?? false) return;
     final now = _clock();
     final last = _lastAt;

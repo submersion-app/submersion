@@ -9,6 +9,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_transfer.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_transfer_gate.dart';
+import 'package:submersion/features/gear_passports/presentation/widgets/gear_passport_entry_card.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
@@ -224,6 +225,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
           const SizedBox(height: 24),
           if (equipment.type == EquipmentType.tank) ...[
             PassportEntryCard(equipment: equipment),
+            const SizedBox(height: 24),
+          ] else if (!equipment.isWanted) ...[
+            // Any other gear's tag (issue #2652).
+            GearPassportEntryCard(equipment: equipment),
             const SizedBox(height: 24),
           ],
           if (!equipment.isWanted) ...[
@@ -803,17 +808,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
     WidgetRef ref, {
     required String serviceKindId,
   }) {
-    showDialog(
-      context: context,
-      builder: (context) => ServiceRecordDialog(
-        equipmentId: equipmentId,
-        serviceKindId: serviceKindId,
-        onSave: (record) async {
-          await ref
-              .read(serviceRecordNotifierProvider(equipmentId).notifier)
-              .addRecord(record);
-        },
-      ),
+    showLogServiceDialog(
+      context,
+      ref,
+      equipmentId: equipmentId,
+      serviceKindId: serviceKindId,
     );
   }
 
