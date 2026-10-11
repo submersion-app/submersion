@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_tls.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Asks whether to trust a certificate that failed verification. True only
@@ -13,7 +16,6 @@ Future<bool> showWebDavTrustDialog(
   final l10n = context.l10n;
   final cert = e.certificate;
   final previous = e.pinnedSha256;
-  final materialL10n = MaterialLocalizations.of(context);
   final result = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
@@ -49,9 +51,14 @@ Future<bool> showWebDavTrustDialog(
               label: l10n.settings_webdavConfig_trust_issuer,
               value: cert.issuer,
             ),
-            _Field(
-              label: l10n.settings_webdavConfig_trust_expires,
-              value: materialL10n.formatMediumDate(cert.endValidity),
+            // The diver's date preference, not the ambient locale (#1512).
+            Consumer(
+              builder: (context, ref, _) => _Field(
+                label: l10n.settings_webdavConfig_trust_expires,
+                value: UnitFormatter(
+                  ref.watch(settingsProvider),
+                ).formatDate(cert.endValidity),
+              ),
             ),
           ],
         ),

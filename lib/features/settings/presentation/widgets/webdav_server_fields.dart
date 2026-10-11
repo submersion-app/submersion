@@ -313,12 +313,11 @@ class WebDavServerFields extends StatelessWidget {
                     formatFingerprint(pin),
                   ),
                 ),
-                trailing: TextButton(
+                trailing: IconButton(
                   key: _k('forget-pin'),
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: l10n.settings_webdavConfig_action_forgetCertificate,
                   onPressed: controller.forgetPin,
-                  child: Text(
-                    l10n.settings_webdavConfig_action_forgetCertificate,
-                  ),
                 ),
               ),
           ],
