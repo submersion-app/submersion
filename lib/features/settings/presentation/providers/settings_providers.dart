@@ -2281,7 +2281,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Waits for the diver's settings to load first, as [setAutoTagImports]
+  /// does (#998): a pick from a chart's Range menu while the app is still
+  /// loading would otherwise be overwritten by the load.
   Future<void> setTrendGapThreshold(TrendGapThreshold value) async {
+    try {
+      await settingsLoaded;
+    } catch (_) {
+      // Already logged by the load; defaults are the fallback.
+    }
+    if (!mounted) return;
     state = state.copyWith(trendGapThreshold: value);
     await _saveSettings();
   }

@@ -55,4 +55,53 @@ void main() {
     expect(TrendBreakBandPainter.labelLeft(5, 40, 600), 0);
     expect(TrendBreakBandPainter.labelLeft(300, 40, 600), 280);
   });
+
+  group('shouldRepaint', () {
+    TrendBreakBandPainter painter({
+      List<TrendBreakBand>? bands,
+      Rect rect = plot,
+      Color hatch = Colors.grey,
+      Color fill = Colors.white,
+      TextStyle style = const TextStyle(fontSize: 12),
+      TextDirection direction = TextDirection.ltr,
+    }) => TrendBreakBandPainter(
+      bands: bands ?? const [(left: 10, right: 20, label: '7y')],
+      plot: rect,
+      hatch: hatch,
+      fill: fill,
+      labelStyle: style,
+      textDirection: direction,
+    );
+
+    const same = [(left: 10.0, right: 20.0, label: '7y')];
+
+    test('an identical painter does not repaint', () {
+      expect(painter(bands: same).shouldRepaint(painter(bands: same)), isFalse);
+    });
+
+    test('any changed input repaints', () {
+      final base = painter(bands: same);
+      expect(painter(bands: const []).shouldRepaint(base), isTrue);
+      expect(painter(bands: same, rect: Rect.zero).shouldRepaint(base), isTrue);
+      expect(
+        painter(bands: same, hatch: Colors.red).shouldRepaint(base),
+        isTrue,
+      );
+      expect(
+        painter(bands: same, fill: Colors.black).shouldRepaint(base),
+        isTrue,
+      );
+      expect(
+        painter(
+          bands: same,
+          style: const TextStyle(fontSize: 14),
+        ).shouldRepaint(base),
+        isTrue,
+      );
+      expect(
+        painter(bands: same, direction: TextDirection.rtl).shouldRepaint(base),
+        isTrue,
+      );
+    });
+  });
 }
