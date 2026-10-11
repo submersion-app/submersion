@@ -96,3 +96,50 @@ class ConditionsGroupStatus extends StatelessWidget {
     );
   }
 }
+
+/// The shell every new condition card shares: a stat card holding [chart],
+/// labelled for screen readers, with the coverage line under it.
+class ConditionsChartCard extends StatelessWidget {
+  const ConditionsChartCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.chart,
+    required this.recorded,
+    required this.total,
+  });
+
+  final String title;
+  final String subtitle;
+
+  /// Each category or band with its dive count, read after [title].
+  final String description;
+  final Widget chart;
+  final int recorded;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: StatSectionCard(
+        title: title,
+        subtitle: subtitle,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Semantics(
+              label: context.l10n.insights_conditions_chart_semanticLabel(
+                title,
+                description,
+              ),
+              child: chart,
+            ),
+            ConditionsCoverageLine(recorded: recorded, total: total),
+          ],
+        ),
+      ),
+    );
+  }
+}

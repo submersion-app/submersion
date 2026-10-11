@@ -4,7 +4,6 @@ import 'package:submersion/features/insights/domain/conditions/conditions_stats.
 import 'package:submersion/features/insights/presentation/formatters/condition_band_label.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
-import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dives per band of a numeric condition, with its coverage line (issue
@@ -46,30 +45,19 @@ class ConditionsBandCard extends StatelessWidget {
               '${d.label}$unitSymbol: ${l10n.insights_summary_tagUsage_diveCount(d.count)}',
         )
         .join(', ');
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: StatSectionCard(
-        title: title,
-        subtitle: subtitle,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Semantics(
-              label: l10n.insights_conditions_chart_semanticLabel(
-                title,
-                description,
-              ),
-              child: CategoryBarChart(
-                data: data,
-                barColor: barColor,
-                valueFormatter: l10n.insights_summary_tagUsage_diveCount,
-                xAxisLabel: unitSymbol,
-              ),
-            ),
-            ConditionsCoverageLine(recorded: stat.recorded, total: totalDives),
-          ],
-        ),
-      ),
+    final chart = CategoryBarChart(
+      data: data,
+      barColor: barColor,
+      valueFormatter: l10n.insights_summary_tagUsage_diveCount,
+      xAxisLabel: unitSymbol,
+    );
+    return ConditionsChartCard(
+      title: title,
+      subtitle: subtitle,
+      description: description,
+      chart: chart,
+      recorded: stat.recorded,
+      total: totalDives,
     );
   }
 }

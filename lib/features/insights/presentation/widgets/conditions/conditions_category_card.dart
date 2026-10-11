@@ -5,7 +5,6 @@ import 'package:submersion/features/insights/domain/conditions/conditions_stats.
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
-import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// How a categorical condition is drawn: a pie for a short ordinal scale
@@ -73,25 +72,13 @@ class ConditionsCategoryCard<T extends Enum> extends StatelessWidget {
         barColor: barColor,
       ),
     };
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: StatSectionCard(
-        title: title,
-        subtitle: subtitle,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Semantics(
-              label: l10n.insights_conditions_chart_semanticLabel(
-                title,
-                description,
-              ),
-              child: chart,
-            ),
-            ConditionsCoverageLine(recorded: stat.recorded, total: totalDives),
-          ],
-        ),
-      ),
+    return ConditionsChartCard(
+      title: title,
+      subtitle: subtitle,
+      description: description,
+      chart: chart,
+      recorded: stat.recorded,
+      total: totalDives,
     );
   }
 }
