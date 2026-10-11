@@ -475,4 +475,19 @@ void main() {
       expect(timeline(c), TimelineState.idle);
     });
   });
+
+  test('a span reload stops the sweep before the new span arrives', () {
+    fakeAsync((async) {
+      final c = container();
+      flush(async);
+      notifier(c).play();
+      async.elapse(const Duration(seconds: 1));
+      // A diver switch reloads the span; the old one is still the value
+      // while it loads, and must not keep being swept.
+      c.invalidate(connectionsDateSpanProvider);
+      flush(async);
+      expect(timeline(c).playing, isFalse);
+      expect(sweepTimers(async), isEmpty);
+    });
+  });
 }

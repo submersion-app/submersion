@@ -83,11 +83,17 @@ class ConnectionsTimelineNotifier extends Notifier<TimelineState> {
     });
     // The sweep runs over the span it started with, and a drag over a slider
     // that may have gone: a new span (a synced dive, another diver) ends both.
+    // While the span reloads the old one is still its value, so the sweep
+    // stops as soon as a reload starts rather than sweep stale dates.
     ref.listen<AsyncValue<DayRange?>>(connectionsDateSpanProvider, (
       prev,
       next,
     ) {
-      if (next.isLoading || prev?.value == next.value) return;
+      if (next.isLoading) {
+        if (state.playing) pause();
+        return;
+      }
+      if (prev?.value == next.value) return;
       if (_span() == null) {
         if (state != TimelineState.idle || _inFlight) _reset();
       } else if (state.playing) {
