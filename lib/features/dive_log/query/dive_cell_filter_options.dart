@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -133,18 +134,22 @@ List<CellFilterOption> diveCellFilterOptions({
         ],
       ];
     case DiveColumnFilterKind.integer:
-      final v = NumberValue((raw as num).toDouble(), null);
+      final value = (raw as num).toDouble();
+      // A value the validator refuses would put an error on a chip the
+      // diver never typed; offer nothing instead.
+      final sanity = _fieldOf(spec).sanity;
+      if (sanity != null && (value < sanity.min || value > sanity.max)) {
+        return const [];
+      }
+      final v = NumberValue(value, null);
       return ranged(cond(QueryOp.eq, v), v, v, displayed);
     case DiveColumnFilterKind.duration:
       final minutes = NumberValue((raw as Duration).inMinutes.toDouble(), null);
       return ranged(cond(QueryOp.eq, minutes), minutes, minutes, displayed);
     case DiveColumnFilterKind.number:
       if (raw is! num) return const [];
-      final dimension = resolvePath(
-        appQueryRegistry,
-        diveQueryEntity,
-        spec.path,
-      ).field!.dimension;
+      final queryField = _fieldOf(spec);
+      final dimension = queryField.dimension;
       final (shown, _) = storageToDisplay(
         raw.toDouble(),
         null,
@@ -155,7 +160,14 @@ List<CellFilterOption> diveCellFilterOptions({
       // it, so the clicked dive is always inside.
       final step = math.pow(10, -spec.decimals).toDouble();
       final rounded = (shown / step).round() * step;
-      double ground(double v) => groundToStorage(v, null, dimension, prefs);
+      // Kept inside the field's sanity range, so the rule validates.
+      final sanity = queryField.sanity;
+      double ground(double v) {
+        final stored = groundToStorage(v, null, dimension, prefs);
+        return sanity == null
+            ? stored
+            : stored.clamp(sanity.min, sanity.max).toDouble();
+      }
       final lo = NumberValue(ground(rounded - step / 2), null);
       final hi = NumberValue(ground(rounded + step / 2), null);
       return ranged(
@@ -186,6 +198,9 @@ List<CellFilterOption> diveCellFilterOptions({
       return const [];
   }
 }
+
+QueryField _fieldOf(DiveColumnFilter spec) =>
+    resolvePath(appQueryRegistry, diveQueryEntity, spec.path).field!;
 
 Duration? _surfaceInterval(Dive dive, Map<String, Duration?> computed) =>
     computed.containsKey(dive.id) ? computed[dive.id] : dive.surfaceInterval;

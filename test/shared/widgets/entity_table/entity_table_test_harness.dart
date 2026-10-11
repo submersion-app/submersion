@@ -110,8 +110,10 @@ Widget buildTestTable({
   EntityTableHeaderMenuBuilder<TestField>? headerMenuBuilder,
   EntityTableCellMenuBuilder<TestEntity, TestField>? cellMenuBuilder,
   bool Function(TestField)? isColumnFiltered,
+  Locale? locale,
 }) {
   return testApp(
+    locale: locale,
     child: EntityTableView<TestEntity, TestField>(
       entities: entities,
       idExtractor: (e) => e.id,

@@ -2,12 +2,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/query/compiler/query_validator.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/query/dive_cell_filter_options.dart';
+import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
@@ -201,6 +204,13 @@ void main() {
       );
     });
 
+    test('total weight, which list loads never hydrate', () {
+      // getAllDives loads weights as const [], so the cell is always "--"
+      // while the weight field reads dive_weights: "no Total Weight" would
+      // drop the clicked dive.
+      expect(options(DiveField.totalWeight, base), isEmpty);
+    });
+
     test('a dive name shown from its site', () {
       expect(
         options(
@@ -211,6 +221,43 @@ void main() {
         ),
         isEmpty,
       );
+    });
+  });
+
+  group('every rule passes the query validator (sanity ranges)', () {
+    void expectValid(List<CellFilterOption> o) {
+      for (final option in o) {
+        expect(
+          validateQuery(option.rule, diveQueryEntity, appQueryRegistry),
+          isEmpty,
+          reason: '${option.kind}',
+        );
+      }
+    }
+
+    test('a 0.0 m depth clamps the lower bound to the field minimum', () {
+      final o = options(DiveField.maxDepth, base.copyWith(maxDepth: 0));
+      expect(o, isNotEmpty);
+      expectValid(o);
+      expect(betweenOf(o.first.rule).$1, 0);
+    });
+
+    test('a water temperature at the field maximum stays valid', () {
+      expectValid(options(DiveField.waterTemp, base.copyWith(waterTemp: 45)));
+    });
+
+    test('a six-tank dive offers valid exact rules', () {
+      final d = base.copyWith(
+        tanks: [for (var i = 0; i < 6; i++) DiveTank(id: 't$i')],
+      );
+      final o = options(DiveField.tankCount, d);
+      expect(o, hasLength(3));
+      expectValid(o);
+    });
+
+    test('a rating outside the field range offers no items', () {
+      // rating's sanity is 0..5; a synced row can carry anything.
+      expect(options(DiveField.ratingStars, base.copyWith(rating: 9)), isEmpty);
     });
   });
 

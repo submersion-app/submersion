@@ -131,8 +131,9 @@ class EntityTableHeaderCell extends StatelessWidget {
 
           // Resize handle on the right edge
           if (showResizeHandle && onResize != null)
-            Positioned(
-              right: 0,
+            // The trailing edge: the left one in a right-to-left locale.
+            PositionedDirectional(
+              end: 0,
               top: 0,
               bottom: 0,
               child: EntityTableResizeHandle(

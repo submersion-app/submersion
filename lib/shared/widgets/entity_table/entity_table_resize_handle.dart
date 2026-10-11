@@ -59,7 +59,10 @@ class _EntityTableResizeHandleState extends State<EntityTableResizeHandle> {
       onHorizontalDragUpdate: (d) {
         final start = _startWidth;
         if (start == null) return;
-        final next = (start + d.globalPosition.dx - _startX)
+        // Columns run right to left in an RTL locale, so dragging left
+        // widens them there.
+        final sign = Directionality.of(context) == TextDirection.rtl ? -1 : 1;
+        final next = (start + sign * (d.globalPosition.dx - _startX))
             .clamp(widget.minWidth, kEntityTableMaxColumnWidth)
             .toDouble();
         if (next == _last) return;
