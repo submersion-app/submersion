@@ -48,7 +48,8 @@ Small gaps (a winter off) are fine and should stay on the real time scale.
   changed default, so every diver (existing ones included) starts at 1 year.
 - Synced like every other diver setting: table column, rung, sync serializer
   arm, `diver_settings_repository`, conflict-catalogue entry,
-  `AppSettings.trendGapCollapseMonths` with `copyWith`, and a notifier setter.
+  `AppSettings.trendGapThreshold` (a `TrendGapThreshold`) with `copyWith`, a
+  notifier setter and a `trendGapThresholdProvider`.
 - Domain type `TrendGapThreshold { off, months6, year1, years2 }` with its
   month count and conversion from the stored int. Any other stored or synced
   value falls back to `year1`.
@@ -56,8 +57,8 @@ Small gaps (a winter off) are fine and should stay on the real time scale.
 ### Where the diver changes it
 
 - Settings > Appearance > General: a tile "Collapse gaps in trend charts"
-  whose subtitle names the current choice, opening the same kind of
-  single-choice dialog the page's other pickers use. The tablet and desktop
+  with a one-line explanation and the current choice in a trailing dropdown,
+  the same picker the Map style tile beside it uses. The tablet and desktop
   settings pane renders the same `AppearanceGeneralTiles`, so it gets the tile
   too.
 - The Range menu of every `TrendChartSection`: below the range presets, a
