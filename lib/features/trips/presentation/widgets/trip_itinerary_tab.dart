@@ -130,7 +130,7 @@ class TripItineraryTab extends ConsumerWidget {
             ),
           );
 
-    Widget card(int index) {
+    Widget card(int index, {double bottomGap = 8}) {
       final day = days[index];
       final dayDives = sortedDivesByDate[_dateKey(day.date)] ?? [];
       final storyDay = storyDays[tripDay(day.date)];
@@ -143,6 +143,7 @@ class TripItineraryTab extends ConsumerWidget {
         media: storyDay?.media ?? const [],
         sightings: storyDay?.sightings ?? const [],
         storedWeather: storedWeather[tripDayMillis(day.date)]?.toStoryWeather(),
+        bottomGap: bottomGap,
       );
     }
 
@@ -186,7 +187,10 @@ class TripItineraryTab extends ConsumerWidget {
         padded(
           SliverList.builder(
             itemCount: anchor,
-            itemBuilder: (context, i) => card(anchor - 1 - i),
+            // The row just above today takes no gap of its own: the anchored
+            // sliver's top padding is the gap, as between any two rows.
+            itemBuilder: (context, i) =>
+                card(anchor - 1 - i, bottomGap: i == 0 ? 0 : 8),
           ),
         ),
         SliverPadding(

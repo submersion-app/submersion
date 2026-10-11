@@ -44,6 +44,10 @@ class ItineraryDayCard extends ConsumerWidget {
   /// Weather stored for this day; logged dive weather wins over it.
   final TripStoryDayWeather? storedWeather;
 
+  /// Space under the card. The list's anchored sliver brings its own gap
+  /// above today, so the card just before it takes none.
+  final double bottomGap;
+
   const ItineraryDayCard({
     super.key,
     required this.day,
@@ -54,6 +58,7 @@ class ItineraryDayCard extends ConsumerWidget {
     this.media = const [],
     this.sightings = const [],
     this.storedWeather,
+    this.bottomGap = 8,
   });
 
   @override
@@ -77,7 +82,7 @@ class ItineraryDayCard extends ConsumerWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: bottomGap),
       child: Card(
         // Today's tint is blended onto the card's own surface colour rather
         // than handed to Material as a bare translucent fill, which would

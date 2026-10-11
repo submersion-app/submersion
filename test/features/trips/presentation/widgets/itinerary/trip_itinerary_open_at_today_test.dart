@@ -162,5 +162,25 @@ void main() {
       expect(find.text('Day 19'), findsOneWidget);
       expect(find.text('Day 18'), findsOneWidget);
     });
+
+    testWidgets('the gap above today matches the gaps between other days', (
+      tester,
+    ) async {
+      await withClock(Clock.fixed(DateTime(2026, 3, 15, 9)), () async {
+        await _pumpTab(
+          tester,
+          trip: longTrip(),
+          days: rows([for (var d = 1; d <= 30; d++) d]),
+        );
+        await tester.drag(find.byType(Scrollable).first, const Offset(0, 200));
+        await tester.pump();
+      });
+      Rect card(String label) => tester.getRect(
+        find.ancestor(of: find.text(label), matching: find.byType(Card)),
+      );
+      final aboveToday = card('Day 15').top - card('Day 14').bottom;
+      final belowToday = card('Day 16').top - card('Day 15').bottom;
+      expect(aboveToday, belowToday);
+    });
   });
 }
