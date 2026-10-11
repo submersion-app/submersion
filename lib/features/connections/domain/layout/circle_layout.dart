@@ -28,8 +28,12 @@ abstract final class CircleLayout {
     ]..sort(compareKindDivesLabel);
     final positions = <NodeRef, GraphPoint>{?centre: GraphPoint.zero};
     if (ring.isNotEmpty) {
-      final radius =
-          math.max(minRadius, ring.length * slot / (2 * math.pi)) * spacing;
+      // Spacing scales the ring, but a tight setting never shrinks it below
+      // one slot per node, where the largest discs would overlap.
+      final radius = math.max(
+        minRadius * spacing,
+        ring.length * slot * math.max(1.0, spacing) / (2 * math.pi),
+      );
       for (var i = 0; i < ring.length; i++) {
         final angle = -math.pi / 2 + 2 * math.pi * i / ring.length;
         positions[ring[i].ref] = GraphPoint(

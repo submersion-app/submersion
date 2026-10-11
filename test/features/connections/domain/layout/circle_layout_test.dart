@@ -80,4 +80,28 @@ void main() {
     ).positions.values.first.length;
     expect(r2, closeTo(r1 * 2, 1e-6));
   });
+
+  test('tight spacing never squeezes neighbours closer than a slot', () {
+    final nodes = [
+      for (var i = 0; i < 40; i++) _n(ConnectionKind.buddy, 'b$i', 40 - i),
+    ];
+    final f = CircleLayout.compute(nodes: nodes, spacing: 0.6);
+    for (var i = 0; i < nodes.length; i++) {
+      final a = f.positions[nodes[i].ref]!;
+      final b = f.positions[nodes[(i + 1) % nodes.length].ref]!;
+      expect(a.distanceTo(b), greaterThan(CircleLayout.slot * 0.95));
+    }
+  });
+
+  test('tight spacing still tightens a small ring', () {
+    final nodes = [
+      _n(ConnectionKind.buddy, 'a', 1),
+      _n(ConnectionKind.buddy, 'b', 1),
+    ];
+    final tight = CircleLayout.compute(
+      nodes: nodes,
+      spacing: 0.6,
+    ).positions.values.first.length;
+    expect(tight, closeTo(CircleLayout.minRadius * 0.6, 1e-6));
+  });
 }
