@@ -102,11 +102,14 @@ void main() {
     expect(result[2].targetDepth, 30);
   });
 
-  test('a configured rate slower than the entered duration implies leaves '
-      'the segment unsplit -- there is no remainder to hold', () {
-    // 100 m at 1 m/min would take 6000 s, far more than the 600 s entered:
-    // travelling at the configured rate the whole time does not even reach
-    // the target, so there is nothing left to hold.
+  test('a configured rate slower than the entered duration stretches the '
+      'segment to the travel time instead of silently ignoring the rate '
+      '(#3130)', () {
+    // 100 m at 1 m/min takes 6000 s, far more than the 600 s entered: there
+    // is no remainder to hold, but the rate still has to govern -- the
+    // diver checked the box precisely because 600 s is too fast for that
+    // rate, so cutting the travel short back to 600 s would undo the whole
+    // point of the checkbox.
     final segments = [
       _seg('s1', 100, durationSeconds: 600, splitAtConfiguredRate: true),
     ];
@@ -114,14 +117,18 @@ void main() {
       segments,
       _plan(segments: segments, descentRate: 1.0),
     );
-    expect(result, [segments[0]]);
+    expect(result, hasLength(1));
+    expect(result[0].id, 's1');
+    expect(result[0].targetDepth, 100);
+    expect(result[0].durationSeconds, 6000);
   });
 
   test(
-    'exactly matching durations also stays unsplit (no zero-length hold)',
+    'exactly matching durations also stay travel-only (no zero-length hold)',
     () {
       // 100 m at 10 m/min takes exactly 600 s -- the same as the entered
-      // duration, so there is no remainder.
+      // duration, so there is no remainder, and the duration is already
+      // the travel time.
       final segments = [
         _seg('s1', 100, durationSeconds: 600, splitAtConfiguredRate: true),
       ];
@@ -129,7 +136,8 @@ void main() {
         segments,
         _plan(segments: segments, descentRate: 10.0),
       );
-      expect(result, [segments[0]]);
+      expect(result, hasLength(1));
+      expect(result[0].durationSeconds, 600);
     },
   );
 

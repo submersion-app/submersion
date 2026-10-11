@@ -15,8 +15,11 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 /// half keeps the original segment's id (so a later edit or a chart tap by
 /// id still resolves to the one segment the diver authored); the hold half
 /// gets a synthetic id derived from it. A segment whose configured-rate
-/// travel time already reaches or exceeds its own authored duration is
-/// left exactly as it is -- there is no remainder left to hold.
+/// travel time already reaches or exceeds its own authored duration has no
+/// remainder left to hold, so it becomes travel-only -- but the rate still
+/// governs: its duration is stretched to the travel time instead of being
+/// left at the diver's (too short) authored figure, which would otherwise
+/// silently ignore the checkbox (#3130).
 List<PlanSegment> expandRateSplitSegments(
   List<PlanSegment> segments,
   domain.DivePlan plan,
@@ -37,7 +40,7 @@ List<PlanSegment> expandRateSplitSegments(
       ratePerMinute: rate,
     );
     if (travelSeconds >= segment.durationSeconds) {
-      result.add(segment);
+      result.add(segment.copyWith(durationSeconds: travelSeconds));
       fromDepth = toDepth;
       continue;
     }
