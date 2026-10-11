@@ -212,6 +212,23 @@ void main() {
     },
   );
 
+  test('a metric visibility range imports every digit it was written with '
+      '(#3226)', () async {
+    // Finer than a nanometre: only a conversion from feet may be snapped.
+    final dive = Dive(
+      id: 'r',
+      diveNumber: 30,
+      dateTime: DateTime.utc(2026, 3, 1, 9),
+      visibilityMinMeters: 2.4999999995,
+      visibilityMaxMeters: 12.0000000004,
+    );
+    final csv = CsvDivesWriter(CsvExportUnits.metric).write([dive]);
+    final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
+    final parsed = payload.entitiesOf(ImportEntityType.dives).single;
+    expect(parsed['visibilityMinMeters'], 2.4999999995);
+    expect(parsed['visibilityMaxMeters'], 12.0000000004);
+  });
+
   test('a tank carrying only a working pressure is kept', () async {
     final header = CsvDivesWriter(CsvExportUnits.metric)
         .write(goldenDives())

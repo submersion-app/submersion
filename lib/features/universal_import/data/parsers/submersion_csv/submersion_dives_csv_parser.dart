@@ -358,9 +358,12 @@ class SubmersionDivesCsvParser implements ImportParser {
 /// noise (12 m returns as 12.000000000000002) that would push a band edge
 /// out of its band. Snapping to the nanometre removes that noise and nothing
 /// else: a custom edge entered in feet (8.2 ft is 2.49936 m) keeps every
-/// digit, where millimetre rounding would move it off its band.
-double? _withoutConversionNoise(double? meters) =>
-    meters == null ? null : (meters * 1e9).roundToDouble() / 1e9;
+/// digit, where millimetre rounding would move it off its band. A metres
+/// column went through no conversion, so its value is kept verbatim.
+double? _withoutConversionNoise(double? meters, CsvUnit? unit) =>
+    meters == null || unit == CsvUnit.meters
+    ? meters
+    : (meters * 1e9).roundToDouble() / 1e9;
 
 /// A row's visibility range ends in meters (issue #3226), without
 /// conversion noise. A cell that is present but unreadable makes the whole range
@@ -377,5 +380,8 @@ double? _withoutConversionNoise(double? meters) =>
   final maxUnreadable =
       max == null && table.text(row, CsvColumns.visibilityMax.base) != null;
   if (minUnreadable || maxUnreadable) return (min: null, max: null);
-  return (min: _withoutConversionNoise(min), max: _withoutConversionNoise(max));
+  return (
+    min: _withoutConversionNoise(min, table.unitOf(CsvColumns.visibilityMin)),
+    max: _withoutConversionNoise(max, table.unitOf(CsvColumns.visibilityMax)),
+  );
 }
