@@ -16,6 +16,7 @@ import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
+import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
@@ -219,7 +220,7 @@ class PlanEngine {
   /// The breathing mode in force for [segment] (its per-segment override, or
   /// the plan's mode). Models mid-plan bailout.
   domain.PlanMode _modeFor(domain.DivePlan plan, PlanSegment? segment) =>
-      segment?.diveModeOverride ?? plan.mode;
+      modeFor(plan, segment);
 
   /// Setpoint in force at [depth]: the segment's per-segment override if set,
   /// else the plan's depth-based (low/high) setpoint.
@@ -322,8 +323,11 @@ class PlanEngine {
       cnsMethod: config.cnsMethod,
     );
 
-    final segments = List<PlanSegment>.from(plan.segments)
-      ..sort((a, b) => a.order.compareTo(b.order));
+    final segments = withDiluentSwitchTime(
+      List<PlanSegment>.from(plan.segments)
+        ..sort((a, b) => a.order.compareTo(b.order)),
+      plan,
+    );
     // Waypoints carry only a target depth, so the profile they describe -
     // start depths, phases, rates - is resolved once here, and everything
     // downstream reads legs rather than segments.
