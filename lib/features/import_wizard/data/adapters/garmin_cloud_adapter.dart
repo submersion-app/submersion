@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/import_wizard/data/adapters/import_connection_recorder.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/core/constants/enums.dart' show WeightType;
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -91,7 +95,9 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     required DiveConsolidationService consolidationService,
     required String diverId,
     WidgetRef? ref,
+    DiveComputerConnectionRepository? connectionRepository,
   }) : _importService = importService,
+       _connectionRepository = connectionRepository,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
        _consolidationService = consolidationService,
@@ -104,6 +110,10 @@ class GarminCloudAdapter implements ImportSourceAdapter {
   final DiveConsolidationService _consolidationService;
   final String _diverId;
   final WidgetRef? _ref;
+
+  /// Where each computer's Garmin Connect connection is recorded (issue
+  /// #3106); read from [_ref] when not given.
+  final DiveComputerConnectionRepository? _connectionRepository;
 
   List<GarminParsedDive> _parsedDives = [];
 
@@ -445,6 +455,19 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     for (final entry in importedCountByComputerId.entries) {
       await _computerRepository.incrementDiveCount(entry.key, by: entry.value);
       await _computerRepository.updateLastDownload(entry.key);
+    }
+    // Every computer the fetched dives came from was reached through
+    // Garmin Connect this time, including one whose dives were all skipped
+    // as duplicates or replaced in place (issue #3106).
+    for (final computerId in {for (final c in _computersByKey.values) c.id}) {
+      await recordImportConnection(
+        _connectionRepository ??
+            _ref?.read(diveComputerConnectionRepositoryProvider),
+        computerId: computerId,
+        kind: DiveComputerConnectionKind.cloud,
+        detail: 'garminConnect',
+        log: _log,
+      );
     }
 
     scheduleQualityScan(importedDiveIds);

@@ -34110,6 +34110,36 @@ abstract class AppLocalizations {
   /// **'Bluetooth address'**
   String get settings_conflict_field_bluetoothAddress;
 
+  /// No description provided for @settings_conflict_field_connectionDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection detail'**
+  String get settings_conflict_field_connectionDetail;
+
+  /// No description provided for @settings_conflict_field_connectionAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection address'**
+  String get settings_conflict_field_connectionAddress;
+
+  /// No description provided for @settings_conflict_field_firstUsedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'First used'**
+  String get settings_conflict_field_firstUsedAt;
+
+  /// No description provided for @settings_conflict_field_lastUsedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used'**
+  String get settings_conflict_field_lastUsedAt;
+
+  /// No description provided for @settings_conflict_field_localLastUsedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used on this device'**
+  String get settings_conflict_field_localLastUsedAt;
+
   /// No description provided for @settings_conflict_field_boatCaptain.
   ///
   /// In en, this message translates to:
@@ -49848,6 +49878,60 @@ abstract class AppLocalizations {
   /// **'Wi-Fi'**
   String get diveComputer_connectionType_wifi;
 
+  /// No description provided for @diveComputer_connections_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get diveComputer_connections_title;
+
+  /// No description provided for @diveComputer_connections_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No downloads or imports recorded yet'**
+  String get diveComputer_connections_empty;
+
+  /// No description provided for @diveComputer_connections_lastUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used {when}'**
+  String diveComputer_connections_lastUsed(String when);
+
+  /// No description provided for @diveComputer_connections_thisDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get diveComputer_connections_thisDevice;
+
+  /// No description provided for @diveComputer_connections_downloadVia.
+  ///
+  /// In en, this message translates to:
+  /// **'Download via {connection}'**
+  String diveComputer_connections_downloadVia(String connection);
+
+  /// No description provided for @diveComputer_connections_fileFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{format} file'**
+  String diveComputer_connections_fileFormat(String format);
+
+  /// No description provided for @diveComputer_connections_cloudGarmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin Connect'**
+  String get diveComputer_connections_cloudGarmin;
+
+  /// No description provided for @diveComputer_connections_cloudSuunto.
+  ///
+  /// In en, this message translates to:
+  /// **'Suunto app'**
+  String get diveComputer_connections_cloudSuunto;
+
+  /// No description provided for @diveComputer_connections_cloudOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud import'**
+  String get diveComputer_connections_cloudOther;
+
   /// No description provided for @diveComputer_detail_deleteDialogContent.
   ///
   /// In en, this message translates to:
@@ -49889,12 +49973,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional notes'**
   String get diveComputer_detail_editNotesHint;
-
-  /// No description provided for @diveComputer_detail_labelConnection.
-  ///
-  /// In en, this message translates to:
-  /// **'Connection'**
-  String get diveComputer_detail_labelConnection;
 
   /// No description provided for @diveComputer_detail_labelManufacturer.
   ///
@@ -72950,6 +73028,84 @@ abstract class AppLocalizations {
   /// **'Wipe all sync data on this backend'**
   String get settings_troubleshootSync_wipeAll_title;
 
+  /// No description provided for @tableMode_cell_anyValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Only dives with a {column}'**
+  String tableMode_cell_anyValue(String column);
+
+  /// No description provided for @tableMode_cell_atLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {value}'**
+  String tableMode_cell_atLeast(String value);
+
+  /// No description provided for @tableMode_cell_atMost.
+  ///
+  /// In en, this message translates to:
+  /// **'At most {value}'**
+  String tableMode_cell_atMost(String value);
+
+  /// No description provided for @tableMode_cell_exclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude {value}'**
+  String tableMode_cell_exclude(String value);
+
+  /// No description provided for @tableMode_cell_noValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Only dives with no {column}'**
+  String tableMode_cell_noValue(String column);
+
+  /// No description provided for @tableMode_cell_onOrAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'On or after {value}'**
+  String tableMode_cell_onOrAfter(String value);
+
+  /// No description provided for @tableMode_cell_onOrBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'On or before {value}'**
+  String tableMode_cell_onOrBefore(String value);
+
+  /// No description provided for @tableMode_cell_only.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {value}'**
+  String tableMode_cell_only(String value);
+
+  /// No description provided for @tableMode_cell_with.
+  ///
+  /// In en, this message translates to:
+  /// **'With {value}'**
+  String tableMode_cell_with(String value);
+
+  /// No description provided for @tableMode_cell_without.
+  ///
+  /// In en, this message translates to:
+  /// **'Without {value}'**
+  String tableMode_cell_without(String value);
+
+  /// No description provided for @tableMode_menu_addFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Add filter'**
+  String get tableMode_menu_addFilter;
+
+  /// No description provided for @tableMode_menu_hideColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide column'**
+  String get tableMode_menu_hideColumn;
+
+  /// No description provided for @tableMode_menu_resetFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filter'**
+  String get tableMode_menu_resetFilter;
+
   /// No description provided for @tableMode_tooltip_toggleDetailPane.
   ///
   /// In en, this message translates to:
@@ -74922,12 +75078,6 @@ abstract class AppLocalizations {
   /// **'Viewing'**
   String get diveLog_sources_badge_viewing;
 
-  /// Badge on a data source that is not the dive's primary source.
-  ///
-  /// In en, this message translates to:
-  /// **'Secondary'**
-  String get diveLog_sources_badge_secondary;
-
   /// When a manually entered dive record was created.
   ///
   /// In en, this message translates to:
@@ -74951,6 +75101,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Imported'**
   String get diveLog_sources_detail_imported;
+
+  /// No description provided for @diveLog_sources_detail_times.
+  ///
+  /// In en, this message translates to:
+  /// **'Times'**
+  String get diveLog_sources_detail_times;
+
+  /// No description provided for @diveLog_sources_detail_file.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get diveLog_sources_detail_file;
+
+  /// Entry and exit time of one data source, shown on the Times row of its card.
+  ///
+  /// In en, this message translates to:
+  /// **'{start}–{end}'**
+  String diveLog_sources_timeRange(String start, String end);
+
+  /// No description provided for @diveLog_sources_sectionMenuTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Data source actions'**
+  String get diveLog_sources_sectionMenuTooltip;
 
   /// Screen-reader label for the row that opens a linked dive computer.
   ///

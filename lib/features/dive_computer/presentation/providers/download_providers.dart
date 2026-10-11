@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/database/computer_serial_identity.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -334,10 +335,22 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         :final reportedProduct,
         :final reportedModel,
       ):
+        // libdivecomputer reports a Shearwater serial in decimal; store the
+        // hex the computer itself shows (issue #3106). Everything downstream
+        // (the computer record, the dive snapshot, the data source) reads it
+        // from here.
+        // The saved computer names the family when the device descriptor
+        // did not match and the download reported no product.
+        final model = _device?.recognizedModel;
+        final canonicalSerial = canonicalDownloadedSerial(
+          vendor: model?.manufacturer ?? _computer?.manufacturer,
+          product: reportedProduct ?? model?.model ?? _computer?.model,
+          serial: serialNumber,
+        );
         state = state.copyWith(
           phase: DownloadPhase.complete,
           progress: DownloadProgress.complete(totalDives),
-          serialNumber: serialNumber,
+          serialNumber: canonicalSerial,
           firmwareVersion: firmwareVersion,
           clockSyncStatus: ClockSyncStatus.fromWireName(clockSyncStatus),
           reportedProduct: reportedProduct,
@@ -350,7 +363,7 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         _downloadSubscription = null;
         _releaseScreenAwake();
         // Persist device info on the computer record.
-        _persistDeviceInfo(serialNumber, firmwareVersion, reportedProduct);
+        _persistDeviceInfo(canonicalSerial, firmwareVersion, reportedProduct);
       case pigeon.DownloadErrorEvent(:final error):
         _log.error(
           'Download failed (${error.code}): ${error.message}',
@@ -393,7 +406,16 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     final storedSerial = _nonBlank(computer.serialNumber);
     if (storedSerial != null &&
         serialNumber != null &&
-        storedSerial != serialNumber) {
+        !computerSerialsMatch(
+          storedSerial,
+          serialNumber,
+          shearwater: shearwaterPair(
+            manufacturerA: computer.manufacturer,
+            modelA: computer.model,
+            manufacturerB: _device?.recognizedModel?.manufacturer,
+            modelB: _device?.recognizedModel?.model,
+          ),
+        )) {
       _log.warning(
         'Downloaded from ${_device?.name} (${_device?.address}) with serial '
         '$serialNumber, but ${computer.displayName} is serial $storedSerial; '
@@ -412,8 +434,18 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
           identical(relabeled, computer)) {
         return;
       }
+      // A digits-only report that matches a stored hex serial (the other
+      // Shearwater radix) leaves the hex: rewriting it would churn the
+      // synced value between the two spellings.
+      final keepStored =
+          storedSerial != null &&
+          serialNumber != null &&
+          isAllDigitsSerial(serialNumber) &&
+          !isAllDigitsSerial(storedSerial);
       final updated = relabeled.copyWith(
-        serialNumber: serialNumber ?? computer.serialNumber,
+        serialNumber: keepStored
+            ? storedSerial
+            : serialNumber ?? computer.serialNumber,
         firmwareVersion: firmwareVersion ?? computer.firmwareVersion,
         bluetoothAddress: address ?? computer.bluetoothAddress,
       );

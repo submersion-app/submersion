@@ -1,6 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/import_wizard/data/adapters/import_connection_recorder.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
+import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -64,7 +68,9 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
     required String diverId,
     SuuntoRouteWriter? routeWriter,
     WidgetRef? ref,
+    DiveComputerConnectionRepository? connectionRepository,
   }) : _importService = importService,
+       _connectionRepository = connectionRepository,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
        _consolidationService = consolidationService,
@@ -79,6 +85,15 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
   final String _diverId;
   final SuuntoRouteWriter _routeWriter;
   final WidgetRef? _ref;
+
+  /// Where each computer's connection is recorded (issue #3106); read from
+  /// [_ref] when not given.
+  final DiveComputerConnectionRepository? _connectionRepository;
+
+  /// The connection this source records on each computer it imports for:
+  /// the Suunto cloud, or a Suunto JSON file (issue #3106).
+  @protected
+  (DiveComputerConnectionKind, String) get importConnection;
 
   List<SuuntoParsedDive> _parsedDives = [];
 
@@ -384,6 +399,20 @@ abstract class SuuntoDiveImportCore implements ImportSourceAdapter {
     for (final entry in importedCountByComputerId.entries) {
       await _computerRepository.incrementDiveCount(entry.key, by: entry.value);
       await _computerRepository.updateLastDownload(entry.key);
+    }
+    // Every computer the read dives came from was reached through this
+    // source, including one whose dives were all skipped as duplicates
+    // (issue #3106).
+    final (kind, detail) = importConnection;
+    for (final computerId in {for (final c in _computersByKey.values) c.id}) {
+      await recordImportConnection(
+        _connectionRepository ??
+            _ref?.read(diveComputerConnectionRepositoryProvider),
+        computerId: computerId,
+        kind: kind,
+        detail: detail,
+        log: _log,
+      );
     }
 
     scheduleQualityScan(importedDiveIds);

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -2081,6 +2082,9 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     courseRepository: ref.read(courseRepositoryProvider),
     serviceRecordRepository: ref.read(serviceRecordRepositoryProvider),
     diveComputerRepository: ref.read(diveComputerRepositoryProvider),
+    diveComputerConnectionRepository: ref.read(
+      diveComputerConnectionRepositoryProvider,
+    ),
     // Without it every check-in in the file is skipped (condition phase
     // 3a); the field is optional only for legacy callers.
     equipmentObservationRepository: ref.read(

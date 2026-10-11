@@ -13056,6 +13056,11 @@
   "settings_conflict_field_bestMixEndMeters": "Best mix narcotic depth",
   "settings_conflict_field_bloodType": "Blood type",
   "settings_conflict_field_bluetoothAddress": "Bluetooth address",
+  "settings_conflict_field_connectionDetail": "Connection detail",
+  "settings_conflict_field_connectionAddress": "Connection address",
+  "settings_conflict_field_firstUsedAt": "First used",
+  "settings_conflict_field_lastUsedAt": "Last used",
+  "settings_conflict_field_localLastUsedAt": "Last used on this device",
   "settings_conflict_field_boatCaptain": "Boat captain",
   "settings_conflict_field_boatName": "Boat name",
   "settings_conflict_field_bookmarkRef": "File access",
@@ -19007,6 +19012,36 @@
   "diveComputer_connectionType_unknown": "Unknown",
   "diveComputer_connectionType_usb": "USB",
   "diveComputer_connectionType_wifi": "Wi-Fi",
+  "diveComputer_connections_title": "Connections",
+  "diveComputer_connections_empty": "No downloads or imports recorded yet",
+  "diveComputer_connections_lastUsed": "Last used {when}",
+  "@diveComputer_connections_lastUsed": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "diveComputer_connections_thisDevice": "This device",
+  "diveComputer_connections_downloadVia": "Download via {connection}",
+  "@diveComputer_connections_downloadVia": {
+    "placeholders": {
+      "connection": {
+        "type": "String"
+      }
+    }
+  },
+  "diveComputer_connections_fileFormat": "{format} file",
+  "@diveComputer_connections_fileFormat": {
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "diveComputer_connections_cloudGarmin": "Garmin Connect",
+  "diveComputer_connections_cloudSuunto": "Suunto app",
+  "diveComputer_connections_cloudOther": "Cloud import",
   "diveComputer_detail_deleteDialogContent": "Are you sure you want to remove \"{name}\"? This will not delete any dives that were imported from this computer.",
   "@diveComputer_detail_deleteDialogContent": {
     "placeholders": {
@@ -19021,7 +19056,6 @@
   "diveComputer_detail_editDialogTitle": "Edit Computer",
   "diveComputer_detail_editNameHint": "e.g., My Perdix",
   "diveComputer_detail_editNotesHint": "Optional notes",
-  "diveComputer_detail_labelConnection": "Connection",
   "diveComputer_detail_labelManufacturer": "Manufacturer",
   "diveComputer_detail_labelModel": "Model",
   "diveComputer_detail_labelName": "Name",
@@ -26354,6 +26388,29 @@
   "settings_troubleshootSync_wipeAll_progressTitle": "Wiping sync data",
   "settings_troubleshootSync_wipeAll_subtitle": "Delete every device’s sync data from this backend, including the library markers. Every device re-establishes from scratch. Your dive data is not affected.",
   "settings_troubleshootSync_wipeAll_title": "Wipe all sync data on this backend",
+  "tableMode_cell_anyValue": "Only dives with a {column}",
+  "@tableMode_cell_anyValue": {"placeholders": {"column": {"type": "String"}}},
+  "tableMode_cell_atLeast": "At least {value}",
+  "@tableMode_cell_atLeast": {"placeholders": {"value": {"type": "String"}}},
+  "tableMode_cell_atMost": "At most {value}",
+  "@tableMode_cell_atMost": {"placeholders": {"value": {"type": "String"}}},
+  "tableMode_cell_exclude": "Exclude {value}",
+  "@tableMode_cell_exclude": {"placeholders": {"value": {"type": "String"}}},
+  "tableMode_cell_noValue": "Only dives with no {column}",
+  "@tableMode_cell_noValue": {"placeholders": {"column": {"type": "String"}}},
+  "tableMode_cell_onOrAfter": "On or after {value}",
+  "@tableMode_cell_onOrAfter": {"placeholders": {"value": {"type": "String"}}},
+  "tableMode_cell_onOrBefore": "On or before {value}",
+  "@tableMode_cell_onOrBefore": {"placeholders": {"value": {"type": "String"}}},
+  "tableMode_cell_only": "Only {value}",
+  "@tableMode_cell_only": {"placeholders": {"value": {"type": "String"}}},
+  "tableMode_cell_with": "With {value}",
+  "@tableMode_cell_with": {"placeholders": {"value": {"type": "String"}}},
+  "tableMode_cell_without": "Without {value}",
+  "@tableMode_cell_without": {"placeholders": {"value": {"type": "String"}}},
+  "tableMode_menu_addFilter": "Add filter",
+  "tableMode_menu_hideColumn": "Hide column",
+  "tableMode_menu_resetFilter": "Reset filter",
   "tableMode_tooltip_toggleDetailPane": "Toggle detail pane",
   "tableMode_tooltip_toggleProfilePanel": "Toggle profile panel",
   "@diveLog_filterChip_dateRange": {
@@ -27477,11 +27534,15 @@
   "diveLog_sources_sectionTitle": "{count, plural, =0{Data Source} =1{Data Source} other{Data Sources}}",
   "diveLog_sources_badge_manual": "Manual",
   "diveLog_sources_badge_viewing": "Viewing",
-  "diveLog_sources_badge_secondary": "Secondary",
   "diveLog_sources_created": "Created {date}",
   "diveLog_sources_detail_serial": "Serial",
   "diveLog_sources_detail_format": "Format",
   "diveLog_sources_detail_imported": "Imported",
+  "diveLog_sources_detail_times": "Times",
+  "diveLog_sources_detail_file": "File",
+  "diveLog_sources_timeRange": "{start}–{end}",
+  "@diveLog_sources_timeRange": {"description": "Entry and exit time of one data source, shown on the Times row of its card.", "placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "diveLog_sources_sectionMenuTooltip": "Data source actions",
   "diveLog_detail_semantics_viewDiveComputer": "View dive computer {name}",
   "diveLog_detail_semantics_viewTrip": "View trip {name}",
   "diveLog_detail_semantics_viewDiveCenter": "View dive center {name}",
@@ -27866,9 +27927,6 @@
   },
   "@diveLog_sources_badge_viewing": {
     "description": "Badge on the data source currently being previewed on the chart."
-  },
-  "@diveLog_sources_badge_secondary": {
-    "description": "Badge on a data source that is not the dive's primary source."
   },
   "@diveLog_sources_created": {
     "description": "When a manually entered dive record was created.",

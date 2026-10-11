@@ -290,6 +290,33 @@ final Map<String, ConflictField> equipmentOverrides = {
     (l) => l.settings_conflict_field_movedAt,
     FieldKind.dateTime,
   ),
+  // Dive computer connections (v279, issue #3106). The address and the
+  // last use on this device never sync, but a conflict snapshot still
+  // carries every column, so they are labelled too.
+  'diveComputerConnections.kind': ConflictField(
+    (l) => l.settings_conflict_field_connectionType,
+    FieldKind.shortText,
+  ),
+  'diveComputerConnections.detail': ConflictField(
+    (l) => l.settings_conflict_field_connectionDetail,
+    FieldKind.shortText,
+  ),
+  'diveComputerConnections.address': ConflictField(
+    (l) => l.settings_conflict_field_connectionAddress,
+    FieldKind.shortText,
+  ),
+  'diveComputerConnections.firstUsedAt': ConflictField(
+    (l) => l.settings_conflict_field_firstUsedAt,
+    FieldKind.dateTime,
+  ),
+  'diveComputerConnections.lastUsedAt': ConflictField(
+    (l) => l.settings_conflict_field_lastUsedAt,
+    FieldKind.dateTime,
+  ),
+  'diveComputerConnections.localLastUsedAt': ConflictField(
+    (l) => l.settings_conflict_field_localLastUsedAt,
+    FieldKind.dateTime,
+  ),
   'cylinderFills.source': ConflictField(
     (l) => l.settings_conflict_field_cylinderFills_source,
     FieldKind.enumValue,

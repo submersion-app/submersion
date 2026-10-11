@@ -40,6 +40,16 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_dives_diver_exittime '
         'ON dives(diver_id, exit_time DESC)',
   ),
+  // The previous-dive seeks of diveSurfaceIntervalSecondsSql (#2984): a
+  // range on entry_time, and entry_time IS NULL plus a range on
+  // dive_date_time. Not diver-leading, because the detail page's previous
+  // dive is not diver-scoped.
+  (
+    name: 'idx_dives_entry_date',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dives_entry_date '
+        'ON dives(entry_time, dive_date_time)',
+  ),
   // NOTE: an expression index on (diver_id, COALESCE(entry_time,
   // dive_date_time) DESC) matching the paginated list's sort key was
   // evaluated in the WS0 baseline and DROPPED: the planner never selected
@@ -229,6 +239,13 @@ const List<PerformanceIndex> kPerformanceIndexes = [
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_equipment_location_moves_location '
         'ON equipment_location_moves(location_id)',
+  ),
+  // A computer's connections, for the detail page and merge (v279).
+  (
+    name: 'idx_dive_computer_connections_computer',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_computer_connections_computer '
+        'ON dive_computer_connections(computer_id)',
   ),
   (
     name: 'idx_equipment_components_component',

@@ -21362,6 +21362,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'Bluetooth-Adresse';
 
   @override
+  String get settings_conflict_field_connectionDetail => 'Verbindungsdetail';
+
+  @override
+  String get settings_conflict_field_connectionAddress => 'Verbindungsadresse';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'Zuerst verwendet';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'Zuletzt verwendet';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt =>
+      'Zuletzt auf diesem Gerät verwendet';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'Kapitän';
 
   @override
@@ -31475,6 +31491,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'WLAN';
 
   @override
+  String get diveComputer_connections_title => 'Verbindungen';
+
+  @override
+  String get diveComputer_connections_empty =>
+      'Noch keine Downloads oder Importe erfasst';
+
+  @override
+  String diveComputer_connections_lastUsed(String when) {
+    return 'Zuletzt verwendet $when';
+  }
+
+  @override
+  String get diveComputer_connections_thisDevice => 'Dieses Gerät';
+
+  @override
+  String diveComputer_connections_downloadVia(String connection) {
+    return 'Herunterladen über $connection';
+  }
+
+  @override
+  String diveComputer_connections_fileFormat(String format) {
+    return '$format-Datei';
+  }
+
+  @override
+  String get diveComputer_connections_cloudGarmin => 'Garmin Connect';
+
+  @override
+  String get diveComputer_connections_cloudSuunto => 'Suunto-App';
+
+  @override
+  String get diveComputer_connections_cloudOther => 'Cloud-Import';
+
+  @override
   String diveComputer_detail_deleteDialogContent(String name) {
     return 'Möchten Sie \"$name\" wirklich entfernen? Dadurch werden keine von diesem Computer importierten Tauchgänge gelöscht.';
   }
@@ -31497,9 +31547,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveComputer_detail_editNotesHint => 'Optionale Notizen';
-
-  @override
-  String get diveComputer_detail_labelConnection => 'Verbindung';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'Hersteller';
@@ -45729,6 +45776,65 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Synchronisierungsdaten auf diesem Backend löschen';
 
   @override
+  String tableMode_cell_anyValue(String column) {
+    return 'Nur Tauchgänge mit $column';
+  }
+
+  @override
+  String tableMode_cell_atLeast(String value) {
+    return 'Mindestens $value';
+  }
+
+  @override
+  String tableMode_cell_atMost(String value) {
+    return 'Höchstens $value';
+  }
+
+  @override
+  String tableMode_cell_exclude(String value) {
+    return '$value ausschließen';
+  }
+
+  @override
+  String tableMode_cell_noValue(String column) {
+    return 'Nur Tauchgänge ohne $column';
+  }
+
+  @override
+  String tableMode_cell_onOrAfter(String value) {
+    return 'Ab $value';
+  }
+
+  @override
+  String tableMode_cell_onOrBefore(String value) {
+    return 'Bis $value';
+  }
+
+  @override
+  String tableMode_cell_only(String value) {
+    return 'Nur $value';
+  }
+
+  @override
+  String tableMode_cell_with(String value) {
+    return 'Mit $value';
+  }
+
+  @override
+  String tableMode_cell_without(String value) {
+    return 'Ohne $value';
+  }
+
+  @override
+  String get tableMode_menu_addFilter => 'Filter hinzufügen';
+
+  @override
+  String get tableMode_menu_hideColumn => 'Spalte ausblenden';
+
+  @override
+  String get tableMode_menu_resetFilter => 'Filter zurücksetzen';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'Detailbereich umschalten';
 
   @override
@@ -47030,9 +47136,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sources_badge_viewing => 'Angezeigt';
 
   @override
-  String get diveLog_sources_badge_secondary => 'Sekundär';
-
-  @override
   String diveLog_sources_created(String date) {
     return 'Erstellt $date';
   }
@@ -47045,6 +47148,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_sources_detail_imported => 'Importiert';
+
+  @override
+  String get diveLog_sources_detail_times => 'Zeiten';
+
+  @override
+  String get diveLog_sources_detail_file => 'Datei';
+
+  @override
+  String diveLog_sources_timeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get diveLog_sources_sectionMenuTooltip => 'Aktionen für Datenquellen';
 
   @override
   String diveLog_detail_semantics_viewDiveComputer(String name) {

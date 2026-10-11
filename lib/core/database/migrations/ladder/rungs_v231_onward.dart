@@ -320,8 +320,19 @@ extension RungsFromV231 on AppDatabase {
       await _assertVisibilityRangeColumns();
     }
     if (from < 278) await reportProgress();
-    // v279: no data change (issue #2361). Carries the sync floor past the
-    // builds that cannot parse AccountKind.webdav.
+    // v279: dive_computer_connections (issue #3106). Table only;
+    // re-asserted in beforeOpen.
+    if (from < 279) {
+      await _assertDiveComputerConnectionSchema();
+      // Once, before this build writes any hex: every 8-digit Shearwater
+      // download serial is still libdivecomputer's decimal here. The
+      // every-open heal leaves 8 digits alone, since afterwards they can be
+      // hex (issue #3106).
+      await _healShearwaterDownloadSerialsOnUpgrade();
+    }
     if (from < 279) await reportProgress();
+    // v280: no data change (issue #2361). Carries the sync floor past the
+    // builds that cannot parse AccountKind.webdav.
+    if (from < 280) await reportProgress();
   }
 }

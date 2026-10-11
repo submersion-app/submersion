@@ -28,12 +28,26 @@ const kRefineCancelKey = ValueKey('refine-cancel');
 /// the Filter sheet and the Advanced Search page for the dive list,
 /// Insights and Connections alike, each passing its own [filterProvider].
 class RefinePanel extends ConsumerStatefulWidget {
-  const RefinePanel({super.key, required this.filterProvider, this.onApplied});
+  const RefinePanel({
+    super.key,
+    required this.filterProvider,
+    this.onApplied,
+    this.initialDraft,
+    this.startOnRulesBuilder = false,
+  });
 
   final StateProvider<DiveFilterState> filterProvider;
 
   /// Called after the panel wrote [filterProvider].
   final VoidCallback? onApplied;
+
+  /// The draft to start from instead of [filterProvider]'s value (#2984:
+  /// the dive table's Add filter seeds a rule). Nothing is written until
+  /// Show.
+  final DiveFilterState? initialDraft;
+
+  /// Opens the Rules group's editor on its Builder tab.
+  final bool startOnRulesBuilder;
 
   @override
   ConsumerState<RefinePanel> createState() => _RefinePanelState();
@@ -60,7 +74,7 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
   @override
   void initState() {
     super.initState();
-    _draft = ref.read(widget.filterProvider);
+    _draft = widget.initialDraft ?? ref.read(widget.filterProvider);
   }
 
   void _update(DiveFilterState next) => setState(() => _draft = next);
@@ -105,6 +119,7 @@ class _RefinePanelState extends ConsumerState<RefinePanel> {
         RefineRulesGroup(
           draft: d,
           onChanged: _update,
+          startOnBuilder: widget.startOnRulesBuilder,
           // The whole search as Show would apply it (#2989), All dives
           // lifted: a search set only in the other groups saves too.
           saveNode: normalizeQuery(

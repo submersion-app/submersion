@@ -5562,6 +5562,38 @@ class DiveRepository {
     }
   }
 
+  /// Every dive's surface interval keyed by id (#2984): the stored value,
+  /// else the gap [diveSurfaceIntervalSecondsSql] computes, which is what
+  /// [getSurfaceInterval] gives the detail page. One statement over the
+  /// whole log, so filtering the table never changes the dive a gap is
+  /// measured from.
+  // stats-scope-exempt: physiological interval between real dives, not a statistic
+  Future<Map<String, Duration?>> getSurfaceIntervals() async {
+    try {
+      final rows = await _db
+          .customSelect(
+            'SELECT d.id AS id, ${diveSurfaceIntervalSecondsSql('d')} AS si '
+            'FROM dives d',
+            readsFrom: {_db.dives, _db.diveProfileSeries},
+          )
+          .get();
+      return {
+        for (final row in rows)
+          row.read<String>('id'): switch (row.readNullable<int>('si')) {
+            null => null,
+            final seconds => Duration(seconds: seconds),
+          },
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to calculate surface intervals',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Shared SELECT for the times-only dive projection. The scalar subquery
   /// carries the profile-derived runtime fallback so
   /// [DiveTimes.effectiveRuntime] can mirror [domain.Dive.effectiveRuntime]

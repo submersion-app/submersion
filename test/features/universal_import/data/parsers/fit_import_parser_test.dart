@@ -184,6 +184,8 @@ void main() {
       expect(d['sourceUuid'], d['sourceId']);
       expect(d['latitude'], closeTo(35.815, 1e-3));
       expect(d['diveComputerModel'], 'Descent Mk3i');
+      // FIT file_id manufacturer 1 is Garmin (#3106).
+      expect(d['diveComputerManufacturer'], 'Garmin');
 
       final tanks = d['tanks'] as List<Map<String, dynamic>>;
       expect(tanks, hasLength(1));

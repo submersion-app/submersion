@@ -118,6 +118,10 @@ class ImportedDive extends Equatable {
   final String? decoModel;
   final int? gfLow;
   final int? gfHigh;
+
+  /// The computer's manufacturer when the file names it (FIT `file_id`,
+  /// issue #3106); null when it does not.
+  final String? computerManufacturer;
   final String? computerModel;
   final String? computerSerial;
   final String? computerFirmware;
@@ -156,6 +160,7 @@ class ImportedDive extends Equatable {
     this.decoModel,
     this.gfLow,
     this.gfHigh,
+    this.computerManufacturer,
     this.computerModel,
     this.computerSerial,
     this.computerFirmware,
@@ -196,6 +201,7 @@ class ImportedDive extends Equatable {
     decoModel,
     gfLow,
     gfHigh,
+    computerManufacturer,
     computerModel,
     computerSerial,
     computerFirmware,

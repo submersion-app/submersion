@@ -67,7 +67,12 @@ class ShearwaterDiveMapper {
       if (exitFix != null) 'exitLatitude': exitFix.latitude,
       if (exitFix != null) 'exitLongitude': exitFix.longitude,
       'diveComputerModel': filenameInfo.model,
-      'diveComputerSerial': filenameInfo.serial,
+      // The manufacturer and an uppercase serial let the registry match this
+      // computer to the one a BLE download registered (issue #3106).
+      'diveComputerManufacturer': filenameInfo.model == null
+          ? null
+          : ShearwaterFilenameParser.vendorProduct(filenameInfo.model!)?.$1,
+      'diveComputerSerial': filenameInfo.serial?.toUpperCase(),
       'waterType': ShearwaterValueMapper.mapWaterType(rawDive.environment),
       'visibility': ShearwaterValueMapper.mapVisibility(
         rawDive.visibility,

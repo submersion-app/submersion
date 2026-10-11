@@ -3,6 +3,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
@@ -331,11 +332,14 @@ final QueryEntity diveQueryEntity = QueryEntity(
       dimension: FieldDimension.count,
       sanity: (min: 0, max: 5),
     ),
+    // The table's value (#2984): stored, else the gap from the previous
+    // dive, so what a diver sees in the column is what this field filters.
     _num(
       'surfaceInterval',
-      '({r}.surface_interval_seconds / 60)',
+      '(${diveSurfaceIntervalSecondsSql('{r}')} / 60)',
       dimension: FieldDimension.minutes,
-      emptySql: '{r}.surface_interval_seconds IS NULL',
+      emptySql: '(${diveSurfaceIntervalSecondsSql('{r}')}) IS NULL',
+      tables: const ['dive_profile_series'],
     ),
     _num(
       'cnsEnd',

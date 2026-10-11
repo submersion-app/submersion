@@ -263,4 +263,23 @@ void main() {
       expect(match, isNull);
     });
   });
+
+  test('the serial tier treats Shearwater hex and decimal as one (#3106)', () {
+    final twin = matchGearTwin(
+      manufacturer: 'Shearwater',
+      model: 'Perdix 2',
+      serialNumber: 'A1B2C3D4',
+      diverId: 'd1',
+      candidates: const [
+        GearTwinCandidate(
+          id: 'g1',
+          diverId: 'd1',
+          brand: 'Shearwater',
+          model: 'Perdix 2',
+          serialNumber: '2712847316',
+        ),
+      ],
+    );
+    expect(twin?.id, 'g1');
+  });
 }

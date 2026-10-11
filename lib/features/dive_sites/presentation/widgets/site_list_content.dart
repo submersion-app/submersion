@@ -1001,6 +1001,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 units: units,
                 onSortFieldChanged: notifier.setSortField,
                 onResizeColumn: notifier.resizeColumn,
+                onHideColumn: notifier.hideColumn,
                 onEntityTapDown: (id) {
                   // Rows carry a double-tap, so onEntityTap only resolves
                   // after the double-tap timer -- long after this fires. A

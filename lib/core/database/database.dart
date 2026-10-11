@@ -5,6 +5,7 @@ import 'package:submersion/core/database/tables/app_tables.dart';
 import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/certification_currency_tables.dart';
 import 'package:submersion/core/database/tables/cylinder_tables.dart';
+import 'package:submersion/core/database/tables/dive_computer_connection_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
 import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
@@ -39,6 +40,7 @@ export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
 export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
+export 'package:submersion/core/database/tables/dive_computer_connection_tables.dart';
 export 'package:submersion/core/database/tables/dive_profile_tables.dart';
 export 'package:submersion/core/database/tables/dive_tables.dart';
 export 'package:submersion/core/database/tables/diver_tables.dart';
@@ -237,6 +239,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     ConnectionMaps,
     // Gear packed for a trip (v248, issue #2338)
     TripEquipment,
+    // Download connections per dive computer (v279, issue #3106)
+    DiveComputerConnections,
     // A profile's hidden shared trips and sites (v250, issue #2594)
     TripHides,
     SiteHides,
@@ -258,7 +262,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 279;
+  static const int currentSchemaVersion = 280;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -354,14 +358,14 @@ class AppDatabase extends _$AppDatabase {
   /// payloads still arrive here and decode cleanly: drift's fromJson widens
   /// an int to a double.
   ///
-  /// Raised 275 -> 279 by the WebDAV backend (#2361): AccountKind.webdav is
+  /// Raised 275 -> 280 by the WebDAV backend (#2361): AccountKind.webdav is
   /// a new value in the synced column connected_accounts.kind, and every
-  /// build before 279 decodes that column with AccountKind.values.byName,
-  /// which throws on a name it does not know. Schema 279 changes no data; it
-  /// exists so the floor can rise past the 275 to 278 betas. From 279 on
+  /// build before 280 decodes that column with AccountKind.values.byName,
+  /// which throws on a name it does not know. Schema 280 changes no data; it
+  /// exists so the floor can rise past the 275 to 279 betas. From 280 on
   /// the accounts repository skips unknown kinds, so later kinds need no
   /// floor bump of their own.
-  static const int minimumCompatibleSchemaVersion = 279;
+  static const int minimumCompatibleSchemaVersion = 280;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1196,13 +1200,16 @@ class AppDatabase extends _$AppDatabase {
     277,
     // v278: dives.visibility_min_meters / visibility_max_meters (issue #3226).
     278,
-    // v279: no data change (issue #2361). AccountKind.webdav is a new value
+    // v279: dive_computer_connections (issue #3106). Table-only rung, no
+    // backfill; the floor does not move.
+    279,
+    // v280: no data change (issue #2361). AccountKind.webdav is a new value
     // in the synced connected_accounts.kind column, which builds before this
     // one decode with a throwing AccountKind.values.byName. Raising the
-    // floor to 279 holds them until they update; see
-    // minimumCompatibleSchemaVersion. Renumbered from 277 and 278 as main
-    // shipped those first.
-    279,
+    // floor to 280 holds them until they update; see
+    // minimumCompatibleSchemaVersion. Renumbered from 277, 278 and 279 as
+    // main shipped those first.
+    280,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

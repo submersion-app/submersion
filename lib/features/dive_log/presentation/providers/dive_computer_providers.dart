@@ -1,6 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart';
+import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_merge_repository.dart';
@@ -32,17 +34,32 @@ final allDiveComputersProvider = FutureProvider<List<DiveComputer>>((
   return repository.getAllComputers(diverId: validatedDiverId);
 });
 
-/// Lookup map of saved dive computers keyed by Bluetooth address.
+/// Lookup map of saved dive computers keyed by the address this device
+/// reaches them at.
 ///
 /// Used by the discovery wizard to show serial number and firmware version
-/// for previously-downloaded devices during scan and confirm steps.
+/// for previously-downloaded devices during scan and confirm steps. Holds
+/// the legacy `bluetoothAddress` and every direct connection's local address
+/// (issue #3106), so a computer saved over USB is recognized by its port.
 final savedComputersByAddressProvider =
     FutureProvider<Map<String, DiveComputer>>((ref) async {
       final computers = await ref.watch(allDiveComputersProvider.future);
+      // A failed connections read degrades to the legacy addresses rather
+      // than hiding every saved computer from the scan.
+      final connections = await ref
+          .watch(allDiveComputerConnectionsProvider.future)
+          .catchError(
+            (Object _) => const <String, List<DiveComputerConnection>>{},
+          );
       final map = <String, DiveComputer>{};
       for (final computer in computers) {
         if (computer.bluetoothAddress != null) {
           map[computer.bluetoothAddress!] = computer;
+        }
+        for (final connection in connections[computer.id] ?? const []) {
+          if (connection.reachableHere) {
+            map[connection.address!.trim()] = computer;
+          }
         }
       }
       return map;

@@ -21645,6 +21645,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'عنوان البلوتوث';
 
   @override
+  String get settings_conflict_field_connectionDetail => 'تفاصيل الاتصال';
+
+  @override
+  String get settings_conflict_field_connectionAddress => 'عنوان الاتصال';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'أول استخدام';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'آخر استخدام';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt =>
+      'آخر استخدام على هذا الجهاز';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'قبطان القارب';
 
   @override
@@ -31969,6 +31985,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'Wi-Fi';
 
   @override
+  String get diveComputer_connections_title => 'الاتصالات';
+
+  @override
+  String get diveComputer_connections_empty =>
+      'لم يتم تسجيل أي تنزيلات أو عمليات استيراد بعد';
+
+  @override
+  String diveComputer_connections_lastUsed(String when) {
+    return 'آخر استخدام $when';
+  }
+
+  @override
+  String get diveComputer_connections_thisDevice => 'هذا الجهاز';
+
+  @override
+  String diveComputer_connections_downloadVia(String connection) {
+    return 'التنزيل عبر $connection';
+  }
+
+  @override
+  String diveComputer_connections_fileFormat(String format) {
+    return 'ملف $format';
+  }
+
+  @override
+  String get diveComputer_connections_cloudGarmin => 'Garmin Connect';
+
+  @override
+  String get diveComputer_connections_cloudSuunto => 'تطبيق Suunto';
+
+  @override
+  String get diveComputer_connections_cloudOther => 'استيراد من السحابة';
+
+  @override
   String diveComputer_detail_deleteDialogContent(String name) {
     return 'هل تريد حقا إزالة \"$name\"؟ لن يؤدي هذا إلى حذف أي غطسات تم استيرادها من هذا الكمبيوتر.';
   }
@@ -31990,9 +32040,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveComputer_detail_editNotesHint => 'ملاحظات اختيارية';
-
-  @override
-  String get diveComputer_detail_labelConnection => 'الاتصال';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'الشركة المصنعة';
@@ -46445,6 +46492,65 @@ class AppLocalizationsAr extends AppLocalizations {
       'مسح جميع بيانات المزامنة على هذه الخدمة';
 
   @override
+  String tableMode_cell_anyValue(String column) {
+    return 'فقط الغوصات التي لها $column';
+  }
+
+  @override
+  String tableMode_cell_atLeast(String value) {
+    return '$value على الأقل';
+  }
+
+  @override
+  String tableMode_cell_atMost(String value) {
+    return '$value على الأكثر';
+  }
+
+  @override
+  String tableMode_cell_exclude(String value) {
+    return 'استبعاد $value';
+  }
+
+  @override
+  String tableMode_cell_noValue(String column) {
+    return 'فقط الغوصات بدون $column';
+  }
+
+  @override
+  String tableMode_cell_onOrAfter(String value) {
+    return 'في $value أو بعده';
+  }
+
+  @override
+  String tableMode_cell_onOrBefore(String value) {
+    return 'في $value أو قبله';
+  }
+
+  @override
+  String tableMode_cell_only(String value) {
+    return '$value فقط';
+  }
+
+  @override
+  String tableMode_cell_with(String value) {
+    return 'مع $value';
+  }
+
+  @override
+  String tableMode_cell_without(String value) {
+    return 'بدون $value';
+  }
+
+  @override
+  String get tableMode_menu_addFilter => 'إضافة تصفية';
+
+  @override
+  String get tableMode_menu_hideColumn => 'إخفاء العمود';
+
+  @override
+  String get tableMode_menu_resetFilter => 'إعادة تعيين التصفية';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'تبديل لوحة التفاصيل';
 
   @override
@@ -47765,9 +47871,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_badge_viewing => 'قيد العرض';
 
   @override
-  String get diveLog_sources_badge_secondary => 'ثانوي';
-
-  @override
   String diveLog_sources_created(String date) {
     return 'أُنشئ في $date';
   }
@@ -47780,6 +47883,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_sources_detail_imported => 'تاريخ الاستيراد';
+
+  @override
+  String get diveLog_sources_detail_times => 'الأوقات';
+
+  @override
+  String get diveLog_sources_detail_file => 'الملف';
+
+  @override
+  String diveLog_sources_timeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get diveLog_sources_sectionMenuTooltip => 'إجراءات مصادر البيانات';
 
   @override
   String diveLog_detail_semantics_viewDiveComputer(String name) {

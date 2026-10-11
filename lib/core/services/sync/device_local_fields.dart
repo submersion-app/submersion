@@ -8,6 +8,9 @@ import 'package:submersion/core/services/sync/child_column_clears.dart';
 const Map<String, Set<String>> deviceLocalSyncColumns = {
   // A host's BLE identifier for a computer; another host's never applies.
   'diveComputers': {'bluetoothAddress'},
+  // A host's identifier for one of a computer's connections, and when this
+  // host last used it (issue #3106); another host's never applies.
+  'diveComputerConnections': {'address', 'localLastUsedAt'},
   // Reminders follow the OS notification permission, which is per device,
   // and the theme mode follows where the device is used.
   'diverSettings': {

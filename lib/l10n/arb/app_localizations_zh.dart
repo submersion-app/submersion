@@ -20315,6 +20315,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => '蓝牙地址';
 
   @override
+  String get settings_conflict_field_connectionDetail => '连接详情';
+
+  @override
+  String get settings_conflict_field_connectionAddress => '连接地址';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => '首次使用';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => '最近使用';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt => '在此设备上最近使用';
+
+  @override
   String get settings_conflict_field_boatCaptain => '船长';
 
   @override
@@ -29733,6 +29748,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'Wi-Fi';
 
   @override
+  String get diveComputer_connections_title => '连接';
+
+  @override
+  String get diveComputer_connections_empty => '尚未记录任何下载或导入';
+
+  @override
+  String diveComputer_connections_lastUsed(String when) {
+    return '最近使用 $when';
+  }
+
+  @override
+  String get diveComputer_connections_thisDevice => '此设备';
+
+  @override
+  String diveComputer_connections_downloadVia(String connection) {
+    return '通过 $connection 下载';
+  }
+
+  @override
+  String diveComputer_connections_fileFormat(String format) {
+    return '$format 文件';
+  }
+
+  @override
+  String get diveComputer_connections_cloudGarmin => 'Garmin Connect';
+
+  @override
+  String get diveComputer_connections_cloudSuunto => 'Suunto 应用';
+
+  @override
+  String get diveComputer_connections_cloudOther => '云端导入';
+
+  @override
   String diveComputer_detail_deleteDialogContent(String name) {
     return '确定要移除“$name”吗?这不会删除从此电脑导入的任何潜水记录。';
   }
@@ -29754,9 +29802,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveComputer_detail_editNotesHint => '可选备注';
-
-  @override
-  String get diveComputer_detail_labelConnection => '连接';
 
   @override
   String get diveComputer_detail_labelManufacturer => '制造商';
@@ -43067,6 +43112,65 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_troubleshootSync_wipeAll_title => '清除此后端上的所有同步数据';
 
   @override
+  String tableMode_cell_anyValue(String column) {
+    return '仅显示有$column的潜水';
+  }
+
+  @override
+  String tableMode_cell_atLeast(String value) {
+    return '至少 $value';
+  }
+
+  @override
+  String tableMode_cell_atMost(String value) {
+    return '至多 $value';
+  }
+
+  @override
+  String tableMode_cell_exclude(String value) {
+    return '排除 $value';
+  }
+
+  @override
+  String tableMode_cell_noValue(String column) {
+    return '仅显示无$column的潜水';
+  }
+
+  @override
+  String tableMode_cell_onOrAfter(String value) {
+    return '$value 及之后';
+  }
+
+  @override
+  String tableMode_cell_onOrBefore(String value) {
+    return '$value 及之前';
+  }
+
+  @override
+  String tableMode_cell_only(String value) {
+    return '仅 $value';
+  }
+
+  @override
+  String tableMode_cell_with(String value) {
+    return '包含 $value';
+  }
+
+  @override
+  String tableMode_cell_without(String value) {
+    return '不含 $value';
+  }
+
+  @override
+  String get tableMode_menu_addFilter => '添加筛选';
+
+  @override
+  String get tableMode_menu_hideColumn => '隐藏列';
+
+  @override
+  String get tableMode_menu_resetFilter => '重置筛选';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => '切换详情面板';
 
   @override
@@ -44277,9 +44381,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_badge_viewing => '正在查看';
 
   @override
-  String get diveLog_sources_badge_secondary => '次要';
-
-  @override
   String diveLog_sources_created(String date) {
     return '创建于 $date';
   }
@@ -44292,6 +44393,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_sources_detail_imported => '导入时间';
+
+  @override
+  String get diveLog_sources_detail_times => '时间';
+
+  @override
+  String get diveLog_sources_detail_file => '文件';
+
+  @override
+  String diveLog_sources_timeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get diveLog_sources_sectionMenuTooltip => '数据来源操作';
 
   @override
   String diveLog_detail_semantics_viewDiveComputer(String name) {

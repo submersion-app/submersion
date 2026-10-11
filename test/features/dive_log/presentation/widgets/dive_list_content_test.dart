@@ -111,6 +111,7 @@ Widget _buildTableModeLayout({
       currentDiverIdProvider.overrideWith(
         (ref) => MockCurrentDiverIdNotifier(),
       ),
+      diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
       tableViewConfigProvider.overrideWith(
         (ref) => _TestTableConfigNotifier(tableConfig),
       ),
@@ -1157,6 +1158,7 @@ void main() {
             diveListViewModeProvider.overrideWith((ref) => ListViewMode.table),
             highlightedDiveIdProvider.overrideWith((ref) => null),
             allDivesForTableProvider.overrideWithValue(AsyncValue.data(dives)),
+            diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
             tableViewConfigProvider.overrideWith(
               (ref) => _TestTableConfigNotifier(
                 TableViewConfig(
@@ -1361,6 +1363,7 @@ void main() {
                 () => const {'d1', 'd2'},
               ),
             ),
+            diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
             tableViewConfigProvider.overrideWith(
               (ref) => _TestTableConfigNotifier(
                 TableViewConfig(

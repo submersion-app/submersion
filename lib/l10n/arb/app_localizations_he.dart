@@ -20892,6 +20892,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_bluetoothAddress => 'כתובת Bluetooth';
 
   @override
+  String get settings_conflict_field_connectionDetail => 'פרטי החיבור';
+
+  @override
+  String get settings_conflict_field_connectionAddress => 'כתובת החיבור';
+
+  @override
+  String get settings_conflict_field_firstUsedAt => 'שימוש ראשון';
+
+  @override
+  String get settings_conflict_field_lastUsedAt => 'שימוש אחרון';
+
+  @override
+  String get settings_conflict_field_localLastUsedAt => 'שימוש אחרון במכשיר זה';
+
+  @override
   String get settings_conflict_field_boatCaptain => 'רב החובל';
 
   @override
@@ -30760,6 +30775,40 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveComputer_connectionType_wifi => 'Wi-Fi';
 
   @override
+  String get diveComputer_connections_title => 'חיבורים';
+
+  @override
+  String get diveComputer_connections_empty =>
+      'עדיין לא נרשמו הורדות או ייבואים';
+
+  @override
+  String diveComputer_connections_lastUsed(String when) {
+    return 'שימוש אחרון $when';
+  }
+
+  @override
+  String get diveComputer_connections_thisDevice => 'מכשיר זה';
+
+  @override
+  String diveComputer_connections_downloadVia(String connection) {
+    return 'הורדה דרך $connection';
+  }
+
+  @override
+  String diveComputer_connections_fileFormat(String format) {
+    return 'קובץ $format';
+  }
+
+  @override
+  String get diveComputer_connections_cloudGarmin => 'Garmin Connect';
+
+  @override
+  String get diveComputer_connections_cloudSuunto => 'אפליקציית Suunto';
+
+  @override
+  String get diveComputer_connections_cloudOther => 'ייבוא מהענן';
+
+  @override
   String diveComputer_detail_deleteDialogContent(String name) {
     return 'האם אתה בטוח שברצונך להסיר את \"$name\"? פעולה זו לא תמחק צלילות שיובאו ממחשב זה.';
   }
@@ -30781,9 +30830,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveComputer_detail_editNotesHint => 'הערות אופציונליות';
-
-  @override
-  String get diveComputer_detail_labelConnection => 'חיבור';
 
   @override
   String get diveComputer_detail_labelManufacturer => 'יצרן';
@@ -44878,6 +44924,65 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחיקת כל נתוני הסנכרון בשירות זה';
 
   @override
+  String tableMode_cell_anyValue(String column) {
+    return 'רק צלילות עם $column';
+  }
+
+  @override
+  String tableMode_cell_atLeast(String value) {
+    return 'לפחות $value';
+  }
+
+  @override
+  String tableMode_cell_atMost(String value) {
+    return 'לכל היותר $value';
+  }
+
+  @override
+  String tableMode_cell_exclude(String value) {
+    return 'החרגת $value';
+  }
+
+  @override
+  String tableMode_cell_noValue(String column) {
+    return 'רק צלילות ללא $column';
+  }
+
+  @override
+  String tableMode_cell_onOrAfter(String value) {
+    return 'החל מ-$value';
+  }
+
+  @override
+  String tableMode_cell_onOrBefore(String value) {
+    return 'עד $value';
+  }
+
+  @override
+  String tableMode_cell_only(String value) {
+    return 'רק $value';
+  }
+
+  @override
+  String tableMode_cell_with(String value) {
+    return 'עם $value';
+  }
+
+  @override
+  String tableMode_cell_without(String value) {
+    return 'בלי $value';
+  }
+
+  @override
+  String get tableMode_menu_addFilter => 'הוספת סינון';
+
+  @override
+  String get tableMode_menu_hideColumn => 'הסתרת עמודה';
+
+  @override
+  String get tableMode_menu_resetFilter => 'איפוס סינון';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'הצגת חלונית הפרטים';
 
   @override
@@ -46167,9 +46272,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_badge_viewing => 'בתצוגה';
 
   @override
-  String get diveLog_sources_badge_secondary => 'משני';
-
-  @override
   String diveLog_sources_created(String date) {
     return 'נוצר ב-$date';
   }
@@ -46182,6 +46284,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_sources_detail_imported => 'יובא';
+
+  @override
+  String get diveLog_sources_detail_times => 'זמנים';
+
+  @override
+  String get diveLog_sources_detail_file => 'קובץ';
+
+  @override
+  String diveLog_sources_timeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get diveLog_sources_sectionMenuTooltip => 'פעולות מקורות הנתונים';
 
   @override
   String diveLog_detail_semantics_viewDiveComputer(String name) {

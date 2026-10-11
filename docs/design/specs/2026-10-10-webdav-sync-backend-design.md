@@ -30,7 +30,7 @@ folder creation: no locking and no conditional writes.
 | 3 | Untrusted TLS | Per-config certificate pinning (SHA-256 of the DER), offered from Test connection; no blanket "allow insecure" switch |
 | 4 | Media credentials | Its own form on the Media Storage page, with a "Use my sync server" prefill |
 | 5 | Large uploads | Streamed single PUT everywhere; Nextcloud chunking v2 above 10 MiB, resumable for media |
-| 6 | Cross-version safety | Schema 279 (no-op rung; renumbered from 277 and 278 as main shipped those first), `minimumCompatibleSchemaVersion` raised to 279, and tolerant reads of unknown `AccountKind` values |
+| 6 | Cross-version safety | Schema 280 (no-op rung; renumbered from 277, 278 and 279 as main shipped those first), `minimumCompatibleSchemaVersion` raised to 280, and tolerant reads of unknown `AccountKind` values |
 | 7 | Tests | In-memory fake WebDAV server only; real servers via a manual checklist (section 12) |
 | 8 | Auth | HTTP Basic only |
 
@@ -301,16 +301,16 @@ and builds before this one parse it with `AccountKind.values.byName`, which
 throws on `webdav`. v1.8.1 (schema 260) is already held by the current floor
 (275). To hold beta builds at schema 275 and 276 as well:
 
-- Schema version 279 (renumbered from 277 and 278, which main took for the
-  documents store and the visibility range): a no-op rung in `lib/core/database/migrations/` (never in
+- Schema version 280 (renumbered from 277, 278 and 279, which main took for
+  the documents store, the visibility range and dive computer connections): a no-op rung in `lib/core/database/migrations/` (never in
   `database.dart`).
-- `minimumCompatibleSchemaVersion` raised to 279, with a doc-comment entry:
+- `minimumCompatibleSchemaVersion` raised to 280, with a doc-comment entry:
   a new `AccountKind` value is a new value in an existing synced column that
   older readers decode with a throwing lookup.
 - `ConnectedAccountsRepository` skips rows whose kind it does not know, with a
   logged warning, instead of throwing, so any future kind is harmless to this
   build and later ones.
-- The cross-version roundtrip test's declared key list is extended for 279 (no new keys: 279 adds no column).
+- The cross-version roundtrip test's declared key list is extended for 280 (no new keys: 280 adds no column).
 
 ## 11. UI
 
@@ -347,7 +347,7 @@ Automated (fake server only):
   redirect handling, streamed PUT Content-Length, chunking (happy path,
   resume, expired directory, fallback, MOVE retry, reaping), the provider
   contract, the media store contract, the account adapter,
-  `webdavNaturalKey`, tolerant unknown-kind reads, the 279 migration and the
+  `webdavNaturalKey`, tolerant unknown-kind reads, the 280 migration and the
   floor constant.
 - Widget: config page (test, save, trust dialog, forget pin), Cloud Sync tile,
   wizard card, media form and prefill.
