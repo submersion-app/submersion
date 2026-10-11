@@ -357,6 +357,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_yearPlay_pause => '暂停';
 
   @override
+  String get connections_timeline_play => '播放时间线';
+
+  @override
   String get connections_share_tooltip => '分享图片';
 
   @override
@@ -4777,6 +4780,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String connections_yearRange_label(int first, int last) {
     return '$first 至 $last 年';
+  }
+
+  @override
+  String connections_timeline_range(String start, String end) {
+    return '$start 至 $end';
   }
 
   @override

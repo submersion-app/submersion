@@ -716,6 +716,12 @@ abstract class AppLocalizations {
   /// **'Pause'**
   String get connections_yearPlay_pause;
 
+  /// No description provided for @connections_timeline_play.
+  ///
+  /// In en, this message translates to:
+  /// **'Play timeline'**
+  String get connections_timeline_play;
+
   /// No description provided for @connections_share_tooltip.
   ///
   /// In en, this message translates to:
@@ -7967,6 +7973,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Years {first} to {last}'**
   String connections_yearRange_label(int first, int last);
+
+  /// No description provided for @connections_timeline_range.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} to {end}'**
+  String connections_timeline_range(String start, String end);
 
   /// No description provided for @connections_semantics_summary.
   ///

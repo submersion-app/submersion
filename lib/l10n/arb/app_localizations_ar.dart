@@ -371,6 +371,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_yearPlay_pause => 'إيقاف مؤقت';
 
   @override
+  String get connections_timeline_play => 'تشغيل المخطط الزمني';
+
+  @override
   String get connections_share_tooltip => 'مشاركة الصورة';
 
   @override
@@ -5110,6 +5113,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String connections_yearRange_label(int first, int last) {
     return 'الأعوام من $first إلى $last';
+  }
+
+  @override
+  String connections_timeline_range(String start, String end) {
+    return 'من $start إلى $end';
   }
 
   @override

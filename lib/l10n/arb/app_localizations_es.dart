@@ -359,6 +359,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get connections_yearPlay_pause => 'Pausa';
 
   @override
+  String get connections_timeline_play => 'Reproducir cronología';
+
+  @override
   String get connections_share_tooltip => 'Compartir imagen';
 
   @override
@@ -5039,6 +5042,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String connections_yearRange_label(int first, int last) {
     return 'Años $first a $last';
+  }
+
+  @override
+  String connections_timeline_range(String start, String end) {
+    return '$start a $end';
   }
 
   @override

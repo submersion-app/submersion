@@ -359,6 +359,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_yearPlay_pause => 'השהיה';
 
   @override
+  String get connections_timeline_play => 'הפעלת ציר הזמן';
+
+  @override
   String get connections_share_tooltip => 'שיתוף תמונה';
 
   @override
@@ -4931,6 +4934,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String connections_yearRange_label(int first, int last) {
     return 'השנים $first עד $last';
+  }
+
+  @override
+  String connections_timeline_range(String start, String end) {
+    return '$start עד $end';
   }
 
   @override

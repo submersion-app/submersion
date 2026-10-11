@@ -359,6 +359,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_yearPlay_pause => 'Szünet';
 
   @override
+  String get connections_timeline_play => 'Idővonal lejátszása';
+
+  @override
   String get connections_share_tooltip => 'Kép megosztása';
 
   @override
@@ -5030,6 +5033,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String connections_yearRange_label(int first, int last) {
     return '$first és $last közötti évek';
+  }
+
+  @override
+  String connections_timeline_range(String start, String end) {
+    return '$start és $end között';
   }
 
   @override
