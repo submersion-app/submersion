@@ -127,23 +127,7 @@ Future<int> seedDiveComputerConnections(DatabaseConnectionUser db) async {
     final address = rawAddress?.trim().isEmpty ?? true
         ? null
         : rawAddress!.trim();
-    final byType = switch (connectionType) {
-      'bluetooth' || 'ble' => DiveComputerConnectionKind.ble,
-      'bluetoothclassic' => DiveComputerConnectionKind.bluetoothClassic,
-      'usb' => DiveComputerConnectionKind.usb,
-      'infrared' => DiveComputerConnectionKind.infrared,
-      _ => null,
-    };
-    // The synced type is whichever transport some device used last, while
-    // the address is this device's own (issue #3106), so an address whose
-    // shape names its transport wins. A Classic type keeps its name: a BLE
-    // and a Classic address look alike.
-    final byAddress = address == null ? null : _kindOfLocalAddress(address);
-    final direct =
-        byType == DiveComputerConnectionKind.bluetoothClassic &&
-            byAddress == DiveComputerConnectionKind.ble
-        ? byType
-        : byAddress ?? byType;
+    final direct = _directKind(connectionType, address);
     if (direct != null) {
       await insert(
         computerId: id,
@@ -207,7 +191,85 @@ Future<int> seedDiveComputerConnections(DatabaseConnectionUser db) async {
       }
     }
   }
+
+  // A computer whose rows all came from other devices keeps the legacy
+  // address this device downloads from: a peer's rows can arrive by sync
+  // before this device seeded its own, and the pass above then skips the
+  // computer, leaving the saved download with connections none of which it
+  // can reach. Only this device's columns change, so nothing is stamped.
+  final unreachable = await db
+      .customSelect(
+        'SELECT c.id, c.connection_type, c.bluetooth_address, '
+        'c.last_download_timestamp, c.created_at, c.updated_at '
+        'FROM dive_computers c '
+        "WHERE TRIM(COALESCE(c.bluetooth_address, '')) <> '' "
+        'AND EXISTS (SELECT 1 FROM dive_computer_connections x '
+        'WHERE x.computer_id = c.id) '
+        'AND NOT EXISTS (SELECT 1 FROM dive_computer_connections x '
+        "WHERE x.computer_id = c.id AND TRIM(COALESCE(x.address, '')) <> '')",
+      )
+      .get();
+  for (final computer in unreachable) {
+    final id = computer.read<String>('id');
+    final address = computer.read<String>('bluetooth_address').trim();
+    final kind = _directKind(
+      normalizeComputerIdentityPart(
+        computer.readNullable<String>('connection_type'),
+      ),
+      address,
+    );
+    if (kind == null) continue;
+    final lastUsed =
+        computer.readNullable<int>('last_download_timestamp') ??
+        computer.read<int>('updated_at');
+    final updated = await db.customUpdate(
+      'UPDATE dive_computer_connections SET address = ?, '
+      'local_last_used_at = COALESCE(local_last_used_at, ?) WHERE id = ?',
+      variables: [
+        Variable<String>(address),
+        Variable<int>(lastUsed),
+        Variable<String>(diveComputerConnectionId(computerId: id, kind: kind)),
+      ],
+    );
+    if (updated > 0) {
+      inserted += updated;
+      continue;
+    }
+    await insert(
+      computerId: id,
+      kind: kind,
+      firstUsedAt: computer.read<int>('created_at'),
+      lastUsedAt: lastUsed,
+      address: address,
+      localLastUsedAt: lastUsed,
+    );
+  }
   return inserted;
+}
+
+/// The direct transport a computer's legacy columns describe on this device.
+///
+/// The synced type is whichever transport some device used last, while the
+/// address is this device's own (issue #3106), so an address whose shape
+/// names its transport wins. A Classic type keeps its name: a BLE and a
+/// Classic address look alike.
+DiveComputerConnectionKind? _directKind(
+  String connectionType,
+  String? address,
+) {
+  final byType = switch (connectionType) {
+    'bluetooth' || 'ble' => DiveComputerConnectionKind.ble,
+    'bluetoothclassic' => DiveComputerConnectionKind.bluetoothClassic,
+    'usb' => DiveComputerConnectionKind.usb,
+    'infrared' => DiveComputerConnectionKind.infrared,
+    _ => null,
+  };
+  final byAddress = address == null ? null : _kindOfLocalAddress(address);
+  if (byType == DiveComputerConnectionKind.bluetoothClassic &&
+      byAddress == DiveComputerConnectionKind.ble) {
+    return byType;
+  }
+  return byAddress ?? byType;
 }
 
 final RegExp _macAddress = RegExp(r'^[0-9a-f]{2}(:[0-9a-f]{2}){5}$');

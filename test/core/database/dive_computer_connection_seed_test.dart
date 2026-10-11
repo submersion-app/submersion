@@ -162,6 +162,83 @@ void main() {
     expect(row.localLastUsedAt, isNull);
   });
 
+  test('a computer whose only connections came from another device keeps '
+      'this device\'s legacy address', () async {
+    // The laptop's USB row arrived by sync before this phone seeded its own
+    // Bluetooth connection: without this the phone would see connections,
+    // none reachable here, and lose the address it downloads from.
+    await insertComputer(
+      'shared',
+      connectionType: 'usb',
+      bluetoothAddress: 'AA:BB:CC:DD:EE:FF',
+      lastDownload: downloaded,
+    );
+    await db
+        .into(db.diveComputerConnections)
+        .insert(
+          DiveComputerConnectionsCompanion.insert(
+            id: diveComputerConnectionId(
+              computerId: 'shared',
+              kind: DiveComputerConnectionKind.usb,
+            ),
+            computerId: 'shared',
+            kind: 'usb',
+            firstUsedAt: 1,
+            lastUsedAt: 2,
+            createdAt: 1,
+            updatedAt: 2,
+            hlc: const Value('peer-clock'),
+          ),
+        );
+
+    await db.seedDiveComputerConnectionsForTest();
+    await db.seedDiveComputerConnectionsForTest();
+
+    final rows = await connectionsOf('shared');
+    expect(rows.map((r) => r.kind), unorderedEquals(['ble', 'usb']));
+    final ble = rows.firstWhere((r) => r.kind == 'ble');
+    expect(ble.address, 'AA:BB:CC:DD:EE:FF');
+    expect(ble.localLastUsedAt, downloaded);
+    final usb = rows.firstWhere((r) => r.kind == 'usb');
+    expect(usb.address, isNull);
+    expect(usb.hlc, 'peer-clock');
+  });
+
+  test('a peer\'s row for the same transport gains this device\'s address '
+      'without a sync stamp', () async {
+    await insertComputer(
+      'same',
+      connectionType: 'bluetooth',
+      bluetoothAddress: 'AA:BB:CC:DD:EE:FF',
+      lastDownload: downloaded,
+    );
+    final id = diveComputerConnectionId(
+      computerId: 'same',
+      kind: DiveComputerConnectionKind.ble,
+    );
+    await db
+        .into(db.diveComputerConnections)
+        .insert(
+          DiveComputerConnectionsCompanion.insert(
+            id: id,
+            computerId: 'same',
+            kind: 'ble',
+            firstUsedAt: 1,
+            lastUsedAt: 2,
+            createdAt: 1,
+            updatedAt: 2,
+            hlc: const Value('peer-clock'),
+          ),
+        );
+
+    await db.seedDiveComputerConnectionsForTest();
+
+    final row = (await connectionsOf('same')).single;
+    expect(row.address, 'AA:BB:CC:DD:EE:FF');
+    expect(row.hlc, 'peer-clock');
+    expect(row.updatedAt, 2);
+  });
+
   test('a Garmin cloud computer seeds cloud/garminConnect', () async {
     await insertComputer(
       'garmin',
