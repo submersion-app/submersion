@@ -116,7 +116,7 @@ void main() {
 
     test('returns null for a section that never pairs', () {
       expect(diveDetailSectionPairFor(DiveDetailSectionId.altitude), isNull);
-      expect(diveDetailSectionPairFor(DiveDetailSectionId.reefHealth), isNull);
+      expect(diveDetailSectionPairFor(DiveDetailSectionId.navTrack), isNull);
     });
   });
 }

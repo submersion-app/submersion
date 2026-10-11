@@ -19610,13 +19610,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveDetailSection_tide_description => 'גרף מחזור גאות ושפל וזמן';
 
   @override
-  String get diveDetailSection_reefHealth_name => 'תנאי המים';
-
-  @override
-  String get diveDetailSection_reefHealth_description =>
-      'תנאי מים לווייניים בתאריך הצלילה';
-
-  @override
   String get diveDetailSection_surfaceGps_name => 'מיקום';
 
   @override

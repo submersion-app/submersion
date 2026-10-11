@@ -19926,13 +19926,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Getijdecyclusgrafiek en timing';
 
   @override
-  String get diveDetailSection_reefHealth_name => 'Wateromstandigheden';
-
-  @override
-  String get diveDetailSection_reefHealth_description =>
-      'Satellietwateromstandigheden op de duikdatum';
-
-  @override
   String get diveDetailSection_surfaceGps_name => 'Locatie';
 
   @override

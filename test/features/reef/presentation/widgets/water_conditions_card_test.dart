@@ -12,6 +12,7 @@ import 'package:submersion/features/reef/presentation/widgets/water_conditions_c
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
+import '../../../../helpers/mock_providers.dart';
 
 ReefHealth _health({double? anomaly}) => ReefHealth(
   sst: 30.1,
@@ -29,7 +30,11 @@ Widget _harness({
   TemperatureUnit unit = TemperatureUnit.celsius,
 }) {
   return ProviderScope(
-    overrides: [temperatureUnitProvider.overrideWithValue(unit)],
+    overrides: [
+      settingsProvider.overrideWith(
+        (ref) => MockSettingsNotifier(AppSettings(temperatureUnit: unit)),
+      ),
+    ],
     child: localizedMaterialApp(
       locale: const Locale('en'),
       home: Scaffold(
@@ -122,7 +127,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('+0.4C'), findsOneWidget);
+      expect(find.textContaining('+0.4°C'), findsOneWidget);
     });
 
     testWidgets('converts anomaly as a delta, not an absolute', (tester) async {
@@ -136,7 +141,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // 0.5 C delta is +0.9 F. An absolute conversion would say +32.9 F.
-      expect(find.textContaining('+0.9F'), findsOneWidget);
+      expect(find.textContaining('+0.9°F'), findsOneWidget);
       expect(find.textContaining('32.9'), findsNothing);
     });
 
@@ -149,7 +154,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('-1.0C'), findsOneWidget);
+      expect(find.textContaining('-1°C'), findsOneWidget);
     });
   });
 

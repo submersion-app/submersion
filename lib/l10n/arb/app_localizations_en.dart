@@ -19757,13 +19757,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tide cycle graph and timing';
 
   @override
-  String get diveDetailSection_reefHealth_name => 'Water Conditions';
-
-  @override
-  String get diveDetailSection_reefHealth_description =>
-      'Satellite water conditions on the dive date';
-
-  @override
   String get diveDetailSection_surfaceGps_name => 'Location';
 
   @override

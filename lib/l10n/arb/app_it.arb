@@ -9135,8 +9135,6 @@
   "diveDetailSection_tanks_description": "Elenco bombole, miscele gas, pressioni, consumo per bombola",
   "diveDetailSection_tanks_name": "Bombole",
   "diveDetailSection_tide_description": "Grafico ciclo marea e tempi",
-  "diveDetailSection_reefHealth_name": "Condizioni dell'acqua",
-  "diveDetailSection_reefHealth_description": "Condizioni dell'acqua da satellite alla data dell'immersione",
   "diveDetailSection_tide_name": "Marea",
   "diveDetailSection_weights_description": "Ripartizione pesi, peso totale",
   "diveDetailSection_buoyancy_name": "Assetto",

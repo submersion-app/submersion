@@ -9101,8 +9101,6 @@
   "diveDetailSection_tanks_description": "Palack lista, gázkeverékek, nyomások, palackonkénti fogyasztás",
   "diveDetailSection_tanks_name": "Palackok",
   "diveDetailSection_tide_description": "Árapály-ciklus grafikon és időzítés",
-  "diveDetailSection_reefHealth_name": "Vízviszonyok",
-  "diveDetailSection_reefHealth_description": "Műholdas vízviszonyok a merülés napján",
   "diveDetailSection_tide_name": "Árapály",
   "diveDetailSection_weights_description": "Súly lebontás, teljes súly",
   "diveDetailSection_buoyancy_name": "Felhajtóerő",

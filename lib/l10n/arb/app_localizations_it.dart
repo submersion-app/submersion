@@ -20055,13 +20055,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Grafico ciclo marea e tempi';
 
   @override
-  String get diveDetailSection_reefHealth_name => 'Condizioni dell\'acqua';
-
-  @override
-  String get diveDetailSection_reefHealth_description =>
-      'Condizioni dell\'acqua da satellite alla data dell\'immersione';
-
-  @override
   String get diveDetailSection_surfaceGps_name => 'Posizione';
 
   @override

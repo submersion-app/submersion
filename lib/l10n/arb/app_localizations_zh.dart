@@ -19091,12 +19091,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_tide_description => '潮汐周期图和时间';
 
   @override
-  String get diveDetailSection_reefHealth_name => '水况';
-
-  @override
-  String get diveDetailSection_reefHealth_description => '潜水日期的卫星水况';
-
-  @override
   String get diveDetailSection_surfaceGps_name => '位置';
 
   @override

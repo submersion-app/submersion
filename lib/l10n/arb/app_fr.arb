@@ -9101,8 +9101,6 @@
   "diveDetailSection_tanks_description": "Liste des bouteilles, mélanges gazeux, pressions, consommation par bouteille",
   "diveDetailSection_tanks_name": "Bouteilles",
   "diveDetailSection_tide_description": "Graphique du cycle de marée et horaires",
-  "diveDetailSection_reefHealth_name": "Conditions de l'eau",
-  "diveDetailSection_reefHealth_description": "Conditions de l'eau par satellite à la date de la plongée",
   "diveDetailSection_tide_name": "Marée",
   "diveDetailSection_weights_description": "Répartition des lests, poids total",
   "diveDetailSection_buoyancy_name": "Flottabilité",

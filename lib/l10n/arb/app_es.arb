@@ -2071,8 +2071,6 @@
   "diveDetailSection_tanks_description": "Lista de tanques, mezclas de gas, presiones, consumo por tanque",
   "diveDetailSection_tanks_name": "Tanques",
   "diveDetailSection_tide_description": "Gráfico del ciclo de mareas y temporalización",
-  "diveDetailSection_reefHealth_name": "Condiciones del agua",
-  "diveDetailSection_reefHealth_description": "Condiciones del agua por satélite en la fecha de la inmersión",
   "diveDetailSection_tide_name": "Marea",
   "diveDetailSection_weights_description": "Desglose de pesos, peso total",
   "diveDetailSection_buoyancy_name": "Flotabilidad",

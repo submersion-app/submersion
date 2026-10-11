@@ -2071,8 +2071,6 @@
   "diveDetailSection_tanks_description": "Flessenlijst, gasmixen, drukken, verbruik per fles",
   "diveDetailSection_tanks_name": "Flessen",
   "diveDetailSection_tide_description": "Getijdecyclusgrafiek en timing",
-  "diveDetailSection_reefHealth_name": "Wateromstandigheden",
-  "diveDetailSection_reefHealth_description": "Satellietwateromstandigheden op de duikdatum",
   "diveDetailSection_tide_name": "Getij",
   "diveDetailSection_weights_description": "Gewichtsoverzicht, totaalgewicht",
   "diveDetailSection_buoyancy_name": "Drijfvermogen",

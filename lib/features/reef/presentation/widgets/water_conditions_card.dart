@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
 import 'package:submersion/features/reef/domain/entities/reef_health.dart';
-import 'package:submersion/features/reef/domain/services/bleaching_alert_level.dart';
+import 'package:submersion/features/reef/presentation/widgets/water_conditions_lines.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -23,7 +22,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class WaterConditionsCard extends ConsumerWidget {
   final ReefPart<ReefHealth> health;
 
-  /// Null while the habitat lookup is still resolving (dive detail page).
+  /// Null while the habitat lookup is still resolving; the stress lines then
+  /// stay, the conservative default.
   final ReefPart<ReefHabitat>? habitat;
 
   final WaterType? waterType;
@@ -34,11 +34,6 @@ class WaterConditionsCard extends ConsumerWidget {
     this.habitat,
     this.waterType,
   });
-
-  /// True unless habitat definitively answered "no reef here". An offline
-  /// habitat provider must never hide an active bleaching alert.
-  bool get _reefPossible =>
-      habitat == null || habitat!.status != ReefDataStatus.empty;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,64 +61,13 @@ class WaterConditionsCard extends ConsumerWidget {
       return tile(context.l10n.water_conditions_noData);
     }
 
-    final data = health.value!;
-    final tempUnit = ref.watch(temperatureUnitProvider);
-    final units = UnitFormatter(ref.watch(settingsProvider));
-
-    final lines = <String>[];
-    if (_reefPossible) {
-      final level = data.alertLevel;
-      if (level != null) lines.add(_levelLabel(context, level));
-      if (data.degreeHeatingWeeks != null) {
-        lines.add(
-          context.l10n.reef_health_degreeHeatingWeeks(
-            data.degreeHeatingWeeks!.toStringAsFixed(1),
-          ),
-        );
-      }
-    }
-    if (data.sst != null) {
-      final value = TemperatureUnit.celsius.convert(data.sst!, tempUnit);
-      lines.add(
-        context.l10n.reef_health_seaSurface(
-          '${value.toStringAsFixed(1)}${tempUnit.symbol}',
-        ),
-      );
-    }
-    if (data.sstAnomaly != null) {
-      // The anomaly is a temperature difference, not a temperature: it
-      // scales between units but never takes the Fahrenheit offset.
-      final value = TemperatureUnit.celsius.convertDelta(
-        data.sstAnomaly!,
-        tempUnit,
-      );
-      final signed = value >= 0
-          ? '+${value.toStringAsFixed(1)}'
-          : value.toStringAsFixed(1);
-      lines.add(
-        context.l10n.water_conditions_anomaly('$signed${tempUnit.symbol}'),
-      );
-    }
-    // NOAA publishes one composite per UTC day, stamped at 12:00Z. Converting
-    // to local time would shift that stamp into the next or previous calendar
-    // day at the extremes of the timezone range, reporting an observation
-    // date the dataset never had.
-    lines.add(
-      context.l10n.reef_health_asOf(units.formatDate(data.observedAt.toUtc())),
-    );
+    final lines = buildWaterConditionsLines(
+      l10n: context.l10n,
+      units: UnitFormatter(ref.watch(settingsProvider)),
+      health: health.value!,
+      reefPossible: reefPossibleFor(habitat),
+    ).all;
 
     return tile(lines.join('\n'), isThreeLine: lines.length > 2);
   }
-
-  String _levelLabel(BuildContext context, BleachingAlertLevel level) =>
-      switch (level) {
-        BleachingAlertLevel.noStress => context.l10n.reef_health_levelNoStress,
-        BleachingAlertLevel.watch => context.l10n.reef_health_levelWatch,
-        BleachingAlertLevel.warning => context.l10n.reef_health_levelWarning,
-        BleachingAlertLevel.alertLevel1 => context.l10n.reef_health_levelAlert1,
-        BleachingAlertLevel.alertLevel2 => context.l10n.reef_health_levelAlert2,
-        BleachingAlertLevel.alertLevel3 => context.l10n.reef_health_levelAlert3,
-        BleachingAlertLevel.alertLevel4 => context.l10n.reef_health_levelAlert4,
-        BleachingAlertLevel.alertLevel5 => context.l10n.reef_health_levelAlert5,
-      };
 }

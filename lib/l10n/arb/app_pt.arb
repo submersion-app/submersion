@@ -2071,8 +2071,6 @@
   "diveDetailSection_tanks_description": "Lista de cilindros, misturas de gás, pressões, consumo por cilindro",
   "diveDetailSection_tanks_name": "Cilindros",
   "diveDetailSection_tide_description": "Gráfico do ciclo de maré e horários",
-  "diveDetailSection_reefHealth_name": "Condições da água",
-  "diveDetailSection_reefHealth_description": "Condições da água por satélite na data do mergulho",
   "diveDetailSection_tide_name": "Maré",
   "diveDetailSection_weights_description": "Detalhamento de peso, peso total",
   "diveDetailSection_buoyancy_name": "Flutuabilidade",

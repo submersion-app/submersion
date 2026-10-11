@@ -5695,8 +5695,6 @@
   "diveDetailSection_tanks_description": "רשימת בלונים, תערובות גז, לחצים, צריכה לבלון",
   "diveDetailSection_tanks_name": "בלונים",
   "diveDetailSection_tide_description": "גרף מחזור גאות ושפל וזמן",
-  "diveDetailSection_reefHealth_name": "תנאי המים",
-  "diveDetailSection_reefHealth_description": "תנאי מים לווייניים בתאריך הצלילה",
   "diveDetailSection_tide_name": "גאות ושפל",
   "diveDetailSection_weights_description": "פירוט משקולות, משקל כולל",
   "diveDetailSection_buoyancy_name": "ציפה",

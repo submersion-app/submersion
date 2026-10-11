@@ -12551,8 +12551,6 @@
   "diveDetailSection_altitude_description": "Altitude value, category, deco requirement",
   "diveDetailSection_tide_name": "Tide",
   "diveDetailSection_tide_description": "Tide cycle graph and timing",
-  "diveDetailSection_reefHealth_name": "Water Conditions",
-  "diveDetailSection_reefHealth_description": "Satellite water conditions on the dive date",
   "diveDetailSection_surfaceGps_name": "Location",
   "diveDetailSection_surfaceGps_description": "Map of the dive site, GPS entry/exit points and surface drift",
   "diveLog_detail_section_surfaceGps": "Surface GPS",

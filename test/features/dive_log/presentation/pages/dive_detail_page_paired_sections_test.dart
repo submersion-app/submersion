@@ -549,17 +549,17 @@ void main() {
       expect((gpsPos.dy - tidePos.dy).abs(), lessThan(4));
     });
 
-    testWidgets('pairs across an intervening Water Conditions section', (
-      tester,
-    ) async {
+    testWidgets('pairs across an intervening section', (tester) async {
       await tester.binding.setSurfaceSize(const Size(1000, 3000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final dive = _atUtcSite(_diveWithGps('gps-tide-gap'));
-      // The pre-existing default order, which every upgrading user has saved.
+      // Tide first with an unpaired section between, the shape of the default
+      // order before Surface GPS moved up (that section was the since-retired
+      // Water Conditions, issue #3282).
       final settings = _settingsWithOrder([
         DiveDetailSectionId.tide,
-        DiveDetailSectionId.reefHealth,
+        DiveDetailSectionId.altitude,
         DiveDetailSectionId.surfaceGps,
       ]);
 

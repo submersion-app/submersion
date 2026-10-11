@@ -15,7 +15,9 @@ void main() {
       // 2026-09-10-underwater-nav-track-design.md, "Dive detail section").
       // Its localized switches use plain English literals rather than new
       // ARB keys, on purpose -- a later l10n pass adds those, per the spec.
-      expect(DiveDetailSectionId.values.length, 25);
+      // Lowered for the retired reefHealth section, whose satellite water
+      // conditions moved into the Environment card (issue #3282).
+      expect(DiveDetailSectionId.values.length, 24);
     });
 
     test('values match expected IDs', () {
@@ -764,30 +766,57 @@ void main() {
     });
   });
 
-  group('reef health section', () {
-    test('is a registered section with name and description', () {
+  // Satellite water conditions had a section of their own, `reefHealth`,
+  // until they moved into the Environment card (issue #3282). Orders saved
+  // before then still name it.
+  group('retired reefHealth section', () {
+    test('is no longer a section', () {
       expect(
-        DiveDetailSectionId.values,
-        contains(DiveDetailSectionId.reefHealth),
+        DiveDetailSectionId.values.map((id) => id.name),
+        isNot(contains(DiveDetailSectionId.legacyReefHealthId)),
       );
-      expect(DiveDetailSectionId.reefHealth.displayName, 'Water Conditions');
-      expect(DiveDetailSectionId.reefHealth.description.isNotEmpty, isTrue);
     });
 
-    test('ensureAllSections appends reefHealth to a legacy config', () {
-      const legacy = [
-        DiveDetailSectionConfig(
-          id: DiveDetailSectionId.decoStatus,
-          visible: true,
-        ),
-        DiveDetailSectionConfig(id: DiveDetailSectionId.tide, visible: true),
-      ];
-      final result = DiveDetailSectionConfig.ensureAllSections(legacy);
-      expect(result.map((s) => s.id), contains(DiveDetailSectionId.reefHealth));
+    test('a saved order naming it loads without it', () {
+      const jsonStr =
+          '[{"id":"environment","visible":true},'
+          '{"id":"reefHealth","visible":true},'
+          '{"id":"notes","visible":false}]';
+      final result = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
+
+      expect(result.length, DiveDetailSectionId.values.length);
+      final ids = result.map((s) => s.id).toList();
+      // The diver's own entries keep their order and visibility.
+      expect(
+        ids.indexOf(DiveDetailSectionId.environment),
+        lessThan(ids.indexOf(DiveDetailSectionId.notes)),
+      );
+      expect(
+        result.firstWhere((s) => s.id == DiveDetailSectionId.notes).visible,
+        isFalse,
+      );
     });
 
-    test('stays visible for gauge dives', () {
-      expect(DiveDetailSectionId.reefHealth.hiddenInGaugeMode, isFalse);
+    test('a hidden entry for it hides nothing else', () {
+      const jsonStr =
+          '[{"id":"environment","visible":true},'
+          '{"id":"reefHealth","visible":false}]';
+      final result = DiveDetailSectionConfig.sectionsFromJson(jsonStr);
+
+      expect(
+        result
+            .firstWhere((s) => s.id == DiveDetailSectionId.environment)
+            .visible,
+        isTrue,
+      );
+    });
+
+    test('an order holding only it falls back to the defaults', () {
+      const jsonStr = '[{"id":"reefHealth","visible":true}]';
+      expect(
+        DiveDetailSectionConfig.sectionsFromJson(jsonStr),
+        DiveDetailSectionConfig.defaultSections,
+      );
     });
   });
 

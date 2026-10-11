@@ -20317,13 +20317,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'رسم بياني لدورة المد والجزر والتوقيت';
 
   @override
-  String get diveDetailSection_reefHealth_name => 'أحوال المياه';
-
-  @override
-  String get diveDetailSection_reefHealth_description =>
-      'أحوال المياه عبر الأقمار الصناعية في تاريخ الغطسة';
-
-  @override
   String get diveDetailSection_surfaceGps_name => 'الموقع الجغرافي';
 
   @override
