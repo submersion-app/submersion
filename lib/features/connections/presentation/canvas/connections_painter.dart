@@ -399,9 +399,18 @@ class ConnectionsPainter extends CustomPainter {
   /// Timeline years and kind lanes, drawn under the edges.
   void _paintGuides(Canvas canvas, Color ink) {
     final step = _yearStep(ink);
-    final firstYear = frame.guides.whereType<YearGuide>().firstOrNull?.year;
+    final years = frame.guides.whereType<YearGuide>();
+    final firstYear = years.firstOrNull?.year;
+    final lastYear = years.lastOrNull?.year;
+    bool shown(int year) {
+      if (year == lastYear) return true;
+      // Every [step]th year from the first, dropping one that would crowd
+      // the latest (the first too, when the whole range is under a step).
+      return (year - firstYear!) % step == 0 && lastYear! - year >= step;
+    }
+
     for (final g in frame.guides) {
-      if (g is YearGuide && (g.year - firstYear!) % step != 0) continue;
+      if (g is YearGuide && !shown(g.year)) continue;
       final tp = _guidePainter(g, ink);
       final at = viewport.toScreen(g.at);
       final topLeft = switch (g) {

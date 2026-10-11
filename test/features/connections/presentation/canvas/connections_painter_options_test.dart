@@ -248,4 +248,55 @@ void main() {
     expect(zoomedOut, lessThan(11));
     expect(zoomedOut, greaterThanOrEqualTo(2));
   });
+
+  test('zoomed out, the latest year keeps its label', () {
+    final years = [
+      for (var y = 2000; y <= 2010; y++)
+        YearGuide(y, GraphPoint((y - 2000) * 170.0, -70)),
+    ];
+    final cache = <Object, TextPainter>{};
+    final rec = _Recording();
+    const scale = 0.1;
+    ConnectionsPainter(
+      graph: ConnectionGraph.empty,
+      frame: LayoutFrame.fromPositions(const {}, settled: true, guides: years),
+      viewport: const GraphViewport(scale: scale, offset: Offset(100, 100)),
+      colors: const ConnectionKindColors({}, Colors.grey),
+      labelStyle: const TextStyle(fontSize: 12),
+      guideCache: cache,
+    ).paint(rec, const Size(2000, 800));
+    final width = cache.values.first.width;
+    double centreOf(int year) => 100 + (year - 2000) * 170 * scale;
+    final drawn = rec.calls
+        .where((c) => c.memberName == #drawParagraph)
+        .map((c) => (c.positionalArguments[1] as Offset).dx + width / 2)
+        .toList();
+    expect(drawn.any((x) => (x - centreOf(2010)).abs() < 0.5), isTrue);
+    // Every pair of drawn labels keeps the label's width apart.
+    final sorted = [...drawn]..sort();
+    for (var k = 1; k < sorted.length; k++) {
+      expect(sorted[k] - sorted[k - 1], greaterThanOrEqualTo(width));
+    }
+  });
+
+  test('two years too close to label both keep only the latest', () {
+    final rec = _Recording();
+    final cache = <Object, TextPainter>{};
+    ConnectionsPainter(
+      graph: ConnectionGraph.empty,
+      frame: LayoutFrame.fromPositions(
+        const {},
+        settled: true,
+        guides: const [
+          YearGuide(2020, GraphPoint(0, -70)),
+          YearGuide(2021, GraphPoint(170, -70)),
+        ],
+      ),
+      viewport: const GraphViewport(scale: 0.1, offset: Offset(100, 100)),
+      colors: const ConnectionKindColors({}, Colors.grey),
+      labelStyle: const TextStyle(fontSize: 12),
+      guideCache: cache,
+    ).paint(rec, const Size(800, 800));
+    expect(rec.count(#drawParagraph), 1);
+  });
 }
