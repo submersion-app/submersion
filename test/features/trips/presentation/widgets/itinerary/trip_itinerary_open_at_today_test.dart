@@ -182,5 +182,34 @@ void main() {
       final belowToday = card('Day 16').top - card('Day 15').bottom;
       expect(aboveToday, belowToday);
     });
+
+    testWidgets('today moves on at midnight while the tab stays open', (
+      tester,
+    ) async {
+      var now = DateTime(2026, 3, 15, 23, 30);
+      Finder todayCard() => find.ancestor(
+        of: find.byKey(const Key('today-chip')),
+        matching: find.byType(Card),
+      );
+      await withClock(Clock(() => now), () async {
+        await _pumpTab(
+          tester,
+          trip: longTrip(),
+          days: rows([for (var d = 1; d <= 30; d++) d]),
+        );
+        expect(
+          find.descendant(of: todayCard(), matching: find.text('Day 15')),
+          findsOneWidget,
+        );
+
+        now = now.add(const Duration(hours: 1));
+        await tester.pump(const Duration(hours: 1));
+        await tester.pump();
+        expect(
+          find.descendant(of: todayCard(), matching: find.text('Day 16')),
+          findsOneWidget,
+        );
+      });
+    });
   });
 }

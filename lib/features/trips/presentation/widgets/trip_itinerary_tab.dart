@@ -1,4 +1,3 @@
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -117,7 +116,8 @@ class TripItineraryTab extends ConsumerWidget {
     final storedWeather =
         ref.watch(tripDayWeatherProvider(tripId)).asData?.value ??
         const <int, TripDayWeather>{};
-    final now = clock.now();
+    // Rebuilt at midnight, so the Today card moves on while the tab is open.
+    final now = ref.watch(tripTodayProvider);
 
     // The fill-in button renders nothing once every date has a row.
     final header = trip == null
