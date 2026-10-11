@@ -39,16 +39,27 @@ bool isShearwaterFamily({String? manufacturer, String? model}) {
   return _shearwaterModelRoots.contains(normalized.split(' ').first);
 }
 
-/// Whether either side of a comparison is a Shearwater, which is when the
-/// hex and decimal equivalence applies.
+/// Whether the hex and decimal equivalence applies to a comparison: one
+/// side is a Shearwater and the other is too, or names no family at all. A
+/// side that names another brand is a different computer whatever its
+/// digits, since the serial-only matchers do not compare models.
 bool shearwaterPair({
   String? manufacturerA,
   String? modelA,
   String? manufacturerB,
   String? modelB,
-}) =>
-    isShearwaterFamily(manufacturer: manufacturerA, model: modelA) ||
-    isShearwaterFamily(manufacturer: manufacturerB, model: modelB);
+}) {
+  final a = isShearwaterFamily(manufacturer: manufacturerA, model: modelA);
+  final b = isShearwaterFamily(manufacturer: manufacturerB, model: modelB);
+  if (a && b) return true;
+  if (a) return _namesNoFamily(manufacturerB, modelB);
+  if (b) return _namesNoFamily(manufacturerA, modelA);
+  return false;
+}
+
+bool _namesNoFamily(String? manufacturer, String? model) =>
+    normalizeComputerIdentityPart(manufacturer).isEmpty &&
+    normalizeComputerIdentityPart(model).isEmpty;
 
 /// The normalized forms [serial] can be compared under. Empty for a blank
 /// serial, which matches nothing.

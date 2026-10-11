@@ -82,6 +82,16 @@ void main() {
       );
       expect(shearwaterPair(modelA: 'Perdix 2'), isTrue);
       expect(shearwaterPair(modelA: 'D5', manufacturerB: 'Suunto'), isFalse);
+      // A side that names another family is not a Shearwater serial in
+      // the other radix, whatever the first side is.
+      expect(
+        shearwaterPair(
+          modelA: 'Perdix 2',
+          manufacturerB: 'Suunto',
+          modelB: 'D5',
+        ),
+        isFalse,
+      );
     });
   });
 

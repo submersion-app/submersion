@@ -148,6 +148,20 @@ void main() {
     expect((await connectionsOf('windows')).single.kind, 'usb');
   });
 
+  test('a direct connection with no address here is not marked as used '
+      'here', () async {
+    await insertComputer(
+      'synced',
+      connectionType: 'usb',
+      lastDownload: downloaded,
+    );
+    await db.seedDiveComputerConnectionsForTest();
+    final row = (await connectionsOf('synced')).single;
+    expect(row.address, isNull);
+    expect(row.lastUsedAt, downloaded);
+    expect(row.localLastUsedAt, isNull);
+  });
+
   test('a Garmin cloud computer seeds cloud/garminConnect', () async {
     await insertComputer(
       'garmin',

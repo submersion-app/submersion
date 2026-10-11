@@ -151,7 +151,8 @@ Future<int> seedDiveComputerConnections(DatabaseConnectionUser db) async {
         firstUsedAt: createdAt,
         lastUsedAt: lastUsed,
         address: address,
-        localLastUsedAt: lastUsed,
+        // Used here only if this device holds an address for it.
+        localLastUsedAt: address == null ? null : lastUsed,
       );
     }
 
