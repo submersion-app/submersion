@@ -2488,27 +2488,13 @@ class InsightsRepository {
           MAX(effective_si / 60.0) AS max_si
         FROM (
           SELECT
-            COALESCE(
-              d.surface_interval_seconds,
-              CASE
-                WHEN d.entry_time IS NOT NULL
-                THEN (
-                  d.entry_time - (
-                    SELECT MAX(d2.exit_time)
-                    FROM dives d2
-                    WHERE d2.diver_id = d.diver_id
-                      AND d2.exit_time IS NOT NULL
-                      AND d2.exit_time < d.entry_time
-                      -- The scope applies to the preceding dive as well: a
-                      -- surface interval measured from an excluded dive is
-                      -- as wrong as one measured to it. The user filter has
-                      -- never reached this inner alias.
-                      ${DiveStatsScope.and(alias: 'd2')}
-                  )
-                ) / 1000.0
-                ELSE NULL
-              END
-            ) AS effective_si
+            ${diveSurfaceIntervalSecondsSql(
+        'd',
+        // The scope applies to the preceding dive as well: a surface
+        // interval measured from an excluded dive is as wrong as one
+        // measured to it. The user filter never reaches this alias.
+        previousScope: DiveStatsScope.and(alias: kSurfaceIntervalPreviousAlias),
+      )} AS effective_si
           FROM dives d
           WHERE 1=1 $diverFilter ${df.clause}
         )

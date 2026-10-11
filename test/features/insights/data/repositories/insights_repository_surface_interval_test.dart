@@ -183,6 +183,60 @@ void main() {
       },
     );
 
+    test(
+      'measures from the previous dive whatever its diver, like the detail page',
+      () async {
+        final a = await insertDiver(id: 'diver-a');
+        final b = await insertDiver(id: 'diver-b');
+        final base = DateTime(2024, 9, 1).millisecondsSinceEpoch;
+        await insertDive(
+          id: 'a1',
+          diverId: a,
+          entryTimeMs: base,
+          exitTimeMs: base + 30 * 60 * 1000,
+        );
+        await insertDive(
+          id: 'b1',
+          diverId: b,
+          entryTimeMs: base + 60 * 60 * 1000,
+          exitTimeMs: base + 90 * 60 * 1000,
+        );
+        await insertDive(
+          id: 'a2',
+          diverId: a,
+          entryTimeMs: base + 120 * 60 * 1000,
+        );
+
+        final stats = await repository.getSurfaceIntervalStats(diverId: a);
+
+        // a2 measures from b1's exit (30 min), not a1's (90 min).
+        expect(stats.minMinutes, closeTo(30.0, 0.1));
+        expect(stats.maxMinutes, closeTo(30.0, 0.1));
+      },
+    );
+
+    test('a previous dive excluded from statistics is skipped', () async {
+      final base = DateTime(2024, 10, 1).millisecondsSinceEpoch;
+      await insertDive(
+        id: 'kept',
+        entryTimeMs: base,
+        exitTimeMs: base + 30 * 60 * 1000,
+      );
+      await insertDive(
+        id: 'excluded',
+        entryTimeMs: base + 60 * 60 * 1000,
+        exitTimeMs: base + 90 * 60 * 1000,
+      );
+      await (db.update(db.dives)..where((t) => t.id.equals('excluded'))).write(
+        const DivesCompanion(excludedFromStats: Value(true)),
+      );
+      await insertDive(id: 'next', entryTimeMs: base + 120 * 60 * 1000);
+
+      final stats = await repository.getSurfaceIntervalStats();
+
+      expect(stats.maxMinutes, closeTo(90.0, 0.1));
+    });
+
     test('returns null stats when no dives exist', () async {
       final stats = await repository.getSurfaceIntervalStats();
 
