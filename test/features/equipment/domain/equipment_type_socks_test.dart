@@ -7,6 +7,9 @@ import 'package:submersion/core/icons/submersion_icons.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/constants/observation_tag_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/services/gear_feature_mapper.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
@@ -135,6 +138,32 @@ void main() {
         ),
       );
       expect(f.priorKg, 0.05);
+    });
+
+    test('the stored sock_type reaches the prior', () {
+      // Through the attribute store, as a dive's gear list does it: without
+      // the mapper reading sock_type, a 5 mm drysuit sock would weigh in as
+      // neoprene at 0.3 kg.
+      EquipmentAttribute attr(String key, {String? text, double? num}) =>
+          EquipmentAttribute(
+            id: 'a-$key',
+            equipmentId: 's1',
+            key: key,
+            valueText: text,
+            valueNum: num,
+          );
+      final feature = gearFeatureFromEquipment(
+        EquipmentItem(
+          id: 's1',
+          name: 'Drysuit socks',
+          type: EquipmentType.socks,
+          attributes: [
+            attr(EquipmentAttrKeys.thicknessMm, text: '5', num: 5),
+            attr(EquipmentAttrKeys.sockType, text: 'drysuit'),
+          ],
+        ),
+      )!;
+      expect(feature.priorKg, 0.05);
     });
 
     test('unrated socks take the type default and a light dry mass', () {
