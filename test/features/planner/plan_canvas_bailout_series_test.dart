@@ -58,6 +58,7 @@ void main() {
       ],
       bailoutTanks: const [],
       bailoutTankUsages: const [],
+      ceilingTrace: const [(600, 0.0), (660, 6.0), (780, 3.0)],
     );
 
     final series = buildBailoutCanvasSeries(bailout);
@@ -80,7 +81,13 @@ void main() {
     expect(series.stopLabels.single.timeSeconds, 660);
     expect(series.stopLabels.single.durationSeconds, 120);
 
-    expect(series.ceiling, isEmpty);
+    // BailoutOutcome.ceilingTrace maps straight through, not the CCR plan's
+    // own ceiling.
+    expect(series.ceiling.map((p) => (p.timeSeconds, p.depth)), [
+      (600.0, 0.0),
+      (660.0, 6.0),
+      (780.0, 3.0),
+    ]);
   });
 
   test('an empty row list yields a single surface point', () {
@@ -91,6 +98,7 @@ void main() {
       worstCaseRows: const [],
       bailoutTanks: const [],
       bailoutTankUsages: const [],
+      ceilingTrace: const [],
     );
 
     final series = buildBailoutCanvasSeries(bailout);

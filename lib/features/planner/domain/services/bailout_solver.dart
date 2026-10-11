@@ -68,6 +68,14 @@ class BailoutOutcome {
   /// [BailoutPoint.litersRequired] for [worstCase].
   final List<PlanTankUsage> bailoutTankUsages;
 
+  /// The worst-case point's own ceiling, sampled the same way
+  /// [PlanOutcome.ceilingTrace] is: CCR up to the worst-case instant, then
+  /// the OC ascent it was sized from -- the chart's Bailout toggle
+  /// (#3130) draws this instead of the CCR ceiling, which tracks a
+  /// different gas plan past the switch and would show a no-go band that
+  /// disagrees with the bailout profile crossing it.
+  final List<(int runtimeSeconds, double ceilingMeters)> ceilingTrace;
+
   const BailoutOutcome({
     required this.points,
     required this.worstCase,
@@ -75,6 +83,7 @@ class BailoutOutcome {
     required this.worstCaseRows,
     required this.bailoutTanks,
     required this.bailoutTankUsages,
+    required this.ceilingTrace,
   });
 
   bool get sufficient => worstCase.litersRequired <= availableLiters;
@@ -195,6 +204,10 @@ class BailoutSolver {
     var state = model.initial();
     var elapsed = 0;
     final points = <BailoutPoint>[];
+    // Tissue state at each point, same index -- retained so the worst
+    // case's own ceiling trace can continue from exactly where its bottom
+    // phase left off instead of re-simulating it a second time.
+    final states = <TissueState>[];
 
     for (final leg in legs) {
       final segment = leg.segment;
@@ -250,15 +263,19 @@ class BailoutSolver {
               schedule: schedule,
             ),
           );
+          states.add(state);
         }
       }
     }
 
     if (points.isEmpty) return null;
-    var worst = points.first;
-    for (final point in points) {
-      if (point.litersRequired > worst.litersRequired) worst = point;
+    var worstIndex = 0;
+    for (var i = 1; i < points.length; i++) {
+      if (points[i].litersRequired > points[worstIndex].litersRequired) {
+        worstIndex = i;
+      }
     }
+    final worst = points[worstIndex];
     final ocSchedule = _scheduleRowsFor(
       worst,
       bailoutTanks: bailoutTanks,
@@ -275,6 +292,14 @@ class BailoutSolver {
         ..._legRowsUpTo(worst, legs, plan, environment),
         ...ocSchedule.rows,
       ],
+      ceilingTrace: _worstCaseCeilingTrace(
+        model: model,
+        points: points,
+        states: states,
+        worstIndex: worstIndex,
+        bailoutPlan: bailoutPlan,
+        policy: policy,
+      ),
       bailoutTanks: bailoutTanks,
       // Listed in the order the worst-case table breathes them, not the
       // order the diver happened to add the cylinders.
@@ -330,6 +355,97 @@ class BailoutSolver {
           }(),
       ], ocSchedule.rows),
     );
+  }
+
+  /// The worst-case point's own ceiling trace: the bottom-phase samples
+  /// already computed up to it (reusing [states], not re-simulating the
+  /// bottom phase a second time), then the OC ascent it was sized from,
+  /// continuing from exactly the tissue state the bottom phase left off
+  /// at -- the bailout picture's counterpart to
+  /// PlanEngine._ceilingTrace, sampled at [points]' own (coarser)
+  /// interval for the bottom phase and at PlanEngine.ceilingSampleSeconds
+  /// for the ascent, same as the main chart's own ceiling trace.
+  List<(int, double)> _worstCaseCeilingTrace({
+    required DecoModel model,
+    required List<BailoutPoint> points,
+    required List<TissueState> states,
+    required int worstIndex,
+    required AscentGasPlan bailoutPlan,
+    required SchedulePolicy policy,
+  }) {
+    bool owesDeco(TissueState state) => model.surfaceCeilingMeters(state) > 0;
+
+    final trace = <(int, double)>[
+      for (var i = 0; i <= worstIndex; i++)
+        (
+          points[i].runtimeSeconds,
+          owesDeco(states[i]) ? model.ceilingMeters(states[i]) : 0.0,
+        ),
+    ];
+
+    BreathingConfig ascentBreathingAt(double depth) {
+      final gas = bailoutPlan.gasForDepth(depth);
+      return OpenCircuit(fO2: 1.0 - gas.fN2 - gas.fHe, fHe: gas.fHe);
+    }
+
+    var state = states[worstIndex];
+    var runtime = points[worstIndex].runtimeSeconds;
+    var depth = points[worstIndex].depthMeters;
+    var phase = AscentPhase.toFirstStop;
+
+    void sampleLeg(double startDepth, double endDepth, int durationSeconds) {
+      var elapsed = 0;
+      while (elapsed < durationSeconds) {
+        final remaining = durationSeconds - elapsed;
+        final step = remaining < PlanEngine.ceilingSampleSeconds
+            ? remaining
+            : PlanEngine.ceilingSampleSeconds;
+        final legStart =
+            startDepth + (endDepth - startDepth) * (elapsed / durationSeconds);
+        final legEnd =
+            startDepth +
+            (endDepth - startDepth) * ((elapsed + step) / durationSeconds);
+        state = model.applySegment(
+          state,
+          DecoSegment(
+            startDepth: legStart,
+            endDepth: legEnd,
+            durationSeconds: step,
+          ),
+          ascentBreathingAt((legStart + legEnd) / 2.0),
+        );
+        runtime += step;
+        elapsed += step;
+        trace.add((
+          runtime,
+          owesDeco(state) ? model.ceilingMeters(state) : 0.0,
+        ));
+      }
+    }
+
+    for (final stop in points[worstIndex].schedule.stops) {
+      final legSeconds = policy.ascentSeconds(
+        fromDepth: depth,
+        toDepth: stop.depthMeters,
+        phase: phase,
+      );
+      if (legSeconds > 0) sampleLeg(depth, stop.depthMeters, legSeconds);
+      if (stop.durationSeconds > 0) {
+        sampleLeg(stop.depthMeters, stop.depthMeters, stop.durationSeconds);
+      }
+      depth = stop.depthMeters;
+      phase = AscentPhase.betweenStops;
+    }
+    if (depth > 0) {
+      final legSeconds = policy.ascentSeconds(
+        fromDepth: depth,
+        toDepth: 0,
+        phase: AscentPhase.surfacingAfter(phase),
+      );
+      if (legSeconds > 0) sampleLeg(depth, 0, legSeconds);
+    }
+
+    return trace;
   }
 
   /// The authored descent/bottom-phase lines up to (and including, cut off

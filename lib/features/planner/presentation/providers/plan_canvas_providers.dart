@@ -199,10 +199,10 @@ final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
 /// The worst-case bailout picture as chart series: CCR up to the worst-case
 /// instant, then the OC ascent it was sized from -- exactly
 /// [BailoutOutcome.worstCaseRows], which already carries both halves as one
-/// continuous, absolutely-timed line. No ceiling trace: the OC ascent half
-/// follows its own gas-specific schedule, not the CCR ceiling the rest of
-/// the chart tracks, so drawing that trace here would show a no-go band
-/// that disagrees with the bailout profile crossing it.
+/// continuous, absolutely-timed line, same as [BailoutOutcome.ceilingTrace]
+/// does for the ceiling -- computed on the same gas plan the profile
+/// itself switches to past the worst-case instant, so the two always
+/// agree, unlike the CCR ceiling the rest of the chart tracks.
 PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
   final rows = bailout.worstCaseRows;
   final profile = <CanvasPoint>[const CanvasPoint(0, 0)];
@@ -236,7 +236,10 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
   }
   return PlanCanvasSeries(
     profile: profile,
-    ceiling: const [],
+    ceiling: [
+      for (final point in bailout.ceilingTrace)
+        CanvasPoint(point.$1.toDouble(), point.$2),
+    ],
     gasSwitches: gasSwitches,
     stopLabels: stopLabels,
     maxTimeSeconds: rows.isEmpty ? 0.0 : rows.last.runtimeSeconds.toDouble(),
