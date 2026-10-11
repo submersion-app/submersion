@@ -32,6 +32,10 @@ class _SheetMessengerScopeState extends State<SheetMessengerScope> {
   /// Carries the body's natural height from inside the Scaffold's layout out
   /// to the box that sizes the Scaffold. Held by the state so the two render
   /// objects keep sharing one instance across rebuilds.
+  ///
+  /// The body publishes its own height here because Flutter lets only a
+  /// box's parent read its size: the sizing box, several levels up, would
+  /// trip the size-access assertion if it read the body's size directly.
   final _bodyHeight = _BodyHeight();
 
   @override
