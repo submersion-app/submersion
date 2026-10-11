@@ -16,7 +16,6 @@ import 'package:submersion/features/dive_log/query/dive_column_filters.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
 import 'package:submersion/features/query/presentation/entity_query_editor.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_menu.dart';
@@ -51,6 +50,7 @@ List<EntityTableMenuAction> diveCellMenuItems(
   WidgetRef ref,
   Dive dive,
   DiveField field, {
+  required UnitFormatter units,
   required String Function(String id) diveTypeLabel,
   required Map<String, Duration?> surfaceIntervals,
 }) {
@@ -58,7 +58,7 @@ List<EntityTableMenuAction> diveCellMenuItems(
   final options = diveCellFilterOptions(
     field: field,
     dive: dive,
-    units: UnitFormatter(ref.read(settingsProvider)),
+    units: units,
     prefs: ref.read(queryUnitPrefsProvider),
     diveTypeLabel: diveTypeLabel,
     surfaceIntervals: surfaceIntervals,

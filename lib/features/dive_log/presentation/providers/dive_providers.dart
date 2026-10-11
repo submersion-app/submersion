@@ -1378,12 +1378,13 @@ final allDivesForTableProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
 
 /// Every dive's surface interval for the table (#2984), over the whole log
 /// so a filter never changes the dive a gap is measured from. Reloaded on
-/// any write to `dives`, which is where entry, exit and runtime live.
+/// writes to `dives` (entry, exit, runtime) and to `dive_profile_series`,
+/// whose span stands in for a missing runtime: the detail tick covers both.
 final diveSurfaceIntervalsProvider = FutureProvider<Map<String, Duration?>>((
   ref,
 ) async {
   final repository = ref.watch(diveRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
+  ref.invalidateSelfWhen(repository.watchDiveDetailChanges());
   return repository.getSurfaceIntervals();
 });
 

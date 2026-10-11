@@ -56,6 +56,7 @@ class DiveTableView extends ConsumerWidget {
         ref.watch(diveSurfaceIntervalsProvider).value ??
         const <String, Duration?>{};
     final filter = ref.watch(diveFilterProvider);
+    final units = UnitFormatter(settings);
     return EntityTableView<Dive, DiveField>(
       entities: dives,
       idExtractor: (d) => d.id,
@@ -65,7 +66,7 @@ class DiveTableView extends ConsumerWidget {
         surfaceIntervals: intervals,
       ),
       config: config.toEntityConfig(),
-      units: UnitFormatter(settings),
+      units: units,
       onSortFieldChanged: notifier.setSortField,
       onResizeColumn: notifier.resizeColumn,
       onHideColumn: notifier.hideColumn,
@@ -82,6 +83,7 @@ class DiveTableView extends ConsumerWidget {
         ref,
         dive,
         field,
+        units: units,
         diveTypeLabel: diveTypeLabelResolver,
         surfaceIntervals: intervals,
       ),
