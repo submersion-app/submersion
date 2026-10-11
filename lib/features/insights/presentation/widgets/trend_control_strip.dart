@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/insights/domain/trend_range.dart';
+import 'package:submersion/features/insights/presentation/formatters/trend_gap_label.dart';
 import 'package:submersion/features/insights/presentation/formatters/trend_range_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -31,7 +33,16 @@ class TrendControlStrip extends StatelessWidget {
     this.rateLabel,
     this.range = TrendRange.all,
     this.onRangePresetSelected,
+    this.gapThreshold = TrendGapThreshold.off,
+    this.onGapThresholdSelected,
   });
+
+  /// The diver's gap threshold, checked in the Range menu's "Collapse gaps"
+  /// section (issue #3251).
+  final TrendGapThreshold gapThreshold;
+
+  /// Called with a picked gap threshold. Null leaves the section out.
+  final ValueChanged<TrendGapThreshold>? onGapThresholdSelected;
 
   /// Stable id from `TrendChartIds`, used to build unique widget keys.
   final String chartId;
@@ -85,20 +96,46 @@ class TrendControlStrip extends StatelessWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           if (onRangePresetSelected != null)
-            PopupMenuButton<TrendRangePreset>(
+            // Object, not TrendRangePreset: the same menu carries the gap
+            // threshold choices below the range presets.
+            PopupMenuButton<Object>(
               key: ValueKey('trend-range-$chartId'),
               tooltip: context.l10n.insights_trend_range_tooltip,
               initialValue: range.preset,
-              onSelected: onRangePresetSelected,
+              onSelected: (value) {
+                if (value is TrendRangePreset) {
+                  onRangePresetSelected!(value);
+                } else if (value is TrendGapThreshold) {
+                  onGapThresholdSelected?.call(value);
+                }
+              },
               itemBuilder: (context) => [
                 for (final preset in TrendRangePreset.values)
-                  PopupMenuItem<TrendRangePreset>(
+                  PopupMenuItem<Object>(
                     key: ValueKey('trend-range-$chartId-${preset.name}'),
                     value: preset,
                     child: Text(
                       trendRangeLabel(preset, context.l10n, menuItem: true),
                     ),
                   ),
+                if (onGapThresholdSelected != null) ...[
+                  const PopupMenuDivider(),
+                  PopupMenuItem<Object>(
+                    enabled: false,
+                    height: 32,
+                    child: Text(
+                      context.l10n.insights_trend_gaps_menuHeader,
+                      style: theme.textTheme.labelSmall,
+                    ),
+                  ),
+                  for (final t in TrendGapThreshold.values)
+                    CheckedPopupMenuItem<Object>(
+                      key: ValueKey('trend-gaps-$chartId-${t.name}'),
+                      value: t,
+                      checked: t == gapThreshold,
+                      child: Text(trendGapThresholdLabel(t, context.l10n)),
+                    ),
+                ],
               ],
               child: Row(
                 mainAxisSize: MainAxisSize.min,

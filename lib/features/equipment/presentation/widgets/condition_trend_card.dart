@@ -107,6 +107,7 @@ class ConditionTrendCard extends ConsumerWidget {
                 height: 180,
                 chartId: 'condition-${trend.kind.name}',
                 dateFormat: settings.dateFormat,
+                gapThreshold: settings.trendGapThreshold,
                 onDiveSelected: (diveId) => context.push('/dives/$diveId'),
               ),
               const SizedBox(height: 8),

@@ -102,6 +102,7 @@ class FocusResults extends ConsumerWidget {
                           // dives.
                           pointColor: theme.colorScheme.outlineVariant,
                           dateFormat: ref.watch(dateFormatProvider),
+                          gapThreshold: ref.watch(trendGapThresholdProvider),
                           valueFormatter: (v) => metricUnits.format(v, l10n),
                           yAxisFormatter: (v) =>
                               metricUnits.toDisplay(v).toStringAsFixed(1),
