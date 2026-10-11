@@ -110,8 +110,11 @@ Future<EquipmentItem?> scanOwnedItem(
 
 /// Why [item] cannot be added, named by the status the app shows for it
 /// ([departedStatusOf]: an inactive item reads as Retired), or null for gear
-/// in the kit. The same test as the pickers' list: spare gear, and lost gear
-/// still marked active, are added.
+/// in the kit. The same test as the active-equipment list the pickers read.
+/// Spare gear is added although the dive and trip pickers hide it
+/// (`hideSpare`): they hide spares to keep the list short, and a spare
+/// whose tag the diver scans is one they mean to use. Lost gear still
+/// marked active is added, as the pickers offer it.
 String? _outOfKitMessage(AppLocalizations l10n, EquipmentItem item) {
   if (item.isFitted) return null;
   return switch (departedStatusOf(item)) {

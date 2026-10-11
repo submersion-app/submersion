@@ -211,7 +211,11 @@ void main() {
       );
     });
 
-    testWidgets('a spare item is added', (tester) async {
+    // The pickers hide spares only to keep their lists short; a spare the
+    // diver scans is one they mean to use.
+    testWidgets('a spare item is added, though the pickers hide spares', (
+      tester,
+    ) async {
       await seedOut(tester, 'spare');
       final (item, _) = await scan(tester, link(outId));
       expect(item?.id, 'out');

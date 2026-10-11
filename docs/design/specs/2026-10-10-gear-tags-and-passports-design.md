@@ -232,8 +232,10 @@ macOS the camera, and Windows and Linux Paste link. Gear out of the kit
 scanned in the dive or trip flow is refused, as the pickers hide it: not
 `isFitted`, named by the status the app shows (`departedStatusOf`), so
 "{name} is marked Wanted", "... Retired" (an inactive item reads as
-Retired), "... Sold" or "... Lost". Spare gear, and lost gear still marked
-active, are added, as the pickers offer them.
+Retired), "... Sold" or "... Lost". Lost gear still marked active is added,
+as the pickers offer it. Spare gear is added too, although the pickers hide
+it (`hideSpare`): they hide spares to keep the list short, and a scanned
+spare is one the diver means to use.
 
 ## 9. The gear passport page
 

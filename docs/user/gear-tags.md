@@ -67,7 +67,8 @@ that page.
 The dive editor and a trip only take gear you still use, as their pickers
 do. Scanning an item marked Wanted, Retired, Sold or Lost says so and adds
 nothing; set the item back in service on its edit page first. Spare gear
-is added.
+is added when you scan it, though the pickers leave spares out to keep
+their lists short.
 
 Scanning a tag with a phone camera outside the app opens Submersion directly
 where it is installed. Without the app, the link opens a page on
