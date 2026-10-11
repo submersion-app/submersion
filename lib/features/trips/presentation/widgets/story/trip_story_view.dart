@@ -47,10 +47,15 @@ class TripStoryView extends ConsumerWidget {
     ref.watch(tripDayWeatherBackfillProvider(tripId));
 
     return TodayAnchoredScrollView(
-      center: story.todayIndex == null ? null : _todayKey,
+      center: _opensAtToday ? _todayKey : null,
       slivers: _contentSlivers(context, storedWeather),
     );
   }
+
+  /// Whether the story opens at today: the trip is under way. A story can
+  /// reach today without that (a dive logged today after the trip ended
+  /// stretches its span), and such a trip opens at the top like any other.
+  bool get _opensAtToday => story.todayIndex != null && story.trip.isInProgress;
 
   /// Distinct dive sites visited across the whole trip (for the stat strip).
   int get _siteCount {
@@ -127,7 +132,7 @@ class TripStoryView extends ConsumerWidget {
     Map<int, TripDayWeather> storedWeather,
   ) {
     final trip = story.trip;
-    final todayIndex = story.todayIndex;
+    final todayIndex = _opensAtToday ? story.todayIndex : null;
     final header = <Widget>[
       SliverPadding(
         padding: const EdgeInsets.all(16),

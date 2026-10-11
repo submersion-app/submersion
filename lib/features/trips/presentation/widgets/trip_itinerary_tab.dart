@@ -92,7 +92,9 @@ class TripItineraryTab extends ConsumerWidget {
     // Group dives by date (year-month-day key)
     final divesByDate = <String, List<Dive>>{};
     for (final dive in dives) {
-      final key = _dateKey(dive.dateTime);
+      // By entry time, as the story buckets its dives, so a dive and its
+      // photos and sightings land on the same day's card.
+      final key = _dateKey(dive.effectiveEntryTime);
       divesByDate.putIfAbsent(key, () => []).add(dive);
     }
 
@@ -100,7 +102,9 @@ class TripItineraryTab extends ConsumerWidget {
     final sortedDivesByDate = divesByDate.map(
       (key, group) => MapEntry(
         key,
-        List<Dive>.of(group)..sort((a, b) => a.dateTime.compareTo(b.dateTime)),
+        List<Dive>.of(
+          group,
+        )..sort((a, b) => a.effectiveEntryTime.compareTo(b.effectiveEntryTime)),
       ),
     );
 

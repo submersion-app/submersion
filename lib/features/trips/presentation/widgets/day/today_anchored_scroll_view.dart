@@ -43,8 +43,10 @@ class _TodayAnchoredScrollViewState extends State<TodayAnchoredScrollView> {
   void didUpdateWidget(TodayAnchoredScrollView oldWidget) {
     super.didUpdateWidget(oldWidget);
     // The anchor can arrive after the first frame (the trip loading after
-    // its days); it then needs the same fill the first frame would have had.
-    if (widget.center != null && oldWidget.center == null) _scheduleFill();
+    // its days), and late data can change what follows today; either way the
+    // view may now end short of the window. The fill moves the view only when
+    // there is blank space under the content.
+    if (widget.center != null) _scheduleFill();
   }
 
   void _scheduleFill() =>
@@ -60,14 +62,14 @@ class _TodayAnchoredScrollViewState extends State<TodayAnchoredScrollView> {
         ? null
         : Scrollable.maybeOf(endContext)?.position;
     if (position == null) return;
-    // Content runs past the window below the anchor: nothing to fill.
-    if (position.maxScrollExtent > position.pixels) return;
     final end = endContext?.findRenderObject();
     if (end is! RenderBox || !end.attached) return;
     final viewport = RenderAbstractViewport.maybeOf(end);
     if (viewport == null) return;
     final endY = end.localToGlobal(Offset.zero, ancestor: viewport).dy;
     final blank = position.viewportDimension - endY;
+    // Only blank space under the content moves the view: content that runs
+    // past the window, or a diver who has scrolled up, leaves no blank.
     if (blank <= 0) return;
     position.jumpTo(
       math.max(position.minScrollExtent, position.pixels - blank),

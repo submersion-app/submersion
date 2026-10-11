@@ -318,8 +318,13 @@ class ItineraryDayCard extends ConsumerWidget {
   String? _mediaLine(BuildContext context) {
     final l10n = context.l10n;
     final speciesCount = sightings.map((s) => s.speciesId).toSet().length;
+    // Trip media also holds videos, signatures and documents; the line
+    // counts photos.
+    final photoCount = media
+        .where((m) => m.mediaType == MediaType.photo)
+        .length;
     final parts = [
-      if (media.isNotEmpty) l10n.trips_day_photoCount(media.length),
+      if (photoCount > 0) l10n.trips_day_photoCount(photoCount),
       if (speciesCount > 0) l10n.trips_day_speciesCount(speciesCount),
     ];
     return parts.isEmpty ? null : parts.join(' · ');

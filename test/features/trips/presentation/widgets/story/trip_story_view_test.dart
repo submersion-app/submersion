@@ -252,6 +252,30 @@ void main() {
     });
   });
 
+  testWidgets('an ended trip with a dive today still opens at the hero', (
+    tester,
+  ) async {
+    // A dive logged today stretches the story to today, but the trip itself
+    // ended yesterday: it is not under way, so it opens at the top.
+    final now = DateTime.now();
+    final today = _dayOnly(now);
+    final trip = _trip(
+      start: today.subtract(const Duration(days: 20)),
+      end: today.subtract(const Duration(days: 1)),
+    );
+    final story = _story(
+      trip,
+      today: now,
+      dives: [
+        for (var i = 0; i <= 20; i++)
+          _dive('d$i', today.subtract(Duration(days: 20 - i, hours: -9))),
+      ],
+    );
+    expect(story.todayIndex, isNotNull);
+    await pumpView(tester, story, viewSize: const Size(800, 900));
+    expect(find.byType(TripStoryHero), findsOneWidget);
+  });
+
   testWidgets('a past trip still opens at the hero', (tester) async {
     final trip = _trip(
       start: DateTime(2026, 3, 27),

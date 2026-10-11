@@ -710,4 +710,25 @@ void main() {
       expect(find.text('1 of 3 planned dives'), findsOneWidget);
     });
   });
+
+  testWidgets('a dive is listed on the day it entered the water', (
+    tester,
+  ) async {
+    // Logged at 23:50 on the 8th but entered the water after midnight: the
+    // story puts it on the 9th, and so must the itinerary.
+    final dive = Dive(
+      id: 'late',
+      dateTime: DateTime(2026, 3, 8, 23, 50),
+      entryTime: DateTime(2026, 3, 9, 0, 10),
+    );
+    await withClock(Clock.fixed(DateTime(2026, 4, 1)), () async {
+      await _pumpTab(
+        tester,
+        trip: _resortTrip(),
+        days: [_row('n', DateTime(2026, 3, 9), 4)],
+        dives: [dive],
+      );
+    });
+    expect(find.textContaining('1 dive'), findsOneWidget);
+  });
 }
