@@ -4,24 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
-
-/// The history provider never touches the database.
-class _UnusedDatabaseAdapter implements BackupDatabaseAdapter {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
-    'database not expected: ${invocation.memberName}',
-  );
-
-  @override
-  AppDatabase get database => throw UnimplementedError();
-}
+import '../../../../helpers/unused_backup_database_adapter.dart';
 
 void main() {
   test('history includes cloud backups the local history has lost '
@@ -39,7 +28,7 @@ void main() {
       )
       ..seedFile('submersion_sync_device.json', Uint8List(4));
     final service = BackupService(
-      dbAdapter: _UnusedDatabaseAdapter(),
+      dbAdapter: UnusedBackupDatabaseAdapter(),
       preferences: preferences,
       cloudProvider: cloud,
     );

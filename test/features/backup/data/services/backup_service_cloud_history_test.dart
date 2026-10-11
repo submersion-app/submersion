@@ -3,24 +3,13 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
-
-/// None of the history paths under test touch the database.
-class _UnusedDatabaseAdapter implements BackupDatabaseAdapter {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError(
-    'database not expected: ${invocation.memberName}',
-  );
-
-  @override
-  AppDatabase get database => throw UnimplementedError();
-}
+import '../../../../helpers/unused_backup_database_adapter.dart';
 
 const _cloudName = 'submersion_backup_2026-03-14_093015.db';
 
@@ -36,7 +25,7 @@ void main() {
   });
 
   BackupService service() => BackupService(
-    dbAdapter: _UnusedDatabaseAdapter(),
+    dbAdapter: UnusedBackupDatabaseAdapter(),
     preferences: preferences,
     cloudProvider: cloud,
   );
