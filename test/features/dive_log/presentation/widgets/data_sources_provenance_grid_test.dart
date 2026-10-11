@@ -169,6 +169,8 @@ void main() {
       await _pump(tester, [_perdix(fileName: null), _teric(fileName: null)]);
 
       expect(find.text('File'), findsNothing);
+      // The other provenance rows are still in the table.
+      expect(_inGrid(find.text('Serial')), findsOneWidget);
     });
 
     testWidgets('a row one source lacks shows a placeholder for it', (
