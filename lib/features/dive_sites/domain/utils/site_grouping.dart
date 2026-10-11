@@ -368,10 +368,10 @@ List<SiteListRow<T>> flattenSiteGroups<T>(
 /// -- otherwise the selected site would sit behind two collapsed headers
 /// instead of one. Also the only outer group when there is just one.
 ///
-/// A blank inner value is skipped unless [bundlesInner] says the mode bunds
-/// it into a titled subgroup of its own (#3270) rather than leaving it in
-/// the outer group's plain ungrouped list -- only then does a blank value
-/// still have a subgroup header to open.
+/// A blank inner value is skipped unless [bundlesInner] says the mode
+/// bundles it into a titled subgroup of its own (#3270) rather than leaving
+/// it in the outer group's plain ungrouped list -- only then does a blank
+/// value still have a subgroup header to open.
 Set<String> initialExpandedGroups<T>(
   List<SiteOuterGroup<T>> groups, {
   required String Function(DiveSite) outerKeyOf,
