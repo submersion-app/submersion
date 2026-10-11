@@ -1667,7 +1667,9 @@ class EquipmentRepository {
   /// The regulator last paired with a cylinder preset, for prefilling the
   /// tank editor: the newest dive whose tank of that preset names one.
   /// Operational, not descriptive: an excluded dive still tells us which
-  /// regulator the diver hangs on that cylinder.
+  /// regulator the diver hangs on that cylinder. Only a regulator still in
+  /// the kit, by the same test as [getActiveEquipment]: prefilling a new
+  /// tank with one since retired or sold would put it back in use (#3210).
   // stats-scope-exempt: editor prefill, not a statistic
   Future<String?> getLastRegulatorForPreset(String presetName) async {
     final rows = await _db
@@ -1676,11 +1678,19 @@ class EquipmentRepository {
       SELECT t.regulator_equipment_id AS reg
       FROM dive_tanks t
       JOIN dives d ON d.id = t.dive_id
-      WHERE t.preset_name = ?1 AND t.regulator_equipment_id IS NOT NULL
+      JOIN equipment e ON e.id = t.regulator_equipment_id
+      WHERE t.preset_name = ?1
+        AND e.is_active = 1
+        AND e.status NOT IN (?2, ?3, ?4)
       ORDER BY d.dive_date_time DESC
       LIMIT 1
     ''',
-          variables: [Variable.withString(presetName)],
+          variables: [
+            Variable.withString(presetName),
+            Variable.withString(EquipmentStatus.retired.name),
+            Variable.withString(EquipmentStatus.sold.name),
+            Variable.withString(EquipmentStatus.wanted.name),
+          ],
         )
         .get();
     return rows.isEmpty ? null : rows.first.data['reg'] as String?;
