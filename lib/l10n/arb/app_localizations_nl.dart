@@ -22864,6 +22864,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Weergave van de reislijst';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths =>
+      'Pauzes in trendgrafieken inkorten';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays =>
       'Onderhoudswaarschuwing dagen voor een reis';
 
@@ -32782,6 +32786,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
       'Duikprofielgrafiek standaard boven de tabel weergeven';
+
+  @override
+  String get settings_appearance_trendGaps =>
+      'Pauzes in trendgrafieken inkorten';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle =>
+      'Lange duikpauzes tonen als een smalle gearceerde band';
 
   @override
   String get settings_appearance_mapStyle => 'Kaartstijl';
@@ -47490,6 +47502,41 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => 'Weekgemiddelde';
+
+  @override
+  String get insights_trend_gaps_menuHeader => 'Pauzes inkorten';
+
+  @override
+  String get insights_trend_gaps_off => 'Uit';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 maanden';
+
+  @override
+  String get insights_trend_gaps_year1 => '1 jaar';
+
+  @override
+  String get insights_trend_gaps_years2 => '2 jaar';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years j';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months m';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years j $months m';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return 'Geen duiken: $start tot $end';
+  }
 
   @override
   String get insights_trend_legend_rate => 'Algemene trend';

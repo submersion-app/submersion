@@ -22428,6 +22428,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_tripListViewMode => 'תצוגת רשימת הטיולים';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths =>
+      'כיווץ פערים בתרשימי מגמה';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays =>
       'אזהרת טיפול בימים לפני טיול';
 
@@ -32204,6 +32208,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
       'הצג תרשים פרופיל צלילה מעל הטבלה כברירת מחדל';
+
+  @override
+  String get settings_appearance_trendGaps => 'כיווץ פערים בתרשימי מגמה';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle =>
+      'הצגת הפסקות ארוכות בצלילה כרצועה מקווקוות צרה';
 
   @override
   String get settings_appearance_mapStyle => 'סגנון מפה';
@@ -46797,6 +46808,41 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => 'ממוצע שבועי';
+
+  @override
+  String get insights_trend_gaps_menuHeader => 'כיווץ פערים';
+
+  @override
+  String get insights_trend_gaps_off => 'כבוי';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 חודשים';
+
+  @override
+  String get insights_trend_gaps_year1 => 'שנה';
+
+  @override
+  String get insights_trend_gaps_years2 => 'שנתיים';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years ש׳';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months ח׳';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years ש׳ $months ח׳';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return 'אין צלילות: $start עד $end';
+  }
 
   @override
   String get insights_trend_legend_rate => 'מגמה כללית';

@@ -23030,6 +23030,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Vista dell\'elenco dei viaggi';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths =>
+      'Comprimi le pause nei grafici di tendenza';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays =>
       'Avviso di manutenzione in giorni prima di un viaggio';
 
@@ -33021,6 +33025,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
       'Visualizza il grafico del profilo di immersione sopra la tabella per impostazione predefinita';
+
+  @override
+  String get settings_appearance_trendGaps =>
+      'Comprimi le pause nei grafici di tendenza';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle =>
+      'Mostra le lunghe pause senza immersioni come una banda tratteggiata stretta';
 
   @override
   String get settings_appearance_mapStyle => 'Stile della mappa';
@@ -47793,6 +47805,41 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => 'Media settimanale';
+
+  @override
+  String get insights_trend_gaps_menuHeader => 'Comprimi le pause';
+
+  @override
+  String get insights_trend_gaps_off => 'Disattivato';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 mesi';
+
+  @override
+  String get insights_trend_gaps_year1 => '1 anno';
+
+  @override
+  String get insights_trend_gaps_years2 => '2 anni';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years a';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months m';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years a $months m';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return 'Nessuna immersione: dal $start al $end';
+  }
 
   @override
   String get insights_trend_legend_rate => 'Tendenza complessiva';

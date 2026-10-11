@@ -21752,6 +21752,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_tripListViewMode => '行程列表视图';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths => '在趋势图中折叠间隔';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays => '行程前保养提醒天数';
 
   @override
@@ -31148,6 +31151,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_showProfilePanel_subtitle => '默认在表格上方显示潜水剖面图';
+
+  @override
+  String get settings_appearance_trendGaps => '在趋势图中折叠间隔';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle => '将长时间未潜水的时段显示为窄的斜线带';
 
   @override
   String get settings_appearance_mapStyle => '地图样式';
@@ -44881,6 +44890,41 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => '每周平均';
+
+  @override
+  String get insights_trend_gaps_menuHeader => '折叠间隔';
+
+  @override
+  String get insights_trend_gaps_off => '关闭';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 个月';
+
+  @override
+  String get insights_trend_gaps_year1 => '1 年';
+
+  @override
+  String get insights_trend_gaps_years2 => '2 年';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years年';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months个月';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years年$months个月';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return '无潜水：$start 至 $end';
+  }
 
   @override
   String get insights_trend_legend_rate => '总体趋势';

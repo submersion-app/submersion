@@ -23187,6 +23187,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_tripListViewMode => 'عرض قائمة الرحلات';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths =>
+      'طي الفجوات في مخططات الاتجاه';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays =>
       'تحذير الصيانة بالأيام قبل الرحلة';
 
@@ -33424,6 +33428,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
       'عرض مخطط ملف الغوصة فوق الجدول بشكل افتراضي';
+
+  @override
+  String get settings_appearance_trendGaps => 'طي الفجوات في مخططات الاتجاه';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle =>
+      'عرض فترات الانقطاع الطويلة عن الغوص كشريط مخطط ضيق';
 
   @override
   String get settings_appearance_mapStyle => 'نمط الخريطة';
@@ -48405,6 +48416,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => 'المتوسط الأسبوعي';
+
+  @override
+  String get insights_trend_gaps_menuHeader => 'طي الفجوات';
+
+  @override
+  String get insights_trend_gaps_off => 'إيقاف';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 أشهر';
+
+  @override
+  String get insights_trend_gaps_year1 => 'سنة واحدة';
+
+  @override
+  String get insights_trend_gaps_years2 => 'سنتان';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years س';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months ش';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years س $months ش';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return 'لا غطسات: من $start إلى $end';
+  }
 
   @override
   String get insights_trend_legend_rate => 'الاتجاه العام';

@@ -13539,6 +13539,7 @@
   "settings_conflict_field_tripChecklistItems_category": "Category",
   "settings_conflict_field_tripCylinderEvents_kind": "Event",
   "settings_conflict_field_tripListViewMode": "Trip list view",
+  "settings_conflict_field_trendGapCollapseMonths": "Collapse gaps in trend charts",
   "settings_conflict_field_tripServiceLeadDays": "Service warning days before a trip",
   "settings_conflict_field_trustFraction": "Trusted share of the route",
   "settings_conflict_field_turnPressureFraction": "Turn pressure share",
@@ -20021,6 +20022,8 @@
   "settings_appearance_showDetailsPane_subtitle": "Display details pane alongside table",
   "settings_appearance_showProfilePanel": "Show Profile Panel in Table View",
   "settings_appearance_showProfilePanel_subtitle": "Display dive profile chart above the table by default",
+  "settings_appearance_trendGaps": "Collapse gaps in trend charts",
+  "settings_appearance_trendGaps_subtitle": "Show long breaks in diving as a narrow hatched band",
   "settings_appearance_mapStyle": "Map Style",
   "settings_appearance_mapStyle_openStreetMap": "Street Map",
   "settings_appearance_mapStyle_openTopoMap": "Topographic",
@@ -28473,6 +28476,53 @@
   "insights_trend_aggregation_perDive": "Every dive",
   "insights_trend_aggregation_tooltip": "How dives are grouped",
   "insights_trend_aggregation_weekly": "Weekly average",
+  "insights_trend_gaps_menuHeader": "Collapse gaps",
+  "insights_trend_gaps_off": "Off",
+  "insights_trend_gaps_months6": "6 months",
+  "insights_trend_gaps_year1": "1 year",
+  "insights_trend_gaps_years2": "2 years",
+  "insights_trend_gap_years": "{years}y",
+  "@insights_trend_gap_years": {
+    "description": "Length of a collapsed break in diving on a trend chart axis, whole years only",
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
+  "insights_trend_gap_months": "{months}m",
+  "@insights_trend_gap_months": {
+    "description": "Length of a collapsed break in diving, under a year",
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "insights_trend_gap_yearsMonths": "{years}y {months}m",
+  "@insights_trend_gap_yearsMonths": {
+    "description": "Length of a collapsed break in diving, years and months",
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "insights_trend_gap_noDives": "No dives: {start} to {end}",
+  "@insights_trend_gap_noDives": {
+    "description": "Chart readout when hovering a collapsed break; start and end are formatted dates",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
   "insights_trend_legend_rate": "Overall trend",
   "insights_trend_legend_rollingAverage": "Rolling avg",
   "insights_trend_rate_perYear": "{value}/yr",

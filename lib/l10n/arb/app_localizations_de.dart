@@ -22978,6 +22978,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ansicht der Reiseliste';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths =>
+      'Lücken in Trenddiagrammen zusammenfassen';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays =>
       'Wartungswarnung Tage vor einer Reise';
 
@@ -32949,6 +32953,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
       'Tauchprofildiagramm standardmäßig über der Tabelle anzeigen';
+
+  @override
+  String get settings_appearance_trendGaps =>
+      'Lücken in Trenddiagrammen zusammenfassen';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle =>
+      'Lange Tauchpausen als schmales schraffiertes Band anzeigen';
 
   @override
   String get settings_appearance_mapStyle => 'Kartenstil';
@@ -47695,6 +47707,41 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => 'Wöchentlicher Durchschnitt';
+
+  @override
+  String get insights_trend_gaps_menuHeader => 'Lücken zusammenfassen';
+
+  @override
+  String get insights_trend_gaps_off => 'Aus';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 Monate';
+
+  @override
+  String get insights_trend_gaps_year1 => '1 Jahr';
+
+  @override
+  String get insights_trend_gaps_years2 => '2 Jahre';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years J';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months M';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years J $months M';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return 'Keine Tauchgänge: $start bis $end';
+  }
 
   @override
   String get insights_trend_legend_rate => 'Gesamttrend';

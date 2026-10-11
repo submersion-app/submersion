@@ -22618,6 +22618,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_tripListViewMode => 'Trip list view';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths =>
+      'Collapse gaps in trend charts';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays =>
       'Service warning days before a trip';
 
@@ -32457,6 +32461,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
       'Display dive profile chart above the table by default';
+
+  @override
+  String get settings_appearance_trendGaps => 'Collapse gaps in trend charts';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle =>
+      'Show long breaks in diving as a narrow hatched band';
 
   @override
   String get settings_appearance_mapStyle => 'Map Style';
@@ -47051,6 +47062,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => 'Weekly average';
+
+  @override
+  String get insights_trend_gaps_menuHeader => 'Collapse gaps';
+
+  @override
+  String get insights_trend_gaps_off => 'Off';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 months';
+
+  @override
+  String get insights_trend_gaps_year1 => '1 year';
+
+  @override
+  String get insights_trend_gaps_years2 => '2 years';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '${years}y';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '${months}m';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '${years}y ${months}m';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return 'No dives: $start to $end';
+  }
 
   @override
   String get insights_trend_legend_rate => 'Overall trend';

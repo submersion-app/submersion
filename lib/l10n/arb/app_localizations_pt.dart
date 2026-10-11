@@ -23013,6 +23013,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Visualização da lista de viagens';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths =>
+      'Recolher pausas nos gráficos de tendência';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays =>
       'Aviso de manutenção em dias antes de uma viagem';
 
@@ -33012,6 +33016,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
       'Exibir gráfico de perfil de mergulho acima da tabela por padrão';
+
+  @override
+  String get settings_appearance_trendGaps =>
+      'Recolher pausas nos gráficos de tendência';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle =>
+      'Mostrar longas pausas sem mergulho como uma faixa tracejada estreita';
 
   @override
   String get settings_appearance_mapStyle => 'Estilo do Mapa';
@@ -47803,6 +47815,41 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => 'Média semanal';
+
+  @override
+  String get insights_trend_gaps_menuHeader => 'Recolher pausas';
+
+  @override
+  String get insights_trend_gaps_off => 'Desativado';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 meses';
+
+  @override
+  String get insights_trend_gaps_year1 => '1 ano';
+
+  @override
+  String get insights_trend_gaps_years2 => '2 anos';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years a';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months m';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years a $months m';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return 'Sem mergulhos: $start a $end';
+  }
 
   @override
   String get insights_trend_legend_rate => 'Tendência geral';

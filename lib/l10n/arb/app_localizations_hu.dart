@@ -22915,6 +22915,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_tripListViewMode => 'Útlista nézete';
 
   @override
+  String get settings_conflict_field_trendGapCollapseMonths =>
+      'Szünetek összevonása a trenddiagramokon';
+
+  @override
   String get settings_conflict_field_tripServiceLeadDays =>
       'Szervizfigyelmeztetés ennyi nappal az út előtt';
 
@@ -32848,6 +32852,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_appearance_showProfilePanel_subtitle =>
       'Merülési profil diagram megjelenítése a táblázat felett alapértelmezetten';
+
+  @override
+  String get settings_appearance_trendGaps =>
+      'Szünetek összevonása a trenddiagramokon';
+
+  @override
+  String get settings_appearance_trendGaps_subtitle =>
+      'A hosszú merülési szüneteket keskeny, sraffozott sávként mutatja';
 
   @override
   String get settings_appearance_mapStyle => 'Térképstílus';
@@ -47542,6 +47554,41 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_trend_aggregation_weekly => 'Heti átlag';
+
+  @override
+  String get insights_trend_gaps_menuHeader => 'Szünetek összevonása';
+
+  @override
+  String get insights_trend_gaps_off => 'Ki';
+
+  @override
+  String get insights_trend_gaps_months6 => '6 hónap';
+
+  @override
+  String get insights_trend_gaps_year1 => '1 év';
+
+  @override
+  String get insights_trend_gaps_years2 => '2 év';
+
+  @override
+  String insights_trend_gap_years(int years) {
+    return '$years év';
+  }
+
+  @override
+  String insights_trend_gap_months(int months) {
+    return '$months hó';
+  }
+
+  @override
+  String insights_trend_gap_yearsMonths(int years, int months) {
+    return '$years év $months hó';
+  }
+
+  @override
+  String insights_trend_gap_noDives(String start, String end) {
+    return 'Nincs merülés $start és $end között';
+  }
 
   @override
   String get insights_trend_legend_rate => 'Általános trend';

@@ -37032,6 +37032,12 @@ abstract class AppLocalizations {
   /// **'Trip list view'**
   String get settings_conflict_field_tripListViewMode;
 
+  /// No description provided for @settings_conflict_field_trendGapCollapseMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse gaps in trend charts'**
+  String get settings_conflict_field_trendGapCollapseMonths;
+
   /// No description provided for @settings_conflict_field_tripServiceLeadDays.
   ///
   /// In en, this message translates to:
@@ -52306,6 +52312,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Display dive profile chart above the table by default'**
   String get settings_appearance_showProfilePanel_subtitle;
+
+  /// No description provided for @settings_appearance_trendGaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse gaps in trend charts'**
+  String get settings_appearance_trendGaps;
+
+  /// No description provided for @settings_appearance_trendGaps_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show long breaks in diving as a narrow hatched band'**
+  String get settings_appearance_trendGaps_subtitle;
 
   /// No description provided for @settings_appearance_mapStyle.
   ///
@@ -75944,6 +75962,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Weekly average'**
   String get insights_trend_aggregation_weekly;
+
+  /// No description provided for @insights_trend_gaps_menuHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse gaps'**
+  String get insights_trend_gaps_menuHeader;
+
+  /// No description provided for @insights_trend_gaps_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get insights_trend_gaps_off;
+
+  /// No description provided for @insights_trend_gaps_months6.
+  ///
+  /// In en, this message translates to:
+  /// **'6 months'**
+  String get insights_trend_gaps_months6;
+
+  /// No description provided for @insights_trend_gaps_year1.
+  ///
+  /// In en, this message translates to:
+  /// **'1 year'**
+  String get insights_trend_gaps_year1;
+
+  /// No description provided for @insights_trend_gaps_years2.
+  ///
+  /// In en, this message translates to:
+  /// **'2 years'**
+  String get insights_trend_gaps_years2;
+
+  /// Length of a collapsed break in diving on a trend chart axis, whole years only
+  ///
+  /// In en, this message translates to:
+  /// **'{years}y'**
+  String insights_trend_gap_years(int years);
+
+  /// Length of a collapsed break in diving, under a year
+  ///
+  /// In en, this message translates to:
+  /// **'{months}m'**
+  String insights_trend_gap_months(int months);
+
+  /// Length of a collapsed break in diving, years and months
+  ///
+  /// In en, this message translates to:
+  /// **'{years}y {months}m'**
+  String insights_trend_gap_yearsMonths(int years, int months);
+
+  /// Chart readout when hovering a collapsed break; start and end are formatted dates
+  ///
+  /// In en, this message translates to:
+  /// **'No dives: {start} to {end}'**
+  String insights_trend_gap_noDives(String start, String end);
 
   /// No description provided for @insights_trend_legend_rate.
   ///
