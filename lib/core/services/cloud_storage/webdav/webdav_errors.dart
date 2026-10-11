@@ -28,6 +28,7 @@ class WebDavException extends CloudStorageException {
     this.statusCode,
     this.location,
     this.sizeBytes,
+    this.host,
     Object? cause,
   }) : super(message, cause);
 
@@ -39,6 +40,9 @@ class WebDavException extends CloudStorageException {
 
   /// The refused upload's size, for [WebDavErrorCode.tooLarge].
   final int? sizeBytes;
+
+  /// The server that could not be reached, for [WebDavErrorCode.unreachable].
+  final String? host;
 
   static const int _excerptLimit = 300;
 
@@ -71,6 +75,10 @@ class WebDavException extends CloudStorageException {
       403 => (
         WebDavErrorCode.forbidden,
         'No permission for this folder on the WebDAV server.',
+      ),
+      405 when method == 'PROPFIND' => (
+        WebDavErrorCode.notWebDav,
+        'This address is not a WebDAV endpoint.',
       ),
       404 when isRoot => (
         WebDavErrorCode.notFound,

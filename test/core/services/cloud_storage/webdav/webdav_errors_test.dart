@@ -60,4 +60,13 @@ void main() {
     );
     expect(e.cause.toString().length, lessThan(400));
   });
+
+  test('405 to PROPFIND means the address is not WebDAV', () {
+    final e = WebDavException.fromStatus(405, method: 'PROPFIND', uri: uri);
+    expect(e.code, WebDavErrorCode.notWebDav);
+    expect(
+      WebDavException.fromStatus(405, method: 'MKCOL', uri: uri).code,
+      WebDavErrorCode.unexpected,
+    );
+  });
 }

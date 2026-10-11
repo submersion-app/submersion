@@ -114,4 +114,24 @@ void main() {
       ),
     );
   });
+
+  test(
+    'a server that refuses the principal lookup still connects with the login name',
+    () async {
+      server = FakeWebDavServer(
+        seedCollections: const ['/remote.php/dav/files/alice'],
+      );
+      server.forcedStatuses.add(405);
+      final result = await service.connectWebDav(
+        WebDavConfig(
+          preset: WebDavPreset.nextcloud,
+          serverUrl: 'https://dav.test',
+          username: 'alice',
+          password: 'secret',
+          folder: kDefaultWebDavMediaFolder,
+        ),
+      );
+      expect(result.storeId, isNotEmpty);
+    },
+  );
 }

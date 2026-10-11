@@ -12,6 +12,34 @@ import 'package:submersion/core/services/logger_service.dart';
 
 typedef WebDavClientFactory = WebDavClient Function(WebDavConfig config);
 
+/// [config] with its Nextcloud user id resolved from
+/// `current-user-principal`, or unchanged when the preset has no Nextcloud
+/// layout or the server will not say. Only failures that would also sink
+/// the probe (bad credentials, an untrusted certificate, an unreachable
+/// host) are raised; anything else falls back to the login name.
+Future<WebDavConfig> resolveNextcloudUserId(
+  WebDavConfig config,
+  WebDavClientFactory clientFactory,
+) async {
+  if (!config.preset.usesNextcloudLayout) return config;
+  final lookup = clientFactory(config);
+  try {
+    final id = await lookup.resolveNextcloudUserId();
+    return (id == null || id == config.nextcloudUserId)
+        ? config
+        : config.copyWith(nextcloudUserId: id);
+  } on WebDavException catch (e) {
+    if (e.code == WebDavErrorCode.unauthorized ||
+        e.code == WebDavErrorCode.untrustedCertificate ||
+        e.code == WebDavErrorCode.unreachable) {
+      rethrow;
+    }
+    return config;
+  } finally {
+    lookup.close();
+  }
+}
+
 /// WebDAV implementation of [CloudStorageProvider] (Nextcloud, ownCloud,
 /// Synology, Koofr, pCloud, Fastmail, Yandex and any other WebDAV server).
 ///
@@ -85,25 +113,7 @@ class WebDavStorageProvider
     if (error != null) {
       throw WebDavException(error, code: WebDavErrorCode.invalidConfig);
     }
-    var resolved = config;
-    if (config.preset.usesNextcloudLayout) {
-      final lookup = _clientFactory(config);
-      try {
-        final id = await lookup.resolveNextcloudUserId();
-        if (id != null && id != config.nextcloudUserId) {
-          resolved = config.copyWith(nextcloudUserId: id);
-        }
-      } on WebDavException catch (e) {
-        if (e.code == WebDavErrorCode.unauthorized ||
-            e.code == WebDavErrorCode.untrustedCertificate ||
-            e.code == WebDavErrorCode.unreachable) {
-          rethrow;
-        }
-        // No principal support: the login name is the user id.
-      } finally {
-        lookup.close();
-      }
-    }
+    final resolved = await resolveNextcloudUserId(config, _clientFactory);
     final client = _clientFactory(resolved);
     try {
       await probe(client, resolved.folder);

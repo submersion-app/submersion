@@ -20,6 +20,7 @@ import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
+import 'package:submersion/core/services/cloud_storage/webdav_storage_provider.dart';
 import 'package:submersion/core/services/media_store/dropbox_media_object_store.dart';
 import 'package:submersion/core/services/media_store/google_drive_media_object_store.dart';
 import 'package:submersion/core/services/media_store/icloud_media_object_store.dart';
@@ -238,25 +239,14 @@ class MediaStoreService {
     if (error != null) {
       throw MediaStoreException(error, kind: MediaStoreErrorKind.fatal);
     }
-    if (!config.preset.usesNextcloudLayout) return config;
-    final client = _webdavClientFactory(config);
     try {
-      final id = await client.resolveNextcloudUserId();
-      return (id == null || id == config.nextcloudUserId)
-          ? config
-          : config.copyWith(nextcloudUserId: id);
+      return await resolveNextcloudUserId(config, _webdavClientFactory);
     } on WebDavException catch (e) {
-      if (e.code == WebDavErrorCode.notFound ||
-          e.code == WebDavErrorCode.notWebDav) {
-        return config;
-      }
       throw MediaStoreException(
         e.message,
         kind: mediaStoreKindFor(e.code),
         cause: e,
       );
-    } finally {
-      client.close();
     }
   }
 

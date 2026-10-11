@@ -207,6 +207,7 @@ class WebDavClient {
           throw WebDavException(
             'Could not reach ${config.host}.',
             code: WebDavErrorCode.unreachable,
+            host: config.host,
             cause: e,
           );
         }

@@ -26,7 +26,7 @@ String webDavErrorText(AppLocalizations l10n, WebDavException e) {
       l10n.settings_webdavConfig_error_insufficientStorage,
     WebDavErrorCode.locked => l10n.settings_webdavConfig_error_locked,
     WebDavErrorCode.unreachable => l10n.settings_webdavConfig_error_unreachable(
-      _hostOf(e),
+      e.host ?? '?',
     ),
     WebDavErrorCode.server => l10n.settings_webdavConfig_error_server,
     WebDavErrorCode.unexpected => l10n.settings_webdavConfig_error_unexpected,
@@ -35,10 +35,4 @@ String webDavErrorText(AppLocalizations l10n, WebDavException e) {
   };
   final cause = e.cause;
   return cause == null ? text : '$text ($cause)';
-}
-
-/// The host named in the English message `Could not reach <host>.`
-String _hostOf(WebDavException e) {
-  final match = RegExp(r'Could not reach (.+)\.$').firstMatch(e.message);
-  return match?.group(1) ?? '?';
 }

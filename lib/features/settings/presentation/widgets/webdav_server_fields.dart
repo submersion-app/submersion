@@ -16,6 +16,16 @@ class WebDavFormController extends ChangeNotifier {
     for (final c in [serverUrl, username, password, folder]) {
       c.addListener(notifyListeners);
     }
+    // The resolved Nextcloud id belongs to one login on one server; a new
+    // one must be resolved again, never inherited.
+    serverUrl.addListener(_dropResolvedUserId);
+    username.addListener(_dropResolvedUserId);
+  }
+
+  bool _loading = false;
+
+  void _dropResolvedUserId() {
+    if (!_loading) nextcloudUserId = null;
   }
 
   final serverUrl = TextEditingController();
@@ -50,9 +60,11 @@ class WebDavFormController extends ChangeNotifier {
   }
 
   void load(WebDavConfig config) {
+    _loading = true;
     preset = config.preset;
     serverUrl.text = config.serverUrl;
     username.text = config.username;
+    _loading = false;
     password.text = config.password;
     folder.text = config.folder;
     pinnedCertSha256 = config.pinnedCertSha256;

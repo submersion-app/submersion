@@ -30,4 +30,13 @@ void main() {
     );
     expect(webDavErrorText(l10n, big), contains('3 MB'));
   });
+
+  test('the unreachable host comes from the exception, not its wording', () {
+    final e = WebDavException(
+      'anything at all',
+      code: WebDavErrorCode.unreachable,
+      host: 'nas.local',
+    );
+    expect(webDavErrorText(l10n, e), contains('nas.local'));
+  });
 }

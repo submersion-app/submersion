@@ -45,12 +45,13 @@ class _WebDavConfigPageState extends ConsumerState<WebDavConfigPage> {
           .read(webdavStorageProviderInstanceProvider)
           .loadConfig();
       if (!mounted || existing == null) return;
+      // Remove must be offered whenever a config exists, typing or not.
+      setState(() => _hasExistingConfig = true);
       // A slow keychain read must not overwrite typing.
       if (_form.username.text.isNotEmpty || _form.password.text.isNotEmpty) {
         return;
       }
       _form.load(existing);
-      setState(() => _hasExistingConfig = true);
     } catch (_) {
       _showSnack(
         context.l10n.settings_webdavConfig_error_secureStorage,
