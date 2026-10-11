@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
+import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -17,16 +21,41 @@ final _profile = List.generate(
   ),
 );
 
+/// A 10 m flat profile, so the ambient pressure over any range is 2 bar.
+final _flatProfile = List.generate(
+  61,
+  (i) => DiveProfilePoint(timestamp: i * 10, depth: 10),
+);
+
+/// 200 -> 100 bar over the 600 s dive, sampled every 30 s. The panel's
+/// default range (the middle half, 150 s to 450 s) sees 175 -> 125 bar.
+final _backGasPressures = {
+  'bg': [
+    for (var t = 0; t <= 600; t += 30)
+      TankPressurePoint(tankId: 'bg', timestamp: t, pressure: 200 - t / 6),
+  ],
+};
+
 Future<void> _pumpPanel(
   WidgetTester tester, {
   required double width,
   int? maxColumns,
+  List<DiveProfilePoint>? profile,
+  List<DiveTank> tanks = const [],
+  Map<String, List<TankPressurePoint>> tankPressures = const {},
+  GasConsumptionDisplay display = GasConsumptionDisplay.both,
 }) async {
   tester.view.physicalSize = Size(width, 600);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
 
-  final container = ProviderContainer();
+  final container = ProviderContainer(
+    overrides: [
+      tankPressuresProvider.overrideWith((ref, id) async => tankPressures),
+      gasModelProvider.overrideWithValue(GasModel.ideal),
+      gasConsumptionDisplayProvider.overrideWithValue(display),
+    ],
+  );
   addTearDown(container.dispose);
   container.read(rangeSelectionProvider('d1').notifier)
     ..initialize(600)
@@ -43,15 +72,15 @@ Future<void> _pumpPanel(
           body: maxColumns == null
               ? RangeStatsPanel(
                   diveId: 'd1',
-                  profile: _profile,
+                  profile: profile ?? _profile,
                   units: const UnitFormatter(AppSettings()),
-                  tanks: const [],
+                  tanks: tanks,
                 )
               : RangeStatsPanel(
                   diveId: 'd1',
-                  profile: _profile,
+                  profile: profile ?? _profile,
                   units: const UnitFormatter(AppSettings()),
-                  tanks: const [],
+                  tanks: tanks,
                   maxColumns: maxColumns,
                 ),
         ),
@@ -100,5 +129,74 @@ void main() {
       tester.getTopLeft(find.text('Max Depth')).dy,
       tester.getTopLeft(find.text('Elapsed')).dy,
     );
+  });
+
+  group('gas consumption (#2928)', () {
+    const backGas = DiveTank(id: 'bg', volume: 12, role: TankRole.backGas);
+
+    Future<void> pumpGas(
+      WidgetTester tester, {
+      List<DiveTank> tanks = const [backGas],
+      Map<String, List<TankPressurePoint>>? tankPressures,
+      GasConsumptionDisplay display = GasConsumptionDisplay.both,
+    }) => _pumpPanel(
+      tester,
+      width: 1400,
+      profile: _flatProfile,
+      tanks: tanks,
+      tankPressures: tankPressures ?? _backGasPressures,
+      display: display,
+    );
+
+    testWidgets('shows SAC and RMV over the selected range', (tester) async {
+      await pumpGas(tester);
+
+      // 50 bar over 5 min at 2 bar ambient: 5 bar/min, 60 L/min of 12 L.
+      expect(find.text('SAC'), findsOneWidget);
+      expect(find.text('5.0 bar/min'), findsOneWidget);
+      expect(find.text('RMV'), findsOneWidget);
+      expect(find.text('60.0 L/min'), findsOneWidget);
+    });
+
+    testWidgets('follows a SAC-only display preference', (tester) async {
+      await pumpGas(tester, display: GasConsumptionDisplay.sac);
+
+      expect(find.text('SAC'), findsOneWidget);
+      expect(find.text('RMV'), findsNothing);
+    });
+
+    testWidgets('follows an RMV-only display preference', (tester) async {
+      await pumpGas(tester, display: GasConsumptionDisplay.rmv);
+
+      expect(find.text('SAC'), findsNothing);
+      expect(find.text('RMV'), findsOneWidget);
+    });
+
+    testWidgets('RMV-only falls back to SAC when no cylinder has a volume', (
+      tester,
+    ) async {
+      await pumpGas(
+        tester,
+        tanks: const [DiveTank(id: 'bg')],
+        display: GasConsumptionDisplay.rmv,
+      );
+
+      expect(find.text('SAC'), findsOneWidget);
+      expect(find.text('5.0 bar/min'), findsOneWidget);
+      expect(find.text('RMV'), findsNothing);
+    });
+
+    testWidgets('shows neither without a transmitter series', (tester) async {
+      await pumpGas(
+        tester,
+        tanks: const [
+          DiveTank(id: 'bg', volume: 12, startPressure: 200, endPressure: 50),
+        ],
+        tankPressures: const {},
+      );
+
+      expect(find.text('SAC'), findsNothing);
+      expect(find.text('RMV'), findsNothing);
+    });
   });
 }

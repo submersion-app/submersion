@@ -2056,6 +2056,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 profile: chartProfile,
                 units: units,
                 tanks: dive.tanks,
+                isRebreather: dive.isRebreather,
               ),
             ],
           ],

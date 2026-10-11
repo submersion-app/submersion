@@ -682,6 +682,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                       diveId: widget.diveId,
                       profile: chartProfile,
                       tanks: dive.tanks,
+                      isRebreather: dive.isRebreather,
                     ),
                   ),
                 if (!isPhone)
@@ -776,11 +777,13 @@ class _RangeStatsStrip extends ConsumerWidget {
   final String diveId;
   final List<DiveProfilePoint> profile;
   final List<DiveTank> tanks;
+  final bool isRebreather;
 
   const _RangeStatsStrip({
     required this.diveId,
     required this.profile,
     required this.tanks,
+    required this.isRebreather,
   });
 
   @override
@@ -790,6 +793,7 @@ class _RangeStatsStrip extends ConsumerWidget {
       profile: profile,
       units: UnitFormatter(ref.watch(settingsProvider)),
       tanks: tanks,
+      isRebreather: isRebreather,
       maxColumns: 8,
     );
   }
