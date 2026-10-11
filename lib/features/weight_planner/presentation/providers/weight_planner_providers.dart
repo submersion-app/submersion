@@ -56,6 +56,9 @@ final weightObservationsProvider = FutureProvider<List<WeightObservation>>((
   // block's dry weight would otherwise leave carriedKg stale and refit the
   // calibration against the old ballast until some dive happened to change.
   ref.invalidateSelfWhen(repository.watchGearLeadChanges());
+  // A dive with no water type of its own is trained in its site's (#3196),
+  // so a site's water type edit refits the calibration too.
+  ref.invalidateSelfWhen(repository.watchSiteWaterTypeChanges());
 
   return repository.observationsForDiver(diverId);
 });

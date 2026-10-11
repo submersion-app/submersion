@@ -5,16 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/data/services/plan_file_codec.dart';
-import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_export_actions.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_export_files.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
 
 /// Present the saved-plans picker as a modal bottom sheet.
 Future<void> showSavedPlansSheet(BuildContext context) {
@@ -22,7 +24,10 @@ Future<void> showSavedPlansSheet(BuildContext context) {
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
-    builder: (_) => const SavedPlansSheet(),
+    // The sheet's own snackbar host, so export confirmations and import
+    // errors show on the sheet rather than on the page underneath it.
+    builder: (_) =>
+        const SheetMessengerScope(shrinkWrap: true, child: SavedPlansSheet()),
   );
 }
 
@@ -271,13 +276,21 @@ class _PlanTile extends ConsumerWidget {
                   // read while the button is certainly mounted and at its
                   // current position, not after a database round trip.
                   final anchor = shareAnchorFrom(menuContext);
-                  final plan = await repository.getPlan(summary.id);
-                  if (plan == null) return;
-                  await saveAndShareFile(
-                    planToSubplanJson(plan),
-                    subplanFileName(plan.name),
-                    'application/json',
-                    sharePositionOrigin: anchor,
+                  // The menu drops this callback's future, so a failure needs
+                  // a listener to be logged against this tile.
+                  logFailure(
+                    deliverPlanExport(
+                      context,
+                      title: context.l10n.plannerCanvas_share_menu,
+                      savedMessage: context.l10n.plannerCanvas_share_saved,
+                      shareAnchor: anchor,
+                      build: () async {
+                        final plan = await repository.getPlan(summary.id);
+                        return plan == null ? null : subplanExport(plan);
+                      },
+                    ),
+                    _PlanTile,
+                    'export plan file',
                   );
                 }
               },

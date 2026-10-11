@@ -32,7 +32,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dr
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_dropdown_label.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_tank_link.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
@@ -750,6 +751,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             )
             .toList();
     final known = regs.any((r) => r.id == _regulatorEquipmentId);
+    // Labelled as one list, so regulators sharing a name show their ID and,
+    // if that is not enough, the next detail that differs (#1549, #3191).
+    final labels = equipmentRowLabelsOf(context, ref, regs);
     return DropdownButtonFormField<String?>(
       key: const Key('tank-regulator-picker'),
       initialValue: known ? _regulatorEquipmentId : null,
@@ -766,17 +770,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         for (final r in regs)
           DropdownMenuItem<String?>(
             value: r.id,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ServiceStatusIndicatorFor(
-                  equipmentId: r.id,
-                  density: ServiceIndicatorDensity.dot,
-                ),
-                const SizedBox(width: 6),
-                Flexible(child: Text(r.name, overflow: TextOverflow.ellipsis)),
-              ],
-            ),
+            child: EquipmentDropdownLabel(item: r, label: labels[r.id]),
           ),
       ],
       onChanged: (value) {

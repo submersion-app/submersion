@@ -1484,6 +1484,10 @@
   "backup_appBar_title": "Backup & Restore",
   "backup_backingUp": "Backing up...",
   "backup_backupNow": "Backup Now",
+  "backup_note_dialog_title": "Back up now",
+  "backup_note_label": "Note (optional)",
+  "backup_note_hint": "e.g. Before the Cozumel trip",
+  "backup_note_dialog_confirm": "Back Up",
   "backup_cloud_enabled": "Cloud backup",
   "backup_cloud_enabled_subtitle": "Upload backups to cloud storage",
   "backup_delete_dialog_cancel": "Cancel",
@@ -8782,6 +8786,8 @@
   "equipment_detail_tripsLabel": "Trips",
   "equipment_detail_tripsSemanticLabel": "View trips using this equipment",
   "equipment_detail_wasInstalledInLabel": "Was installed in",
+  "equipment_edit_appBar_cloneTitle": "Clone Equipment",
+  "@equipment_edit_appBar_cloneTitle": {"description": "Title of the equipment form when it is pre-filled to clone an existing item"},
   "equipment_edit_appBar_editTitle": "Edit Equipment",
   "equipment_edit_appBar_newTitle": "New Equipment",
   "equipment_edit_appBar_saveButton": "Save",
@@ -9049,6 +9055,14 @@
   "equipment_list_searchTooltip": "Search Equipment",
   "equipment_list_sortTitle": "Sort Equipment",
   "equipment_list_sortTooltip": "Sort",
+  "equipment_clone_nameCopy": "{name} (copy)",
+  "@equipment_clone_nameCopy": {"description": "Name a cloned equipment item starts with; name is the original item's name", "placeholders": {"name": {"type": "String"}}},
+  "equipment_clone_partialCopy": "Cloned, but some service clocks, sets or documents could not be copied.",
+  "@equipment_clone_partialCopy": {"description": "Shown after a clone saved but copying some of the original's service clocks, equipment sets or documents failed"},
+  "equipment_clone_snackbar_cloned": "Equipment cloned",
+  "@equipment_clone_snackbar_cloned": {"description": "Shown after a cloned equipment item is saved"},
+  "equipment_menu_clone": "Clone",
+  "@equipment_menu_clone": {"description": "Equipment detail menu action that opens a new item pre-filled from this one"},
   "equipment_menu_delete": "Delete",
   "equipment_menu_reactivate": "Reactivate",
   "equipment_menu_retireEquipment": "Retire Equipment",
@@ -11936,6 +11950,14 @@
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
   "plannerCanvas_convert_success": "Dive created from plan",
   "plannerCanvas_convert_view": "View",
+  "plannerCanvas_export_failed": "Export failed: {error}",
+  "@plannerCanvas_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_follow_chip": "Following {name}",
   "@plannerCanvas_follow_chip": {
     "placeholders": {
@@ -12095,9 +12117,11 @@
       }
     }
   },
-  "plannerCanvas_share_menu": "Share plan file",
+  "plannerCanvas_share_menu": "Export plan file",
+  "plannerCanvas_share_saved": "Plan file saved",
   "plannerCanvas_slate_menu": "Export slate (PDF)",
   "plannerCanvas_slate_minGas": "Min gas",
+  "plannerCanvas_slate_saved": "Slate saved",
   "plannerCanvas_slate_turn": "Turn",
   "plannerCanvas_table_depth": "Depth",
   "plannerCanvas_table_gas": "Gas",

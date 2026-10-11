@@ -431,9 +431,13 @@ class UddfEntityImporter {
   /// Only entities at indices present in [selections] are imported.
   /// Reports progress via [onProgress] callback.
   ///
-  /// If [cancelToken] is non-null, the dive-import loop polls
-  /// [ImportCancellationToken.isCancelled] between each dive and returns the
-  /// partial result already persisted when cancellation is observed.
+  /// If [cancelToken] is non-null, it is polled before every stage that
+  /// writes new records, before each site and before each dive; once it is
+  /// cancelled no such stage starts and the partial result already persisted
+  /// is returned. The sites stage checks per site because it reverse
+  /// geocodes each one over a throttled network lookup, so a large logbook
+  /// spends minutes there (issue #3216). Every other stage is local database
+  /// work.
   ///
   /// [preResolvedBuddyIds], [preResolvedTagIds] and [preResolvedEquipmentIds]
   /// map source refs (uddfId/name) to EXISTING database ids for flagged
@@ -480,51 +484,67 @@ class UddfEntityImporter {
     final courseIdMapping = <String, String>{};
     final setIdMapping = <String, String>{};
 
-    // Import in dependency order
-    final tripsCount = await _importTrips(
-      data.trips,
-      selections.trips,
-      repositories.tripRepository,
-      diverId,
-      tripIdMapping,
-      now,
-      onProgress,
-    );
+    // Once the user cancels, no stage that writes new records starts. A
+    // stage that finishes another's records (an item's components, service
+    // history, tags, locations and check-ins, a certification's currency)
+    // runs exactly when that stage ran, so nothing is left half imported and
+    // nothing is written for a stage the cancel skipped.
+    bool stopped() => cancelToken?.isCancelled ?? false;
 
-    final equipmentCount = await _importEquipment(
-      data.equipment,
-      selections.equipment,
-      repositories.equipmentRepository,
-      diverId,
-      equipmentIdMapping,
-      now,
-      onProgress,
-    );
+    // Import in dependency order
+    final tripsCount = stopped()
+        ? 0
+        : await _importTrips(
+            data.trips,
+            selections.trips,
+            repositories.tripRepository,
+            diverId,
+            tripIdMapping,
+            now,
+            onProgress,
+          );
+
+    final equipmentRan = !stopped();
+    final equipmentCount = !equipmentRan
+        ? 0
+        : await _importEquipment(
+            data.equipment,
+            selections.equipment,
+            repositories.equipmentRepository,
+            diverId,
+            equipmentIdMapping,
+            now,
+            onProgress,
+          );
 
     // Assembly templates ride with their parent item the same way.
-    await _importComponents(
-      data.equipment,
-      selections.equipment,
-      repositories.equipmentComponentRepository ??
-          EquipmentComponentRepository(),
-      equipmentIdMapping,
-    );
+    if (equipmentRan) {
+      await _importComponents(
+        data.equipment,
+        selections.equipment,
+        repositories.equipmentComponentRepository ??
+            EquipmentComponentRepository(),
+        equipmentIdMapping,
+      );
+    }
 
     // Service history belongs to the equipment it describes, so it rides
     // along with whatever equipment was selected rather than being its own
     // choice in the wizard. A pre-resolved duplicate still mapped to its
     // seed was linked, not imported: records have no dedup, so re-attaching
     // its history would copy it onto the existing row on every re-import.
-    await _importServiceRecords(
-      data.serviceRecords,
-      repositories.serviceRecordRepository,
-      {
-        for (final entry in equipmentIdMapping.entries)
-          if (preResolvedEquipmentIds[entry.key] != entry.value)
-            entry.key: entry.value,
-      },
-      now,
-    );
+    if (equipmentRan) {
+      await _importServiceRecords(
+        data.serviceRecords,
+        repositories.serviceRecordRepository,
+        {
+          for (final entry in equipmentIdMapping.entries)
+            if (preResolvedEquipmentIds[entry.key] != entry.value)
+              entry.key: entry.value,
+        },
+        now,
+      );
+    }
 
     // Cylinder fills (passports phase 5) are keyed by passport id, not by
     // an imported item, so they need only the diver and the two passport
@@ -532,7 +552,8 @@ class UddfEntityImporter {
     // here or deleted here, and links the fill to the diver's cylinder that
     // holds its passport id.
     final fillsCount =
-        repositories.cylinderFillRepository == null ||
+        stopped() ||
+            repositories.cylinderFillRepository == null ||
             repositories.cylinderPassportRepository == null
         ? 0
         : await CsvFillImporter(
@@ -544,45 +565,52 @@ class UddfEntityImporter {
             diverId: diverId,
           );
 
-    final buddiesCount = await _importBuddies(
-      data.buddies,
-      selections.buddies,
-      repositories.buddyRepository,
-      repositories.certificationRepository,
-      diverId,
-      buddyIdMapping,
-      now,
-      onProgress,
-      certResolver,
-    );
+    final buddiesCount = stopped()
+        ? 0
+        : await _importBuddies(
+            data.buddies,
+            selections.buddies,
+            repositories.buddyRepository,
+            repositories.certificationRepository,
+            diverId,
+            buddyIdMapping,
+            now,
+            onProgress,
+            certResolver,
+          );
 
-    final diveCentersCount = await _importDiveCenters(
-      data.diveCenters,
-      selections.diveCenters,
-      repositories.diveCenterRepository,
-      diverId,
-      diveCenterIdMapping,
-      now,
-      onProgress,
-    );
+    final diveCentersCount = stopped()
+        ? 0
+        : await _importDiveCenters(
+            data.diveCenters,
+            selections.diveCenters,
+            repositories.diveCenterRepository,
+            diverId,
+            diveCenterIdMapping,
+            now,
+            onProgress,
+          );
 
     final certIdMapping = <String, String>{};
-    final certificationsCount = await _importCertifications(
-      data.certifications,
-      selections.certifications,
-      repositories.certificationRepository,
-      diverId,
-      certIdMapping,
-      now,
-      onProgress,
-      certResolver,
-    );
+    final certificationsRan = !stopped();
+    final certificationsCount = !certificationsRan
+        ? 0
+        : await _importCertifications(
+            data.certifications,
+            selections.certifications,
+            repositories.certificationRepository,
+            diverId,
+            certIdMapping,
+            now,
+            onProgress,
+            certResolver,
+          );
 
     // Certification currency (issue #2267): custom rules restore with no
     // selection step, and prefs and events ride along with the
     // certifications just created, as service records do with equipment.
     final currencyRepository = repositories.certificationCurrencyRepository;
-    if (currencyRepository != null) {
+    if (currencyRepository != null && certificationsRan) {
       await CurrencyRestorer(currencyRepository).restore(
         rules: data.currencyRules,
         prefs: data.currencyPrefs,
@@ -592,20 +620,22 @@ class UddfEntityImporter {
       );
     }
 
-    final tagsCount = await _importTags(
-      data.tags,
-      selections.tags,
-      repositories.tagRepository,
-      diverId,
-      tagIdMapping,
-      now,
-      onProgress,
-    );
+    final tagsCount = stopped()
+        ? 0
+        : await _importTags(
+            data.tags,
+            selections.tags,
+            repositories.tagRepository,
+            diverId,
+            tagIdMapping,
+            now,
+            onProgress,
+          );
 
     // Equipment tags (issue #1942). Equipment imported before its tags
     // existed, so the links are made now that both have local ids.
     final equipmentTagRepository = repositories.equipmentTagRepository;
-    if (equipmentTagRepository != null) {
+    if (equipmentTagRepository != null && equipmentRan) {
       await ImportEquipmentTagLinker(
         tags: repositories.tagRepository,
         links: equipmentTagRepository,
@@ -619,7 +649,7 @@ class UddfEntityImporter {
     // Equipment locations (v268), from the Submersion equipment CSV.
     final locationRepository = repositories.equipmentLocationRepository;
     final moveRepository = repositories.equipmentLocationMoveRepository;
-    if (locationRepository != null && moveRepository != null) {
+    if (locationRepository != null && moveRepository != null && equipmentRan) {
       await ImportEquipmentLocationLinker(
         places: locationRepository,
         moves: moveRepository,
@@ -630,15 +660,17 @@ class UddfEntityImporter {
       );
     }
 
-    final diveTypesCount = await _importDiveTypes(
-      data.customDiveTypes,
-      selections.diveTypes,
-      repositories.diveTypeRepository,
-      diverId,
-      diveTypeIdMapping,
-      now,
-      onProgress,
-    );
+    final diveTypesCount = stopped()
+        ? 0
+        : await _importDiveTypes(
+            data.customDiveTypes,
+            selections.diveTypes,
+            repositories.diveTypeRepository,
+            diverId,
+            diveTypeIdMapping,
+            now,
+            onProgress,
+          );
 
     // Custom dive roles restore unconditionally (no selection UI): they are
     // tiny reference rows whose ids are referenced by imported dive_buddies
@@ -646,7 +678,7 @@ class UddfEntityImporter {
     // [roleIdMapping] points the file's id at it.
     final roleIdMapping = <String, String>{};
     final diveRoleRepository = repositories.diveRoleRepository;
-    if (diveRoleRepository != null) {
+    if (diveRoleRepository != null && !stopped()) {
       await _importDiveRoles(
         data.customDiveRoles,
         diveRoleRepository,
@@ -657,93 +689,108 @@ class UddfEntityImporter {
 
     // Custom site types resolve before the sites that reference them
     // (issue #1765); like dive roles they have no selection step.
-    final siteTypeIdMapping = await _importSiteTypes(
-      data.customSiteTypes,
-      repositories.siteTypeRepository,
-      diverId,
-    );
+    final siteTypeIdMapping = stopped()
+        ? const <String, String>{}
+        : await _importSiteTypes(
+            data.customSiteTypes,
+            repositories.siteTypeRepository,
+            diverId,
+          );
 
-    final sitesCount = await _importSites(
-      data.sites,
-      selections.sites,
-      selections.siteOverrides,
-      repositories.siteRepository,
-      diverId,
-      siteIdMapping,
-      onProgress,
-      restoreSiteChildren: (siteData, siteId) async {
-        await _linkSiteClassification(
-          siteData,
-          siteId,
-          siteTypeIdMapping,
-          tagIdMapping,
-          repositories,
-          diverId,
-        );
-        await _restoreSiteFeatures(siteData, siteId, repositories);
-      },
-    );
+    final sitesCount = stopped()
+        ? 0
+        : await _importSites(
+            data.sites,
+            selections.sites,
+            selections.siteOverrides,
+            repositories.siteRepository,
+            diverId,
+            siteIdMapping,
+            onProgress,
+            restoreSiteChildren: (siteData, siteId) async {
+              await _linkSiteClassification(
+                siteData,
+                siteId,
+                siteTypeIdMapping,
+                tagIdMapping,
+                repositories,
+                diverId,
+              );
+              await _restoreSiteFeatures(siteData, siteId, repositories);
+            },
+            cancelToken: cancelToken,
+          );
 
-    final equipmentSetsCount = await _importEquipmentSets(
-      data.equipmentSets,
-      selections.equipmentSets,
-      repositories.equipmentSetRepository,
-      diverId,
-      equipmentIdMapping,
-      setIdMapping,
-      now,
-      onProgress,
-    );
+    final equipmentSetsCount = stopped()
+        ? 0
+        : await _importEquipmentSets(
+            data.equipmentSets,
+            selections.equipmentSets,
+            repositories.equipmentSetRepository,
+            diverId,
+            equipmentIdMapping,
+            setIdMapping,
+            now,
+            onProgress,
+          );
 
-    final coursesCount = await _importCourses(
-      data.courses,
-      selections.courses,
-      repositories.courseRepository,
-      diverId,
-      courseIdMapping,
-      buddyIdMapping,
-      now,
-      onProgress,
-      certResolver,
-    );
+    final coursesCount = stopped()
+        ? 0
+        : await _importCourses(
+            data.courses,
+            selections.courses,
+            repositories.courseRepository,
+            diverId,
+            courseIdMapping,
+            buddyIdMapping,
+            now,
+            onProgress,
+            certResolver,
+          );
 
-    final divesResult = await _importDives(
-      data.dives,
-      selections.dives,
-      repositories,
-      diverId,
-      tripIdMapping: tripIdMapping,
-      equipmentIdMapping: equipmentIdMapping,
-      buddyIdMapping: buddyIdMapping,
-      diveCenterIdMapping: diveCenterIdMapping,
-      tagIdMapping: tagIdMapping,
-      diveTypeIdMapping: diveTypeIdMapping,
-      siteIdMapping: siteIdMapping,
-      courseIdMapping: courseIdMapping,
-      setIdMapping: setIdMapping,
-      roleIdMapping: roleIdMapping,
-      sourceFileName: sourceFileName ?? data.sourceFileName,
-      sourceFormat: sourceFormat,
-      sourceFileBytes: sourceFileBytes,
-      sourceFilesById: sourceFilesById,
-      retainSourceDiveNumbers: retainSourceDiveNumbers,
-      sourceHasTrips: data.trips.isNotEmpty,
-      now: now,
-      dataSourcesByDiveRef: data.dataSourcesByDiveRef,
-      onProgress: onProgress,
-      cancelToken: cancelToken,
-    );
+    // Skipped as a whole rather than left to its own loop, which registers
+    // the batch's computers before it reaches its first dive.
+    final divesResult = stopped()
+        ? const _DiveImportResult(0, 0)
+        : await _importDives(
+            data.dives,
+            selections.dives,
+            repositories,
+            diverId,
+            tripIdMapping: tripIdMapping,
+            equipmentIdMapping: equipmentIdMapping,
+            buddyIdMapping: buddyIdMapping,
+            diveCenterIdMapping: diveCenterIdMapping,
+            tagIdMapping: tagIdMapping,
+            diveTypeIdMapping: diveTypeIdMapping,
+            siteIdMapping: siteIdMapping,
+            courseIdMapping: courseIdMapping,
+            setIdMapping: setIdMapping,
+            roleIdMapping: roleIdMapping,
+            sourceFileName: sourceFileName ?? data.sourceFileName,
+            sourceFormat: sourceFormat,
+            sourceFileBytes: sourceFileBytes,
+            sourceFilesById: sourceFilesById,
+            retainSourceDiveNumbers: retainSourceDiveNumbers,
+            sourceHasTrips: data.trips.isNotEmpty,
+            now: now,
+            dataSourcesByDiveRef: data.dataSourcesByDiveRef,
+            onProgress: onProgress,
+            cancelToken: cancelToken,
+          );
 
     // Gear check-ins ride with the equipment they belong to and reference
     // dives, so they land only after both (condition phase 3a).
-    await _importObservations(
-      data.equipment,
-      selections.equipment,
-      repositories.equipmentObservationRepository,
-      equipmentIdMapping,
-      divesResult.diveIdBySourceUuid,
-      diverId,
-    );
+    if (equipmentRan) {
+      await _importObservations(
+        data.equipment,
+        selections.equipment,
+        repositories.equipmentObservationRepository,
+        equipmentIdMapping,
+        divesResult.diveIdBySourceUuid,
+        diverId,
+      );
+    }
 
     return UddfEntityImportResult(
       trips: tripsCount,
@@ -1734,6 +1781,7 @@ class UddfEntityImporter {
     // Links a written site to its types and tags (issue #1765).
     Future<void> Function(Map<String, dynamic> siteData, String siteId)?
     restoreSiteChildren,
+    ImportCancellationToken? cancelToken,
   }) async {
     // For deselected sites (duplicates the user chose not to re-import),
     // resolve their UDDF IDs to existing database sites so that dives
@@ -1779,6 +1827,7 @@ class UddfEntityImporter {
     // island, photoIds and conditions -- because updateSite writes the whole
     // column set, not just the fields the import happened to supply.
     for (final entry in overrides.entries) {
+      if (cancelToken?.isCancelled ?? false) return count;
       final i = entry.key;
       final existingId = entry.value;
       if (i < 0 || i >= items.length) {
@@ -1889,6 +1938,9 @@ class UddfEntityImporter {
 
     for (var i = 0; i < items.length; i++) {
       if (!selected.contains(i)) continue;
+      // Checked per site, ahead of its reverse geocode: that lookup is the
+      // slow part of an import, and a cancel must not wait for all of them.
+      if (cancelToken?.isCancelled ?? false) break;
       // Names a nameless site from its coordinates rather than discarding it.
       // The old skip took the coordinates with it and, because the site never
       // reached `idMapping`, un-linked every dive pointing at it (#2232).

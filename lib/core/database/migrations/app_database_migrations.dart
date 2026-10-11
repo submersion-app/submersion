@@ -31,6 +31,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_scope.dart';
 
 part 'before_open.dart';
+part 'before_open_backup_note.dart';
 part 'before_open_child_columns.dart';
 part 'before_open_table_backstops.dart';
 part 'helpers/buddy_migrations.dart';

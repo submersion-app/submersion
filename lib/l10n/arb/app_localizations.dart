@@ -3601,6 +3601,30 @@ abstract class AppLocalizations {
   /// **'Backup Now'**
   String get backup_backupNow;
 
+  /// No description provided for @backup_note_dialog_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get backup_note_dialog_title;
+
+  /// No description provided for @backup_note_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get backup_note_label;
+
+  /// No description provided for @backup_note_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Before the Cozumel trip'**
+  String get backup_note_hint;
+
+  /// No description provided for @backup_note_dialog_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Back Up'**
+  String get backup_note_dialog_confirm;
+
   /// No description provided for @backup_cloud_enabled.
   ///
   /// In en, this message translates to:
@@ -23837,6 +23861,12 @@ abstract class AppLocalizations {
   /// **'Was installed in'**
   String get equipment_detail_wasInstalledInLabel;
 
+  /// Title of the equipment form when it is pre-filled to clone an existing item
+  ///
+  /// In en, this message translates to:
+  /// **'Clone Equipment'**
+  String get equipment_edit_appBar_cloneTitle;
+
   /// No description provided for @equipment_edit_appBar_editTitle.
   ///
   /// In en, this message translates to:
@@ -24802,6 +24832,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sort'**
   String get equipment_list_sortTooltip;
+
+  /// Name a cloned equipment item starts with; name is the original item's name
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (copy)'**
+  String equipment_clone_nameCopy(String name);
+
+  /// Shown after a clone saved but copying some of the original's service clocks, equipment sets or documents failed
+  ///
+  /// In en, this message translates to:
+  /// **'Cloned, but some service clocks, sets or documents could not be copied.'**
+  String get equipment_clone_partialCopy;
+
+  /// Shown after a cloned equipment item is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment cloned'**
+  String get equipment_clone_snackbar_cloned;
+
+  /// Equipment detail menu action that opens a new item pre-filled from this one
+  ///
+  /// In en, this message translates to:
+  /// **'Clone'**
+  String get equipment_menu_clone;
 
   /// No description provided for @equipment_menu_delete.
   ///
@@ -30559,6 +30613,12 @@ abstract class AppLocalizations {
   /// **'View'**
   String get plannerCanvas_convert_view;
 
+  /// No description provided for @plannerCanvas_export_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed: {error}'**
+  String plannerCanvas_export_failed(String error);
+
   /// No description provided for @plannerCanvas_follow_chip.
   ///
   /// In en, this message translates to:
@@ -30814,8 +30874,14 @@ abstract class AppLocalizations {
   /// No description provided for @plannerCanvas_share_menu.
   ///
   /// In en, this message translates to:
-  /// **'Share plan file'**
+  /// **'Export plan file'**
   String get plannerCanvas_share_menu;
+
+  /// No description provided for @plannerCanvas_share_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan file saved'**
+  String get plannerCanvas_share_saved;
 
   /// No description provided for @plannerCanvas_slate_menu.
   ///
@@ -30828,6 +30894,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Min gas'**
   String get plannerCanvas_slate_minGas;
+
+  /// No description provided for @plannerCanvas_slate_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Slate saved'**
+  String get plannerCanvas_slate_saved;
 
   /// No description provided for @plannerCanvas_slate_turn.
   ///

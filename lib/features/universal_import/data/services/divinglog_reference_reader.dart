@@ -1,5 +1,6 @@
 import 'package:sqlite3/sqlite3.dart';
 
+import 'package:submersion/features/universal_import/data/services/divinglog_id_list.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_row_values.dart';
 
@@ -58,6 +59,8 @@ class DivingLogReferenceReader {
   static const _placeColumns = [
     'ID',
     'CountryID',
+    'Country',
+    'Region',
     'Place',
     'Lat',
     'Lon',
@@ -73,7 +76,11 @@ class DivingLogReferenceReader {
   static const _countryColumns = ['ID', 'Country'];
   static const _equipmentColumns = [
     'ID',
+    'Name',
     'Object',
+    'Category',
+    'Info',
+    'TypeID',
     'Manufacturer',
     'Serial',
     'DateP',
@@ -131,7 +138,7 @@ class DivingLogReferenceReader {
     'Place': ['Place'],
     'City': ['City'],
     'Country': ['Country'],
-    'Equipment': ['Object'],
+    'Equipment': ['Object', 'Name'],
     'Trip': ['TripName'],
     'Shop': ['ShopName'],
     'Divetype': ['Typename'],
@@ -239,6 +246,8 @@ class DivingLogReferenceReader {
         (r) => DivingLogRawPlace(
           id: rowInt(r, 'ID')!,
           countryId: rowInt(r, 'CountryID'),
+          country: rowString(r, 'Country'),
+          region: rowString(r, 'Region'),
           place: rowString(r, 'Place'),
           // Stored as degrees, minutes and seconds text in the real
           // export, not as a decimal, so this cannot be rowDouble.
@@ -263,7 +272,10 @@ class DivingLogReferenceReader {
         'ID',
         (r) => DivingLogRawEquipment(
           id: rowInt(r, 'ID')!,
+          name: rowString(r, 'Name'),
           object: rowString(r, 'Object'),
+          category: rowString(r, 'Category'),
+          setMemberIds: _setMemberIds(r),
           manufacturer: rowString(r, 'Manufacturer'),
           serial: rowString(r, 'Serial'),
           purchaseDate: rowDate(r, 'DateP'),
@@ -352,6 +364,14 @@ class DivingLogReferenceReader {
       speciesIdsByLogId: _readSpeciesLinks(db, caps),
       picturesByLogId: _readPictures(db, caps),
     );
+  }
+
+  /// DiveMate's set marker: the `---SET` category, or type 9. A set lists
+  /// its members' ids in `Info`.
+  static List<int>? _setMemberIds(Row r) {
+    final isSet =
+        rowString(r, 'Category') == '---SET' || rowInt(r, 'TypeID') == 9;
+    return isSet ? parseDivingLogIdList(rowString(r, 'Info')) : null;
   }
 
   static Map<int, String> _named(Map<int, String?> raw) => {

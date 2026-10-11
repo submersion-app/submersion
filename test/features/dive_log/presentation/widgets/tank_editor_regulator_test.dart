@@ -9,6 +9,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_editor.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -167,6 +169,83 @@ void main() {
 
       expect(find.text('Spare Octo'), findsOneWidget);
       expect(find.text('None'), findsNothing);
+    });
+  });
+
+  group('regulators with the same name (#3191)', () {
+    EquipmentItem xtx(String id, String identifier) => EquipmentItem(
+      id: id,
+      name: 'Apeks XTX',
+      type: EquipmentType.regulator,
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: id,
+          key: EquipmentAttrKeys.identifier,
+          valueText: identifier,
+        ),
+      ],
+    );
+
+    testWidgets('are told apart by their ID in the picker', (tester) async {
+      DiveTank? changed;
+      await _pump(
+        tester,
+        equipment: [xtx('reg-1', 'Left'), xtx('reg-2', 'Right')],
+        onChanged: (t) => changed = t,
+      );
+
+      await _openRegulatorPicker(tester);
+      expect(
+        find.textContaining('ID Left', findRichText: true).hitTestable(),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.textContaining('ID Right', findRichText: true).hitTestable(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(changed?.regulatorEquipmentId, 'reg-2');
+    });
+
+    testWidgets('show the chosen one\'s ID in the closed field', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        equipment: [xtx('reg-1', 'Left'), xtx('reg-2', 'Right')],
+        tank: const DiveTank(id: 'tank-1', regulatorEquipmentId: 'reg-2'),
+      );
+
+      expect(
+        find.textContaining('ID Right', findRichText: true),
+        findsOneWidget,
+      );
+      expect(find.textContaining('ID Left', findRichText: true), findsNothing);
+    });
+
+    testWidgets('lead with the ID, ahead of brand and model', (tester) async {
+      // A cut-off label loses its end first; the ID is what tells these two
+      // apart, so it must not be the part that goes.
+      final withModel = xtx(
+        'reg-2',
+        'Right',
+      ).copyWith(brand: 'Apeks', model: 'XTX50 Tungsten');
+      await _pump(
+        tester,
+        equipment: [xtx('reg-1', 'Left'), withModel],
+        tank: const DiveTank(id: 'tank-1', regulatorEquipmentId: 'reg-2'),
+      );
+
+      final label = tester
+          .widget<RichText>(
+            find.textContaining('ID Right', findRichText: true).first,
+          )
+          .text
+          .toPlainText();
+      expect(
+        label.indexOf('ID Right'),
+        lessThan(label.indexOf('Apeks XTX50 Tungsten')),
+      );
     });
   });
 }
