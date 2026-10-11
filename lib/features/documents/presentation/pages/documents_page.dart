@@ -139,6 +139,17 @@ class DocumentsListContent extends ConsumerStatefulWidget {
 
 class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   late DocumentType? _type = widget.initialType;
+
+  @override
+  void didUpdateWidget(DocumentsListContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The master pane stays mounted across route changes on wide screens,
+    // so a new filter from the route (the insurance chip) must land here.
+    if (oldWidget.initialType != widget.initialType) {
+      _type = widget.initialType;
+    }
+  }
+
   String _query = '';
 
   bool _matches(DocumentListEntry e) {
@@ -190,7 +201,9 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
                 ),
               ),
             ),
-            if (presentTypes.length > 1)
+            // Shown whenever a filter is set, so a filter from the route can
+            // always be cleared, even when only one type exists.
+            if (presentTypes.length > 1 || _type != null)
               SliverToBoxAdapter(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,

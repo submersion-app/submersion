@@ -274,6 +274,8 @@ class DiverRepository {
               updatedAt: now,
             ),
             const [],
+            // Notified once after the diver transaction commits.
+            notify: false,
           );
         }
         final clearance = diver.medicalClearanceExpiryDate;
@@ -289,6 +291,8 @@ class DiverRepository {
               updatedAt: now,
             ),
             const [],
+            // Notified once after the diver transaction commits.
+            notify: false,
           );
         }
       });

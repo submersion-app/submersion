@@ -49,6 +49,9 @@ class DocumentRepository {
   final _log = LoggerService.forClass(DocumentRepository);
 
   static const _docEntity = 'documents';
+
+  /// Ids per `IN (...)` list, well under SQLite's bound-variable limit.
+  static const _inListChunk = 500;
   static const _pageEntity = 'documentPages';
 
   Stream<void> watchChanges() => _db.tableUpdates(
@@ -164,14 +167,24 @@ class DocumentRepository {
     ];
   }
 
+  /// The first page, for a thumbnail: its content only when it is an
+  /// image. A PDF, Word or text page shows an icon, so its (up to 10 MB)
+  /// bytes are not read.
   Future<DocumentPage?> getFirstPage(String documentId) async {
-    final row =
-        await (_db.select(_db.documentPages)
-              ..where((t) => t.documentId.equals(documentId))
-              ..orderBy([(t) => OrderingTerm(expression: t.pageIndex)])
-              ..limit(1))
-            .getSingleOrNull();
-    return row == null ? null : pageFromRow(row);
+    final meta = await _db
+        .customSelect(
+          'SELECT id, mime_type FROM document_pages WHERE document_id = ? '
+          'ORDER BY page_index LIMIT 1',
+          variables: [Variable.withString(documentId)],
+          readsFrom: {_db.documentPages},
+        )
+        .getSingleOrNull();
+    if (meta == null) return null;
+    final row = await (_db.select(
+      _db.documentPages,
+    )..where((t) => t.id.equals(meta.read<String>('id')))).getSingle();
+    final page = pageFromRow(row);
+    return page.isImage ? page : page.withoutBytes();
   }
 
   /// Saves [document] and makes [pages] its exact page list, in order: new
@@ -325,28 +338,25 @@ class DocumentRepository {
       throw ArgumentError.value(kind, 'kind', 'needs an owner kind');
     }
     if (ownerIds.isEmpty) return;
-    final placeholders = List.filled(ownerIds.length, '?').join(', ');
-    final rows = await _db
-        .customSelect(
-          'SELECT id FROM documents WHERE $column IN ($placeholders)',
-          variables: [for (final o in ownerIds) Variable.withString(o)],
-        )
-        .get();
-    await _deleteIds([for (final r in rows) r.read<String>('id')]);
+    await _deleteIds((await _ownersOf(kind, ownerIds)).keys.toList());
   }
 
   Future<void> _deleteIds(List<String> ids) async {
     if (ids.isEmpty) return;
-    final pageIds =
+    final pageIds = <String>[];
+    for (final chunk in ids.slices(_inListChunk)) {
+      pageIds.addAll(
         await (_db.selectOnly(_db.documentPages)
               ..addColumns([_db.documentPages.id])
-              ..where(_db.documentPages.documentId.isIn(ids)))
+              ..where(_db.documentPages.documentId.isIn(chunk)))
             .map((r) => r.read(_db.documentPages.id)!)
-            .get();
-    await (_db.delete(
-      _db.documentPages,
-    )..where((t) => t.documentId.isIn(ids))).go();
-    await (_db.delete(_db.documents)..where((t) => t.id.isIn(ids))).go();
+            .get(),
+      );
+      await (_db.delete(
+        _db.documentPages,
+      )..where((t) => t.documentId.isIn(chunk))).go();
+      await (_db.delete(_db.documents)..where((t) => t.id.isIn(chunk))).go();
+    }
     await _syncRepository.logDeletions(
       entityType: _pageEntity,
       recordIds: pageIds,
@@ -395,18 +405,23 @@ class DocumentRepository {
     if (column == null) {
       throw ArgumentError.value(kind, 'kind', 'needs an owner kind');
     }
-    if (ownerIds.isEmpty) return const {};
-    final placeholders = List.filled(ownerIds.length, '?').join(', ');
-    final rows = await _db
-        .customSelect(
-          'SELECT id, $column AS owner FROM documents '
-          'WHERE $column IN ($placeholders)',
-          variables: [for (final o in ownerIds) Variable.withString(o)],
-        )
-        .get();
-    return {
-      for (final r in rows) r.read<String>('id'): r.read<String>('owner'),
-    };
+    final out = <String, String>{};
+    // Chunked under SQLite's bound-variable limit: a bulk dive delete or
+    // merge can pass thousands of ids (#1953).
+    for (final chunk in ownerIds.slices(_inListChunk)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final rows = await _db
+          .customSelect(
+            'SELECT id, $column AS owner FROM documents '
+            'WHERE $column IN ($placeholders)',
+            variables: [for (final o in chunk) Variable.withString(o)],
+          )
+          .get();
+      for (final r in rows) {
+        out[r.read<String>('id')] = r.read<String>('owner');
+      }
+    }
+    return out;
   }
 
   Future<void> _setOwners(
@@ -448,9 +463,23 @@ class DocumentRepository {
   /// Re-creates captured documents and pages after an undone delete. Each
   /// is saved with a fresh clock, which beats the delete's tombstones on
   /// every peer.
+  ///
+  /// The delete's own tombstones are dropped from the local log, as a media
+  /// restore does, so the next publish does not carry both a live row and
+  /// its tombstone.
   Future<void> restoreSnapshot(List<DocumentSnapshotEntry> snapshot) async {
     for (final entry in snapshot) {
       await save(entry.document, entry.pages);
+      await _syncRepository.removeDeletion(
+        entityType: _docEntity,
+        recordId: entry.document.id,
+      );
+      for (final page in entry.pages) {
+        await _syncRepository.removeDeletion(
+          entityType: _pageEntity,
+          recordId: page.id,
+        );
+      }
     }
   }
 

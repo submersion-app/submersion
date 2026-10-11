@@ -123,11 +123,15 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
     if (mounted) setState(() => _loading = false);
   }
 
-  List<DocumentType> get _typeChoices => [
-    for (final t in DocumentType.values)
-      // A card document is made from its certification, never by hand.
-      if (t != DocumentType.certificationCard || _type == t) t,
-  ];
+  /// A card document is made from its certification and stays a card: its
+  /// id is derived from the certification, so retyping it would leave a
+  /// non-card the certification still treats as its card.
+  List<DocumentType> get _typeChoices => _type == DocumentType.certificationCard
+      ? const [DocumentType.certificationCard]
+      : [
+          for (final t in DocumentType.values)
+            if (t != DocumentType.certificationCard) t,
+        ];
 
   void _change(VoidCallback update) => setState(() {
     update();

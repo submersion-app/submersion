@@ -238,6 +238,47 @@ void main() {
     },
   );
 
+  test('a restored snapshot drops the delete\'s tombstones', () async {
+    final saved = await repo.save(
+      newDoc(owner: const DocumentOwner(DocumentOwnerKind.trip, 't1')),
+      [
+        page(0, [1]),
+      ],
+    );
+    final snapshot = await repo.captureForOwners(DocumentOwnerKind.trip, [
+      't1',
+    ]);
+    await repo.deleteForOwner(DocumentOwnerKind.trip, 't1');
+    expect(await tombstones(db, 'documents'), 1);
+    await repo.restoreSnapshot(snapshot);
+    expect(await repo.getById(saved.id), isNotNull);
+    expect(await tombstones(db, 'documents'), 0);
+    expect(await tombstones(db, 'documentPages'), 0);
+  });
+
+  test(
+    'a first page that is not an image is loaded without its bytes',
+    () async {
+      final pdf = DocumentPage(
+        id: '',
+        documentId: '',
+        pageIndex: 0,
+        fileName: 'a.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 3,
+        bytes: Uint8List.fromList([1, 2, 3]),
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      final a = await repo.save(newDoc(), [pdf]);
+      final b = await repo.save(newDoc(), [
+        page(0, [7]),
+      ]);
+      expect((await repo.getFirstPage(a.id))!.bytes, isNull);
+      expect((await repo.getFirstPage(b.id))!.bytes, [7]);
+    },
+  );
+
   test('deleteForOwner refuses the personal kind', () async {
     expect(
       () => repo.deleteForOwner(DocumentOwnerKind.personal, 'd1'),
