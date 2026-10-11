@@ -796,9 +796,11 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     // A copy of another dive in this same import (#3110): the two are one
     // dive, so keeping this copy drops the other and skipping it brings the
     // other back. Ticking the other row again still keeps both.
-    final partner =
-        state.bundle?.groups[type]?.matchResults?[index]?.inBatchIndex;
-    if (partner != null) {
+    // A partner that is itself a flagged row has its own decision, which this
+    // one must not overrule.
+    final group = state.bundle?.groups[type];
+    final partner = group?.matchResults?[index]?.inBatchIndex;
+    if (partner != null && !group!.duplicateIndices.contains(partner)) {
       if (action == DuplicateAction.importAsNew) {
         currentSelection.remove(partner);
       } else if (action == DuplicateAction.skip) {

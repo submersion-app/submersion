@@ -27,16 +27,16 @@ abstract final class WithinFileDiveDuplicates {
     final matches = <int, DiveMatchResult>{};
     // Indexes already in a pair, either side. A dive pairs at most once.
     final paired = <int>{};
+    final near = _earlierWithinAMinute(dives);
 
     for (var i = 1; i < dives.length; i++) {
       final at = dives[i]['dateTime'] as DateTime?;
-      if (at == null) continue;
-      for (var j = 0; j < i; j++) {
+      final candidates = near[i];
+      if (at == null || candidates == null) continue;
+      for (final j in candidates) {
         if (paired.contains(j)) continue;
-        final otherAt = dives[j]['dateTime'] as DateTime?;
-        if (otherAt == null) continue;
+        final otherAt = dives[j]['dateTime'] as DateTime;
         final gap = at.difference(otherAt).abs();
-        if (gap >= const Duration(minutes: 1)) continue;
         final score = matcher.calculateMatchScore(
           wearableStartTime: at,
           wearableMaxDepth: _depth(dives[i]),
@@ -61,6 +61,37 @@ abstract final class WithinFileDiveDuplicates {
       }
     }
     return matches;
+  }
+
+  /// For each dive, the earlier rows (by payload order, ascending) that start
+  /// less than a minute from it.
+  ///
+  /// Found with one sort and a sweep instead of comparing every pair: this
+  /// pass runs on every single-file import, and a logbook of many thousand
+  /// dives would otherwise cost tens of millions of comparisons.
+  static Map<int, List<int>> _earlierWithinAMinute(
+    List<Map<String, dynamic>> dives,
+  ) {
+    final timed = <(int, DateTime)>[
+      for (var i = 0; i < dives.length; i++)
+        if (dives[i]['dateTime'] case final DateTime at) (i, at),
+    ]..sort((a, b) => a.$2.compareTo(b.$2));
+    final out = <int, List<int>>{};
+    for (var a = 0; a < timed.length; a++) {
+      for (var b = a + 1; b < timed.length; b++) {
+        if (timed[b].$2.difference(timed[a].$2) >= const Duration(minutes: 1)) {
+          break;
+        }
+        final (first, second) = timed[a].$1 < timed[b].$1
+            ? (timed[a].$1, timed[b].$1)
+            : (timed[b].$1, timed[a].$1);
+        (out[second] ??= []).add(first);
+      }
+    }
+    for (final list in out.values) {
+      list.sort();
+    }
+    return out;
   }
 
   /// How much a dive map carries beyond its time, depth and duration, so the

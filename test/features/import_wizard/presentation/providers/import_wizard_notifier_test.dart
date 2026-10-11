@@ -870,6 +870,37 @@ void main() {
           expect(selected(), {0});
         });
 
+        test('a partner that is itself flagged keeps its own decision', () {
+          // Dive 0 matches a stored dive and the diver chose to import it;
+          // dive 1 is an in-batch copy of dive 0.
+          notifier.setBundle(
+            buildBundle(
+              diveItems: [makeItem('Dive 0'), makeItem('Dive 1')],
+              diveDuplicateIndices: {0, 1},
+              diveMatchResults: {
+                0: makeMatchResult(0.85),
+                1: const DiveMatchResult(
+                  diveId: '',
+                  inBatchIndex: 0,
+                  score: 1.0,
+                  timeDifferenceMs: 0,
+                ),
+              },
+            ),
+          );
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            0,
+            DuplicateAction.importAsNew,
+          );
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.importAsNew,
+          );
+          expect(selected(), {0, 1});
+        });
+
         test('the other copy can still be ticked to keep both', () {
           notifier.setBundle(pair());
           notifier.setDuplicateAction(
