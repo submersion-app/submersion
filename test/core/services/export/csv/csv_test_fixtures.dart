@@ -78,6 +78,10 @@ List<Dive> goldenDives() => [
     precipitation: Precipitation.none,
     humidity: 71,
     weatherDescription: 'Sunny',
+    diveOperator: 'Buddy Dive',
+    boatName: 'Bonaire Breeze',
+    boatCaptain: 'Rik',
+    surfaceConditions: 'Calm',
     customFields: const [
       DiveCustomField(id: 'c1', key: 'Boat', value: 'Sea Dog'),
       DiveCustomField(id: 'c2', key: 'Formula', value: '=1+1'),

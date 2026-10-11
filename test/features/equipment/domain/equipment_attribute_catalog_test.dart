@@ -47,6 +47,7 @@ void main() {
         'tank_material',
         'valve_type',
         'tank_identifier',
+        'passport_id',
         'last_visual_inspection',
         'last_hydro_test',
       ]),
@@ -57,6 +58,7 @@ void main() {
         'buoyancy_kg',
         'dry_weight_kg',
         'tank_identifier',
+        'passport_id',
         // Present on every type since issue #1517.
         'sku',
         'retailer',
@@ -225,6 +227,7 @@ void main() {
         'buoyancy_kg',
         'dry_weight_kg',
         'tank_identifier',
+        'passport_id',
         'sku',
         'retailer',
         'product_url',
@@ -344,6 +347,7 @@ void main() {
         'buoyancy_kg',
         'dry_weight_kg',
         'tank_identifier',
+        'passport_id',
         'sku',
         'retailer',
         'product_url',
@@ -373,6 +377,7 @@ void main() {
         'buoyancy_kg',
         'dry_weight_kg',
         'tank_identifier',
+        'passport_id',
         'sku',
         'retailer',
         'product_url',
@@ -393,6 +398,7 @@ void main() {
         'buoyancy_kg',
         'dry_weight_kg',
         'tank_identifier',
+        'passport_id',
         'sku',
         'retailer',
         'product_url',
@@ -414,6 +420,7 @@ void main() {
         'buoyancy_kg',
         'dry_weight_kg',
         'tank_identifier',
+        'passport_id',
         'sku',
         'retailer',
         'product_url',
@@ -449,6 +456,7 @@ void main() {
         'buoyancy_kg',
         'dry_weight_kg',
         'tank_identifier',
+        'passport_id',
         'sku',
         'retailer',
         'product_url',
@@ -532,6 +540,7 @@ void main() {
         'buoyancy_kg',
         'dry_weight_kg',
         'tank_identifier',
+        'passport_id',
         'sku',
         'retailer',
         'product_url',
@@ -608,23 +617,20 @@ void main() {
   });
 
   group('passport id (issue #2334)', () {
-    test('is a system attribute on tanks only', () {
+    test('is a system attribute on every type (issue #2652)', () {
       final def = EquipmentAttributeCatalog.defFor(
         EquipmentAttrKeys.passportId,
       );
       expect(def, isNotNull);
       expect(def!.kind, AttributeKind.text);
       expect(def.group, AttributeGroup.system);
-      expect(
-        EquipmentAttributeCatalog.attributesFor(EquipmentType.tank),
-        contains(def),
-      );
-      expect(
-        EquipmentAttributeCatalog.attributesFor(
-          EquipmentType.regulator,
-        ).map((d) => d.key),
-        isNot(contains(EquipmentAttrKeys.passportId)),
-      );
+      for (final type in EquipmentType.values) {
+        expect(
+          EquipmentAttributeCatalog.attributesFor(type),
+          contains(def),
+          reason: type.name,
+        );
+      }
     });
 
     test('no spec or purchase consumer sees a system attribute', () {

@@ -41,6 +41,15 @@ const kDiveGearJoinSql =
     'UNION SELECT dt.equipment_id FROM dive_tanks dt '
     'WHERE dt.dive_id = {from}.id AND dt.equipment_id IS NOT NULL)';
 
+/// A dive's effective water type: its own, else its site's (issue #3196).
+/// The SQL twin of `Dive.effectiveWaterType`, matching the insights water
+/// type chart, so a dive at a salt-water site is found by `waterType:salt`
+/// whether or not the value was ever copied onto the dive.
+const _effectiveWaterType =
+    "COALESCE(NULLIF({r}.water_type, ''), "
+    "(SELECT NULLIF(s.water_type, '') FROM dive_sites s "
+    'WHERE s.id = {r}.site_id))';
+
 List<String> _names<T extends Enum>(List<T> values) => [
   for (final v in values) v.name,
 ];
@@ -168,6 +177,11 @@ final QueryEntity diveQueryEntity = QueryEntity(
     "{r}.name LIKE ? ESCAPE '\\'",
     "{r}.buddy LIKE ? ESCAPE '\\'",
     "{r}.dive_master LIKE ? ESCAPE '\\'",
+    // Shown on the dive since #3229, so a search finds them too.
+    "{r}.dive_operator LIKE ? ESCAPE '\\'",
+    "{r}.boat_name LIKE ? ESCAPE '\\'",
+    "{r}.boat_captain LIKE ? ESCAPE '\\'",
+    "{r}.surface_conditions LIKE ? ESCAPE '\\'",
     'EXISTS (SELECT 1 FROM dive_sites ts WHERE ts.id = {r}.site_id '
         "AND (ts.name LIKE ? ESCAPE '\\' OR ts.country LIKE ? ESCAPE '\\' "
         "OR ts.region LIKE ? ESCAPE '\\'))",
@@ -404,6 +418,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
     _text('legacyBuddy', 'buddy'),
     _text('diveMaster', 'dive_master'),
     _text('boatName', 'boat_name'),
+    _text('boatCaptain', 'boat_captain'),
     _text('diveOperator', 'dive_operator'),
     _text('surfaceConditions', 'surface_conditions'),
     _enum(
@@ -411,7 +426,15 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'current_strength',
       _names(CurrentStrength.values),
     ),
-    _enum('waterType', 'water_type', _names(WaterType.values)),
+    QueryField(
+      key: 'waterType',
+      type: FieldType.enumName,
+      sql: _effectiveWaterType,
+      emptySql: '$_effectiveWaterType IS NULL',
+      labelKey: _label('waterType'),
+      enumValues: _names(WaterType.values),
+      tables: const ['dive_sites'],
+    ),
     _enum('entryMethod', 'entry_method', _names(EntryMethod.values)),
     _enum('exitMethod', 'exit_method', _names(EntryMethod.values)),
     _enum('diveMode', 'dive_mode', _names(DiveMode.values)),

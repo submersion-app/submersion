@@ -1826,15 +1826,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     final diveTypeListVisibilityPredicate =
         watchDiveTypeListVisibilityPredicate(ref);
 
-    // Check if detailed mode needs full Dive objects for non-summary fields
-    final detailedConfig = ref.watch(detailedCardConfigProvider);
-    final needsFullDive =
-        detailedConfig.extraFields.any(
-          (f) => !DiveField.summaryFields.contains(f),
-        ) ||
-        detailedConfig.slots.any(
-          (s) => !DiveField.summaryFields.contains(s.field),
-        );
+    // Load full Dive objects when the active card shows a field DiveSummary
+    // does not carry. A compact slot can name any field too (#3229).
+    final cardConfig = ref.watch(
+      ref.watch(diveListViewModeProvider) == ListViewMode.compact
+          ? compactCardConfigProvider
+          : detailedCardConfigProvider,
+    );
+    final needsFullDive = [
+      for (final slot in cardConfig.slots) slot.field,
+      ...cardConfig.extraFields,
+    ].any((f) => !DiveField.summaryFields.contains(f));
     final Map<String, Dive> fullDiveLookup;
     if (needsFullDive) {
       final divesAsync = ref.watch(allDivesForTableProvider);

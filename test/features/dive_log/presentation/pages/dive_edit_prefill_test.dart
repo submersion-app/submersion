@@ -536,6 +536,7 @@ class _GatedPassports extends CylinderPassportRepository {
   Future<String?> findEquipmentIdByPassportId(
     String passportId, {
     String? diverId,
+    EquipmentType? type,
   }) async {
     await gate;
     return equipmentId;

@@ -94,6 +94,7 @@ void main() {
       'arm_clamp': SubmersionIcons.armClamp,
       'video_light': SubmersionIcons.videoLight,
       'float_arm': SubmersionIcons.floatArm,
+      'vest': SubmersionIcons.vest,
     };
     final cmap = cmaps[SubmersionIcons.fontFamily]!;
     for (final entry in drawn.entries) {

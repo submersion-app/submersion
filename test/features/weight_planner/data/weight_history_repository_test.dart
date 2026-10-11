@@ -1,9 +1,13 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' show DiveSitesCompanion;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -302,5 +306,60 @@ void main() {
       ),
     );
     expect(await repository.observationsForDiver(diverId), isEmpty);
+  });
+
+  test('a dive with no water type takes its site one (#3196)', () async {
+    final site = await SiteRepository().createSite(
+      const DiveSite(id: '', name: 'Quarry', waterType: WaterType.fresh),
+    );
+    await diveRepository.createDive(
+      Dive(
+        id: '',
+        diverId: diverId,
+        dateTime: DateTime(2026, 1, 1),
+        site: site,
+        weightAmount: 5.0,
+      ),
+    );
+    await diveRepository.createDive(
+      Dive(
+        id: '',
+        diverId: diverId,
+        dateTime: DateTime(2026, 1, 2),
+        site: site,
+        waterType: WaterType.salt,
+        weightAmount: 5.0,
+      ),
+    );
+
+    final observations = await repository.observationsForDiver(diverId);
+
+    expect(observations.map((o) => o.waterType), [
+      WaterType.fresh,
+      WaterType.salt,
+    ]);
+  });
+
+  test('watchSiteWaterTypeChanges ticks only for a water type edit', () async {
+    final site = await SiteRepository().createSite(
+      const DiveSite(id: '', name: 'Quarry', waterType: WaterType.fresh),
+    );
+    final db = DatabaseService.instance.database;
+    var ticks = 0;
+    final sub = repository.watchSiteWaterTypeChanges().listen((_) => ticks++);
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    await (db.update(db.diveSites)..where((t) => t.id.equals(site.id))).write(
+      const DiveSitesCompanion(notes: Value('calm')),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(ticks, 0);
+
+    await (db.update(db.diveSites)..where((t) => t.id.equals(site.id))).write(
+      const DiveSitesCompanion(waterType: Value('salt')),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await sub.cancel();
+    expect(ticks, 1);
   });
 }

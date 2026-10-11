@@ -4,7 +4,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/network/trusted_http_overrides.dart';
+import 'package:submersion/core/network/proxy/app_http_overrides.dart';
+import 'package:submersion/core/network/proxy/proxy_controller.dart';
+import 'package:submersion/core/network/proxy/proxy_refresh_triggers.dart';
+import 'package:submersion/core/network/proxy/proxy_settings_store.dart';
+import 'package:submersion/core/network/proxy/system/system_proxy_resolver.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/geocoding/sea_area_service.dart';
@@ -53,16 +57,21 @@ Future<void> _bootstrap() async {
   // itself is tested in bathymetry_attribution_test.dart.
   BathymetryAttribution.registerLicense(); // coverage:ignore-line
 
-  // Windows cannot expose its system trust store to Dart's bundled BoringSSL,
-  // so every default-context HttpClient (S3 sync, map tiles, NetworkImage,
-  // weather, geocoding) routes through a SecurityContext seeded from the OS
-  // certificate store, with an embedded CA fallback. No-op on platforms whose
-  // default trust already works. Must run before the first network request.
-  // (Windows-only and inside main(), so not reachable from the test host.)
+  // Every HttpClient in the Dart VM (S3 sync, map tiles, NetworkImage,
+  // weather, geocoding) goes through one hook. On Windows it supplies a
+  // SecurityContext seeded from the OS certificate store, which Dart's
+  // bundled BoringSSL cannot read; everywhere it routes each connection by
+  // the current proxy snapshot (#3217). Must run before the first network
+  // request; the snapshot stays direct until the saved choice loads below.
+  // (Inside main(), so not reachable from the test host.)
   // coverage:ignore-start
-  if (Platform.isWindows) {
-    HttpOverrides.global = TrustedHttpOverrides();
-  }
+  final proxyController = ProxyController(
+    resolver: SystemProxyResolver.forPlatform(),
+  );
+  _proxyController = proxyController;
+  HttpOverrides.global = AppHttpOverrides(
+    currentProxy: () => proxyController.current,
+  );
   // coverage:ignore-end
 
   // Apply the global Flutter image-cache byte / object caps for cached
@@ -84,6 +93,14 @@ Future<void> _bootstrap() async {
 
   // Initialize SharedPreferences first (needed for storage config)
   final prefs = await SharedPreferences.getInstance();
+
+  // Load the proxy choice and, in system mode, ask the OS (at most 3 s, so
+  // a slow PAC server cannot hold up launch), then keep it current as the
+  // network changes and the app resumes.
+  // coverage:ignore-start
+  await proxyController.initialize(ProxySettingsStore(prefs));
+  ProxyRefreshTriggers(proxyController);
+  // coverage:ignore-end
 
   // Hydrate the process-wide data-quality detector toggles from prefs so
   // fire-and-forget scans honor saved toggles before the settings page opens.
@@ -164,6 +181,11 @@ final _restartKey = ValueNotifier<Key>(UniqueKey());
 /// that [restartApp] replaces, and the new app root opens it (#2690).
 final _incomingShares = NavigationReadyGate<IncomingShare>();
 
+/// The proxy snapshot holder for the life of the process, made in main()
+/// before the first request. Null where main() did not run (tests), which
+/// leaves the Network settings page's provider unconfigured.
+ProxyController? _proxyController;
+
 /// Trigger a soft restart by rebuilding the entire ProviderScope.
 /// Call this after a database restore to refresh all cached data.
 void restartApp() {
@@ -191,6 +213,7 @@ class SubmersionRestart extends StatelessWidget {
             prefs: prefs,
             logFileService: logFileService,
             incomingShares: _incomingShares,
+            proxyController: _proxyController,
           ).cast(),
           child: const SubmersionApp(),
         );

@@ -122,6 +122,27 @@ void main() {
     expect(seed.customReminderDays, [7]);
     expect(seed.parentEquipmentId, 'rebreather');
   });
+
+  test('a clone never carries the source tag (issue #2652)', () {
+    const tagged = EquipmentItem(
+      id: 'reg',
+      name: 'Primary',
+      type: EquipmentType.regulator,
+      attributes: [
+        EquipmentAttribute(
+          id: 'reg|passport_id',
+          equipmentId: 'reg',
+          key: EquipmentAttrKeys.passportId,
+          valueText: '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab',
+        ),
+      ],
+    );
+    final seed = cloneFormSeed(tagged, copyName: (n) => '$n copy');
+    expect(
+      seed.attributes.map((a) => a.key),
+      isNot(contains(EquipmentAttrKeys.passportId)),
+    );
+  });
 }
 
 extension on EquipmentAttribute {

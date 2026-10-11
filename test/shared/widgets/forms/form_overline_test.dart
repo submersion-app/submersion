@@ -64,4 +64,79 @@ void main() {
     );
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
+
+  group('crowded headers (issue #2652)', () {
+    List<FormOverlineAction> four(List<String> taps) => [
+      for (final (label, icon) in [
+        ('Use set', Icons.folder_special),
+        ('Add', Icons.add),
+        ('Scan', Icons.qr_code_scanner),
+        ('Sort', Icons.sort),
+      ])
+        FormOverlineAction(
+          label: label,
+          icon: icon,
+          onPressed: () => taps.add(label),
+        ),
+    ];
+
+    testWidgets('show icons with tooltips when labels do not fit', (
+      tester,
+    ) async {
+      final taps = <String>[];
+      await tester.pumpWidget(
+        _wrap(
+          Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 300,
+              child: FormOverline(label: 'Equipment', actions: four(taps)),
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      for (final label in ['Use set', 'Add', 'Scan', 'Sort']) {
+        expect(find.text(label), findsNothing, reason: label);
+        expect(find.byTooltip(label), findsOneWidget, reason: label);
+        expect(
+          tester.getRect(find.byTooltip(label)).right,
+          lessThanOrEqualTo(300),
+        );
+        await tester.tap(find.byTooltip(label));
+      }
+      expect(taps, ['Use set', 'Add', 'Scan', 'Sort']);
+      expect(find.text('EQUIPMENT'), findsOneWidget);
+    });
+
+    testWidgets('keep their labels when there is room', (tester) async {
+      await tester.pumpWidget(
+        _wrap(FormOverline(label: 'Equipment', actions: four([]))),
+      );
+      for (final label in ['Use set', 'Add', 'Scan', 'Sort']) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+    });
+
+    testWidgets('an action without an icon keeps its label', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 300,
+              child: FormOverline(
+                label: 'Equipment',
+                actions: [
+                  ...four([]),
+                  FormOverlineAction(label: 'Go', onPressed: () {}),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.text('Go'), findsOneWidget);
+    });
+  });
 }

@@ -245,6 +245,45 @@ void main() {
       ));
     });
 
+    test('a vest in the suit field is the vest (#3108)', () {
+      // Its one thickness is the vest's, as a wetsuit's is the suit's.
+      expect(classifySuitGear('7mm ice vest'), (
+        type: EquipmentType.vest,
+        thickness: '7mm',
+      ));
+      expect(classifySuitGear('Hooded vest 5/3'), (
+        type: EquipmentType.vest,
+        thickness: '5/3',
+      ));
+      expect(classifySuitGear('Ice vest'), (
+        type: EquipmentType.vest,
+        thickness: null,
+      ));
+      // Every vest alias, not just the English word, stops a thickness token
+      // from reading as a wetsuit.
+      for (final name in [
+        '7mm core warmer',
+        '7mm Eisweste',
+        '7mm Haubenweste',
+      ]) {
+        expect(classifySuit(name), isNull, reason: name);
+        expect(classifySuitGear(name), (
+          type: EquipmentType.vest,
+          thickness: '7mm',
+        ), reason: name);
+      }
+      // Beside another accessory the thickness may be that item's.
+      expect(classifySuitGear('Ice vest, 5mm gloves'), (
+        type: EquipmentType.vest,
+        thickness: null,
+      ));
+      // Named with its suit, the suit is what the field records.
+      expect(
+        classifySuitGear('7mm wetsuit + ice vest')?.type,
+        EquipmentType.wetsuit,
+      );
+    });
+
     test('a name that says neither is unclear', () {
       expect(classifySuitGear('Full suit'), isNull);
       expect(classifySuitGear('Fourth Element Argonaut'), isNull);

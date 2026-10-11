@@ -84,6 +84,8 @@ extension DiveFieldExtractor on DiveField {
         return dive.humidity;
       case DiveField.weatherDescription:
         return dive.weatherDescription;
+      case DiveField.surfaceConditions:
+        return dive.surfaceConditions;
       case DiveField.primaryGas:
         return dive.tanks.isNotEmpty ? dive.tanks.first.gasMix.name : null;
       case DiveField.diluentGas:
@@ -134,6 +136,12 @@ extension DiveFieldExtractor on DiveField {
         return dive.site?.locationString;
       case DiveField.diveCenterName:
         return dive.diveCenter?.name;
+      case DiveField.diveOperator:
+        return dive.diveOperator;
+      case DiveField.boatName:
+        return dive.boatName;
+      case DiveField.boatCaptain:
+        return dive.boatCaptain;
       case DiveField.siteLatitude:
         return dive.site?.location?.latitude;
       case DiveField.siteLongitude:

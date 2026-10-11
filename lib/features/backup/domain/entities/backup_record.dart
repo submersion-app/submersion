@@ -23,6 +23,11 @@ class BackupRecord extends Equatable {
   final int? toSchemaVersion;
   final bool pinned;
 
+  /// Optional text the diver typed when making the backup. Also stored inside
+  /// the file itself (see backup_note_stamp.dart), so it survives without
+  /// this record.
+  final String? note;
+
   const BackupRecord({
     required this.id,
     required this.filename,
@@ -39,6 +44,7 @@ class BackupRecord extends Equatable {
     this.fromSchemaVersion,
     this.toSchemaVersion,
     this.pinned = false,
+    this.note,
   });
 
   BackupRecord copyWith({
@@ -57,6 +63,7 @@ class BackupRecord extends Equatable {
     int? fromSchemaVersion,
     int? toSchemaVersion,
     bool? pinned,
+    String? note,
   }) {
     return BackupRecord(
       id: id ?? this.id,
@@ -74,6 +81,7 @@ class BackupRecord extends Equatable {
       fromSchemaVersion: fromSchemaVersion ?? this.fromSchemaVersion,
       toSchemaVersion: toSchemaVersion ?? this.toSchemaVersion,
       pinned: pinned ?? this.pinned,
+      note: note ?? this.note,
     );
   }
 
@@ -103,6 +111,7 @@ class BackupRecord extends Equatable {
       'fromSchemaVersion': fromSchemaVersion,
       'toSchemaVersion': toSchemaVersion,
       'pinned': pinned,
+      'note': note,
     };
   }
 
@@ -123,6 +132,7 @@ class BackupRecord extends Equatable {
       fromSchemaVersion: json['fromSchemaVersion'] as int?,
       toSchemaVersion: json['toSchemaVersion'] as int?,
       pinned: json['pinned'] as bool? ?? false,
+      note: json['note'] as String?,
     );
   }
 
@@ -148,5 +158,6 @@ class BackupRecord extends Equatable {
     fromSchemaVersion,
     toSchemaVersion,
     pinned,
+    note,
   ];
 }

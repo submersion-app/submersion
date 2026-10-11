@@ -108,7 +108,7 @@ class _FakeSyncService extends SyncService {
 /// No-op database adapter so [_FakeBackupService] never touches a real DB.
 class _NoopBackupAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {}
+  Future<void> backup(String destinationPath, {String? note}) async {}
 
   @override
   Future<void> restore(
@@ -134,7 +134,10 @@ class _FakeBackupService extends BackupService {
     : super(dbAdapter: _NoopBackupAdapter(), preferences: prefs);
 
   @override
-  Future<BackupRecord> performBackup({bool isAutomatic = false}) async {
+  Future<BackupRecord> performBackup({
+    bool isAutomatic = false,
+    String? note,
+  }) async {
     performBackupCalls++;
     return BackupRecord(
       id: 'fake-safety',

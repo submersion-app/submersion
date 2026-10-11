@@ -466,6 +466,36 @@ add(
     ),
 )
 
+# The vest (#3108): the hooded ice vest worn over a wetsuit, or a core warmer
+# under one. It joins the wardrobe family without reading as a suit or a top
+# at 20px: no sleeves (the armholes cut in from the shoulders), a hood like
+# the drysuit's with its face opening, and a front zip. The zip and the face
+# opening each sit inside a single solid, so nonzero winding cuts them clean.
+add(
+    "vest",
+    "Vest",
+    "Sleeveless vest with an attached hood and a front zip.",
+    g(
+        circle(12.0, 5.6, 3.6),                        # attached hood
+        poly(
+            [
+                (8.8, 8.2),                            # left neck
+                (15.2, 8.2),                           # right neck
+                (19.2, 9.8),                           # right shoulder
+                (19.2, 10.8),
+                (17.0, 14.6),                          # right armpit
+                (17.0, 21.8),                          # right hem
+                (7.0, 21.8),                           # left hem
+                (7.0, 14.6),                           # left armpit
+                (4.8, 10.8),
+                (4.8, 9.8),                            # left shoulder
+            ]
+        ),
+        circle(12.0, 5.6, 1.8, solid=False),           # face opening
+        rrect(11.4, 10.2, 1.2, 10.4, 0.6, solid=False),  # front zip
+    ),
+)
+
 # Private Use Area code points, assigned in declaration order and never
 # renumbered: they are baked into the committed font and into
 # lib/core/icons/submersion_icons.dart.

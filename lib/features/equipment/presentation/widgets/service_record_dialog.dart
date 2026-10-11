@@ -653,3 +653,21 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
     }
   }
 }
+
+/// Logs a service for [equipmentId], fulfilling [serviceKindId]'s clock when
+/// given: the detail page's Log service and the gear passport's share it.
+Future<void> showLogServiceDialog(
+  BuildContext context,
+  WidgetRef ref, {
+  required String equipmentId,
+  String? serviceKindId,
+}) => showDialog<void>(
+  context: context,
+  builder: (context) => ServiceRecordDialog(
+    equipmentId: equipmentId,
+    serviceKindId: serviceKindId,
+    onSave: (record) => ref
+        .read(serviceRecordNotifierProvider(equipmentId).notifier)
+        .addRecord(record),
+  ),
+);

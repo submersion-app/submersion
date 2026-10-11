@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
@@ -332,16 +330,47 @@ void main() {
         displayUnitInMeters: 1.0,
         depthSymbol: 'm',
       );
-      double widthOf(SceneLayer layer) {
-        // Ribbon vertices come in left/right pairs; the first pair's
-        // separation is the full ribbon width in scene units.
-        final p = layer.mesh.positions;
-        final dx = p[3] - p[0], dz = p[5] - p[2];
-        return math.sqrt(dx * dx + dz * dz);
-      }
+      // Contours are canvas strokes (issue #3215): the width lives in
+      // strokeHalfWidthPx, both members of a vertex pair sit on the
+      // isobath.
+      double widthOf(SceneLayer layer) => layer.mesh.strokeHalfWidthPx!;
+      final p = result.layers[0].mesh.positions;
+      expect(p.sublist(0, 3), p.sublist(3, 6));
 
       // Rendered levels are 10,15,20,25,...: the 25 m major is index 3.
       expect(widthOf(result.layers[3]), greaterThan(widthOf(result.layers[0])));
+    });
+
+    test('a closed isobath doubles its closing point onto its first', () {
+      // A shallow bump in the middle of a deep plateau: every level loops
+      // around the centre cell, ending back on its first point. The
+      // closing point gets two pairs, written at the first point exactly,
+      // so the renderer bevels the seam like any other corner.
+      final grid = gridOf([
+        [45.0, 45.0, 45.0],
+        [45.0, 5.0, 45.0],
+        [45.0, 45.0, 45.0],
+      ]);
+      final result = buildContourLayers(
+        grid: grid,
+        center: center,
+        projection: projFor(grid),
+        appearance: const SeascapeAppearance(),
+        displayUnitInMeters: 1.0,
+        depthSymbol: 'm',
+      );
+      expect(result.layers, isNotEmpty);
+      for (final layer in result.layers) {
+        final p = layer.mesh.positions;
+        final pairCount = layer.mesh.vertexCount ~/ 2;
+        // P loop points (last == first) make 2P - 1 pairs: one on the
+        // first, two on every other including the closing one.
+        expect(pairCount.isOdd, isTrue);
+        List<double> pointOf(int pair) => p.sublist(pair * 6, pair * 6 + 3);
+        expect(pointOf(pairCount - 1), pointOf(0));
+        expect(pointOf(pairCount - 2), pointOf(0));
+        expect(pointOf(2), pointOf(1));
+      }
     });
 
     test('custom level color overrides the ink', () {

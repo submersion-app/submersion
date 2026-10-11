@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/database/database.dart';
@@ -264,9 +265,14 @@ class _CountingPassports extends CylinderPassportRepository {
   Future<String?> findEquipmentIdByPassportId(
     String passportId, {
     String? diverId,
+    EquipmentType? type,
   }) {
     lookups.add(passportId);
-    return super.findEquipmentIdByPassportId(passportId, diverId: diverId);
+    return super.findEquipmentIdByPassportId(
+      passportId,
+      diverId: diverId,
+      type: type,
+    );
   }
 }
 

@@ -38,6 +38,8 @@ const List<EquipmentType> kHeadToToeTypeOrder = [
   EquipmentType.undersuit,
   EquipmentType.wetsuit,
   EquipmentType.drysuit,
+  // The vest (#3108) is the outermost torso layer when worn as an ice vest.
+  EquipmentType.vest,
   EquipmentType.tank,
   EquipmentType.rebreather,
   EquipmentType.regulator,
@@ -99,6 +101,8 @@ const List<EquipmentType> kDressingTypeOrder = [
   EquipmentType.undersuit,
   EquipmentType.wetsuit,
   EquipmentType.drysuit,
+  // An ice vest (#3108) goes on over the suit, before the boots and hood.
+  EquipmentType.vest,
   EquipmentType.boots,
   EquipmentType.hood,
   EquipmentType.weights,
@@ -183,6 +187,7 @@ const List<EquipmentType> kCanonicalTypeOrder = [
   EquipmentType.undersuit,
   EquipmentType.wetsuit,
   EquipmentType.drysuit,
+  EquipmentType.vest,
   EquipmentType.hood,
   EquipmentType.gloves,
   EquipmentType.boots,

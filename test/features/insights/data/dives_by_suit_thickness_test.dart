@@ -267,6 +267,31 @@ void main() {
     expect(result.unknownThicknessCount, 1);
   });
 
+  test('a vest worn with a wetsuit is not a second suit (#3108)', () async {
+    // The diver in #3108 wears a 7 mm suit with a hooded vest. Typed as a
+    // vest, it must not open a bucket of its own beside the suit's.
+    final suit7 = await suit('s7', '7', 7.0);
+    final vest = await gear(
+      'vest',
+      EquipmentType.vest,
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: 'vest',
+          key: 'thickness_mm',
+          valueText: '5',
+          valueNum: 5.0,
+        ),
+      ],
+    );
+    await dive('d1', 1, [vest, suit7]);
+    await dive('d2', 2, [vest]);
+
+    final result = await stats.getDivesBySuitThickness();
+    expect(result.byThickness, [(mm: 7.0, count: 1)]);
+    expect(result.unknownThicknessCount, 0);
+    expect(result.drysuitCount, 0);
+  });
+
   test('a query error is surfaced rather than reported as no data', () async {
     // Returning empty on failure made the card show "no dives" instead of
     // its error state, hiding the fault from the diver.

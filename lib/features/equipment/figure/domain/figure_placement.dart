@@ -276,6 +276,33 @@ abstract final class FigurePlacement {
           },
           defaultColor: FigureColors.darkBlue,
         );
+      // A vest (#3108) is drawn over whatever suit is on, on the underlayer
+      // anchor so it never takes the suit zone from a wetsuit in the same
+      // set. A hooded vest draws the hood artwork too, in the vest's colour.
+      case EquipmentType.vest:
+        final pieces = [
+          'vest_front',
+          'vest_back',
+          if (attributes[EquipmentAttrKeys.hooded] == 'true') ...[
+            'hood_front',
+            'hood_back',
+          ],
+        ];
+        return FigurePlacementSpec(
+          // The front torso is the last resort, for a drysuit diver whose
+          // undersuit and base layer already fill the underlayer anchor.
+          zones: const [
+            FigureZone.underlayer,
+            FigureZone.suit,
+            FigureZone.torsoFront,
+          ],
+          piecesByZone: {
+            FigureZone.underlayer: pieces,
+            FigureZone.suit: pieces,
+            FigureZone.torsoFront: pieces,
+          },
+          defaultColor: FigureColors.black,
+        );
       case EquipmentType.hood:
         return const FigurePlacementSpec(
           zones: [FigureZone.head],

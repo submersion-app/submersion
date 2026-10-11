@@ -1470,6 +1470,10 @@
   "backup_appBar_title": "Backup & Restore",
   "backup_backingUp": "Backing up...",
   "backup_backupNow": "Backup Now",
+  "backup_note_dialog_title": "Back up now",
+  "backup_note_label": "Note (optional)",
+  "backup_note_hint": "e.g. Before the Cozumel trip",
+  "backup_note_dialog_confirm": "Back Up",
   "backup_cloud_enabled": "Cloud backup",
   "backup_cloud_enabled_subtitle": "Upload backups to cloud storage",
   "backup_delete_dialog_cancel": "Cancel",
@@ -4178,6 +4182,9 @@
   "diveLog_detail_label_serialNumber": "Serial Number",
   "diveLog_detail_label_firmwareVersion": "Firmware Version",
   "diveLog_detail_label_diveMaster": "Dive Master",
+  "diveLog_detail_label_diveOperator": "Operator",
+  "diveLog_detail_label_boatName": "Boat",
+  "diveLog_detail_label_boatCaptain": "Captain",
   "diveLog_detail_label_diveType": "Dive Type",
   "diveLog_detail_label_elevation": "Elevation",
   "diveLog_detail_label_entry": "Entry:",
@@ -4195,6 +4202,7 @@
   "diveLog_detail_label_surfaceInterval": "Surface Interval",
   "diveLog_detail_label_surfacePressure": "Surface Pressure",
   "diveLog_detail_label_swellHeight": "Swell Height",
+  "diveLog_detail_label_surfaceConditions": "Surface Conditions",
   "diveLog_detail_label_total": "Total:",
   "diveLog_detail_label_visibility": "Visibility",
   "diveLog_detail_label_waterType": "Water Type",
@@ -4405,6 +4413,7 @@
   "diveLog_edit_label_runtime": "Runtime",
   "diveLog_edit_label_surfacePressure": "Surface Pressure",
   "diveLog_edit_label_swellHeight": "Swell Height",
+  "diveLog_edit_label_surfaceConditions": "Surface Conditions",
   "diveLog_edit_label_type": "Type",
   "diveLog_edit_label_visibility": "Visibility",
   "diveLog_edit_visibility_modeRange": "Range",
@@ -4465,6 +4474,9 @@
   "@diveLog_edit_row_diveCenter": {
     "description": "Row label: dive center picker"
   },
+  "diveLog_edit_row_diveOperator": "Operator",
+  "diveLog_edit_row_boatName": "Boat",
+  "diveLog_edit_row_boatCaptain": "Captain",
   "diveLog_edit_row_diveProfile": "Dive profile",
   "@diveLog_edit_row_diveProfile": {
     "description": "Row label: dive profile (points count / draw affordance)"
@@ -7511,6 +7523,7 @@
   "enum_equipmentType_rebreather": "Rebreather",
   "enum_equipmentType_tool": "Tool",
   "enum_equipmentType_rashGuard": "Rash Guard",
+  "enum_equipmentType_vest": "Vest",
   "enum_equipmentType_wing": "Wing",
   "enum_eventSeverity_alert": "Alert",
   "enum_eventSeverity_info": "Info",
@@ -7976,6 +7989,46 @@
       }
     }
   },
+  "@gearPassport_entry_lastService": {
+    "description": "The newest service date of a piece of gear, such as Last serviced 2 Mar 2026.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@gearPassport_scan_added": {
+    "description": "Said after a scanned item was added to a dive or a trip.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@gearPassport_scan_alreadyOnDive": {
+    "description": "Said when a scanned item is already in the dive's gear.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@gearPassport_scan_alreadyOnTrip": {
+    "description": "Said when a scanned item is already packed for the trip.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@gearPassport_scan_wishlist": {
+    "description": "Said when a scanned item has the Wanted status, so it is not gear the diver owns yet.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "passport_trip_assign": "Pack for a trip",
   "passport_trip_unassign": "Unpack from this trip",
   "passport_trip_onBoard": "On the trip's cylinder board",
@@ -7983,6 +8036,27 @@
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
   "passport_logFill_saveFailed": "Could not save the fill. Try again.",
+  "tagScan_title": "Scan a tag",
+  "tagScan_linkInvalid": "That is not a Submersion tag",
+  "gearPassport_title": "Gear passport",
+  "gearPassport_entry_lastService": "Last serviced {date}",
+  "gearPassport_entry_noService": "No service recorded",
+  "gearPassport_recent_title": "Recent service",
+  "gearPassport_recent_none": "No service recorded yet",
+  "gearPassport_recent_seeAll": "See all",
+  "gearPassport_unknownType": "Gear",
+  "gearPassport_foreign_title": "Gear tag",
+  "gearPassport_foreign_notInGear": "This gear is not in your library.",
+  "gearPassport_foreign_addFailed": "Could not add the gear. Try again.",
+  "gearPassport_field_lastService": "Last service date",
+  "gearPassport_tag_linkInvalid": "That is not a gear tag",
+  "gearPassport_scan_action": "Scan",
+  "gearPassport_scan_added": "Added {name}",
+  "gearPassport_scan_alreadyOnDive": "{name} is already on this dive",
+  "gearPassport_scan_alreadyOnTrip": "{name} is already on this trip",
+  "gearPassport_scan_notYours": "Not in your gear",
+  "gearPassport_scan_view": "View",
+  "gearPassport_scan_wishlist": "{name} is marked Wanted",
   "pdf_unknownSite": "Unknown Site",
   "pdf_signaturePlaceholder": "[Signature]",
   "pdf_signerBuddy": "Buddy",
@@ -8052,6 +8126,7 @@
   "pdf_visibility": "Visibility",
   "pdf_current": "Current",
   "pdf_currentDirection": "Current Dir",
+  "pdf_surfaceConditions": "Surface",
   "pdf_waterType": "Water Type",
   "pdf_entry": "Entry",
   "pdf_exit": "Exit",
@@ -8059,6 +8134,9 @@
   "pdf_buddy": "Buddy",
   "pdf_diveMaster": "Dive Master",
   "pdf_diveCenter": "Dive Center",
+  "pdf_diveOperator": "Operator",
+  "pdf_boatName": "Boat",
+  "pdf_boatCaptain": "Captain",
   "pdf_trip": "Trip",
   "pdf_weight": "Weight",
   "pdf_weightType": "Weight Type",
@@ -11934,6 +12012,14 @@
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
   "plannerCanvas_convert_success": "Dive created from plan",
   "plannerCanvas_convert_view": "View",
+  "plannerCanvas_export_failed": "Export failed: {error}",
+  "@plannerCanvas_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_follow_chip": "Following {name}",
   "@plannerCanvas_follow_chip": {
     "placeholders": {
@@ -12093,9 +12179,11 @@
       }
     }
   },
-  "plannerCanvas_share_menu": "Share plan file",
+  "plannerCanvas_share_menu": "Export plan file",
+  "plannerCanvas_share_saved": "Plan file saved",
   "plannerCanvas_slate_menu": "Export slate (PDF)",
   "plannerCanvas_slate_minGas": "Min gas",
+  "plannerCanvas_slate_saved": "Slate saved",
   "plannerCanvas_slate_turn": "Turn",
   "plannerCanvas_table_depth": "Depth",
   "plannerCanvas_table_gas": "Gas",
@@ -14092,6 +14180,62 @@
   "settings_section_diverProfile_title": "Diver Profile",
   "settings_section_manage_subtitle": "Dive types & tank presets",
   "settings_section_manage_title": "Manage",
+  "settings_network_mode_header": "Proxy",
+  "settings_network_mode_system": "System proxy",
+  "settings_network_mode_system_subtitle": "Use the proxy configured in your device's network settings",
+  "settings_network_mode_manual": "Manual",
+  "settings_network_mode_manual_subtitle": "Enter a proxy server",
+  "settings_network_mode_none": "No proxy",
+  "settings_network_mode_none_subtitle": "Always connect directly",
+  "settings_network_status_detecting": "Checking this device's proxy settings",
+  "settings_network_status_none": "No proxy configured on this device",
+  "settings_network_status_fixed": "Using {endpoint}",
+  "@settings_network_status_fixed": {"placeholders": {"endpoint": {"type": "String"}}},
+  "settings_network_status_fixedPac": "Using {endpoint} (from automatic configuration)",
+  "@settings_network_status_fixedPac": {"placeholders": {"endpoint": {"type": "String"}}},
+  "settings_network_status_fixedSocks": "Using {endpoint} (SOCKS5)",
+  "@settings_network_status_fixedSocks": {"placeholders": {"endpoint": {"type": "String"}}},
+  "settings_network_status_pacUnsupported": "Automatic proxy configuration isn't supported on this device. Choose Manual and enter the proxy.",
+  "settings_network_status_pacFailed": "The automatic proxy configuration couldn't be read. Choose Manual and enter the proxy.",
+  "settings_network_status_error": "This device's proxy settings couldn't be read.",
+  "settings_network_status_refresh": "Check again",
+  "settings_network_manual_typeHttp": "HTTP",
+  "settings_network_manual_typeSocks": "SOCKS5",
+  "settings_network_manual_host": "Host",
+  "settings_network_manual_port": "Port",
+  "settings_network_manual_username": "Username (optional)",
+  "settings_network_manual_password": "Password (optional)",
+  "settings_network_manual_showPassword": "Show password",
+  "settings_network_manual_hidePassword": "Hide password",
+  "settings_network_manual_save": "Save",
+  "settings_network_manual_saved": "Proxy settings saved",
+  "settings_network_manual_saveFailed": "Couldn't save the proxy settings.",
+  "settings_network_manual_nativeNote": "Sign-in screens provided by the operating system use the system proxy.",
+  "settings_network_validation_hostRequired": "Enter the proxy host",
+  "settings_network_validation_portInvalid": "Enter a port from 1 to 65535",
+  "settings_network_validation_passwordRequired": "Enter the password for this username",
+  "settings_network_validation_usernameColon": "The username can't contain a colon",
+  "settings_network_validation_usernameSemicolon": "The username can't contain a semicolon",
+  "settings_network_validation_usernameWhitespace": "The username can't start or end with a space",
+  "settings_network_validation_passwordSemicolon": "The password can't contain a semicolon",
+  "settings_network_validation_passwordWhitespace": "The password can't start or end with a space",
+  "settings_network_validation_tooLong": "Must be 255 bytes or fewer",
+  "settings_network_test_button": "Test connection",
+  "settings_network_test_running": "Testing",
+  "settings_network_test_successProxy": "Connected through {endpoint} ({type}) in {ms} ms",
+  "@settings_network_test_successProxy": {"placeholders": {"endpoint": {"type": "String"}, "type": {"type": "String"}, "ms": {"type": "int"}}},
+  "settings_network_test_successDirect": "Connected directly in {ms} ms",
+  "@settings_network_test_successDirect": {"placeholders": {"ms": {"type": "int"}}},
+  "settings_network_test_unreachable": "Couldn't reach {endpoint}. Check the host and port.",
+  "@settings_network_test_unreachable": {"placeholders": {"endpoint": {"type": "String"}}},
+  "settings_network_test_authRejected": "The proxy rejected the username or password.",
+  "settings_network_test_authRequiredSystem": "This proxy requires a username and password. Choose Manual and enter them.",
+  "settings_network_test_tls": "Secure connection failed. Your network may inspect HTTPS traffic; its certificate must be trusted by this device.",
+  "settings_network_test_timeout": "The connection timed out.",
+  "settings_network_test_failed": "The connection failed: {detail}. The debug log has the full error.",
+  "@settings_network_test_failed": {"placeholders": {"detail": {"type": "String"}}},
+  "settings_section_network_subtitle": "Proxy server",
+  "settings_section_network_title": "Network",
   "settings_section_notifications_subtitle": "Service reminders",
   "settings_section_notifications_title": "Notifications",
   "settings_section_units_subtitle": "Measurement preferences",
@@ -16892,6 +17036,7 @@
   "trips_gear_add_fromEquipment": "From my equipment",
   "trips_gear_add_fromSet": "An equipment set",
   "trips_gear_add_rental": "Rental cylinders",
+  "trips_gear_add_scan": "Scan a tag",
   "trips_gear_section_packed": "Packed",
   "trips_gear_section_cylinders": "Cylinders",
   "trips_gear_empty_upcoming": "Nothing packed yet. Add the gear you'll bring and the cylinders you'll dive from.",
@@ -21224,6 +21369,9 @@
   "attrLabel_color": "Color",
   "attrLabel_sleeve_length": "Sleeves",
   "attrLabel_upf_rating": "UPF rating",
+  "attrLabel_hooded": "Hooded",
+  "attrLabel_vest_layer": "Worn",
+  "attrLabel_vest_closure": "Closure",
   "attrLabel_snorkel_type": "Type",
   "attrLabel_purge_valve": "Purge valve",
   "attrLabel_instrument_type": "Instrument",
@@ -21366,6 +21514,11 @@
   "attrChoice_sleeve_length_short": "Short",
   "attrChoice_sleeve_length_long": "Long",
   "attrChoice_sleeve_length_sleeveless": "Sleeveless",
+  "attrChoice_vest_layer_over_suit": "Over the suit",
+  "attrChoice_vest_layer_under_suit": "Under the suit",
+  "attrChoice_vest_closure_front_zip": "Front zip",
+  "attrChoice_vest_closure_side_zip": "Side zip",
+  "attrChoice_vest_closure_pullover": "Pullover",
   "attrChoice_snorkel_type_classic": "Classic",
   "attrChoice_snorkel_type_semi_dry": "Semi-dry",
   "attrChoice_snorkel_type_dry": "Dry",
@@ -23142,6 +23295,7 @@
   "enum_diveField_precipitation": "Precipitation",
   "enum_diveField_humidity": "Humidity",
   "enum_diveField_weatherDescription": "Weather",
+  "enum_diveField_surfaceConditions": "Surface Conditions",
   "enum_diveField_primaryGas": "Primary Gas",
   "enum_diveField_diluentGas": "Diluent Gas",
   "enum_diveField_tankCount": "Tank Count",
@@ -23167,6 +23321,9 @@
   "enum_diveField_diveMaster": "Dive Master",
   "enum_diveField_siteLocation": "Site Location",
   "enum_diveField_diveCenterName": "Dive Center",
+  "enum_diveField_diveOperator": "Dive Operator",
+  "enum_diveField_boatName": "Boat",
+  "enum_diveField_boatCaptain": "Boat Captain",
   "enum_diveField_siteLatitude": "Latitude",
   "enum_diveField_siteLongitude": "Longitude",
   "enum_diveField_tripName": "Trip",
@@ -23201,6 +23358,7 @@
   "enum_diveField_precipitation_short": "Precip",
   "enum_diveField_humidity_short": "Humid",
   "enum_diveField_weatherDescription_short": "Weather",
+  "enum_diveField_surfaceConditions_short": "Surface",
   "enum_diveField_primaryGas_short": "Gas",
   "enum_diveField_diluentGas_short": "Dil",
   "enum_diveField_tankCount_short": "Tanks",
@@ -23226,6 +23384,9 @@
   "enum_diveField_diveMaster_short": "DM",
   "enum_diveField_siteLocation_short": "Location",
   "enum_diveField_diveCenterName_short": "Dive Ctr",
+  "enum_diveField_diveOperator_short": "Operator",
+  "enum_diveField_boatName_short": "Boat",
+  "enum_diveField_boatCaptain_short": "Captain",
   "enum_diveField_siteLatitude_short": "Lat",
   "enum_diveField_siteLongitude_short": "Lng",
   "enum_diveField_tripName_short": "Trip",
@@ -29379,6 +29540,8 @@
   "@query_dives_avgDepth": {"description": "Field label in the query builder"},
   "query_dives_boatName": "Boat",
   "@query_dives_boatName": {"description": "Field label in the query builder"},
+  "query_dives_boatCaptain": "Captain",
+  "@query_dives_boatCaptain": {"description": "Field label in the query builder"},
   "query_dives_bottomTime": "Bottom time",
   "@query_dives_bottomTime": {"description": "Field label in the query builder"},
   "query_dives_buddies": "Buddies",

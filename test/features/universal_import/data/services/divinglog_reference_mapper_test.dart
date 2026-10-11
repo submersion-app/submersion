@@ -172,6 +172,45 @@ void main() {
         'divinglog_site_bonaire|karpata',
       );
     });
+
+    test('takes the country and region text a DiveMate Place carries '
+        '(#3110)', () {
+      // DiveMate has no CountryID. Without the text the importer
+      // reverse-geocodes the coordinates and can land in the wrong country.
+      final book = logbook(
+        places: {
+          10: const DivingLogRawPlace(
+            id: 10,
+            country: 'Österreich',
+            region: 'Oberösterreich',
+            place: 'Attersee Ost',
+            latitude: 47.85,
+            longitude: 13.55,
+          ),
+        },
+        dives: [const DivingLogRawDive(id: 1, placeId: 10)],
+      );
+      final site = DivingLogReferenceMapper.sites(book).values.single;
+      expect(site['country'], 'Österreich');
+      expect(site['region'], 'Oberösterreich');
+    });
+
+    test('a country id still wins over the Place text', () {
+      final book = logbook(
+        places: {
+          10: const DivingLogRawPlace(
+            id: 10,
+            countryId: 30,
+            country: 'Stale text',
+            place: 'Karpata',
+          ),
+        },
+        countries: const {30: 'Bonaire'},
+        dives: [const DivingLogRawDive(id: 1, placeId: 10)],
+      );
+      final site = DivingLogReferenceMapper.sites(book).values.single;
+      expect(site['country'], 'Bonaire');
+    });
   });
 
   group('site enrichment', () {

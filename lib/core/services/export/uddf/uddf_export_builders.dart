@@ -10,6 +10,7 @@ import 'package:submersion/core/services/export/uddf/uddf_certification_currency
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
@@ -548,6 +549,7 @@ class UddfExportBuilders {
             if (dive.exitMethod != null) {
               builder.element('exittype', nest: dive.exitMethod!.name);
             }
+            UddfDiveLogistics.write(builder, dive);
             buildDiveGpsElements(builder, 'exit', dive.exitLocation);
             // Weight system
             if (dive.weightAmount != null) {

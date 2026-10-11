@@ -306,4 +306,34 @@ void main() {
       );
     });
   });
+
+  group('boat fields and surface conditions (#3229)', () {
+    test('categories', () {
+      expect(DiveField.diveOperator.category, DiveFieldCategory.location);
+      expect(DiveField.boatName.category, DiveFieldCategory.location);
+      expect(DiveField.boatCaptain.category, DiveFieldCategory.location);
+      expect(
+        DiveField.surfaceConditions.category,
+        DiveFieldCategory.environment,
+      );
+    });
+
+    test('free text is not sortable and has no icon', () {
+      for (final f in [
+        DiveField.diveOperator,
+        DiveField.boatName,
+        DiveField.boatCaptain,
+        DiveField.surfaceConditions,
+      ]) {
+        expect(f.sortable, isFalse, reason: f.name);
+        expect(f.icon, isNull, reason: f.name);
+      }
+    });
+
+    test('names', () {
+      expect(DiveField.diveOperator.displayName, 'Dive Operator');
+      expect(DiveField.boatCaptain.shortLabel, 'Captain');
+      expect(DiveField.surfaceConditions.shortLabel, 'Surface');
+    });
+  });
 }

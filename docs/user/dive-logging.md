@@ -38,8 +38,8 @@ The sections, in order, are:
 |---------|---------------|
 | **The Dive** | Name and number, entry and exit, depth and time, dive site, dive types, and the profile. Always open. |
 | **Gas & Gear** | Dive mode, tanks and gas mixes, equipment, and weights. |
-| **Conditions** | Water and air temperature, visibility, current, water type, weather. |
-| **Trip** | The [trip](trips.md) and [dive center](buddies-and-dive-centers.md) for this dive. |
+| **Conditions** | Water and air temperature, visibility, current, surface conditions, water type, weather. |
+| **Trip** | The [trip](trips.md) and [dive center](buddies-and-dive-centers.md) for this dive, and the operator, boat and captain. |
 | **Buddies** | The people you dived with and their roles. |
 | **Experience** | Star rating, marine-life sightings, notes, and tags. |
 | **Statistics** | Whether this dive counts in your statistics. Opens by itself when the dive is excluded. |
@@ -257,6 +257,7 @@ This section holds **Water Temp**, **Air Temp** and two groups of fields.
 | **Current Direction** | A compass direction (North, North-East, East, and so on), Variable, or None. |
 | **Current Strength** | None, Light, Moderate, or Strong. |
 | **Swell Height** | Surface swell, in your depth units. |
+| **Surface Conditions** | The sea state in your own words, such as Calm or Choppy. Values you have used before are suggested as you type. |
 | **Altitude** | Height above sea level, for altitude dives. Entering a value warns you when the site is high enough to need altitude-adjusted decompression. |
 | **Entry Method** / **Exit Method** | How you got in and out: Shore Entry, Boat Entry, Back Roll, Front Roll, Giant Stride, Seated Entry, Ladder, Platform, Jetty/Dock, or Other. |
 
@@ -286,6 +287,12 @@ Open the **Trip** section to attach the dive to a [Trip](trips.md) and a
 dive's date, Submersion suggests it for you; tap **Use** to accept. The
 trip's date range and the dive center's location appear as captions beneath each
 row.
+
+Below the dive center, **Operator**, **Boat** and **Captain** record who ran the
+dive, the boat you dived from and its skipper, in your own words. As you type,
+Submersion suggests the names you have used on earlier dives, newest first.
+Dives imported from MacDive or a UDDF file arrive with these filled in when the
+source recorded them.
 
 ## Buddies
 
@@ -453,8 +460,8 @@ filtered to.
 
 ### Search
 
-Tap **Search dives** to search your log. Type words to match sites, buddies and
-notes, or write a query such as `depth > 30m`; the field suggests what to try.
+Tap **Search dives** to search your log. Type words to match sites, buddies,
+boats, operators and notes, or write a query such as `depth > 30m`; the field suggests what to try.
 You can also ask a question in plain words. The search can run **Within filters**
 or across **All dives**, **Refine** adds conditions to it, and your recent and
 saved searches are offered when you open it again. While you type, **Jump to dive**

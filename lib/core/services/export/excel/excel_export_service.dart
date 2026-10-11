@@ -254,6 +254,10 @@ class ExcelExportService {
       'Precipitation',
       'Humidity (%)',
       'Weather Description',
+      'Dive Operator',
+      'Boat Name',
+      'Boat Captain',
+      'Surface Conditions',
     ];
 
     for (var col = 0; col < headers.length; col++) {
@@ -307,6 +311,10 @@ class ExcelExportService {
         dive.precipitation?.displayName ?? '',
         dive.humidity?.toStringAsFixed(0) ?? '',
         dive.weatherDescription ?? '',
+        dive.diveOperator ?? '',
+        dive.boatName ?? '',
+        dive.boatCaptain ?? '',
+        dive.surfaceConditions ?? '',
       ];
 
       for (var col = 0; col < rowData.length; col++) {

@@ -5,6 +5,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/link_existing_tag_dialog.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/gear_tag_write.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -52,6 +53,9 @@ void main() {
   Future<AppLocalizations> pumpAndOpen(
     WidgetTester tester, {
     CylinderPassportRepository? repository,
+    String equipmentId = 'eq-1',
+    String? Function(String text) passportIdOf = cylinderPassportIdOf,
+    String Function(AppLocalizations l10n)? invalidText,
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -65,8 +69,10 @@ void main() {
           builder: (context) => TextButton(
             onPressed: () => showLinkExistingTagDialog(
               context,
-              equipmentId: 'eq-1',
+              equipmentId: equipmentId,
               diverId: 'd1',
+              passportIdOf: passportIdOf,
+              invalidText: invalidText,
             ),
             child: const Text('open'),
           ),
@@ -147,6 +153,66 @@ void main() {
       find.widgetWithText(FilledButton, l10n.passport_tag_linkExisting),
     );
     expect(link.onPressed, isNotNull);
+  });
+
+  group('gear tags (issue #2652)', () {
+    setUp(() async {
+      final t = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'reg-1',
+              name: 'Primary',
+              type: 'regulator',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value('d1'),
+            ),
+          );
+    });
+
+    testWidgets('a gear link is linked to a regulator', (tester) async {
+      final l10n = await pumpAndOpen(
+        tester,
+        equipmentId: 'reg-1',
+        passportIdOf: tagPassportIdOf,
+      );
+      await submit(tester, l10n, 'https://submersion.app/g#f=1&p=$pid&t=bcd');
+      expect(find.byType(AlertDialog), findsNothing);
+      final id = await tester.runAsync(
+        () => CylinderPassportRepository().getPassportId('reg-1'),
+      );
+      expect(id, pid);
+    });
+
+    testWidgets('the gear dialog takes the cylinder tag a retyped item kept', (
+      tester,
+    ) async {
+      final l10n = await pumpAndOpen(
+        tester,
+        equipmentId: 'reg-1',
+        passportIdOf: tagPassportIdOf,
+        invalidText: (l10n) => l10n.tagScan_linkInvalid,
+      );
+      await submit(tester, l10n, 'https://submersion.app/c#f=1&p=$pid');
+      expect(find.byType(AlertDialog), findsNothing);
+      final id = await tester.runAsync(
+        () => CylinderPassportRepository().getPassportId('reg-1'),
+      );
+      expect(id, pid);
+    });
+
+    testWidgets('the gear dialog refuses text that is no tag', (tester) async {
+      final l10n = await pumpAndOpen(
+        tester,
+        equipmentId: 'reg-1',
+        passportIdOf: tagPassportIdOf,
+        invalidText: (l10n) => l10n.tagScan_linkInvalid,
+      );
+      await submit(tester, l10n, 'https://example.com/x');
+      expect(find.text(l10n.tagScan_linkInvalid), findsOneWidget);
+    });
   });
 }
 

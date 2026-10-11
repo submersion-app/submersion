@@ -115,6 +115,29 @@ void main() {
     expect(c.courseId.value, isNull);
   });
 
+  test('the boat and surface gates write their columns (#3229)', () {
+    final c = buildScalarCompanion(
+      {
+        BulkField.diveOperator,
+        BulkField.boatName,
+        BulkField.boatCaptain,
+        BulkField.surfaceConditions,
+      },
+      BulkScalarInputs(
+        diveOperator: 'Buddy Dive',
+        boatName: 'Bonaire Breeze',
+        boatCaptain: null,
+        surfaceConditions: 'Calm',
+      ),
+    );
+    expect(c.diveOperator.value, 'Buddy Dive');
+    expect(c.boatName.value, 'Bonaire Breeze');
+    // Enabled and empty clears the column.
+    expect(c.boatCaptain.present, isTrue);
+    expect(c.boatCaptain.value, isNull);
+    expect(c.surfaceConditions.value, 'Calm');
+  });
+
   test('a bulk range writes both ends and clears measurement and bucket '
       '(issue #3226)', () {
     final c = buildScalarCompanion({

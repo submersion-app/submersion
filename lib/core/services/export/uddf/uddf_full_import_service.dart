@@ -9,11 +9,13 @@ import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_fold.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
+import 'package:submersion/core/services/export/uddf/uddf_operator_centers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -680,6 +682,7 @@ class UddfFullImportService {
     }
 
     _harvestCustomDiveTypes(dives, customDiveTypes);
+    UddfOperatorCenters.harvest(dives, diveCenters);
 
     return UddfImportResult(
       dataSourcesByDiveRef: sources.byDiveRef,
@@ -1405,10 +1408,7 @@ class UddfFullImportService {
       // Element local name -> diveData map key.
       for (final entry in const {
         'weather': 'weather',
-        'surfaceconditions': 'surfaceConditions',
-        'boatname': 'boatName',
-        'boatcaptain': 'boatCaptain',
-        'diveoperator': 'diveOperator',
+        ...UddfDiveLogistics.elementToMapKey,
       }.entries) {
         final text = UddfImportParsers.getElementText(afterElement, entry.key);
         if (text != null && text.isNotEmpty) {

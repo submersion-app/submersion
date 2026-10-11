@@ -87,6 +87,10 @@ class CsvDivesWriter {
       DiveCsvColumns.hePercent,
       DiveCsvColumns.customFields,
       DiveCsvColumns.diveTypeIds,
+      DiveCsvColumns.diveOperator,
+      DiveCsvColumns.boatName,
+      DiveCsvColumns.boatCaptain,
+      DiveCsvColumns.surfaceConditions,
       // A band-picked dive's range (issue #3226), appended for the same
       // reason as the columns above.
       units.header(CsvColumns.visibilityMin),
@@ -149,6 +153,10 @@ class CsvDivesWriter {
         sanitizeCsvField(
           dive.diveTypeIds.join(DiveCsvColumns.diveTypeSeparator),
         ),
+        sanitizeCsvField(dive.diveOperator),
+        sanitizeCsvField(dive.boatName),
+        sanitizeCsvField(dive.boatCaptain),
+        sanitizeCsvField(dive.surfaceConditions),
         // Empty beside a measurement, which every reader prefers.
         units.value(
           CsvColumns.visibilityMin,

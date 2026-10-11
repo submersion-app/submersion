@@ -130,6 +130,13 @@ class DivingLogDbReader {
     'DblTank',
   ];
 
+  /// Columns only DiveMate writes (#3110). Read when present but never
+  /// reported missing, since no Diving Log file has them.
+  static const _diveMateLogbookColumns = ['DepthAvg', 'TypeOfDive', 'Status'];
+
+  /// The `Status` DiveMate gives a dive the diver discarded.
+  static const _discardedStatus = 2;
+
   static const _tankColumns = [
     'LogID',
     'TankID',
@@ -157,7 +164,15 @@ class DivingLogDbReader {
         }
 
         final notes = <String>[];
-        final missing = caps.missingColumns('Logbook', _logbookColumns);
+        // DiveMate's TypeOfDive carries the dive type, so its file lacks
+        // nothing when Divetype is absent.
+        final missing = caps
+            .missingColumns('Logbook', _logbookColumns)
+            .where(
+              (c) =>
+                  c != 'Divetype' || !caps.hasColumn('Logbook', 'TypeOfDive'),
+            )
+            .toList();
         if (missing.isNotEmpty) {
           notes.add('Logbook is missing: ${missing.join(', ')}');
         }
@@ -204,7 +219,10 @@ class DivingLogDbReader {
         notes.addAll(DivingLogReferenceReader.schemaNotes(caps));
         final references = DivingLogReferenceReader.read(db, caps);
 
-        final selectList = caps.selectList('Logbook', _logbookColumns);
+        final selectList = caps.selectList('Logbook', [
+          ..._logbookColumns,
+          ..._diveMateLogbookColumns,
+        ]);
         if (selectList.isEmpty) {
           // Another product's table can share the name. Saying so beats
           // emitting `SELECT  FROM Logbook` and surfacing a SQL syntax error
@@ -219,11 +237,21 @@ class DivingLogDbReader {
         );
 
         final dives = <DivingLogRawDive>[];
+        var discarded = 0;
+        // `Status` as a discard flag and `Profile3` as transmitter pressures
+        // are DiveMate's meanings, so they are read only in a DiveMate file,
+        // told apart by its `TypeOfDive` column. Another Diving Log flavour
+        // with columns of those names keeps its dives and its cylinders.
+        final isDiveMate = caps.hasColumn('Logbook', 'TypeOfDive');
         for (final row in rows) {
           final uuid = rowString(row, 'UUID');
           if (uuid != null && tombstones.contains(uuid)) continue;
           final id = rowInt(row, 'ID');
           if (id == null) continue;
+          if (isDiveMate && rowInt(row, 'Status') == _discardedStatus) {
+            discarded++;
+            continue;
+          }
 
           final inline = _inlineTank(row);
           dives.add(
@@ -240,6 +268,7 @@ class DivingLogDbReader {
               divemaster: rowString(row, 'Divemaster'),
               comments: rowString(row, 'Comments'),
               depthMeters: rowDouble(row, 'Depth'),
+              avgDepthMeters: positiveOrNull(rowDouble(row, 'DepthAvg')),
               diveTimeMinutes: rowDouble(row, 'Divetime'),
               airTempCelsius: rowDouble(row, 'Airtemp'),
               waterTempCelsius: rowDouble(row, 'Watertemp'),
@@ -250,7 +279,7 @@ class DivingLogDbReader {
               supplyType: rowString(row, 'SupplyType'),
               buddyIds: parseDivingLogIdList(rowString(row, 'BuddyIDs')),
               equipmentIds: parseDivingLogIdList(rowString(row, 'UsedEquip')),
-              diveTypeIds: parseDivingLogIdList(rowString(row, 'Divetype')),
+              diveTypeIds: _diveTypeIds(row),
               placeId: rowInt(row, 'PlaceID'),
               cityId: rowInt(row, 'CityID'),
               countryId: rowInt(row, 'CountryID'),
@@ -264,6 +293,7 @@ class DivingLogDbReader {
                 profile3: rowString(row, 'Profile3'),
                 profile4: rowString(row, 'Profile4'),
                 profile5: rowString(row, 'Profile5'),
+                diveMateTransmitters: isDiveMate,
               ),
             ),
           );
@@ -285,9 +315,19 @@ class DivingLogDbReader {
           speciesById: references.species,
           speciesIdsByLogId: references.speciesIdsByLogId,
           picturesByLogId: references.picturesByLogId,
+          discardedDiveCount: discarded,
         );
       },
     );
+  }
+
+  /// Diving Log's `Divetype` id list, or DiveMate's single `TypeOfDive` id
+  /// when the list is absent or blank.
+  static List<int> _diveTypeIds(Row row) {
+    final listed = parseDivingLogIdList(rowString(row, 'Divetype'));
+    if (listed.isNotEmpty) return listed;
+    final single = rowInt(row, 'TypeOfDive');
+    return single == null || single <= 0 ? const [] : [single];
   }
 
   static Set<String> _readTombstones(Database db, DivingLogCapabilities caps) {

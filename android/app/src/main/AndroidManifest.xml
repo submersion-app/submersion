@@ -137,21 +137,25 @@
                 <data android:scheme="file" android:mimeType="application/zip"/>
                 <data android:scheme="file" android:mimeType="application/x-zip-compressed"/>
             </intent-filter>
-            <!-- Cylinder passport tags printed as https links (issue #2335). -->
+            <!-- Cylinder passport tags (/c, issue #2335) and gear tags (/g, issue
+                 #2652), printed or written as https links. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/c"/>
+                <data android:scheme="https" android:host="submersion.app" android:path="/g"/>
             </intent-filter>
-            <!-- The accepted custom-scheme form, submersion://c?<payload>. -->
+            <!-- The accepted custom-scheme forms, submersion://c?<payload> and
+                 submersion://g?<payload>. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="submersion" android:host="c"/>
+                <data android:scheme="submersion" android:host="g"/>
             </intent-filter>
-            <!-- A tapped cylinder tag opens the app directly (spec 13.3).
+            <!-- A tapped cylinder or gear tag opens the app directly (spec 13.3).
                  NFC dispatch needs only NDEF_DISCOVERED and DEFAULT. VIEW,
                  BROWSABLE and autoVerify are there for Play Console, which
                  treats any https filter as a web link and otherwise reports
@@ -162,6 +166,7 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="submersion.app" android:path="/c"/>
+                <data android:scheme="https" android:host="submersion.app" android:path="/g"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

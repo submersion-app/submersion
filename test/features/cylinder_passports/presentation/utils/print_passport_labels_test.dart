@@ -21,7 +21,14 @@ import '../../../../helpers/test_database.dart';
 void main() {
   late AppDatabase db;
 
-  Future<void> seed(String id, String type, {String? serial}) async {
+  Future<void> seed(
+    String id,
+    String type, {
+    String? serial,
+    String? brand,
+    String? model,
+    String status = 'active',
+  }) async {
     final t = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.equipment)
@@ -31,6 +38,9 @@ void main() {
             name: id == 'tank' ? 'Faber 12' : 'Apeks',
             type: type,
             serialNumber: Value(serial),
+            brand: Value(brand),
+            model: Value(model),
+            status: Value(status),
             createdAt: t,
             updatedAt: t,
           ),
@@ -107,10 +117,30 @@ void main() {
     return exported;
   }
 
-  testWidgets('one label per cylinder, other gear skipped', (tester) async {
-    final labels = await printVia(tester, ['reg', 'tank']);
-    expect(labels, hasLength(1));
-    final label = labels!.single;
+  testWidgets('a mixed selection prints both kinds (issue #2652)', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => seed(
+        'reg2',
+        'regulator',
+        serial: 'AB1',
+        brand: 'Apeks',
+        model: 'XTX50',
+      ),
+    );
+    final labels = await printVia(tester, ['reg2', 'tank']);
+    expect(labels, hasLength(2));
+    final gear = labels!.first;
+    expect(gear.title, 'Apeks');
+    expect(gear.subtitle, 'Apeks XTX50');
+    expect(gear.specLine, 'Regulator, AB1');
+    final gearId = await tester.runAsync(
+      () => CylinderPassportRepository().getPassportId('reg2'),
+    );
+    expect(gearId, isNotNull);
+    expect(gear.url, startsWith('https://submersion.app/g#f=1&p=$gearId'));
+    final label = labels.last;
     expect(label.title, 'Faber 12');
     expect(label.subtitle, 'S12-A F123');
     expect(label.specLine, '12 L, 232 bar, Steel');
@@ -160,14 +190,20 @@ void main() {
     expect(labels!.single.specLine, startsWith('${rated.round()} cuft, '));
   });
 
-  testWidgets('a selection with no cylinder exports nothing', (tester) async {
-    expect(await printVia(tester, ['reg']), isNull);
+  testWidgets('a selection of only wanted gear exports nothing', (
+    tester,
+  ) async {
+    await tester.runAsync(() => seed('wish', 'regulator', status: 'wanted'));
+    expect(await printVia(tester, ['wish']), isNull);
   });
 
   testWidgets('labels follow the selection order', (tester) async {
     await tester.runAsync(() => seed('spare', 'tank', serial: 'S9'));
     final labels = await printVia(tester, ['spare', 'reg', 'tank']);
-    expect(labels!.map((l) => l.title), ['Apeks', 'Faber 12']);
+    expect(
+      [for (final l in labels!) Uri.parse(l.url).path],
+      ['/c', '/g', '/c'],
+    );
   });
 
   testWidgets('the share sheet anchors on the given widget', (tester) async {
