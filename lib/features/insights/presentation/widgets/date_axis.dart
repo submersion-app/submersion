@@ -115,14 +115,18 @@ class DateAxis {
 
     final text = _format(_dateOf(value));
 
-    // The previously drawn label is one step back, or the lower bound when
-    // that step would fall outside the axis. fl_chart does not anchor its
-    // step sequence at min, so the first derived label can sit less than a
-    // step from the bound: without the clamp that pair goes uncompared, which
-    // is exactly how "Sep Sep" survived.
-    var previous = value - (step ?? labelInterval);
+    // The previous slot is the last multiple of the step below [value], or
+    // the lower bound when that falls outside the axis: fl_chart lays its
+    // slots on multiples of the step, not from min, so the first derived
+    // label can sit less than a step from the bound (without the clamp that
+    // pair goes uncompared, which is how "Sep Sep" survived), and the label
+    // at max sits less than a step from the last slot. A slot that draws
+    // nothing, such as one inside a collapsed gap (issue #3251), is no
+    // duplicate to drop against.
+    final s = step ?? labelInterval;
+    var previous = ((value / s - 1e-9).ceil() - 1) * s;
     if (previous < min) previous = min;
-    if (previous < value && showsLabelAt(previous)) {
+    if (previous < value && showsLabelAt(previous) && !_crowdsBreak(previous)) {
       if (_format(_dateOf(previous)) == text) return null;
     }
     return text;

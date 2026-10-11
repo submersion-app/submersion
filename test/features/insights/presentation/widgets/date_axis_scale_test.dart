@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -142,5 +144,46 @@ void main() {
     // Just inside each margin, outside the hatched band.
     expect(axis.labelFor(gapStart + (b.axisStart - gapStart) * 0.9), isNull);
     expect(axis.labelFor(b.axisEnd + (gapEnd - b.axisEnd) * 0.1), isNull);
+  });
+
+  test('the period after a gap keeps its labels where fl_chart puts them', () {
+    // Five years of diving, a six-year break, a year and a half more, on a
+    // desktop-width plot; seeded so the label slots land where the
+    // screenshot that showed the bug had them. fl_chart draws labels at
+    // min, at multiples of the interval, and at max.
+    final rnd = math.Random(7);
+    final dates = <DateTime>[];
+    for (
+      var d = DateTime.utc(2013, 3, 1);
+      d.isBefore(DateTime.utc(2018, 9, 1));
+      d = d.add(Duration(days: 2 + rnd.nextInt(d.year < 2016 ? 6 : 30)))
+    ) {
+      rnd.nextDouble();
+      dates.add(d);
+    }
+    for (
+      var d = DateTime.utc(2025, 3, 20);
+      d.isBefore(DateTime.utc(2026, 9, 30));
+      d = d.add(Duration(days: 2 + rnd.nextInt(14)))
+    ) {
+      rnd.nextDouble();
+      dates.add(d);
+    }
+    final scale = TrendTimeScale.build(dates, TrendGapThreshold.year1);
+    final lo = scale.toAxis(dates.first);
+    final hi = scale.toAxis(dates.last);
+    final axis = DateAxis.forAxisRange(lo, hi, scale: scale, plotWidth: 794);
+    final step = axis.labelInterval;
+    final slots = [
+      lo,
+      for (var k = (lo / step).ceil(); k * step < hi; k++)
+        if (k * step > lo) k * step,
+      hi,
+    ];
+    final after = [
+      for (final x in slots)
+        if (x > scale.breaks.single.axisEnd) axis.labelFor(x, step: step),
+    ].whereType<String>();
+    expect(after, isNotEmpty);
   });
 }
