@@ -870,6 +870,41 @@ void main() {
           expect(selected(), {0});
         });
 
+        test('skipping one of three copies does not bring the kept one back '
+            'while another copy is kept', () {
+          // Dives 1 and 2 are both copies of dive 0.
+          const copyOf0 = DiveMatchResult(
+            diveId: '',
+            inBatchIndex: 0,
+            score: 1.0,
+            timeDifferenceMs: 0,
+          );
+          notifier.setBundle(
+            buildBundle(
+              diveItems: [
+                makeItem('Dive 0'),
+                makeItem('Dive 1'),
+                makeItem('Dive 2'),
+              ],
+              diveDuplicateIndices: {1, 2},
+              diveMatchResults: {1: copyOf0, 2: copyOf0},
+            ),
+          );
+          for (final i in [1, 2]) {
+            notifier.setDuplicateAction(
+              ImportEntityType.dives,
+              i,
+              DuplicateAction.importAsNew,
+            );
+          }
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.skip,
+          );
+          expect(selected(), {2});
+        });
+
         test('a partner that is itself flagged keeps its own decision', () {
           // Dive 0 matches a stored dive and the diver chose to import it;
           // dive 1 is an in-batch copy of dive 0.

@@ -801,9 +801,17 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     final group = state.bundle?.groups[type];
     final partner = group?.matchResults?[index]?.inBatchIndex;
     if (partner != null && !group!.duplicateIndices.contains(partner)) {
+      // Another copy of the same dive still kept means the partner stays
+      // out: bringing it back would import that dive twice.
+      final anotherCopyKept = updatedActions.entries.any(
+        (e) =>
+            e.key != index &&
+            e.value == DuplicateAction.importAsNew &&
+            group.matchResults?[e.key]?.inBatchIndex == partner,
+      );
       if (action == DuplicateAction.importAsNew) {
         currentSelection.remove(partner);
-      } else if (action == DuplicateAction.skip) {
+      } else if (action == DuplicateAction.skip && !anotherCopyKept) {
         currentSelection.add(partner);
       }
     }
