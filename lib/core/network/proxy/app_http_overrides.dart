@@ -41,6 +41,27 @@ class AppHttpOverrides extends HttpOverrides {
        _shouldProxy = shouldProxy,
        _fallbackContext = fallbackContext;
 
+  /// Per-client certificate checks set with [setBadCertificateCallback].
+  static final Expando<BadCertificateCallback> _badCertificateCallbacks =
+      Expando('badCertificateCallback');
+
+  /// Lets [client] accept a certificate that fails normal verification
+  /// when [callback] returns true.
+  ///
+  /// `HttpClient.badCertificateCallback` alone is not enough here: dart:io
+  /// consults it only when it opens the TLS socket itself, and this class's
+  /// connection factory opens the socket for direct and SOCKS5 connections.
+  /// The callback is stored for the factory as well as set on the client,
+  /// which still covers the HTTP-proxy path, where dart:io runs TLS through
+  /// the CONNECT tunnel, and clients this class did not create.
+  static void setBadCertificateCallback(
+    HttpClient client,
+    BadCertificateCallback callback,
+  ) {
+    client.badCertificateCallback = callback;
+    _badCertificateCallbacks[client] = callback;
+  }
+
   final EffectiveProxy Function() _currentProxy;
   final ProxyRoutingPolicy _shouldProxy;
   final SecurityContext? Function() _fallbackContext;
@@ -57,7 +78,7 @@ class AppHttpOverrides extends HttpOverrides {
       return proxyDirective(proxy);
     };
     client.connectionFactory = (url, proxyHost, proxyPort) =>
-        _connect(url, proxyHost, proxyPort, effectiveContext);
+        _connect(url, proxyHost, proxyPort, effectiveContext, client);
     return client;
   }
 
@@ -66,6 +87,7 @@ class AppHttpOverrides extends HttpOverrides {
     String? proxyHost,
     int? proxyPort,
     SecurityContext? context,
+    HttpClient client,
   ) {
     // An HTTP proxy: a plain socket to it; dart:io speaks to the proxy and
     // runs the CONNECT tunnel and TLS itself.
@@ -74,6 +96,10 @@ class AppHttpOverrides extends HttpOverrides {
     }
     final secure = url.isScheme('https');
     final port = url.hasPort ? url.port : (secure ? 443 : 80);
+    final check = _badCertificateCallbacks[client];
+    final onBadCertificate = check == null
+        ? null
+        : (X509Certificate cert) => check(cert, url.host, port);
     final proxy = _currentProxy();
     if (proxy.kind == ProxyKind.socks5 && _shouldProxy(url, proxy)) {
       var cancelled = false;
@@ -105,6 +131,7 @@ class AppHttpOverrides extends HttpOverrides {
           tunnel.socket,
           host: url.host,
           context: context,
+          onBadCertificate: onBadCertificate,
         );
       }();
       return Future.value(
@@ -113,7 +140,12 @@ class AppHttpOverrides extends HttpOverrides {
     }
     // Direct: exactly what dart:io does without a factory.
     return secure
-        ? SecureSocket.startConnect(url.host, port, context: context)
+        ? SecureSocket.startConnect(
+            url.host,
+            port,
+            context: context,
+            onBadCertificate: onBadCertificate,
+          )
         : Socket.startConnect(url.host, port);
   }
 }

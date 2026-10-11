@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 
+import 'package:submersion/core/network/proxy/app_http_overrides.dart';
 import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 
@@ -127,7 +128,10 @@ class CertificateTrustRecorder {
 /// large upload on a slow link.
 http.Client createWebDavHttpClient(CertificateTrustRecorder recorder) {
   final inner = HttpClient()
-    ..connectionTimeout = TimeoutHttpClient.defaultConnectTimeout
-    ..badCertificateCallback = recorder.onBadCertificate;
+    ..connectionTimeout = TimeoutHttpClient.defaultConnectTimeout;
+  // Through AppHttpOverrides, not the client's own setter: the app's proxy
+  // support opens direct and SOCKS5 TLS sockets itself, where dart:io never
+  // consults HttpClient.badCertificateCallback.
+  AppHttpOverrides.setBadCertificateCallback(inner, recorder.onBadCertificate);
   return IOClient(inner);
 }
