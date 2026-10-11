@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
@@ -209,6 +210,36 @@ void main() {
       LineBarSpot(bar, 0, bar.spots.first),
     ]);
     expect(items.first!.text, 'No dives: Dec 18, 2013 to Jan 1, 2020');
+  });
+
+  testWidgets('a real hover over the band reads No dives', (tester) async {
+    // End to end through fl_chart's touch response, no debug setter: the
+    // pointer position it reports must be in axis units for breakAt.
+    await tester.pumpWidget(
+      host(
+        DiveTrendChart(points: points, gapThreshold: TrendGapThreshold.year1),
+      ),
+    );
+    final state = chartState(tester);
+    final b = state.debugScale.breaks.single;
+    final data = readData(tester);
+    final chart = tester.getRect(find.byType(LineChart));
+    // The plot spans the chart minus the 50px left titles.
+    final plotLeft = chart.left + 50;
+    final plotWidth = chart.width - 50;
+    final fx =
+        ((b.axisStart + b.axisEnd) / 2 - data.minX) / (data.maxX - data.minX);
+    final x = plotLeft + fx * plotWidth;
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(gesture.removePointer);
+    await gesture.addPointer(location: Offset(x, chart.top + 40));
+    await gesture.moveTo(Offset(x, chart.top + 41));
+    await tester.pump();
+
+    final bar = readData(tester).lineBarsData.first;
+    final items = readData(tester).lineTouchData.touchTooltipData
+        .getTooltipItems([LineBarSpot(bar, 0, bar.spots.first)]);
+    expect(items.first!.text, startsWith('No dives:'));
   });
 
   testWidgets('the readout over the data shows the real date', (tester) async {

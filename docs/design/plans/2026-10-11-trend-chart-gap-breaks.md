@@ -10,6 +10,8 @@
 
 **Spec:** `docs/design/specs/2026-10-11-trend-chart-gap-breaks-design.md`
 
+> **Schema note:** this plan was written against v278. Main shipped v278 first (issue #3226), so the rung landed as **v279**; read every v278 and 277 below as v279 and 278.
+
 ## Global Constraints
 
 - Threshold choices: Off (0), 6 months (6), 1 year (12, the default), 2 years (24). Any other stored or synced value reads as 1 year.
