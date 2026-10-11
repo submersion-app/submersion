@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/features/maps/domain/region_size_estimate.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -33,17 +33,28 @@ class RegionDownloadDialog extends ConsumerStatefulWidget {
 class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
   final _nameController = TextEditingController();
   int _minZoom = 8;
-  int _maxZoom = 16;
+  // Overview by default: a planning-sized download. The deeper levels hold
+  // about three quarters of all tiles, so 16 was a very heavy default.
+  int _maxZoom = 12;
   bool _isEstimating = false;
   bool _isLoadingName = false;
   int? _estimatedTiles;
 
-  /// Default tile layer options using the selected map style.
-  TileLayer get _tileLayerOptions => TileLayer(
-    urlTemplate: ref.watch(mapTileUrlProvider),
-    userAgentPackageName: 'app.submersion',
-    maxZoom: ref.watch(mapTileMaxZoomProvider),
-  );
+  /// Above this many tiles the Download button is disabled: a request this big
+  /// takes hours and is heavy use of a public tile server.
+  static const int _maxTiles = 100000;
+
+  bool get _overLimit => (_estimatedTiles ?? 0) > _maxTiles;
+
+  /// Download needs a count for the current zoom levels, and it has to be
+  /// within the limit. No count (still estimating, or the estimate failed)
+  /// blocks it: the limit protects a public tile server, so it fails closed.
+  bool get _canDownload =>
+      !_isEstimating && _estimatedTiles != null && !_overLimit;
+
+  /// Counts the estimates started, so a slow earlier one cannot overwrite the
+  /// count of a later one.
+  int _estimateRequest = 0;
 
   @override
   void initState() {
@@ -104,7 +115,13 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
   }
 
   Future<void> _estimateTiles() async {
-    setState(() => _isEstimating = true);
+    // The previous count belongs to other zoom levels: drop it first, so
+    // Download can never act on it while the new estimate runs.
+    final request = ++_estimateRequest;
+    setState(() {
+      _isEstimating = true;
+      _estimatedTiles = null;
+    });
 
     try {
       final service = ref.read(tileCacheServiceProvider);
@@ -113,25 +130,30 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
         northEast: widget.northEast,
         minZoom: _minZoom,
         maxZoom: _maxZoom,
-        options: _tileLayerOptions,
+        urlTemplate: ref.read(mapTileUrlProvider),
       );
 
-      if (mounted) {
+      if (mounted && request == _estimateRequest) {
         setState(() {
           _estimatedTiles = count;
           _isEstimating = false;
         });
       }
     } catch (e) {
-      if (mounted) {
+      // No count: Download stays disabled and the card says it is unavailable.
+      if (mounted && request == _estimateRequest) {
         setState(() => _isEstimating = false);
       }
     }
   }
 
   String _formatEstimatedSize(int tiles) {
-    // Rough estimate: ~30KB per tile on average for map tiles
-    final bytes = tiles * 30 * 1024;
+    // Learned from the regions already downloaded (their measured bytes per
+    // tile), because real tiles average far below a flat guess: open water is
+    // mostly skipped or tiny. With no measured region it is the generous flat
+    // 30 KB per tile.
+    final regions = ref.watch(cachedRegionsProvider).value ?? const [];
+    final bytes = estimateRegionBytes(tiles, regions);
     if (bytes < 1024 * 1024) {
       return '${(bytes / 1024).toStringAsFixed(0)} KB';
     }
@@ -139,6 +161,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
   }
 
   Future<void> _startDownload() async {
+    if (!_canDownload) return;
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -160,7 +183,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
           maxLng: widget.northEast.longitude,
           minZoom: _minZoom,
           maxZoom: _maxZoom,
-          tileLayerOptions: _tileLayerOptions,
+          urlTemplate: ref.read(mapTileUrlProvider),
         );
   }
 
@@ -209,6 +232,30 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
+            ),
+            const SizedBox(height: 8),
+            // Quality presets: each is just a max zoom (min stays 8). Every
+            // extra level is about four times the tiles.
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final preset in [
+                  (l10n.maps_regionDownload_presetOverview, 12),
+                  (l10n.maps_regionDownload_presetDetail, 14),
+                  (l10n.maps_regionDownload_presetFull, 16),
+                ])
+                  ChoiceChip(
+                    label: Text(preset.$1),
+                    selected: _minZoom == 8 && _maxZoom == preset.$2,
+                    onSelected: (_) {
+                      setState(() {
+                        _minZoom = 8;
+                        _maxZoom = preset.$2;
+                      });
+                      _estimateTiles();
+                    },
+                  ),
+              ],
             ),
             const SizedBox(height: 8),
             Row(
@@ -322,7 +369,9 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
             ),
 
             // Warning for large downloads
-            if (_estimatedTiles != null && _estimatedTiles! > 10000)
+            if (_estimatedTiles != null &&
+                _estimatedTiles! > 10000 &&
+                !_overLimit)
               Semantics(
                 label: l10n.maps_regionDownload_largeWarningSemantics,
                 child: Padding(
@@ -348,6 +397,17 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
                   ),
                 ),
               ),
+            if (_overLimit)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  l10n.maps_regionDownload_tooManyTiles,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -357,7 +417,7 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
           child: Text(l10n.common_action_cancel),
         ),
         FilledButton.icon(
-          onPressed: _startDownload,
+          onPressed: _canDownload ? _startDownload : null,
           icon: const Icon(Icons.download),
           label: Text(l10n.maps_regionDownload_downloadButton),
         ),

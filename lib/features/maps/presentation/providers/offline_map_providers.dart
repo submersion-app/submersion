@@ -1,4 +1,3 @@
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/maps/data/repositories/offline_map_repository.dart';
@@ -122,8 +121,7 @@ class DownloadProgressNotifier extends StateNotifier<DownloadState> {
 
   /// Download tiles for a rectangular region into a store of its own.
   ///
-  /// The [tileLayerOptions] should be configured with the URL template
-  /// for the tile server (e.g., OpenStreetMap).
+  /// [urlTemplate] is the tile server's URL template (e.g., OpenStreetMap).
   ///
   /// The region's id is minted here, before the download, because the store
   /// that holds its tiles is named after it. Everything after that point is
@@ -138,7 +136,7 @@ class DownloadProgressNotifier extends StateNotifier<DownloadState> {
     required double maxLng,
     required int minZoom,
     required int maxZoom,
-    required TileLayer tileLayerOptions,
+    required String urlTemplate,
   }) async {
     final regionId = _uuid.v4();
     // A cancellation belongs to the download it was aimed at. The service
@@ -167,7 +165,7 @@ class DownloadProgressNotifier extends StateNotifier<DownloadState> {
         northEast: LatLng(maxLat, maxLng),
         minZoom: minZoom,
         maxZoom: maxZoom,
-        options: tileLayerOptions,
+        urlTemplate: urlTemplate,
       );
 
       // Cancelling during setup used to be a cancel in name only. The
@@ -347,7 +345,7 @@ final tileCountEstimateProvider =
         LatLng northEast,
         int minZoom,
         int maxZoom,
-        TileLayer options,
+        String urlTemplate,
       })
     >((ref, params) async {
       final service = ref.watch(tileCacheServiceProvider);
@@ -356,7 +354,7 @@ final tileCountEstimateProvider =
         northEast: params.northEast,
         minZoom: params.minZoom,
         maxZoom: params.maxZoom,
-        options: params.options,
+        urlTemplate: params.urlTemplate,
       );
     });
 

@@ -45923,6 +45923,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get maps_regionDownload_downloadButton => 'Downloaden';
 
   @override
+  String get maps_regionDownload_presetOverview => 'Overzicht';
+
+  @override
+  String get maps_regionDownload_presetDetail => 'Detail';
+
+  @override
+  String get maps_regionDownload_presetFull => 'Volledig';
+
+  @override
+  String get maps_regionDownload_tooManyTiles =>
+      'Meer dan 100.000 tegels: verklein het gebied of verlaag de maximale zoom.';
+
+  @override
   String get diveLog_map_title => 'Duikactiviteit';
 
   @override

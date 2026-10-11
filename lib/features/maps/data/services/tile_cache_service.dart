@@ -9,6 +9,7 @@ import 'package:http/io_client.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/maps/data/services/region_download_layer.dart';
 
 /// Statistics about the tile cache.
 class CacheStats {
@@ -493,16 +494,22 @@ class TileCacheService {
     required LatLng northEast,
     required int minZoom,
     required int maxZoom,
-    required TileLayer options,
+    required String urlTemplate,
   }) async {
     _ensureInitialized();
 
     final bounds = LatLngBounds(southWest, northEast);
     final region = RectangleRegion(bounds);
+    // Built here, never taken from the caller: FMTC copies this layer to its
+    // download isolate, and only a layer with a client-free provider can be
+    // sent (see [DownloadTileProvider]).
     final downloadableRegion = region.toDownloadable(
       minZoom: minZoom,
       maxZoom: maxZoom,
-      options: options,
+      options: regionDownloadTileLayer(
+        urlTemplate: urlTemplate,
+        maxZoom: maxZoom.toDouble(),
+      ),
     );
 
     return await _store!.download.countTiles(downloadableRegion);
@@ -526,7 +533,7 @@ class TileCacheService {
     required LatLng northEast,
     required int minZoom,
     required int maxZoom,
-    required TileLayer options,
+    required String urlTemplate,
     int parallelThreads = 5,
     bool skipExistingTiles = true,
   }) async {
@@ -544,10 +551,16 @@ class TileCacheService {
 
     final bounds = LatLngBounds(southWest, northEast);
     final region = RectangleRegion(bounds);
+    // Built here, never taken from the caller: FMTC copies this layer to its
+    // download isolate, and only a layer with a client-free provider can be
+    // sent (see [DownloadTileProvider]).
     final downloadableRegion = region.toDownloadable(
       minZoom: minZoom,
       maxZoom: maxZoom,
-      options: options,
+      options: regionDownloadTileLayer(
+        urlTemplate: urlTemplate,
+        maxZoom: maxZoom.toDouble(),
+      ),
     );
 
     // Protected from the orphan sweep from here until the caller records the

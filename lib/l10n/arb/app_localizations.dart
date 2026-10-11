@@ -73525,6 +73525,30 @@ abstract class AppLocalizations {
   /// **'Download'**
   String get maps_regionDownload_downloadButton;
 
+  /// No description provided for @maps_regionDownload_presetOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get maps_regionDownload_presetOverview;
+
+  /// No description provided for @maps_regionDownload_presetDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Detail'**
+  String get maps_regionDownload_presetDetail;
+
+  /// No description provided for @maps_regionDownload_presetFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get maps_regionDownload_presetFull;
+
+  /// No description provided for @maps_regionDownload_tooManyTiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 100,000 tiles: shrink the area or lower the maximum zoom.'**
+  String get maps_regionDownload_tooManyTiles;
+
   /// No description provided for @diveLog_map_title.
   ///
   /// In en, this message translates to:

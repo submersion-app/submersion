@@ -46120,6 +46120,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get maps_regionDownload_downloadButton => 'Herunterladen';
 
   @override
+  String get maps_regionDownload_presetOverview => 'Übersicht';
+
+  @override
+  String get maps_regionDownload_presetDetail => 'Detail';
+
+  @override
+  String get maps_regionDownload_presetFull => 'Vollständig';
+
+  @override
+  String get maps_regionDownload_tooManyTiles =>
+      'Über 100.000 Kacheln: Verkleinern Sie den Bereich oder senken Sie den maximalen Zoom.';
+
+  @override
   String get diveLog_map_title => 'Tauchaktivität';
 
   @override

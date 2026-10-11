@@ -45965,6 +45965,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get maps_regionDownload_downloadButton => 'Letöltés';
 
   @override
+  String get maps_regionDownload_presetOverview => 'Áttekintés';
+
+  @override
+  String get maps_regionDownload_presetDetail => 'Részletek';
+
+  @override
+  String get maps_regionDownload_presetFull => 'Teljes';
+
+  @override
+  String get maps_regionDownload_tooManyTiles =>
+      '100 000-nél több csempe: csökkentse a területet vagy a maximális nagyítást.';
+
+  @override
   String get diveLog_map_title => 'Merülési tevékenység';
 
   @override

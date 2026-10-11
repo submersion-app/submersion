@@ -45265,6 +45265,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_regionDownload_downloadButton => 'הורדה';
 
   @override
+  String get maps_regionDownload_presetOverview => 'סקירה';
+
+  @override
+  String get maps_regionDownload_presetDetail => 'פירוט';
+
+  @override
+  String get maps_regionDownload_presetFull => 'מלא';
+
+  @override
+  String get maps_regionDownload_tooManyTiles =>
+      'יותר מ-100,000 אריחים: הקטן את האזור או הנמך את הזום המרבי.';
+
+  @override
   String get diveLog_map_title => 'פעילות צלילה';
 
   @override
