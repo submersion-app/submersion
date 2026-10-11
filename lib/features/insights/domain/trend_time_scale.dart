@@ -127,10 +127,13 @@ class TrendTimeScale {
   /// wall-clock fields, so a local and a UTC date for the same moment agree.
   static int _addMonths(int ms, int months) {
     final d = DateTime.fromMillisecondsSinceEpoch(ms, isUtc: true);
+    // Day 0 of the month after the target is the target's last day, so Aug
+    // 31 plus six months clamps to Feb 28 instead of rolling into March.
+    final lastDay = DateTime.utc(d.year, d.month + months + 1, 0).day;
     return DateTime.utc(
       d.year,
       d.month + months,
-      d.day,
+      d.day > lastDay ? lastDay : d.day,
       d.hour,
       d.minute,
       d.second,

@@ -63,6 +63,16 @@ void main() {
       expect(s.breaks, hasLength(1));
     });
 
+    test('month arithmetic clamps to the end of a short month', () {
+      // Aug 31 plus six months is Feb 28, not Mar 3: a dive on Mar 2 is past
+      // the threshold.
+      final s = TrendTimeScale.build([
+        DateTime.utc(2021, 8, 31),
+        DateTime.utc(2022, 3, 2),
+      ], TrendGapThreshold.months6);
+      expect(s.breaks, hasLength(1));
+    });
+
     test('six months collapses what a year keeps', () {
       final dates = [DateTime.utc(2020, 1, 1), DateTime.utc(2020, 9, 1)];
       expect(
