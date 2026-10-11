@@ -21,6 +21,7 @@
 - [Certifications & Courses](certifications-and-courses.md)
 - [Equipment](equipment.md)
 - [Cylinder Passports](cylinder-passports.md)
+- [Gear Tags](gear-tags.md)
 - [Diver Profile & Multi-Diver](diver-profile.md)
 
 **Insights & Planning**

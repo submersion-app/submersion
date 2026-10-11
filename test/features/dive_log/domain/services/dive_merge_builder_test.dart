@@ -284,6 +284,24 @@ void main() {
   });
 
   group('build - metadata', () {
+    test('boat fields and surface conditions: first non-null wins (#3229)', () {
+      final a = dive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+      ).copyWith(boatName: 'Bonaire Breeze', surfaceConditions: 'Calm');
+      final b = dive('b', entry: DateTime.utc(2026, 7, 1, 10)).copyWith(
+        boatName: 'Other boat',
+        boatCaptain: 'Rik',
+        diveOperator: 'Buddy Dive',
+        surfaceConditions: 'Choppy',
+      );
+      final merged = builder.build([b, a]).mergedDive; // unsorted input
+      expect(merged.boatName, 'Bonaire Breeze');
+      expect(merged.surfaceConditions, 'Calm');
+      expect(merged.boatCaptain, 'Rik'); // a has none -> filled from b
+      expect(merged.diveOperator, 'Buddy Dive');
+    });
+
     test('first non-empty wins in chronological order', () {
       final a = dive('a', entry: DateTime.utc(2026, 7, 1, 9)).copyWith(
         rating: 4,

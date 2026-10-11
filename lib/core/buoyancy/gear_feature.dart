@@ -83,13 +83,18 @@ class GearFeature extends Equatable {
         prior = attributed;
         strength = _attributeStrength;
       } else {
-        final legacyMm = type == EquipmentType.wetsuit
+        final legacyMm =
+            type == EquipmentType.wetsuit || type == EquipmentType.vest
             ? _legacyWetsuitThicknessMm(name, size, thickness)
             : null;
         if (legacyMm != null) {
           // A thickness parsed from free text carries real information, so
           // it gets the same intermediate trust as attribute-derived priors.
-          prior = legacyMm.clamp(0.0, 10.0);
+          // A vest (#3108) imported as "7mm ice vest" reads the same way, at
+          // its torso-only rate.
+          prior = type == EquipmentType.vest
+              ? _vestPrior(legacyMm, traits?.hooded)
+              : legacyMm.clamp(0.0, 10.0);
           strength = _attributeStrength;
         } else {
           prior = _typeDefault(type);
@@ -129,13 +134,28 @@ class GearFeature extends Equatable {
         };
       case EquipmentType.hood:
         if (mm == null) return null;
-        return (0.10 * mm).clamp(0.0, 2.0);
+        return (_hoodKgPerMm * mm).clamp(0.0, 2.0);
+      // A vest (#3108) covers the torso only: about a third of a full suit's
+      // neoprene, below the shorty's 0.55 because it has no legs or sleeves.
+      // An attached hood adds what a separate hood of that thickness would.
+      case EquipmentType.vest:
+        if (mm == null) return null;
+        return _vestPrior(mm, t.hooded);
       case EquipmentType.gloves:
         if (mm == null) return null;
         return (0.06 * mm * _gloveTypeFactor(t.gloveType)).clamp(0.0, 2.0);
       case EquipmentType.boots:
         if (mm == null) return null;
         return (0.12 * mm).clamp(0.0, 2.0);
+      // Socks (#2900). A drysuit sock sits inside the suit's air, so it
+      // shifts lead by a notch whatever its loft. A neoprene sock is half a
+      // boot of the same thickness, with no sole, and a thickness with no
+      // stated kind is read as neoprene: only neoprene is sold by the mm.
+      // The 15 mm thickness clamp already bounds it at 0.9 kg.
+      case EquipmentType.socks:
+        if (t.sockType == 'drysuit') return 0.05;
+        if (mm == null) return null;
+        return 0.06 * mm;
       // The drysuit layers (#1537). Undergarments are rated by warmth rather
       // than by millimetres, so the ladder reads insulationLevel instead of
       // thickness. The undersuit range is the delta a drysuit diver actually
@@ -213,6 +233,16 @@ class GearFeature extends Equatable {
   static double? _finiteOrNull(double? v) =>
       (v != null && v.isFinite) ? v : null;
 
+  // Lift per millimetre of neoprene: a hood's, and a torso-only vest's.
+  static const double _hoodKgPerMm = 0.10;
+  static const double _vestKgPerMm = 0.35;
+
+  /// A vest's lift for [mm] of neoprene, with the hood's when [hooded].
+  static double _vestPrior(double mm, bool? hooded) {
+    final hood = hooded == true ? _hoodKgPerMm * mm : 0.0;
+    return (_vestKgPerMm * mm + hood).clamp(0.0, 5.0);
+  }
+
   static double _suitStyleFactor(String? style) => switch (style) {
     'semi_dry' => 1.1,
     'two_piece' => 1.35,
@@ -250,8 +280,10 @@ class GearFeature extends Equatable {
     EquipmentType.baselayer => 0.2,
     EquipmentType.bcd => -0.5,
     EquipmentType.hood => 0.3,
+    EquipmentType.vest => 1.0,
     EquipmentType.gloves => 0.2,
     EquipmentType.boots => 0.4,
+    EquipmentType.socks => 0.15,
     // Stated rather than left to the fallthrough, which already returns 0.0:
     // gear twins (v175) make this a case readers will look for.
     EquipmentType.computer => 0.0,
@@ -263,6 +295,8 @@ class GearFeature extends Equatable {
     EquipmentType.drysuit => 3.0,
     EquipmentType.undersuit => 1.5,
     EquipmentType.baselayer => 0.4,
+    EquipmentType.socks => 0.1,
+    EquipmentType.vest => 0.8,
     EquipmentType.bcd => 3.5,
     // Rig accessories (#1877) weigh a fraction of the 0.5 kg fallthrough, and
     // divers log several. The weight pocket is the empty pouch: the lead

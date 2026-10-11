@@ -24,6 +24,7 @@ class TripSection extends StatelessWidget {
     this.tripSuggestion,
     this.centerCaption,
     this.centerChild,
+    this.logisticsRows = const [],
   });
 
   final bool expanded;
@@ -49,6 +50,10 @@ class TripSection extends StatelessWidget {
   /// Rendered under the dive center row when a center is selected: the
   /// "last time here" rental memory card (issue #2075).
   final Widget? centerChild;
+
+  /// Free-text rows under the dive center: operator, boat and captain
+  /// (#3229). Page-built, like the Conditions group's row lists.
+  final List<Widget> logisticsRows;
 
   Widget _caption(BuildContext context, String text) {
     final theme = Theme.of(context);
@@ -118,6 +123,7 @@ class TripSection extends StatelessWidget {
               ),
           ],
         ),
+        ...logisticsRows,
       ],
     );
   }

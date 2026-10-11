@@ -15,7 +15,7 @@ void main() {
       // 2026-09-10-underwater-nav-track-design.md, "Dive detail section").
       // Its localized switches use plain English literals rather than new
       // ARB keys, on purpose -- a later l10n pass adds those, per the spec.
-      expect(DiveDetailSectionId.values.length, 24);
+      expect(DiveDetailSectionId.values.length, 25);
     });
 
     test('values match expected IDs', () {
@@ -245,9 +245,15 @@ void main() {
       ];
       final result = DiveDetailSectionConfig.ensureAllSections(saved);
       final ids = result.map((s) => s.id).toList();
+      // Documents (issue #2613) sits between them in the canonical order,
+      // and is unsaved too, so both follow Notes in that order.
+      expect(
+        ids.indexOf(DiveDetailSectionId.documents),
+        ids.indexOf(DiveDetailSectionId.notes) + 1,
+      );
       expect(
         ids.indexOf(DiveDetailSectionId.customFields),
-        ids.indexOf(DiveDetailSectionId.notes) + 1,
+        ids.indexOf(DiveDetailSectionId.notes) + 2,
       );
     });
 

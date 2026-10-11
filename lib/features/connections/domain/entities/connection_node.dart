@@ -41,6 +41,7 @@ class ConnectionNode extends Equatable {
     required this.ref,
     required this.label,
     required this.diveCount,
+    this.firstDiveAt,
     this.subtitle,
     this.photo,
     this.hop,
@@ -51,6 +52,11 @@ class ConnectionNode extends Equatable {
 
   /// Distinct dives this entity has within the query's scope and filter.
   final int diveCount;
+
+  /// The earliest dive this entity has within the query's scope and filter,
+  /// as wall-clock UTC (read the fields, never convert to local). Null for
+  /// a node built without one, such as a focus with no dive in scope.
+  final DateTime? firstDiveAt;
   final NodeSubtitle? subtitle;
 
   /// Buddy photo bytes when the buddy has one; null for every other kind.
@@ -64,6 +70,7 @@ class ConnectionNode extends Equatable {
     NodeRef? ref,
     String? label,
     int? diveCount,
+    DateTime? firstDiveAt,
     NodeSubtitle? subtitle,
     Uint8List? photo,
     int? hop,
@@ -72,6 +79,7 @@ class ConnectionNode extends Equatable {
       ref: ref ?? this.ref,
       label: label ?? this.label,
       diveCount: diveCount ?? this.diveCount,
+      firstDiveAt: firstDiveAt ?? this.firstDiveAt,
       subtitle: subtitle ?? this.subtitle,
       photo: photo ?? this.photo,
       hop: hop ?? this.hop,
@@ -85,6 +93,7 @@ class ConnectionNode extends Equatable {
     ref,
     label,
     diveCount,
+    firstDiveAt,
     hop,
     subtitle,
     _PhotoIdentity(photo),

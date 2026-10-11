@@ -220,6 +220,128 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_highlight_recency => '新近程度';
 
   @override
+  String get connections_display_title => '显示';
+
+  @override
+  String get connections_layout_title => '布局';
+
+  @override
+  String get connections_layout_web => '网状';
+
+  @override
+  String get connections_layout_radial => '放射状';
+
+  @override
+  String get connections_layout_circle => '环形';
+
+  @override
+  String get connections_layout_columns => '分列';
+
+  @override
+  String get connections_layout_clusters => '聚类';
+
+  @override
+  String get connections_layout_timeline => '时间线';
+
+  @override
+  String get connections_labels_title => '标签';
+
+  @override
+  String get connections_labels_auto => '自动';
+
+  @override
+  String get connections_labels_all => '全部';
+
+  @override
+  String get connections_labels_off => '关闭';
+
+  @override
+  String get connections_nodeSize_title => '节点大小';
+
+  @override
+  String get connections_nodeSize_byDives => '按潜水次数';
+
+  @override
+  String get connections_nodeSize_uniform => '统一';
+
+  @override
+  String get connections_edges_title => '连线';
+
+  @override
+  String get connections_edges_weighted => '加权';
+
+  @override
+  String get connections_edges_thin => '细线';
+
+  @override
+  String get connections_edges_selectedOnly => '仅选中项';
+
+  @override
+  String get connections_hideUnconnected => '隐藏无关联项';
+
+  @override
+  String get connections_spacing_title => '间距';
+
+  @override
+  String get connections_spacing_tight => '紧凑';
+
+  @override
+  String get connections_spacing_spread => '宽松';
+
+  @override
+  String get connections_view_tooltip => '切换视图';
+
+  @override
+  String get connections_view_graph => '图';
+
+  @override
+  String get connections_view_pairs => '配对';
+
+  @override
+  String get connections_view_entities => '条目';
+
+  @override
+  String get connections_view_matrix => '矩阵';
+
+  @override
+  String get connections_table_entity => '条目';
+
+  @override
+  String get connections_table_linkedWith => '关联对象';
+
+  @override
+  String get connections_table_sharedDives => '共同潜水';
+
+  @override
+  String get connections_table_lastShared => '最近共同';
+
+  @override
+  String get connections_table_firstShared => '首次共同';
+
+  @override
+  String get connections_table_name => '名称';
+
+  @override
+  String get connections_table_kind => '类型';
+
+  @override
+  String get connections_table_dives => '潜水';
+
+  @override
+  String get connections_table_links => '关联';
+
+  @override
+  String get connections_table_strongest => '最强关联';
+
+  @override
+  String get connections_table_firstDive => '首次潜水';
+
+  @override
+  String connections_matrix_semantics(int rows, int columns, int links) {
+    return '矩阵，$rows 行，$columns 列，$links 条关联';
+  }
+
+  @override
   String get connections_legend_group => '颜色：群组';
 
   @override
@@ -6483,6 +6605,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_label_diveMaster => '潜水长';
 
   @override
+  String get diveLog_detail_label_diveOperator => '运营商';
+
+  @override
+  String get diveLog_detail_label_boatName => '船';
+
+  @override
+  String get diveLog_detail_label_boatCaptain => '船长';
+
+  @override
   String get diveLog_detail_label_diveType => '潜水类型';
 
   @override
@@ -6532,6 +6663,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_label_swellHeight => '涌浪高度';
+
+  @override
+  String get diveLog_detail_label_surfaceConditions => '水面状况';
 
   @override
   String get diveLog_detail_label_total => '总计：';
@@ -6944,6 +7078,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_label_swellHeight => '涌浪高度';
 
   @override
+  String get diveLog_edit_label_surfaceConditions => '水面状况';
+
+  @override
   String get diveLog_edit_label_type => '类型';
 
   @override
@@ -7022,6 +7159,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_row_diveCenter => '潜水中心';
+
+  @override
+  String get diveLog_edit_row_diveOperator => '运营商';
+
+  @override
+  String get diveLog_edit_row_boatName => '船';
+
+  @override
+  String get diveLog_edit_row_boatCaptain => '船长';
 
   @override
   String get diveLog_edit_row_diveProfile => '潜水曲线';
@@ -11380,12 +11526,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_bloodTypeLabel => '血型';
 
   @override
-  String get divers_edit_clearInsuranceExpiryTooltip => '清除保险到期日';
-
-  @override
-  String get divers_edit_clearMedicalClearanceTooltip => '清除医疗许可日期';
-
-  @override
   String get divers_edit_contactNameLabel => '联系人姓名';
 
   @override
@@ -11412,43 +11552,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get divers_edit_expiryDateNotSet => '未设置';
-
-  @override
-  String get divers_edit_expiryDateTitle => '到期日';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHelper => '在紧急卡片上优先显示。';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHint => '例如 +1 919 684 9111';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneLabel => '24 小时紧急救援电话';
-
-  @override
-  String get divers_edit_insurancePhoneLabel => '保险公司办公电话';
-
-  @override
-  String get divers_edit_insuranceProviderHint => '例如 DAN、DiveAssure';
-
-  @override
-  String get divers_edit_insuranceProviderLabel => '保险提供商';
-
-  @override
   String get divers_edit_keepEditingButton => '继续编辑';
-
-  @override
-  String get divers_edit_medicalClearanceExpired => '已过期';
-
-  @override
-  String get divers_edit_medicalClearanceExpiringSoon => '即将到期';
-
-  @override
-  String get divers_edit_medicalClearanceNotSet => '未设置';
-
-  @override
-  String get divers_edit_medicalClearanceTitle => '医疗许可到期日';
 
   @override
   String get divers_edit_medicalNotesLabel => '医疗备注';
@@ -11472,9 +11576,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_phoneLabel => '电话';
 
   @override
-  String get divers_edit_policyNumberLabel => '保单编号';
-
-  @override
   String get divers_edit_primaryContactTitle => '主要联系人';
 
   @override
@@ -11488,12 +11589,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divers_edit_secondaryContactTitle => '备用联系人';
-
-  @override
-  String get divers_edit_selectInsuranceExpiryTooltip => '选择保险到期日';
-
-  @override
-  String get divers_edit_selectMedicalClearanceTooltip => '选择医疗许可日期';
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
@@ -11859,6 +11954,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_boots => '潜水靴';
 
   @override
+  String get enum_equipmentType_socks => '袜子';
+
+  @override
   String get enum_equipmentType_camera => '相机';
 
   @override
@@ -11989,6 +12087,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => '防磨衣';
+
+  @override
+  String get enum_equipmentType_vest => '保暖背心';
 
   @override
   String get enum_equipmentType_wing => '背飞气囊';
@@ -12943,6 +13044,79 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_logFill_saveFailed => '无法保存充气记录。请重试。';
 
   @override
+  String get tagScan_title => '扫描标签';
+
+  @override
+  String get tagScan_linkInvalid => '这不是 Submersion 标签';
+
+  @override
+  String get gearPassport_title => '装备护照';
+
+  @override
+  String gearPassport_entry_lastService(String date) {
+    return '上次保养：$date';
+  }
+
+  @override
+  String get gearPassport_entry_noService => '暂无保养记录';
+
+  @override
+  String get gearPassport_recent_title => '近期保养';
+
+  @override
+  String get gearPassport_recent_none => '尚无保养记录';
+
+  @override
+  String get gearPassport_recent_seeAll => '查看全部';
+
+  @override
+  String get gearPassport_unknownType => '装备';
+
+  @override
+  String get gearPassport_foreign_title => '装备标签';
+
+  @override
+  String get gearPassport_foreign_notInGear => '此物品不在您的装备中。';
+
+  @override
+  String get gearPassport_foreign_addFailed => '无法添加该物品。请重试。';
+
+  @override
+  String get gearPassport_field_lastService => '上次保养日期';
+
+  @override
+  String get gearPassport_tag_linkInvalid => '这不是装备标签';
+
+  @override
+  String get gearPassport_scan_action => '扫描';
+
+  @override
+  String gearPassport_scan_added(String name) {
+    return '已添加 $name';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnDive(String name) {
+    return '$name 已在此潜水中';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnTrip(String name) {
+    return '$name 已在此行程中';
+  }
+
+  @override
+  String get gearPassport_scan_notYours => '不在您的装备中';
+
+  @override
+  String get gearPassport_scan_view => '查看';
+
+  @override
+  String gearPassport_scan_wishlist(String name) {
+    return '$name 的状态为想要';
+  }
+
+  @override
   String get pdf_unknownSite => '未知潜水点';
 
   @override
@@ -13190,6 +13364,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pdf_currentDirection => '流向';
 
   @override
+  String get pdf_surfaceConditions => '水面';
+
+  @override
   String get pdf_waterType => '水类型';
 
   @override
@@ -13209,6 +13386,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pdf_diveCenter => '潜水中心';
+
+  @override
+  String get pdf_diveOperator => '运营商';
+
+  @override
+  String get pdf_boatName => '船';
+
+  @override
+  String get pdf_boatCaptain => '船长';
 
   @override
   String get pdf_trip => '行程';
@@ -21776,6 +21962,319 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_buddy => '潜伴';
 
   @override
+  String get nav_documents => '文档';
+
+  @override
+  String get documents_title => '文档';
+
+  @override
+  String get documents_type_insurance => '保险';
+
+  @override
+  String get documents_type_medicalClearance => '体检证明';
+
+  @override
+  String get documents_type_certificationCard => '证书卡';
+
+  @override
+  String get documents_type_permit => '许可证';
+
+  @override
+  String get documents_type_booking => '预订';
+
+  @override
+  String get documents_type_receipt => '收据';
+
+  @override
+  String get documents_type_manual => '手册';
+
+  @override
+  String get documents_type_map => '地图';
+
+  @override
+  String get documents_type_other => '文档';
+
+  @override
+  String get documents_owner_personal => '个人';
+
+  @override
+  String get documents_owner_dive => '潜水';
+
+  @override
+  String get documents_owner_site => '潜点';
+
+  @override
+  String get documents_owner_trip => '旅行';
+
+  @override
+  String get documents_owner_equipment => '装备';
+
+  @override
+  String get documents_owner_course => '课程';
+
+  @override
+  String get documents_owner_certification => '证书';
+
+  @override
+  String get documents_owner_buddy => '潜伴';
+
+  @override
+  String get documents_owner_diveCenter => '潜水中心';
+
+  @override
+  String get documents_expiring_title => '需要关注';
+
+  @override
+  String get documents_badge_expired => '已过期';
+
+  @override
+  String documents_badge_expiresInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天后到期',
+      one: '明天到期',
+      zero: '今天到期',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_empty => '暂无文档';
+
+  @override
+  String get documents_search_hint => '搜索文档';
+
+  @override
+  String get documents_add => '添加文档';
+
+  @override
+  String get documents_section_title => '文档';
+
+  @override
+  String get documents_section_empty => '没有附加文档';
+
+  @override
+  String get documents_edit_newTitle => '新建文档';
+
+  @override
+  String get documents_edit_editTitle => '编辑文档';
+
+  @override
+  String get documents_field_type => '类型';
+
+  @override
+  String get documents_field_title => '标题';
+
+  @override
+  String get documents_field_issuer => '签发方';
+
+  @override
+  String get documents_field_issuerInsurance => '保险公司';
+
+  @override
+  String get documents_field_referenceNumber => '编号';
+
+  @override
+  String get documents_field_referenceNumberInsurance => '保单号';
+
+  @override
+  String get documents_field_issueDate => '签发日期';
+
+  @override
+  String get documents_field_expiryDate => '到期日期';
+
+  @override
+  String get documents_field_reminderLead => '提醒我';
+
+  @override
+  String documents_field_reminderLeadDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '提前 $count 天',
+      one: '提前 $count 天',
+      zero: '关闭',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_field_emergencyPhone => '24 小时紧急热线';
+
+  @override
+  String get documents_field_phone => '办公电话';
+
+  @override
+  String get documents_field_isPrimary => '主要保险';
+
+  @override
+  String get documents_field_isPrimary_subtitle => '显示在紧急卡和主屏幕上';
+
+  @override
+  String get documents_field_notes => '备注';
+
+  @override
+  String get documents_pages_title => '页面';
+
+  @override
+  String get documents_pages_front => '正面';
+
+  @override
+  String get documents_pages_back => '背面';
+
+  @override
+  String get documents_pages_add => '添加页面';
+
+  @override
+  String get documents_pages_addCamera => '拍照';
+
+  @override
+  String get documents_pages_addGallery => '选择照片';
+
+  @override
+  String get documents_pages_addFile => '选择文件';
+
+  @override
+  String get documents_pages_remove => '移除页面';
+
+  @override
+  String documents_pages_tooLarge(String size) {
+    return '此文件大小为 $size，上限为 10 MB。';
+  }
+
+  @override
+  String documents_pages_unsupported(String extension) {
+    return '不支持 $extension 文件。请使用照片、PDF、Word 或文本文件。';
+  }
+
+  @override
+  String get documents_page_cannotDisplay => '无法显示此页面';
+
+  @override
+  String get documents_page_openWith => '打开方式...';
+
+  @override
+  String documents_page_counter(int current, int total) {
+    return '第 $current 页，共 $total 页';
+  }
+
+  @override
+  String get documents_delete_title => '删除文档？';
+
+  @override
+  String get documents_delete_content => '这将在所有同步设备上删除该文档及其所有页面。';
+
+  @override
+  String get documents_deleted => '文档已删除';
+
+  @override
+  String get documents_saved => '文档已保存';
+
+  @override
+  String documents_error_save(String error) {
+    return '无法保存文档：$error';
+  }
+
+  @override
+  String documents_error_load(String error) {
+    return '无法加载文档：$error';
+  }
+
+  @override
+  String get documents_filter_all => '全部';
+
+  @override
+  String get documents_detail_owner => '归档于';
+
+  @override
+  String get documents_profileHub_documents => '文档';
+
+  @override
+  String documents_profileHub_documents_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文档',
+      one: '$count 个文档',
+      zero: '暂无',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_medical_clearances => '体检证明';
+
+  @override
+  String get documents_medical_addClearance => '添加证明';
+
+  @override
+  String get documents_medical_clearancesEmpty => '没有记录体检证明';
+
+  @override
+  String dashboard_gauges_documentExpires(String title, String date) {
+    return '$title 将于 $date 到期';
+  }
+
+  @override
+  String dashboard_gauges_documentExpired(String title) {
+    return '$title 已过期';
+  }
+
+  @override
+  String dashboard_gauges_documentsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个文档需要关注',
+      one: '$count 个文档需要关注',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_homeChips_documents => '文档';
+
+  @override
+  String notifications_document_expiresSoon_title(String title) {
+    return '$title 即将到期';
+  }
+
+  @override
+  String notifications_document_expiresSoon_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天后到期。',
+      one: '明天到期。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notifications_document_expiresToday_title(String title) {
+    return '$title 今天到期';
+  }
+
+  @override
+  String get notifications_document_expiresToday_body => '请在下次潜水前续期。';
+
+  @override
+  String get settings_conflict_field_pageOrder => '页面顺序';
+
+  @override
+  String get settings_conflict_field_cardSide => '卡片面';
+
+  @override
+  String get diveDetailSection_documents_description => '归档于此次潜水的许可证、收据和其他文档';
+
+  @override
+  String get siteDetailSection_documents_description => '此潜点的地图、许可证和其他文档';
+
+  @override
+  String get settings_conflict_ref_document => '文档';
+
+  @override
   String get settings_conflict_ref_certification => '证书';
 
   @override
@@ -23102,6 +23601,174 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_section_manage_title => '管理';
+
+  @override
+  String get settings_network_mode_header => '代理';
+
+  @override
+  String get settings_network_mode_system => '系统代理';
+
+  @override
+  String get settings_network_mode_system_subtitle => '使用设备网络设置中配置的代理';
+
+  @override
+  String get settings_network_mode_manual => '手动';
+
+  @override
+  String get settings_network_mode_manual_subtitle => '输入代理服务器';
+
+  @override
+  String get settings_network_mode_none => '不使用代理';
+
+  @override
+  String get settings_network_mode_none_subtitle => '始终直接连接';
+
+  @override
+  String get settings_network_status_detecting => '正在检查此设备的代理设置';
+
+  @override
+  String get settings_network_status_none => '此设备未配置代理';
+
+  @override
+  String settings_network_status_fixed(String endpoint) {
+    return '正在使用 $endpoint';
+  }
+
+  @override
+  String settings_network_status_fixedPac(String endpoint) {
+    return '正在使用 $endpoint（来自自动配置）';
+  }
+
+  @override
+  String settings_network_status_fixedSocks(String endpoint) {
+    return '正在使用 $endpoint（SOCKS5）';
+  }
+
+  @override
+  String get settings_network_status_pacUnsupported =>
+      '此设备不支持自动代理配置。请选择手动并输入代理。';
+
+  @override
+  String get settings_network_status_pacFailed => '无法读取自动代理配置。请选择手动并输入代理。';
+
+  @override
+  String get settings_network_status_error => '无法读取此设备的代理设置。';
+
+  @override
+  String get settings_network_status_refresh => '重新检查';
+
+  @override
+  String get settings_network_manual_typeHttp => 'HTTP';
+
+  @override
+  String get settings_network_manual_typeSocks => 'SOCKS5';
+
+  @override
+  String get settings_network_manual_host => '主机';
+
+  @override
+  String get settings_network_manual_port => '端口';
+
+  @override
+  String get settings_network_manual_username => '用户名（可选）';
+
+  @override
+  String get settings_network_manual_password => '密码（可选）';
+
+  @override
+  String get settings_network_manual_showPassword => '显示密码';
+
+  @override
+  String get settings_network_manual_hidePassword => '隐藏密码';
+
+  @override
+  String get settings_network_manual_save => '保存';
+
+  @override
+  String get settings_network_manual_saved => '代理设置已保存';
+
+  @override
+  String get settings_network_manual_saveFailed => '无法保存代理设置。';
+
+  @override
+  String get settings_network_manual_nativeNote => '操作系统提供的登录界面使用系统代理。';
+
+  @override
+  String get settings_network_validation_hostRequired => '请输入代理主机';
+
+  @override
+  String get settings_network_validation_portInvalid => '请输入 1 到 65535 之间的端口';
+
+  @override
+  String get settings_network_validation_passwordRequired => '请输入此用户名的密码';
+
+  @override
+  String get settings_network_validation_usernameColon => '用户名不能包含冒号';
+
+  @override
+  String get settings_network_validation_usernameSemicolon => '用户名不能包含分号';
+
+  @override
+  String get settings_network_validation_usernameWhitespace => '用户名不能以空格开头或结尾';
+
+  @override
+  String get settings_network_validation_passwordSemicolon => '密码不能包含分号';
+
+  @override
+  String get settings_network_validation_passwordWhitespace => '密码不能以空格开头或结尾';
+
+  @override
+  String get settings_network_validation_tooLong => '不能超过 255 字节';
+
+  @override
+  String get settings_network_test_button => '测试连接';
+
+  @override
+  String get settings_network_test_running => '正在测试';
+
+  @override
+  String settings_network_test_successProxy(
+    String endpoint,
+    String type,
+    int ms,
+  ) {
+    return '已通过 $endpoint（$type）连接，用时 $ms 毫秒';
+  }
+
+  @override
+  String settings_network_test_successDirect(int ms) {
+    return '已直接连接，用时 $ms 毫秒';
+  }
+
+  @override
+  String settings_network_test_unreachable(String endpoint) {
+    return '无法连接到 $endpoint。请检查主机和端口。';
+  }
+
+  @override
+  String get settings_network_test_authRejected => '代理拒绝了用户名或密码。';
+
+  @override
+  String get settings_network_test_authRequiredSystem =>
+      '此代理需要用户名和密码。请选择手动并输入。';
+
+  @override
+  String get settings_network_test_tls =>
+      '安全连接失败。你的网络可能会检查 HTTPS 流量；此设备必须信任其证书。';
+
+  @override
+  String get settings_network_test_timeout => '连接超时。';
+
+  @override
+  String settings_network_test_failed(String detail) {
+    return '连接失败：$detail。调试日志中有完整的错误信息。';
+  }
+
+  @override
+  String get settings_section_network_subtitle => '代理服务器';
+
+  @override
+  String get settings_section_network_title => '网络';
 
   @override
   String get settings_section_notifications_subtitle => '维护提醒';
@@ -27350,6 +28017,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_gear_add_rental => '租用气瓶';
+
+  @override
+  String get trips_gear_add_scan => '扫描标签';
 
   @override
   String get trips_gear_section_packed => '已打包';
@@ -32294,6 +32964,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_sole_type => '鞋底';
 
   @override
+  String get attrLabel_sock_type => '类型';
+
+  @override
   String get attrLabel_buoyancy_kg => '浮力';
 
   @override
@@ -32370,6 +33043,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_upf_rating => 'UPF 防晒指数';
+
+  @override
+  String get attrLabel_hooded => '连帽';
+
+  @override
+  String get attrLabel_vest_layer => '穿着方式';
+
+  @override
+  String get attrLabel_vest_closure => '闭合方式';
 
   @override
   String get attrLabel_snorkel_type => '类型';
@@ -32759,6 +33441,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrChoice_sole_type_soft => '软底';
 
   @override
+  String get attrChoice_sock_type_neoprene => '氯丁橡胶（湿式）';
+
+  @override
+  String get attrChoice_sock_type_drysuit => '干衣（保暖）';
+
+  @override
   String get attrChoice_dpv_style_tow_behind => '拖曳式';
 
   @override
@@ -32796,6 +33484,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_sleeve_length_sleeveless => '无袖';
+
+  @override
+  String get attrChoice_vest_layer_over_suit => '穿在潜水服外';
+
+  @override
+  String get attrChoice_vest_layer_under_suit => '穿在潜水服内';
+
+  @override
+  String get attrChoice_vest_closure_front_zip => '前拉链';
+
+  @override
+  String get attrChoice_vest_closure_side_zip => '侧拉链';
+
+  @override
+  String get attrChoice_vest_closure_pullover => '套头式';
 
   @override
   String get attrChoice_snorkel_type_classic => '经典式';
@@ -35200,6 +35903,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_diveField_weatherDescription => '天气';
 
   @override
+  String get enum_diveField_surfaceConditions => '水面状况';
+
+  @override
   String get enum_diveField_primaryGas => '主用气体';
 
   @override
@@ -35273,6 +35979,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_diveField_diveCenterName => '潜水中心';
+
+  @override
+  String get enum_diveField_diveOperator => '潜水运营商';
+
+  @override
+  String get enum_diveField_boatName => '船';
+
+  @override
+  String get enum_diveField_boatCaptain => '船长';
 
   @override
   String get enum_diveField_siteLatitude => '纬度';
@@ -35377,6 +36092,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_diveField_weatherDescription_short => '天气';
 
   @override
+  String get enum_diveField_surfaceConditions_short => '水面';
+
+  @override
   String get enum_diveField_primaryGas_short => '气体';
 
   @override
@@ -35450,6 +36168,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_diveField_diveCenterName_short => '潜店';
+
+  @override
+  String get enum_diveField_diveOperator_short => '运营商';
+
+  @override
+  String get enum_diveField_boatName_short => '船';
+
+  @override
+  String get enum_diveField_boatCaptain_short => '船长';
 
   @override
   String get enum_diveField_siteLatitude_short => '纬度';
@@ -44221,6 +44948,120 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_conditions_tempTrend_error => '无法加载水温趋势';
 
   @override
+  String get insights_conditions_group_water => '水';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => '水面与天气';
+
+  @override
+  String get insights_conditions_group_waterMovement => '水体运动';
+
+  @override
+  String get insights_conditions_group_siteAccess => '潜点与出入水';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '基于 $total 次潜水中的 $recorded 次',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error => '无法加载天气和环境数据';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title => '气温趋势';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle => '每次潜水的气温';
+
+  @override
+  String get insights_conditions_airTempTrend_error => '无法加载气温数据';
+
+  @override
+  String get insights_conditions_airTempBands_title => '按气温统计的潜水次数';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle => '您的潜水在各气温区间的分布';
+
+  @override
+  String get insights_conditions_cloudCover_title => '云量';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle => '您潜水时的天空状况';
+
+  @override
+  String get insights_conditions_precipitation_title => '降水';
+
+  @override
+  String get insights_conditions_precipitation_subtitle => '您潜水时的降雨、降雪等降水情况';
+
+  @override
+  String get insights_conditions_windSpeed_title => '风速';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle => '您的潜水在各风速区间的分布';
+
+  @override
+  String get insights_conditions_windDirection_title => '风向';
+
+  @override
+  String get insights_conditions_windDirection_subtitle => '您潜水时记录的风向';
+
+  @override
+  String get insights_conditions_humidity_title => '湿度';
+
+  @override
+  String get insights_conditions_humidity_subtitle => '您潜水时的相对湿度';
+
+  @override
+  String get insights_conditions_surfacePressure_title => '水面压力';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle => '您潜水时水面的大气压';
+
+  @override
+  String get insights_conditions_currentStrength_title => '水流强度';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle => '您潜水时的水流强度';
+
+  @override
+  String get insights_conditions_currentDirection_title => '水流方向';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle => '您潜水时记录的水流方向';
+
+  @override
+  String get insights_conditions_swellHeight_title => '涌浪高度';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle => '您的潜水在各涌浪高度区间的分布';
+
+  @override
+  String get insights_conditions_altitude_title => '海拔';
+
+  @override
+  String get insights_conditions_altitude_subtitle => '按海拔组统计的潜水次数';
+
+  @override
+  String get insights_conditions_exitMethod_title => '出水方式';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle => '您离开水面的方式';
+
+  @override
   String get insights_conditions_waterTempBands_title => '按水温统计的潜水次数';
 
   @override
@@ -46122,6 +46963,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_dives_boatName => '船';
+
+  @override
+  String get query_dives_boatCaptain => '船长';
 
   @override
   String get query_dives_bottomTime => '水底时间';

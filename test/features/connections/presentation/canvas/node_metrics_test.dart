@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/presentation/canvas/node_metrics.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
 
 void main() {
   test('radius grows with the square root and is clamped', () {
@@ -84,6 +85,15 @@ void main() {
         radius: 8,
       ),
       NodeGlyph.none,
+    );
+  });
+
+  test('uniform size ignores dive counts', () {
+    expect(NodeMetrics.radiusIn(NodeSizeMode.uniform, 1, 50), 14);
+    expect(NodeMetrics.radiusIn(NodeSizeMode.uniform, 50, 50), 14);
+    expect(
+      NodeMetrics.radiusIn(NodeSizeMode.byDives, 50, 50),
+      NodeMetrics.radiusFor(50, 50),
     );
   });
 }

@@ -281,6 +281,8 @@ class SyncData {
   final List<Map<String, dynamic>> mediaSubscriptions;
   final List<Map<String, dynamic>> diveBuddies;
   final List<Map<String, dynamic>> certifications;
+  final List<Map<String, dynamic>> documents;
+  final List<Map<String, dynamic>> documentPages;
   final List<Map<String, dynamic>> courses;
   final List<Map<String, dynamic>> courseRequirements;
   final List<Map<String, dynamic>> courseRequirementDives;
@@ -402,6 +404,8 @@ class SyncData {
     this.mediaSubscriptions = const [],
     this.diveBuddies = const [],
     this.certifications = const [],
+    this.documents = const [],
+    this.documentPages = const [],
     this.courses = const [],
     this.courseRequirements = const [],
     this.courseRequirementDives = const [],
@@ -518,6 +522,8 @@ class SyncData {
     'mediaSubscriptions': mediaSubscriptions,
     'diveBuddies': diveBuddies,
     'certifications': certifications,
+    'documents': documents,
+    'documentPages': documentPages,
     'courses': courses,
     'courseRequirements': courseRequirements,
     'courseRequirementDives': courseRequirementDives,
@@ -635,6 +641,8 @@ class SyncData {
       mediaSubscriptions: _parseList(json['mediaSubscriptions']),
       diveBuddies: _parseList(json['diveBuddies']),
       certifications: _parseList(json['certifications']),
+      documents: _parseList(json['documents']),
+      documentPages: _parseList(json['documentPages']),
       courses: _parseList(json['courses']),
       courseRequirements: _parseList(json['courseRequirements']),
       courseRequirementDives: _parseList(json['courseRequirementDives']),
@@ -992,6 +1000,8 @@ class SyncDataSerializer {
     ),
     (key: 'diveBuddies', table: _db.diveBuddies, blob: false, full: null),
     (key: 'certifications', table: _db.certifications, blob: true, full: null),
+    (key: 'documents', table: _db.documents, blob: false, full: null),
+    (key: 'documentPages', table: _db.documentPages, blob: true, full: null),
     (key: 'courses', table: _db.courses, blob: false, full: null),
     (
       key: 'courseRequirements',
@@ -2193,6 +2203,14 @@ class SyncDataSerializer {
         'certifications',
         () => _exportCertifications(hlcSince),
       ),
+      documents: await _safeExport(
+        'documents',
+        () => _exportDocuments(hlcSince),
+      ),
+      documentPages: await _safeExport(
+        'documentPages',
+        () => _exportDocumentPages(hlcSince),
+      ),
       courses: await _safeExport('courses', () => _exportCourses(hlcSince)),
       courseRequirements: await _safeExport(
         'courseRequirements',
@@ -2943,6 +2961,16 @@ class SyncDataSerializer {
       case 'certifications':
         final row = await (_db.select(
           _db.certifications,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson(serializer: _syncBlobSerializer);
+      case 'documents':
+        final row = await (_db.select(
+          _db.documents,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'documentPages':
+        final row = await (_db.select(
+          _db.documentPages,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson(serializer: _syncBlobSerializer);
       case 'courses':
@@ -3817,6 +3845,18 @@ class SyncDataSerializer {
         return {
           for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
         };
+      case 'documents':
+        final rows = await (_db.select(
+          _db.documents,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'documentPages':
+        final rows = await (_db.select(
+          _db.documentPages,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
       case 'settings':
         final rows = await (_db.select(
           _db.settings,
@@ -4673,6 +4713,23 @@ class SyncDataSerializer {
             .into(_db.certifications)
             .insertOnConflictUpdate(
               Certification.fromJson(
+                data,
+                serializer: _syncBlobSerializer,
+              ).toCompanion(false),
+            );
+        return;
+      case 'documents':
+        await _db
+            .into(_db.documents)
+            .insertOnConflictUpdate(
+              DocumentRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'documentPages':
+        await _db
+            .into(_db.documentPages)
+            .insertOnConflictUpdate(
+              DocumentPageRow.fromJson(
                 data,
                 serializer: _syncBlobSerializer,
               ).toCompanion(false),
@@ -5680,6 +5737,31 @@ class SyncDataSerializer {
             records
                 .map(
                   (r) => Certification.fromJson(
+                    r,
+                    serializer: _syncBlobSerializer,
+                  ).toCompanion(false),
+                )
+                .toList(),
+          ),
+        );
+        return;
+      case 'documents':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.documents,
+            records
+                .map((r) => DocumentRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'documentPages':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.documentPages,
+            records
+                .map(
+                  (r) => DocumentPageRow.fromJson(
                     r,
                     serializer: _syncBlobSerializer,
                   ).toCompanion(false),
@@ -7056,6 +7138,10 @@ class SyncDataSerializer {
         return plain(_db.sightings, _db.sightings.id);
       case 'certifications':
         return plain(_db.certifications, _db.certifications.id);
+      case 'documents':
+        return plain(_db.documents, _db.documents.id);
+      case 'documentPages':
+        return plain(_db.documentPages, _db.documentPages.id);
       case 'serviceRecords':
         return plain(_db.serviceRecords, _db.serviceRecords.id);
       case 'serviceKinds':
@@ -7507,6 +7593,10 @@ class SyncDataSerializer {
         return _db.sightings;
       case 'certifications':
         return _db.certifications;
+      case 'documents':
+        return _db.documents;
+      case 'documentPages':
+        return _db.documentPages;
       case 'serviceRecords':
         return _db.serviceRecords;
       case 'serviceKinds':
@@ -7692,6 +7782,16 @@ class SyncDataSerializer {
       case 'certifications':
         await (_db.delete(
           _db.certifications,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'documents':
+        await (_db.delete(
+          _db.documents,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'documentPages':
+        await (_db.delete(
+          _db.documentPages,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'courses':
@@ -8522,6 +8622,27 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportDocuments(String? hlcSince) async {
+    final query = _db.select(_db.documents);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    return (await query.get()).map((r) => r.toJson()).toList();
+  }
+
+  /// Pages carry their file as a BLOB; base64-encode it. Selected on the
+  /// page's own clock, like diveProfileSeries.
+  Future<List<Map<String, dynamic>>> _exportDocumentPages(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.documentPages);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportCourses(String? hlcSince) async {
     final query = _db.select(_db.courses);
     if (hlcSince != null) {
@@ -8875,6 +8996,10 @@ class SyncDataSerializer {
       'dive_profile_series': 'samples',
       'tank_pressure_series': 'samples',
       'nav_tracks': 'points',
+      // Document pages run up to 10 MB each (issue #2613): a burst of scans
+      // must trip the streamed-base fallback rather than build one giant
+      // in-memory delta.
+      'document_pages': 'bytes',
     };
     var total = 0;
     for (final entry in blobColumnByTable.entries) {
@@ -9166,7 +9291,7 @@ class SyncDataSerializer {
         .toList();
   }
 
-  /// Dive computer connections (v277, issue #3106): their own clock, and
+  /// Dive computer connections (v278, issue #3106): their own clock, and
   /// this device's address and last use stripped, like [_exportDiveComputers].
   Future<List<Map<String, dynamic>>> _exportDiveComputerConnections(
     String? hlcSince,

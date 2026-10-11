@@ -41,6 +41,10 @@ const _diveFields = <String>[
   'precipitation',
   'humidity',
   'weatherDescription',
+  'diveOperator',
+  'boatName',
+  'boatCaptain',
+  'surfaceConditions',
   'customFields',
 ];
 

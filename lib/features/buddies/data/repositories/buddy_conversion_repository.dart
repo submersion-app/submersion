@@ -10,6 +10,8 @@ import 'package:submersion/features/buddies/domain/entities/legacy_buddy_convers
 import 'package:submersion/features/buddies/domain/services/buddy_name_matcher.dart';
 import 'package:submersion/features/buddies/domain/services/legacy_name_parser.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// Reads and writes that turn legacy buddy text into buddy records (#1831).
 ///
@@ -234,7 +236,14 @@ class BuddyConversionRepository {
       _db.buddies,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (buddy == null) return;
-    for (final cert in await _certRepo.getCertificationsByBuddy(id)) {
+    final certs = await _certRepo.getCertificationsByBuddy(id);
+    // Documents filed since the conversion go with the buddy (#2613).
+    final documents = DocumentRepository();
+    await documents.deleteForOwners(DocumentOwnerKind.certification, [
+      for (final cert in certs) cert.id,
+    ]);
+    await documents.deleteForOwner(DocumentOwnerKind.buddy, id);
+    for (final cert in certs) {
       await (_db.delete(
         _db.certifications,
       )..where((t) => t.id.equals(cert.id))).go();

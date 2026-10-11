@@ -56,6 +56,7 @@ void main() {
         EquipmentAttrKeys.buoyancyKg,
         EquipmentAttrKeys.dryWeightKg,
         EquipmentAttrKeys.identifier,
+        EquipmentAttrKeys.passportId,
         EquipmentAttrKeys.sku,
         EquipmentAttrKeys.retailer,
         EquipmentAttrKeys.productUrl,

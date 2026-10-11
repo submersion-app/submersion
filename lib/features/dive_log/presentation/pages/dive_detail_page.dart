@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
@@ -159,6 +160,8 @@ import 'package:submersion/features/dive_log/presentation/formatters/altitude_gr
 import 'package:submersion/features/tides/presentation/tide_state_display.dart';
 import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -545,6 +548,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       DiveDetailSectionId.notes: (_) {
         return [_buildNotesSection(context, dive)];
+      },
+      DiveDetailSectionId.documents: (_) {
+        return [
+          DocumentsSection(
+            owner: DocumentOwner(DocumentOwnerKind.dive, dive.id),
+          ),
+        ];
       },
       DiveDetailSectionId.customFields: (_) {
         if (dive.customFields.isEmpty) return [];
@@ -3243,6 +3253,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ),
             if (dive.trip != null) _buildTripRow(context, dive),
             if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
+            // Free text from the editor or a MacDive/UDDF import (#3229).
+            for (final (label, value) in [
+              (
+                context.l10n.diveLog_detail_label_diveOperator,
+                dive.diveOperator,
+              ),
+              (context.l10n.diveLog_detail_label_boatName, dive.boatName),
+              (context.l10n.diveLog_detail_label_boatCaptain, dive.boatCaptain),
+            ])
+              if (trimmedOrNull(value) case final text?)
+                _buildDetailRow(context, label, text),
             if (dive.courseId != null) _buildCourseRow(context, ref, dive),
             if (formatDiveVisibility(
                   meters: dive.visibilityMeters,
@@ -3343,7 +3364,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   bool _hasEnvironmentData(Dive dive) {
-    return dive.airTemp != null ||
+    return trimmedOrNull(dive.surfaceConditions) != null ||
+        dive.airTemp != null ||
         dive.surfacePressure != null ||
         dive.windSpeed != null ||
         dive.windDirection != null ||
@@ -3391,6 +3413,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         dive.weatherDescription != null;
 
     final hasDiveConditions =
+        trimmedOrNull(dive.surfaceConditions) != null ||
         dive.currentDirection != null ||
         dive.currentStrength != null ||
         dive.swellHeight != null ||
@@ -3529,6 +3552,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   context,
                   context.l10n.diveLog_detail_label_swellHeight,
                   units.formatDepth(dive.swellHeight, decimals: 1),
+                ),
+              if (trimmedOrNull(dive.surfaceConditions) case final surface?)
+                _buildDetailRow(
+                  context,
+                  context.l10n.diveLog_detail_label_surfaceConditions,
+                  surface,
                 ),
               // Effective, so a dive that never had an entry method of its
               // own still shows the one its site carries (issue #1427).

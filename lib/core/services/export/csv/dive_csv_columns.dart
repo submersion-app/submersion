@@ -67,6 +67,13 @@ abstract final class DiveCsvColumns {
   /// carries a suffix. Ids are slugs, so they never contain the separator.
   static const diveTypeIds = 'Dive Type IDs';
 
+  // Appended after Dive Type IDs so spreadsheets that address the export
+  // by column position keep their offsets (#3229).
+  static const diveOperator = 'Dive Operator';
+  static const boatName = 'Boat Name';
+  static const boatCaptain = 'Boat Captain';
+  static const surfaceConditions = 'Surface Conditions';
+
   /// Separator between a dive's types in the [diveType] cell.
   static const diveTypeSeparator = '; ';
 
@@ -115,5 +122,9 @@ abstract final class DiveCsvColumns {
     hePercent,
     customFields,
     diveTypeIds,
+    diveOperator,
+    boatName,
+    boatCaptain,
+    surfaceConditions,
   ];
 }

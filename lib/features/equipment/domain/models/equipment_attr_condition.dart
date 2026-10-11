@@ -32,8 +32,8 @@ class EquipmentAttrCondition {
     this.types = const {},
   });
 
-  /// The exposure suits the Suit thickness filter covers. Hoods, gloves and
-  /// boots carry `thickness_mm` too, but are not suits.
+  /// The exposure suits the Suit thickness filter covers. Hoods, gloves,
+  /// boots and vests (#3108) carry `thickness_mm` too, but are not suits.
   static const Set<EquipmentType> suitTypes = {
     EquipmentType.wetsuit,
     EquipmentType.drysuit,

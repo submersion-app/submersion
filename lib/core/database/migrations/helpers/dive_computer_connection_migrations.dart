@@ -1,11 +1,11 @@
 part of '../app_database_migrations.dart';
 
-/// Dive computer download connections (v277, issue #3106).
+/// Dive computer download connections (v278, issue #3106).
 extension DiveComputerConnectionMigrations on AppDatabase {
   /// Idempotent creation of `dive_computer_connections`. Its index is in the
   /// canonical performance set, which beforeOpen asserts on every open.
   /// Skipped on a partial fixture without `dive_computers`, so its foreign
-  /// key never points nowhere. Safe from both the v277 rung and the
+  /// key never points nowhere. Safe from both the v278 rung and the
   /// beforeOpen backstop.
   Future<void> _assertDiveComputerConnectionSchema() async {
     final rows = await customSelect(

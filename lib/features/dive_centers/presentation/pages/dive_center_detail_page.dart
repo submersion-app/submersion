@@ -24,6 +24,8 @@ import 'package:submersion/features/dive_centers/presentation/widgets/dive_cente
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;
@@ -111,6 +113,13 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
                 const Divider(height: 32),
                 _NotesSection(notes: center.notes),
               ],
+              const Divider(height: 32),
+              DocumentsSection(
+                owner: DocumentOwner(
+                  DocumentOwnerKind.diveCenter,
+                  widget.centerId,
+                ),
+              ),
               const Divider(height: 32),
               RentalGearSection(centerId: widget.centerId),
               const Divider(height: 32),

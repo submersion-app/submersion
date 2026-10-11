@@ -133,11 +133,10 @@ void main() {
       expect(read.isDefault, isTrue);
     });
 
-    test('persists emergency contacts, insurance, dates', () async {
+    test('persists emergency contacts; insurance and clearance are not '
+        'written to the diver row (issue #2613)', () async {
       await insertDiverRow('d2');
 
-      final medDate = DateTime(2025, 3, 15);
-      final insDate = DateTime(2026, 1, 1);
       final updated = Diver(
         id: 'd2',
         name: 'With Details',
@@ -151,11 +150,11 @@ void main() {
           phone: '112',
           relation: 'sibling',
         ),
-        medicalClearanceExpiryDate: medDate,
+        medicalClearanceExpiryDate: DateTime(2025, 3, 15),
         insurance: DiverInsurance(
           provider: 'DAN',
           policyNumber: 'P-123',
-          expiryDate: insDate,
+          expiryDate: DateTime(2026, 1, 1),
           emergencyPhone: '+1-919-684-9111',
           phone: '+1-919-684-2948',
         ),
@@ -169,18 +168,9 @@ void main() {
       expect(read!.emergencyContact.name, equals('Contact A'));
       expect(read.emergencyContact.phone, equals('911'));
       expect(read.emergencyContact2.name, equals('Contact B'));
-      expect(
-        read.medicalClearanceExpiryDate?.millisecondsSinceEpoch,
-        equals(medDate.millisecondsSinceEpoch),
-      );
-      expect(read.insurance.provider, equals('DAN'));
-      expect(read.insurance.policyNumber, equals('P-123'));
-      expect(
-        read.insurance.expiryDate?.millisecondsSinceEpoch,
-        equals(insDate.millisecondsSinceEpoch),
-      );
-      expect(read.insurance.emergencyPhone, equals('+1-919-684-9111'));
-      expect(read.insurance.phone, equals('+1-919-684-2948'));
+      // Both are documents now, edited on the Documents pages.
+      expect(read.medicalClearanceExpiryDate, isNull);
+      expect(read.insurance.hasAnyDetail, isFalse);
     });
   });
 

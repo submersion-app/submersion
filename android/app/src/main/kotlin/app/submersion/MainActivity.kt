@@ -10,6 +10,7 @@ class MainActivity : FlutterFragmentActivity() {
     private var metadataHandler: MetadataWriteHandler? = null
     private var localMediaHandler: LocalMediaHandler? = null
     private var deviceNameHandler: DeviceNameHandler? = null
+    private var systemProxyHandler: SystemProxyHandler? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -31,5 +32,11 @@ class MainActivity : FlutterFragmentActivity() {
             DeviceNameHandler.CHANNEL,
         )
         deviceNameHandler = DeviceNameHandler(applicationContext, deviceNameChannel)
+
+        val systemProxyChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            SystemProxyHandler.CHANNEL,
+        )
+        systemProxyHandler = SystemProxyHandler(applicationContext, systemProxyChannel)
     }
 }

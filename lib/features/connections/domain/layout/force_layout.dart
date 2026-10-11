@@ -20,6 +20,7 @@ class ForceLayout {
     Set<NodeRef> pinned = const {},
     this.maxIterations = 300,
     this.settleEpsilon = 0.5,
+    double spacing = 1,
   }) : _nodes = List.unmodifiable(nodes),
        _pinned = {...pinned} {
     final nodeSet = _nodes.toSet();
@@ -27,7 +28,7 @@ class ForceLayout {
         .where((e) => nodeSet.contains(e.source) && nodeSet.contains(e.target))
         .toList();
     _index = {for (var i = 0; i < _nodes.length; i++) _nodes[i]: i};
-    _area = math.max(40000.0, 12000.0 * _nodes.length);
+    _area = math.max(40000.0, 12000.0 * _nodes.length) * spacing * spacing;
     _k = math.sqrt(_area / math.max(1, _nodes.length));
     _temperature = math.sqrt(_area) / 10;
     _positions = _seed(initialPositions);

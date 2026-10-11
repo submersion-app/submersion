@@ -27,7 +27,7 @@ const Set<String> _directConnectionTypes = {
 /// `12345678`), and a file import's all-digit hex can sit on a row a later
 /// download rebound to Bluetooth. So an ordinary open converts only the
 /// lengths a stored hex never has; [includeAmbiguous] adds the 8-digit
-/// serials, and only the v277 rung passes it, once, before this build has
+/// serials, and only the v278 rung passes it, once, before this build has
 /// written any hex.
 ///
 /// Local-only and idempotent: no HLC bump, no pending mark, `updated_at`

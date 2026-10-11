@@ -25,6 +25,8 @@ import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/documents/domain/document_expiry.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -151,8 +153,17 @@ Future<NavSpy> pumpStrip(
         builder: (_, _) => stub('/dives/quality'),
       ),
       GoRoute(
-        path: '/settings/diver-profile/insurance',
-        builder: (_, _) => stub('/settings/diver-profile/insurance'),
+        // Insurance is a document now (issue #2613); the chip opens the
+        // insurance documents.
+        path: '/documents',
+        builder: (_, state) => stub(state.uri.toString()),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (_, state) =>
+                stub('/documents/${state.pathParameters['id']}'),
+          ),
+        ],
       ),
     ],
   );
@@ -547,10 +558,10 @@ void main() {
       final spy = await pumpStrip(tester, _emptyGauges);
       expect(find.text('No insurance on file'), findsOneWidget);
       await tapChip(tester, 'No insurance on file');
-      expect(spy.location, '/settings/diver-profile/insurance');
+      expect(spy.location, '/documents?type=insurance');
     });
 
-    // Expiry is optional on InsuranceEditPage, so a DAN policy recorded
+    // Expiry is optional on an insurance document, so a DAN policy recorded
     // without a renewal date is a complete record, not a missing one. The
     // chip must agree with DiverInsurance.isValid, which keys off provider.
     testWidgets('a provider with no expiry date reads as insured', (
@@ -599,7 +610,7 @@ void main() {
       );
       expect(find.text('Insurance expired'), findsOneWidget);
       await tapChip(tester, 'Insurance expired');
-      expect(spy.location, '/settings/diver-profile/insurance');
+      expect(spy.location, '/documents?type=insurance');
     });
 
     testWidgets('expiring-soon insurance chip navigates to the record', (
@@ -622,7 +633,7 @@ void main() {
       expect(chip, findsOneWidget);
       await tester.tap(find.ancestor(of: chip, matching: find.byType(InkWell)));
       await tester.pumpAndSettle();
-      expect(spy.location, '/settings/diver-profile/insurance');
+      expect(spy.location, '/documents?type=insurance');
     });
 
     testWidgets('valid insurance chip navigates to the insurance record', (
@@ -642,7 +653,101 @@ void main() {
       );
       expect(find.text('Insurance OK'), findsOneWidget);
       await tapChip(tester, 'Insurance OK');
-      expect(spy.location, '/settings/diver-profile/insurance');
+      expect(spy.location, '/documents?type=insurance');
+    });
+  });
+
+  group('documents chip (issue #2613)', () {
+    Document doc(String id, DocumentType type, String title) => Document(
+      id: id,
+      diverId: 'd1',
+      owner: const DocumentOwner.personal(),
+      type: type,
+      title: title,
+      expiryDate: DateTime(2030),
+      createdAt: _t0,
+      updatedAt: _t0,
+    );
+
+    DashboardGauges withDocs(List<(Document, DocumentExpiryStatus)> docs) =>
+        DashboardGauges(
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+          attentionDocuments: docs,
+        );
+
+    const due12 = DocumentExpiryStatus(DocumentExpiryKind.dueSoon, 12);
+    const expired = DocumentExpiryStatus(DocumentExpiryKind.expired, -2);
+
+    Future<MockSettingsNotifier> documentsHidden() async {
+      final notifier = MockSettingsNotifier();
+      await notifier.setHomeChipEnabled(HomeChipType.documents.name, false);
+      return notifier;
+    }
+
+    testWidgets('one due document names it and opens it', (tester) async {
+      final spy = await pumpStrip(
+        tester,
+        withDocs([(doc('p1', DocumentType.permit, 'Marine park'), due12)]),
+      );
+      final label = chipLabels(
+        tester,
+      ).singleWhere((l) => l.startsWith('Marine park expires'));
+      await tapChip(tester, label);
+      expect(spy.location, '/documents/p1');
+    });
+
+    testWidgets('several show a count and open the expiring list', (
+      tester,
+    ) async {
+      final spy = await pumpStrip(
+        tester,
+        withDocs([
+          (doc('m1', DocumentType.medicalClearance, 'Clearance'), expired),
+          (doc('p1', DocumentType.permit, 'Marine park'), due12),
+        ]),
+      );
+      expect(chipLabels(tester), contains('2 documents need attention'));
+      await tapChip(tester, '2 documents need attention');
+      expect(spy.location, '/documents?filter=expiring');
+    });
+
+    testWidgets('one expired document says expired', (tester) async {
+      await pumpStrip(
+        tester,
+        withDocs([(doc('p1', DocumentType.permit, 'Marine park'), expired)]),
+      );
+      expect(chipLabels(tester), contains('Marine park expired'));
+    });
+
+    testWidgets('hidden, an expired medical clearance still shows', (
+      tester,
+    ) async {
+      await pumpStrip(
+        tester,
+        withDocs([
+          (doc('m1', DocumentType.medicalClearance, 'Clearance'), expired),
+          (doc('p1', DocumentType.permit, 'Marine park'), due12),
+        ]),
+        settingsNotifier: await documentsHidden(),
+      );
+      final labels = chipLabels(tester);
+      expect(labels, contains('Clearance expired'));
+      expect(labels.where((l) => l.contains('Marine park')), isEmpty);
+    });
+
+    testWidgets('hidden, a due permit shows nothing', (tester) async {
+      await pumpStrip(
+        tester,
+        withDocs([(doc('p1', DocumentType.permit, 'Marine park'), due12)]),
+        settingsNotifier: await documentsHidden(),
+      );
+      expect(
+        chipLabels(tester).where((l) => l.contains('Marine park')),
+        isEmpty,
+      );
     });
   });
 

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
+import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -30,6 +31,7 @@ void main() {
       ProviderScope(
         overrides: [
           ...base,
+          conditionsRowsProvider.overrideWith((ref) async => const []),
           visibilityDistributionProvider.overrideWith((ref) async => const []),
           siteTypeDistributionProvider.overrideWith((ref) async => const []),
           waterTypeDistributionProvider.overrideWith((ref) async => waterType),

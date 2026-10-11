@@ -290,7 +290,7 @@ final Map<String, ConflictField> equipmentOverrides = {
     (l) => l.settings_conflict_field_movedAt,
     FieldKind.dateTime,
   ),
-  // Dive computer connections (v277, issue #3106). The address and the
+  // Dive computer connections (v278, issue #3106). The address and the
   // last use on this device never sync, but a conflict snapshot still
   // carries every column, so they are labelled too.
   'diveComputerConnections.kind': ConflictField(

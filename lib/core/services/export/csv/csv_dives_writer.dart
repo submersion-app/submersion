@@ -87,6 +87,10 @@ class CsvDivesWriter {
       DiveCsvColumns.hePercent,
       DiveCsvColumns.customFields,
       DiveCsvColumns.diveTypeIds,
+      DiveCsvColumns.diveOperator,
+      DiveCsvColumns.boatName,
+      DiveCsvColumns.boatCaptain,
+      DiveCsvColumns.surfaceConditions,
       ...sortedCustomKeys.map(
         (key) => sanitizeCsvField('${DiveCsvColumns.customFieldPrefix}$key'),
       ),
@@ -145,6 +149,10 @@ class CsvDivesWriter {
         sanitizeCsvField(
           dive.diveTypeIds.join(DiveCsvColumns.diveTypeSeparator),
         ),
+        sanitizeCsvField(dive.diveOperator),
+        sanitizeCsvField(dive.boatName),
+        sanitizeCsvField(dive.boatCaptain),
+        sanitizeCsvField(dive.surfaceConditions),
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields
               .where((f) => f.key == key)

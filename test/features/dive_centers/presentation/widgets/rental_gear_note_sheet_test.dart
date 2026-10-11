@@ -107,6 +107,11 @@ void main() {
       below ? 100 : -100,
       scrollable: find.byType(Scrollable).last,
     );
+    // scrollUntilVisible stops once the item is built, which can leave it on
+    // the menu's edge where a tap misses it; a new type sorting ahead of it
+    // (#2900) moved Tank there. Bring it fully into view first.
+    await tester.ensureVisible(find.text(label));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(label));
     await tester.pumpAndSettle();
   }

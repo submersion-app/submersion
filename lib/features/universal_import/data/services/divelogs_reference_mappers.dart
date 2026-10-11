@@ -59,6 +59,19 @@ abstract final class DivelogsReferenceMappers {
     if (MacDiveValueMapper.breathingBag.hasMatch(lower)) {
       return EquipmentType.other;
     }
+    // The vest (#3108) ahead of the suit and hood rows its names contain
+    // ("Haubenweste" holds "haube"). A bare "Weste" stays unmatched: it is
+    // what a German diver calls a BCD.
+    if (MacDiveValueMapper.vestGarment.hasMatch(lower)) {
+      return EquipmentType.vest;
+    }
+    // Socks (#2900) ahead of the suit rows, which would read the "trocken"
+    // of "Trockentauchsocken" as a drysuit. Asked of the MacDive reader
+    // rather than its pattern, so a "Sock bag" is settled as a bag the way
+    // that reader settles it, and the bag row below claims it here too.
+    if (MacDiveValueMapper.equipmentType(lower) == EquipmentType.socks) {
+      return EquipmentType.socks;
+    }
     for (final (keywords, type) in _leadingKeywords) {
       if (keywords.any(lower.contains)) return type;
     }

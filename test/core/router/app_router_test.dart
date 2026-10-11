@@ -1228,6 +1228,13 @@ void main() {
       '/planning/no-fly',
       '/dives',
       '/certifications',
+      // Documents (issue #2613): list, filters, one document.
+      '/documents',
+      '/documents?type=insurance',
+      '/documents?filter=expiring',
+      '/documents/x',
+      '/documents/new',
+      '/documents/x/edit',
       '/trips',
       '/pre-dive-sessions/session-7',
       '/courses/c1',

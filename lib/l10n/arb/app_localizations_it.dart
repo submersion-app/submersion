@@ -222,6 +222,128 @@ class AppLocalizationsIt extends AppLocalizations {
   String get connections_highlight_recency => 'Attualità';
 
   @override
+  String get connections_display_title => 'Visualizzazione';
+
+  @override
+  String get connections_layout_title => 'Disposizione';
+
+  @override
+  String get connections_layout_web => 'Rete';
+
+  @override
+  String get connections_layout_radial => 'Radiale';
+
+  @override
+  String get connections_layout_circle => 'Cerchio';
+
+  @override
+  String get connections_layout_columns => 'Colonne';
+
+  @override
+  String get connections_layout_clusters => 'Raggruppamenti';
+
+  @override
+  String get connections_layout_timeline => 'Cronologia';
+
+  @override
+  String get connections_labels_title => 'Etichette';
+
+  @override
+  String get connections_labels_auto => 'Auto';
+
+  @override
+  String get connections_labels_all => 'Tutte';
+
+  @override
+  String get connections_labels_off => 'Nessuna';
+
+  @override
+  String get connections_nodeSize_title => 'Dimensione nodi';
+
+  @override
+  String get connections_nodeSize_byDives => 'Per immersioni';
+
+  @override
+  String get connections_nodeSize_uniform => 'Uniforme';
+
+  @override
+  String get connections_edges_title => 'Linee';
+
+  @override
+  String get connections_edges_weighted => 'Ponderate';
+
+  @override
+  String get connections_edges_thin => 'Sottili';
+
+  @override
+  String get connections_edges_selectedOnly => 'Solo selezione';
+
+  @override
+  String get connections_hideUnconnected => 'Nascondi non collegati';
+
+  @override
+  String get connections_spacing_title => 'Spaziatura';
+
+  @override
+  String get connections_spacing_tight => 'Stretta';
+
+  @override
+  String get connections_spacing_spread => 'Ampia';
+
+  @override
+  String get connections_view_tooltip => 'Cambia vista';
+
+  @override
+  String get connections_view_graph => 'Grafo';
+
+  @override
+  String get connections_view_pairs => 'Coppie';
+
+  @override
+  String get connections_view_entities => 'Elementi';
+
+  @override
+  String get connections_view_matrix => 'Matrice';
+
+  @override
+  String get connections_table_entity => 'Elemento';
+
+  @override
+  String get connections_table_linkedWith => 'Collegato con';
+
+  @override
+  String get connections_table_sharedDives => 'Immersioni condivise';
+
+  @override
+  String get connections_table_lastShared => 'Ultima condivisa';
+
+  @override
+  String get connections_table_firstShared => 'Prima condivisa';
+
+  @override
+  String get connections_table_name => 'Nome';
+
+  @override
+  String get connections_table_kind => 'Tipo';
+
+  @override
+  String get connections_table_dives => 'Immersioni';
+
+  @override
+  String get connections_table_links => 'Connessioni';
+
+  @override
+  String get connections_table_strongest => 'Connessione più forte';
+
+  @override
+  String get connections_table_firstDive => 'Prima immersione';
+
+  @override
+  String connections_matrix_semantics(int rows, int columns, int links) {
+    return 'Matrice, righe: $rows, colonne: $columns, connessioni: $links';
+  }
+
+  @override
   String get connections_legend_group => 'Colore: gruppo';
 
   @override
@@ -6823,6 +6945,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_label_diveMaster => 'Divemaster';
 
   @override
+  String get diveLog_detail_label_diveOperator => 'Operatore';
+
+  @override
+  String get diveLog_detail_label_boatName => 'Barca';
+
+  @override
+  String get diveLog_detail_label_boatCaptain => 'Capitano';
+
+  @override
   String get diveLog_detail_label_diveType => 'Tipo di immersione';
 
   @override
@@ -6872,6 +7003,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_detail_label_swellHeight => 'Altezza onde';
+
+  @override
+  String get diveLog_detail_label_surfaceConditions =>
+      'Condizioni in superficie';
 
   @override
   String get diveLog_detail_label_total => 'Totale:';
@@ -7306,6 +7441,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_swellHeight => 'Altezza onde';
 
   @override
+  String get diveLog_edit_label_surfaceConditions => 'Condizioni in superficie';
+
+  @override
   String get diveLog_edit_label_type => 'Tipo';
 
   @override
@@ -7389,6 +7527,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_row_diveCenter => 'Diving center';
+
+  @override
+  String get diveLog_edit_row_diveOperator => 'Operatore';
+
+  @override
+  String get diveLog_edit_row_boatName => 'Barca';
+
+  @override
+  String get diveLog_edit_row_boatCaptain => 'Capitano';
 
   @override
   String get diveLog_edit_row_diveProfile => 'Profilo di immersione';
@@ -11961,14 +12108,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get divers_edit_bloodTypeLabel => 'Gruppo sanguigno';
 
   @override
-  String get divers_edit_clearInsuranceExpiryTooltip =>
-      'Cancella data scadenza assicurazione';
-
-  @override
-  String get divers_edit_clearMedicalClearanceTooltip =>
-      'Cancella data idoneità medica';
-
-  @override
   String get divers_edit_contactNameLabel => 'Nome contatto';
 
   @override
@@ -11996,46 +12135,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get divers_edit_expiryDateNotSet => 'Non impostata';
-
-  @override
-  String get divers_edit_expiryDateTitle => 'Data di scadenza';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHelper =>
-      'Mostrato per primo sulla tua scheda di emergenza.';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHint => 'es. +1 919 684 9111';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneLabel =>
-      'Numero di assistenza di emergenza 24 h';
-
-  @override
-  String get divers_edit_insurancePhoneLabel =>
-      'Telefono dell\'ufficio assicurativo';
-
-  @override
-  String get divers_edit_insuranceProviderHint => 'es. DAN, DiveAssure';
-
-  @override
-  String get divers_edit_insuranceProviderLabel => 'Fornitore assicurazione';
-
-  @override
   String get divers_edit_keepEditingButton => 'Continua a modificare';
-
-  @override
-  String get divers_edit_medicalClearanceExpired => 'Scaduta';
-
-  @override
-  String get divers_edit_medicalClearanceExpiringSoon => 'In scadenza';
-
-  @override
-  String get divers_edit_medicalClearanceNotSet => 'Non impostata';
-
-  @override
-  String get divers_edit_medicalClearanceTitle => 'Scadenza idoneità medica';
 
   @override
   String get divers_edit_medicalNotesLabel => 'Note mediche';
@@ -12059,9 +12159,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get divers_edit_phoneLabel => 'Telefono';
 
   @override
-  String get divers_edit_policyNumberLabel => 'Numero polizza';
-
-  @override
   String get divers_edit_primaryContactTitle => 'Contatto principale';
 
   @override
@@ -12075,14 +12172,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get divers_edit_secondaryContactTitle => 'Contatto secondario';
-
-  @override
-  String get divers_edit_selectInsuranceExpiryTooltip =>
-      'Seleziona data scadenza assicurazione';
-
-  @override
-  String get divers_edit_selectMedicalClearanceTooltip =>
-      'Seleziona data idoneità medica';
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
@@ -12451,6 +12540,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentType_boots => 'Calzari';
 
   @override
+  String get enum_equipmentType_socks => 'Calze';
+
+  @override
   String get enum_equipmentType_camera => 'Fotocamera';
 
   @override
@@ -12582,6 +12674,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_equipmentType_rashGuard => 'Rash guard';
+
+  @override
+  String get enum_equipmentType_vest => 'Corpetto';
 
   @override
   String get enum_equipmentType_wing => 'Sacco wing';
@@ -13575,6 +13670,82 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile salvare la ricarica. Riprova.';
 
   @override
+  String get tagScan_title => 'Scansiona un tag';
+
+  @override
+  String get tagScan_linkInvalid => 'Non è un tag di Submersion';
+
+  @override
+  String get gearPassport_title => 'Passaporto dell\'attrezzatura';
+
+  @override
+  String gearPassport_entry_lastService(String date) {
+    return 'Ultima manutenzione: $date';
+  }
+
+  @override
+  String get gearPassport_entry_noService => 'Nessuna manutenzione registrata';
+
+  @override
+  String get gearPassport_recent_title => 'Manutenzioni recenti';
+
+  @override
+  String get gearPassport_recent_none =>
+      'Nessuna manutenzione ancora registrata';
+
+  @override
+  String get gearPassport_recent_seeAll => 'Vedi tutto';
+
+  @override
+  String get gearPassport_unknownType => 'Attrezzatura';
+
+  @override
+  String get gearPassport_foreign_title => 'Tag dell\'attrezzatura';
+
+  @override
+  String get gearPassport_foreign_notInGear =>
+      'Questo articolo non fa parte della tua attrezzatura.';
+
+  @override
+  String get gearPassport_foreign_addFailed =>
+      'Impossibile aggiungere l\'articolo. Riprova.';
+
+  @override
+  String get gearPassport_field_lastService => 'Data dell\'ultima manutenzione';
+
+  @override
+  String get gearPassport_tag_linkInvalid => 'Non è un tag dell\'attrezzatura';
+
+  @override
+  String get gearPassport_scan_action => 'Scansiona';
+
+  @override
+  String gearPassport_scan_added(String name) {
+    return '$name aggiunto';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnDive(String name) {
+    return '$name è già in questa immersione';
+  }
+
+  @override
+  String gearPassport_scan_alreadyOnTrip(String name) {
+    return '$name è già in questo viaggio';
+  }
+
+  @override
+  String get gearPassport_scan_notYours => 'Non è nella tua attrezzatura';
+
+  @override
+  String get gearPassport_scan_view => 'Vedi';
+
+  @override
+  String gearPassport_scan_wishlist(String name) {
+    return '$name ha lo stato Desiderato';
+  }
+
+  @override
   String get pdf_unknownSite => 'Sito sconosciuto';
 
   @override
@@ -13825,6 +13996,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get pdf_currentDirection => 'Dir. corrente';
 
   @override
+  String get pdf_surfaceConditions => 'Superficie';
+
+  @override
   String get pdf_waterType => 'Tipo di acqua';
 
   @override
@@ -13844,6 +14018,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get pdf_diveCenter => 'Centro immersioni';
+
+  @override
+  String get pdf_diveOperator => 'Operatore';
+
+  @override
+  String get pdf_boatName => 'Barca';
+
+  @override
+  String get pdf_boatCaptain => 'Capitano';
 
   @override
   String get pdf_trip => 'Viaggio';
@@ -23076,6 +23259,326 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_buddy => 'Compagno';
 
   @override
+  String get nav_documents => 'Documenti';
+
+  @override
+  String get documents_title => 'Documenti';
+
+  @override
+  String get documents_type_insurance => 'Assicurazione';
+
+  @override
+  String get documents_type_medicalClearance => 'Certificato medico';
+
+  @override
+  String get documents_type_certificationCard => 'Tessera di brevetto';
+
+  @override
+  String get documents_type_permit => 'Permesso';
+
+  @override
+  String get documents_type_booking => 'Prenotazione';
+
+  @override
+  String get documents_type_receipt => 'Ricevuta';
+
+  @override
+  String get documents_type_manual => 'Manuale';
+
+  @override
+  String get documents_type_map => 'Mappa';
+
+  @override
+  String get documents_type_other => 'Documento';
+
+  @override
+  String get documents_owner_personal => 'Personali';
+
+  @override
+  String get documents_owner_dive => 'Immersioni';
+
+  @override
+  String get documents_owner_site => 'Siti';
+
+  @override
+  String get documents_owner_trip => 'Viaggi';
+
+  @override
+  String get documents_owner_equipment => 'Attrezzatura';
+
+  @override
+  String get documents_owner_course => 'Corsi';
+
+  @override
+  String get documents_owner_certification => 'Brevetti';
+
+  @override
+  String get documents_owner_buddy => 'Compagni';
+
+  @override
+  String get documents_owner_diveCenter => 'Centri immersioni';
+
+  @override
+  String get documents_expiring_title => 'Richiede attenzione';
+
+  @override
+  String get documents_badge_expired => 'Scaduto';
+
+  @override
+  String documents_badge_expiresInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Scade tra $count giorni',
+      one: 'Scade domani',
+      zero: 'Scade oggi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_empty => 'Nessun documento';
+
+  @override
+  String get documents_search_hint => 'Cerca documenti';
+
+  @override
+  String get documents_add => 'Aggiungi documento';
+
+  @override
+  String get documents_section_title => 'Documenti';
+
+  @override
+  String get documents_section_empty => 'Nessun documento allegato';
+
+  @override
+  String get documents_edit_newTitle => 'Nuovo documento';
+
+  @override
+  String get documents_edit_editTitle => 'Modifica documento';
+
+  @override
+  String get documents_field_type => 'Tipo';
+
+  @override
+  String get documents_field_title => 'Titolo';
+
+  @override
+  String get documents_field_issuer => 'Rilasciato da';
+
+  @override
+  String get documents_field_issuerInsurance => 'Assicuratore';
+
+  @override
+  String get documents_field_referenceNumber => 'Numero';
+
+  @override
+  String get documents_field_referenceNumberInsurance => 'Numero di polizza';
+
+  @override
+  String get documents_field_issueDate => 'Rilasciato il';
+
+  @override
+  String get documents_field_expiryDate => 'Scadenza';
+
+  @override
+  String get documents_field_reminderLead => 'Promemoria';
+
+  @override
+  String documents_field_reminderLeadDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count giorni prima',
+      one: '$count giorno prima',
+      zero: 'Disattivato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_field_emergencyPhone => 'Numero di emergenza 24 ore';
+
+  @override
+  String get documents_field_phone => 'Telefono ufficio';
+
+  @override
+  String get documents_field_isPrimary => 'Assicurazione principale';
+
+  @override
+  String get documents_field_isPrimary_subtitle =>
+      'Mostrata sulla scheda di emergenza e nella schermata iniziale';
+
+  @override
+  String get documents_field_notes => 'Note';
+
+  @override
+  String get documents_pages_title => 'Pagine';
+
+  @override
+  String get documents_pages_front => 'Fronte';
+
+  @override
+  String get documents_pages_back => 'Retro';
+
+  @override
+  String get documents_pages_add => 'Aggiungi pagina';
+
+  @override
+  String get documents_pages_addCamera => 'Scatta foto';
+
+  @override
+  String get documents_pages_addGallery => 'Scegli foto';
+
+  @override
+  String get documents_pages_addFile => 'Scegli file';
+
+  @override
+  String get documents_pages_remove => 'Rimuovi pagina';
+
+  @override
+  String documents_pages_tooLarge(String size) {
+    return 'Questo file è di $size. Il limite è 10 MB.';
+  }
+
+  @override
+  String documents_pages_unsupported(String extension) {
+    return 'I file $extension non sono supportati. Usa una foto o un file PDF, Word o di testo.';
+  }
+
+  @override
+  String get documents_page_cannotDisplay =>
+      'Impossibile mostrare questa pagina';
+
+  @override
+  String get documents_page_openWith => 'Apri con...';
+
+  @override
+  String documents_page_counter(int current, int total) {
+    return '$current di $total';
+  }
+
+  @override
+  String get documents_delete_title => 'Eliminare il documento?';
+
+  @override
+  String get documents_delete_content =>
+      'Il documento e tutte le sue pagine verranno eliminati su ogni dispositivo sincronizzato.';
+
+  @override
+  String get documents_deleted => 'Documento eliminato';
+
+  @override
+  String get documents_saved => 'Documento salvato';
+
+  @override
+  String documents_error_save(String error) {
+    return 'Impossibile salvare il documento: $error';
+  }
+
+  @override
+  String documents_error_load(String error) {
+    return 'Impossibile caricare i documenti: $error';
+  }
+
+  @override
+  String get documents_filter_all => 'Tutti';
+
+  @override
+  String get documents_detail_owner => 'Archiviato in';
+
+  @override
+  String get documents_profileHub_documents => 'Documenti';
+
+  @override
+  String documents_profileHub_documents_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documenti',
+      one: '$count documento',
+      zero: 'Nessuno',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_medical_clearances => 'Certificati medici';
+
+  @override
+  String get documents_medical_addClearance => 'Aggiungi certificato';
+
+  @override
+  String get documents_medical_clearancesEmpty =>
+      'Nessun certificato medico registrato';
+
+  @override
+  String dashboard_gauges_documentExpires(String title, String date) {
+    return '$title scade il $date';
+  }
+
+  @override
+  String dashboard_gauges_documentExpired(String title) {
+    return '$title scaduto';
+  }
+
+  @override
+  String dashboard_gauges_documentsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count documenti richiedono attenzione',
+      one: '$count documento richiede attenzione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_homeChips_documents => 'Documenti';
+
+  @override
+  String notifications_document_expiresSoon_title(String title) {
+    return '$title scade a breve';
+  }
+
+  @override
+  String notifications_document_expiresSoon_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Scade tra $count giorni.',
+      one: 'Scade domani.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notifications_document_expiresToday_title(String title) {
+    return '$title scade oggi';
+  }
+
+  @override
+  String get notifications_document_expiresToday_body =>
+      'Rinnovalo prima della prossima immersione.';
+
+  @override
+  String get settings_conflict_field_pageOrder => 'Ordine delle pagine';
+
+  @override
+  String get settings_conflict_field_cardSide => 'Lato della tessera';
+
+  @override
+  String get diveDetailSection_documents_description =>
+      'Permessi, ricevute e altri documenti dell\'immersione';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'Mappe, permessi e altri documenti del sito';
+
+  @override
+  String get settings_conflict_ref_document => 'Documento';
+
+  @override
   String get settings_conflict_ref_certification => 'Certificazione';
 
   @override
@@ -24474,6 +24977,192 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_section_manage_title => 'Gestisci';
+
+  @override
+  String get settings_network_mode_header => 'Proxy';
+
+  @override
+  String get settings_network_mode_system => 'Proxy di sistema';
+
+  @override
+  String get settings_network_mode_system_subtitle =>
+      'Usa il proxy configurato nelle impostazioni di rete del dispositivo';
+
+  @override
+  String get settings_network_mode_manual => 'Manuale';
+
+  @override
+  String get settings_network_mode_manual_subtitle =>
+      'Inserisci un server proxy';
+
+  @override
+  String get settings_network_mode_none => 'Nessun proxy';
+
+  @override
+  String get settings_network_mode_none_subtitle =>
+      'Connetti sempre direttamente';
+
+  @override
+  String get settings_network_status_detecting =>
+      'Verifica delle impostazioni proxy di questo dispositivo';
+
+  @override
+  String get settings_network_status_none =>
+      'Nessun proxy configurato su questo dispositivo';
+
+  @override
+  String settings_network_status_fixed(String endpoint) {
+    return 'In uso: $endpoint';
+  }
+
+  @override
+  String settings_network_status_fixedPac(String endpoint) {
+    return 'In uso: $endpoint (dalla configurazione automatica)';
+  }
+
+  @override
+  String settings_network_status_fixedSocks(String endpoint) {
+    return 'In uso: $endpoint (SOCKS5)';
+  }
+
+  @override
+  String get settings_network_status_pacUnsupported =>
+      'La configurazione automatica del proxy non è supportata su questo dispositivo. Scegli Manuale e inserisci il proxy.';
+
+  @override
+  String get settings_network_status_pacFailed =>
+      'Impossibile leggere la configurazione automatica del proxy. Scegli Manuale e inserisci il proxy.';
+
+  @override
+  String get settings_network_status_error =>
+      'Impossibile leggere le impostazioni proxy di questo dispositivo.';
+
+  @override
+  String get settings_network_status_refresh => 'Controlla di nuovo';
+
+  @override
+  String get settings_network_manual_typeHttp => 'HTTP';
+
+  @override
+  String get settings_network_manual_typeSocks => 'SOCKS5';
+
+  @override
+  String get settings_network_manual_host => 'Host';
+
+  @override
+  String get settings_network_manual_port => 'Porta';
+
+  @override
+  String get settings_network_manual_username => 'Nome utente (facoltativo)';
+
+  @override
+  String get settings_network_manual_password => 'Password (facoltativa)';
+
+  @override
+  String get settings_network_manual_showPassword => 'Mostra password';
+
+  @override
+  String get settings_network_manual_hidePassword => 'Nascondi password';
+
+  @override
+  String get settings_network_manual_save => 'Salva';
+
+  @override
+  String get settings_network_manual_saved => 'Impostazioni proxy salvate';
+
+  @override
+  String get settings_network_manual_saveFailed =>
+      'Impossibile salvare le impostazioni proxy.';
+
+  @override
+  String get settings_network_manual_nativeNote =>
+      'Le schermate di accesso fornite dal sistema operativo usano il proxy di sistema.';
+
+  @override
+  String get settings_network_validation_hostRequired =>
+      'Inserisci l\'host del proxy';
+
+  @override
+  String get settings_network_validation_portInvalid =>
+      'Inserisci una porta da 1 a 65535';
+
+  @override
+  String get settings_network_validation_passwordRequired =>
+      'Inserisci la password per questo nome utente';
+
+  @override
+  String get settings_network_validation_usernameColon =>
+      'Il nome utente non può contenere i due punti';
+
+  @override
+  String get settings_network_validation_usernameSemicolon =>
+      'Il nome utente non può contenere il punto e virgola';
+
+  @override
+  String get settings_network_validation_usernameWhitespace =>
+      'Il nome utente non può iniziare o finire con uno spazio';
+
+  @override
+  String get settings_network_validation_passwordSemicolon =>
+      'La password non può contenere il punto e virgola';
+
+  @override
+  String get settings_network_validation_passwordWhitespace =>
+      'La password non può iniziare o finire con uno spazio';
+
+  @override
+  String get settings_network_validation_tooLong => 'Massimo 255 byte';
+
+  @override
+  String get settings_network_test_button => 'Prova connessione';
+
+  @override
+  String get settings_network_test_running => 'Prova in corso';
+
+  @override
+  String settings_network_test_successProxy(
+    String endpoint,
+    String type,
+    int ms,
+  ) {
+    return 'Connesso tramite $endpoint ($type) in $ms ms';
+  }
+
+  @override
+  String settings_network_test_successDirect(int ms) {
+    return 'Connesso direttamente in $ms ms';
+  }
+
+  @override
+  String settings_network_test_unreachable(String endpoint) {
+    return 'Impossibile raggiungere $endpoint. Controlla host e porta.';
+  }
+
+  @override
+  String get settings_network_test_authRejected =>
+      'Il proxy ha rifiutato il nome utente o la password.';
+
+  @override
+  String get settings_network_test_authRequiredSystem =>
+      'Questo proxy richiede nome utente e password. Scegli Manuale e inseriscili.';
+
+  @override
+  String get settings_network_test_tls =>
+      'Connessione sicura non riuscita. La tua rete potrebbe ispezionare il traffico HTTPS; il suo certificato deve essere considerato attendibile da questo dispositivo.';
+
+  @override
+  String get settings_network_test_timeout => 'Tempo di connessione scaduto.';
+
+  @override
+  String settings_network_test_failed(String detail) {
+    return 'Connessione non riuscita: $detail. Il registro di debug contiene l\'errore completo.';
+  }
+
+  @override
+  String get settings_section_network_subtitle => 'Server proxy';
+
+  @override
+  String get settings_section_network_title => 'Rete';
 
   @override
   String get settings_section_notifications_subtitle =>
@@ -28998,6 +29687,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get trips_gear_add_rental => 'Bombole a noleggio';
+
+  @override
+  String get trips_gear_add_scan => 'Scansiona un tag';
 
   @override
   String get trips_gear_section_packed => 'In valigia';
@@ -34277,6 +34969,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_sole_type => 'Suola';
 
   @override
+  String get attrLabel_sock_type => 'Tipo';
+
+  @override
   String get attrLabel_buoyancy_kg => 'Galleggiabilità';
 
   @override
@@ -34353,6 +35048,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrLabel_upf_rating => 'Indice UPF';
+
+  @override
+  String get attrLabel_hooded => 'Con cappuccio';
+
+  @override
+  String get attrLabel_vest_layer => 'Indossato';
+
+  @override
+  String get attrLabel_vest_closure => 'Chiusura';
 
   @override
   String get attrLabel_snorkel_type => 'Tipo';
@@ -34744,6 +35448,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrChoice_sole_type_soft => 'Suola morbida';
 
   @override
+  String get attrChoice_sock_type_neoprene => 'Neoprene (umide)';
+
+  @override
+  String get attrChoice_sock_type_drysuit => 'Muta stagna (termiche)';
+
+  @override
   String get attrChoice_dpv_style_tow_behind => 'A traino';
 
   @override
@@ -34782,6 +35492,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_sleeve_length_sleeveless => 'Senza maniche';
+
+  @override
+  String get attrChoice_vest_layer_over_suit => 'Sopra la muta';
+
+  @override
+  String get attrChoice_vest_layer_under_suit => 'Sotto la muta';
+
+  @override
+  String get attrChoice_vest_closure_front_zip => 'Zip frontale';
+
+  @override
+  String get attrChoice_vest_closure_side_zip => 'Zip laterale';
+
+  @override
+  String get attrChoice_vest_closure_pullover => 'Senza zip';
 
   @override
   String get attrChoice_snorkel_type_classic => 'Classico';
@@ -37320,6 +38045,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_diveField_weatherDescription => 'Meteo';
 
   @override
+  String get enum_diveField_surfaceConditions => 'Condizioni in superficie';
+
+  @override
   String get enum_diveField_primaryGas => 'Gas principale';
 
   @override
@@ -37393,6 +38121,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_diveField_diveCenterName => 'Centro immersioni';
+
+  @override
+  String get enum_diveField_diveOperator => 'Operatore subacqueo';
+
+  @override
+  String get enum_diveField_boatName => 'Barca';
+
+  @override
+  String get enum_diveField_boatCaptain => 'Capitano della barca';
 
   @override
   String get enum_diveField_siteLatitude => 'Latitudine';
@@ -37497,6 +38234,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_diveField_weatherDescription_short => 'Meteo';
 
   @override
+  String get enum_diveField_surfaceConditions_short => 'Superficie';
+
+  @override
   String get enum_diveField_primaryGas_short => 'Gas';
 
   @override
@@ -37570,6 +38310,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_diveField_diveCenterName_short => 'Centro';
+
+  @override
+  String get enum_diveField_diveOperator_short => 'Operatore';
+
+  @override
+  String get enum_diveField_boatName_short => 'Barca';
+
+  @override
+  String get enum_diveField_boatCaptain_short => 'Capitano';
 
   @override
   String get enum_diveField_siteLatitude_short => 'Lat';
@@ -47118,6 +47867,139 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile caricare l\'andamento della temperatura';
 
   @override
+  String get insights_conditions_group_water => 'Acqua';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => 'Superficie e meteo';
+
+  @override
+  String get insights_conditions_group_waterMovement => 'Movimento dell\'acqua';
+
+  @override
+  String get insights_conditions_group_siteAccess => 'Sito e accesso';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Basato su $recorded di $total immersioni',
+      one: 'Basato su $recorded di $total immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error =>
+      'Impossibile caricare i dati meteo e delle condizioni';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title =>
+      'Andamento della temperatura dell\'aria';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle =>
+      'Temperatura dell\'aria in ogni immersione';
+
+  @override
+  String get insights_conditions_airTempTrend_error =>
+      'Impossibile caricare la temperatura dell\'aria';
+
+  @override
+  String get insights_conditions_airTempBands_title =>
+      'Immersioni per temperatura dell\'aria';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle =>
+      'Come si distribuiscono le tue immersioni tra le fasce di temperatura dell\'aria';
+
+  @override
+  String get insights_conditions_cloudCover_title => 'Copertura nuvolosa';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle =>
+      'Condizioni del cielo nelle tue immersioni';
+
+  @override
+  String get insights_conditions_precipitation_title => 'Precipitazioni';
+
+  @override
+  String get insights_conditions_precipitation_subtitle =>
+      'Pioggia, neve e altre precipitazioni nelle tue immersioni';
+
+  @override
+  String get insights_conditions_windSpeed_title => 'Velocità del vento';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle =>
+      'Come si distribuiscono le tue immersioni tra le fasce di velocità del vento';
+
+  @override
+  String get insights_conditions_windDirection_title => 'Direzione del vento';
+
+  @override
+  String get insights_conditions_windDirection_subtitle =>
+      'Direzione del vento registrata nelle tue immersioni';
+
+  @override
+  String get insights_conditions_humidity_title => 'Umidità';
+
+  @override
+  String get insights_conditions_humidity_subtitle =>
+      'Umidità relativa nelle tue immersioni';
+
+  @override
+  String get insights_conditions_surfacePressure_title =>
+      'Pressione di superficie';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle =>
+      'Pressione barometrica in superficie nelle tue immersioni';
+
+  @override
+  String get insights_conditions_currentStrength_title => 'Intensità corrente';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle =>
+      'Quanto era forte la corrente nelle tue immersioni';
+
+  @override
+  String get insights_conditions_currentDirection_title => 'Direzione corrente';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle =>
+      'Direzione della corrente registrata nelle tue immersioni';
+
+  @override
+  String get insights_conditions_swellHeight_title => 'Altezza onde';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle =>
+      'Come si distribuiscono le tue immersioni tra le altezze delle onde';
+
+  @override
+  String get insights_conditions_altitude_title => 'Altitudine';
+
+  @override
+  String get insights_conditions_altitude_subtitle =>
+      'Immersioni per gruppo di altitudine';
+
+  @override
+  String get insights_conditions_exitMethod_title => 'Metodo di uscita';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle =>
+      'Come sei uscito dall\'acqua';
+
+  @override
   String get insights_conditions_waterTempBands_title =>
       'Immersioni per temperatura dell\'acqua';
 
@@ -49140,6 +50022,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_dives_boatName => 'Barca';
+
+  @override
+  String get query_dives_boatCaptain => 'Capitano';
 
   @override
   String get query_dives_bottomTime => 'Tempo di fondo';

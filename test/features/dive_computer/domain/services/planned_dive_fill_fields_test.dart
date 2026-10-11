@@ -33,4 +33,17 @@ void main() {
       reason: 'classified names that are not Dive fields',
     );
   });
+
+  test('a download never overwrites the boat or surface conditions', () {
+    // The fill copies only measured fields onto the planned dive (#3229).
+    expect(
+      kHumanDiveFields,
+      containsAll([
+        'diveOperator',
+        'boatName',
+        'boatCaptain',
+        'surfaceConditions',
+      ]),
+    );
+  });
 }

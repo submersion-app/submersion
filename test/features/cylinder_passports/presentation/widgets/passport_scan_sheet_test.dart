@@ -86,6 +86,17 @@ void main() {
     expect(results, [tag]);
   });
 
+  testWidgets('the title names any tag, not only a cylinder (issue #2652)', (
+    tester,
+  ) async {
+    await openSheet(tester, camera: null);
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportScanSheet)),
+    );
+    expect(find.text(l10n.tagScan_title), findsOneWidget);
+    expect(find.text(l10n.passport_scan_title), findsNothing);
+  });
+
   testWidgets('paste fills the link from the clipboard', (tester) async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -167,7 +178,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('passportScan_nfc')));
     await tester.pumpAndSettle();
-    expect(find.text(l10n.passport_tag_linkInvalid), findsOneWidget);
+    expect(find.text(l10n.tagScan_linkInvalid), findsOneWidget);
     expect(results, isEmpty);
   });
 
@@ -238,7 +249,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('passportScan_nfc')));
     await tester.pumpAndSettle();
-    expect(nfc.lastIosEnd?.error, l10n.passport_tag_linkInvalid);
+    expect(nfc.lastIosEnd?.error, l10n.tagScan_linkInvalid);
   });
 
   testWidgets('a tag read here is remembered, so its re-dispatch is dropped', (
@@ -273,7 +284,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('passportScan_nfc')));
     await tester.pumpAndSettle();
-    expect(find.text(l10n.passport_tag_linkInvalid), findsOneWidget);
+    expect(find.text(l10n.tagScan_linkInvalid), findsOneWidget);
     expect(results, isEmpty);
   });
 

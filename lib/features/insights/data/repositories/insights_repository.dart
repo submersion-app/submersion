@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show compute, visibleForTesting;
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
@@ -23,6 +24,7 @@ import 'package:submersion/features/dive_sites/query/site_query_entity.dart'
     show dartWhitespaceSqlChars;
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/series_profile_aggregates.dart';
+import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor_row.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
@@ -32,6 +34,7 @@ import 'package:submersion/features/insights/domain/water_temp_bands.dart';
 export 'package:submersion/features/insights/domain/trend_aggregation.dart'
     show TrendDataPoint;
 
+part 'insights_repository_conditions.dart';
 part 'insights_repository_focus.dart';
 
 /// Per-dive outcome of the recorded (non-computed) deco classification.

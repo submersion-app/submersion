@@ -21,6 +21,8 @@ import 'package:submersion/features/dive_log/domain/services/dive_merge_builder.
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// Result of a successful merge: the new dive plus the pre-merge snapshot
 /// needed to undo it.
@@ -637,6 +639,13 @@ class DiveMergeService {
         );
       }
 
+      // 12b. Documents follow the media to the merged dive (issue #2613).
+      await DocumentRepository().reassignOwner(
+        DocumentOwnerKind.dive,
+        diveIds,
+        mergedId,
+      );
+
       // 13. Delete sources through the tombstone-logging path.
       await _diveRepo.bulkDeleteDives(diveIds);
     });
@@ -871,6 +880,12 @@ class DiveMergeService {
           localUpdatedAt: now,
         );
       }
+
+      // File the documents under their restored source dives (#2613).
+      await DocumentRepository().restoreOwners(
+        DocumentOwnerKind.dive,
+        snapshot.documentDiveIds,
+      );
 
       // Restore media pointers.
       for (final entry in snapshot.mediaDiveIds.entries) {

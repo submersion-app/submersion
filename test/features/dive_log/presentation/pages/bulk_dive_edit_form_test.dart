@@ -79,11 +79,12 @@ void main() {
     testWidgets('renders gated Logistics + Notes fields', (tester) async {
       await pumpBulk(tester);
 
-      // 5 Logistics (course, #1741) + 9 Conditions + 6 Weather + 6 Rebreather
-      // + 1 Buddies (my role, #1220) + 1 Notes + 2 statistics-exclusion gates
-      // (#526, #1272) = 30.
+      // 8 Logistics (course, #1741; operator, boat, captain, #3229)
+      // + 10 Conditions (surface conditions, #3229) + 6 Weather
+      // + 6 Rebreather + 1 Buddies (my role, #1220) + 1 Notes
+      // + 2 statistics-exclusion gates (#526, #1272) = 34.
       // (dive type moved from a scalar gate to the collection lane, #414)
-      expect(find.byType(BulkFieldGate), findsNWidgets(30));
+      expect(find.byType(BulkFieldGate), findsNWidgets(34));
       expect(find.text('Course'), findsOneWidget);
       expect(find.text('Favorite'), findsOneWidget);
       expect(find.text('Exclude from statistics'), findsOneWidget);
@@ -1500,6 +1501,118 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(SnackBar), findsOneWidget);
+    });
+    Finder gateOf(String label) => find.ancestor(
+      of: find.text(label),
+      matching: find.byType(BulkFieldGate),
+    );
+
+    Future<void> fillGate(
+      WidgetTester tester,
+      String label,
+      String text,
+    ) async {
+      await tester.ensureVisible(gateOf(label));
+      await tester.tap(
+        find.descendant(of: gateOf(label), matching: find.byType(Checkbox)),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.descendant(of: gateOf(label), matching: find.byType(TextField)),
+        text,
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('bulk boat rows capitalize like the single editor', (
+      tester,
+    ) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'caps-1'),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'caps-2'),
+      );
+      await pumpBulkDives(tester, [d1.id, d2.id]);
+
+      TextCapitalization capitalizationOf(String label) => tester
+          .widget<TextField>(
+            find.descendant(
+              of: gateOf(label),
+              matching: find.byType(TextField),
+            ),
+          )
+          .textCapitalization;
+      expect(capitalizationOf('Operator'), TextCapitalization.words);
+      expect(capitalizationOf('Boat'), TextCapitalization.words);
+      expect(capitalizationOf('Captain'), TextCapitalization.words);
+      expect(
+        capitalizationOf('Surface Conditions'),
+        TextCapitalization.sentences,
+      );
+    });
+
+    testWidgets('the Captain gate sets every selected dive (#3229)', (
+      tester,
+    ) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'cap-1'),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(
+          id: 'cap-2',
+          boatCaptain: 'Old',
+        ),
+      );
+      await pumpBulkDives(tester, [d1.id, d2.id]);
+
+      await fillGate(tester, 'Captain', '  Rik ');
+      await saveBulk(tester);
+
+      expect((await repository.getDiveById(d1.id))!.boatCaptain, 'Rik');
+      expect((await repository.getDiveById(d2.id))!.boatCaptain, 'Rik');
+    });
+
+    testWidgets('an enabled Captain gate holding only spaces clears it', (
+      tester,
+    ) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(
+          id: 'cap-3',
+          boatCaptain: 'Rik',
+        ),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(
+          id: 'cap-4',
+          boatCaptain: 'Ana',
+        ),
+      );
+      await pumpBulkDives(tester, [d1.id, d2.id]);
+
+      await fillGate(tester, 'Captain', '   ');
+      await saveBulk(tester);
+
+      expect((await repository.getDiveById(d1.id))!.boatCaptain, isNull);
+      expect((await repository.getDiveById(d2.id))!.boatCaptain, isNull);
+    });
+
+    testWidgets('the Surface Conditions gate sets every dive (#3229)', (
+      tester,
+    ) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'sea-1'),
+      );
+      final d2 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'sea-2'),
+      );
+      await pumpBulkDives(tester, [d1.id, d2.id]);
+
+      await fillGate(tester, 'Surface Conditions', 'Calm');
+      await saveBulk(tester);
+
+      expect((await repository.getDiveById(d1.id))!.surfaceConditions, 'Calm');
+      expect((await repository.getDiveById(d2.id))!.surfaceConditions, 'Calm');
     });
   });
 }

@@ -73,6 +73,7 @@ void main() {
       buddy: '@ana',
       diveComputerSerial: '+001',
       weatherDescription: '=1+1',
+      boatName: '=cmd',
       waterTemp: -1.6,
     );
     final r = rowOf(CsvDivesWriter(CsvExportUnits.metric).write([dive]), 1);
@@ -81,6 +82,7 @@ void main() {
     expect(r['Buddy'], "'@ana");
     expect(r['Serial Number'], "'+001");
     expect(r['Weather Description'], "'=1+1");
+    expect(r['Boat Name'], "'=cmd");
     expect(r['Water Temp (°C)'], '-2');
   });
 }

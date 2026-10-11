@@ -77,6 +77,16 @@ Future<void> deleteDiverRows(
 // stats-scope-exempt: deletion cascade. Deletes the diver's dives, excluded
 // ones included.
 const List<DiverDeleteStep> diverDiveSteps = [
+  // Documents first: their owner links (dive, site, trip, gear, course,
+  // cert, buddy, center) point at rows deleted below, and documents.diver_id
+  // has no ON DELETE action. Documents follow the diver who filed them,
+  // including those on a shared site that survives the delete (#2613).
+  (
+    table: 'document_pages',
+    entityType: 'documentPages',
+    where: 'document_id IN (SELECT id FROM documents WHERE diver_id = ?1)',
+  ),
+  (table: 'documents', entityType: 'documents', where: 'diver_id = ?1'),
   (table: 'dives', entityType: 'dives', where: 'diver_id = ?1'),
 ];
 
@@ -266,7 +276,7 @@ const List<DiverDeleteStep> diverLibrarySteps = [
   ),
   (table: 'tank_presets', entityType: 'tankPresets', where: 'diver_id = ?1'),
   // Before their computers: `deleteComputer` tombstones a computer's
-  // connections (v277, issue #3106), so the diver delete does too.
+  // connections (v278, issue #3106), so the diver delete does too.
   (
     table: 'dive_computer_connections',
     entityType: 'diveComputerConnections',

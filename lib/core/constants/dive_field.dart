@@ -53,6 +53,7 @@ enum DiveField {
   precipitation,
   humidity,
   weatherDescription,
+  surfaceConditions,
 
   // Gas
   primaryGas,
@@ -96,6 +97,9 @@ enum DiveField {
   // Location
   siteLocation,
   diveCenterName,
+  diveOperator,
+  boatName,
+  boatCaptain,
   siteLatitude,
   siteLongitude,
 
@@ -192,6 +196,7 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.precipitation:
       case DiveField.humidity:
       case DiveField.weatherDescription:
+      case DiveField.surfaceConditions:
         return DiveFieldCategory.environment;
 
       case DiveField.primaryGas:
@@ -235,6 +240,9 @@ extension DiveFieldMetadata on DiveField {
 
       case DiveField.siteLocation:
       case DiveField.diveCenterName:
+      case DiveField.diveOperator:
+      case DiveField.boatName:
+      case DiveField.boatCaptain:
       case DiveField.siteLatitude:
       case DiveField.siteLongitude:
         return DiveFieldCategory.location;
@@ -306,6 +314,8 @@ extension DiveFieldMetadata on DiveField {
         return 'Humidity';
       case DiveField.weatherDescription:
         return 'Weather';
+      case DiveField.surfaceConditions:
+        return 'Surface Conditions';
       case DiveField.primaryGas:
         return 'Primary Gas';
       case DiveField.diluentGas:
@@ -356,6 +366,12 @@ extension DiveFieldMetadata on DiveField {
         return 'Site Location';
       case DiveField.diveCenterName:
         return 'Dive Center';
+      case DiveField.diveOperator:
+        return 'Dive Operator';
+      case DiveField.boatName:
+        return 'Boat';
+      case DiveField.boatCaptain:
+        return 'Boat Captain';
       case DiveField.siteLatitude:
         return 'Latitude';
       case DiveField.siteLongitude:
@@ -430,6 +446,8 @@ extension DiveFieldMetadata on DiveField {
         return 'Humid';
       case DiveField.weatherDescription:
         return 'Weather';
+      case DiveField.surfaceConditions:
+        return 'Surface';
       case DiveField.primaryGas:
         return 'Gas';
       case DiveField.diluentGas:
@@ -480,6 +498,12 @@ extension DiveFieldMetadata on DiveField {
         return 'Location';
       case DiveField.diveCenterName:
         return 'Dive Ctr';
+      case DiveField.diveOperator:
+        return 'Operator';
+      case DiveField.boatName:
+        return 'Boat';
+      case DiveField.boatCaptain:
+        return 'Captain';
       case DiveField.siteLatitude:
         return 'Lat';
       case DiveField.siteLongitude:
@@ -529,6 +553,7 @@ extension DiveFieldMetadata on DiveField {
     DiveField.precipitation => l10n.enum_diveField_precipitation,
     DiveField.humidity => l10n.enum_diveField_humidity,
     DiveField.weatherDescription => l10n.enum_diveField_weatherDescription,
+    DiveField.surfaceConditions => l10n.enum_diveField_surfaceConditions,
     DiveField.primaryGas => l10n.enum_diveField_primaryGas,
     DiveField.diluentGas => l10n.enum_diveField_diluentGas,
     DiveField.tankCount => l10n.enum_diveField_tankCount,
@@ -554,6 +579,9 @@ extension DiveFieldMetadata on DiveField {
     DiveField.diveMaster => l10n.enum_diveField_diveMaster,
     DiveField.siteLocation => l10n.enum_diveField_siteLocation,
     DiveField.diveCenterName => l10n.enum_diveField_diveCenterName,
+    DiveField.diveOperator => l10n.enum_diveField_diveOperator,
+    DiveField.boatName => l10n.enum_diveField_boatName,
+    DiveField.boatCaptain => l10n.enum_diveField_boatCaptain,
     DiveField.siteLatitude => l10n.enum_diveField_siteLatitude,
     DiveField.siteLongitude => l10n.enum_diveField_siteLongitude,
     DiveField.tripName => l10n.enum_diveField_tripName,
@@ -593,6 +621,7 @@ extension DiveFieldMetadata on DiveField {
     DiveField.humidity => l10n.enum_diveField_humidity_short,
     DiveField.weatherDescription =>
       l10n.enum_diveField_weatherDescription_short,
+    DiveField.surfaceConditions => l10n.enum_diveField_surfaceConditions_short,
     DiveField.primaryGas => l10n.enum_diveField_primaryGas_short,
     DiveField.diluentGas => l10n.enum_diveField_diluentGas_short,
     DiveField.tankCount => l10n.enum_diveField_tankCount_short,
@@ -619,6 +648,9 @@ extension DiveFieldMetadata on DiveField {
     DiveField.diveMaster => l10n.enum_diveField_diveMaster_short,
     DiveField.siteLocation => l10n.enum_diveField_siteLocation_short,
     DiveField.diveCenterName => l10n.enum_diveField_diveCenterName_short,
+    DiveField.diveOperator => l10n.enum_diveField_diveOperator_short,
+    DiveField.boatName => l10n.enum_diveField_boatName_short,
+    DiveField.boatCaptain => l10n.enum_diveField_boatCaptain_short,
     DiveField.siteLatitude => l10n.enum_diveField_siteLatitude_short,
     DiveField.siteLongitude => l10n.enum_diveField_siteLongitude_short,
     DiveField.tripName => l10n.enum_diveField_tripName_short,
@@ -747,6 +779,11 @@ extension DiveFieldMetadata on DiveField {
         return null;
       case DiveField.weatherDescription:
         return null;
+      case DiveField.surfaceConditions:
+      case DiveField.diveOperator:
+      case DiveField.boatName:
+      case DiveField.boatCaptain:
+        return null;
       case DiveField.importSource:
         return null;
       case DiveField.surfaceInterval:
@@ -762,6 +799,10 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.siteLatitude:
       case DiveField.siteLongitude:
       case DiveField.weatherDescription:
+      case DiveField.surfaceConditions:
+      case DiveField.diveOperator:
+      case DiveField.boatName:
+      case DiveField.boatCaptain:
       case DiveField.diveName:
         return false;
       default:

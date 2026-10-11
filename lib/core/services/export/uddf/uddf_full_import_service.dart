@@ -8,6 +8,7 @@ import 'package:submersion/core/services/export/uddf/uddf_certification_currency
 import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
+import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
@@ -1394,10 +1395,7 @@ class UddfFullImportService {
       // Element local name -> diveData map key.
       for (final entry in const {
         'weather': 'weather',
-        'surfaceconditions': 'surfaceConditions',
-        'boatname': 'boatName',
-        'boatcaptain': 'boatCaptain',
-        'diveoperator': 'diveOperator',
+        ...UddfDiveLogistics.elementToMapKey,
       }.entries) {
         final text = UddfImportParsers.getElementText(afterElement, entry.key);
         if (text != null && text.isNotEmpty) {

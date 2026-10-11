@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/write_fill_to_tag.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -133,7 +134,9 @@ void main() {
       await tester.tap(find.text(l10n.passport_fill_writeToTag));
       await tester.pumpAndSettle();
       final sheet = tester.widget<NfcWriteSheet>(find.byType(NfcWriteSheet));
-      expect(sheet.payload.fill?.id, newest.id);
+      final writing =
+          PassportPayloadCodec.decode(sheet.request.fullUrl) as PassportDecoded;
+      expect(writing.payload.fill?.id, newest.id);
       expect(nfc.sessions, 1);
     });
 
