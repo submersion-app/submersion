@@ -36,7 +36,6 @@ String? fitManufacturerName(int? id) => switch (id) {
 /// gas mixes, GPS, and dive-level summary fields. Returns null for non-dive
 /// activities and corrupt files. A dive with no depth samples still parses,
 /// with an empty profile.
-
 class FitParserService {
   const FitParserService();
 

@@ -440,8 +440,8 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       final keepStored =
           storedSerial != null &&
           serialNumber != null &&
-          _digitsOnly.hasMatch(serialNumber) &&
-          !_digitsOnly.hasMatch(storedSerial);
+          isAllDigitsSerial(serialNumber) &&
+          !isAllDigitsSerial(storedSerial);
       final updated = relabeled.copyWith(
         serialNumber: keepStored
             ? storedSerial
@@ -467,8 +467,6 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       );
     }
   }
-
-  static final RegExp _digitsOnly = RegExp(r'^\d+$');
 
   static String? _nonBlank(String? value) {
     final trimmed = value?.trim();

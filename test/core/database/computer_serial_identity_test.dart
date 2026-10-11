@@ -137,4 +137,14 @@ void main() {
       );
     });
   });
+
+  group('isAllDigitsSerial', () {
+    test('is true only for a serial made of digits alone', () {
+      expect(isAllDigitsSerial('12345678'), isTrue);
+      expect(isAllDigitsSerial('2712847316'), isTrue);
+      expect(isAllDigitsSerial('A1B2C3D4'), isFalse);
+      expect(isAllDigitsSerial('1234 5678'), isFalse);
+      expect(isAllDigitsSerial(''), isFalse);
+    });
+  });
 }

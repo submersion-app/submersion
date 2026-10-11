@@ -26,6 +26,10 @@ final RegExp _digits = RegExp(r'^\d{1,10}$');
 final RegExp _allDigits = RegExp(r'^\d+$');
 const int _maxUint32 = 0xFFFFFFFF;
 
+/// Whether [serial] is digits alone, the form libdivecomputer prints a
+/// Shearwater serial in (and an all-digit hex serial shares).
+bool isAllDigitsSerial(String serial) => _allDigits.hasMatch(serial);
+
 /// Whether [manufacturer] / [model] name a Shearwater computer. A file import
 /// often has no manufacturer, so the model alone (with or without a leading
 /// "Shearwater") is enough.
@@ -98,7 +102,7 @@ String? canonicalDownloadedSerial({
   final trimmed = serial?.trim();
   if (trimmed == null || trimmed.isEmpty) return null;
   if (!isShearwaterFamily(manufacturer: vendor, model: product)) return trimmed;
-  if (!_allDigits.hasMatch(trimmed)) return trimmed.toUpperCase();
+  if (!isAllDigitsSerial(trimmed)) return trimmed.toUpperCase();
   final value = int.tryParse(trimmed);
   if (value == null || value > _maxUint32) return trimmed;
   return value.toRadixString(16).padLeft(8, '0').toUpperCase();

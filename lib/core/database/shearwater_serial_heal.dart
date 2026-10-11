@@ -12,8 +12,6 @@ const Set<String> _directConnectionTypes = {
   'infrared',
 };
 
-final RegExp _allDigits = RegExp(r'^\d+$');
-
 /// Rewrite the serial of every DOWNLOADED Shearwater computer from the
 /// decimal libdivecomputer reports to the 8-character uppercase hex the
 /// computer shows (issue #3106). Returns how many rows changed.
@@ -75,7 +73,7 @@ Future<int> healShearwaterDownloadSerials(
   var rewritten = 0;
   for (final row in rows) {
     final serial = row.read<String>('serial_number').trim();
-    if (!_allDigits.hasMatch(serial)) continue;
+    if (!isAllDigitsSerial(serial)) continue;
     if (serial.length == 8 && !includeAmbiguous) continue;
     if (!isShearwaterFamily(
       manufacturer: row.readNullable<String>('manufacturer'),

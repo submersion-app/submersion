@@ -37,10 +37,10 @@ extension _DiveComputerAdapterImportSteps on DiveComputerAdapter {
   /// Consolidate a downloaded dive as a secondary computer reading on an
   /// existing dive.
   ///
-  /// Imports the download as a standalone new dive first -- persisting every
+  /// Imports the download as a standalone new dive first, persisting every
   /// sample column, tanks, pressures, events, and the raw-data
   /// `dive_data_sources` row via [DiveImportService.importSingleDiveAsNew] /
-  /// `importProfile` -- then folds it into [targetDiveId] via
+  /// `importProfile`, then folds it into [targetDiveId] via
   /// [DiveConsolidationService.apply]. This gives full-fidelity
   /// consolidation instead of a hand-rolled copy that would drop heart
   /// rate, O2 sensors, CNS/TTS samples, tanks, and events.
@@ -123,7 +123,7 @@ extension _DiveComputerAdapterImportSteps on DiveComputerAdapter {
         try {
           await _diveRepository.bulkDeleteDives([newDiveId]);
         } catch (deleteError, deleteStack) {
-          // The compensating delete failed too -- log it and fall through
+          // The compensating delete failed too. Log it and fall through
           // rather than rethrow, so the import loop still processes the
           // remaining dives instead of aborting on a stranded standalone
           // dive.
