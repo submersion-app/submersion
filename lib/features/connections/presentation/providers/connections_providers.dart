@@ -5,6 +5,7 @@ import 'package:submersion/features/connections/domain/entities/connection_node.
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
+import 'package:submersion/features/connections/domain/views/timeline_days.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
@@ -64,13 +65,24 @@ final connectionsNodesByWireProvider = FutureProvider.autoDispose
       return repository.nodesFor(refs, diverId: diverId);
     });
 
-/// First and last dive year for the current diver, for the year slider.
+/// First and last calendar day of the log in scope; drives the timeline.
+final connectionsDateSpanProvider = FutureProvider.autoDispose<DayRange?>((
+  ref,
+) async {
+  final repository = ref.watch(connectionsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchConnectionsChanges());
+  final diverId = ref.watch(currentDiverIdProvider);
+  return repository.diveDateSpan(diverId: diverId);
+});
+
+/// The years of [connectionsDateSpanProvider], for the year controls until
+/// the timeline replaces them.
 final connectionsYearSpanProvider =
     FutureProvider.autoDispose<({int first, int last})?>((ref) async {
-      final repository = ref.watch(connectionsRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchConnectionsChanges());
-      final diverId = ref.watch(currentDiverIdProvider);
-      return repository.diveYearSpan(diverId: diverId);
+      final span = await ref.watch(connectionsDateSpanProvider.future);
+      return span == null
+          ? null
+          : (first: span.start.year, last: span.end.year);
     });
 
 /// The dive ids behind the selection, under the page's filter.

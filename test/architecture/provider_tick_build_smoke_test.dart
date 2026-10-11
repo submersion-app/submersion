@@ -236,6 +236,10 @@ void main() {
       read: (c) => c.read(connectionsYearSpanProvider.future),
     ),
     (
+      name: 'connectionsDateSpanProvider',
+      read: (c) => c.read(connectionsDateSpanProvider.future),
+    ),
+    (
       name: 'connectionsSelectionDiveIdsProvider',
       read: (c) => c.read(
         connectionsSelectionDiveIdsProvider(
