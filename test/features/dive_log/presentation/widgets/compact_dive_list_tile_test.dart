@@ -128,7 +128,7 @@ void main() {
       );
 
       final badge = find.ancestor(
-        of: find.byIcon(Icons.circle),
+        of: find.byIcon(Icons.health_and_safety_outlined),
         matching: find.byType(Tooltip),
       );
       expect(badge, findsOneWidget);
@@ -156,7 +156,7 @@ void main() {
         ),
       );
 
-      expect(find.byIcon(Icons.circle), findsNothing);
+      expect(find.byIcon(Icons.health_and_safety_outlined), findsNothing);
     });
 
     testWidgets('shows checkbox in selection mode', (tester) async {
