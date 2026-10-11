@@ -10469,7 +10469,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Volare dopo l'immersione",
-  "safetySettings_cnsOtuHeader": "Carico attuale di CNS/OTU",
+  "safetySettings_cnsOtuHeader": "Carico di immersione attuale",
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Rigoroso (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Intervalli indicativi dopo una singola immersione senza deco, immersioni ripetitive e immersioni con deco",

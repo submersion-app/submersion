@@ -10469,7 +10469,7 @@
     }
   },
   "safetySettings_noFlyHeader": "טיסה אחרי צלילה",
-  "safetySettings_cnsOtuHeader": "עומס CNS/OTU נוכחי",
+  "safetySettings_cnsOtuHeader": "עומס הצלילה הנוכחי",
   "safetySettings_noFlyPreset_standard": "רגיל (12/18/24 ש')",
   "safetySettings_noFlyPreset_strict": "מחמיר (18/24/48 ש')",
   "safetySettings_noFlyPreset_subtitle": "מרווחים מנחים אחרי צלילה בודדת ללא דקו, צלילות חוזרות וצלילות דקומפרסיה",

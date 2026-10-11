@@ -10469,7 +10469,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Repülés merülés után",
-  "safetySettings_cnsOtuHeader": "Jelenlegi CNS/OTU terhelés",
+  "safetySettings_cnsOtuHeader": "Jelenlegi merülési terhelés",
   "safetySettings_noFlyPreset_standard": "Normál (12/18/24 ó)",
   "safetySettings_noFlyPreset_strict": "Szigorú (18/24/48 ó)",
   "safetySettings_noFlyPreset_subtitle": "Irányadó időközök egyetlen nullidős merülés, ismétlő merülések és dekós merülések után",

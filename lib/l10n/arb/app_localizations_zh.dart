@@ -33919,7 +33919,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_noFlyHeader => '潜水后飞行';
 
   @override
-  String get safetySettings_cnsOtuHeader => '当前CNS/OTU负荷';
+  String get safetySettings_cnsOtuHeader => '当前潜水负荷';
 
   @override
   String get safetySettings_noFlyPreset_standard => '标准(12/18/24 小时)';

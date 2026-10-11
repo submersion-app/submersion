@@ -36406,7 +36406,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'الطيران بعد الغوص';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'الحمل الحالي لـ CNS/OTU';
+  String get safetySettings_cnsOtuHeader => 'حمل الغطس الحالي';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'قياسي (12/18/24 س)';

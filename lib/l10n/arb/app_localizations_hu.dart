@@ -35749,7 +35749,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Repülés merülés után';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Jelenlegi CNS/OTU terhelés';
+  String get safetySettings_cnsOtuHeader => 'Jelenlegi merülési terhelés';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Normál (12/18/24 ó)';

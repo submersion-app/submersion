@@ -10469,7 +10469,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Voler après la plongée",
-  "safetySettings_cnsOtuHeader": "Charge CNS/OTU actuelle",
+  "safetySettings_cnsOtuHeader": "Charge de plongée actuelle",
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Strict (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Intervalles indicatifs après une plongée unique sans déco, des plongées successives et des plongées avec déco",

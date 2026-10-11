@@ -35072,7 +35072,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'טיסה אחרי צלילה';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'עומס CNS/OTU נוכחי';
+  String get safetySettings_cnsOtuHeader => 'עומס הצלילה הנוכחי';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'רגיל (12/18/24 ש\')';

@@ -10469,7 +10469,7 @@
     }
   },
   "safetySettings_noFlyHeader": "潜水后飞行",
-  "safetySettings_cnsOtuHeader": "当前CNS/OTU负荷",
+  "safetySettings_cnsOtuHeader": "当前潜水负荷",
   "safetySettings_noFlyPreset_standard": "标准(12/18/24 小时)",
   "safetySettings_noFlyPreset_strict": "严格(18/24/48 小时)",
   "safetySettings_noFlyPreset_subtitle": "单次免减压潜水、重复潜水和减压潜水后的指导间隔",

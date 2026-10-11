@@ -10469,7 +10469,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Vliegen na het duiken",
-  "safetySettings_cnsOtuHeader": "Huidige CNS/OTU-belasting",
+  "safetySettings_cnsOtuHeader": "Huidige duikbelasting",
   "safetySettings_noFlyPreset_standard": "Standaard (12/18/24 u)",
   "safetySettings_noFlyPreset_strict": "Strikt (18/24/48 u)",
   "safetySettings_noFlyPreset_subtitle": "Richttijden na een enkele duik zonder deco, herhalingsduiken en decoduiken",

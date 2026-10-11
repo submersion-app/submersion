@@ -35944,7 +35944,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Voar depois de mergulhar';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Carga atual de CNS/OTU';
+  String get safetySettings_cnsOtuHeader => 'Carga de mergulho atual';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Padrão (12/18/24 h)';

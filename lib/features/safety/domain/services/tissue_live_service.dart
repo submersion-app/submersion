@@ -50,6 +50,10 @@ class TissueLiveService {
         fHe: 0.0,
       );
     }
+    // Derived from THIS loading, after off-gassing, not the end-of-dive
+    // loading _loadedAlgorithm handed back -- see its doc for why a stale
+    // anchor under-reports.
+    algorithm.deriveGfAnchorFromLoading();
 
     return algorithm.getDecoStatus(
       currentDepth: 0,
@@ -85,8 +89,18 @@ class TissueLiveService {
       gfLow: gfLow,
       gfHigh: gfHigh,
     );
-    DecoStatus snapshot() =>
-        algorithm.getDecoStatus(currentDepth: 0, fN2: airN2Fraction, fHe: 0.0);
+    // Re-derived before every snapshot, not just the first: each sampled
+    // state's ceiling must reflect what THAT state currently owes, not a
+    // ceiling anchored once at the end-of-dive loading and frozen through
+    // the rest of the off-gassing. See _loadedAlgorithm's doc.
+    DecoStatus snapshot() {
+      algorithm.deriveGfAnchorFromLoading();
+      return algorithm.getDecoStatus(
+        currentDepth: 0,
+        fN2: airN2Fraction,
+        fHe: 0.0,
+      );
+    }
 
     final totalSeconds = now.difference(lastDiveEnd).inSeconds;
     if (totalSeconds <= 0) return [snapshot()];
@@ -108,16 +122,22 @@ class TissueLiveService {
     return timeline;
   }
 
-  /// An algorithm loaded with [endOfDiveCompartments], ready to off-gas at
-  /// the surface. restoreState, not setCompartments, to load the raw
-  /// end-of-dive tensions without side effects, then
-  /// deriveGfAnchorFromLoading explicitly -- same two-step sequence as
-  /// tissue_seed.dart's seededTissueState, and for the same reason: a diver
-  /// who still owes a real ceiling at the moment they surface (skipped or
-  /// shortened a stop) must get that ceiling re-derived from the loaded
-  /// compartments, not an anchor stuck at 0 (which
-  /// getDecoStatus/calculateCeiling would otherwise read as "no ceiling
-  /// ever owed" and under-report).
+  /// An algorithm loaded with [endOfDiveCompartments]'s raw tensions, ready
+  /// to off-gas at the surface.
+  ///
+  /// restoreState, not setCompartments, so loading them has no side effect
+  /// on the GF-low ceiling anchor here: unlike tissue_seed.dart's
+  /// seededTissueState (which off-gasses a FIXED interval once and derives
+  /// the anchor once, after that single step), both callers here derive the
+  /// anchor themselves, fresh, right before every snapshot they take --
+  /// `currentStatus` after its one off-gassing step, `surfaceIntervalTimeline`
+  /// after each of its many. A diver who still owes a real ceiling at the
+  /// moment they surface (skipped or shortened a stop) must get that
+  /// ceiling re-derived from whatever the compartments currently hold, not
+  /// anchored once to the end-of-dive loading and then frozen while they
+  /// off-gas: `calculateSegment` only ever grows the anchor, never shrinks
+  /// it, so a stale anchor keeps reporting the dive's original, deeper
+  /// ceiling long after the tissues no longer owe it.
   static BuhlmannAlgorithm _loadedAlgorithm({
     required List<TissueCompartment> endOfDiveCompartments,
     required double gfLow,
@@ -125,7 +145,6 @@ class TissueLiveService {
   }) {
     final algorithm = BuhlmannAlgorithm(gfLow: gfLow, gfHigh: gfHigh);
     algorithm.restoreState(endOfDiveCompartments);
-    algorithm.deriveGfAnchorFromLoading();
     return algorithm;
   }
 

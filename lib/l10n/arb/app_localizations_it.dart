@@ -35952,7 +35952,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Volare dopo l\'immersione';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Carico attuale di CNS/OTU';
+  String get safetySettings_cnsOtuHeader => 'Carico di immersione attuale';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';

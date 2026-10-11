@@ -10469,7 +10469,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Volar después de bucear",
-  "safetySettings_cnsOtuHeader": "Carga actual de CNS/OTU",
+  "safetySettings_cnsOtuHeader": "Carga de inmersión actual",
   "safetySettings_noFlyPreset_standard": "Estándar (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Estricto (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Intervalos orientativos tras una única inmersión sin deco, inmersiones sucesivas e inmersiones con deco",

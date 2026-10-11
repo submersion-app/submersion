@@ -35979,7 +35979,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Volar después de bucear';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Carga actual de CNS/OTU';
+  String get safetySettings_cnsOtuHeader => 'Carga de inmersión actual';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Estándar (12/18/24 h)';

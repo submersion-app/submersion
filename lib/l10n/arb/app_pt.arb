@@ -10469,7 +10469,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Voar depois de mergulhar",
-  "safetySettings_cnsOtuHeader": "Carga atual de CNS/OTU",
+  "safetySettings_cnsOtuHeader": "Carga de mergulho atual",
   "safetySettings_noFlyPreset_standard": "Padrão (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Rigoroso (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Intervalos orientativos após um único mergulho sem deco, mergulhos repetitivos e mergulhos com deco",
