@@ -17,6 +17,13 @@ class TimelinePlayButton extends ConsumerWidget {
     final playing = ref.watch(
       connectionsTimelineProvider.select((s) => s.playing),
     );
+    final span = ref.watch(connectionsDateSpanProvider).value;
+    // With both thumbs on the last day there is nothing left to sweep.
+    final canPlay = ref.watch(
+      connectionsTimelineRangeProvider.select(
+        (r) => r != null && span != null && r.start.isBefore(span.end),
+      ),
+    );
     final notifier = ref.read(connectionsTimelineProvider.notifier);
     return IconButton(
       key: const ValueKey('timeline-play-button'),
@@ -24,7 +31,11 @@ class TimelinePlayButton extends ConsumerWidget {
       tooltip: playing
           ? l10n.connections_yearPlay_pause
           : l10n.connections_timeline_play,
-      onPressed: playing ? notifier.pause : notifier.play,
+      onPressed: playing
+          ? notifier.pause
+          : canPlay
+          ? notifier.play
+          : null,
     );
   }
 }
@@ -109,8 +120,10 @@ class ConnectionsTimelineBar extends ConsumerWidget {
 
   static const double maxWidth = 560;
 
-  /// Room the canvas keeps clear at its bottom edge for the bar.
-  static const double reserve = 104;
+  /// Room the canvas keeps clear at its bottom edge for the bar: the gap,
+  /// the label line at the reader's text size, and the slider row.
+  static double reserveOf(BuildContext context) =>
+      84 + MediaQuery.textScalerOf(context).scale(20);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

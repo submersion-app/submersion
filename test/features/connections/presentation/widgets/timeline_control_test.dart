@@ -7,6 +7,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_timeline_provider.dart';
 import 'package:submersion/features/connections/presentation/widgets/timeline_control.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -174,4 +175,49 @@ void main() {
       );
     });
   }
+
+  testWidgets('play is disabled with both thumbs on the last day', (
+    tester,
+  ) async {
+    final c = await _pump(tester, const TimelineControl());
+    c.read(connectionsFilterProvider.notifier).state = DiveFilterState(
+      startDate: _span.end,
+      endDate: _span.end,
+    );
+    await tester.pump();
+    final button = tester.widget<IconButton>(
+      find.byKey(const ValueKey('timeline-play-button')),
+    );
+    expect(button.onPressed, isNull);
+  });
+
+  testWidgets('the canvas keeps more room for the bar at larger text', (
+    tester,
+  ) async {
+    late double normal;
+    late double large;
+    await tester.pumpWidget(
+      Column(
+        children: [
+          Builder(
+            builder: (context) {
+              normal = ConnectionsTimelineBar.reserveOf(context);
+              return const SizedBox();
+            },
+          ),
+          MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: Builder(
+              builder: (context) {
+                large = ConnectionsTimelineBar.reserveOf(context);
+                return const SizedBox();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+    expect(normal, 104);
+    expect(large, greaterThan(normal + 15));
+  });
 }

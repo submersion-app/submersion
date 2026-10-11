@@ -343,7 +343,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     // Select, so a play sweep moving the range does not rebuild the page.
     final timelineInset =
         ref.watch(connectionsTimelineRangeProvider.select((r) => r != null))
-        ? ConnectionsTimelineBar.reserve
+        ? ConnectionsTimelineBar.reserveOf(context)
         : 0.0;
 
     // The listener below misses an initial load, so each build reports it.

@@ -444,4 +444,35 @@ void main() {
       expect(sweepTimers(async), isEmpty);
     });
   });
+
+  test('a span change during play stops the sweep', () {
+    fakeAsync((async) {
+      final c = container();
+      flush(async);
+      notifier(c).play();
+      async.elapse(const Duration(seconds: 1));
+      // A synced dive moves the last day on.
+      c.read(_spanState.notifier).state = (
+        start: DateTime(2019, 1, 1),
+        end: DateTime(2023, 3, 1),
+      );
+      flush(async);
+      expect(timeline(c).playing, isFalse);
+      expect(sweepTimers(async), isEmpty);
+    });
+  });
+
+  test('a span that collapses mid-drag drops the drag', () {
+    fakeAsync((async) {
+      final c = container();
+      flush(async);
+      notifier(c)
+        ..dragStart()
+        ..dragTo((start: DateTime(2020, 3, 1), end: DateTime(2020, 6, 1)));
+      final day = DateTime(2022, 5, 5);
+      c.read(_spanState.notifier).state = (start: day, end: day);
+      flush(async);
+      expect(timeline(c), TimelineState.idle);
+    });
+  });
 }

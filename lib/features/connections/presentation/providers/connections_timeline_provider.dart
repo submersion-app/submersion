@@ -70,12 +70,28 @@ class ConnectionsTimelineNotifier extends Notifier<TimelineState> {
   int _from = 0;
   int _total = 0;
 
+  /// The day the sweep last put on screen, so a tick within it does nothing.
+  int _day = 0;
+
   @override
   TimelineState build() {
     ref.onDispose(_cancel);
     ref.listen<DiveFilterState>(connectionsFilterProvider, (_, next) {
       if (next != _written && (state.playing || state.pending != null)) {
         _reset();
+      }
+    });
+    // The sweep runs over the span it started with, and a drag over a slider
+    // that may have gone: a new span (a synced dive, another diver) ends both.
+    ref.listen<AsyncValue<DayRange?>>(connectionsDateSpanProvider, (
+      prev,
+      next,
+    ) {
+      if (next.isLoading || prev?.value == next.value) return;
+      if (_span() == null) {
+        if (state != TimelineState.idle || _inFlight) _reset();
+      } else if (state.playing) {
+        pause();
       }
     });
     // Colouring the map is not a change of what it shows: play carries on.
@@ -105,6 +121,7 @@ class ConnectionsTimelineNotifier extends Notifier<TimelineState> {
     _sweepStart = shown.start;
     _from = from;
     _total = total;
+    _day = from;
     state = TimelineState(
       pending: (start: shown.start, end: dayAt(span.start, from)),
       playing: true,
@@ -219,6 +236,8 @@ class ConnectionsTimelineNotifier extends Notifier<TimelineState> {
       _total,
       _from + elapsed * _total ~/ sweep.inMicroseconds,
     );
+    if (day == _day) return;
+    _day = day;
     final done = day >= _total;
     if (done) _cancel();
     state = TimelineState(

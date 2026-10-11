@@ -755,6 +755,31 @@ void main() {
       );
     }
   });
+  testWidgets('a drag during the first load still reaches the map', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      // A slow first load: the page's listener never hears it start.
+      graph: (ref, budget) async {
+        ref.watch(connectionsFilterProvider);
+        await Future<void>.delayed(const Duration(seconds: 1));
+        return _graph;
+      },
+    );
+    await tester.tap(find.text('Filter'));
+    await tester.pump(const Duration(milliseconds: 100));
+    final slider = tester.widget<RangeSlider>(
+      find.byKey(const ValueKey('timeline-slider')),
+    );
+    slider.onChangeStart!(slider.values);
+    slider.onChanged!(const RangeValues(31, 59));
+    slider.onChangeEnd!(const RangeValues(31, 90));
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(c.read(connectionsFilterProvider).endDate, DateTime(2019, 4, 1));
+  });
   testWidgets('play carries on through a range with an empty map', (
     tester,
   ) async {
