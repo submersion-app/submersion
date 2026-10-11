@@ -17,7 +17,9 @@ import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 /// preview card paints it with the default camera, the interactive
 /// viewport drives the camera parameters from gestures. Layers whose
 /// overlay is toggled off (and markers when the markers overlay is off)
-/// are skipped.
+/// are skipped. Meshes that declare [MeshData.strokeHalfWidthPx] are
+/// widened on the canvas after projection and drawn unshaded, so a line
+/// stays a line at every zoom.
 class Dive3dScenePainter extends CustomPainter {
   final Scene3d scene;
   final double yawDegrees;
@@ -222,11 +224,15 @@ class Dive3dScenePainter extends CustomPainter {
     final vColors = Float32List(vn * 3);
     final triIndices = Uint32List(triCount * 3);
     final triAlpha = Int32List(triCount);
+    // 1 for triangles of a stroke mesh: drawn in their vertex colors as
+    // given, since a line has no face to light.
+    final triUnshaded = Uint8List(triCount);
     var vOff = 0;
     var tOff = 0;
     for (final mesh in meshes) {
       final alpha = (mesh.opacity * 255).round() << 24;
       final sortHeights = mesh.sortHeights;
+      final strokeHalfWidthPx = mesh.strokeHalfWidthPx;
       for (var i = 0; i < mesh.vertexCount; i++) {
         final gi = vOff + i;
         final v = projector.viewOf(
@@ -249,12 +255,22 @@ class Dive3dScenePainter extends CustomPainter {
         vColors[gi * 3 + 1] = mesh.colors[i * 3 + 1];
         vColors[gi * 3 + 2] = mesh.colors[i * 3 + 2];
       }
+      if (strokeHalfWidthPx != null) {
+        strokeScreenEdges(
+          sx,
+          sy,
+          start: vOff,
+          pairCount: mesh.vertexCount ~/ 2,
+          halfWidthPx: strokeHalfWidthPx,
+        );
+      }
       for (var t = 0; t < mesh.triangleCount; t++) {
         final gt = tOff + t;
         triIndices[gt * 3] = mesh.indices[t * 3] + vOff;
         triIndices[gt * 3 + 1] = mesh.indices[t * 3 + 1] + vOff;
         triIndices[gt * 3 + 2] = mesh.indices[t * 3 + 2] + vOff;
         triAlpha[gt] = alpha;
+        triUnshaded[gt] = strokeHalfWidthPx == null ? 0 : 1;
       }
       vOff += mesh.vertexCount;
       tOff += mesh.triangleCount;
@@ -305,9 +321,9 @@ class Dive3dScenePainter extends CustomPainter {
       var nx = ay * bz - az * by;
       var ny = az * bx - ax * bz;
       var nz = ax * by - ay * bx;
-      var shade = _ambient;
+      var shade = triUnshaded[tri] != 0 ? 1.0 : _ambient;
       final len = math.sqrt(nx * nx + ny * ny + nz * nz);
-      if (len > 1e-9) {
+      if (triUnshaded[tri] == 0 && len > 1e-9) {
         nx /= len;
         ny /= len;
         nz /= len;
@@ -351,6 +367,189 @@ class Dive3dScenePainter extends CustomPainter {
         BlendMode.dst,
         Paint(),
       );
+    }
+  }
+
+  /// Dot product of two run normals past which a turn counts as a
+  /// reversal: cos 150 degrees.
+  static const double _reversalDot = -0.866;
+
+  /// Longest corner edge, in half-widths: the miter of a right angle.
+  static const double _miterLimit = math.sqrt2;
+
+  /// Widens a stroke mesh on the canvas, [halfWidthPx] to either side of
+  /// each vertex pair's point, with a bevel join at every corner. Builders
+  /// put two pairs on each interior point (see `buildStrokeStrip`): on the
+  /// inner side of the turn both pairs share the miter point, where the
+  /// two legs' inner edges meet, so the legs neither overlap nor leave a
+  /// gap there; on the outer side each pair ends its own leg square at
+  /// full width, and the quad between the two pairs is the bevel triangle
+  /// that fills the outer corner. The miter point is capped at
+  /// [_miterLimit] half-widths, so a hairpin bevels instead of spiking.
+  /// A run that turns back past [_reversalDot] has its normal flipped to
+  /// agree with the one before, which keeps the leaving leg's two edges
+  /// on the same sides as the arriving leg's rather than crossing into a
+  /// bow-tie. A pair between two zero-length runs (a stationary stretch)
+  /// keeps the side last used, before the first real run it faces that
+  /// run, and a stationary stretch on a corner is joined like the corner.
+  /// A line whose last pair sits exactly on its first (a closed isobath,
+  /// see `buildStrokeStrip`) joins across that seam the same way. A lone
+  /// pair with a real run on both sides (a stroke built without the
+  /// doubled points) gets the capped miter on both sides. [sx]/[sy] are
+  /// the projected canvas positions of every vertex in the soup; [start]
+  /// is this mesh's first vertex. Both members of a pair sit on the same
+  /// point (see [MeshData.strokeHalfWidthPx]), so the first member is read
+  /// as the point.
+  @visibleForTesting
+  static void strokeScreenEdges(
+    Float32List sx,
+    Float32List sy, {
+    required int start,
+    required int pairCount,
+    required double halfWidthPx,
+  }) {
+    if (pairCount == 0) return;
+    final runs = pairCount - 1;
+    // Unit normal of every run (pair j to pair j+1); (0, 0) for a
+    // zero-length one.
+    final nx = Float32List(runs);
+    final ny = Float32List(runs);
+    var firstReal = -1, lastReal = -1;
+    for (var j = 0; j < runs; j++) {
+      final a = start + j * 2;
+      final dx = sx[a + 2] - sx[a];
+      final dy = sy[a + 2] - sy[a];
+      final len = math.sqrt(dx * dx + dy * dy);
+      if (len <= 1e-6) continue;
+      nx[j] = -dy / len;
+      ny[j] = dx / len;
+      if (firstReal < 0) firstReal = j;
+      lastReal = j;
+    }
+    // Pair k's first member moves against (ax, ay), its second along
+    // (bx, by).
+    void write(int k, double ax, double ay, double bx, double by) {
+      final a = start + k * 2;
+      final x = sx[a], y = sy[a];
+      sx[a] = x - ax * halfWidthPx;
+      sy[a] = y - ay * halfWidthPx;
+      sx[a + 1] = x + bx * halfWidthPx;
+      sy[a + 1] = y + by * halfWidthPx;
+    }
+
+    if (firstReal < 0) {
+      // Never moves: any side will do.
+      for (var k = 0; k < pairCount; k++) {
+        write(k, 0, 1, 0, 1);
+      }
+      return;
+    }
+    // Orient the normals consistently along the line: a run that turns
+    // back past a hairpin has its normal flipped to agree with the one
+    // before it.
+    for (
+      var j = firstReal + 1, px = nx[firstReal], py = ny[firstReal];
+      j < runs;
+      j++
+    ) {
+      if (nx[j] == 0 && ny[j] == 0) continue;
+      if (nx[j] * px + ny[j] * py < _reversalDot) {
+        nx[j] = -nx[j];
+        ny[j] = -ny[j];
+      }
+      px = nx[j];
+      py = ny[j];
+    }
+    final a0 = start, aN = start + runs * 2;
+    final closed =
+        pairCount > 2 &&
+        (sx[aN] - sx[a0]).abs() <= 1e-6 &&
+        (sy[aN] - sy[a0]).abs() <= 1e-6;
+    // The forward chain above only keeps each run within 150 degrees of
+    // the one before it, which says nothing about how the last run
+    // compares to the first. The seam needs that same comparison too, but
+    // nx[lastReal]/ny[lastReal] is ALSO the ordinary, already-correct
+    // value the run right before it (an interior corner, not the seam)
+    // reads as its OWN outgoing side: flipping it in place would fix the
+    // seam and break that unrelated corner. Orient a local copy instead,
+    // read only where a join genuinely crosses the seam.
+    var seamInX = closed ? nx[lastReal] : 0.0;
+    var seamInY = closed ? ny[lastReal] : 0.0;
+    if (closed &&
+        seamInX * nx[firstReal] + seamInY * ny[firstReal] < _reversalDot) {
+      seamInX = -seamInX;
+      seamInY = -seamInY;
+    }
+    var k = 0;
+    while (k < pairCount) {
+      // Pairs k..e sit on one point: the runs between them have no length.
+      var e = k;
+      while (e < runs && nx[e] == 0 && ny[e] == 0) {
+        e++;
+      }
+      // The arriving side: the previous run, or, for the group that opens
+      // the line, or the group right after the last real run (which can
+      // only be the one that wraps to the first run, since no real run
+      // follows the last one), the oriented copy that crosses the seam.
+      final crossesSeam = closed && (k == 0 || k - 1 == lastReal);
+      final inReal =
+          crossesSeam || (k > 0 && (nx[k - 1] != 0 || ny[k - 1] != 0));
+      final inX = crossesSeam
+          ? seamInX
+          : inReal
+          ? nx[k - 1]
+          : 0.0;
+      final inY = crossesSeam
+          ? seamInY
+          : inReal
+          ? ny[k - 1]
+          : 0.0;
+      // The leaving side: this run, or, for the group that closes the
+      // line, the first run wrapping across the seam.
+      var hasOut = e < runs;
+      var outX = hasOut ? nx[e] : 0.0, outY = hasOut ? ny[e] : 0.0;
+      if (!hasOut && closed && e == pairCount - 1) {
+        hasOut = true;
+        outX = nx[firstReal];
+        outY = ny[firstReal];
+      }
+      if (inReal && hasOut) {
+        // The orientation pass keeps the two within 150 degrees, so their
+        // mean is never shorter than 2 cos 75 degrees.
+        final mx = inX + outX, my = inY + outY;
+        final len = math.sqrt(mx * mx + my * my);
+        final scale = math.min(len / (mx * outX + my * outY), _miterLimit);
+        final ex = mx / len * scale, ey = my / len * scale;
+        if (e == k) {
+          write(k, ex, ey, ex, ey);
+        } else if (inX * outY - inY * outX > 0) {
+          // Turning left: the inner side is the second member's.
+          for (var j = k; j < e; j++) {
+            write(j, inX, inY, ex, ey);
+          }
+          write(e, outX, outY, ex, ey);
+        } else {
+          for (var j = k; j < e; j++) {
+            write(j, ex, ey, inX, inY);
+          }
+          write(e, ex, ey, outX, outY);
+        }
+      } else {
+        final px = hasOut
+            ? outX
+            : inReal
+            ? inX
+            : 0.0;
+        final py = hasOut
+            ? outY
+            : inReal
+            ? inY
+            : 1.0;
+        for (var j = k; j <= e; j++) {
+          write(j, px, py, px, py);
+        }
+      }
+      k = e + 1;
     }
   }
 

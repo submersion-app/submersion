@@ -1197,6 +1197,7 @@ class UniversalAdapter implements ImportSourceAdapter {
           diveStart: diveStart,
           destinationDir: bundledFolder,
         ),
+        cancelToken: cancelToken,
       );
       attachedPhotos = attached - linker.alreadyLinked;
     }
@@ -1224,6 +1225,7 @@ class UniversalAdapter implements ImportSourceAdapter {
         diveStartById: diveStartById,
         selectedIndices: selections[wizard.ImportEntityType.media],
         attach: linker.linkResolved,
+        cancelToken: cancelToken,
       );
       // Already-linked photos are successful no-ops to the attach loop;
       // keep them out of the summary's attached count.
@@ -1591,6 +1593,8 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// Attach failures are logged and skipped, never thrown: the dive import
   /// already succeeded and a failed photo must not fail the wizard.
   ///
+  /// Stops at the next photo once [cancelToken] is cancelled (issue #3216).
+  ///
   /// Returns the number of photos attached.
   static Future<int> attachImportedPhotos({
     required Map<String, List<String>> photoPathsByBaseName,
@@ -1606,6 +1610,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       DateTime? diveStart,
     )
     attach,
+    ImportCancellationToken? cancelToken,
   }) async {
     if (photoPathsByBaseName.isEmpty || diveIdByIndex.isEmpty) return 0;
 
@@ -1648,6 +1653,7 @@ class UniversalAdapter implements ImportSourceAdapter {
       final diveStart =
           diveStartById[diveId] ?? dives[diveIndex]['dateTime'] as DateTime?;
       for (final photoPath in photos) {
+        if (cancelToken?.isCancelled ?? false) return attachedCount;
         try {
           await attach(File(photoPath), diveId, diveStart);
           attachedCount++;
@@ -1741,6 +1747,9 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// [attachImportedPhotos] the failure is not silent, because the caller
   /// reports the shortfall against the resolved count.
   ///
+  /// Stops at the next photo once [cancelToken] is cancelled (issue #3216):
+  /// a MacDive logbook can reference thousands of photos.
+  ///
   /// Returns the number of photos actually attached.
   static Future<int> attachResolvedPhotos({
     required List<Map<String, dynamic>> media,
@@ -1751,10 +1760,12 @@ class UniversalAdapter implements ImportSourceAdapter {
     Map<String, DateTime> diveStartById = const {},
     Set<int>? selectedIndices,
     required Future<void> Function(ResolvedPhotoAttachment photo) attach,
+    ImportCancellationToken? cancelToken,
   }) async {
     var attachedCount = 0;
 
     for (final entry in resolvedPathByIndex.entries) {
+      if (cancelToken?.isCancelled ?? false) break;
       final mediaIndex = entry.key;
       if (mediaIndex < 0 || mediaIndex >= media.length) continue;
       // Photos appear in review like any other entity, so a deselected one

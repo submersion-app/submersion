@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:submersion/core/utils/geo_math.dart';
@@ -10,6 +9,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_bu
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/nice_step.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/stroke_strip.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/terrain_ceiling.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -186,8 +186,13 @@ List<ContourPolyline> marchGrid({
 /// 2).
 const double contourLiftMeters = 0.15;
 const double _labelExtraLiftMeters = 0.25;
-const double _minorHalfWidth = 0.016;
-const double _majorHalfWidth = 0.030;
+
+/// Stroke half-widths on the canvas, in logical pixels (see
+/// [MeshData.strokeHalfWidthPx]). A width in scene units was a real-world
+/// distance: it grew with the terrain when zooming in and, on a hillside,
+/// put one edge of the ribbon under the surface (issue #3215).
+const double _minorStrokeHalfWidthPx = 0.6;
+const double _majorStrokeHalfWidthPx = 1.0;
 const Color _contourInk = Color(0xFFF8FAFC);
 const double _minorOpacity = 0.5;
 const double _majorOpacity = 0.85;
@@ -316,10 +321,11 @@ ContourBuildResult buildContourLayers({
   return ContourBuildResult(layers: layers, labels: labels);
 }
 
-/// A thin horizontal ribbon along a scene-space polyline (constant y), the
-/// same perpendicular-extrusion pattern as SpatialPathBuilder.buildRibbon.
+/// A stroke along a scene-space polyline (constant y): vertex pairs on the
+/// isobath that the renderer widens on the canvas, built by the same
+/// [buildStrokeStrip] as SpatialPathBuilder.buildRibbon.
 ///
-/// Every vertex also carries a sort height: the ribbon is DRAWN on the
+/// Every vertex also carries a sort height: the stroke is DRAWN on the
 /// isobath but SORTED at the ceiling of the terrain cell it crosses, so the
 /// rough cells that used to paint over it now lose the comparison. See
 /// [TerrainCeiling].
@@ -330,76 +336,23 @@ MeshData _ribbonMesh(
   required TerrainCeiling ceiling,
   required double liftSceneUnits,
 }) {
-  final n = xyz.length ~/ 3;
-  if (n < 2) {
-    return MeshData(
-      positions: Float32List(0),
-      indices: Uint32List(0),
-      colors: Float32List(0),
-    );
-  }
-  final halfWidth = isMajor ? _majorHalfWidth : _minorHalfWidth;
   final color = colorArgb != null ? Color(colorArgb) : _contourInk;
   final opacity = colorArgb != null
       ? _majorOpacity
       : (isMajor ? _majorOpacity : _minorOpacity);
-
-  final positions = Float32List(n * 6);
-  final colors = Float32List(n * 6);
-  final sortHeights = Float32List(n * 2);
-  for (var i = 0; i < n; i++) {
-    final j = i < n - 1 ? i : i - 1;
-    var tx = xyz[(j + 1) * 3] - xyz[j * 3];
-    var tz = xyz[(j + 1) * 3 + 2] - xyz[j * 3 + 2];
-    final len = math.sqrt(tx * tx + tz * tz);
-    if (len > 1e-9) {
-      tx /= len;
-      tz /= len;
-    }
-    // Perpendicular in xz, rotated the way the map frame turns: scene Z
-    // runs SOUTH (see SpatialProjection), so the sense is (tz, -tx). Get
-    // it backwards and the ribbon's two edges swap array slots while the
-    // strip indices below stay put, which splits every quad along the
-    // other diagonal and shifts the triangle sort keys for free.
-    final px = tz, pz = -tx;
-    final vi = i * 6;
-    positions[vi] = xyz[i * 3] - px * halfWidth;
-    positions[vi + 1] = xyz[i * 3 + 1];
-    positions[vi + 2] = xyz[i * 3 + 2] - pz * halfWidth;
-    positions[vi + 3] = xyz[i * 3] + px * halfWidth;
-    positions[vi + 4] = xyz[i * 3 + 1];
-    positions[vi + 5] = xyz[i * 3 + 2] + pz * halfWidth;
-    for (var s = 0; s < 2; s++) {
-      colors[vi + s * 3] = color.r;
-      colors[vi + s * 3 + 1] = color.g;
-      colors[vi + s * 3 + 2] = color.b;
-      // Each edge of the ribbon can straddle a different cell on rough
-      // ground, so each asks for its own ceiling. The same lift that keeps
-      // the ribbon off the mesh keeps its sort height off the ceiling.
-      final si = vi + s * 3;
-      sortHeights[i * 2 + s] = math.max(
-        positions[si + 1],
-        ceiling.atScene(positions[si], positions[si + 2]) + liftSceneUnits,
-      );
-    }
-  }
-  final indices = Uint32List((n - 1) * 6);
-  var q = 0;
-  for (var i = 0; i < n - 1; i++) {
-    final a = i * 2, b = i * 2 + 1, c = i * 2 + 2, d = i * 2 + 3;
-    indices[q++] = a;
-    indices[q++] = b;
-    indices[q++] = c;
-    indices[q++] = b;
-    indices[q++] = d;
-    indices[q++] = c;
-  }
-  return MeshData(
-    positions: positions,
-    indices: indices,
-    colors: colors,
+  return buildStrokeStrip(
+    xyz: xyz,
+    strokeHalfWidthPx: isMajor
+        ? _majorStrokeHalfWidthPx
+        : _minorStrokeHalfWidthPx,
+    colorAt: (_) => (color.r, color.g, color.b),
+    // The same lift that keeps the stroke off the mesh keeps its sort
+    // height off the ceiling.
+    sortHeightAt: (i) => math.max(
+      xyz[i * 3 + 1],
+      ceiling.atScene(xyz[i * 3], xyz[i * 3 + 2]) + liftSceneUnits,
+    ),
     opacity: opacity,
-    sortHeights: sortHeights,
   );
 }
 

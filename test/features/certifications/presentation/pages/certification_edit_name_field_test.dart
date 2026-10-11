@@ -81,7 +81,30 @@ void main() {
     }
   }
 
-  group('Name on card field', () {
+  group('Certification title field', () {
+    // The stored name replaces the certification as the card's title on
+    // every surface, so the field must not read as the diver's name (#3195).
+    testWidgets('is labelled as the certification title', (tester) async {
+      await pumpEditPage(tester);
+
+      final nameField = find.byType(TextFormField).first;
+      expect(
+        find.descendant(
+          of: nameField,
+          matching: find.text('Certification title'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: nameField,
+          matching: find.text('Optional. Leave blank to use the certification'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Name on card'), findsNothing);
+    });
+
     testWidgets('is blank for a new certification', (tester) async {
       await pumpEditPage(tester);
 
@@ -161,7 +184,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Choose a certification or enter a name'),
+        find.text('Choose a certification or enter a title'),
         findsOneWidget,
       );
     });
@@ -179,7 +202,10 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Choose a certification or enter a name'), findsNothing);
+      expect(
+        find.text('Choose a certification or enter a title'),
+        findsNothing,
+      );
     });
 
     testWidgets('accepts a save with a name and no certification', (
@@ -193,7 +219,10 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Choose a certification or enter a name'), findsNothing);
+      expect(
+        find.text('Choose a certification or enter a title'),
+        findsNothing,
+      );
     });
   });
 

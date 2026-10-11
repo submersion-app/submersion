@@ -668,7 +668,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerMission_member_pickBuddy => 'Choisir un binôme';
 
   @override
-  String get plannerMission_member_sac => 'Bottom RMV';
+  String get plannerMission_member_sac => 'Fond RMV';
 
   @override
   String get plannerMission_member_scooter => 'Scooter';
@@ -1318,7 +1318,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_setEdit_addGeofence => 'Ajouter un géorepère';
 
   @override
-  String get equipment_setEdit_removeGeofence => 'Remove geofence';
+  String get equipment_setEdit_removeGeofence => 'Supprimer le géorepère';
 
   @override
   String equipment_setEdit_geofenceRadius(String distance) {
@@ -2290,6 +2290,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backup_backupNow => 'Sauvegarder Maintenant';
 
   @override
+  String get backup_note_dialog_title => 'Sauvegarder maintenant';
+
+  @override
+  String get backup_note_label => 'Note (facultative)';
+
+  @override
+  String get backup_note_hint => 'p. ex. Avant le voyage à Cozumel';
+
+  @override
+  String get backup_note_dialog_confirm => 'Sauvegarder';
+
+  @override
   String get backup_cloud_enabled => 'Sauvegarde cloud';
 
   @override
@@ -2996,7 +3008,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_stat_lastDive => 'Dernière plongée';
 
   @override
-  String get buddies_summary_mostDives => 'Most Dives';
+  String get buddies_summary_mostDives => 'Le plus de plongées';
 
   @override
   String get buddies_summary_overview => 'Vue d\'ensemble';
@@ -3363,7 +3375,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'Date de délivrance';
 
   @override
-  String get certifications_detail_label_type => 'Type';
+  String get certifications_detail_label_title => 'Titre';
 
   @override
   String get certifications_detail_label_validity => 'Validité';
@@ -3699,7 +3711,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Laisse vide pour les certifications sans expiration';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'Facultatif';
+  String get certifications_edit_helper_title =>
+      'Facultatif. Laisser vide pour utiliser la certification';
 
   @override
   String get certifications_edit_hint_cardNumber =>
@@ -3861,10 +3874,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'Date de délivrance';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'Nom sur la carte';
+  String get certifications_edit_label_notes => 'Notes';
 
   @override
-  String get certifications_edit_label_notes => 'Notes';
+  String get certifications_edit_label_title => 'Titre de la certification';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3926,8 +3939,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Certification mise à jour avec succès';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'Choisissez une certification ou saisissez un nom';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'Choisissez une certification ou saisissez un titre';
 
   @override
   String get certifications_list_button_retry => 'Réessayer';
@@ -6914,7 +6927,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_detail_section_buddies => 'Binômes';
 
   @override
-  String get diveLog_detail_section_customFields => 'Custom Fields';
+  String get diveLog_detail_section_customFields => 'Champs personnalisés';
 
   @override
   String get diveLog_gasSwitches_title => 'Changements de gaz';
@@ -7116,10 +7129,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_detail_tooltip_editDive => 'Modifier la plongée';
 
   @override
-  String get diveLog_detail_tooltip_previousDive => 'Previous dive';
+  String get diveLog_detail_tooltip_previousDive => 'Plongée précédente';
 
   @override
-  String get diveLog_detail_tooltip_nextDive => 'Next dive';
+  String get diveLog_detail_tooltip_nextDive => 'Plongée suivante';
 
   @override
   String get diveLog_detail_tooltip_removeFromFavorites =>
@@ -7178,7 +7191,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_add => 'Ajouter';
 
   @override
-  String get diveLog_edit_addCustomField => 'Add Field';
+  String get diveLog_edit_addCustomField => 'Ajouter un champ';
 
   @override
   String get diveLog_edit_addTank => 'Ajouter un bloc';
@@ -7209,10 +7222,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_customFieldKey => 'Key';
+  String get diveLog_edit_customFieldKey => 'Clé';
 
   @override
-  String get diveLog_edit_customFieldValue => 'Value';
+  String get diveLog_edit_customFieldValue => 'Valeur';
 
   @override
   String get diveLog_edit_equipmentCaption =>
@@ -7471,7 +7484,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_section_conditions => 'Conditions';
 
   @override
-  String get diveLog_edit_section_customFields => 'Custom Fields';
+  String get diveLog_edit_section_customFields => 'Champs personnalisés';
 
   @override
   String get diveLog_edit_section_diveCenter => 'Centre de plongée';
@@ -8033,7 +8046,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_legend_label_ceiling => 'Plafond';
 
   @override
-  String get diveLog_legend_label_decoStops => 'Deco stops';
+  String get diveLog_legend_label_decoStops => 'Paliers de décompression';
 
   @override
   String get diveLog_legend_label_cns => 'CNS%';
@@ -9434,40 +9447,40 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ajuster la sélection de plage';
 
   @override
-  String get diveLog_rangeStats_label_avgDepth => 'Avg Depth';
+  String get diveLog_rangeStats_label_avgDepth => 'Profondeur moy';
 
   @override
-  String get diveLog_rangeStats_label_avgVertSpeed => 'Avg Vert Speed';
+  String get diveLog_rangeStats_label_avgVertSpeed => 'Vitesse vert. moy.';
 
   @override
-  String get diveLog_rangeStats_label_depthDelta => 'Depth Delta';
+  String get diveLog_rangeStats_label_depthDelta => 'Écart de profondeur';
 
   @override
-  String get diveLog_rangeStats_label_elapsed => 'Elapsed';
+  String get diveLog_rangeStats_label_elapsed => 'Écoulé';
 
   @override
-  String get diveLog_rangeStats_label_maxAscent => 'Max Ascent';
+  String get diveLog_rangeStats_label_maxAscent => 'Remontée max';
 
   @override
-  String get diveLog_rangeStats_label_maxDepth => 'Max Depth';
+  String get diveLog_rangeStats_label_maxDepth => 'Profondeur max';
 
   @override
-  String get diveLog_rangeStats_label_maxDescent => 'Max Descent';
+  String get diveLog_rangeStats_label_maxDescent => 'Descente max';
 
   @override
-  String get diveLog_rangeStats_label_maxHR => 'Max HR';
+  String get diveLog_rangeStats_label_maxHR => 'FC max';
 
   @override
-  String get diveLog_rangeStats_label_maxTemp => 'Max Temp';
+  String get diveLog_rangeStats_label_maxTemp => 'Temp. max';
 
   @override
-  String get diveLog_rangeStats_label_minDepth => 'Min Depth';
+  String get diveLog_rangeStats_label_minDepth => 'Profondeur min';
 
   @override
-  String get diveLog_rangeStats_label_minHR => 'Min HR';
+  String get diveLog_rangeStats_label_minHR => 'FC min';
 
   @override
-  String get diveLog_rangeStats_label_minTemp => 'Min Temp';
+  String get diveLog_rangeStats_label_minTemp => 'Temp. min';
 
   @override
   String get diveLog_rangeStats_title => 'Stats plage';
@@ -9536,10 +9549,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_search_cancel => 'Annuler';
 
   @override
-  String get diveLog_search_customFieldKey => 'Custom Field Key';
+  String get diveLog_search_customFieldKey => 'Clé du champ personnalisé';
 
   @override
-  String get diveLog_search_customFieldValue => 'Value contains...';
+  String get diveLog_search_customFieldValue => 'La valeur contient...';
 
   @override
   String get diveLog_search_errorLoadingCenters =>
@@ -9878,7 +9891,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tooltip_ceiling => 'Plafond';
 
   @override
-  String get diveLog_tooltip_decoStop => 'Deco stop';
+  String get diveLog_tooltip_decoStop => 'Palier de décompression';
 
   @override
   String get diveLog_tooltip_cns => 'CNS';
@@ -10168,13 +10181,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_hint_tankName => 'Entrer le nom de la bouteille';
 
   @override
-  String get divePlanner_label_airBreaks => 'Air breaks';
+  String get divePlanner_label_airBreaks => 'Pauses air';
 
   @override
-  String get divePlanner_label_airBreaksBreak => 'Break (min)';
+  String get divePlanner_label_airBreaksBreak => 'Pause (min)';
 
   @override
-  String get divePlanner_label_airBreaksOnO2 => 'On O2 (min)';
+  String get divePlanner_label_airBreaksOnO2 => 'Sous O2 (min)';
 
   @override
   String get divePlanner_label_altitude => 'Altitude :';
@@ -10224,33 +10237,33 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_label_salinity => 'Salinité';
 
   @override
-  String get divePlanner_gasOptions_title => 'Gas options';
+  String get divePlanner_gasOptions_title => 'Options de gaz';
 
   @override
-  String get divePlanner_gasOptions_sacBottom => 'Bottom RMV';
+  String get divePlanner_gasOptions_sacBottom => 'Fond RMV';
 
   @override
   String get divePlanner_gasOptions_sacDeco => 'Déco RMV';
 
   @override
-  String get divePlanner_gasOptions_sacFactor => 'RMV factor';
+  String get divePlanner_gasOptions_sacFactor => 'Facteur RMV';
 
   @override
   String get divePlanner_gasOptions_problemSolvingMinutes =>
-      'Problem solving time';
+      'Temps de résolution du problème';
 
   @override
-  String get divePlanner_gasOptions_ppO2Bottom => 'Bottom ppO₂';
+  String get divePlanner_gasOptions_ppO2Bottom => 'Fond ppO₂';
 
   @override
   String get divePlanner_gasOptions_ppO2Deco => 'Déco ppO₂';
 
   @override
-  String get divePlanner_gasOptions_bestMixEnd => 'Best mix END';
+  String get divePlanner_gasOptions_bestMixEnd => 'END du meilleur mélange';
 
   @override
   String get divePlanner_gasOptions_o2Narcotic =>
-      'Treat O₂ as narcotic for this plan';
+      'Considérer l\'O₂ comme narcotique pour ce plan';
 
   @override
   String get divePlanner_label_tanks => 'Bouteilles';
@@ -12958,6 +12971,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_sortField_status => 'Statut';
 
   @override
+  String get enum_sortField_title => 'Titre';
+
+  @override
   String get enum_sortField_type => 'Type';
 
   @override
@@ -14753,6 +14769,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'Était installé dans';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'Dupliquer l\'équipement';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'Modifier l\'équipement';
 
   @override
@@ -15344,6 +15363,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'Trier';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (copie)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'Dupliqué, mais certains compteurs d\'entretien, ensembles ou documents n\'ont pas pu être copiés.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'Équipement dupliqué';
+
+  @override
+  String get equipment_menu_clone => 'Dupliquer';
 
   @override
   String get equipment_menu_delete => 'Supprimer';
@@ -16174,7 +16208,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_mod_heliumHe => 'Hélium (He)';
 
   @override
-  String get gasCalculators_mod_setpoint => 'Setpoint (bar)';
+  String get gasCalculators_mod_setpoint => 'Consigne (bar)';
 
   @override
   String get gasCalculators_mod_limitsTitle => 'Limites de ppO₂';
@@ -17040,7 +17074,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_density_modeCcr => 'CCR';
 
   @override
-  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+  String get gasCalculators_density_setpoint => 'Consigne (bar)';
 
   @override
   String get gasCalculators_density_diluentHint =>
@@ -18486,22 +18520,24 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get media_unavailablePlaceholder_fileNotFound => 'File not found';
+  String get media_unavailablePlaceholder_fileNotFound => 'Fichier introuvable';
 
   @override
   String get media_unavailablePlaceholder_fromOtherDevice =>
-      'From another device';
+      'Depuis un autre appareil';
 
   @override
   String media_unavailablePlaceholder_fromOtherDeviceLabel(String device) {
-    return 'From $device';
+    return 'Depuis $device';
   }
 
   @override
-  String get media_unavailablePlaceholder_networkError => 'Couldn\'t connect';
+  String get media_unavailablePlaceholder_networkError =>
+      'Connexion impossible';
 
   @override
-  String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
+  String get media_unavailablePlaceholder_signInRequired =>
+      'Connectez-vous pour afficher';
 
   @override
   String get media_writeMetadata_cancelButton => 'Annuler';
@@ -19107,6 +19143,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerCanvas_convert_view => 'Voir';
 
   @override
+  String plannerCanvas_export_failed(String error) {
+    return 'Échec de l\'export : $error';
+  }
+
+  @override
   String plannerCanvas_follow_chip(String name) {
     return 'Suit $name';
   }
@@ -19272,13 +19313,19 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_share_menu => 'Partager le fichier du plan';
+  String get plannerCanvas_share_menu => 'Exporter le fichier du plan';
+
+  @override
+  String get plannerCanvas_share_saved => 'Fichier du plan enregistré';
 
   @override
   String get plannerCanvas_slate_menu => 'Exporter la plaquette (PDF)';
 
   @override
   String get plannerCanvas_slate_minGas => 'Gaz minimum';
+
+  @override
+  String get plannerCanvas_slate_saved => 'Plaquette enregistrée';
 
   @override
   String get plannerCanvas_slate_turn => 'Demi-tour';
@@ -20306,7 +20353,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_appearance_subsection_standardMetrics =>
-      'Standard Metrics';
+      'Métriques standard';
 
   @override
   String get settings_appearance_subsection_gasAnalysisMetrics =>
@@ -20355,19 +20402,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les éléments ci-dessous vont dans le menu Plus s\'ils ne tiennent pas dans la barre';
 
   @override
-  String get settings_navCustomization_resetButton => 'Reset to defaults';
+  String get settings_navCustomization_resetButton =>
+      'Réinitialiser aux valeurs par défaut';
 
   @override
-  String get settings_navCustomization_pinnedTooltip => 'Always shown';
+  String get settings_navCustomization_pinnedTooltip => 'Toujours affiché';
 
   @override
   String settings_navCustomization_moveUpLabel(String destination) {
-    return 'Move $destination up';
+    return 'Déplacer $destination vers le haut';
   }
 
   @override
   String settings_navCustomization_moveDownLabel(String destination) {
-    return 'Move $destination down';
+    return 'Déplacer $destination vers le bas';
   }
 
   @override
@@ -20381,7 +20429,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_navCustomization_saveError =>
-      'Could not save navigation layout. Please try again.';
+      'Impossible d\'enregistrer la disposition de la navigation. Veuillez réessayer.';
 
   @override
   String get settings_backToSettings_tooltip => 'Retour aux réglages';
@@ -23532,10 +23580,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Valeurs personnalisées';
 
   @override
-  String get settings_decompression_dialog_gfHigh => 'GF High';
+  String get settings_decompression_dialog_gfHigh => 'GF haut';
 
   @override
-  String get settings_decompression_dialog_gfLow => 'GF Low';
+  String get settings_decompression_dialog_gfLow => 'GF bas';
 
   @override
   String get settings_decompression_dialog_info =>
@@ -23548,7 +23596,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_decompression_dialog_save => 'Enregistrer';
 
   @override
-  String get settings_decompression_dialog_title => 'Gradient Factors';
+  String get settings_decompression_dialog_title => 'Facteurs de gradient';
 
   @override
   String settings_decompression_gfValue(Object gfLow, Object gfHigh) {
@@ -23557,7 +23605,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_decompression_header_gradientFactors =>
-      'Gradient Factors';
+      'Facteurs de gradient';
 
   @override
   String get settings_decompression_header_oxygenToxicity =>
@@ -23856,10 +23904,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_import_phase_trips => 'Importation des voyages...';
 
   @override
-  String get settings_import_phase_courses => 'Importing courses...';
+  String get settings_import_phase_courses => 'Importation des cours...';
 
   @override
-  String get settings_import_phase_applyingTags => 'Applying tags...';
+  String get settings_import_phase_applyingTags =>
+      'Application des étiquettes...';
 
   @override
   String get settings_language_appBar_title => 'Langue';
@@ -24642,7 +24691,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_summary_error => 'Erreur';
 
   @override
-  String get settings_summary_gradientFactors => 'Gradient Factors';
+  String get settings_summary_gradientFactors => 'Facteurs de gradient';
 
   @override
   String get settings_summary_loading => 'Chargement...';
@@ -25131,11 +25180,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_category_marineLife_title => 'Espèces';
 
   @override
-  String get insights_category_overview_title => 'Overview';
+  String get insights_category_overview_title => 'Aperçu';
 
   @override
   String get insights_category_overview_subtitle =>
-      'Totals, records, and breakdowns at a glance';
+      'Totaux, records et répartitions en un coup d\'œil';
 
   @override
   String get insights_category_profile_subtitle =>
@@ -26628,7 +26677,7 @@ class AppLocalizationsFr extends AppLocalizations {
     Object hours,
     Object minutes,
   ) {
-    return '${hours}h ${minutes}m';
+    return '$hours h $minutes min';
   }
 
   @override
@@ -27051,14 +27100,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tags_manage_title => 'Étiquettes';
 
   @override
-  String get tags_manage_importsSection => 'Imports';
-
-  @override
-  String get tags_manage_autoTagImports =>
+  String get settings_autoTagImports_title =>
       'Étiqueter automatiquement les imports';
 
   @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'Chaque nouvel import commence avec une étiquette indiquant la source et la date. Vous pouvez modifier cela pour un import donné dans ses options.';
 
   @override
@@ -27867,7 +27913,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transfer_computers_appleWatchSubtitle =>
-      'Import dives via Apple HealthKit';
+      'Importer des plongées via Apple HealthKit';
 
   @override
   String get transfer_computers_appleWatchTitle =>
@@ -28107,7 +28153,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transfer_export_sectionHeader => 'Exporter les données';
 
   @override
-  String get transfer_export_uddfSubtitle => 'Universal Dive Data Format';
+  String get transfer_export_uddfSubtitle =>
+      'Format universel de données de plongée';
 
   @override
   String get transfer_export_uddfTitle => 'Export UDDF';
@@ -28865,28 +28912,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_edit_sectionTitle_vessel => 'Vessel Détails';
 
   @override
-  String get trips_edit_label_vesselName => 'Vessel Name *';
+  String get trips_edit_label_vesselName => 'Nom du navire *';
 
   @override
-  String get trips_edit_hint_vesselName => 'e.g. Ocean Explorer';
+  String get trips_edit_hint_vesselName => 'ex. Ocean Explorer';
 
   @override
-  String get trips_edit_label_operatorName => 'Operator / Charter';
+  String get trips_edit_label_operatorName => 'Opérateur / Affréteur';
 
   @override
-  String get trips_edit_hint_operatorName => 'e.g. Red Sea Divers';
+  String get trips_edit_hint_operatorName => 'ex. Red Sea Divers';
 
   @override
-  String get trips_edit_label_vesselType => 'Vessel Type';
+  String get trips_edit_label_vesselType => 'Type de navire';
 
   @override
-  String get trips_edit_label_cabinType => 'Cabin Type';
+  String get trips_edit_label_cabinType => 'Type de cabine';
 
   @override
-  String get trips_edit_hint_cabinType => 'e.g. Deluxe Double';
+  String get trips_edit_hint_cabinType => 'ex. Double de luxe';
 
   @override
-  String get trips_edit_label_capacity => 'Passenger Capacity';
+  String get trips_edit_label_capacity => 'Capacité passagers';
 
   @override
   String get trips_edit_sectionTitle_planning => 'Planification';
@@ -29442,23 +29489,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_cylinders_edit_presetCustom => 'Personnalisé';
 
   @override
-  String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
+  String get trips_edit_sectionTitle_embarkDisembark =>
+      'Embarquement / Débarquement';
 
   @override
-  String get trips_edit_label_embarkPort => 'Embark Port';
+  String get trips_edit_label_embarkPort => 'Port d\'embarquement';
 
   @override
-  String get trips_edit_hint_embarkPort => 'e.g. Hurghada Marina';
+  String get trips_edit_hint_embarkPort => 'ex. Marina d\'Hurghada';
 
   @override
-  String get trips_edit_label_disembarkPort => 'Disembark Port';
+  String get trips_edit_label_disembarkPort => 'Port de débarquement';
 
   @override
-  String get trips_edit_hint_disembarkPort => 'e.g. Hurghada Marina';
+  String get trips_edit_hint_disembarkPort => 'ex. Marina d\'Hurghada';
 
   @override
   String get trips_edit_validation_vesselRequired =>
-      'Vessel name is required for liveaboard trips';
+      'Le nom du navire est requis pour les croisières';
 
   @override
   String get trips_detail_tab_overview => 'Aperçu';
@@ -29590,38 +29638,38 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_overview_plan_notSet => 'Non défini';
 
   @override
-  String get trips_detail_sectionTitle_vessel => 'Vessel';
+  String get trips_detail_sectionTitle_vessel => 'Navire';
 
   @override
-  String get trips_detail_label_operator => 'Operator';
+  String get trips_detail_label_operator => 'Opérateur';
 
   @override
   String get trips_detail_label_vesselType => 'Type';
 
   @override
-  String get trips_detail_label_cabin => 'Cabin';
+  String get trips_detail_label_cabin => 'Cabine';
 
   @override
-  String get trips_detail_label_capacity => 'Capacity';
+  String get trips_detail_label_capacity => 'Capacité';
 
   @override
-  String get trips_detail_label_embark => 'Embark';
+  String get trips_detail_label_embark => 'Embarquement';
 
   @override
-  String get trips_detail_label_disembark => 'Disembark';
+  String get trips_detail_label_disembark => 'Débarquement';
 
   @override
-  String get trips_detail_stat_sitesVisited => 'Sites visited';
+  String get trips_detail_stat_sitesVisited => 'Sites visités';
 
   @override
-  String get trips_detail_stat_speciesSeen => 'Species seen';
+  String get trips_detail_stat_speciesSeen => 'Espèces observées';
 
   @override
   String get trips_breakdown_column_sites => 'Sites';
 
   @override
   String trips_itinerary_dayLabel(int dayNumber) {
-    return 'Day $dayNumber';
+    return 'Jour $dayNumber';
   }
 
   @override
@@ -29636,13 +29684,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get trips_itinerary_editDay => 'Edit Day';
+  String get trips_itinerary_editDay => 'Modifier le jour';
 
   @override
-  String get trips_itinerary_dayType_label => 'Day Type';
+  String get trips_itinerary_dayType_label => 'Type de jour';
 
   @override
-  String get trips_itinerary_portName_label => 'Port / Anchorage';
+  String get trips_itinerary_portName_label => 'Port / Mouillage';
 
   @override
   String get trips_itinerary_notes_label => 'Notes';
@@ -29692,13 +29740,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_vesselType_catamaran => 'Catamaran';
 
   @override
-  String get trips_vesselType_motorYacht => 'Motor Yacht';
+  String get trips_vesselType_motorYacht => 'Yacht à moteur';
 
   @override
-  String get trips_vesselType_sailingYacht => 'Sailing Yacht';
+  String get trips_vesselType_sailingYacht => 'Voilier';
 
   @override
-  String get trips_vesselType_other => 'Other';
+  String get trips_vesselType_other => 'Autre';
 
   @override
   String get units_pressure_bar => 'bar';
@@ -32171,18 +32219,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_label_weatherDescription => 'Description météo';
 
   @override
-  String get diveLog_edit_button_fetchWeather => 'Fetch Weather';
+  String get diveLog_edit_button_fetchWeather => 'Récupérer la météo';
 
   @override
-  String get diveLog_edit_weatherFetched => 'Weather data loaded';
+  String get diveLog_edit_weatherFetched => 'Données météo chargées';
 
   @override
   String get diveLog_edit_fetchWeatherUnavailable =>
-      'Weather data unavailable for this date';
+      'Données météo indisponibles pour cette date';
 
   @override
   String get diveLog_edit_fetchWeatherConfirm =>
-      'Replace existing weather data with fetched data?';
+      'Remplacer les données météo existantes par celles récupérées ?';
 
   @override
   String get diveLog_detail_section_environment => 'Environnement';
@@ -38181,7 +38229,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'Notes';
 
   @override
-  String get enum_certificationField_certName => 'Nom';
+  String get enum_certificationField_certName => 'Titre';
 
   @override
   String get enum_certificationField_agency => 'Organisme';
@@ -38212,7 +38260,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_certificationField_notes => 'Notes';
 
   @override
-  String get enum_certificationField_certName_short => 'Nom';
+  String get enum_certificationField_certName_short => 'Titre';
 
   @override
   String get enum_certificationField_agency_short => 'Orga.';
@@ -48839,63 +48887,64 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Replan this dive';
+  String get diveLog_detail_menu_whatIf => 'Replanifier cette plongée';
 
   @override
-  String get plannerCanvas_sourceCompare_title => 'vs. original dive';
+  String get plannerCanvas_sourceCompare_title => 'vs plongée d\'origine';
 
   @override
   String plannerCanvas_issue_repeated(String message, int count) {
-    return '$message ($count legs)';
+    return '$message ($count segments)';
   }
 
   @override
   String plannerCanvas_stopMinimum_dialogTitle(String depth) {
-    return 'Minimum stop time at $depth';
+    return 'Durée minimale de palier à $depth';
   }
 
   @override
   String get plannerCanvas_stopMinimum_minutesLabel => 'Minutes';
 
   @override
-  String get plannerCanvas_stopMinimum_apply => 'Apply';
+  String get plannerCanvas_stopMinimum_apply => 'Appliquer';
 
   @override
-  String get plannerCanvas_stopMinimum_clear => 'Clear minimum';
+  String get plannerCanvas_stopMinimum_clear => 'Effacer le minimum';
 
   @override
-  String get diveLog_whatIf_title => 'Replan this dive';
+  String get diveLog_whatIf_title => 'Replanifier cette plongée';
 
   @override
   String get diveLog_whatIf_detailLabel => 'Détail';
 
   @override
   String get diveLog_whatIf_engineNote =>
-      'The plan covers the descent and working levels. The planner computes the ascent and deco so you can compare them with the logged dive.';
+      'Le plan couvre la descente et les profondeurs de travail. Le planificateur calcule la remontée et la déco pour que vous puissiez les comparer avec la plongée enregistrée.';
 
   @override
-  String get diveLog_whatIf_seedTissues => 'Seed tissues from previous dive';
+  String get diveLog_whatIf_seedTissues =>
+      'Reprendre la saturation des tissus de la plongée précédente';
 
   @override
-  String get diveLog_whatIf_openInPlanner => 'Open in planner';
+  String get diveLog_whatIf_openInPlanner => 'Ouvrir dans le planificateur';
 
   @override
   String diveLog_whatIf_planName(String title) {
-    return 'Replan: $title';
+    return 'Replanification : $title';
   }
 
   @override
-  String get plannerCanvas_compare_runtime => 'Runtime';
+  String get plannerCanvas_compare_runtime => 'Durée totale';
 
   @override
-  String get plannerCanvas_compare_maxDepth => 'Max depth';
+  String get plannerCanvas_compare_maxDepth => 'Profondeur max';
 
   @override
-  String get plannerCanvas_compare_deco => 'Deco time';
+  String get plannerCanvas_compare_deco => 'Durée de déco';
 
   @override
   String plannerCanvas_compare_gas(String tank) {
-    return 'Gas ($tank)';
+    return 'Gaz ($tank)';
   }
 
   @override
@@ -48905,10 +48954,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerCanvas_compare_planned => 'Plan';
 
   @override
-  String get plannerCanvas_compare_actual => 'Actual';
+  String get plannerCanvas_compare_actual => 'Réel';
 
   @override
-  String get plannerCanvas_compare_showOnChart => 'Show on chart';
+  String get plannerCanvas_compare_showOnChart => 'Afficher sur le graphique';
 
   @override
   String numberInput_invalidNumber(String separator) {

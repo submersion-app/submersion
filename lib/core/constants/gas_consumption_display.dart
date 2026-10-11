@@ -1,7 +1,7 @@
 /// Which gas-consumption lane a value belongs to.
 ///
-/// SAC is a tank-pressure drop rate (bar/min or psi/min) read from one
-/// reference cylinder. RMV is the surface gas volume breathed per minute
+/// SAC is a tank-pressure drop rate (bar/min or psi/min) expressed in bar of
+/// one reference cylinder. RMV is the surface gas volume breathed per minute
 /// (L/min or cuft/min) summed across every cylinder with a volume. They are
 /// not unit conversions of each other on multi-tank dives (discussions #354
 /// and #803).

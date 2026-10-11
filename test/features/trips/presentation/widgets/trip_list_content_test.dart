@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -27,8 +28,10 @@ import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/list_create_router.dart';
 import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/keyboard_navigation_contract.dart';
 import '../../../../helpers/selection_contract.dart';
@@ -1896,6 +1899,88 @@ void main() {
         tester.element(find.byType(TripListContent)),
       );
       expect(container.read(tripFilterProvider).query, isNull);
+    });
+  });
+
+  group('empty state beside an open form (issue #3192)', () {
+    Future<GoRouter> pumpEmptyInRouter(
+      WidgetTester tester, {
+      required double width,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [],
+        viewMode: ListViewMode.detailed,
+      );
+      return pumpListInCreateRouter(
+        tester,
+        overrides: overrides,
+        content: const TripListContent(showAppBar: true),
+        listPath: '/trips',
+        width: width,
+      );
+    }
+
+    testWidgets('the create button opens the full-page form when narrow', (
+      tester,
+    ) async {
+      final router = await pumpEmptyInRouter(tester, width: 900);
+
+      await tester.tap(find.text('Add Your First Trip'));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.toString(), '/trips/new');
+      expect(find.text(kFullPageCreateForm), findsOneWidget);
+    });
+
+    testWidgets('the create button opens the pane form beside a detail pane', (
+      tester,
+    ) async {
+      final router = await pumpEmptyInRouter(tester, width: 1400);
+
+      await tester.tap(find.text('Add Your First Trip'));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.toString(), '/trips?mode=new');
+    });
+
+    Future<void> pumpEmpty(
+      WidgetTester tester, {
+      required bool isFormOpen,
+    }) async {
+      final overrides = await _buildPhoneOverrides(
+        trips: [],
+        viewMode: ListViewMode.detailed,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          // The assertions match English button labels.
+          locale: const Locale('en'),
+          child: MasterDetailFormScope(
+            isFormOpen: isFormOpen,
+            child: const TripListContent(showAppBar: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('offers the create button when no form is open', (
+      tester,
+    ) async {
+      await pumpEmpty(tester, isFormOpen: false);
+
+      expect(find.text('Add Your First Trip'), findsOneWidget);
+    });
+
+    testWidgets('hides the create button while a form is open beside it', (
+      tester,
+    ) async {
+      await pumpEmpty(tester, isFormOpen: true);
+
+      // Beside an open form it reads as the form's submit button, but it only
+      // reopens the create form, so nothing gets saved (issue #3192).
+      expect(find.text('Add Your First Trip'), findsNothing);
     });
   });
 }

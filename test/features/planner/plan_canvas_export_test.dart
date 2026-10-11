@@ -2,16 +2,19 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/planner/data/services/plan_file_names.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../helpers/fake_path_provider.dart';
+import '../../helpers/mock_file_picker_platform.dart';
 import '../../helpers/test_app.dart';
 import '../../helpers/test_database.dart';
 import '../../helpers/fake_hosts.dart';
@@ -106,12 +109,43 @@ void main() {
     }
   }
 
-  Future<void> chooseFromOverflow(WidgetTester tester, String label) async {
+  /// Picks [label] from the overflow menu, then [destination] from the
+  /// Save to File / Share sheet it opens.
+  Future<void> exportFromOverflow(
+    WidgetTester tester,
+    String label, {
+    String destination = 'Share',
+  }) async {
     await tester.tap(find.byType(PopupMenuButton<String>));
     await tester.pumpAndSettle();
     await tester.tap(find.text(label).last);
     await tester.pumpAndSettle();
-    await settleRealIo(tester);
+    await tester.tap(find.text(destination));
+    await tester.pumpAndSettle();
+    if (destination == 'Share') await settleRealIo(tester);
+  }
+
+  /// Installs a save dialog that "saves" into the temp documents directory.
+  MockFilePickerPlatform useSaveDialog() {
+    final original = FilePickerPlatform.instance;
+    addTearDown(() => FilePickerPlatform.instance = original);
+    final picker = MockFilePickerPlatform()
+      ..saveFileResult = Uri.file(p.join(documents.path, 'saved'));
+    FilePickerPlatform.instance = picker;
+    return picker;
+  }
+
+  /// Like [settleRealIo], for the save dialog instead of the share sheet.
+  /// The fake dialog writes with real dart:io too, so this waits for the
+  /// confirmation that follows the write, not just for the dialog call.
+  Future<void> settleUntilSaved(WidgetTester tester) async {
+    for (var i = 0; i < 50 && find.byType(SnackBar).evaluate().isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
   }
 
   testWidgets('sharing the plan file anchors to the app bar overflow button', (
@@ -129,7 +163,7 @@ void main() {
     // menu item that was tapped is not.
     final overflowRect = tester.getRect(find.byType(PopupMenuButton<String>));
 
-    await chooseFromOverflow(tester, 'Share plan file');
+    await exportFromOverflow(tester, 'Export plan file');
 
     expect(sharePlatform.calls.single.sharePositionOrigin, overflowRect);
   });
@@ -147,11 +181,89 @@ void main() {
 
     final overflowRect = tester.getRect(find.byType(PopupMenuButton<String>));
 
-    // The slate goes out through sharePdfBytes rather than saveAndShareFile,
-    // a separate helper with its own optional anchor, so it needs its own
-    // coverage.
-    await chooseFromOverflow(tester, 'Export slate (PDF)');
+    // The slate shares the delivery path with the plan file but passes the
+    // anchor through its own menu handler, so it needs its own coverage.
+    await exportFromOverflow(tester, 'Export slate (PDF)');
 
     expect(sharePlatform.calls.single.sharePositionOrigin, overflowRect);
+  });
+
+  testWidgets('both exports ask Save to File or Share before delivering', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+
+    for (final label in ['Export slate (PDF)', 'Export plan file']) {
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label).last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Save to File'), findsOneWidget, reason: label);
+      expect(find.text('Share'), findsOneWidget, reason: label);
+
+      // Dismissing the sheet exports nothing.
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+    }
+    expect(sharePlatform.calls, isEmpty);
+  });
+
+  testWidgets('saving the slate writes the PDF through the save dialog', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final picker = useSaveDialog();
+
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+
+    await exportFromOverflow(
+      tester,
+      'Export slate (PDF)',
+      destination: 'Save to File',
+    );
+    await settleUntilSaved(tester);
+
+    expect(picker.lastSavedFileName, planSlateFileName('New Dive Plan'));
+    expect(picker.lastSavedDialogTitle, 'Export slate (PDF)');
+    expect(String.fromCharCodes(picker.lastSavedBytes!.take(4)), '%PDF');
+    expect(sharePlatform.calls, isEmpty);
+    expect(find.text('Slate saved'), findsOneWidget);
+  });
+
+  testWidgets('saving the plan file writes the .subplan through the dialog', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final picker = useSaveDialog();
+
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+
+    await exportFromOverflow(
+      tester,
+      'Export plan file',
+      destination: 'Save to File',
+    );
+    await settleUntilSaved(tester);
+
+    expect(picker.lastSavedFileName, subplanFileName('New Dive Plan'));
+    expect(picker.lastSavedDialogTitle, 'Export plan file');
+    expect(String.fromCharCodes(picker.lastSavedBytes!), contains('"name"'));
+    expect(sharePlatform.calls, isEmpty);
+    expect(find.text('Plan file saved'), findsOneWidget);
   });
 }

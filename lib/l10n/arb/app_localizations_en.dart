@@ -2258,6 +2258,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_backupNow => 'Backup Now';
 
   @override
+  String get backup_note_dialog_title => 'Back up now';
+
+  @override
+  String get backup_note_label => 'Note (optional)';
+
+  @override
+  String get backup_note_hint => 'e.g. Before the Cozumel trip';
+
+  @override
+  String get backup_note_dialog_confirm => 'Back Up';
+
+  @override
   String get backup_cloud_enabled => 'Cloud backup';
 
   @override
@@ -3308,7 +3320,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_detail_label_issueDate => 'Issue Date';
 
   @override
-  String get certifications_detail_label_type => 'Type';
+  String get certifications_detail_label_title => 'Title';
 
   @override
   String get certifications_detail_label_validity => 'Validity';
@@ -3634,7 +3646,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Leave empty for certifications that don\'t expire';
 
   @override
-  String get certifications_edit_helper_nameOnCard => 'Optional';
+  String get certifications_edit_helper_title =>
+      'Optional. Leave blank to use the certification';
 
   @override
   String get certifications_edit_hint_cardNumber =>
@@ -3792,10 +3805,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get certifications_edit_label_issueDate => 'Issue Date';
 
   @override
-  String get certifications_edit_label_nameOnCard => 'Name on card';
+  String get certifications_edit_label_notes => 'Notes';
 
   @override
-  String get certifications_edit_label_notes => 'Notes';
+  String get certifications_edit_label_title => 'Certification title';
 
   @override
   String certifications_edit_photo_addSemanticLabel(Object label) {
@@ -3856,8 +3869,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Certification updated successfully';
 
   @override
-  String get certifications_edit_validation_certificationOrNameRequired =>
-      'Choose a certification or enter a name';
+  String get certifications_edit_validation_certificationOrTitleRequired =>
+      'Choose a certification or enter a title';
 
   @override
   String get certifications_list_button_retry => 'Retry';
@@ -12717,6 +12730,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_sortField_status => 'Status';
 
   @override
+  String get enum_sortField_title => 'Title';
+
+  @override
   String get enum_sortField_type => 'Type';
 
   @override
@@ -14497,6 +14513,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_detail_wasInstalledInLabel => 'Was installed in';
 
   @override
+  String get equipment_edit_appBar_cloneTitle => 'Clone Equipment';
+
+  @override
   String get equipment_edit_appBar_editTitle => 'Edit Equipment';
 
   @override
@@ -15084,6 +15103,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_list_sortTooltip => 'Sort';
+
+  @override
+  String equipment_clone_nameCopy(String name) {
+    return '$name (copy)';
+  }
+
+  @override
+  String get equipment_clone_partialCopy =>
+      'Cloned, but some service clocks, sets or documents could not be copied.';
+
+  @override
+  String get equipment_clone_snackbar_cloned => 'Equipment cloned';
+
+  @override
+  String get equipment_menu_clone => 'Clone';
 
   @override
   String get equipment_menu_delete => 'Delete';
@@ -18764,6 +18798,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannerCanvas_convert_view => 'View';
 
   @override
+  String plannerCanvas_export_failed(String error) {
+    return 'Export failed: $error';
+  }
+
+  @override
   String plannerCanvas_follow_chip(String name) {
     return 'Following $name';
   }
@@ -18927,13 +18966,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get plannerCanvas_share_menu => 'Share plan file';
+  String get plannerCanvas_share_menu => 'Export plan file';
+
+  @override
+  String get plannerCanvas_share_saved => 'Plan file saved';
 
   @override
   String get plannerCanvas_slate_menu => 'Export slate (PDF)';
 
   @override
   String get plannerCanvas_slate_minGas => 'Min gas';
+
+  @override
+  String get plannerCanvas_slate_saved => 'Slate saved';
 
   @override
   String get plannerCanvas_slate_turn => 'Turn';
@@ -26484,13 +26529,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags_manage_title => 'Tags';
 
   @override
-  String get tags_manage_importsSection => 'Imports';
+  String get settings_autoTagImports_title => 'Tag imports automatically';
 
   @override
-  String get tags_manage_autoTagImports => 'Tag imports automatically';
-
-  @override
-  String get tags_manage_autoTagImports_subtitle =>
+  String get settings_autoTagImports_subtitle =>
       'Every new import starts with a tag naming the source and date. You can change this for a single import in that import\'s options.';
 
   @override
@@ -37453,7 +37495,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_diveCenterField_notes_short => 'Notes';
 
   @override
-  String get enum_certificationField_certName => 'Name';
+  String get enum_certificationField_certName => 'Title';
 
   @override
   String get enum_certificationField_agency => 'Agency';
@@ -37483,7 +37525,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_certificationField_notes => 'Notes';
 
   @override
-  String get enum_certificationField_certName_short => 'Name';
+  String get enum_certificationField_certName_short => 'Title';
 
   @override
   String get enum_certificationField_agency_short => 'Agency';

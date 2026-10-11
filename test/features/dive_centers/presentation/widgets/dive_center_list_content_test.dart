@@ -20,7 +20,9 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 
+import '../../../../helpers/list_create_router.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/select_items_menu.dart';
 import '../../../../helpers/test_app.dart';
@@ -882,6 +884,83 @@ void main() {
       await pumpWithQuery(tester, ids: {'k2'}, viewMode: ListViewMode.table);
       expect(find.text('Lake Club'), findsWidgets);
       expect(find.text('Reef Divers'), findsNothing);
+    });
+  });
+
+  group('empty state beside an open form (issue #3192)', () {
+    Future<GoRouter> pumpEmptyInRouter(
+      WidgetTester tester, {
+      required double width,
+    }) async {
+      final overrides = await _buildOverrides(centers: []);
+      return pumpListInCreateRouter(
+        tester,
+        overrides: overrides,
+        content: const DiveCenterListContent(showAppBar: true),
+        listPath: '/dive-centers',
+        width: width,
+      );
+    }
+
+    testWidgets('the create button opens the full-page form when narrow', (
+      tester,
+    ) async {
+      final router = await pumpEmptyInRouter(tester, width: 900);
+
+      await tester.tap(find.text('Add Your First Dive Center'));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.toString(), '/dive-centers/new');
+      expect(find.text(kFullPageCreateForm), findsOneWidget);
+    });
+
+    testWidgets('the create button opens the pane form beside a detail pane', (
+      tester,
+    ) async {
+      final router = await pumpEmptyInRouter(tester, width: 1400);
+
+      await tester.tap(find.text('Add Your First Dive Center'));
+      await tester.pumpAndSettle();
+
+      expect(router.state.uri.toString(), '/dive-centers?mode=new');
+    });
+
+    Future<void> pumpEmpty(
+      WidgetTester tester, {
+      required bool isFormOpen,
+    }) async {
+      final overrides = await _buildOverrides(centers: []);
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          // The assertions match English button labels.
+          locale: const Locale('en'),
+          child: MasterDetailFormScope(
+            isFormOpen: isFormOpen,
+            child: const DiveCenterListContent(showAppBar: true),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('offers the create button when no form is open', (
+      tester,
+    ) async {
+      await pumpEmpty(tester, isFormOpen: false);
+
+      expect(find.text('Add Your First Dive Center'), findsOneWidget);
+    });
+
+    testWidgets('hides the create button while a form is open beside it', (
+      tester,
+    ) async {
+      await pumpEmpty(tester, isFormOpen: true);
+
+      // Beside an open form it reads as the form's submit button, but it only
+      // reopens the create form, so nothing gets saved (issue #3192).
+      expect(find.text('Add Your First Dive Center'), findsNothing);
+      expect(find.text('Import'), findsOneWidget);
     });
   });
 }

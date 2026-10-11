@@ -47,7 +47,7 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.instructor,
   ];
 
-  static const List<CertificationLevel> _nauiSdiLadder = [
+  static const List<CertificationLevel> _nauiLadder = [
     CertificationLevel.openWater,
     CertificationLevel.advancedOpenWater,
     CertificationLevel.rescue,
@@ -56,6 +56,22 @@ abstract final class CertificationLevelCatalog {
     CertificationLevel.diveMaster,
     CertificationLevel.assistantInstructor,
     CertificationLevel.instructor,
+    CertificationLevel.courseDirector,
+  ];
+
+  /// SDI's ladder (issue #3194): NAUI's, plus the senior instructor rung SDI
+  /// ranks between Instructor and Course Director (its Elite Scuba
+  /// Instructor), offered as the generic Master Instructor.
+  static const List<CertificationLevel> _sdiLadder = [
+    CertificationLevel.openWater,
+    CertificationLevel.advancedOpenWater,
+    CertificationLevel.rescue,
+    CertificationLevel.masterDiver,
+    CertificationLevel.diveGuide,
+    CertificationLevel.diveMaster,
+    CertificationLevel.assistantInstructor,
+    CertificationLevel.instructor,
+    CertificationLevel.masterInstructor,
     CertificationLevel.courseDirector,
   ];
 
@@ -273,7 +289,8 @@ abstract final class CertificationLevelCatalog {
       switch (agency) {
         CertificationAgency.padi => _genericLadder,
         CertificationAgency.ssi => _ssiLadder,
-        CertificationAgency.naui || CertificationAgency.sdi => _nauiSdiLadder,
+        CertificationAgency.naui => _nauiLadder,
+        CertificationAgency.sdi => _sdiLadder,
         CertificationAgency.raid => _raidLadder,
         CertificationAgency.tdi => _tdiLadder,
         CertificationAgency.iantd || CertificationAgency.psai => _techLadder,

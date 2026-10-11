@@ -15,6 +15,7 @@ import 'package:submersion/features/buddies/domain/services/legacy_name_parser.d
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
@@ -302,7 +303,7 @@ class InsightsRepository {
           COALESCE(d.runtime, d.bottom_time) AS duration_sec,
           t.start_pressure,
           t.end_pressure,
-          t.volume,
+          ${consumptionVolumeSql('t')} AS volume,
           t.o2_percent,
           t.he_percent
         FROM dives d
@@ -311,7 +312,6 @@ class InsightsRepository {
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
-          AND t.volume > 0
         ORDER BY d.dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
@@ -327,7 +327,8 @@ class InsightsRepository {
         final diveId = row.read<String>('dive_id');
         final startP = row.read<double>('start_pressure');
         final endP = row.read<double>('end_pressure');
-        final vol = row.read<double>('volume');
+        final vol = row.read<double?>('volume');
+        if (vol == null) continue;
         final o2 = row.read<double>('o2_percent');
         final he = row.read<double>('he_percent');
         final dateTimeMs = row.read<int>('dive_date_time');
@@ -394,8 +395,9 @@ class InsightsRepository {
 
   /// SAC rate of every dive in scope, in pressure per minute, ordered by date.
   ///
-  /// Does not require tank volume: uses the pressure drop of the dive's single
-  /// back-gas tank normalised to surface pressure.
+  /// Does not require tank volume: the back-gas pressure drop plus every
+  /// other breathed cylinder's converted to it, normalised to surface
+  /// pressure, as `Dive.sac` computes it (issue #3109).
   Future<List<TrendDataPoint>> getSacPressurePerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -406,29 +408,18 @@ class InsightsRepository {
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
-        SELECT
-          d.id AS dive_id,
-          d.dive_date_time AS dive_date_time,
-          (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
-        FROM dives d
-        JOIN dive_tanks t ON t.id = (
-          SELECT t2.id FROM dive_tanks t2
-          WHERE t2.dive_id = d.id
-            AND t2.start_pressure > t2.end_pressure
-            AND (
-              t2.tank_role = 'backGas'
-              OR NOT EXISTS (
-                SELECT 1 FROM dive_tanks t3
-                WHERE t3.dive_id = d.id AND t3.tank_role = 'backGas'
-              )
-            )
-          ORDER BY t2.tank_order, t2.rowid
-          LIMIT 1
+        SELECT * FROM (
+          SELECT
+            d.id AS dive_id,
+            d.dive_date_time AS dive_date_time,
+            ${diveSacPressureSql('d')} AS sac
+          FROM dives d
+          WHERE 1 = 1 $diverFilter ${df.clause}
+            AND COALESCE(d.runtime, d.bottom_time) > 0
+            AND d.avg_depth > 0
         )
-        WHERE 1 = 1 $diverFilter ${df.clause}
-          AND COALESCE(d.runtime, d.bottom_time) > 0
-          AND d.avg_depth > 0
-        ORDER BY d.dive_date_time
+        WHERE sac IS NOT NULL
+        ORDER BY dive_date_time
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results
@@ -529,7 +520,7 @@ class InsightsRepository {
           ds.name AS site_name,
           t.start_pressure,
           t.end_pressure,
-          t.volume,
+          ${consumptionVolumeSql('t')} AS volume,
           t.o2_percent,
           t.he_percent
         FROM dives d
@@ -538,7 +529,6 @@ class InsightsRepository {
         WHERE COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
           AND t.start_pressure > t.end_pressure
-          AND t.volume > 0
          
           $diverFilter ${df.clause}
         ORDER BY d.dive_date_time
@@ -562,7 +552,8 @@ class InsightsRepository {
         final diveId = row.read<String>('dive_id');
         final o2 = row.read<double>('o2_percent');
         final he = row.read<double>('he_percent');
-        final vol = row.read<double>('volume');
+        final vol = row.read<double?>('volume');
+        if (vol == null) continue;
         final used =
             gasVolume(
               tankSizeLiters: vol,
@@ -647,32 +638,20 @@ class InsightsRepository {
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''
-        SELECT
-          d.id,
-          d.dive_number,
-          ds.name AS site_name,
-          d.dive_date_time,
-          (t.start_pressure - t.end_pressure) / (COALESCE(d.runtime, d.bottom_time) / 60.0) / ((d.avg_depth / 10.0) + 1) AS sac
-        FROM dives d
-        JOIN dive_tanks t ON t.id = (
-          SELECT t2.id FROM dive_tanks t2
-          WHERE t2.dive_id = d.id
-            AND t2.start_pressure > t2.end_pressure
-            AND (
-              t2.tank_role = 'backGas'
-              OR NOT EXISTS (
-                SELECT 1 FROM dive_tanks t3
-                WHERE t3.dive_id = d.id AND t3.tank_role = 'backGas'
-              )
-            )
-          ORDER BY t2.tank_order, t2.rowid
-          LIMIT 1
+        SELECT * FROM (
+          SELECT
+            d.id,
+            d.dive_number,
+            ds.name AS site_name,
+            d.dive_date_time,
+            ${diveSacPressureSql('d')} AS sac
+          FROM dives d
+          LEFT JOIN dive_sites ds ON ds.id = d.site_id
+          WHERE COALESCE(d.runtime, d.bottom_time) > 0
+            AND d.avg_depth > 0
+            $diverFilter ${df.clause}
         )
-        LEFT JOIN dive_sites ds ON ds.id = d.site_id
-        WHERE COALESCE(d.runtime, d.bottom_time) > 0
-          AND d.avg_depth > 0
-         
-          $diverFilter ${df.clause}
+        WHERE sac IS NOT NULL
         ORDER BY sac ASC
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
@@ -721,7 +700,7 @@ class InsightsRepository {
           t.tank_role,
           t.start_pressure,
           t.end_pressure,
-          t.volume,
+          ${consumptionVolumeSql('t')} AS volume,
           t.o2_percent,
           t.he_percent,
           d.avg_depth,
@@ -733,7 +712,6 @@ class InsightsRepository {
           AND t.start_pressure > t.end_pressure
           AND COALESCE(d.runtime, d.bottom_time) > 0
           AND d.avg_depth > 0
-          AND t.volume > 0
          
           $diverFilter ${df.clause}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -744,7 +722,8 @@ class InsightsRepository {
         final role = row.read<String>('tank_role');
         final o2 = row.read<double>('o2_percent');
         final he = row.read<double>('he_percent');
-        final vol = row.read<double>('volume');
+        final vol = row.read<double?>('volume');
+        if (vol == null) continue;
         final used =
             gasVolume(
               tankSizeLiters: vol,

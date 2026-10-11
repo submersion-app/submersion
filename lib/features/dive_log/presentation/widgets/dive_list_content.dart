@@ -38,6 +38,7 @@ import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
@@ -2233,26 +2234,30 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () => showAddDiveBottomSheet(
-              context: context,
-              onLogManually: () {
-                if (ResponsiveBreakpoints.isMasterDetail(context)) {
-                  final routerState = GoRouterState.of(context);
-                  context.go('${routerState.uri.path}?mode=new');
-                } else {
-                  context.push('/dives/new');
-                }
-              },
-              onPlanDive: () => context.push(
-                '/dives/new',
-                extra: const DivePrefill(isPlanned: true),
+          // Hidden beside an open form: it reads as the form's submit button
+          // but only reopens the create form (issue #3192).
+          if (!MasterDetailFormScope.isFormOpenOf(context)) ...[
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () => showAddDiveBottomSheet(
+                context: context,
+                onLogManually: () {
+                  if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                    final routerState = GoRouterState.of(context);
+                    context.go('${routerState.uri.path}?mode=new');
+                  } else {
+                    context.push('/dives/new');
+                  }
+                },
+                onPlanDive: () => context.push(
+                  '/dives/new',
+                  extra: const DivePrefill(isPlanned: true),
+                ),
               ),
+              icon: const Icon(Icons.add),
+              label: Text(context.l10n.diveLog_empty_logFirstDive),
             ),
-            icon: const Icon(Icons.add),
-            label: Text(context.l10n.diveLog_empty_logFirstDive),
-          ),
+          ],
         ],
       ),
     );

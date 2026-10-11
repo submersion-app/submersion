@@ -18,6 +18,7 @@ import 'package:submersion/shared/selection/select_items_menu_entries.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
+import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
@@ -819,27 +820,17 @@ class _TripListContentState extends ConsumerState<TripListContent> {
                       onCheckChanged: onCheckChanged,
                     ),
                   };
+                  // The banner is the row's header, outside the focus ring,
+                  // so the ring traces the trip's card alone (#3224).
                   return KeyboardListItem(
                     navigationKey: tripWithStats.trip.id,
-                    child: !tripWithStats.trip.isUpcoming
-                        ? selectableTile
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  20,
-                                  4,
-                                  20,
-                                  0,
-                                ),
-                                child: UpcomingTripBanner(
-                                  trip: tripWithStats.trip,
-                                ),
-                              ),
-                              selectableTile,
-                            ],
-                          ),
+                    header: tripWithStats.trip.isUpcoming
+                        ? Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                            child: UpcomingTripBanner(trip: tripWithStats.trip),
+                          )
+                        : null,
+                    child: selectableTile,
                   );
                 },
               ),
@@ -906,19 +897,23 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () {
-              if (ResponsiveBreakpoints.isMasterDetail(context)) {
-                final routerState = GoRouterState.of(context);
-                context.go('${routerState.uri.path}?mode=new');
-              } else {
-                context.push('/trips/new');
-              }
-            },
-            icon: const Icon(Icons.add),
-            label: Text(context.l10n.trips_list_empty_button),
-          ),
+          // Hidden beside an open form: it reads as the form's submit button
+          // but only reopens the create form (issue #3192).
+          if (!MasterDetailFormScope.isFormOpenOf(context)) ...[
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () {
+                if (ResponsiveBreakpoints.isMasterDetail(context)) {
+                  final routerState = GoRouterState.of(context);
+                  context.go('${routerState.uri.path}?mode=new');
+                } else {
+                  context.push('/trips/new');
+                }
+              },
+              icon: const Icon(Icons.add),
+              label: Text(context.l10n.trips_list_empty_button),
+            ),
+          ],
         ],
       ),
     );

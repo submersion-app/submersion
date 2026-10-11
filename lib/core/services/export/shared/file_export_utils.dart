@@ -228,13 +228,32 @@ Future<String?> saveTextToFile(
   String fileName, {
   required String dialogTitle,
   required String mimeType,
+}) => saveBytesToFile(
+  utf8.encode(content),
+  fileName,
+  dialogTitle: dialogTitle,
+  mimeType: mimeType,
+);
+
+/// Save raw bytes to a user-selected file location.
+///
+/// Opens a file picker dialog allowing the user to choose where to save.
+/// Returns the saved file location, or null if the user cancelled.
+///
+/// The general form of [saveTextToFile] and [savePdfToFile], for callers that
+/// deliver several file types through one path and so cannot pick a typed
+/// helper up front.
+Future<String?> saveBytesToFile(
+  List<int> bytes,
+  String fileName, {
+  required String dialogTitle,
+  required String mimeType,
 }) async {
-  final bytes = Uint8List.fromList(utf8.encode(content));
   final result = await FilePicker.saveFile(
     dialogTitle: dialogTitle,
     fileName: fileName,
     type: FileType.custom,
-    bytes: bytes,
+    bytes: bytes is Uint8List ? bytes : Uint8List.fromList(bytes),
     mimeType: mimeType,
   );
 
@@ -246,15 +265,10 @@ Future<String?> saveTextToFile(
 ///
 /// Opens a file picker dialog allowing the user to choose where to save.
 /// Returns the saved file path, or null if the user cancelled.
-Future<String?> savePdfToFile(List<int> pdfBytes, String fileName) async {
-  final result = await FilePicker.saveFile(
-    dialogTitle: 'Save PDF',
-    fileName: fileName,
-    type: FileType.custom,
-    bytes: Uint8List.fromList(pdfBytes),
-    mimeType: 'application/pdf',
-  );
-
-  if (result == null) return null;
-  return savedFileLocation(result);
-}
+Future<String?> savePdfToFile(List<int> pdfBytes, String fileName) =>
+    saveBytesToFile(
+      pdfBytes,
+      fileName,
+      dialogTitle: 'Save PDF',
+      mimeType: 'application/pdf',
+    );

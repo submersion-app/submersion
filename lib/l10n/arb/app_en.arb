@@ -1470,6 +1470,10 @@
   "backup_appBar_title": "Backup & Restore",
   "backup_backingUp": "Backing up...",
   "backup_backupNow": "Backup Now",
+  "backup_note_dialog_title": "Back up now",
+  "backup_note_label": "Note (optional)",
+  "backup_note_hint": "e.g. Before the Cozumel trip",
+  "backup_note_dialog_confirm": "Back Up",
   "backup_cloud_enabled": "Cloud backup",
   "backup_cloud_enabled_subtitle": "Upload backups to cloud storage",
   "backup_delete_dialog_cancel": "Cancel",
@@ -2205,7 +2209,7 @@
   "certifications_detail_label_instructorName": "Name",
   "certifications_detail_label_instructorNumber": "Instructor #",
   "certifications_detail_label_issueDate": "Issue Date",
-  "certifications_detail_label_type": "Type",
+  "certifications_detail_label_title": "Title",
   "certifications_detail_label_validity": "Validity",
   "certifications_detail_noExpiration": "No Expiration",
   "certifications_detail_notFound": "Certification not found",
@@ -2452,7 +2456,7 @@
   "certifications_edit_group_tdiOverhead": "Overhead",
   "certifications_edit_group_tdiProfessional": "Professional",
   "certifications_edit_help_expiryDate": "Leave empty for certifications that don't expire",
-  "certifications_edit_helper_nameOnCard": "Optional",
+  "certifications_edit_helper_title": "Optional. Leave blank to use the certification",
   "certifications_edit_hint_cardNumber": "Enter certification card number",
   "certifications_edit_hint_instructorName": "Name of certifying instructor",
   "certifications_edit_hint_instructorNumber": "Instructor certification number",
@@ -2501,8 +2505,8 @@
   "certifications_edit_label_instructorName": "Instructor Name",
   "certifications_edit_label_instructorNumber": "Instructor Number",
   "certifications_edit_label_issueDate": "Issue Date",
-  "certifications_edit_label_nameOnCard": "Name on card",
   "certifications_edit_label_notes": "Notes",
+  "certifications_edit_label_title": "Certification title",
   "certifications_edit_photo_addSemanticLabel": "Add {label} photo. Tap to select",
   "certifications_edit_photo_attachedSemanticLabel": "{label} photo attached. Tap to change",
   "certifications_edit_photo_chooseFromGallery": "Choose from Gallery",
@@ -2517,7 +2521,7 @@
   "certifications_edit_snackBar_errorPhoto": "Error picking photo: {error}",
   "certifications_edit_snackBar_errorSaving": "Error saving certification: {error}",
   "certifications_edit_snackBar_updated": "Certification updated successfully",
-  "certifications_edit_validation_certificationOrNameRequired": "Choose a certification or enter a name",
+  "certifications_edit_validation_certificationOrTitleRequired": "Choose a certification or enter a title",
   "certifications_list_button_retry": "Retry",
   "certifications_list_empty_button": "Add Your First Certification",
   "certifications_list_empty_subtitle": "Add your dive certifications to keep track of your training and qualifications",
@@ -7620,6 +7624,7 @@
   "enum_sortField_site": "Site",
   "enum_sortField_startDate": "Start Date",
   "enum_sortField_status": "Status",
+  "enum_sortField_title": "Title",
   "enum_sortField_type": "Type",
   "enum_speciesCategory_coral": "Coral",
   "enum_speciesCategory_fish": "Fish",
@@ -8767,6 +8772,8 @@
   "equipment_detail_tripsLabel": "Trips",
   "equipment_detail_tripsSemanticLabel": "View trips using this equipment",
   "equipment_detail_wasInstalledInLabel": "Was installed in",
+  "equipment_edit_appBar_cloneTitle": "Clone Equipment",
+  "@equipment_edit_appBar_cloneTitle": {"description": "Title of the equipment form when it is pre-filled to clone an existing item"},
   "equipment_edit_appBar_editTitle": "Edit Equipment",
   "equipment_edit_appBar_newTitle": "New Equipment",
   "equipment_edit_appBar_saveButton": "Save",
@@ -9034,6 +9041,14 @@
   "equipment_list_searchTooltip": "Search Equipment",
   "equipment_list_sortTitle": "Sort Equipment",
   "equipment_list_sortTooltip": "Sort",
+  "equipment_clone_nameCopy": "{name} (copy)",
+  "@equipment_clone_nameCopy": {"description": "Name a cloned equipment item starts with; name is the original item's name", "placeholders": {"name": {"type": "String"}}},
+  "equipment_clone_partialCopy": "Cloned, but some service clocks, sets or documents could not be copied.",
+  "@equipment_clone_partialCopy": {"description": "Shown after a clone saved but copying some of the original's service clocks, equipment sets or documents failed"},
+  "equipment_clone_snackbar_cloned": "Equipment cloned",
+  "@equipment_clone_snackbar_cloned": {"description": "Shown after a cloned equipment item is saved"},
+  "equipment_menu_clone": "Clone",
+  "@equipment_menu_clone": {"description": "Equipment detail menu action that opens a new item pre-filled from this one"},
   "equipment_menu_delete": "Delete",
   "equipment_menu_reactivate": "Reactivate",
   "equipment_menu_retireEquipment": "Retire Equipment",
@@ -11921,6 +11936,14 @@
   "plannerCanvas_contingency_turnRule": "Turn pressure rule",
   "plannerCanvas_convert_success": "Dive created from plan",
   "plannerCanvas_convert_view": "View",
+  "plannerCanvas_export_failed": "Export failed: {error}",
+  "@plannerCanvas_export_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_follow_chip": "Following {name}",
   "@plannerCanvas_follow_chip": {
     "placeholders": {
@@ -12080,9 +12103,11 @@
       }
     }
   },
-  "plannerCanvas_share_menu": "Share plan file",
+  "plannerCanvas_share_menu": "Export plan file",
+  "plannerCanvas_share_saved": "Plan file saved",
   "plannerCanvas_slate_menu": "Export slate (PDF)",
   "plannerCanvas_slate_minGas": "Min gas",
+  "plannerCanvas_slate_saved": "Slate saved",
   "plannerCanvas_slate_turn": "Turn",
   "plannerCanvas_table_depth": "Depth",
   "plannerCanvas_table_gas": "Gas",
@@ -15957,17 +15982,13 @@
   },
   "tags_hint_addTags": "Add tags...",
   "tags_manage_title": "Tags",
-  "tags_manage_importsSection": "Imports",
-  "@tags_manage_importsSection": {
-    "description": "Section header above the auto-tag-imports switch on the tag management screen"
+  "settings_autoTagImports_title": "Tag imports automatically",
+  "@settings_autoTagImports_title": {
+    "description": "Switch title, in the Import card on Settings > Data, for auto-tagging every new import session"
   },
-  "tags_manage_autoTagImports": "Tag imports automatically",
-  "@tags_manage_autoTagImports": {
-    "description": "Switch title for auto-tagging every new import session"
-  },
-  "tags_manage_autoTagImports_subtitle": "Every new import starts with a tag naming the source and date. You can change this for a single import in that import's options.",
-  "@tags_manage_autoTagImports_subtitle": {
-    "description": "Switch subtitle for auto-tagging every new import session"
+  "settings_autoTagImports_subtitle": "Every new import starts with a tag naming the source and date. You can change this for a single import in that import's options.",
+  "@settings_autoTagImports_subtitle": {
+    "description": "Switch subtitle, in the Import card on Settings > Data, for auto-tagging every new import session"
   },
   "tags_manage_searchHint": "Search tags...",
   "tags_manage_diveCount": "{count, plural, =0{0 dives} =1{1 dive} other{{count} dives}}",
@@ -23440,7 +23461,7 @@
   "enum_diveCenterField_longitude_short": "Lon",
   "enum_diveCenterField_diveCount_short": "Dives",
   "enum_diveCenterField_notes_short": "Notes",
-  "enum_certificationField_certName": "Name",
+  "enum_certificationField_certName": "Title",
   "enum_certificationField_agency": "Agency",
   "enum_certificationField_level": "Certification",
   "enum_certificationField_cardNumber": "Card Number",
@@ -23450,7 +23471,7 @@
   "enum_certificationField_instructorNumber": "Instructor Number",
   "enum_certificationField_expiryStatus": "Expiry Status",
   "enum_certificationField_notes": "Notes",
-  "enum_certificationField_certName_short": "Name",
+  "enum_certificationField_certName_short": "Title",
   "enum_certificationField_agency_short": "Agency",
   "enum_certificationField_level_short": "Certification",
   "enum_certificationField_cardNumber_short": "Card #",

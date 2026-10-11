@@ -19,7 +19,7 @@ import '../../support/fake_cloud_storage_provider.dart';
 /// Writes a stand-in backup file so the service has real bytes to upload.
 class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async {
+  Future<void> backup(String destinationPath, {String? note}) async {
     final file = File(destinationPath);
     await file.parent.create(recursive: true);
     await file.writeAsString('fake backup data');
@@ -46,7 +46,7 @@ class _FakeBackupDatabaseAdapter implements BackupDatabaseAdapter {
 /// unreadable database.
 class _FailingBackupDatabaseAdapter extends _FakeBackupDatabaseAdapter {
   @override
-  Future<void> backup(String destinationPath) async =>
+  Future<void> backup(String destinationPath, {String? note}) async =>
       throw const FileSystemException('no space left on device');
 }
 

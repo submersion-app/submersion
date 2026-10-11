@@ -5,7 +5,6 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -98,10 +97,6 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                 ),
           body: Column(
             children: [
-              // Hidden during selection: this is a settings control, not
-              // part of the list being acted on, and the space is better
-              // spent on the list itself while a bulk action is in progress.
-              if (!selection.isActive) _buildAutoTagSection(),
               // Search stays visible during selection: narrowing the list
               // mid-selection is a supported move, and the selection prunes
               // to whatever remains.
@@ -118,46 +113,6 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           ),
         ),
       ),
-    );
-  }
-
-  /// Whether the import wizard auto-tags every new import session (issue
-  /// #998), plus its switch.
-  ///
-  /// Placed above the search bar, not as a wizard step, so the choice is a
-  /// standing preference rather than something re-decided at every import.
-  /// This is only the starting point for a new session -- the review step's
-  /// Import Options sheet lets the diver override it for a single import
-  /// without touching this default.
-  ///
-  /// Watches only [AppSettings.autoTagImports] via `select`, not the whole
-  /// [settingsProvider]: a change to any other setting elsewhere in the app
-  /// would otherwise rebuild this switch for no reason.
-  Widget _buildAutoTagSection() {
-    final autoTagImports = ref.watch(
-      settingsProvider.select((s) => s.autoTagImports),
-    );
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Text(
-            context.l10n.tags_manage_importsSection,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ),
-        SwitchListTile(
-          title: Text(context.l10n.tags_manage_autoTagImports),
-          subtitle: Text(context.l10n.tags_manage_autoTagImports_subtitle),
-          value: autoTagImports,
-          onChanged: (value) {
-            ref.read(settingsProvider.notifier).setAutoTagImports(value);
-          },
-        ),
-        const Divider(height: 1),
-      ],
     );
   }
 
