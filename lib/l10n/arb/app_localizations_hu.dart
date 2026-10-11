@@ -44499,62 +44499,62 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String tableMode_cell_anyValue(String column) {
-    return 'Only dives with a $column';
+    return 'Csak $column értékkel rendelkező merülések';
   }
 
   @override
   String tableMode_cell_atLeast(String value) {
-    return 'At least $value';
+    return 'Legalább $value';
   }
 
   @override
   String tableMode_cell_atMost(String value) {
-    return 'At most $value';
+    return 'Legfeljebb $value';
   }
 
   @override
   String tableMode_cell_exclude(String value) {
-    return 'Exclude $value';
+    return '$value kizárása';
   }
 
   @override
   String tableMode_cell_noValue(String column) {
-    return 'Only dives with no $column';
+    return 'Csak $column nélküli merülések';
   }
 
   @override
   String tableMode_cell_onOrAfter(String value) {
-    return 'On or after $value';
+    return '$value vagy később';
   }
 
   @override
   String tableMode_cell_onOrBefore(String value) {
-    return 'On or before $value';
+    return '$value vagy korábban';
   }
 
   @override
   String tableMode_cell_only(String value) {
-    return 'Only $value';
+    return 'Csak $value';
   }
 
   @override
   String tableMode_cell_with(String value) {
-    return 'With $value';
+    return 'Ezzel: $value';
   }
 
   @override
   String tableMode_cell_without(String value) {
-    return 'Without $value';
+    return 'Enélkül: $value';
   }
 
   @override
-  String get tableMode_menu_addFilter => 'Add filter';
+  String get tableMode_menu_addFilter => 'Szűrő hozzáadása';
 
   @override
-  String get tableMode_menu_hideColumn => 'Hide column';
+  String get tableMode_menu_hideColumn => 'Oszlop elrejtése';
 
   @override
-  String get tableMode_menu_resetFilter => 'Reset filter';
+  String get tableMode_menu_resetFilter => 'Szűrő visszaállítása';
 
   @override
   String get tableMode_tooltip_toggleDetailPane => 'Részletek panel ki/be';

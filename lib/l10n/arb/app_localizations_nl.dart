@@ -44451,62 +44451,62 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String tableMode_cell_anyValue(String column) {
-    return 'Only dives with a $column';
+    return 'Alleen duiken met $column';
   }
 
   @override
   String tableMode_cell_atLeast(String value) {
-    return 'At least $value';
+    return 'Minstens $value';
   }
 
   @override
   String tableMode_cell_atMost(String value) {
-    return 'At most $value';
+    return 'Hoogstens $value';
   }
 
   @override
   String tableMode_cell_exclude(String value) {
-    return 'Exclude $value';
+    return '$value uitsluiten';
   }
 
   @override
   String tableMode_cell_noValue(String column) {
-    return 'Only dives with no $column';
+    return 'Alleen duiken zonder $column';
   }
 
   @override
   String tableMode_cell_onOrAfter(String value) {
-    return 'On or after $value';
+    return 'Vanaf $value';
   }
 
   @override
   String tableMode_cell_onOrBefore(String value) {
-    return 'On or before $value';
+    return 'Tot en met $value';
   }
 
   @override
   String tableMode_cell_only(String value) {
-    return 'Only $value';
+    return 'Alleen $value';
   }
 
   @override
   String tableMode_cell_with(String value) {
-    return 'With $value';
+    return 'Met $value';
   }
 
   @override
   String tableMode_cell_without(String value) {
-    return 'Without $value';
+    return 'Zonder $value';
   }
 
   @override
-  String get tableMode_menu_addFilter => 'Add filter';
+  String get tableMode_menu_addFilter => 'Filter toevoegen';
 
   @override
-  String get tableMode_menu_hideColumn => 'Hide column';
+  String get tableMode_menu_hideColumn => 'Kolom verbergen';
 
   @override
-  String get tableMode_menu_resetFilter => 'Reset filter';
+  String get tableMode_menu_resetFilter => 'Filter wissen';
 
   @override
   String get tableMode_tooltip_toggleDetailPane =>

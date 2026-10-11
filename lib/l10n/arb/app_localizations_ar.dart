@@ -45353,62 +45353,62 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String tableMode_cell_anyValue(String column) {
-    return 'Only dives with a $column';
+    return 'فقط الغوصات التي لها $column';
   }
 
   @override
   String tableMode_cell_atLeast(String value) {
-    return 'At least $value';
+    return '$value على الأقل';
   }
 
   @override
   String tableMode_cell_atMost(String value) {
-    return 'At most $value';
+    return '$value على الأكثر';
   }
 
   @override
   String tableMode_cell_exclude(String value) {
-    return 'Exclude $value';
+    return 'استبعاد $value';
   }
 
   @override
   String tableMode_cell_noValue(String column) {
-    return 'Only dives with no $column';
+    return 'فقط الغوصات بدون $column';
   }
 
   @override
   String tableMode_cell_onOrAfter(String value) {
-    return 'On or after $value';
+    return 'في $value أو بعده';
   }
 
   @override
   String tableMode_cell_onOrBefore(String value) {
-    return 'On or before $value';
+    return 'في $value أو قبله';
   }
 
   @override
   String tableMode_cell_only(String value) {
-    return 'Only $value';
+    return '$value فقط';
   }
 
   @override
   String tableMode_cell_with(String value) {
-    return 'With $value';
+    return 'مع $value';
   }
 
   @override
   String tableMode_cell_without(String value) {
-    return 'Without $value';
+    return 'بدون $value';
   }
 
   @override
-  String get tableMode_menu_addFilter => 'Add filter';
+  String get tableMode_menu_addFilter => 'إضافة تصفية';
 
   @override
-  String get tableMode_menu_hideColumn => 'Hide column';
+  String get tableMode_menu_hideColumn => 'إخفاء العمود';
 
   @override
-  String get tableMode_menu_resetFilter => 'Reset filter';
+  String get tableMode_menu_resetFilter => 'إعادة تعيين التصفية';
 
   @override
   String get tableMode_tooltip_toggleDetailPane => 'تبديل لوحة التفاصيل';
