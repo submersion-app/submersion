@@ -124,6 +124,40 @@ void main() {
     expect((await repo.getPages(saved.id)).single.bytes, [7]);
   });
 
+  test('a same-size replacement of a page is written', () async {
+    final saved = await repo.save(newDoc(), [
+      page(0, [1, 2]),
+    ]);
+    final stored = (await repo.getPages(saved.id)).single;
+    await repo.save(saved, [
+      stored.copyWith(bytes: Uint8List.fromList([3, 4])),
+    ]);
+    expect((await repo.getPages(saved.id)).single.bytes, [3, 4]);
+  });
+
+  test('saving unchanged pages re-stamps none of them', () async {
+    final saved = await repo.save(newDoc(), [
+      page(0, [1]),
+      page(1, [2]),
+    ]);
+    final pages = await repo.getPages(saved.id);
+    await db.customStatement('DELETE FROM sync_records');
+    await repo.save(saved, pages);
+    expect(await pendingEntities(db), {'documents'});
+  });
+
+  test('a page moved without its bytes keeps them at its new place', () async {
+    final saved = await repo.save(newDoc(), [
+      page(0, [1]),
+      page(1, [2]),
+    ]);
+    final meta = await repo.getPages(saved.id, withBytes: false);
+    await repo.save(saved, meta.reversed.toList());
+    final after = await repo.getPages(saved.id);
+    expect([for (final p in after) p.bytes!.single], [2, 1]);
+    expect([for (final p in after) p.pageIndex], [0, 1]);
+  });
+
   test('only one primary insurance per diver', () async {
     final a = await repo.save(
       newDoc(type: DocumentType.insurance, primary: true),
@@ -148,7 +182,16 @@ void main() {
   });
 
   test('with no primary, the newest insurance stands in', () async {
-    await repo.save(newDoc(type: DocumentType.insurance), const []);
+    final older = await repo.save(
+      newDoc(type: DocumentType.insurance),
+      const [],
+    );
+    // Two saves can land in one millisecond, which would leave the order to
+    // the id tiebreak: back-date the first so "newest" is unambiguous.
+    await db.customStatement(
+      'UPDATE documents SET updated_at = updated_at - 1000 WHERE id = ?',
+      [older.id],
+    );
     final newer = await repo.save(
       newDoc(type: DocumentType.insurance),
       const [],

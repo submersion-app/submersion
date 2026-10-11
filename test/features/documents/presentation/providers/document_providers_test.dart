@@ -4,9 +4,25 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/features/notifications/data/services/notification_scheduler.dart';
+import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+
+/// Records which documents had their reminders rescheduled.
+class _RecordingScheduler extends NotificationScheduler {
+  final updated = <String>[];
+
+  @override
+  Future<void> updateForDocument(
+    Document document,
+    AppSettings settings,
+  ) async => updated.add(document.id);
+}
 
 void main() {
   setUp(() async {
@@ -75,6 +91,36 @@ void main() {
       (await c.read(documentByIdProvider(saved.id).future))!.title,
       'Park',
     );
+  });
+
+  test('restoring a snapshot puts the documents back and re-arms their '
+      'reminders, which the delete cancelled', () async {
+    final scheduler = _RecordingScheduler();
+    final c = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        notificationSchedulerProvider.overrideWithValue(scheduler),
+      ],
+    );
+    addTearDown(c.dispose);
+    final now = DateTime.now();
+    final repo = c.read(documentRepositoryProvider);
+    final permit = await repo.save(
+      doc(
+        DocumentType.permit,
+        DateTime(now.year, now.month, now.day + 60),
+        'Park',
+      ),
+      const [],
+    );
+    final captured = [(document: permit, pages: const <DocumentPage>[])];
+    await repo.delete(permit.id);
+
+    await c.read(documentMutationsProvider).restoreSnapshot(captured);
+
+    expect(await repo.getById(permit.id), isNotNull);
+    expect(scheduler.updated, [permit.id]);
   });
 
   test('delete removes the document', () async {

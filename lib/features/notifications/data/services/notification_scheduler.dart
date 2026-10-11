@@ -451,12 +451,17 @@ class NotificationScheduler {
     required AppSettings settings,
     String? diverId,
   }) async {
-    // Reminders whose document is gone (deleted on another device, or with
-    // its owner) or no longer reminds: their ids live only in the payloads.
+    // Pending reminders, known only from their payloads. One whose document
+    // is gone (deleted on another device, or with its owner) or no longer
+    // reminds is cancelled. One of another profile, which the loop below
+    // never reaches, is rebuilt from the document as it is now: a renewal
+    // synced in must not leave the old expiry announcing itself.
     for (final id in await _notificationService.pendingDocumentReminderIds()) {
       final document = await _documentRepository.getById(id);
       if (document == null || !document.remindsOnExpiry) {
         await _notificationService.cancelDocumentReminders(id);
+      } else if (document.diverId != diverId) {
+        await updateForDocument(document, settings);
       }
     }
     if (diverId == null) return;
@@ -495,7 +500,4 @@ class NotificationScheduler {
       );
     }
   }
-
-  Future<void> cancelForDocument(String documentId) =>
-      _notificationService.cancelDocumentReminders(documentId);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/document_reminder_plan.dart';
@@ -141,8 +142,44 @@ void main() {
     expect(service.scheduled.map((s) => s.documentId).toSet(), {permit.id});
   });
 
-  test('a deleted document has its reminders cancelled', () async {
-    await scheduler.cancelForDocument('gone');
-    expect(service.cancelled, ['gone']);
+  test('a full schedule refreshes another profile\'s pending reminders with '
+      'its current expiry', () async {
+    await DatabaseService.instance.database.customStatement(
+      'INSERT INTO divers (id, name, is_default, created_at, updated_at) '
+      "VALUES ('d2', 'Ben', 0, 0, 0)",
+    );
+    // Renewed on another device while d1 is the active profile: the
+    // pending reminders still carry the old expiry.
+    final renewed = await DocumentRepository().save(
+      Document(
+        id: '',
+        diverId: 'd2',
+        owner: const DocumentOwner.personal(),
+        type: DocumentType.insurance,
+        title: 'DAN',
+        expiryDate: DateTime(now.year + 1, now.month, now.day),
+        createdAt: now,
+        updatedAt: now,
+      ),
+      const [],
+    );
+    service.pending = {renewed.id};
+    await scheduler.scheduleAll(settings: const AppSettings(), diverId: 'd1');
+    expect(service.cancelled, contains(renewed.id));
+    expect(
+      service.scheduled.where((s) => s.documentId == renewed.id),
+      isNotEmpty,
+    );
+  });
+
+  test('the background refresh, with no active profile, refreshes pending '
+      'reminders too', () async {
+    final permit = await save(
+      DocumentType.permit,
+      DateTime(now.year, now.month, now.day + 60),
+    );
+    service.pending = {permit.id};
+    await scheduler.scheduleAll(settings: const AppSettings());
+    expect(service.scheduled.map((s) => s.documentId).toSet(), {permit.id});
   });
 }

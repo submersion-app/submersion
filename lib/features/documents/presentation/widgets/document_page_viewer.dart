@@ -22,6 +22,20 @@ class _DocumentPageViewerState extends State<DocumentPageViewer> {
   int _current = 0;
 
   @override
+  void didUpdateWidget(DocumentPageViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // An edit can remove pages while this stays on screen: land on the new
+    // last page rather than counting past the end.
+    final last = widget.pages.length - 1;
+    if (last >= 0 && _current > last) {
+      _current = last;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _controller.hasClients) _controller.jumpToPage(last);
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();

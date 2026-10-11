@@ -19111,18 +19111,6 @@ abstract class AppLocalizations {
   /// **'Blood Type'**
   String get divers_edit_bloodTypeLabel;
 
-  /// No description provided for @divers_edit_clearInsuranceExpiryTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear insurance expiry date'**
-  String get divers_edit_clearInsuranceExpiryTooltip;
-
-  /// No description provided for @divers_edit_clearMedicalClearanceTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear medical clearance date'**
-  String get divers_edit_clearMedicalClearanceTooltip;
-
   /// No description provided for @divers_edit_contactNameLabel.
   ///
   /// In en, this message translates to:
@@ -19171,83 +19159,11 @@ abstract class AppLocalizations {
   /// **'Error saving diver: {error}'**
   String divers_edit_errorSaving(Object error);
 
-  /// No description provided for @divers_edit_expiryDateNotSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Not set'**
-  String get divers_edit_expiryDateNotSet;
-
-  /// No description provided for @divers_edit_expiryDateTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Expiry Date'**
-  String get divers_edit_expiryDateTitle;
-
-  /// No description provided for @divers_edit_insuranceEmergencyPhoneHelper.
-  ///
-  /// In en, this message translates to:
-  /// **'Shown first on your emergency card.'**
-  String get divers_edit_insuranceEmergencyPhoneHelper;
-
-  /// No description provided for @divers_edit_insuranceEmergencyPhoneHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., +1 919 684 9111'**
-  String get divers_edit_insuranceEmergencyPhoneHint;
-
-  /// No description provided for @divers_edit_insuranceEmergencyPhoneLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'24h Emergency Assistance Number'**
-  String get divers_edit_insuranceEmergencyPhoneLabel;
-
-  /// No description provided for @divers_edit_insurancePhoneLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Insurance Office Number'**
-  String get divers_edit_insurancePhoneLabel;
-
-  /// No description provided for @divers_edit_insuranceProviderHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., DAN, DiveAssure'**
-  String get divers_edit_insuranceProviderHint;
-
-  /// No description provided for @divers_edit_insuranceProviderLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Insurance Provider'**
-  String get divers_edit_insuranceProviderLabel;
-
   /// No description provided for @divers_edit_keepEditingButton.
   ///
   /// In en, this message translates to:
   /// **'Keep Editing'**
   String get divers_edit_keepEditingButton;
-
-  /// No description provided for @divers_edit_medicalClearanceExpired.
-  ///
-  /// In en, this message translates to:
-  /// **'Expired'**
-  String get divers_edit_medicalClearanceExpired;
-
-  /// No description provided for @divers_edit_medicalClearanceExpiringSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Expiring Soon'**
-  String get divers_edit_medicalClearanceExpiringSoon;
-
-  /// No description provided for @divers_edit_medicalClearanceNotSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Not set'**
-  String get divers_edit_medicalClearanceNotSet;
-
-  /// No description provided for @divers_edit_medicalClearanceTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Medical Clearance Expiry'**
-  String get divers_edit_medicalClearanceTitle;
 
   /// No description provided for @divers_edit_medicalNotesLabel.
   ///
@@ -19291,12 +19207,6 @@ abstract class AppLocalizations {
   /// **'Phone'**
   String get divers_edit_phoneLabel;
 
-  /// No description provided for @divers_edit_policyNumberLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Policy Number'**
-  String get divers_edit_policyNumberLabel;
-
   /// No description provided for @divers_edit_primaryContactTitle.
   ///
   /// In en, this message translates to:
@@ -19326,18 +19236,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Secondary Contact'**
   String get divers_edit_secondaryContactTitle;
-
-  /// No description provided for @divers_edit_selectInsuranceExpiryTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Select insurance expiry date'**
-  String get divers_edit_selectInsuranceExpiryTooltip;
-
-  /// No description provided for @divers_edit_selectMedicalClearanceTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Select medical clearance date'**
-  String get divers_edit_selectMedicalClearanceTooltip;
 
   /// No description provided for @divers_detail_deleteDialogConfirmHint.
   ///

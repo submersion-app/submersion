@@ -37,6 +37,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 // Re-export DiveFilterState so existing imports continue to work
 export 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -654,7 +655,7 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
       await _repository.createDive(dive);
     }
     final restoredIds = {for (final dive in dives) dive.id};
-    await DocumentRepository().restoreSnapshot([
+    await _ref.read(documentMutationsProvider).restoreSnapshot([
       for (final entry in _deletedDocuments)
         if (restoredIds.contains(entry.document.owner.id)) entry,
     ]);
@@ -1310,7 +1311,7 @@ class PaginatedDiveListNotifier
       await _repository.createDive(dive);
     }
     final restoredIds = {for (final dive in dives) dive.id};
-    await DocumentRepository().restoreSnapshot([
+    await _ref.read(documentMutationsProvider).restoreSnapshot([
       for (final entry in _deletedDocuments)
         if (restoredIds.contains(entry.document.owner.id)) entry,
     ]);

@@ -11923,14 +11923,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divers_edit_bloodTypeLabel => 'Vércsoport';
 
   @override
-  String get divers_edit_clearInsuranceExpiryTooltip =>
-      'Biztosítási lejárat törlése';
-
-  @override
-  String get divers_edit_clearMedicalClearanceTooltip =>
-      'Orvosi engedélylejárat törlése';
-
-  @override
   String get divers_edit_contactNameLabel => 'Kapcsolattartó neve';
 
   @override
@@ -11958,45 +11950,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get divers_edit_expiryDateNotSet => 'Nincs megadva';
-
-  @override
-  String get divers_edit_expiryDateTitle => 'Lejárat dátuma';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHelper =>
-      'Elsőként jelenik meg a vészhelyzeti kártyán.';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHint => 'pl. +1 919 684 9111';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneLabel =>
-      '24 órás segélyhívó szám';
-
-  @override
-  String get divers_edit_insurancePhoneLabel => 'Biztosító irodai telefonszáma';
-
-  @override
-  String get divers_edit_insuranceProviderHint => 'pl. DAN, DiveAssure';
-
-  @override
-  String get divers_edit_insuranceProviderLabel => 'Biztosító';
-
-  @override
   String get divers_edit_keepEditingButton => 'Szerkesztés folytatása';
-
-  @override
-  String get divers_edit_medicalClearanceExpired => 'Lejárt';
-
-  @override
-  String get divers_edit_medicalClearanceExpiringSoon => 'Hamarosan lejár';
-
-  @override
-  String get divers_edit_medicalClearanceNotSet => 'Nincs megadva';
-
-  @override
-  String get divers_edit_medicalClearanceTitle => 'Orvosi engedélylejárat';
 
   @override
   String get divers_edit_medicalNotesLabel => 'Orvosi megjegyzések';
@@ -12020,9 +11974,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divers_edit_phoneLabel => 'Telefon';
 
   @override
-  String get divers_edit_policyNumberLabel => 'Kötvény száma';
-
-  @override
   String get divers_edit_primaryContactTitle => 'Elsődleges kapcsolattartó';
 
   @override
@@ -12036,14 +11987,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get divers_edit_secondaryContactTitle => 'Másodlagos kapcsolattartó';
-
-  @override
-  String get divers_edit_selectInsuranceExpiryTooltip =>
-      'Biztosítási lejárat választása';
-
-  @override
-  String get divers_edit_selectMedicalClearanceTooltip =>
-      'Orvosi engedélylejárat választása';
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {

@@ -12104,14 +12104,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_bloodTypeLabel => 'فصيلة الدم';
 
   @override
-  String get divers_edit_clearInsuranceExpiryTooltip =>
-      'مسح تاريخ انتهاء التأمين';
-
-  @override
-  String get divers_edit_clearMedicalClearanceTooltip =>
-      'مسح تاريخ التصريح الطبي';
-
-  @override
   String get divers_edit_contactNameLabel => 'اسم جهة الاتصال';
 
   @override
@@ -12139,45 +12131,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get divers_edit_expiryDateNotSet => 'غير محدد';
-
-  @override
-  String get divers_edit_expiryDateTitle => 'تاريخ الانتهاء';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHelper =>
-      'يظهر أولاً في بطاقة الطوارئ الخاصة بك.';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHint => 'مثال: +1 919 684 9111';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneLabel =>
-      'رقم المساعدة الطارئة على مدار 24 ساعة';
-
-  @override
-  String get divers_edit_insurancePhoneLabel => 'رقم مكتب شركة التأمين';
-
-  @override
-  String get divers_edit_insuranceProviderHint => 'مثال: DAN، DiveAssure';
-
-  @override
-  String get divers_edit_insuranceProviderLabel => 'مزود التأمين';
-
-  @override
   String get divers_edit_keepEditingButton => 'متابعة التعديل';
-
-  @override
-  String get divers_edit_medicalClearanceExpired => 'منتهية الصلاحية';
-
-  @override
-  String get divers_edit_medicalClearanceExpiringSoon => 'تنتهي قريبًا';
-
-  @override
-  String get divers_edit_medicalClearanceNotSet => 'غير محدد';
-
-  @override
-  String get divers_edit_medicalClearanceTitle => 'انتهاء التصريح الطبي';
 
   @override
   String get divers_edit_medicalNotesLabel => 'ملاحظات طبية';
@@ -12201,9 +12155,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divers_edit_phoneLabel => 'الهاتف';
 
   @override
-  String get divers_edit_policyNumberLabel => 'رقم الوثيقة';
-
-  @override
   String get divers_edit_primaryContactTitle => 'جهة الاتصال الأساسية';
 
   @override
@@ -12218,14 +12169,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get divers_edit_secondaryContactTitle => 'جهة الاتصال الثانوية';
-
-  @override
-  String get divers_edit_selectInsuranceExpiryTooltip =>
-      'اختيار تاريخ انتهاء التأمين';
-
-  @override
-  String get divers_edit_selectMedicalClearanceTooltip =>
-      'اختيار تاريخ التصريح الطبي';
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {

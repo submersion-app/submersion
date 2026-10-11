@@ -11683,13 +11683,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_bloodTypeLabel => 'סוג דם';
 
   @override
-  String get divers_edit_clearInsuranceExpiryTooltip => 'נקה תאריך תפוגת ביטוח';
-
-  @override
-  String get divers_edit_clearMedicalClearanceTooltip =>
-      'נקה תאריך אישור רפואי';
-
-  @override
   String get divers_edit_contactNameLabel => 'שם איש קשר';
 
   @override
@@ -11717,46 +11710,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get divers_edit_expiryDateNotSet => 'לא הוגדר';
-
-  @override
-  String get divers_edit_expiryDateTitle => 'תאריך תפוגה';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHelper =>
-      'מוצג ראשון בכרטיס החירום שלך.';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHint =>
-      'לדוגמה, +1 919 684 9111';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneLabel =>
-      'מספר סיוע חירום 24 שעות';
-
-  @override
-  String get divers_edit_insurancePhoneLabel => 'מספר משרד חברת הביטוח';
-
-  @override
-  String get divers_edit_insuranceProviderHint => 'לדוגמה, DAN, DiveAssure';
-
-  @override
-  String get divers_edit_insuranceProviderLabel => 'ספק ביטוח';
-
-  @override
   String get divers_edit_keepEditingButton => 'המשך עריכה';
-
-  @override
-  String get divers_edit_medicalClearanceExpired => 'פג תוקף';
-
-  @override
-  String get divers_edit_medicalClearanceExpiringSoon => 'פג בקרוב';
-
-  @override
-  String get divers_edit_medicalClearanceNotSet => 'לא הוגדר';
-
-  @override
-  String get divers_edit_medicalClearanceTitle => 'תפוגת אישור רפואי';
 
   @override
   String get divers_edit_medicalNotesLabel => 'הערות רפואיות';
@@ -11780,9 +11734,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_phoneLabel => 'טלפון';
 
   @override
-  String get divers_edit_policyNumberLabel => 'מספר פוליסה';
-
-  @override
   String get divers_edit_primaryContactTitle => 'איש קשר ראשי';
 
   @override
@@ -11796,14 +11747,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get divers_edit_secondaryContactTitle => 'איש קשר משני';
-
-  @override
-  String get divers_edit_selectInsuranceExpiryTooltip =>
-      'בחר תאריך תפוגת ביטוח';
-
-  @override
-  String get divers_edit_selectMedicalClearanceTooltip =>
-      'בחר תאריך אישור רפואי';
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {

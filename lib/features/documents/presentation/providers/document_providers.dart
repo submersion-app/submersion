@@ -50,22 +50,22 @@ final documentEntryProvider = FutureProvider.family<DocumentListEntry?, String>(
   },
 );
 
-final documentPagesProvider = FutureProvider.family<List<DocumentPage>, String>(
-  (ref, id) async {
-    final repo = ref.watch(documentRepositoryProvider);
-    ref.invalidateSelfWhen(repo.watchChanges());
-    return repo.getPages(id);
-  },
-);
+/// Every page of a document with its content (up to 10 MB each), so it is
+/// released once no page shows the document.
+final documentPagesProvider = FutureProvider.autoDispose
+    .family<List<DocumentPage>, String>((ref, id) async {
+      final repo = ref.watch(documentRepositoryProvider);
+      ref.invalidateSelfWhen(repo.watchChanges());
+      return repo.getPages(id);
+    });
 
-final documentFirstPageProvider = FutureProvider.family<DocumentPage?, String>((
-  ref,
-  id,
-) async {
-  final repo = ref.watch(documentRepositoryProvider);
-  ref.invalidateSelfWhen(repo.watchChanges());
-  return repo.getFirstPage(id);
-});
+/// A thumbnail's first page; released with the tile that shows it.
+final documentFirstPageProvider = FutureProvider.autoDispose
+    .family<DocumentPage?, String>((ref, id) async {
+      final repo = ref.watch(documentRepositoryProvider);
+      ref.invalidateSelfWhen(repo.watchChanges());
+      return repo.getFirstPage(id);
+    });
 
 /// Non-insurance documents of the active diver that are expired or due,
 /// expired first, then soonest. Insurance has its own home chip.
@@ -95,25 +95,35 @@ class DocumentMutations {
 
   Future<Document> save(Document document, List<DocumentPage> pages) async {
     final saved = await _repo.save(document, pages);
-    await _afterChange(saved: saved);
+    await _rearm(saved);
     return saved;
   }
 
-  Future<void> delete(String id) async {
-    await _repo.delete(id);
-    await _afterChange(deletedId: id);
+  /// Deletes [id]; the repository cancels its reminders on every delete.
+  Future<void> delete(String id) => _repo.delete(id);
+
+  /// Puts documents an undone delete removed back, with the reminders the
+  /// delete cancelled.
+  Future<void> restoreSnapshot(List<DocumentSnapshotEntry> snapshot) async {
+    await _repo.restoreSnapshot(snapshot);
+    await rearmReminders([for (final entry in snapshot) entry.document]);
   }
 
-  /// Keeps expiry reminders in step with each change. A reminder failure
-  /// never fails the save: the next full reschedule repairs it.
-  Future<void> _afterChange({Document? saved, String? deletedId}) async {
+  /// Re-arms the reminders of [documents] that came back without going
+  /// through [save] (a restore inside another feature's undo).
+  Future<void> rearmReminders(Iterable<Document> documents) async {
+    for (final document in documents) {
+      await _rearm(document);
+    }
+  }
+
+  /// Keeps [document]'s expiry reminders in step with it. A reminder
+  /// failure never fails the write: the next full reschedule repairs it.
+  Future<void> _rearm(Document document) async {
     try {
-      final scheduler = _ref.read(notificationSchedulerProvider);
-      if (deletedId != null) {
-        await scheduler.cancelForDocument(deletedId);
-      } else if (saved != null) {
-        await scheduler.updateForDocument(saved, _ref.read(settingsProvider));
-      }
+      await _ref
+          .read(notificationSchedulerProvider)
+          .updateForDocument(document, _ref.read(settingsProvider));
     } catch (e, stackTrace) {
       _log.warning(
         'Document reminder update failed',

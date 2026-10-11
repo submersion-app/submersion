@@ -117,6 +117,33 @@ void main() {
     expect(find.text('1 of 2'), findsOneWidget);
   });
 
+  testWidgets('viewer stays on a real page when the page list shrinks', (
+    t,
+  ) async {
+    Widget viewer(int count) => testApp(
+      locale: const Locale('en'),
+      child: DocumentPageViewer(
+        pages: [
+          for (var i = 0; i < count; i++)
+            _page(id: 'p$i', fileName: 'p$i.txt', mimeType: 'text/plain'),
+        ],
+      ),
+    );
+    await t.pumpWidget(viewer(3));
+    final pageView = find.byType(PageView);
+    for (var i = 0; i < 2; i++) {
+      await t.fling(pageView, const Offset(-600, 0), 2000);
+      await t.pumpAndSettle();
+    }
+    expect(find.text('3 of 3'), findsOneWidget);
+
+    // An edit removed a page while the detail page stayed open.
+    await t.pumpWidget(viewer(2));
+    await t.pumpAndSettle();
+    expect(find.text('2 of 2'), findsOneWidget);
+    expect(find.text('p1.txt'), findsOneWidget);
+  });
+
   testWidgets('viewer shows a placeholder for a corrupt image', (t) async {
     await t.pumpWidget(
       testApp(

@@ -11943,14 +11943,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divers_edit_bloodTypeLabel => 'Grupo sanguíneo';
 
   @override
-  String get divers_edit_clearInsuranceExpiryTooltip =>
-      'Borrar fecha de vencimiento del seguro';
-
-  @override
-  String get divers_edit_clearMedicalClearanceTooltip =>
-      'Borrar fecha de autorización médica';
-
-  @override
   String get divers_edit_contactNameLabel => 'Nombre del contacto';
 
   @override
@@ -11978,47 +11970,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get divers_edit_expiryDateNotSet => 'No establecida';
-
-  @override
-  String get divers_edit_expiryDateTitle => 'Fecha de vencimiento';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHelper =>
-      'Se muestra primero en tu tarjeta de emergencia.';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHint => 'ej., +1 919 684 9111';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneLabel =>
-      'Número de asistencia de emergencia 24 h';
-
-  @override
-  String get divers_edit_insurancePhoneLabel =>
-      'Teléfono de oficina del seguro';
-
-  @override
-  String get divers_edit_insuranceProviderHint => 'ej., DAN, DiveAssure';
-
-  @override
-  String get divers_edit_insuranceProviderLabel => 'Proveedor de seguro';
-
-  @override
   String get divers_edit_keepEditingButton => 'Seguir editando';
-
-  @override
-  String get divers_edit_medicalClearanceExpired => 'Vencida';
-
-  @override
-  String get divers_edit_medicalClearanceExpiringSoon => 'Por vencer';
-
-  @override
-  String get divers_edit_medicalClearanceNotSet => 'No establecida';
-
-  @override
-  String get divers_edit_medicalClearanceTitle =>
-      'Vencimiento de autorización médica';
 
   @override
   String get divers_edit_medicalNotesLabel => 'Notas médicas';
@@ -12042,9 +11994,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divers_edit_phoneLabel => 'Teléfono';
 
   @override
-  String get divers_edit_policyNumberLabel => 'Número de póliza';
-
-  @override
   String get divers_edit_primaryContactTitle => 'Contacto principal';
 
   @override
@@ -12058,14 +12007,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get divers_edit_secondaryContactTitle => 'Contacto secundario';
-
-  @override
-  String get divers_edit_selectInsuranceExpiryTooltip =>
-      'Seleccionar fecha de vencimiento del seguro';
-
-  @override
-  String get divers_edit_selectMedicalClearanceTooltip =>
-      'Seleccionar fecha de autorización médica';
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {

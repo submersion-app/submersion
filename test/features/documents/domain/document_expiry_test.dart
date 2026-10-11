@@ -56,7 +56,18 @@ void main() {
     );
   });
 
-  test('lead 0 never reports due soon but still reports expired', () {
+  test('lead 0 is due only on the expiry day itself', () {
+    // The expiry-day notification still fires at lead 0, so the badge and
+    // the home chip must say "Expires today" that day too.
+    final today = documentExpiryStatus(
+      doc(expiry: DateTime(2026, 10, 10), lead: 0),
+      now,
+    );
+    expect(today.kind, DocumentExpiryKind.dueSoon);
+    expect(today.daysLeft, 0);
+  });
+
+  test('lead 0 is ok before the expiry day and expired after it', () {
     expect(
       documentExpiryStatus(
         doc(expiry: DateTime(2026, 10, 11), lead: 0),

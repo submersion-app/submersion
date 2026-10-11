@@ -11370,12 +11370,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_bloodTypeLabel => '血型';
 
   @override
-  String get divers_edit_clearInsuranceExpiryTooltip => '清除保险到期日';
-
-  @override
-  String get divers_edit_clearMedicalClearanceTooltip => '清除医疗许可日期';
-
-  @override
   String get divers_edit_contactNameLabel => '联系人姓名';
 
   @override
@@ -11402,43 +11396,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get divers_edit_expiryDateNotSet => '未设置';
-
-  @override
-  String get divers_edit_expiryDateTitle => '到期日';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHelper => '在紧急卡片上优先显示。';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHint => '例如 +1 919 684 9111';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneLabel => '24 小时紧急救援电话';
-
-  @override
-  String get divers_edit_insurancePhoneLabel => '保险公司办公电话';
-
-  @override
-  String get divers_edit_insuranceProviderHint => '例如 DAN、DiveAssure';
-
-  @override
-  String get divers_edit_insuranceProviderLabel => '保险提供商';
-
-  @override
   String get divers_edit_keepEditingButton => '继续编辑';
-
-  @override
-  String get divers_edit_medicalClearanceExpired => '已过期';
-
-  @override
-  String get divers_edit_medicalClearanceExpiringSoon => '即将到期';
-
-  @override
-  String get divers_edit_medicalClearanceNotSet => '未设置';
-
-  @override
-  String get divers_edit_medicalClearanceTitle => '医疗许可到期日';
 
   @override
   String get divers_edit_medicalNotesLabel => '医疗备注';
@@ -11462,9 +11420,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divers_edit_phoneLabel => '电话';
 
   @override
-  String get divers_edit_policyNumberLabel => '保单编号';
-
-  @override
   String get divers_edit_primaryContactTitle => '主要联系人';
 
   @override
@@ -11478,12 +11433,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divers_edit_secondaryContactTitle => '备用联系人';
-
-  @override
-  String get divers_edit_selectInsuranceExpiryTooltip => '选择保险到期日';
-
-  @override
-  String get divers_edit_selectMedicalClearanceTooltip => '选择医疗许可日期';
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {

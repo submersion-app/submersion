@@ -14,6 +14,8 @@ import 'package:submersion/features/dive_log/data/services/derived_metrics_sched
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 
 typedef RepairUndo = Future<void> Function();
@@ -39,16 +41,24 @@ class RepairResult {
 /// closure (absent when the operation has no inverse). Operations that find
 /// nothing to do return [RepairResult.noChange] and leave the finding open.
 class QualityRepairExecutor {
+  /// [restoreDocuments] puts back documents an undone delete removed; the
+  /// app passes one that also re-arms their expiry reminders.
   QualityRepairExecutor({
     DiveRepository? diveRepository,
     TankPressureRepository? tankPressureRepository,
     QualityFindingsRepository? findingsRepository,
     ProfileRepairService? profileRepairService,
+    Future<void> Function(List<DocumentSnapshotEntry> snapshot)?
+    restoreDocuments,
   }) : _diveRepo = diveRepository ?? DiveRepository(),
        _tankRepo = tankPressureRepository ?? TankPressureRepository(),
        _findings = findingsRepository ?? QualityFindingsRepository(),
-       _profiles = profileRepairService ?? ProfileRepairService();
+       _profiles = profileRepairService ?? ProfileRepairService(),
+       _restoreDocuments =
+           restoreDocuments ?? DocumentRepository().restoreSnapshot;
 
+  final Future<void> Function(List<DocumentSnapshotEntry> snapshot)
+  _restoreDocuments;
   final DiveRepository _diveRepo;
   final TankPressureRepository _tankRepo;
   final QualityFindingsRepository _findings;
@@ -337,8 +347,9 @@ class QualityRepairExecutor {
   /// list's own delete: row delete, sync tombstone, local-change notify. A
   /// bare row delete would have the next sync resurrect the copy from any
   /// peer that still holds it. Undo re-creates the dive from the entity read
-  /// beforehand, the way the list's bulk-delete Undo does; both ids are
-  /// rescanned so the pair's finding retires on the survivor.
+  /// beforehand, and the documents the delete took with it, the way the
+  /// list's bulk-delete Undo does; both ids are rescanned so the pair's
+  /// finding retires on the survivor.
   Future<RepairResult> deleteDuplicate({
     required String keepDiveId,
     required String deleteDiveId,
@@ -357,10 +368,16 @@ class QualityRepairExecutor {
     // this tap did not establish.
     if (doomed.isEmpty) return const RepairResult.noChange();
     final snapshot = doomed.single;
+    // The delete takes the dive's documents with it (issue #2613).
+    final documents = await DocumentRepository().captureForOwners(
+      DocumentOwnerKind.dive,
+      [deleteDiveId],
+    );
     await _diveRepo.deleteDive(deleteDiveId);
     await _finish(findingId, [keepDiveId, deleteDiveId]);
     return RepairResult.applied(() async {
       await _diveRepo.createDive(snapshot);
+      await _restoreDocuments(documents);
       _rescan([keepDiveId, deleteDiveId]);
     });
   }

@@ -146,6 +146,31 @@ void main() {
     expect(find.text('Expires'), findsNothing);
   });
 
+  testWidgets('card faces are stored first, Front then Back, whatever order '
+      'they were added in', (t) async {
+    await pumpEditor(
+      t,
+      initialType: DocumentType.insurance,
+      capture: _files((bytes: Uint8List.fromList([1]), name: 'scan.pdf')),
+    );
+    await addFilePage(t);
+    for (final slot in ['Back', 'Front']) {
+      await t.tap(find.text(slot));
+      await t.pumpAndSettle();
+      await t.tap(find.text('Choose file'));
+      await t.pumpAndSettle();
+    }
+    await t.tap(find.text('Save'));
+    await t.pumpAndSettle();
+    final saved = (await DocumentRepository().getAllForDiver('d1')).single;
+    final pages = await DocumentRepository().getPages(saved.document.id);
+    expect(pages.map((p) => p.side), [
+      DocumentPageSide.front,
+      DocumentPageSide.back,
+      null,
+    ]);
+  });
+
   testWidgets('adding a file page and saving persists it', (t) async {
     await pumpEditor(
       t,

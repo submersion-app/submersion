@@ -10,6 +10,7 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -222,6 +223,18 @@ void main() {
           .get(),
       isEmpty,
     );
+  });
+
+  testWidgets('on a wide screen, Edit opens the editor in the detail pane', (
+    t,
+  ) async {
+    final doc = await _save('Park permit', DocumentType.permit);
+    await pump(t, '/documents?selected=${doc.id}', size: const Size(1400, 900));
+    await t.tap(find.byTooltip('Edit'));
+    await t.pumpAndSettle();
+    // Not the standalone /documents/:id/edit page over the whole shell.
+    expect(find.text('EDIT'), findsNothing);
+    expect(find.byType(DocumentEditPage), findsOneWidget);
   });
 
   testWidgets('the owner row opens the owner', (t) async {

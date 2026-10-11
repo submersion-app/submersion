@@ -93,7 +93,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
               IconButton(
                 tooltip: l10n.common_action_edit,
                 icon: const Icon(Icons.edit_outlined),
-                onPressed: () => context.push('/documents/${doc.id}/edit'),
+                onPressed: () => _edit(doc.id),
               ),
               IconButton(
                 tooltip: l10n.common_action_delete,
@@ -128,6 +128,27 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
           ),
         );
       },
+    );
+  }
+
+  /// In the list's detail pane the editor opens in that pane, as every
+  /// master-detail feature's does; a full page pushes the edit route.
+  void _edit(String id) {
+    if (!widget.embedded) {
+      context.push('/documents/$id/edit');
+      return;
+    }
+    final uri = GoRouterState.of(context).uri;
+    context.go(
+      uri
+          .replace(
+            queryParameters: {
+              ...uri.queryParameters,
+              'selected': id,
+              'mode': 'edit',
+            },
+          )
+          .toString(),
     );
   }
 

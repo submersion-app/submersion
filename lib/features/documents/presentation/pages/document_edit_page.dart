@@ -215,11 +215,20 @@ class _DocumentEditPageState extends ConsumerState<DocumentEditPage> {
     if (result is! PageCaptured) return;
     final captured = result.page;
     _change(() {
-      _pages = [
+      final next = [
         for (final p in _pages)
           if (side == null || p.side != side) p,
         captured,
       ];
+      // A card face goes where the strip shows it, Front then Back ahead of
+      // the other pages: the stored order is what the viewer pages through.
+      _pages = side == null
+          ? next
+          : [
+              for (final s in DocumentPageSide.values)
+                ...next.where((p) => p.side == s),
+              ...next.where((p) => p.side == null),
+            ];
     });
   }
 

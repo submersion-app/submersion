@@ -38,8 +38,9 @@ DocumentExpiryStatus documentExpiryStatus(Document document, DateTime now) {
   if (daysLeft < 0) {
     return DocumentExpiryStatus(DocumentExpiryKind.expired, daysLeft);
   }
-  final lead = document.effectiveReminderLeadDays;
-  if (lead > 0 && daysLeft <= lead) {
+  // A 0-day lead still makes the expiry day itself due: it drops only the
+  // early reminder, and the expiry-day notification still fires.
+  if (daysLeft <= document.effectiveReminderLeadDays) {
     return DocumentExpiryStatus(DocumentExpiryKind.dueSoon, daysLeft);
   }
   return DocumentExpiryStatus(DocumentExpiryKind.ok, daysLeft);

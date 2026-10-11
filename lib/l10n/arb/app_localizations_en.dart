@@ -11760,14 +11760,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divers_edit_bloodTypeLabel => 'Blood Type';
 
   @override
-  String get divers_edit_clearInsuranceExpiryTooltip =>
-      'Clear insurance expiry date';
-
-  @override
-  String get divers_edit_clearMedicalClearanceTooltip =>
-      'Clear medical clearance date';
-
-  @override
   String get divers_edit_contactNameLabel => 'Contact Name';
 
   @override
@@ -11795,45 +11787,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get divers_edit_expiryDateNotSet => 'Not set';
-
-  @override
-  String get divers_edit_expiryDateTitle => 'Expiry Date';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHelper =>
-      'Shown first on your emergency card.';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHint => 'e.g., +1 919 684 9111';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneLabel =>
-      '24h Emergency Assistance Number';
-
-  @override
-  String get divers_edit_insurancePhoneLabel => 'Insurance Office Number';
-
-  @override
-  String get divers_edit_insuranceProviderHint => 'e.g., DAN, DiveAssure';
-
-  @override
-  String get divers_edit_insuranceProviderLabel => 'Insurance Provider';
-
-  @override
   String get divers_edit_keepEditingButton => 'Keep Editing';
-
-  @override
-  String get divers_edit_medicalClearanceExpired => 'Expired';
-
-  @override
-  String get divers_edit_medicalClearanceExpiringSoon => 'Expiring Soon';
-
-  @override
-  String get divers_edit_medicalClearanceNotSet => 'Not set';
-
-  @override
-  String get divers_edit_medicalClearanceTitle => 'Medical Clearance Expiry';
 
   @override
   String get divers_edit_medicalNotesLabel => 'Medical Notes';
@@ -11857,9 +11811,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divers_edit_phoneLabel => 'Phone';
 
   @override
-  String get divers_edit_policyNumberLabel => 'Policy Number';
-
-  @override
   String get divers_edit_primaryContactTitle => 'Primary Contact';
 
   @override
@@ -11873,14 +11824,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get divers_edit_secondaryContactTitle => 'Secondary Contact';
-
-  @override
-  String get divers_edit_selectInsuranceExpiryTooltip =>
-      'Select insurance expiry date';
-
-  @override
-  String get divers_edit_selectMedicalClearanceTooltip =>
-      'Select medical clearance date';
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {

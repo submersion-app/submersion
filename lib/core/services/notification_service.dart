@@ -24,19 +24,21 @@ int _stableNotificationId(String key) {
   return hash & 0x7FFFFFFF; // positive, within int32
 }
 
-/// Service for managing local notifications
+/// The payload prefix of a document reminder: `document:<id>`.
+const String _documentPayloadPrefix = 'document:';
+
 /// The route a tapped reminder opens: a document reminder (payload
 /// `document:<id>`, issue #2613) opens the document, any other payload is
 /// an equipment id. Null for an empty payload.
 String? notificationPayloadRoute(String payload) {
-  const documentPrefix = 'document:';
-  if (payload.startsWith(documentPrefix)) {
-    final id = payload.substring(documentPrefix.length);
+  if (payload.startsWith(_documentPayloadPrefix)) {
+    final id = payload.substring(_documentPayloadPrefix.length);
     return id.isEmpty ? null : '/documents/$id';
   }
   return payload.isEmpty ? null : '/equipment/$payload';
 }
 
+/// Service for managing local notifications
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   static NotificationService get instance => _instance;
@@ -376,7 +378,6 @@ class NotificationService {
     _log.info('Showed backup notification (success: $success)');
   }
 
-  /// Cancel a specific notification
   /// One-shot document expiry reminder (issue #2613). The id is stable per
   /// document and stage, so rescheduling replaces rather than duplicates.
   /// [title] and [body] arrive localized from the scheduler.
@@ -430,8 +431,6 @@ class NotificationService {
     }
   }
 
-  static const _documentPayloadPrefix = 'document:';
-
   /// The ids of documents with a reminder pending in the OS, read from the
   /// payloads, so a full schedule can cancel the ones whose document was
   /// deleted elsewhere (a sync, an owner delete) or no longer reminds.
@@ -449,6 +448,7 @@ class NotificationService {
   int _documentReminderId(String documentId, DocumentReminderStage stage) =>
       _stableNotificationId('document#$documentId#${stage.name}');
 
+  /// Cancel a specific notification
   Future<void> cancelNotification(int notificationId) async {
     if (!_isMobilePlatform) return;
     await _plugin.cancel(id: notificationId);

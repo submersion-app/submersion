@@ -168,60 +168,72 @@ class DocumentRepository {
     ];
   }
 
+  /// A document's pages in order. [withBytes] false reads every column but
+  /// the content, so listing pages costs no BLOB reads.
   Future<List<DocumentPage>> getPages(
     String documentId, {
     bool withBytes = true,
   }) async {
+    if (!withBytes) return _pagesWithoutBytes(documentId);
     final rows =
         await (_db.select(_db.documentPages)
               ..where((t) => t.documentId.equals(documentId))
               ..orderBy([(t) => OrderingTerm(expression: t.pageIndex)]))
             .get();
-    return [
-      for (final r in rows)
-        withBytes ? pageFromRow(r) : pageFromRow(r).withoutBytes(),
-    ];
+    return [for (final r in rows) pageFromRow(r)];
   }
 
   /// The first page, for a thumbnail: its content only when it is an
   /// image. A PDF, Word or text page shows an icon, so its (up to 10 MB)
   /// bytes are not read.
   Future<DocumentPage?> getFirstPage(String documentId) async {
-    // Metadata only: the BLOB column is read below, and only for an image.
-    final meta = await _db
-        .customSelect(
-          'SELECT id, document_id, page_index, side, file_name, mime_type, '
-          'size_bytes, created_at, updated_at FROM document_pages '
-          'WHERE document_id = ? ORDER BY page_index LIMIT 1',
-          variables: [Variable.withString(documentId)],
-          readsFrom: {_db.documentPages},
-        )
-        .getSingleOrNull();
-    if (meta == null) return null;
-    final page = DocumentPage(
-      id: meta.read<String>('id'),
-      documentId: meta.read<String>('document_id'),
-      pageIndex: meta.read<int>('page_index'),
-      side: DocumentPageSide.fromStorage(meta.readNullable<String>('side')),
-      fileName: meta.read<String>('file_name'),
-      mimeType: meta.read<String>('mime_type'),
-      sizeBytes: meta.read<int>('size_bytes'),
-      createdAt: DateTime.fromMillisecondsSinceEpoch(
-        meta.read<int>('created_at'),
-      ),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(
-        meta.read<int>('updated_at'),
-      ),
-    );
-    if (!page.isImage) return page;
-    final bytes =
-        await (_db.selectOnly(_db.documentPages)
-              ..addColumns([_db.documentPages.bytes])
-              ..where(_db.documentPages.id.equals(page.id)))
-            .map((r) => r.read(_db.documentPages.bytes))
-            .getSingleOrNull();
-    return page.copyWith(bytes: bytes);
+    final page = (await _pagesWithoutBytes(documentId, limit: 1)).firstOrNull;
+    if (page == null || !page.isImage) return page;
+    return page.copyWith(bytes: await _pageBytes(page.id));
   }
+
+  Future<List<DocumentPage>> _pagesWithoutBytes(
+    String documentId, {
+    int? limit,
+  }) async {
+    final t = _db.documentPages;
+    final query = _db.selectOnly(t)
+      ..addColumns([
+        t.id,
+        t.documentId,
+        t.pageIndex,
+        t.side,
+        t.fileName,
+        t.mimeType,
+        t.sizeBytes,
+        t.createdAt,
+        t.updatedAt,
+      ])
+      ..where(t.documentId.equals(documentId))
+      ..orderBy([OrderingTerm(expression: t.pageIndex)]);
+    if (limit != null) query.limit(limit);
+    return [
+      for (final r in await query.get())
+        DocumentPage(
+          id: r.read(t.id)!,
+          documentId: r.read(t.documentId)!,
+          pageIndex: r.read(t.pageIndex)!,
+          side: DocumentPageSide.fromStorage(r.read(t.side)),
+          fileName: r.read(t.fileName)!,
+          mimeType: r.read(t.mimeType)!,
+          sizeBytes: r.read(t.sizeBytes)!,
+          createdAt: DateTime.fromMillisecondsSinceEpoch(r.read(t.createdAt)!),
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(r.read(t.updatedAt)!),
+        ),
+    ];
+  }
+
+  Future<Uint8List?> _pageBytes(String pageId) =>
+      (_db.selectOnly(_db.documentPages)
+            ..addColumns([_db.documentPages.bytes])
+            ..where(_db.documentPages.id.equals(pageId)))
+          .map((r) => r.read(_db.documentPages.bytes))
+          .getSingleOrNull();
 
   /// Saves [document] and makes [pages] its exact page list, in order: new
   /// pages (empty id) are inserted, kept pages updated only when changed,
@@ -303,38 +315,58 @@ class DocumentRepository {
     List<DocumentPage> pages,
     int now,
   ) async {
-    final existing = {for (final p in await getPages(documentId)) p.id: p};
+    // Without content: a stored page's bytes are read only to compare them
+    // with a replacement of the same size.
+    final existing = {
+      for (final p in await _pagesWithoutBytes(documentId)) p.id: p,
+    };
     final keptIds = <String>{};
     for (final (index, page) in pages.indexed) {
       final pageId = page.id.isEmpty ? _uuid.v4() : page.id;
       keptIds.add(pageId);
       final old = existing[pageId];
-      final bytes = page.bytes ?? old?.bytes;
-      if (bytes == null) {
+      final bytes = page.bytes;
+      if (bytes == null && old == null) {
         throw ArgumentError('page $pageId has no content');
       }
-      final unchanged =
-          old != null &&
-          old.pageIndex == index &&
-          old.side == page.side &&
-          const ListEquality<int>().equals(old.bytes, bytes);
-      if (unchanged) continue;
-      await _db
-          .into(_db.documentPages)
-          .insertOnConflictUpdate(
-            DocumentPagesCompanion(
-              id: Value(pageId),
-              documentId: Value(documentId),
-              pageIndex: Value(index),
-              side: Value(page.side?.name),
-              fileName: Value(page.fileName),
-              mimeType: Value(page.mimeType),
-              sizeBytes: Value(bytes.length),
-              bytes: Value(bytes),
-              createdAt: Value(old?.createdAt.millisecondsSinceEpoch ?? now),
-              updatedAt: Value(now),
-            ),
-          );
+      final contentChanged =
+          bytes != null &&
+          (old == null ||
+              old.sizeBytes != bytes.length ||
+              !const ListEquality<int>().equals(
+                await _pageBytes(pageId),
+                bytes,
+              ));
+      if (!contentChanged) {
+        if (old!.pageIndex == index && old.side == page.side) continue;
+        // Moved or relabelled: the stored content stays as it is.
+        await (_db.update(
+          _db.documentPages,
+        )..where((t) => t.id.equals(pageId))).write(
+          DocumentPagesCompanion(
+            pageIndex: Value(index),
+            side: Value(page.side?.name),
+            updatedAt: Value(now),
+          ),
+        );
+      } else {
+        await _db
+            .into(_db.documentPages)
+            .insertOnConflictUpdate(
+              DocumentPagesCompanion(
+                id: Value(pageId),
+                documentId: Value(documentId),
+                pageIndex: Value(index),
+                side: Value(page.side?.name),
+                fileName: Value(page.fileName),
+                mimeType: Value(page.mimeType),
+                sizeBytes: Value(bytes.length),
+                bytes: Value(bytes),
+                createdAt: Value(old?.createdAt.millisecondsSinceEpoch ?? now),
+                updatedAt: Value(now),
+              ),
+            );
+      }
       await _syncRepository.markRecordPending(
         entityType: _pageEntity,
         recordId: pageId,
@@ -586,9 +618,11 @@ class DocumentRepository {
     final docIds = {
       for (final c in certificationIds) documentCertificationCardId(c): c,
     };
+    // Only the Front and Back pages: any other page the diver added to the
+    // card (an e-card PDF, say) is not read.
     final pages = await (_db.select(
       _db.documentPages,
-    )..where((t) => t.documentId.isIn(docIds.keys))).get();
+    )..where((t) => t.documentId.isIn(docIds.keys) & t.side.isNotNull())).get();
     final out = <String, CardImages>{};
     for (final p in pages) {
       final certId = docIds[p.documentId]!;
