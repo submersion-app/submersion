@@ -44,6 +44,7 @@ Future<void> _pumpPanel(
   List<DiveTank> tanks = const [],
   Map<String, List<TankPressurePoint>> tankPressures = const {},
   GasConsumptionDisplay display = GasConsumptionDisplay.both,
+  bool isRebreather = false,
 }) async {
   tester.view.physicalSize = Size(width, 600);
   tester.view.devicePixelRatio = 1.0;
@@ -75,12 +76,14 @@ Future<void> _pumpPanel(
                   profile: profile ?? _profile,
                   units: const UnitFormatter(AppSettings()),
                   tanks: tanks,
+                  isRebreather: isRebreather,
                 )
               : RangeStatsPanel(
                   diveId: 'd1',
                   profile: profile ?? _profile,
                   units: const UnitFormatter(AppSettings()),
                   tanks: tanks,
+                  isRebreather: isRebreather,
                   maxColumns: maxColumns,
                 ),
         ),
@@ -139,6 +142,7 @@ void main() {
       List<DiveTank> tanks = const [backGas],
       Map<String, List<TankPressurePoint>>? tankPressures,
       GasConsumptionDisplay display = GasConsumptionDisplay.both,
+      bool isRebreather = false,
     }) => _pumpPanel(
       tester,
       width: 1400,
@@ -146,6 +150,7 @@ void main() {
       tanks: tanks,
       tankPressures: tankPressures ?? _backGasPressures,
       display: display,
+      isRebreather: isRebreather,
     );
 
     testWidgets('shows SAC and RMV over the selected range', (tester) async {
@@ -197,6 +202,51 @@ void main() {
 
       expect(find.text('SAC'), findsNothing);
       expect(find.text('RMV'), findsNothing);
+    });
+
+    testWidgets('a rebreather reads SAC from the diluent alone', (
+      tester,
+    ) async {
+      const ccrTanks = [
+        DiveTank(id: 'dil', volume: 3, role: TankRole.diluent),
+        DiveTank(
+          id: 'o2',
+          volume: 3,
+          role: TankRole.oxygenSupply,
+          gasMix: GasMix(o2: 100),
+          order: 1,
+        ),
+      ];
+      final ccrPressures = {
+        'dil': _backGasPressures['bg']!,
+        'o2': [
+          for (var t = 0; t <= 600; t += 30)
+            TankPressurePoint(
+              tankId: 'o2',
+              timestamp: t,
+              pressure: 200 - t / 12,
+            ),
+        ],
+      };
+
+      // Diluent alone: 50 bar over 5 min at 2 bar ambient.
+      await pumpGas(
+        tester,
+        tanks: ccrTanks,
+        tankPressures: ccrPressures,
+        display: GasConsumptionDisplay.sac,
+        isRebreather: true,
+      );
+      expect(find.text('5.0 bar/min'), findsOneWidget);
+
+      // Open circuit adds the oxygen cylinder's 25 bar of the same size.
+      await pumpGas(
+        tester,
+        tanks: ccrTanks,
+        tankPressures: ccrPressures,
+        display: GasConsumptionDisplay.sac,
+      );
+      expect(find.text('7.5 bar/min'), findsOneWidget);
     });
   });
 }
