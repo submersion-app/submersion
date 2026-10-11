@@ -25845,6 +25845,7 @@
   "settings_troubleshootSync_wipeAll_progressTitle": "Wiping sync data",
   "settings_troubleshootSync_wipeAll_subtitle": "Delete every device’s sync data from this backend, including the library markers. Every device re-establishes from scratch. Your dive data is not affected.",
   "settings_troubleshootSync_wipeAll_title": "Wipe all sync data on this backend",
+  "tableMode_menu_hideColumn": "Hide column",
   "tableMode_tooltip_toggleDetailPane": "Toggle detail pane",
   "tableMode_tooltip_toggleProfilePanel": "Toggle profile panel",
   "@diveLog_filterChip_dateRange": {

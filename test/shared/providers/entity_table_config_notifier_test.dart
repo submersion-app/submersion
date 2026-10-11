@@ -443,4 +443,33 @@ void main() {
       expect(config.props, equals([TestField.fieldA, 100.0, true]));
     });
   });
+
+  group('hideColumn (#2984)', () {
+    late EntityTableConfigNotifier<TestField> notifier;
+    setUp(() => notifier = _makeNotifier());
+    tearDown(() => notifier.dispose());
+
+    test('removes a column, pinned or not', () {
+      notifier.hideColumn(TestField.fieldA); // pinned in the default config
+      expect(notifier.state.columns.map((c) => c.field), [TestField.fieldB]);
+    });
+
+    test('never removes the last column', () {
+      notifier.hideColumn(TestField.fieldA);
+      notifier.hideColumn(TestField.fieldB);
+      expect(notifier.state.columns, hasLength(1));
+    });
+
+    test('clears the sort when the sorted column goes', () {
+      notifier.setSortField(TestField.fieldB);
+      notifier.hideColumn(TestField.fieldB);
+      expect(notifier.state.sortField, isNull);
+    });
+
+    test('a column not in the table changes nothing', () {
+      final before = notifier.state;
+      notifier.hideColumn(TestField.fieldC);
+      expect(notifier.state, before);
+    });
+  });
 }

@@ -44646,6 +44646,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Synchronisierungsdaten auf diesem Backend löschen';
 
   @override
+  String get tableMode_menu_hideColumn => 'Hide column';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'Detailbereich umschalten';
 
   @override

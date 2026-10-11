@@ -44450,6 +44450,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alle synchronisatiegegevens op deze provider wissen';
 
   @override
+  String get tableMode_menu_hideColumn => 'Hide column';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane =>
       'Detailpaneel tonen of verbergen';
 

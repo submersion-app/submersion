@@ -71176,6 +71176,12 @@ abstract class AppLocalizations {
   /// **'Wipe all sync data on this backend'**
   String get settings_troubleshootSync_wipeAll_title;
 
+  /// No description provided for @tableMode_menu_hideColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide column'**
+  String get tableMode_menu_hideColumn;
+
   /// No description provided for @tableMode_tooltip_toggleDetailPane.
   ///
   /// In en, this message translates to:

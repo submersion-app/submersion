@@ -7,7 +7,9 @@ import 'package:submersion/core/utils/table_value_compare.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_header_cell.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_menu.dart';
 
 /// Row height for each row in the table.
 const double kEntityTableRowHeight = 38.0;
@@ -72,6 +74,20 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
   /// header reserves the same width to keep columns aligned.
   final Widget Function(T entity)? leadingBuilder;
 
+  /// Hides [field]'s column. When set, every header menu offers "Hide
+  /// column", disabled on the last column (#2984).
+  final void Function(F field)? onHideColumn;
+
+  /// Extra header menu items, shown above "Hide column".
+  final EntityTableHeaderMenuBuilder<F>? headerMenuBuilder;
+
+  /// Cell menu items. Null leaves cells with no menu and no long-press
+  /// recognizer, as before #2984.
+  final EntityTableCellMenuBuilder<T, F>? cellMenuBuilder;
+
+  /// Whether [field]'s column is filtered (shown as a header icon).
+  final bool Function(F field)? isColumnFiltered;
+
   const EntityTableView({
     super.key,
     required this.entities,
@@ -88,6 +104,10 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
     this.isSelectionMode = false,
     this.highlightedId,
     this.leadingBuilder,
+    this.onHideColumn,
+    this.headerMenuBuilder,
+    this.cellMenuBuilder,
+    this.isColumnFiltered,
   });
 
   @override
@@ -255,6 +275,47 @@ class _EntityTableViewState<T, F extends EntityField>
   // Cell rendering
   // ---------------------------------------------------------------------------
 
+  bool get _hasHeaderMenu =>
+      widget.onHideColumn != null || widget.headerMenuBuilder != null;
+
+  void _openHeaderMenu(BuildContext context, F field, Offset position) {
+    // Labels resolve here, never in build, so tables pumped without
+    // localizations still build.
+    final l10n = context.l10n;
+    showEntityTableMenu(
+      context,
+      position: position,
+      sections: [
+        widget.headerMenuBuilder?.call(context, field) ?? const [],
+        if (widget.onHideColumn != null)
+          [
+            EntityTableMenuAction(
+              label: l10n.tableMode_menu_hideColumn,
+              enabled: widget.config.columns.length > 1,
+              onSelected: () => widget.onHideColumn!(field),
+            ),
+          ],
+      ],
+    );
+  }
+
+  /// One header cell, with its menu and filter indicator wired.
+  Widget _headerCell(EntityTableColumnConfig<F> col) => Builder(
+    builder: (context) => EntityTableHeaderCell(
+      field: col.field,
+      width: _widthOf(col),
+      isSorted: widget.config.sortField == col.field,
+      sortAscending: widget.config.sortAscending,
+      onTap: () => widget.onSortFieldChanged(col.field),
+      onResize: (w) => _resizeLive(col.field, w),
+      onResizeEnd: () => _resizeCommit(col.field),
+      isFiltered: widget.isColumnFiltered?.call(col.field) ?? false,
+      onOpenMenu: _hasHeaderMenu
+          ? (position) => _openHeaderMenu(context, col.field, position)
+          : null,
+    ),
+  );
+
   Widget _buildCell({
     required T entity,
     required EntityTableColumnConfig<F> column,
@@ -266,7 +327,7 @@ class _EntityTableViewState<T, F extends EntityField>
     final value = widget.adapter.extractValue(column.field, entity);
     final text = widget.adapter.formatValue(column.field, value, widget.units);
 
-    return Container(
+    final cell = Container(
       width: _widthOf(column),
       height: kEntityTableRowHeight,
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -292,6 +353,22 @@ class _EntityTableViewState<T, F extends EntityField>
           color: isSelected ? theme.colorScheme.onPrimaryContainer : null,
         ),
       ),
+    );
+    final menu = widget.cellMenuBuilder;
+    if (menu == null) return cell;
+    return Builder(
+      builder: (cellContext) {
+        void open(Offset position) => showEntityTableMenu(
+          cellContext,
+          position: position,
+          sections: [menu(cellContext, entity, column.field)],
+        );
+        return GestureDetector(
+          onSecondaryTapUp: (d) => open(d.globalPosition),
+          onLongPressStart: (d) => open(d.globalPosition),
+          child: cell,
+        );
+      },
     );
   }
 
@@ -352,35 +429,13 @@ class _EntityTableViewState<T, F extends EntityField>
                     width: _kLeadingWidth,
                     height: kEntityTableRowHeight,
                   ),
-                ...pinned.map((col) {
-                  return EntityTableHeaderCell(
-                    field: col.field,
-                    width: _widthOf(col),
-                    isSorted: widget.config.sortField == col.field,
-                    sortAscending: widget.config.sortAscending,
-                    onTap: () => widget.onSortFieldChanged(col.field),
-                    onResize: (w) => _resizeLive(col.field, w),
-                    onResizeEnd: () => _resizeCommit(col.field),
-                  );
-                }),
+                ...pinned.map(_headerCell),
                 Expanded(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     controller: _headerHorizontalController,
                     physics: const ClampingScrollPhysics(),
-                    child: Row(
-                      children: scrollable.map((col) {
-                        return EntityTableHeaderCell(
-                          field: col.field,
-                          width: _widthOf(col),
-                          isSorted: widget.config.sortField == col.field,
-                          sortAscending: widget.config.sortAscending,
-                          onTap: () => widget.onSortFieldChanged(col.field),
-                          onResize: (w) => _resizeLive(col.field, w),
-                          onResizeEnd: () => _resizeCommit(col.field),
-                        );
-                      }).toList(),
-                    ),
+                    child: Row(children: scrollable.map(_headerCell).toList()),
                   ),
                 ),
               ],

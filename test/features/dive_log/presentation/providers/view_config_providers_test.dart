@@ -717,4 +717,31 @@ void main() {
       expect(notifier.state.mode, equals(ListViewMode.detailed));
     });
   });
+
+  group('TableViewConfigNotifier.hideColumn (#2984)', () {
+    late TableViewConfigNotifier notifier;
+    setUp(() => notifier = TableViewConfigNotifier());
+    tearDown(() => notifier.dispose());
+
+    test('removes a column, pinned or not', () {
+      notifier.hideColumn(DiveField.siteName); // pinned by default
+      expect(
+        notifier.state.columns.map((c) => c.field),
+        isNot(contains(DiveField.siteName)),
+      );
+    });
+
+    test('never removes the last column', () {
+      for (final c in [...notifier.state.columns]) {
+        notifier.hideColumn(c.field);
+      }
+      expect(notifier.state.columns, hasLength(1));
+    });
+
+    test('clears the sort when the sorted column goes', () {
+      notifier.setSortField(DiveField.maxDepth);
+      notifier.hideColumn(DiveField.maxDepth);
+      expect(notifier.state.sortField, isNull);
+    });
+  });
 }

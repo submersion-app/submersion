@@ -27,6 +27,13 @@ class EntityTableHeaderCell extends StatelessWidget {
   final double? minWidth;
   final bool showResizeHandle;
 
+  /// Opens the column's menu at a global position, on secondary tap or
+  /// long-press (#2984). Null leaves the header without a menu.
+  final ValueChanged<Offset>? onOpenMenu;
+
+  /// Shows a filter icon: the list has a filter on this column.
+  final bool isFiltered;
+
   const EntityTableHeaderCell({
     super.key,
     required this.field,
@@ -38,6 +45,8 @@ class EntityTableHeaderCell extends StatelessWidget {
     this.onResizeEnd,
     this.minWidth,
     this.showResizeHandle = true,
+    this.onOpenMenu,
+    this.isFiltered = false,
   });
 
   @override
@@ -58,43 +67,63 @@ class EntityTableHeaderCell extends StatelessWidget {
         children: [
           // Tappable header content
           Positioned.fill(
-            child: InkWell(
-              onTap: field.sortable ? onTap : null,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                alignment: Alignment.centerLeft,
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: colorScheme.outlineVariant),
-                    right: BorderSide(
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                      width: 0.5,
+            child: GestureDetector(
+              onSecondaryTapUp: onOpenMenu == null
+                  ? null
+                  : (d) => onOpenMenu!(d.globalPosition),
+              onLongPressStart: onOpenMenu == null
+                  ? null
+                  : (d) => onOpenMenu!(d.globalPosition),
+              child: InkWell(
+                onTap: field.sortable ? onTap : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  alignment: Alignment.centerLeft,
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: colorScheme.outlineVariant),
+                      right: BorderSide(
+                        color: colorScheme.outlineVariant.withValues(
+                          alpha: 0.5,
+                        ),
+                        width: 0.5,
+                      ),
                     ),
+                    color: colorScheme.surfaceContainerLow,
                   ),
-                  color: colorScheme.surfaceContainerLow,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        field.localizedDisplayName(context.l10n),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurfaceVariant,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          field.localizedDisplayName(context.l10n),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
-                    ),
-                    if (isSorted)
-                      Icon(
-                        sortAscending
-                            ? Icons.arrow_upward
-                            : Icons.arrow_downward,
-                        size: 14,
-                        color: colorScheme.primary,
-                      ),
-                  ],
+                      if (isFiltered)
+                        Padding(
+                          key: ValueKey('entity-table-filtered-${field.name}'),
+                          padding: const EdgeInsetsDirectional.only(end: 2),
+                          child: Icon(
+                            Icons.filter_alt,
+                            size: 12,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      if (isSorted)
+                        Icon(
+                          sortAscending
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward,
+                          size: 14,
+                          color: colorScheme.primary,
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -44062,6 +44062,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Wipe all sync data on this backend';
 
   @override
+  String get tableMode_menu_hideColumn => 'Hide column';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'Toggle detail pane';
 
   @override

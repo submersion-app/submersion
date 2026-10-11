@@ -44844,6 +44844,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Effacer toutes les données de synchronisation sur ce service';
 
   @override
+  String get tableMode_menu_hideColumn => 'Hide column';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane =>
       'Afficher ou masquer le volet de détail';
 

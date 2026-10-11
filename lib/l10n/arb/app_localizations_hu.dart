@@ -44498,6 +44498,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az összes szinkronizálási adat törlése ezen a szolgáltatón';
 
   @override
+  String get tableMode_menu_hideColumn => 'Hide column';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'Részletek panel ki/be';
 
   @override

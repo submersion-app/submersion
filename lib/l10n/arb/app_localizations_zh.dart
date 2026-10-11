@@ -42039,6 +42039,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_troubleshootSync_wipeAll_title => '清除此后端上的所有同步数据';
 
   @override
+  String get tableMode_menu_hideColumn => 'Hide column';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => '切换详情面板';
 
   @override

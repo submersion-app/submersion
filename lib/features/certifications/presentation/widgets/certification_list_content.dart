@@ -489,6 +489,7 @@ class _CertificationListContentState
           units: units,
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
+          onHideColumn: notifier.hideColumn,
           onEntityTapDown: (id) {
             ref.read(highlightedCertificationIdProvider.notifier).state = id;
           },

@@ -44779,6 +44779,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Borrar todos los datos de sincronización de este servicio';
 
   @override
+  String get tableMode_menu_hideColumn => 'Hide column';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane =>
       'Mostrar u ocultar el panel de detalle';
 

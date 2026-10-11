@@ -4,6 +4,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_menu.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 
 import '../../../helpers/test_app.dart';
@@ -105,6 +106,10 @@ Widget buildTestTable({
   void Function(String)? onEntityTap,
   void Function(TestField)? onSortFieldChanged,
   void Function(TestField, double)? onResizeColumn,
+  void Function(TestField)? onHideColumn,
+  EntityTableHeaderMenuBuilder<TestField>? headerMenuBuilder,
+  EntityTableCellMenuBuilder<TestEntity, TestField>? cellMenuBuilder,
+  bool Function(TestField)? isColumnFiltered,
 }) {
   return testApp(
     child: EntityTableView<TestEntity, TestField>(
@@ -116,6 +121,10 @@ Widget buildTestTable({
       onSortFieldChanged: onSortFieldChanged ?? (_) {},
       onResizeColumn: onResizeColumn ?? (_, _) {},
       onEntityTap: onEntityTap ?? (_) {},
+      onHideColumn: onHideColumn,
+      headerMenuBuilder: headerMenuBuilder,
+      cellMenuBuilder: cellMenuBuilder,
+      isColumnFiltered: isColumnFiltered,
     ),
   );
 }

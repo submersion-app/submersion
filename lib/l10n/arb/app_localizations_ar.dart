@@ -45352,6 +45352,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'مسح جميع بيانات المزامنة على هذه الخدمة';
 
   @override
+  String get tableMode_menu_hideColumn => 'Hide column';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'تبديل لوحة التفاصيل';
 
   @override

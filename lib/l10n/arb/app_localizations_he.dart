@@ -43816,6 +43816,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחיקת כל נתוני הסנכרון בשירות זה';
 
   @override
+  String get tableMode_menu_hideColumn => 'Hide column';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'הצגת חלונית הפרטים';
 
   @override
