@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -252,5 +253,33 @@ void main() {
       DiveComputerConnectionKind.file,
     ]);
     expect(list.last.detail, 'fit');
+  });
+
+  test('a repository given its own database writes there, not to the '
+      'app\'s', () async {
+    final other = AppDatabase(NativeDatabase.memory());
+    addTearDown(other.close);
+    await other
+        .into(other.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: 'elsewhere',
+            name: 'x',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+
+    await DiveComputerConnectionRepository(database: other).recordConnection(
+      computerId: 'elsewhere',
+      kind: DiveComputerConnectionKind.usb,
+      address: 'COM3',
+    );
+
+    expect(
+      await other.select(other.diveComputerConnections).get(),
+      hasLength(1),
+    );
+    expect(await db.select(db.diveComputerConnections).get(), isEmpty);
   });
 }

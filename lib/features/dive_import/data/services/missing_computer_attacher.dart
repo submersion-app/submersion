@@ -39,7 +39,8 @@ class MissingComputerAttacher {
     DiveComputerRepository? diveComputerRepository,
     DiveComputerConnectionRepository? connections,
   }) : _db = db,
-       _connections = connections ?? DiveComputerConnectionRepository(),
+       _connections =
+           connections ?? DiveComputerConnectionRepository(database: db),
        _writer = AdditionalComputerWriter(
          diveRepository: diveRepository ?? DiveRepository(),
        ),

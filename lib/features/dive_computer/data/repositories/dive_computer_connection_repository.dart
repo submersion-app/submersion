@@ -16,8 +16,15 @@ import 'package:submersion/features/dive_computer/domain/entities/dive_computer_
 /// (`deviceLocalSyncColumns`), so a write that changes only them stamps no
 /// clock (#2947): the row's synced content did not change.
 class DiveComputerConnectionRepository {
-  AppDatabase get _db => DatabaseService.instance.database;
-  final SyncRepository _syncRepository = SyncRepository();
+  /// [database] for a caller working on a database other than the app's
+  /// (the reimport attacher takes its own), like [SyncRepository].
+  DiveComputerConnectionRepository({AppDatabase? database})
+    : _database = database,
+      _syncRepository = SyncRepository(database: database);
+
+  final AppDatabase? _database;
+  AppDatabase get _db => _database ?? DatabaseService.instance.database;
+  final SyncRepository _syncRepository;
 
   static const String entity = 'diveComputerConnections';
 
