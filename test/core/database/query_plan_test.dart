@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 
 /// Returns the concatenated EXPLAIN QUERY PLAN detail lines for [sql].
 Future<String> plan(AppDatabase db, String sql) async {
@@ -96,6 +97,18 @@ void main() {
         "SELECT * FROM dive_data_sources WHERE dive_id = 'x'",
       );
       expect(p, contains('idx_dive_data_sources_dive_id'));
+    },
+  );
+
+  test(
+    'surface interval lookups seek idx_dives_entry_date, never scan',
+    () async {
+      final p = await plan(
+        db,
+        'SELECT d.id, ${diveSurfaceIntervalSecondsSql('d')} FROM dives d',
+      );
+      expect(p, contains('idx_dives_entry_date'));
+      expect(p, isNot(contains('SCAN $kSurfaceIntervalPreviousAlias')));
     },
   );
 }

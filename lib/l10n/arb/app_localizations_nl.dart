@@ -1743,6 +1743,59 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_dayType_rest => 'Rustdag';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'Stroming $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'Zicht $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'Water $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s',
+      one: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged van $planned geplande duiken',
+      one: '$logged van $planned geplande duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count soorten',
+      one: '$count soort',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from tot $to';
+  }
+
+  @override
   String get trips_story_planned => 'Gepland';
 
   @override
@@ -7405,6 +7458,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => 'Zicht';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => 'Bereik';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'Exact';
 
   @override
   String get diveLog_edit_label_waterTemp => 'Watertemp.';
@@ -37592,6 +37651,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands =>
+      'Beslaat meerdere klassen';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count geselecteerd';
   }
@@ -45239,6 +45302,65 @@ class AppLocalizationsNl extends AppLocalizations {
       'Alle synchronisatiegegevens op deze provider wissen';
 
   @override
+  String tableMode_cell_anyValue(String column) {
+    return 'Alleen duiken met $column';
+  }
+
+  @override
+  String tableMode_cell_atLeast(String value) {
+    return 'Minstens $value';
+  }
+
+  @override
+  String tableMode_cell_atMost(String value) {
+    return 'Hoogstens $value';
+  }
+
+  @override
+  String tableMode_cell_exclude(String value) {
+    return '$value uitsluiten';
+  }
+
+  @override
+  String tableMode_cell_noValue(String column) {
+    return 'Alleen duiken zonder $column';
+  }
+
+  @override
+  String tableMode_cell_onOrAfter(String value) {
+    return 'Vanaf $value';
+  }
+
+  @override
+  String tableMode_cell_onOrBefore(String value) {
+    return 'Tot en met $value';
+  }
+
+  @override
+  String tableMode_cell_only(String value) {
+    return 'Alleen $value';
+  }
+
+  @override
+  String tableMode_cell_with(String value) {
+    return 'Met $value';
+  }
+
+  @override
+  String tableMode_cell_without(String value) {
+    return 'Zonder $value';
+  }
+
+  @override
+  String get tableMode_menu_addFilter => 'Filter toevoegen';
+
+  @override
+  String get tableMode_menu_hideColumn => 'Kolom verbergen';
+
+  @override
+  String get tableMode_menu_resetFilter => 'Filter wissen';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane =>
       'Detailpaneel tonen of verbergen';
 
@@ -46540,9 +46662,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sources_badge_viewing => 'Wordt bekeken';
 
   @override
-  String get diveLog_sources_badge_secondary => 'Secundair';
-
-  @override
   String diveLog_sources_created(String date) {
     return 'Aangemaakt op $date';
   }
@@ -46555,6 +46674,20 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_sources_detail_imported => 'Geïmporteerd';
+
+  @override
+  String get diveLog_sources_detail_times => 'Tijden';
+
+  @override
+  String get diveLog_sources_detail_file => 'Bestand';
+
+  @override
+  String diveLog_sources_timeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get diveLog_sources_sectionMenuTooltip => 'Databronacties';
 
   @override
   String diveLog_detail_semantics_viewDiveComputer(String name) {

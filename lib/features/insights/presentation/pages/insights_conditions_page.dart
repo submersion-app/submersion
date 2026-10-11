@@ -126,6 +126,9 @@ class InsightsConditionsPage extends ConsumerWidget {
                 Colors.blue.shade400,
                 Colors.orange.shade400,
                 Colors.grey.shade400,
+                // A fifth segment (ranges spanning bands, issue #3226)
+                // would otherwise reuse green.
+                Colors.purple.shade300,
               ],
             ),
           );

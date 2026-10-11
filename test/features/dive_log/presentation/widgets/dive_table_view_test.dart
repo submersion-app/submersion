@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
@@ -8,6 +7,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -111,6 +111,7 @@ Widget _buildTable({
   return testApp(
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
+      diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
       tableViewConfigProvider.overrideWith(
         (ref) => _TestTableConfigNotifier(config ?? _testConfig),
       ),
@@ -199,7 +200,9 @@ void main() {
       expect(doubleTappedId, 'a');
     });
 
-    testWidgets('rows register no long-press recognizer', (tester) async {
+    testWidgets('rows register long-press only for the cell filter menu', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _buildTable(
           dives: [_makeDive(id: 'lp-1', diveNumber: 7)],
@@ -208,26 +211,32 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Long-press no longer enters selection mode anywhere, so no row may
-      // carry a handler for it.
-      //
-      // The assertion is on the recognizer, not on individual callbacks:
-      // GestureDetector registers one LongPressGestureRecognizer keyed by its
-      // own Type if ANY of seven long-press callbacks is non-null, so checking
-      // the map key covers onLongPressMoveUpdate, onLongPressEnd, onLongPressUp
-      // and the rest without having to enumerate them.
-      final detectors = tester.widgetList<RawGestureDetector>(
+      // Long-press is not a way into selection (899d7f5), so the row's own
+      // detector, the one carrying the tap, has no long-press. Since #2984 a
+      // cell's long-press opens its filter menu: that detector carries no
+      // tap, so a hold never doubles as a row tap.
+      final detectors = tester.widgetList<GestureDetector>(
         find.descendant(
           of: find.byType(DiveTableView),
-          matching: find.byType(RawGestureDetector),
+          matching: find.byType(GestureDetector),
         ),
       );
-      expect(detectors, isNotEmpty);
-      for (final detector in detectors) {
-        expect(
-          detector.gestures.containsKey(LongPressGestureRecognizer),
-          isFalse,
-        );
+      bool hasLongPress(GestureDetector d) =>
+          d.onLongPress != null ||
+          d.onLongPressStart != null ||
+          d.onLongPressEnd != null ||
+          d.onLongPressUp != null ||
+          d.onLongPressDown != null ||
+          d.onLongPressMoveUpdate != null;
+      final rows = detectors.where((d) => d.onTap != null);
+      expect(rows, isNotEmpty);
+      for (final row in rows) {
+        expect(hasLongPress(row), isFalse);
+      }
+      final menus = detectors.where(hasLongPress);
+      expect(menus, isNotEmpty);
+      for (final menu in menus) {
+        expect(menu.onTap, isNull);
       }
     });
 
@@ -322,6 +331,7 @@ void main() {
         testApp(
           overrides: [
             settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
             tableViewConfigProvider.overrideWith(
               (ref) => _TestTableConfigNotifier(_testConfig),
             ),
@@ -478,6 +488,7 @@ void main() {
         testApp(
           overrides: [
             settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
             tableViewConfigProvider.overrideWith(
               (ref) => _TestTableConfigNotifier(_testConfig),
             ),
@@ -637,6 +648,7 @@ void main() {
         testApp(
           overrides: [
             settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
             tableViewConfigProvider.overrideWith(
               (ref) => _TestTableConfigNotifier(_testConfig),
             ),
@@ -656,6 +668,7 @@ void main() {
         testApp(
           overrides: [
             settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
             tableViewConfigProvider.overrideWith(
               (ref) => _TestTableConfigNotifier(_testConfig),
             ),

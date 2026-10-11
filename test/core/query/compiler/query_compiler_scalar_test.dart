@@ -2,6 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/core/query/compiler/sql_templates.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/registry/query_entity.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/query/registry/query_registry.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 
 import '../fixtures/fixture_registry.dart';
@@ -395,4 +399,63 @@ void main() {
       expect(d.params.first, lessThan(d.params.last as int));
     },
   );
+
+  group('a number field with rangeSql (issue #3226)', () {
+    // Its own entity, so the shared fixture (and the field pickers built on
+    // it) stay unchanged.
+    const rangeDives = QueryEntity(
+      subject: QuerySubject.dives,
+      table: 'dives',
+      fields: [
+        QueryField(
+          key: 'vis',
+          type: FieldType.number,
+          dimension: FieldDimension.depth,
+          sql: '{r}.vis',
+          emptySql: '{r}.vis IS NULL',
+          labelKey: 'x',
+          rangeSql: (low: '{r}.vis_lo', high: '{r}.vis_hi'),
+        ),
+      ],
+    );
+    final rangeRegistry = QueryRegistry([rangeDives]);
+    CompiledQuery vis(QueryOp op, QueryValue value) => compileQuery(
+      ConditionNode(FieldPath(['vis']), op, value),
+      rangeDives,
+      rangeRegistry,
+    );
+
+    test('>= matches the value, or a NULL value whose low end meets it', () {
+      final q = vis(QueryOp.gte, const NumberValue(10, null));
+      expect(q.where, '((r0.vis >= ?) OR (r0.vis IS NULL AND r0.vis_lo >= ?))');
+      expect(q.params, [10.0, 10.0]);
+    });
+
+    test('< needs the exclusive high end at or below the bound', () {
+      expect(
+        vis(QueryOp.lt, const NumberValue(10, null)).where,
+        '((r0.vis < ?) OR (r0.vis IS NULL AND r0.vis_hi <= ?))',
+      );
+    });
+
+    test('between needs both ends inside', () {
+      final q = vis(
+        QueryOp.between,
+        ListValue([const NumberValue(5, null), const NumberValue(20, null)]),
+      );
+      expect(
+        q.where,
+        '((r0.vis >= ? AND r0.vis <= ?) OR '
+        '(r0.vis IS NULL AND r0.vis_lo >= ? AND r0.vis_hi <= ?))',
+      );
+      expect(q.params, [5.0, 20.0, 5.0, 20.0]);
+    });
+
+    test('equality never matches a range', () {
+      expect(
+        vis(QueryOp.eq, const NumberValue(10, null)).where,
+        isNot(contains('vis_lo')),
+      );
+    });
+  });
 }

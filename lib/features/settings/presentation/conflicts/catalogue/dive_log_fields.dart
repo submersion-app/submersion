@@ -633,6 +633,14 @@ final Map<String, ConflictField> diveLogFields = {
     FieldKind.enumValue,
     enumLabel: visibilityLabeler,
   ),
+  'visibilityMaxMeters': ConflictField(
+    (l) => DiveField.visibility.localizedDisplayName(l),
+    FieldKind.distance,
+  ),
+  'visibilityMinMeters': ConflictField(
+    (l) => DiveField.visibility.localizedDisplayName(l),
+    FieldKind.distance,
+  ),
   'visibilityMeters': ConflictField(
     (l) => DiveField.visibility.localizedDisplayName(l),
     FieldKind.distance,

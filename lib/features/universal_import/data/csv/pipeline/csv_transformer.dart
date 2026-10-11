@@ -535,6 +535,8 @@ class CsvTransformer {
         base == 'sac' ||
         base == 'tankvolume' ||
         base == 'visibilitymeters' ||
+        base == 'visibilityminmeters' ||
+        base == 'visibilitymaxmeters' ||
         base == 'windspeed' ||
         base == 'humidity' ||
         base == 'sampledepth' ||

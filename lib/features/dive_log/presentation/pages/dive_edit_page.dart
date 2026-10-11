@@ -24,6 +24,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_type_
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -55,6 +56,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_s
 import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_input.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -87,6 +90,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_text_suggestion_field.dart';
+import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
@@ -312,7 +316,25 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// The site-to-dive-type snap still in flight, which a save waits for so
   /// the types it adds are not lost to a quick tap on Save.
   Future<void>? _pendingDiveTypeSnap;
-  Visibility _selectedVisibility = Visibility.unknown;
+
+  /// The dive's visibility as loaded (issue #3226), saved back untouched
+  /// until the diver types a number or taps a chip.
+  StoredVisibility _originalVisibility = StoredVisibility.none;
+  late VisibilityInputMode _visibilityMode = ref.read(
+    visibilityInputModeProvider,
+  );
+  VisibilityBand? _visibilityBand;
+
+  /// Whether the diver has edited each visibility mode (typed a number,
+  /// tapped a chip). Tracked per mode so a detour through the other mode
+  /// never discards or rounds the stored value.
+  bool _preciseTouched = false;
+  bool _rangeTouched = false;
+
+  bool get _activeVisibilityTouched => switch (_visibilityMode) {
+    VisibilityInputMode.precise => _preciseTouched,
+    VisibilityInputMode.range => _rangeTouched,
+  };
   int _rating = 0;
   // Statistics exclusion (#526 / #1272). Kept independent: unticking the
   // master flag must restore the diver's own gas-only choice rather than
@@ -368,9 +390,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   bool _waterTypeFromSite = false;
   final _swellHeightController = TextEditingController();
 
-  /// Measured visibility, entered in the diver's depth unit and converted to
-  /// meters on save. Replaces the pre-v144 bucket picker; [_selectedVisibility]
-  /// survives only to carry a legacy dive's band until it gains a number.
+  /// Precise visibility, entered in the diver's depth unit and converted to
+  /// meters on save. The Range mode's pick lives in [_visibilityBand].
   final _visibilityController = TextEditingController();
   final _altitudeController = TextEditingController();
   final _surfacePressureController = TextEditingController();
@@ -972,7 +993,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _nameController.text = dive.name ?? '';
           _selectedDiveTypeIds = List.from(dive.diveTypeIds);
           _loadedDiveTypeIds = List.unmodifiable(dive.diveTypeIds);
-          _selectedVisibility = dive.visibility ?? Visibility.unknown;
+          _originalVisibility = StoredVisibility.of(dive);
+          _visibilityMode = _originalVisibility.naturalMode ?? _visibilityMode;
           _visibilityController.text = dive.visibilityMeters != null
               ? _seedDecimal(units.convertDepth(dive.visibilityMeters!), 0)
               : '';
@@ -1559,7 +1581,21 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
+  /// The bulk visibility value: bulk has no stored shape to keep, so the
+  /// active mode's value is the input (issue #3226).
+  StoredVisibility _bulkVisibility(UnitFormatter units) =>
+      resolveVisibilityEntry(
+        mode: _visibilityMode,
+        preciseMeters: _visibilityMetersInput(units),
+        band: _visibilityBand,
+        preciseTouched: true,
+        rangeTouched: true,
+        original: StoredVisibility.none,
+        scale: _visibilityScale,
+      );
+
   BulkScalarInputs _collectScalarInputs(UnitFormatter units) {
+    final bulkVisibility = _bulkVisibility(units);
     // High-value Logistics + notes fields. Extended per group in later tasks.
     return BulkScalarInputs(
       diveCenterId: _selectedDiveCenter?.id,
@@ -1573,7 +1609,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       excludedFromStats: _bulkExcludedFromStats,
       excludedFromGasStats: _bulkExcludedFromGasStats,
       waterType: _waterType?.name,
-      visibilityMeters: _visibilityMetersInput(units),
+      visibilityMeters: bulkVisibility.meters,
+      visibilityMinMeters: bulkVisibility.range?.minM,
+      visibilityMaxMeters: bulkVisibility.range?.maxM,
       currentDirection: _currentDirection?.name,
       currentStrength: _currentStrength?.name,
       swellHeight: _savedNumber(
@@ -2084,12 +2122,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         _gatedRow(
           BulkField.visibility,
-          FormRow.text(
-            label: context.l10n.diveLog_edit_label_visibility,
-            controller: _visibilityController,
-            suffixText: UnitFormatter(ref.read(settingsProvider)).depthSymbol,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputValidator: _bulkValidator(BulkField.visibility),
+          _visibilityInput(
+            units,
+            validator: _bulkValidator(BulkField.visibility),
           ),
         ),
         _gatedRow(
@@ -2509,6 +2544,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       scheduleQualityScan(ids);
       scheduleSensorSummaryRefresh(ids);
       scheduleDerivedMetricsRefresh(ids);
+      if (_bulkEnabled.contains(BulkField.visibility)) {
+        _rememberVisibilityMode(_bulkVisibility(units));
+      }
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       if (widget.embedded) {
@@ -4903,7 +4941,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       expanded: _isExpanded('conditions', defaultValue: false),
       onToggle: () => _toggleSection('conditions', defaultValue: false),
       summary: _conditionsSummary(units),
-      isEmpty: _conditionsIsEmpty(),
+      isEmpty: _conditionsIsEmpty(units),
       temperatureSymbol: units.temperatureSymbol,
       waterTempController: _waterTempController,
       airTempController: _airTempController,
@@ -4918,20 +4956,81 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   double? _visibilityMetersInput(UnitFormatter units) =>
       parseVisibilityInput(_visibilityController.text, units);
 
-  /// Caption under the visibility field: the adjective the diver's calibration
-  /// assigns to what they just typed, or, for a legacy dive not yet given a
-  /// number, the range its stored bucket covers.
-  String? _visibilityCaption(UnitFormatter units) {
-    final l10n = context.l10n;
-    final meters = _visibilityMetersInput(units);
-    if (meters != null) {
-      final scale = ref.read(settingsProvider).visibilityScale;
-      return visibilityBandName(scale.bandFor(meters), l10n);
-    }
-    if (_selectedVisibility != Visibility.unknown) {
-      return formatLegacyVisibilityBand(_selectedVisibility, l10n, units);
-    }
-    return null;
+  VisibilityScale get _visibilityScale =>
+      ref.read(settingsProvider).visibilityScale;
+
+  /// Remembers the mode [saved] was entered in for the next new dive. A
+  /// convenience after a save that already succeeded, so a failure is
+  /// logged, never reported as a failed save.
+  void _rememberVisibilityMode(StoredVisibility saved) {
+    final mode = saved.modeToRemember;
+    if (mode == null) return;
+    unawaited(
+      ref
+          .read(visibilityInputModeProvider.notifier)
+          .remember(mode)
+          .catchError(
+            (Object e) =>
+                _log.warning('Could not remember the visibility mode: $e'),
+          ),
+    );
+  }
+
+  /// What a save writes for visibility. See [resolveVisibilityEntry].
+  StoredVisibility _resolvedVisibility(UnitFormatter units) =>
+      resolveVisibilityEntry(
+        mode: _visibilityMode,
+        preciseMeters: _visibilityMetersInput(units),
+        band: _visibilityBand,
+        preciseTouched: _preciseTouched,
+        rangeTouched: _rangeTouched,
+        original: _originalVisibility,
+        scale: _visibilityScale,
+      );
+
+  /// The Range | Precise visibility input (issue #3226), shared by the dive
+  /// form and bulk edit.
+  Widget _visibilityInput(
+    UnitFormatter units, {
+    String? Function(String?)? validator,
+  }) {
+    final scale = ref.watch(settingsProvider).visibilityScale;
+    final band = effectiveVisibilityBand(
+      band: _visibilityBand,
+      rangeTouched: _rangeTouched,
+      original: _originalVisibility,
+      scale: scale,
+    );
+    return VisibilityInput(
+      mode: _visibilityMode,
+      onModeChanged: (m) {
+        setState(() => _visibilityMode = m);
+        _markDirty();
+      },
+      controller: _visibilityController,
+      depthSymbol: units.depthSymbol,
+      inputValidator: validator ?? numberValidator(context),
+      onPreciseChanged: (_) => setState(() => _preciseTouched = true),
+      band: band,
+      onBandChanged: (b) {
+        setState(() {
+          _visibilityBand = b;
+          _rangeTouched = true;
+        });
+        _markDirty();
+      },
+      caption: visibilityEntryCaption(
+        mode: _visibilityMode,
+        preciseMeters: _visibilityMetersInput(units),
+        band: band,
+        preciseTouched: _preciseTouched,
+        rangeTouched: _rangeTouched,
+        original: _originalVisibility,
+        scale: scale,
+        l10n: context.l10n,
+        units: units,
+      ),
+    );
   }
 
   String _conditionsSummary(UnitFormatter units) {
@@ -4939,22 +5038,27 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (_waterType != null) _waterType!.localizedName(context.l10n),
       if (_waterTempController.text.isNotEmpty)
         '${_waterTempController.text} ${units.temperatureSymbol}',
-      // Through the formatter rather than hand-concatenated, so the summary
+      // Through the formatters rather than hand-concatenated, so the summary
       // matches how every other distance in the app renders.
-      if (_visibilityMetersInput(units) case final meters?)
-        units.formatDistance(meters)
-      else if (_selectedVisibility != Visibility.unknown)
-        formatLegacyVisibilityBand(_selectedVisibility, context.l10n, units) ??
-            '',
+      ...switch (_resolvedVisibility(units)) {
+        StoredVisibility(:final meters?) => [units.formatDistance(meters)],
+        StoredVisibility(:final range?) => [
+          formatVisibilityRange(range, context.l10n, units),
+        ],
+        StoredVisibility(:final legacy?) => [
+          ?formatLegacyVisibilityBand(legacy, context.l10n, units),
+        ],
+        _ => const <String>[],
+      },
       ?trimmedOrNull(_surfaceConditionsController.text),
     ].join(' · ');
   }
 
-  bool _conditionsIsEmpty() =>
+  bool _conditionsIsEmpty(UnitFormatter units) =>
       _waterTempController.text.isEmpty &&
       _airTempController.text.isEmpty &&
       _visibilityController.text.isEmpty &&
-      _selectedVisibility == Visibility.unknown &&
+      _resolvedVisibility(units).isEmpty &&
       _waterType == null &&
       _currentDirection == null &&
       _currentStrength == null &&
@@ -4973,30 +5077,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final l10n = context.l10n;
     final altitudeWarning = _getAltitudeWarning(units);
     return [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          FormRow.text(
-            label: l10n.diveLog_edit_label_visibility,
-            controller: _visibilityController,
-            suffixText: units.depthSymbol,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            // No input filter: stripping '-' would turn "-5", which saves as
-            // unknown, into 5 m. Unreadable text would otherwise save as
-            // "unknown" too and erase a measured visibility (#1900).
-            inputValidator: numberValidator(context),
-            onChanged: (_) => setState(() {}),
-          ),
-          if (_visibilityCaption(units) case final caption?)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
-              child: Text(
-                caption,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-        ],
-      ),
+      _visibilityInput(units),
       EnumPickerRow<WaterType>(
         label: l10n.diveLog_edit_label_waterType,
         value: _waterType,
@@ -6023,6 +6104,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       );
 
       // Create dive entity
+      final savedVisibility = _resolvedVisibility(units);
       final dive = Dive(
         id: widget.diveId ?? '',
         diverId: _existingDive?.diverId, // Preserve diver assignment
@@ -6046,13 +6128,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         avgDepth: avgDepth,
         waterTemp: waterTemp,
         airTemp: airTemp,
-        // The legacy bucket is carried through untouched so a pre-v144 dive
-        // keeps its band until the diver actually measures one. The repository
-        // clears it as soon as visibilityMeters is present.
-        visibility: _selectedVisibility != Visibility.unknown
-            ? _selectedVisibility
-            : null,
-        visibilityMeters: _visibilityMetersInput(units),
+        // One visibility shape (issue #3226): what the diver entered, or the
+        // stored shape when they left the input alone.
+        visibility: savedVisibility.legacy,
+        visibilityMeters: savedVisibility.meters,
+        visibilityMinMeters: savedVisibility.range?.minM,
+        visibilityMaxMeters: savedVisibility.range?.maxM,
         diveTypeIds: _selectedDiveTypeIds,
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,
@@ -6226,6 +6307,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               );
         }
       }
+
+      // A new visibility value sets the mode the next new dive opens in.
+      if (_activeVisibilityTouched) _rememberVisibilityMode(savedVisibility);
 
       // Save sightings
       if (savedDiveId != null) {

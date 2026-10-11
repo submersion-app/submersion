@@ -314,11 +314,18 @@ extension RungsFromV231 on AppDatabase {
       await _migrateLegacyDocuments();
     }
     if (from < 277) await reportProgress();
-    // v278: diver_settings.trend_gap_collapse_months (issue #3251). Column
-    // only, defaulting to a year; re-asserted in beforeOpen.
+    // v278: dives.visibility_min_meters / visibility_max_meters (issue
+    // #3226). Columns only; re-asserted in beforeOpen.
     if (from < 278) {
-      await _assertTrendGapCollapseColumn();
+      await _assertVisibilityRangeColumns();
     }
     if (from < 278) await reportProgress();
+    // v279: diver_settings.trend_gap_collapse_months (issue #3251). Column
+    // only, defaulting to a year; re-asserted in beforeOpen. Renumbered from
+    // 278, which #3226 shipped first.
+    if (from < 279) {
+      await _assertTrendGapCollapseColumn();
+    }
+    if (from < 279) await reportProgress();
   }
 }

@@ -1,22 +1,21 @@
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
+import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/today_anchored_scroll_view.dart';
+import 'package:submersion/features/trips/presentation/widgets/itinerary/itinerary_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary/trip_itinerary_generate_button.dart';
-import 'package:submersion/features/trips/presentation/widgets/itinerary_day_edit_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 
 /// Itinerary tab showing the day-by-day timeline of a trip, any type
 /// (#2845): Generate fills the dates, each day opens its edit sheet.
@@ -24,6 +23,9 @@ import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dar
 /// Groups dives by date under each itinerary day. Each day row is tappable
 /// to edit day type, port name, and notes via a bottom sheet.
 class TripItineraryTab extends ConsumerWidget {
+  /// Marks the sliver an in-progress trip opens on.
+  static const _anchorKey = ValueKey('itinerary-today');
+
   final String tripId;
 
   const TripItineraryTab({super.key, required this.tripId});
@@ -89,7 +91,9 @@ class TripItineraryTab extends ConsumerWidget {
     // Group dives by date (year-month-day key)
     final divesByDate = <String, List<Dive>>{};
     for (final dive in dives) {
-      final key = _dateKey(dive.dateTime);
+      // By entry time, as the story buckets its dives, so a dive and its
+      // photos and sightings land on the same day's card.
+      final key = _dateKey(dive.effectiveEntryTime);
       divesByDate.putIfAbsent(key, () => []).add(dive);
     }
 
@@ -97,9 +101,23 @@ class TripItineraryTab extends ConsumerWidget {
     final sortedDivesByDate = divesByDate.map(
       (key, group) => MapEntry(
         key,
-        List<Dive>.of(group)..sort((a, b) => a.dateTime.compareTo(b.dateTime)),
+        List<Dive>.of(
+          group,
+        )..sort((a, b) => a.effectiveEntryTime.compareTo(b.effectiveEntryTime)),
       ),
     );
+
+    // Photos and sightings come from the trip story, best effort: while it
+    // loads or if it fails the cards simply go without their media line.
+    final story = ref.watch(tripStoryProvider(tripId)).valueOrNull;
+    final storyDays = <DateTime, TripStoryDay>{
+      for (final d in story?.days ?? const <TripStoryDay>[]) tripDay(d.date): d,
+    };
+    final storedWeather =
+        ref.watch(tripDayWeatherProvider(tripId)).asData?.value ??
+        const <int, TripDayWeather>{};
+    // Rebuilt at midnight, so the Today card moves on while the tab is open.
+    final now = ref.watch(tripTodayProvider);
 
     // The fill-in button renders nothing once every date has a row.
     final header = trip == null
@@ -112,23 +130,79 @@ class TripItineraryTab extends ConsumerWidget {
             ),
           );
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: days.length + (header == null ? 0 : 1),
-      itemBuilder: (context, index) {
-        if (header != null) {
-          if (index == 0) return header;
-          index -= 1;
-        }
-        final day = days[index];
-        final dayDives = sortedDivesByDate[_dateKey(day.date)] ?? [];
-        return _ItineraryDayCard(
-          day: day,
-          dives: dayDives,
-          tripId: tripId,
-          isLiveaboard: trip?.isLiveaboard ?? false,
-        );
-      },
+    Widget card(int index, {double bottomGap = 8}) {
+      final day = days[index];
+      final dayDives = sortedDivesByDate[_dateKey(day.date)] ?? [];
+      final storyDay = storyDays[tripDay(day.date)];
+      return ItineraryDayCard(
+        day: day,
+        dives: dayDives,
+        tripId: tripId,
+        isLiveaboard: trip?.isLiveaboard ?? false,
+        kind: tripDayKind(day.date, now),
+        media: storyDay?.media ?? const [],
+        sightings: storyDay?.sightings ?? const [],
+        storedWeather: storedWeather[tripDayMillis(day.date)]?.toStoryWeather(),
+        bottomGap: bottomGap,
+      );
+    }
+
+    Widget padded(Widget sliver) => SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: sliver,
+    );
+
+    final headerSliver = header == null
+        ? null
+        : padded(SliverToBoxAdapter(child: header));
+    const gap = SliverToBoxAdapter(child: SizedBox(height: 16));
+    final anchor = trip != null && trip.isInProgress
+        ? itineraryAnchorIndex(days, now)
+        : null;
+
+    if (anchor == null) {
+      return TodayAnchoredScrollView(
+        slivers: [
+          gap,
+          ?headerSliver,
+          padded(
+            SliverList.builder(
+              itemCount: days.length,
+              itemBuilder: (context, i) => card(i),
+            ),
+          ),
+          gap,
+        ],
+      );
+    }
+    // Opening at today: the anchor row starts the center sliver, so scroll
+    // offset 0 is its top. The list stays in reading order; slivers before
+    // the center are laid out upward from it, so the earlier rows' list
+    // builds its index 0 nearest the center (the row just before today).
+    return TodayAnchoredScrollView(
+      center: _anchorKey,
+      slivers: [
+        gap,
+        ?headerSliver,
+        padded(
+          SliverList.builder(
+            itemCount: anchor,
+            // The row just above today takes no gap of its own: the anchored
+            // sliver's top padding is the gap, as between any two rows.
+            itemBuilder: (context, i) =>
+                card(anchor - 1 - i, bottomGap: i == 0 ? 0 : 8),
+          ),
+        ),
+        SliverPadding(
+          key: _anchorKey,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          sliver: SliverList.builder(
+            itemCount: days.length - anchor,
+            itemBuilder: (context, i) => card(anchor + i),
+          ),
+        ),
+        gap,
+      ],
     );
   }
 
@@ -137,297 +211,11 @@ class TripItineraryTab extends ConsumerWidget {
   }
 }
 
-/// Card for a single itinerary day showing type, date, port, and dives.
-class _ItineraryDayCard extends ConsumerWidget {
-  final ItineraryDay day;
-  final List<Dive> dives;
-  final String tripId;
-  final bool isLiveaboard;
-
-  const _ItineraryDayCard({
-    required this.day,
-    required this.dives,
-    required this.tripId,
-    required this.isLiveaboard,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    // The badge, icon and colour follow the dives logged; the edit sheet
-    // keeps the stored type.
-    final dayType = shownDayType(day, hasDives: dives.isNotEmpty);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Card(
-        child: InkWell(
-          onTap: () => showItineraryDayEditSheet(
-            context: context,
-            day: day,
-            tripId: tripId,
-            isLiveaboard: isLiveaboard,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Day header row
-                Row(
-                  children: [
-                    // Day type icon
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: _dayTypeColor(
-                          dayType,
-                          colorScheme,
-                        ).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          _dayTypeIcon(dayType),
-                          size: 20,
-                          color: _dayTypeColor(dayType, colorScheme),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Day label and date
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.l10n.trips_itinerary_dayLabel(
-                              day.dayNumber,
-                            ),
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            units.formatWeekdayMonthDay(day.date),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Day type badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _dayTypeColor(
-                          dayType,
-                          colorScheme,
-                        ).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        dayType.localizedName(context),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: _dayTypeColor(dayType, colorScheme),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Port name
-                if (day.portName != null && day.portName!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const SizedBox(width: 48),
-                      Icon(
-                        Icons.anchor,
-                        size: 14,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        day.portName!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-
-                // Notes
-                if (day.notes.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 48),
-                    child: Text(
-                      day.notes,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontStyle: FontStyle.italic,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-
-                // A day ahead with a plan: the count the forecast uses. A past
-                // day's plan is history, not a promise.
-                if (dives.isEmpty &&
-                    (day.plannedDives ?? 0) > 0 &&
-                    !tripDay(day.date).isBefore(tripDay(clock.now()))) ...[
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 48),
-                    child: Text(
-                      context.l10n.trips_itinerary_plannedDives(
-                        day.plannedDives!,
-                      ),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-
-                // Dives for this day
-                if (dives.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 48),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.l10n.trips_itinerary_diveCount(dives.length),
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        ...dives.map(
-                          (dive) => _DiveRow(dive: dive, units: units),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  IconData _dayTypeIcon(DayType dayType) {
-    switch (dayType) {
-      case DayType.embark:
-        return Icons.login;
-      case DayType.disembark:
-        return Icons.logout;
-      case DayType.diveDay:
-        return Icons.scuba_diving;
-      case DayType.seaDay:
-        return Icons.waves;
-      case DayType.portDay:
-        return Icons.anchor;
-      case DayType.travel:
-        return Icons.flight_takeoff;
-      case DayType.rest:
-        return Icons.beach_access;
-    }
-  }
-
-  Color _dayTypeColor(DayType dayType, ColorScheme colorScheme) {
-    switch (dayType) {
-      case DayType.embark:
-        return Colors.green.shade700;
-      case DayType.disembark:
-        return Colors.red.shade700;
-      case DayType.diveDay:
-        return colorScheme.primary;
-      case DayType.seaDay:
-        return Colors.blue.shade600;
-      case DayType.portDay:
-        return Colors.orange.shade700;
-      case DayType.travel:
-        return colorScheme.tertiary;
-      case DayType.rest:
-        return colorScheme.onSurfaceVariant;
-    }
-  }
-}
-
-/// A compact dive row shown under an itinerary day.
-class _DiveRow extends StatelessWidget {
-  final Dive dive;
-  final UnitFormatter units;
-
-  const _DiveRow({required this.dive, required this.units});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final timeFormat = DateFormat.Hm();
-
-    return InkWell(
-      onTap: () => context.push('/dives/${dive.id}'),
-      borderRadius: BorderRadius.circular(4),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Row(
-          children: [
-            Text(
-              '#${dive.diveNumber ?? '-'}',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                dive.site?.name ?? '-',
-                style: theme.textTheme.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text(
-              timeFormat.format(dive.dateTime),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (dive.maxDepth != null) ...[
-              const SizedBox(width: 8),
-              Text(
-                units.formatDepth(dive.maxDepth),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+/// The row an in-progress trip opens on: the first dated today or later, so
+/// a day without a row anchors on the next planned one. Null when every row
+/// is in the past.
+int? itineraryAnchorIndex(List<ItineraryDay> days, DateTime now) {
+  final today = tripDay(now);
+  final index = days.indexWhere((d) => !tripDay(d.date).isBefore(today));
+  return index < 0 ? null : index;
 }

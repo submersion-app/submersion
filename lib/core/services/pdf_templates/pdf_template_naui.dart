@@ -412,13 +412,16 @@ class PdfTemplateNaui extends PdfTemplateBuilder {
                           ),
                           _buildNauiField(
                             l10n.pdf_visibilityShort,
-                            // Measured distance from v144; pre-v144 dives fall
-                            // back to their bucket label.
-                            dive.visibilityMeters != null
-                                ? units.formatDistance(dive.visibilityMeters!)
-                                : dive.visibility != null
-                                ? visibilityName(dive.visibility!, l10n)
-                                : '-',
+                            // Measured distance from v144, a band-picked
+                            // range (issue #3226), else the bucket label.
+                            formatDiveVisibilityPlain(
+                                  meters: dive.visibilityMeters,
+                                  range: dive.visibilityRange,
+                                  legacy: dive.visibility,
+                                  l10n: l10n,
+                                  units: units,
+                                ) ??
+                                '-',
                           ),
                           if (dive.currentStrength != null)
                             _buildNauiField(

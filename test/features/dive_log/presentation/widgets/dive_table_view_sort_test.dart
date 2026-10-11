@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -54,6 +55,7 @@ void main() {
         currentDiverIdProvider.overrideWith(
           (ref) => MockCurrentDiverIdNotifier(),
         ),
+        diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
         tableViewConfigProvider.overrideWith(
           (ref) => _FixedTableConfigNotifier(config),
         ),

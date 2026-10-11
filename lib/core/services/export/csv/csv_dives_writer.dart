@@ -91,6 +91,10 @@ class CsvDivesWriter {
       DiveCsvColumns.boatName,
       DiveCsvColumns.boatCaptain,
       DiveCsvColumns.surfaceConditions,
+      // A band-picked dive's range (issue #3226), appended for the same
+      // reason as the columns above.
+      units.header(CsvColumns.visibilityMin),
+      units.header(CsvColumns.visibilityMax),
       ...sortedCustomKeys.map(
         (key) => sanitizeCsvField('${DiveCsvColumns.customFieldPrefix}$key'),
       ),
@@ -153,6 +157,15 @@ class CsvDivesWriter {
         sanitizeCsvField(dive.boatName),
         sanitizeCsvField(dive.boatCaptain),
         sanitizeCsvField(dive.surfaceConditions),
+        // Empty beside a measurement, which every reader prefers.
+        units.value(
+          CsvColumns.visibilityMin,
+          dive.visibilityMeters == null ? dive.visibilityMinMeters : null,
+        ),
+        units.value(
+          CsvColumns.visibilityMax,
+          dive.visibilityMeters == null ? dive.visibilityMaxMeters : null,
+        ),
         ...sortedCustomKeys.map((key) {
           final field = dive.customFields
               .where((f) => f.key == key)

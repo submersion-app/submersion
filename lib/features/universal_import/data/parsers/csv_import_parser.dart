@@ -287,6 +287,15 @@ class CsvImportParser implements ImportParser {
     // Visibility, ahead of rating so "Visibility Rating" cannot claim the
     // rating field from a later "Rating" column. A distance in metres is the
     // measured value; any other visibility header is the bucket label.
+    // A range end (issue #3226) must not be auto-mapped onto the
+    // measurement, and is taken only in metres: the value is stored as is,
+    // so a range in feet stays unmapped rather than landing 3.28x too large.
+    final isRangeMin = header.contains('visibility') && header.contains('min');
+    final isRangeMax = header.contains('visibility') && header.contains('max');
+    if (isRangeMin || isRangeMax) {
+      if (!_metresUnit.hasMatch(header)) return null;
+      return isRangeMin ? 'visibilityMinMeters' : 'visibilityMaxMeters';
+    }
     if (header.contains('visibility')) {
       return _metresUnit.hasMatch(header) ? 'visibilityMeters' : 'visibility';
     }

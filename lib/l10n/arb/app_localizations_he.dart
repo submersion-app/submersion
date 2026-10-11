@@ -1733,6 +1733,59 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_dayType_rest => 'מנוחה';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'זרם $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'ראות $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'מים $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות',
+      one: '$count תמונה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged מתוך $planned צלילות מתוכננות',
+      one: '$logged מתוך צלילה אחת מתוכננת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מינים',
+      one: '$count מין',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from עד $to';
+  }
+
+  @override
   String get trips_story_planned => 'מתוכנן';
 
   @override
@@ -7293,6 +7346,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => 'ראות';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => 'טווח';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'מדויק';
 
   @override
   String get diveLog_edit_label_waterTemp => 'טמפ\' מים';
@@ -36913,6 +36972,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands => 'חוצה כמה דרגות';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count נבחרו';
   }
@@ -44589,6 +44651,65 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחיקת כל נתוני הסנכרון בשירות זה';
 
   @override
+  String tableMode_cell_anyValue(String column) {
+    return 'רק צלילות עם $column';
+  }
+
+  @override
+  String tableMode_cell_atLeast(String value) {
+    return 'לפחות $value';
+  }
+
+  @override
+  String tableMode_cell_atMost(String value) {
+    return 'לכל היותר $value';
+  }
+
+  @override
+  String tableMode_cell_exclude(String value) {
+    return 'החרגת $value';
+  }
+
+  @override
+  String tableMode_cell_noValue(String column) {
+    return 'רק צלילות ללא $column';
+  }
+
+  @override
+  String tableMode_cell_onOrAfter(String value) {
+    return 'החל מ-$value';
+  }
+
+  @override
+  String tableMode_cell_onOrBefore(String value) {
+    return 'עד $value';
+  }
+
+  @override
+  String tableMode_cell_only(String value) {
+    return 'רק $value';
+  }
+
+  @override
+  String tableMode_cell_with(String value) {
+    return 'עם $value';
+  }
+
+  @override
+  String tableMode_cell_without(String value) {
+    return 'בלי $value';
+  }
+
+  @override
+  String get tableMode_menu_addFilter => 'הוספת סינון';
+
+  @override
+  String get tableMode_menu_hideColumn => 'הסתרת עמודה';
+
+  @override
+  String get tableMode_menu_resetFilter => 'איפוס סינון';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'הצגת חלונית הפרטים';
 
   @override
@@ -45878,9 +45999,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_badge_viewing => 'בתצוגה';
 
   @override
-  String get diveLog_sources_badge_secondary => 'משני';
-
-  @override
   String diveLog_sources_created(String date) {
     return 'נוצר ב-$date';
   }
@@ -45893,6 +46011,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_sources_detail_imported => 'יובא';
+
+  @override
+  String get diveLog_sources_detail_times => 'זמנים';
+
+  @override
+  String get diveLog_sources_detail_file => 'קובץ';
+
+  @override
+  String diveLog_sources_timeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get diveLog_sources_sectionMenuTooltip => 'פעולות מקורות הנתונים';
 
   @override
   String diveLog_detail_semantics_viewDiveComputer(String name) {

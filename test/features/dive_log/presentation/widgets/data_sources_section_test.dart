@@ -160,7 +160,7 @@ void main() {
     });
 
     testWidgets(
-      'shows "Primary" and "Secondary" badges for multi-source dive',
+      'shows a "Primary" chip and no "Secondary" chip for multi-source dive',
       (tester) async {
         final primary = _makeSource(id: 'src-1', isPrimary: true);
         final secondary = _makeSource(
@@ -185,11 +185,11 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Primary'), findsOneWidget);
-        expect(find.text('Secondary'), findsOneWidget);
+        expect(find.text('Secondary'), findsNothing);
       },
     );
 
-    testWidgets('Compare in 3D button appears and fires for multi-source', (
+    testWidgets('Compare in 3D lives in the header menu for multi-source', (
       tester,
     ) async {
       final primary = _makeSource(id: 'src-1', isPrimary: true);
@@ -214,14 +214,62 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final button = find.widgetWithText(TextButton, 'Compare in 3D');
-      expect(button, findsOneWidget);
-      await tester.tap(button);
-      await tester.pump();
+      expect(find.text('Compare in 3D'), findsNothing);
+      await tester.tap(find.byKey(DataSourcesSection.sectionMenuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Compare in 3D'));
+      await tester.pumpAndSettle();
       expect(tapped, isTrue);
     });
 
-    testWidgets('Compare in 3D button is hidden for a single source', (
+    testWidgets('Separate combined dives lives in the header menu', (
+      tester,
+    ) async {
+      var separated = false;
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [_makeSource()],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+              onSeparate: () => separated = true,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(DataSourcesSection.sectionMenuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Separate combined dives'));
+      await tester.pumpAndSettle();
+      expect(separated, isTrue);
+      // Opening the menu did not collapse the section.
+      expect(find.text('Shearwater Perdix'), findsOneWidget);
+    });
+
+    testWidgets('header menu is hidden when no section action applies', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [_makeSource()],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(DataSourcesSection.sectionMenuKey), findsNothing);
+    });
+
+    testWidgets('Compare in 3D is not offered for a single source', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -238,7 +286,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Compare in 3D'), findsNothing);
+      // A lone source has nothing to compare, so the menu itself is absent.
+      expect(find.byKey(DataSourcesSection.sectionMenuKey), findsNothing);
     });
 
     testWidgets('uses singular "Data Source" header for single source', (
@@ -402,8 +451,90 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Viewing'), findsOneWidget);
+        // The primary card keeps its chip; Viewing no longer replaces it.
+        expect(find.text('Primary'), findsOneWidget);
       },
     );
+
+    testWidgets('viewing the primary source shows both chips on one card', (
+      tester,
+    ) async {
+      final primary = _makeSource(id: 'src-1', isPrimary: true);
+      final secondary = _makeSource(
+        id: 'src-2',
+        isPrimary: false,
+        computerModel: 'Suunto D5',
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [primary, secondary],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+              viewedSourceId: 'src-1',
+              onTapSource: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final card = find.byKey(DataSourcesSection.cardKey('src-1'));
+      expect(
+        find.descendant(of: card, matching: find.text('Primary')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: card, matching: find.text('Viewing')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the viewed card gets a tinted background, others do not', (
+      tester,
+    ) async {
+      final primary = _makeSource(id: 'src-1', isPrimary: true);
+      final secondary = _makeSource(
+        id: 'src-2',
+        isPrimary: false,
+        computerModel: 'Suunto D5',
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [primary, secondary],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+              viewedSourceId: 'src-2',
+              onTapSource: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Color? cardColor(String id) => tester
+          .widget<Material>(
+            find
+                .descendant(
+                  of: find.byKey(DataSourcesSection.cardKey(id)),
+                  matching: find.byType(Material),
+                )
+                .first,
+          )
+          .color;
+      final scheme = Theme.of(
+        tester.element(find.byType(DataSourcesSection)),
+      ).colorScheme;
+      expect(cardColor('src-2'), scheme.surfaceContainerHighest);
+      expect(cardColor('src-1'), isNot(scheme.surfaceContainerHighest));
+    });
 
     testWidgets(
       'manual entry card shows "Manual" badge for single manual dive',
@@ -454,10 +585,141 @@ void main() {
       expect(find.text('Max Depth'), findsOneWidget);
       expect(find.text('Duration'), findsOneWidget);
       expect(find.text('Water Temp'), findsOneWidget);
-      expect(find.text('CNS%'), findsOneWidget);
+      expect(find.text('CNS'), findsOneWidget);
     });
 
-    testWidgets('shows "--" for missing fields on secondary card', (
+    testWidgets('multi-source dive shows metrics in the table only', (
+      tester,
+    ) async {
+      final primary = _makeSource(id: 'src-1', isPrimary: true);
+      final secondary = _makeSource(
+        id: 'src-2',
+        isPrimary: false,
+        computerModel: 'Suunto D5',
+        maxDepth: 31.0,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [primary, secondary],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // One label per metric: the per-card metrics rows are gone.
+      expect(find.text('Max Depth'), findsOneWidget);
+      expect(find.text('Duration'), findsOneWidget);
+      expect(find.text('Water Temp'), findsOneWidget);
+      expect(find.text('CNS'), findsOneWidget);
+      // Each source's value appears exactly once, in its table column.
+      expect(find.text('30.0m'), findsOneWidget);
+      expect(find.text('31.0m'), findsOneWidget);
+    });
+
+    testWidgets('comparison table fits two sources at phone width', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final primary = _makeSource(
+        id: 'src-1',
+        isPrimary: true,
+        computerName: 'My Perdix',
+        computerModel: 'Shearwater Perdix 2',
+        decoAlgorithm: 'Buhlmann ZHL-16C',
+        gradientFactorLow: 30,
+        gradientFactorHigh: 70,
+      );
+      final secondary = _makeSource(
+        id: 'src-2',
+        isPrimary: false,
+        computerName: 'Garmin Descent Mk3i',
+        computerModel: 'Garmin Descent Mk3i',
+        decoAlgorithm: 'Buhlmann ZHL-16C',
+        gradientFactorLow: 40,
+        gradientFactorHigh: 85,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [primary, secondary],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final grid = find.byKey(DataSourcesSection.comparisonGridKey);
+      expect(grid, findsOneWidget);
+      final rect = tester.getRect(grid);
+      expect(rect.right, lessThanOrEqualTo(390));
+      // Both source columns are on screen, not scrolled off the right edge.
+      expect(
+        tester.getRect(find.text('Garmin Descent Mk3i').first).right,
+        lessThanOrEqualTo(390),
+      );
+    });
+
+    testWidgets('comparison table scrolls sideways for three or more sources', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      final sources = [
+        for (var i = 0; i < 3; i++)
+          _makeSource(
+            id: 'src-$i',
+            isPrimary: i == 0,
+            computerModel: 'Computer number $i',
+          ),
+      ];
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: sources,
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(
+        find.ancestor(
+          of: find.byKey(DataSourcesSection.comparisonGridKey),
+          matching: find.byWidgetPredicate(
+            (w) =>
+                w is SingleChildScrollView &&
+                w.scrollDirection == Axis.horizontal,
+          ),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('table keeps rows one source has and drops empty rows', (
       tester,
     ) async {
       final primary = _makeSource(id: 'src-1', isPrimary: true);
@@ -486,8 +748,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // "--" should appear for missing metrics on the secondary card
-      expect(find.text('--'), findsWidgets);
+      // The primary still has these, so the rows stay with one value each.
+      expect(find.text('Max Depth'), findsOneWidget);
+      expect(find.text('30.0m'), findsOneWidget);
+      // Nobody reports OTU or a deco algorithm, so those rows are dropped.
+      expect(find.text('OTU'), findsNothing);
+      expect(find.text('Deco Algorithm'), findsNothing);
     });
 
     testWidgets('shows serial number and source format in details', (
@@ -571,6 +837,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tappedId, equals('src-2'));
+      // Cards are ink wells now, so the tap shows a ripple.
+      expect(
+        find.descendant(
+          of: find.byKey(DataSourcesSection.cardKey('src-2')),
+          matching: find.byType(InkWell),
+        ),
+        findsWidgets,
+      );
     });
   });
 
@@ -640,7 +914,7 @@ void main() {
       expect(find.text('50 min'), findsOneWidget);
       // Temperature: 22C with degree symbol
       expect(find.textContaining('22'), findsWidgets);
-      expect(find.text('15.0%'), findsOneWidget);
+      expect(find.text('15%'), findsOneWidget);
     });
 
     testWidgets('shows import date in details grid', (tester) async {
@@ -664,7 +938,7 @@ void main() {
       expect(find.text('Mar 15, 2026'), findsOneWidget);
     });
 
-    testWidgets('shows entry and exit times in details grid', (tester) async {
+    testWidgets('merges entry and exit into one Times row', (tester) async {
       final source = _makeSource(
         entryTime: DateTime(2026, 3, 20, 10, 0),
         exitTime: DateTime(2026, 3, 20, 10, 50),
@@ -684,10 +958,96 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(find.text('Times'), findsOneWidget);
+      expect(find.text('10:00 AM–10:50 AM'), findsOneWidget);
+      expect(find.text('Entry'), findsNothing);
+      expect(find.text('Exit'), findsNothing);
+    });
+
+    testWidgets('a lone entry time keeps the Entry label', (tester) async {
+      final source = _makeSource(entryTime: DateTime(2026, 3, 20, 10, 0));
+      final withoutExit = DiveDataSource(
+        id: source.id,
+        diveId: source.diveId,
+        computerId: source.computerId,
+        isPrimary: source.isPrimary,
+        computerModel: source.computerModel,
+        computerSerial: source.computerSerial,
+        sourceFormat: source.sourceFormat,
+        entryTime: source.entryTime,
+        importedAt: source.importedAt,
+        createdAt: source.createdAt,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [withoutExit],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
       expect(find.text('Entry'), findsOneWidget);
-      expect(find.text('Exit'), findsOneWidget);
       expect(find.text('10:00 AM'), findsOneWidget);
+      expect(find.text('Times'), findsNothing);
+    });
+
+    testWidgets('a lone exit time keeps the Exit label', (tester) async {
+      final source = _makeSource();
+      final withoutEntry = DiveDataSource(
+        id: source.id,
+        diveId: source.diveId,
+        computerId: source.computerId,
+        isPrimary: source.isPrimary,
+        computerModel: source.computerModel,
+        exitTime: DateTime(2026, 3, 20, 10, 50),
+        importedAt: source.importedAt,
+        createdAt: source.createdAt,
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [withoutEntry],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Exit'), findsOneWidget);
       expect(find.text('10:50 AM'), findsOneWidget);
+      expect(find.text('Times'), findsNothing);
+      expect(find.text('Entry'), findsNothing);
+    });
+
+    testWidgets('file name gets its own labelled row', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              dataSources: [_makeSource()],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('File'), findsOneWidget);
+      expect(find.text('dive_log.ssrf'), findsOneWidget);
     });
 
     testWidgets('does not show badges when single source', (tester) async {
@@ -731,6 +1091,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('dive_log.ssrf'), findsNothing);
+      expect(find.text('File'), findsNothing);
     });
 
     testWidgets('falls back to the serial when computerModel is null', (
@@ -952,10 +1313,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(Divider), findsOneWidget);
+      // One below the comparison grid, one between the two cards.
+      expect(find.byType(Divider), findsNWidgets(2));
     });
 
-    testWidgets('primary card has colored left border', (tester) async {
+    testWidgets('primary card has no coloured left border', (tester) async {
       final primary = _makeSource(id: 'src-1', isPrimary: true);
       final secondary = _makeSource(
         id: 'src-2',
@@ -977,22 +1339,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Find Container widgets with BoxDecoration that have a left border.
-      // The primary card gets a left border with colorScheme.primary.
-      final containers = find.byType(Container);
-      var foundBorderedContainer = false;
-      for (final container in containers.evaluate()) {
-        final widget = container.widget as Container;
-        final decoration = widget.decoration;
-        if (decoration is BoxDecoration && decoration.border is Border) {
-          final border = decoration.border! as Border;
-          if (border.left.width == 3) {
-            foundBorderedContainer = true;
-            break;
-          }
-        }
-      }
-      expect(foundBorderedContainer, isTrue);
+      // Primary status is carried by the chip alone (#3247); the old 3px
+      // accent border is gone, so no decorated Container draws one.
+      final bordered = find.byWidgetPredicate((w) {
+        if (w is! Container) return false;
+        final decoration = w.decoration;
+        return decoration is BoxDecoration &&
+            decoration.border is Border &&
+            (decoration.border! as Border).left.width == 3;
+      });
+      expect(bordered, findsNothing);
     });
 
     testWidgets('onSplit callback fires from overflow menu', (tester) async {
@@ -1033,7 +1389,7 @@ void main() {
       expect(splitId, equals('src-2'));
     });
 
-    testWidgets('three sources show two dividers', (tester) async {
+    testWidgets('three sources show three dividers', (tester) async {
       final src1 = _makeSource(
         id: 'src-1',
         isPrimary: true,
@@ -1065,10 +1421,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // Two dividers between three cards
-      expect(find.byType(Divider), findsNWidgets(2));
-      // One Primary badge, two Secondary badges
+      // One below the comparison grid, two between the three cards.
+      expect(find.byType(Divider), findsNWidgets(3));
+      // One Primary chip; the Secondary chip is gone (#3247).
       expect(find.text('Primary'), findsOneWidget);
-      expect(find.text('Secondary'), findsNWidgets(2));
+      expect(find.text('Secondary'), findsNothing);
     });
   });
 
@@ -1119,30 +1476,32 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        final dataTableFinder = find.byType(DataTable);
+        final dataTableFinder = find.byKey(
+          DataSourcesSection.comparisonGridKey,
+        );
         expect(dataTableFinder, findsOneWidget);
 
-        final dataTable = tester.widget<DataTable>(dataTableFinder);
+        final table = tester.widget<Table>(dataTableFinder);
         // One "metric" label column + one column per source.
-        expect(dataTable.columns, hasLength(3));
-        expect(
-          (dataTable.columns[1].label as Text).data,
-          equals('Shearwater Perdix'),
+        expect(table.children.first.children, hasLength(3));
+        Text headerText(String name) => tester.widget<Text>(
+          find.descendant(of: dataTableFinder, matching: find.text(name)),
         );
-        expect(
-          (dataTable.columns[2].label as Text).data,
-          equals('Shearwater Teric'),
-        );
+        expect(headerText('Shearwater Perdix'), isNotNull);
+        expect(headerText('Shearwater Teric'), isNotNull);
 
         // Primary column header is bold; secondary is not.
-        final primaryHeaderStyle = (dataTable.columns[1].label as Text).style;
-        expect(primaryHeaderStyle?.fontWeight, equals(FontWeight.bold));
-        final secondaryHeaderStyle = (dataTable.columns[2].label as Text).style;
-        expect(secondaryHeaderStyle?.fontWeight, isNot(FontWeight.bold));
+        expect(
+          headerText('Shearwater Perdix').style?.fontWeight,
+          equals(FontWeight.bold),
+        );
+        expect(
+          headerText('Shearwater Teric').style?.fontWeight,
+          isNot(FontWeight.bold),
+        );
 
-        // Row labels use the new l10n keys. "Max Depth" and "Duration" also
-        // appear on each per-source card's own metrics row, so scope both
-        // lookups to the grid.
+        // Row labels use the l10n keys. The source names also appear on the
+        // cards below, so lookups stay scoped to the grid.
         expect(
           find.descendant(
             of: dataTableFinder,
@@ -1253,13 +1612,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final dataTable = tester.widget<DataTable>(find.byType(DataTable));
+      final grid = find.byKey(DataSourcesSection.comparisonGridKey);
       // Primary column shows the friendly name; secondary (no friendly name)
       // falls back to its model snapshot.
-      expect((dataTable.columns[1].label as Text).data, equals('My Perdix'));
       expect(
-        (dataTable.columns[2].label as Text).data,
-        equals('Shearwater Teric'),
+        find.descendant(of: grid, matching: find.text('My Perdix')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: grid, matching: find.text('Shearwater Teric')),
+        findsOneWidget,
       );
     });
 
@@ -1295,10 +1657,13 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        final dataTable = tester.widget<DataTable>(find.byType(DataTable));
+        final grid = find.byKey(DataSourcesSection.comparisonGridKey);
         // No friendly name and no model: the serial identifies the column,
         // not the generic "Unknown" label.
-        expect((dataTable.columns[2].label as Text).data, equals('SN-ONLY-42'));
+        expect(
+          find.descendant(of: grid, matching: find.text('SN-ONLY-42')),
+          findsOneWidget,
+        );
       },
     );
 
@@ -1321,7 +1686,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(DataTable), findsNothing);
+      expect(find.byKey(DataSourcesSection.comparisonGridKey), findsNothing);
     });
   });
 
@@ -1426,6 +1791,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      // A lone source with nothing to separate has no section menu at all.
+      expect(find.byKey(DataSourcesSection.sectionMenuKey), findsNothing);
       expect(find.text('Separate combined dives'), findsNothing);
     });
 
@@ -1453,6 +1820,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(DataSourcesSection.sectionMenuKey));
+      await tester.pumpAndSettle();
       expect(find.text('Separate combined dives'), findsOneWidget);
       await tester.tap(find.text('Separate combined dives'));
       await tester.pumpAndSettle();
@@ -1487,6 +1856,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      await tester.tap(find.byKey(DataSourcesSection.sectionMenuKey));
+      await tester.pumpAndSettle();
       expect(find.text('Compare in 3D'), findsOneWidget);
       expect(find.text('Separate combined dives'), findsOneWidget);
     });

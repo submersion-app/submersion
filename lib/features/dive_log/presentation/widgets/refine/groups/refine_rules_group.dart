@@ -16,6 +16,7 @@ class RefineRulesGroup extends ConsumerWidget {
     required this.draft,
     required this.onChanged,
     required this.saveNode,
+    this.startOnBuilder = false,
   });
 
   final DiveFilterState draft;
@@ -25,6 +26,10 @@ class RefineRulesGroup extends ConsumerWidget {
   /// as Show would apply them (spec 5.4). Null while the panel narrows
   /// nothing, which disables Save.
   final QueryNode? saveNode;
+
+  /// Opens the editor on its Builder tab (#2984: a rule the dive table
+  /// just added is shown as a card, ready to edit).
+  final bool startOnBuilder;
 
   /// The DiveFilterState fields this group edits (read by the axis guard).
   static const fields = {'query'};
@@ -40,6 +45,7 @@ class RefineRulesGroup extends ConsumerWidget {
       onChanged: (node) =>
           onChanged(draft.copyWith(query: node, clearQuery: node == null)),
       canSave: saveNode != null,
+      initialTab: startOnBuilder ? 1 : 0,
       onSave: () {
         final node = saveNode;
         if (node == null) return;

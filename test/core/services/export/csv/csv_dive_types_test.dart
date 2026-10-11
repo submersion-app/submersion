@@ -88,11 +88,20 @@ void main() {
     });
 
     test('appends the #3229 columns after Dive Type IDs', () {
-      expect(DiveCsvColumns.fixed.sublist(DiveCsvColumns.fixed.length - 4), [
+      final start =
+          DiveCsvColumns.fixed.indexOf(DiveCsvColumns.diveTypeIds) + 1;
+      expect(DiveCsvColumns.fixed.sublist(start, start + 4), [
         DiveCsvColumns.diveOperator,
         DiveCsvColumns.boatName,
         DiveCsvColumns.boatCaptain,
         DiveCsvColumns.surfaceConditions,
+      ]);
+    });
+
+    test('appends the visibility range columns last (issue #3226)', () {
+      expect(DiveCsvColumns.fixed.sublist(DiveCsvColumns.fixed.length - 2), [
+        DiveCsvColumns.visibilityMin,
+        DiveCsvColumns.visibilityMax,
       ]);
     });
   });

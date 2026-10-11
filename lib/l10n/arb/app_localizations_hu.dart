@@ -1751,6 +1751,56 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_dayType_rest => 'Pihenőnap';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'Áramlás $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'Látótáv $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'Víz $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged / $planned tervezett merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count faj',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from–$to';
+  }
+
+  @override
   String get trips_story_planned => 'Tervezett';
 
   @override
@@ -7431,6 +7481,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => 'Látásviszonyok';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => 'Tartomány';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'Pontos';
 
   @override
   String get diveLog_edit_label_waterTemp => 'Víz hőm.';
@@ -37641,6 +37697,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands => 'Több sávot átfog';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count kijelölve';
   }
@@ -45285,6 +45344,65 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az összes szinkronizálási adat törlése ezen a szolgáltatón';
 
   @override
+  String tableMode_cell_anyValue(String column) {
+    return 'Csak $column értékkel rendelkező merülések';
+  }
+
+  @override
+  String tableMode_cell_atLeast(String value) {
+    return 'Legalább $value';
+  }
+
+  @override
+  String tableMode_cell_atMost(String value) {
+    return 'Legfeljebb $value';
+  }
+
+  @override
+  String tableMode_cell_exclude(String value) {
+    return '$value kizárása';
+  }
+
+  @override
+  String tableMode_cell_noValue(String column) {
+    return 'Csak $column nélküli merülések';
+  }
+
+  @override
+  String tableMode_cell_onOrAfter(String value) {
+    return '$value vagy később';
+  }
+
+  @override
+  String tableMode_cell_onOrBefore(String value) {
+    return '$value vagy korábban';
+  }
+
+  @override
+  String tableMode_cell_only(String value) {
+    return 'Csak $value';
+  }
+
+  @override
+  String tableMode_cell_with(String value) {
+    return 'Ezzel: $value';
+  }
+
+  @override
+  String tableMode_cell_without(String value) {
+    return 'Enélkül: $value';
+  }
+
+  @override
+  String get tableMode_menu_addFilter => 'Szűrő hozzáadása';
+
+  @override
+  String get tableMode_menu_hideColumn => 'Oszlop elrejtése';
+
+  @override
+  String get tableMode_menu_resetFilter => 'Szűrő visszaállítása';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'Részletek panel ki/be';
 
   @override
@@ -46588,9 +46706,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_sources_badge_viewing => 'Megtekintve';
 
   @override
-  String get diveLog_sources_badge_secondary => 'Másodlagos';
-
-  @override
   String diveLog_sources_created(String date) {
     return 'Létrehozva: $date';
   }
@@ -46603,6 +46718,20 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_sources_detail_imported => 'Importálva';
+
+  @override
+  String get diveLog_sources_detail_times => 'Időpontok';
+
+  @override
+  String get diveLog_sources_detail_file => 'Fájl';
+
+  @override
+  String diveLog_sources_timeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get diveLog_sources_sectionMenuTooltip => 'Adatforrás-műveletek';
 
   @override
   String diveLog_detail_semantics_viewDiveComputer(String name) {

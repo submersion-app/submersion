@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
+import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 
 void main() {
@@ -129,6 +130,18 @@ void main() {
         expect(shownDayType(row(9, type), hasDives: true), type);
         expect(shownDayType(row(9, type), hasDives: false), type);
       }
+    });
+  });
+
+  group('tripDayKind', () {
+    final now = DateTime(2026, 3, 8, 23, 30);
+    test('compares calendar days, not instants', () {
+      expect(
+        tripDayKind(DateTime(2026, 3, 7, 23, 59), now),
+        TripStoryDayKind.past,
+      );
+      expect(tripDayKind(DateTime(2026, 3, 8), now), TripStoryDayKind.today);
+      expect(tripDayKind(DateTime(2026, 3, 9), now), TripStoryDayKind.future);
     });
   });
 }

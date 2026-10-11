@@ -1751,6 +1751,59 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_dayType_rest => 'Descanso';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'Corrente $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'Visibilidade $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'Água $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos',
+      one: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged de $planned mergulhos planeados',
+      one: '$logged de $planned mergulho planeado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count espécies',
+      one: '$count espécie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from a $to';
+  }
+
+  @override
   String get trips_story_planned => 'Planejado';
 
   @override
@@ -7447,6 +7500,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => 'Visibilidade';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => 'Faixa';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'Preciso';
 
   @override
   String get diveLog_edit_label_waterTemp => 'Temp da Água';
@@ -37839,6 +37898,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands =>
+      'Abrange várias faixas';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count selecionados';
   }
@@ -45539,6 +45602,65 @@ class AppLocalizationsPt extends AppLocalizations {
       'Apagar todos os dados de sincronização neste provedor';
 
   @override
+  String tableMode_cell_anyValue(String column) {
+    return 'Apenas mergulhos com $column';
+  }
+
+  @override
+  String tableMode_cell_atLeast(String value) {
+    return 'Pelo menos $value';
+  }
+
+  @override
+  String tableMode_cell_atMost(String value) {
+    return 'No máximo $value';
+  }
+
+  @override
+  String tableMode_cell_exclude(String value) {
+    return 'Excluir $value';
+  }
+
+  @override
+  String tableMode_cell_noValue(String column) {
+    return 'Apenas mergulhos sem $column';
+  }
+
+  @override
+  String tableMode_cell_onOrAfter(String value) {
+    return 'A partir de $value';
+  }
+
+  @override
+  String tableMode_cell_onOrBefore(String value) {
+    return 'Até $value';
+  }
+
+  @override
+  String tableMode_cell_only(String value) {
+    return 'Apenas $value';
+  }
+
+  @override
+  String tableMode_cell_with(String value) {
+    return 'Com $value';
+  }
+
+  @override
+  String tableMode_cell_without(String value) {
+    return 'Sem $value';
+  }
+
+  @override
+  String get tableMode_menu_addFilter => 'Adicionar filtro';
+
+  @override
+  String get tableMode_menu_hideColumn => 'Ocultar coluna';
+
+  @override
+  String get tableMode_menu_resetFilter => 'Redefinir filtro';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane =>
       'Alternar painel de detalhes';
 
@@ -46846,9 +46968,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_sources_badge_viewing => 'Visualizando';
 
   @override
-  String get diveLog_sources_badge_secondary => 'Secundária';
-
-  @override
   String diveLog_sources_created(String date) {
     return 'Criado em $date';
   }
@@ -46861,6 +46980,20 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_sources_detail_imported => 'Importado';
+
+  @override
+  String get diveLog_sources_detail_times => 'Horários';
+
+  @override
+  String get diveLog_sources_detail_file => 'Arquivo';
+
+  @override
+  String diveLog_sources_timeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get diveLog_sources_sectionMenuTooltip => 'Ações das fontes de dados';
 
   @override
   String diveLog_detail_semantics_viewDiveComputer(String name) {

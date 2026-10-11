@@ -1789,6 +1789,68 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_dayType_rest => 'راحة';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return 'التيار $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return 'الرؤية $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return 'الماء $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة',
+      many: '$count صورة',
+      few: '$count صور',
+      two: 'صورتان',
+      one: 'صورة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '$logged من $planned غوصة مخططة',
+      many: '$logged من $planned غوصة مخططة',
+      few: '$logged من $planned غوصات مخططة',
+      two: '$logged من غوصتين مخططتين',
+      one: '$logged من غوصة واحدة مخططة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع',
+      many: '$count نوعًا',
+      few: '$count أنواع',
+      two: 'نوعان',
+      one: 'نوع واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from إلى $to';
+  }
+
+  @override
   String get trips_story_planned => 'مخطط';
 
   @override
@@ -7541,6 +7603,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => 'الرؤية';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => 'نطاق';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => 'دقيق';
 
   @override
   String get diveLog_edit_label_waterTemp => 'درجة حرارة الماء';
@@ -38338,6 +38406,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands => 'يمتد عبر عدة فئات';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '$count محدد';
   }
@@ -46142,6 +46213,65 @@ class AppLocalizationsAr extends AppLocalizations {
       'مسح جميع بيانات المزامنة على هذه الخدمة';
 
   @override
+  String tableMode_cell_anyValue(String column) {
+    return 'فقط الغوصات التي لها $column';
+  }
+
+  @override
+  String tableMode_cell_atLeast(String value) {
+    return '$value على الأقل';
+  }
+
+  @override
+  String tableMode_cell_atMost(String value) {
+    return '$value على الأكثر';
+  }
+
+  @override
+  String tableMode_cell_exclude(String value) {
+    return 'استبعاد $value';
+  }
+
+  @override
+  String tableMode_cell_noValue(String column) {
+    return 'فقط الغوصات بدون $column';
+  }
+
+  @override
+  String tableMode_cell_onOrAfter(String value) {
+    return 'في $value أو بعده';
+  }
+
+  @override
+  String tableMode_cell_onOrBefore(String value) {
+    return 'في $value أو قبله';
+  }
+
+  @override
+  String tableMode_cell_only(String value) {
+    return '$value فقط';
+  }
+
+  @override
+  String tableMode_cell_with(String value) {
+    return 'مع $value';
+  }
+
+  @override
+  String tableMode_cell_without(String value) {
+    return 'بدون $value';
+  }
+
+  @override
+  String get tableMode_menu_addFilter => 'إضافة تصفية';
+
+  @override
+  String get tableMode_menu_hideColumn => 'إخفاء العمود';
+
+  @override
+  String get tableMode_menu_resetFilter => 'إعادة تعيين التصفية';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => 'تبديل لوحة التفاصيل';
 
   @override
@@ -47462,9 +47592,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_badge_viewing => 'قيد العرض';
 
   @override
-  String get diveLog_sources_badge_secondary => 'ثانوي';
-
-  @override
   String diveLog_sources_created(String date) {
     return 'أُنشئ في $date';
   }
@@ -47477,6 +47604,20 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_sources_detail_imported => 'تاريخ الاستيراد';
+
+  @override
+  String get diveLog_sources_detail_times => 'الأوقات';
+
+  @override
+  String get diveLog_sources_detail_file => 'الملف';
+
+  @override
+  String diveLog_sources_timeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get diveLog_sources_sectionMenuTooltip => 'إجراءات مصادر البيانات';
 
   @override
   String diveLog_detail_semantics_viewDiveComputer(String name) {

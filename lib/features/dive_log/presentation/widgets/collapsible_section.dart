@@ -34,6 +34,14 @@ class CollapsibleSection extends StatelessWidget {
   /// Optional trailing widget (e.g., status badge)
   final Widget? trailing;
 
+  /// Optional actions shown in the header, left of the chevron, in both the
+  /// expanded and the collapsed state (a menu button, say). Unlike
+  /// [trailing], which is a collapsed-only summary, this stays put so an
+  /// action is reachable without expanding the section first. The header's
+  /// vertical padding shrinks to make room for a compact button so the
+  /// header keeps its height.
+  final Widget? headerActions;
+
   /// Optional subtitle text
   final String? subtitle;
 
@@ -52,6 +60,7 @@ class CollapsibleSection extends StatelessWidget {
     required this.icon,
     this.iconColor,
     this.trailing,
+    this.headerActions,
     this.subtitle,
     required this.isExpanded,
     required this.onToggle,
@@ -79,7 +88,10 @@ class CollapsibleSection extends StatelessWidget {
             child: InkWell(
               onTap: () => onToggle(!isExpanded),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: headerActions != null ? 8 : 16,
+                ),
                 child: Row(
                   children: [
                     Icon(
@@ -111,6 +123,10 @@ class CollapsibleSection extends StatelessWidget {
                     if (trailing != null && !isExpanded) ...[
                       _flexibleTrailing(trailing!),
                       const SizedBox(width: 8),
+                    ],
+                    if (headerActions != null) ...[
+                      headerActions!,
+                      const SizedBox(width: 4),
                     ],
                     AnimatedRotation(
                       turns: isExpanded ? 0.5 : 0,

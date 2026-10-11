@@ -3,6 +3,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_relation.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/query/dive_child_query_entities.dart';
@@ -61,6 +62,7 @@ QueryField _num(
   FieldDimension dimension = FieldDimension.none,
   ({double min, double max})? sanity,
   String? emptySql,
+  ({String low, String high})? rangeSql,
   List<String> tables = const [],
 }) => QueryField(
   key: key,
@@ -71,6 +73,7 @@ QueryField _num(
   emptySql: emptySql ?? '$sql IS NULL',
   labelKey: _label(key),
   sanity: sanity,
+  rangeSql: rangeSql,
   tables: tables,
 );
 
@@ -312,9 +315,16 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'visibility',
       '{r}.visibility_meters',
       dimension: FieldDimension.depth,
+      // A band pick stores a range instead (issue #3226).
+      rangeSql: (
+        low: '{r}.visibility_min_meters',
+        high: '{r}.visibility_max_meters',
+      ),
       emptySql:
-          '({r}.visibility_meters IS NULL AND ({r}.visibility IS NULL '
-          "OR TRIM({r}.visibility) = ''))",
+          '({r}.visibility_meters IS NULL '
+          'AND {r}.visibility_min_meters IS NULL '
+          'AND {r}.visibility_max_meters IS NULL '
+          "AND ({r}.visibility IS NULL OR TRIM({r}.visibility) = ''))",
     ),
     _num(
       'rating',
@@ -322,11 +332,14 @@ final QueryEntity diveQueryEntity = QueryEntity(
       dimension: FieldDimension.count,
       sanity: (min: 0, max: 5),
     ),
+    // The table's value (#2984): stored, else the gap from the previous
+    // dive, so what a diver sees in the column is what this field filters.
     _num(
       'surfaceInterval',
-      '({r}.surface_interval_seconds / 60)',
+      '(${diveSurfaceIntervalSecondsSql('{r}')} / 60)',
       dimension: FieldDimension.minutes,
-      emptySql: '{r}.surface_interval_seconds IS NULL',
+      emptySql: '(${diveSurfaceIntervalSecondsSql('{r}')}) IS NULL',
+      tables: const ['dive_profile_series'],
     ),
     _num(
       'cnsEnd',

@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
@@ -72,6 +73,7 @@ void main() {
       overrides: [
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
         diveTypesProvider.overrideWith((ref) async => types),
+        diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
         tableViewConfigProvider.overrideWith(
           (ref) => _TestTableConfigNotifier(
             TableViewConfig(

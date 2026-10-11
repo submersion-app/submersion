@@ -153,19 +153,137 @@ void main() {
     expect(find.text('Today'), findsNothing);
   });
 
-  testWidgets('in-progress trip shows a Today divider', (tester) async {
-    // Capture now once so the trip range and the injected story `today` can't
-    // straddle a midnight boundary and shift todayIndex.
+  group('in progress', () {
+    // Today is the last-but-three day; every day up to today has a dive, so
+    // each chapter has a card body and the story is long.
+    TripStory longTrip({required int todayOffset}) {
+      final now = DateTime.now();
+      final today = _dayOnly(now);
+      final trip = _trip(
+        start: today.subtract(Duration(days: todayOffset)),
+        // Two weeks still to come, so plenty follows today in the window.
+        end: today.add(const Duration(days: 15)),
+      );
+      return _story(
+        trip,
+        today: now,
+        dives: [
+          for (var i = 0; i <= todayOffset; i++)
+            _dive(
+              'd$i',
+              today
+                  .subtract(Duration(days: todayOffset - i))
+                  .add(const Duration(hours: 9)),
+            ),
+        ],
+      );
+    }
+
+    testWidgets('opens with today at the top', (tester) async {
+      await pumpView(
+        tester,
+        longTrip(todayOffset: 9),
+        viewSize: const Size(800, 900),
+      );
+      final chip = find.byKey(const Key('today-chip'));
+      expect(chip, findsOneWidget);
+      expect(tester.getTopLeft(chip).dy, lessThan(120));
+      expect(find.byType(TripStoryHero), findsNothing);
+    });
+
+    testWidgets('earlier days and the hero are above, by scrolling up', (
+      tester,
+    ) async {
+      await pumpView(
+        tester,
+        longTrip(todayOffset: 9),
+        viewSize: const Size(800, 900),
+      );
+      for (var i = 0; i < 12; i++) {
+        await tester.drag(find.byType(CustomScrollView), const Offset(0, 800));
+        await tester.pump(const Duration(milliseconds: 200));
+      }
+      expect(find.byType(TripStoryHero), findsOneWidget);
+    });
+
+    testWidgets('today on Day 1 keeps the hero just above', (tester) async {
+      await pumpView(
+        tester,
+        longTrip(todayOffset: 0),
+        viewSize: const Size(800, 900),
+      );
+      final chip = find.byKey(const Key('today-chip'));
+      expect(tester.getTopLeft(chip).dy, lessThan(120));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 900));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byType(TripStoryHero), findsOneWidget);
+    });
+
+    testWidgets('the last day fills the window with the days before it', (
+      tester,
+    ) async {
+      final now = DateTime.now();
+      final today = _dayOnly(now);
+      final trip = _trip(
+        start: today.subtract(const Duration(days: 9)),
+        end: today,
+      );
+      final story = _story(
+        trip,
+        today: now,
+        dives: [
+          for (var i = 0; i < 9; i++)
+            _dive('d$i', today.subtract(Duration(days: 9 - i, hours: -9))),
+        ],
+      );
+      await pumpView(tester, story, viewSize: const Size(800, 900));
+      // Today is the last day, a header with nothing after it: it ends the
+      // window instead of sitting at the top over a blank screen.
+      final chip = find.byKey(const Key('today-chip'));
+      expect(tester.getTopLeft(chip).dy, greaterThan(400));
+      expect(find.byType(TripStoryDayHeader), findsAtLeastNWidgets(2));
+    });
+
+    testWidgets('the Today divider is gone; the header carries it', (
+      tester,
+    ) async {
+      await pumpView(tester, longTrip(todayOffset: 1));
+      expect(find.text('Today'), findsOneWidget);
+    });
+  });
+
+  testWidgets('an ended trip with a dive today still opens at the hero', (
+    tester,
+  ) async {
+    // A dive logged today stretches the story to today, but the trip itself
+    // ended yesterday: it is not under way, so it opens at the top.
     final now = DateTime.now();
     final today = _dayOnly(now);
     final trip = _trip(
-      start: today.subtract(const Duration(days: 1)),
-      end: today.add(const Duration(days: 2)),
+      start: today.subtract(const Duration(days: 20)),
+      end: today.subtract(const Duration(days: 1)),
     );
-    final story = _story(trip, today: now);
-    await pumpView(tester, story);
+    final story = _story(
+      trip,
+      today: now,
+      dives: [
+        for (var i = 0; i <= 20; i++)
+          _dive('d$i', today.subtract(Duration(days: 20 - i, hours: -9))),
+      ],
+    );
+    expect(story.todayIndex, isNotNull);
+    await pumpView(tester, story, viewSize: const Size(800, 900));
+    expect(find.byType(TripStoryHero), findsOneWidget);
+  });
 
-    expect(find.text('Today'), findsOneWidget);
+  testWidgets('a past trip still opens at the hero', (tester) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 27),
+      end: DateTime(2026, 3, 28),
+    );
+    await pumpView(tester, _story(trip, today: DateTime(2026, 5, 1)));
+    expect(find.byType(TripStoryHero), findsOneWidget);
+    expect(find.byKey(const Key('today-chip')), findsNothing);
   });
 
   testWidgets('liveaboard trip includes the vessel section', (tester) async {
@@ -406,6 +524,49 @@ void main() {
       ],
     );
     expect(find.byKey(const Key('trip-cylinders-summary')), findsOneWidget);
+  });
+
+  testWidgets('the under-way cards open with today, above its header', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final today = _dayOnly(now);
+    final trip = _trip(
+      start: today.subtract(const Duration(days: 8)),
+      end: today.add(const Duration(days: 15)),
+    );
+    final story = _story(
+      trip,
+      today: now,
+      dives: [
+        for (var i = 0; i <= 8; i++)
+          _dive('d$i', today.subtract(Duration(days: 8 - i, hours: -9))),
+      ],
+    );
+    await pumpView(
+      tester,
+      story,
+      viewSize: const Size(800, 900),
+      cylinderStates: [
+        foldCylinderState(
+          cylinder: TripCylinder(
+            id: 'c1',
+            tripId: 'trip-1',
+            label: 'Truck 1',
+            createdAt: now,
+            updatedAt: now,
+          ),
+          events: const [],
+          uses: const [],
+        ),
+      ],
+    );
+    final summary = find.byKey(const Key('trip-cylinders-summary'));
+    final chip = find.byKey(const Key('today-chip'));
+    expect(summary, findsOneWidget);
+    expect(tester.getTopLeft(summary).dy, lessThan(40));
+    expect(tester.getTopLeft(summary).dy, lessThan(tester.getTopLeft(chip).dy));
+    expect(find.byType(TripStoryHero), findsNothing);
   });
 
   testWidgets('day cards are keyed by date so shifted days keep their state', (

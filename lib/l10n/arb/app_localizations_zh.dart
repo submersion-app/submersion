@@ -1690,6 +1690,56 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_dayType_rest => '休息';
 
   @override
+  String trips_day_conditionCurrent(String value) {
+    return '水流 $value';
+  }
+
+  @override
+  String trips_day_conditionVisibility(String value) {
+    return '能见度 $value';
+  }
+
+  @override
+  String trips_day_conditionWater(String value) {
+    return '水温 $value';
+  }
+
+  @override
+  String trips_day_photoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_planProgress(int logged, int planned) {
+    String _temp0 = intl.Intl.pluralLogic(
+      planned,
+      locale: localeName,
+      other: '已完成 $logged 次，计划 $planned 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个物种',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_day_valueRange(String from, String to) {
+    return '$from 至 $to';
+  }
+
+  @override
   String get trips_story_planned => '已计划';
 
   @override
@@ -7085,6 +7135,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_label_visibility => '能见度';
+
+  @override
+  String get diveLog_edit_visibility_modeRange => '范围';
+
+  @override
+  String get diveLog_edit_visibility_modePrecise => '精确';
 
   @override
   String get diveLog_edit_label_waterTemp => '水温';
@@ -35712,6 +35768,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get insights_conditions_visibility_spansBands => '跨多个等级';
+
+  @override
   String common_selection_countSelected(Object count) {
     return '已选择 $count 项';
   }
@@ -42792,6 +42851,65 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_troubleshootSync_wipeAll_title => '清除此后端上的所有同步数据';
 
   @override
+  String tableMode_cell_anyValue(String column) {
+    return '仅显示有$column的潜水';
+  }
+
+  @override
+  String tableMode_cell_atLeast(String value) {
+    return '至少 $value';
+  }
+
+  @override
+  String tableMode_cell_atMost(String value) {
+    return '至多 $value';
+  }
+
+  @override
+  String tableMode_cell_exclude(String value) {
+    return '排除 $value';
+  }
+
+  @override
+  String tableMode_cell_noValue(String column) {
+    return '仅显示无$column的潜水';
+  }
+
+  @override
+  String tableMode_cell_onOrAfter(String value) {
+    return '$value 及之后';
+  }
+
+  @override
+  String tableMode_cell_onOrBefore(String value) {
+    return '$value 及之前';
+  }
+
+  @override
+  String tableMode_cell_only(String value) {
+    return '仅 $value';
+  }
+
+  @override
+  String tableMode_cell_with(String value) {
+    return '包含 $value';
+  }
+
+  @override
+  String tableMode_cell_without(String value) {
+    return '不含 $value';
+  }
+
+  @override
+  String get tableMode_menu_addFilter => '添加筛选';
+
+  @override
+  String get tableMode_menu_hideColumn => '隐藏列';
+
+  @override
+  String get tableMode_menu_resetFilter => '重置筛选';
+
+  @override
   String get tableMode_tooltip_toggleDetailPane => '切换详情面板';
 
   @override
@@ -44002,9 +44120,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_badge_viewing => '正在查看';
 
   @override
-  String get diveLog_sources_badge_secondary => '次要';
-
-  @override
   String diveLog_sources_created(String date) {
     return '创建于 $date';
   }
@@ -44017,6 +44132,20 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_sources_detail_imported => '导入时间';
+
+  @override
+  String get diveLog_sources_detail_times => '时间';
+
+  @override
+  String get diveLog_sources_detail_file => '文件';
+
+  @override
+  String diveLog_sources_timeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String get diveLog_sources_sectionMenuTooltip => '数据来源操作';
 
   @override
   String diveLog_detail_semantics_viewDiveComputer(String name) {

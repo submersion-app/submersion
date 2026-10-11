@@ -1753,11 +1753,24 @@ class DiveRepository {
                 waterTemp: Value(dive.waterTemp),
                 airTemp: Value(dive.airTemp),
                 visibilityMeters: Value(dive.visibilityMeters),
-                // A measured distance supersedes the legacy bucket. Value(null)
-                // rather than Value.absent(): absent() preserves the existing
-                // column on a companion write, which would leave the dive
-                // carrying both a measurement and a contradicting bucket.
-                visibility: dive.visibilityMeters != null
+                // One visibility shape per dive (issue #3226): a measured distance
+                // wins over a range, and either supersedes the legacy bucket.
+                // Value(null) rather than Value.absent(): absent() preserves the
+                // existing column on a companion write, which would leave the dive
+                // carrying two shapes.
+                visibilityMinMeters: Value(
+                  dive.visibilityMeters == null
+                      ? dive.visibilityMinMeters
+                      : null,
+                ),
+                visibilityMaxMeters: Value(
+                  dive.visibilityMeters == null
+                      ? dive.visibilityMaxMeters
+                      : null,
+                ),
+                visibility:
+                    dive.visibilityMeters != null ||
+                        dive.visibilityRange != null
                     ? const Value(null)
                     : Value(dive.visibility?.name),
                 diveType: Value(dive.diveTypeId),
@@ -2083,11 +2096,19 @@ class DiveRepository {
             waterTemp: Value(dive.waterTemp),
             airTemp: Value(dive.airTemp),
             visibilityMeters: Value(dive.visibilityMeters),
-            // A measured distance supersedes the legacy bucket. Value(null)
-            // rather than Value.absent(): absent() preserves the existing column
-            // on a companion write, which would leave the dive carrying both a
-            // measurement and a contradicting bucket.
-            visibility: dive.visibilityMeters != null
+            // One visibility shape per dive (issue #3226): a measured distance
+            // wins over a range, and either supersedes the legacy bucket.
+            // Value(null) rather than Value.absent(): absent() preserves the
+            // existing column on a companion write, which would leave the dive
+            // carrying two shapes.
+            visibilityMinMeters: Value(
+              dive.visibilityMeters == null ? dive.visibilityMinMeters : null,
+            ),
+            visibilityMaxMeters: Value(
+              dive.visibilityMeters == null ? dive.visibilityMaxMeters : null,
+            ),
+            visibility:
+                dive.visibilityMeters != null || dive.visibilityRange != null
                 ? const Value(null)
                 : Value(dive.visibility?.name),
             diveType: Value(dive.diveTypeId),
@@ -4085,6 +4106,8 @@ class DiveRepository {
             )
           : null,
       visibilityMeters: row.visibilityMeters,
+      visibilityMinMeters: row.visibilityMinMeters,
+      visibilityMaxMeters: row.visibilityMaxMeters,
       diveTypeIds: diveTypeIds ?? [row.diveType],
       buddy: row.buddy,
       diveMaster: row.diveMaster,
@@ -4534,6 +4557,8 @@ class DiveRepository {
             )
           : null,
       visibilityMeters: row.visibilityMeters,
+      visibilityMinMeters: row.visibilityMinMeters,
+      visibilityMaxMeters: row.visibilityMaxMeters,
       diveTypeIds: diveTypeIds,
       buddy: row.buddy,
       diveMaster: row.diveMaster,
@@ -5534,6 +5559,38 @@ class DiveRepository {
         stackTrace: stackTrace,
       );
       return null;
+    }
+  }
+
+  /// Every dive's surface interval keyed by id (#2984): the stored value,
+  /// else the gap [diveSurfaceIntervalSecondsSql] computes, which is what
+  /// [getSurfaceInterval] gives the detail page. One statement over the
+  /// whole log, so filtering the table never changes the dive a gap is
+  /// measured from.
+  // stats-scope-exempt: physiological interval between real dives, not a statistic
+  Future<Map<String, Duration?>> getSurfaceIntervals() async {
+    try {
+      final rows = await _db
+          .customSelect(
+            'SELECT d.id AS id, ${diveSurfaceIntervalSecondsSql('d')} AS si '
+            'FROM dives d',
+            readsFrom: {_db.dives, _db.diveProfileSeries},
+          )
+          .get();
+      return {
+        for (final row in rows)
+          row.read<String>('id'): switch (row.readNullable<int>('si')) {
+            null => null,
+            final seconds => Duration(seconds: seconds),
+          },
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to calculate surface intervals',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 

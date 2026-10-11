@@ -2755,6 +2755,48 @@ abstract class AppLocalizations {
   /// **'Rest'**
   String get trips_dayType_rest;
 
+  /// No description provided for @trips_day_conditionCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current {value}'**
+  String trips_day_conditionCurrent(String value);
+
+  /// No description provided for @trips_day_conditionVisibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Vis {value}'**
+  String trips_day_conditionVisibility(String value);
+
+  /// No description provided for @trips_day_conditionWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Water {value}'**
+  String trips_day_conditionWater(String value);
+
+  /// No description provided for @trips_day_photoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo} other{{count} photos}}'**
+  String trips_day_photoCount(int count);
+
+  /// No description provided for @trips_day_planProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{planned, plural, one{{logged} of {planned} planned dive} other{{logged} of {planned} planned dives}}'**
+  String trips_day_planProgress(int logged, int planned);
+
+  /// No description provided for @trips_day_speciesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} species} other{{count} species}}'**
+  String trips_day_speciesCount(int count);
+
+  /// No description provided for @trips_day_valueRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String trips_day_valueRange(String from, String to);
+
   /// No description provided for @trips_story_planned.
   ///
   /// In en, this message translates to:
@@ -11868,6 +11910,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visibility'**
   String get diveLog_edit_label_visibility;
+
+  /// No description provided for @diveLog_edit_visibility_modeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Range'**
+  String get diveLog_edit_visibility_modeRange;
+
+  /// No description provided for @diveLog_edit_visibility_modePrecise.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise'**
+  String get diveLog_edit_visibility_modePrecise;
 
   /// No description provided for @diveLog_edit_label_waterTemp.
   ///
@@ -59784,6 +59838,12 @@ abstract class AppLocalizations {
   /// **'{band} (logged before measurement)'**
   String insights_conditions_visibility_legacySuffix(String band);
 
+  /// No description provided for @insights_conditions_visibility_spansBands.
+  ///
+  /// In en, this message translates to:
+  /// **'Spans bands'**
+  String get insights_conditions_visibility_spansBands;
+
   /// No description provided for @common_selection_countSelected.
   ///
   /// In en, this message translates to:
@@ -72506,6 +72566,84 @@ abstract class AppLocalizations {
   /// **'Wipe all sync data on this backend'**
   String get settings_troubleshootSync_wipeAll_title;
 
+  /// No description provided for @tableMode_cell_anyValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Only dives with a {column}'**
+  String tableMode_cell_anyValue(String column);
+
+  /// No description provided for @tableMode_cell_atLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {value}'**
+  String tableMode_cell_atLeast(String value);
+
+  /// No description provided for @tableMode_cell_atMost.
+  ///
+  /// In en, this message translates to:
+  /// **'At most {value}'**
+  String tableMode_cell_atMost(String value);
+
+  /// No description provided for @tableMode_cell_exclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude {value}'**
+  String tableMode_cell_exclude(String value);
+
+  /// No description provided for @tableMode_cell_noValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Only dives with no {column}'**
+  String tableMode_cell_noValue(String column);
+
+  /// No description provided for @tableMode_cell_onOrAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'On or after {value}'**
+  String tableMode_cell_onOrAfter(String value);
+
+  /// No description provided for @tableMode_cell_onOrBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'On or before {value}'**
+  String tableMode_cell_onOrBefore(String value);
+
+  /// No description provided for @tableMode_cell_only.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {value}'**
+  String tableMode_cell_only(String value);
+
+  /// No description provided for @tableMode_cell_with.
+  ///
+  /// In en, this message translates to:
+  /// **'With {value}'**
+  String tableMode_cell_with(String value);
+
+  /// No description provided for @tableMode_cell_without.
+  ///
+  /// In en, this message translates to:
+  /// **'Without {value}'**
+  String tableMode_cell_without(String value);
+
+  /// No description provided for @tableMode_menu_addFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Add filter'**
+  String get tableMode_menu_addFilter;
+
+  /// No description provided for @tableMode_menu_hideColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide column'**
+  String get tableMode_menu_hideColumn;
+
+  /// No description provided for @tableMode_menu_resetFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filter'**
+  String get tableMode_menu_resetFilter;
+
   /// No description provided for @tableMode_tooltip_toggleDetailPane.
   ///
   /// In en, this message translates to:
@@ -74478,12 +74616,6 @@ abstract class AppLocalizations {
   /// **'Viewing'**
   String get diveLog_sources_badge_viewing;
 
-  /// Badge on a data source that is not the dive's primary source.
-  ///
-  /// In en, this message translates to:
-  /// **'Secondary'**
-  String get diveLog_sources_badge_secondary;
-
   /// When a manually entered dive record was created.
   ///
   /// In en, this message translates to:
@@ -74507,6 +74639,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Imported'**
   String get diveLog_sources_detail_imported;
+
+  /// No description provided for @diveLog_sources_detail_times.
+  ///
+  /// In en, this message translates to:
+  /// **'Times'**
+  String get diveLog_sources_detail_times;
+
+  /// No description provided for @diveLog_sources_detail_file.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get diveLog_sources_detail_file;
+
+  /// Entry and exit time of one data source, shown on the Times row of its card.
+  ///
+  /// In en, this message translates to:
+  /// **'{start}–{end}'**
+  String diveLog_sources_timeRange(String start, String end);
+
+  /// No description provided for @diveLog_sources_sectionMenuTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Data source actions'**
+  String get diveLog_sources_sectionMenuTooltip;
 
   /// Screen-reader label for the row that opens a linked dive computer.
   ///

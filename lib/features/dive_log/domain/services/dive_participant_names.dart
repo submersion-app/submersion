@@ -1,3 +1,4 @@
+import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 
@@ -26,6 +27,11 @@ extension DiveParticipantNames on Dive {
   /// comma-joined; null when there is no one to show.
   String? get resolvedDiveMasterNames =>
       buddies.isEmpty ? _nonBlank(diveMaster) : _joinedNames(guides: true);
+
+  /// The linked participants [resolvedBuddyNames] lists: no guide or
+  /// divemaster role (#2984, the buddy column's cell filters).
+  List<BuddyWithRole> get nonGuideBuddies =>
+      buddies.where((b) => !b.roleIds.any(_guideRoleIds.contains)).toList();
 
   String? _joinedNames({required bool guides}) {
     final names = buddies

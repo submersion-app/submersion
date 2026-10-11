@@ -38,6 +38,8 @@ void main() {
     String? diverRole,
     String? buddy,
     double? visibilityMeters,
+    double? visibilityMinMeters,
+    double? visibilityMaxMeters,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
@@ -57,6 +59,8 @@ void main() {
             diverRole: Value(diverRole),
             buddy: Value(buddy),
             visibilityMeters: Value(visibilityMeters),
+            visibilityMinMeters: Value(visibilityMinMeters),
+            visibilityMaxMeters: Value(visibilityMaxMeters),
             excludedFromStats: Value(excluded),
             isPlanned: Value(planned),
             createdAt: Value(now),
@@ -154,6 +158,19 @@ void main() {
     };
     expect(byId['clear']!.visibilityKey, 'excellent');
     expect(byId['none']!.visibilityKey, isNull);
+  });
+
+  test('a range dive gets its band, or range_spanning (issue #3226)', () async {
+    await dive('fits', visibilityMinMeters: 6, visibilityMaxMeters: 12);
+    await dive('spans', day: 2, visibilityMinMeters: 1, visibilityMaxMeters: 8);
+    final byId = {
+      for (final r in await repository.getFocusFactorRows(
+        visibilityScale: VisibilityScale.coldWater,
+      ))
+        r.diveId: r,
+    };
+    expect(byId['fits']!.visibilityKey, 'good');
+    expect(byId['spans']!.visibilityKey, 'range_spanning');
   });
 
   test('suits classify as drysuit, wetsuit thickness, or unknown', () async {

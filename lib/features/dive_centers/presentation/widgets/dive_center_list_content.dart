@@ -529,6 +529,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
           units: units,
           onSortFieldChanged: notifier.setSortField,
           onResizeColumn: notifier.resizeColumn,
+          onHideColumn: notifier.hideColumn,
           onEntityTapDown: (id) {
             ref.read(highlightedDiveCenterIdProvider.notifier).state = id;
           },
