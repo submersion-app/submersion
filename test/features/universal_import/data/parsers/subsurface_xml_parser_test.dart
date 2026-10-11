@@ -819,6 +819,39 @@ $cylinders
       expect(pressureAt(4), 170.0);
     });
 
+    // Issue #3055: Subsurface writes `temp` only when it changes, so an absent
+    // attribute means "unchanged". A 1 C computer held at 30 C for minutes
+    // and then reading 29 C must step there, not ramp across the whole gap.
+    test('holds temperature until the next change instead of '
+        'interpolating', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='10:00 min'>
+  <divecomputer model='Test'>
+  <depth max='5.0 m' mean='3.0 m' />
+  <sample time='0:00 min' depth='0.0 m' />
+  <sample time='0:10 min' depth='1.0 m' temp='30.0 C' />
+  <sample time='2:00 min' depth='3.0 m' />
+  <sample time='4:00 min' depth='3.0 m' />
+  <sample time='6:00 min' depth='3.0 m' temp='29.0 C' />
+  <sample time='8:00 min' depth='3.0 m' />
+  <sample time='10:00 min' depth='0.0 m' temp='30.0 C' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      final profile = dive['profile'] as List<Map<String, dynamic>>;
+      final temps = [for (final p in profile) p['temperature']];
+
+      // Before the first reading the first value is back-filled, as before.
+      expect(temps, [30.0, 30.0, 30.0, 30.0, 29.0, 29.0, 30.0]);
+    });
+
     test('parses multi-tank pressure from pressure0 and pressure1', () async {
       final result = await parser.parse(
         xmlBytes('''
