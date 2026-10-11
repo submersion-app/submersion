@@ -77,6 +77,9 @@ DiveDataSource _teric({
 Future<void> _pump(WidgetTester tester, List<DiveDataSource> sources) async {
   await tester.pumpWidget(
     testApp(
+      // The assertions read English labels, so the language is pinned
+      // rather than left to the host platform's locale.
+      locale: const Locale('en'),
       child: SingleChildScrollView(
         child: DataSourcesSection(
           dataSources: sources,
@@ -116,7 +119,7 @@ void main() {
       }
     });
 
-    testWidgets('each source\'s provenance sits in the table', (tester) async {
+    testWidgets("each source's provenance sits in the table", (tester) async {
       await _pump(tester, [_perdix(), _teric()]);
 
       for (final value in [
