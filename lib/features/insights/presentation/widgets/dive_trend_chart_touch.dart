@@ -1,7 +1,8 @@
 part of 'dive_trend_chart.dart';
 
-/// The readout, tap and axis-title builders of [DiveTrendChart], split out to
-/// keep the chart file within the size guideline.
+/// The readout, tap, axis-title and break-band overlay builders of
+/// [DiveTrendChart], split out to keep the chart file within the size
+/// guideline.
 extension _DiveTrendChartTouch on _DiveTrendChartState {
   LineTouchData _touchData(
     BuildContext context,

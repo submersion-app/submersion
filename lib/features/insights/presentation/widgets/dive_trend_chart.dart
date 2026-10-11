@@ -350,11 +350,15 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     );
     if (scaleKey != _scaleKey) {
       _scaleKey = scaleKey;
+      // Per dive, every bucket is a dive, so the bucket dates are the lot.
+      final raw = aggregation == TrendAggregation.none;
       _scale = TrendTimeScale.build([
         for (final b in allBuckets) b.date,
-        for (final p in points) p.date,
-        for (final s in widget.secondarySeries)
-          for (final p in s.points) p.date,
+        if (!raw) ...[
+          for (final p in points) p.date,
+          for (final s in widget.secondarySeries)
+            for (final p in s.points) p.date,
+        ],
       ], widget.gapThreshold);
     }
     var firstDate = allBuckets.first.date;
