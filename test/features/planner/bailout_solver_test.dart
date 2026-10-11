@@ -294,6 +294,37 @@ void main() {
       expect(usage.litersUsed, greaterThan(0));
     });
 
+    test('the plan\'s own o2Narcotic override reaches the bailout schedule, '
+        'not just the global setting (a diver reported this never changed '
+        'the bailout table, only the main one)', () {
+      const trimixBailout = DiveTank(
+        id: 'bo',
+        volume: 11.1,
+        startPressure: 207,
+        gasMix: GasMix(o2: 21, he: 35),
+        role: TankRole.bailout,
+      );
+      // Same solver (global config, default o2Narcotic: true) for both --
+      // only the plan's own override differs: unset (falls back to the
+      // global true) vs. explicitly false.
+      const solver = BailoutSolver();
+      final baseline = _plan(tanks: [_diluentTank, trimixBailout]);
+      final overridden = baseline.copyWith(o2Narcotic: false);
+
+      final baselineRow = solver
+          .solve(baseline)!
+          .worstCaseRows
+          .firstWhere((r) => r.tankId == 'bo');
+      final overriddenRow = solver
+          .solve(overridden)!
+          .worstCaseRows
+          .firstWhere((r) => r.tankId == 'bo');
+      expect(
+        overriddenRow.endMeters,
+        isNot(closeTo(baselineRow.endMeters, 0.5)),
+      );
+    });
+
     test('END is floored at 0 m on every row, same as the main table', () {
       final outcome = solver.solve(_plan())!;
       final rows = outcome.worstCaseRows;

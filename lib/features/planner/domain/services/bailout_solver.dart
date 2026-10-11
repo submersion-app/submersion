@@ -103,7 +103,20 @@ class BailoutSolver {
 
   const BailoutSolver({this.config = const PlanEngineConfig()});
 
+  /// Resolves this solver's [config] against [inputPlan]'s own gas-option
+  /// overrides (ppO2Deco, o2Narcotic, bestMixEndMeters, sacFactor) before
+  /// solving, the same way [PlanEngine.compute] does -- so a plan-specific
+  /// override actually reaches the bailout picture instead of silently
+  /// falling back to the diver's global settings every time (a diver
+  /// confirmed this directly: the plan's own O2-narcotic choice changed
+  /// the main table but never the bailout one).
   BailoutOutcome? solve(domain.DivePlan inputPlan) {
+    return BailoutSolver(
+      config: config.resolvedFor(inputPlan),
+    )._solveInternal(inputPlan);
+  }
+
+  BailoutOutcome? _solveInternal(domain.DivePlan inputPlan) {
     if (inputPlan.mode != domain.PlanMode.ccr) return null;
     // Diluent is the diver's one explicit per-tank choice on a loop plan
     // (TankRoleResolver); every other open-circuit cylinder carried
