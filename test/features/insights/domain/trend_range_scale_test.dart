@@ -36,23 +36,23 @@ void main() {
       last,
       toAxis: scale.toAxis,
     );
-    // Two one-year periods and a 3% band: the last year starts just past the
-    // middle, not at 7/8 as it would on the real-time axis.
-    expect(f.start, closeTo(0.5, 0.03));
+    // Two one-year periods and a gap region (band and margins) of 7% of
+    // them: the last year starts just past the middle, not at 7/8 as it
+    // would on the real-time axis.
+    expect(f.start, closeTo(0.53, 0.02));
     expect(f.end, 1.0);
   });
 
-  test('a preset that starts inside the gap opens inside the band', () {
+  test('a preset that starts inside the gap opens inside its region', () {
     final f = trendRangeFractions(
       const TrendRange.preset(TrendRangePreset.years2),
       first,
       last,
       toAxis: scale.toAxis,
     );
-    final b = scale.breaks.single;
     final full = scale.toAxis(last) - scale.toAxis(first);
     final startX = scale.toAxis(first) + f.start * full;
-    expect(startX, greaterThan(b.axisStart));
-    expect(startX, lessThan(b.axisEnd));
+    expect(startX, greaterThan(scale.toAxis(gapStart)));
+    expect(startX, lessThan(scale.toAxis(gapEnd)));
   });
 }

@@ -71,7 +71,8 @@ void main() {
     );
     expect(
       firstAfter.x - ms(before.last.date),
-      lessThan(Duration.millisecondsPerDay * 30),
+      // The band and its margins: 7% of the 522 days with dives.
+      lessThan(Duration.millisecondsPerDay * 60),
     );
   });
 
@@ -165,7 +166,11 @@ void main() {
       ),
     );
     final data = readData(tester);
-    expect(data.maxX - data.minX, Duration.millisecondsPerDay.toDouble());
+    final band = chartState(tester).debugScale.breaks.single;
+    expect(
+      (band.axisEnd - band.axisStart) / (data.maxX - data.minX),
+      lessThan(0.2),
+    );
     expect(tester.takeException(), isNull);
   });
 

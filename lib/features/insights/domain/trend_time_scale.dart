@@ -26,23 +26,34 @@ class TrendGapBreak {
 /// with no dives longer than a [TrendGapThreshold] into a narrow band.
 ///
 /// Piecewise linear: inside a period of diving, axis distance is real time
-/// in milliseconds; each break is replaced by a band [bandFraction] of the
-/// collapsed span wide, across which a date inside the gap maps
-/// proportionally. The first period is never shifted, so a scale with no
+/// in milliseconds; each gap is replaced by a region holding a hatched band
+/// [bandFraction] of the collapsed span wide with a [marginFraction] margin
+/// either side, and a date inside the gap maps proportionally across the
+/// region. The margins keep the dives either side of a gap clear of the
+/// band, and give a sparse logbook (every period a single dive) an axis that
+/// is not all band. The first period is never shifted, so a scale with no
 /// breaks is exactly epoch milliseconds and a chart drawn through it is
 /// unchanged.
 class TrendTimeScale {
-  const TrendTimeScale._(this.breaks, this._shifts);
+  const TrendTimeScale._(this.breaks, this._shifts, this._regions);
 
   /// No breaks: `toAxis(d) == d.millisecondsSinceEpoch`.
-  static const identity = TrendTimeScale._(<TrendGapBreak>[], <double>[0]);
+  static const identity = TrendTimeScale._(<TrendGapBreak>[], <double>[
+    0,
+  ], <(double, double)>[]);
 
   /// Share of the collapsed span (the sum of the periods) each band takes.
   static const double bandFraction = 0.03;
 
-  /// A band is never narrower than this, so two dives years apart with
-  /// nothing between them still draw a visible break.
+  /// Share of the collapsed span left clear either side of each band.
+  static const double marginFraction = 0.02;
+
+  /// A band is never narrower than this.
   static const double _minBandMs = Duration.millisecondsPerDay * 1.0;
+
+  /// A margin is never narrower than this, so two dives years apart with
+  /// nothing between them still read as two dives and a break, not a band.
+  static const double _minMarginMs = Duration.millisecondsPerDay * 7.0;
 
   /// Breaks in date order.
   final List<TrendGapBreak> breaks;
@@ -50,6 +61,9 @@ class TrendTimeScale {
   /// Milliseconds subtracted from a date in period `i` to reach the axis.
   /// One more entry than [breaks].
   final List<double> _shifts;
+
+  /// The axis span each gap maps onto: its band plus both margins.
+  final List<(double, double)> _regions;
 
   bool get isIdentity => breaks.isEmpty;
 
@@ -74,26 +88,38 @@ class TrendTimeScale {
     final gapTotal = gaps.fold<int>(0, (sum, g) => sum + g.$2 - g.$1);
     final collapsed = (ms.last - ms.first - gapTotal).toDouble();
     final band = math.max(collapsed * bandFraction, _minBandMs);
+    final margin = math.max(collapsed * marginFraction, _minMarginMs);
 
     final breaks = <TrendGapBreak>[];
+    final regions = <(double, double)>[];
     final shifts = <double>[0];
     var shift = 0.0;
     for (final (start, end) in gaps) {
-      final axisStart = start - shift;
+      final real = (end - start).toDouble();
+      // A collapsed gap never takes more axis than the real one: on a long
+      // logbook the band and margins can outgrow a gap just past the
+      // threshold, so they shrink together to fit it.
+      final fit = math.min(1.0, real / (band + 2 * margin));
+      final regionStart = start - shift;
+      final axisStart = regionStart + margin * fit;
+      final axisEnd = axisStart + band * fit;
+      final regionEnd = axisEnd + margin * fit;
       breaks.add(
         TrendGapBreak(
           start: _date(start),
           end: _date(end),
           axisStart: axisStart,
-          axisEnd: axisStart + band,
+          axisEnd: axisEnd,
         ),
       );
-      shift += (end - start) - band;
+      regions.add((regionStart, regionEnd));
+      shift += real - (regionEnd - regionStart);
       shifts.add(shift);
     }
     return TrendTimeScale._(
       List.unmodifiable(breaks),
       List.unmodifiable(shifts),
+      List.unmodifiable(regions),
     );
   }
 
@@ -124,8 +150,8 @@ class TrendTimeScale {
       final end = b.end.millisecondsSinceEpoch;
       if (ms <= start) return ms - _shifts[i];
       if (ms < end) {
-        return b.axisStart +
-            (ms - start) / (end - start) * (b.axisEnd - b.axisStart);
+        final (from, to) = _regions[i];
+        return from + (ms - start) / (end - start) * (to - from);
       }
     }
     return ms - _shifts.last;
@@ -135,13 +161,12 @@ class TrendTimeScale {
   DateTime toDate(double x) {
     for (var i = 0; i < breaks.length; i++) {
       final b = breaks[i];
-      if (x <= b.axisStart) return _date(x + _shifts[i]);
-      if (x < b.axisEnd) {
+      final (from, to) = _regions[i];
+      if (x <= from) return _date(x + _shifts[i]);
+      if (x < to) {
         final start = b.start.millisecondsSinceEpoch;
         final end = b.end.millisecondsSinceEpoch;
-        return _date(
-          start + (x - b.axisStart) / (b.axisEnd - b.axisStart) * (end - start),
-        );
+        return _date(start + (x - from) / (to - from) * (end - start));
       }
     }
     return _date(x + _shifts.last);

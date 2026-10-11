@@ -90,14 +90,20 @@ void main() {
 
     test('the first period is unshifted', () {
       expect(s.toAxis(early.first), ms(early.first));
-      expect(b.axisStart, ms(early.last));
+      expect(s.toAxis(early.last), ms(early.last));
+    });
+
+    test('the dives either side of the gap sit clear of the band', () {
+      expect(b.axisStart, greaterThan(s.toAxis(early.last)));
+      expect(s.toAxis(late.first), greaterThan(b.axisEnd));
+      expect(s.breakAt(s.toAxis(early.last)), isNull);
+      expect(s.breakAt(s.toAxis(late.first)), isNull);
     });
 
     test('the band is three percent of the collapsed span', () {
       final collapsed =
           (ms(early.last) - ms(early.first)) + (ms(late.last) - ms(late.first));
       expect(b.axisEnd - b.axisStart, closeTo(collapsed * 0.03, 1));
-      expect(s.toAxis(late.first), closeTo(b.axisEnd, 0.001));
     });
 
     test('every plotted date round-trips', () {
@@ -149,12 +155,33 @@ void main() {
     expect(s.periodOf(third.first), 2);
   });
 
-  test('two dives years apart still get a band a day wide', () {
+  test('two dives years apart keep the band a minority of the axis', () {
     final a = DateTime.utc(2015, 5, 1);
     final b = DateTime.utc(2019, 5, 1);
     final s = TrendTimeScale.build([a, b], TrendGapThreshold.year1);
-    expect(s.toAxis(b) - s.toAxis(a), day.toDouble());
+    final band = s.breaks.single;
+    final axis = s.toAxis(b) - s.toAxis(a);
+    expect(band.axisEnd - band.axisStart, greaterThanOrEqualTo(day));
+    expect((band.axisEnd - band.axisStart) / axis, lessThan(0.2));
     expect(s.toDate(s.toAxis(b)), b);
+  });
+
+  test('a collapsed gap never takes more axis than the real gap', () {
+    // Thirty years of diving makes 3% bands wider than a seven-month gap.
+    final dates = [
+      for (var y = 1990; y < 2020; y++) DateTime.utc(y, 1, 1),
+      for (var y = 1990; y < 2020; y++) DateTime.utc(y, 6, 1),
+      DateTime.utc(2020, 6, 1),
+      DateTime.utc(2021, 1, 15),
+    ];
+    final s = TrendTimeScale.build(dates, TrendGapThreshold.months6);
+    final gapEnd = DateTime.utc(2021, 1, 15);
+    final gapStart = DateTime.utc(2020, 6, 1);
+    expect(
+      s.toAxis(gapEnd) - s.toAxis(gapStart),
+      lessThanOrEqualTo(ms(gapEnd) - ms(gapStart)),
+    );
+    expect(s.toDate(s.toAxis(gapEnd)), gapEnd);
   });
 
   test('order and duplicates do not matter', () {
