@@ -113,6 +113,41 @@ void main() {
     expect(row.hlc, isNull);
   });
 
+  test('a type another device flipped does not override this device\'s '
+      'address: a BLE address seeds ble, a port seeds usb', () async {
+    // The laptop downloaded over USB last, so the synced type reads usb,
+    // while this phone still holds its own Bluetooth identifier (the cause
+    // of issue #3106 itself).
+    await insertComputer(
+      'phone',
+      connectionType: 'usb',
+      bluetoothAddress: 'C4E774E2-7D1F-DB41-EBD3-69D345D782F3',
+      lastDownload: downloaded,
+    );
+    await insertComputer(
+      'mac',
+      connectionType: 'bluetooth',
+      bluetoothAddress: 'AA:BB:CC:DD:EE:FF',
+    );
+    await insertComputer(
+      'laptop',
+      connectionType: 'bluetooth',
+      bluetoothAddress: '/dev/cu.usbserial-A10',
+    );
+    await insertComputer(
+      'windows',
+      connectionType: 'bluetooth',
+      bluetoothAddress: 'COM3',
+    );
+
+    await db.seedDiveComputerConnectionsForTest();
+
+    expect((await connectionsOf('phone')).single.kind, 'ble');
+    expect((await connectionsOf('mac')).single.kind, 'ble');
+    expect((await connectionsOf('laptop')).single.kind, 'usb');
+    expect((await connectionsOf('windows')).single.kind, 'usb');
+  });
+
   test('a Garmin cloud computer seeds cloud/garminConnect', () async {
     await insertComputer(
       'garmin',

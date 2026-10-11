@@ -123,21 +123,34 @@ Future<int> seedDiveComputerConnections(DatabaseConnectionUser db) async {
       computer.readNullable<String>('connection_type'),
     );
 
-    final direct = switch (connectionType) {
+    final rawAddress = computer.readNullable<String>('bluetooth_address');
+    final address = rawAddress?.trim().isEmpty ?? true
+        ? null
+        : rawAddress!.trim();
+    final byType = switch (connectionType) {
       'bluetooth' || 'ble' => DiveComputerConnectionKind.ble,
       'bluetoothclassic' => DiveComputerConnectionKind.bluetoothClassic,
       'usb' => DiveComputerConnectionKind.usb,
       'infrared' => DiveComputerConnectionKind.infrared,
       _ => null,
     };
+    // The synced type is whichever transport some device used last, while
+    // the address is this device's own (issue #3106), so an address whose
+    // shape names its transport wins. A Classic type keeps its name: a BLE
+    // and a Classic address look alike.
+    final byAddress = address == null ? null : _kindOfLocalAddress(address);
+    final direct =
+        byType == DiveComputerConnectionKind.bluetoothClassic &&
+            byAddress == DiveComputerConnectionKind.ble
+        ? byType
+        : byAddress ?? byType;
     if (direct != null) {
-      final address = computer.readNullable<String>('bluetooth_address');
       await insert(
         computerId: id,
         kind: direct,
         firstUsedAt: createdAt,
         lastUsedAt: lastUsed,
-        address: address?.trim().isEmpty ?? true ? null : address!.trim(),
+        address: address,
         localLastUsedAt: lastUsed,
       );
     }
@@ -194,4 +207,24 @@ Future<int> seedDiveComputerConnections(DatabaseConnectionUser db) async {
     }
   }
   return inserted;
+}
+
+final RegExp _macAddress = RegExp(r'^[0-9a-f]{2}(:[0-9a-f]{2}){5}$');
+final RegExp _uuid = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+);
+final RegExp _comPort = RegExp(r'^com\d+$');
+
+/// The transport a stored local address names by its shape: a Bluetooth
+/// MAC or a CoreBluetooth identifier, or a serial port path or `COMn`.
+/// Null when the shape says nothing, which leaves the stored type to decide.
+DiveComputerConnectionKind? _kindOfLocalAddress(String address) {
+  final a = address.toLowerCase();
+  if (_macAddress.hasMatch(a) || _uuid.hasMatch(a)) {
+    return DiveComputerConnectionKind.ble;
+  }
+  if (a.startsWith('/dev/') || _comPort.hasMatch(a)) {
+    return DiveComputerConnectionKind.usb;
+  }
+  return null;
 }
