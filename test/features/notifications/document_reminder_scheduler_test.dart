@@ -73,39 +73,48 @@ void main() {
         const [],
       );
 
-  test('scheduleAll schedules a permit\'s two reminders, none for a card', () async {
-    final permit = await save(
-      DocumentType.permit,
-      DateTime(now.year, now.month, now.day + 60),
-    );
-    await save(
-      DocumentType.certificationCard,
-      DateTime(now.year, now.month, now.day + 60),
-    );
-    await scheduler.scheduleAll(settings: const AppSettings(), diverId: 'd1');
-    expect(service.scheduled.map((s) => s.documentId).toSet(), {permit.id});
-    expect(service.scheduled.map((s) => s.stage), [
-      DocumentReminderStage.lead,
-      DocumentReminderStage.expiryDay,
-    ]);
-    expect(service.scheduled.first.title, 'Marine park expires soon');
-  });
+  test(
+    'scheduleAll schedules a permit\'s two reminders, none for a card',
+    () async {
+      final permit = await save(
+        DocumentType.permit,
+        DateTime(now.year, now.month, now.day + 60),
+      );
+      await save(
+        DocumentType.certificationCard,
+        DateTime(now.year, now.month, now.day + 60),
+      );
+      await scheduler.scheduleAll(settings: const AppSettings(), diverId: 'd1');
+      expect(service.scheduled.map((s) => s.documentId).toSet(), {permit.id});
+      expect(service.scheduled.map((s) => s.stage), [
+        DocumentReminderStage.lead,
+        DocumentReminderStage.expiryDay,
+      ]);
+      expect(service.scheduled.first.title, 'Marine park expires soon');
+    },
+  );
 
-  test('updating after the expiry is cleared cancels and schedules none', () async {
-    final permit = await save(
-      DocumentType.permit,
-      DateTime(now.year, now.month, now.day + 60),
-    );
-    await scheduler.updateForDocument(
-      permit.copyWith(expiryDate: null),
-      const AppSettings(),
-    );
-    expect(service.cancelled, [permit.id]);
-    expect(service.scheduled, isEmpty);
-  });
+  test(
+    'updating after the expiry is cleared cancels and schedules none',
+    () async {
+      final permit = await save(
+        DocumentType.permit,
+        DateTime(now.year, now.month, now.day + 60),
+      );
+      await scheduler.updateForDocument(
+        permit.copyWith(expiryDate: null),
+        const AppSettings(),
+      );
+      expect(service.cancelled, [permit.id]);
+      expect(service.scheduled, isEmpty);
+    },
+  );
 
   test('notifications off schedules nothing', () async {
-    await save(DocumentType.permit, DateTime(now.year, now.month, now.day + 60));
+    await save(
+      DocumentType.permit,
+      DateTime(now.year, now.month, now.day + 60),
+    );
     await scheduler.scheduleAll(
       settings: const AppSettings(notificationsEnabled: false),
       diverId: 'd1',
