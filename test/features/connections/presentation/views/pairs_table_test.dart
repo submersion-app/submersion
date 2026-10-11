@@ -116,6 +116,41 @@ void main() {
     expect(picked.single, EdgeSelection(_b('ann'), _b('cy')));
   });
 
+  testWidgets(
+    'a sort on a hidden column falls back to the default until widened',
+    (tester) async {
+      bool above(String a, String b) =>
+          tester.getTopLeft(find.text(a)).dy <
+          tester.getTopLeft(find.text(b)).dy;
+      Finder arrowOn(String column) => find.descendant(
+        of: find.byKey(ValueKey('sort-$column')),
+        matching: find.byType(Icon),
+      );
+
+      await _pump(tester, width: 900);
+      await tester.tap(find.byKey(const ValueKey('sort-first')));
+      await tester.pumpAndSettle();
+      expect(above('Bob', 'Cy'), isTrue, reason: 'first shared, ties by name');
+
+      await _pump(tester);
+      expect(above('Cy', 'Bob'), isTrue, reason: 'shared dives, most first');
+      expect(arrowOn('shared'), findsOneWidget);
+
+      await _pump(tester, width: 900);
+      expect(above('Bob', 'Cy'), isTrue, reason: 'the choice comes back');
+      expect(arrowOn('first'), findsOneWidget);
+
+      await _pump(tester);
+      await tester.tap(find.byKey(const ValueKey('sort-shared')));
+      await tester.pumpAndSettle();
+      expect(
+        above('Bob', 'Cy'),
+        isTrue,
+        reason: 'tapping the shown sort column reverses it',
+      );
+    },
+  );
+
   testWidgets('first shared shows only when wide', (tester) async {
     await _pump(tester);
     expect(find.text('First shared'), findsNothing);

@@ -37,6 +37,16 @@ abstract final class ConnectionsTableRows {
       column == EntitiesColumn.kind ||
       column == EntitiesColumn.strongest;
 
+  /// The sort a table applies: [by] while its column is [shown], else
+  /// [fallback] biggest first. The table keeps [by], so widening the view
+  /// until its column shows again brings the diver's choice back.
+  static (T, bool) shownSort<T extends Enum>(
+    T by,
+    bool ascending,
+    Iterable<T> shown,
+    T fallback,
+  ) => shown.contains(by) ? (by, ascending) : (fallback, false);
+
   static List<ConnectionEdge> pairs(
     ConnectionGraph graph,
     PairsColumn by, {

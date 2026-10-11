@@ -32,14 +32,15 @@ class _PairsTableState extends ConsumerState<PairsTable> {
   PairsColumn _by = PairsColumn.shared;
   bool _ascending = false;
 
-  void _sort(PairsColumn column) => setState(() {
-    if (column == _by) {
-      _ascending = !_ascending;
-    } else {
-      _by = column;
-      _ascending = ConnectionsTableRows.startsAscending(column);
-    }
-  });
+  /// Sorts by [column], reversing it when it is the sort [shownBy] the
+  /// header currently shows.
+  void _sort(PairsColumn column, PairsColumn shownBy, bool shownAscending) =>
+      setState(() {
+        _by = column;
+        _ascending = column == shownBy
+            ? !shownAscending
+            : ConnectionsTableRows.startsAscending(column);
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -47,11 +48,6 @@ class _PairsTableState extends ConsumerState<PairsTable> {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final selected = widget.selection;
     final labels = {for (final n in widget.graph.nodes) n.ref: n.label};
-    final rows = ConnectionsTableRows.pairs(
-      widget.graph,
-      _by,
-      ascending: _ascending,
-    );
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 600;
@@ -78,13 +74,26 @@ class _PairsTableState extends ConsumerState<PairsTable> {
               l10n.connections_table_firstShared,
             ),
         ];
+        // A narrow view can hide the sorted column; sort by the default
+        // until it shows again.
+        final (by, ascending) = ConnectionsTableRows.shownSort(
+          _by,
+          _ascending,
+          columns.map((c) => c.id),
+          PairsColumn.shared,
+        );
+        final rows = ConnectionsTableRows.pairs(
+          widget.graph,
+          by,
+          ascending: ascending,
+        );
         return Column(
           children: [
             SortableHeader<PairsColumn>(
               columns: columns,
-              sortedBy: _by,
-              ascending: _ascending,
-              onSort: _sort,
+              sortedBy: by,
+              ascending: ascending,
+              onSort: (c) => _sort(c, by, ascending),
             ),
             Expanded(
               child: ListView.builder(

@@ -101,6 +101,33 @@ void main() {
     expect(picked.single, NodeSelection(_b('bob')));
   });
 
+  testWidgets(
+    'a sort on a hidden column falls back to the default until widened',
+    (tester) async {
+      bool above(String a, String b) =>
+          tester.getTopLeft(find.text(a)).dy <
+          tester.getTopLeft(find.text(b)).dy;
+
+      await _pump(tester, width: 900);
+      await tester.tap(find.byKey(const ValueKey('sort-strongest')));
+      await tester.pumpAndSettle();
+      expect(above('Bob', 'Ann'), isTrue, reason: 'strongest, A to Z');
+
+      await _pump(tester);
+      expect(above('Ann', 'Bob'), isTrue, reason: 'dives, busiest first');
+      expect(
+        find.descendant(
+          of: find.byKey(const ValueKey('sort-dives')),
+          matching: find.byType(Icon),
+        ),
+        findsOneWidget,
+      );
+
+      await _pump(tester, width: 900);
+      expect(above('Bob', 'Ann'), isTrue, reason: 'the choice comes back');
+    },
+  );
+
   testWidgets('wide adds kind, strongest connection and first dive', (
     tester,
   ) async {
