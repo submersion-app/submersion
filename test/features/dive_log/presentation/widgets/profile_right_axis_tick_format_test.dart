@@ -43,6 +43,35 @@ void main() {
       expect(tick(ProfileRightAxisMetric.ppO2, 1.04, step: double.nan), '1.0');
     });
 
+    // Without a step every metric keeps the label the chart printed before
+    // adaptive precision: its own unit conversion and decimals.
+    test('keeps each metric label as before without a step', () {
+      const expected = {
+        ProfileRightAxisMetric.temperature: '13',
+        ProfileRightAxisMetric.pressure: '13',
+        ProfileRightAxisMetric.heartRate: '13',
+        ProfileRightAxisMetric.sac: '12.5',
+        ProfileRightAxisMetric.ascentRate: '13',
+        ProfileRightAxisMetric.ndl: '0',
+        ProfileRightAxisMetric.ppO2: '12.5',
+        ProfileRightAxisMetric.ppN2: '12.5',
+        ProfileRightAxisMetric.ppHe: '12.5',
+        ProfileRightAxisMetric.gasDensity: '12.5',
+        ProfileRightAxisMetric.gf: '13',
+        ProfileRightAxisMetric.surfaceGf: '13',
+        ProfileRightAxisMetric.meanDepth: '13',
+        ProfileRightAxisMetric.tts: '0',
+        ProfileRightAxisMetric.gtr: '0',
+        ProfileRightAxisMetric.cns: '13',
+        ProfileRightAxisMetric.otu: '13',
+        ProfileRightAxisMetric.o2CellMv: '13',
+      };
+      expect(expected.keys, containsAll(ProfileRightAxisMetric.values));
+      for (final MapEntry(key: m, value: label) in expected.entries) {
+        expect(tick(m, 12.5), label, reason: '$m');
+      }
+    });
+
     test('never shows fewer decimals than the metric used to', () {
       expect(tick(ProfileRightAxisMetric.ppO2, 1.2, step: 0.5), '1.2');
       expect(tick(ProfileRightAxisMetric.sac, 1.5, step: 2), '1.5');
