@@ -2,7 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v277: dives.visibility_min_meters / visibility_max_meters (issue
+/// Schema v278: dives.visibility_min_meters / visibility_max_meters (issue
 /// #3226).
 void main() {
   Future<Set<String>> diveColumns(AppDatabase db) async {
@@ -10,17 +10,17 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v277 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(277));
-    expect(AppDatabase.migrationVersions, contains(277));
+  test('v278 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(278));
+    expect(AppDatabase.migrationVersions, contains(278));
     expect(
-      AppDatabase.migrationStepCount(276),
-      AppDatabase.migrationStepCount(277) + 1,
+      AppDatabase.migrationStepCount(277),
+      AppDatabase.migrationStepCount(278) + 1,
     );
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(277));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(278));
   });
 
   test('a fresh database has both range columns', () async {
@@ -32,11 +32,11 @@ void main() {
     );
   });
 
-  test('upgrading from v276 adds both columns and keeps visibility', () async {
+  test('upgrading from v277 adds both columns and keeps visibility', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (raw) {
-          raw.execute('PRAGMA user_version = 276');
+          raw.execute('PRAGMA user_version = 277');
           raw.execute(
             'CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY, '
             'dive_date_time INTEGER, visibility TEXT, visibility_meters REAL)',

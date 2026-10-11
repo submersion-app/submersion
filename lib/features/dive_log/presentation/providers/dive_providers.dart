@@ -35,6 +35,9 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 // Re-export DiveFilterState so existing imports continue to work
 export 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -475,6 +478,10 @@ final diveSearchProvider = FutureProvider.family<List<DiveSummary>, String>((
 /// Dive list notifier for mutations
 class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   final DiveRepository _repository;
+
+  /// The documents of the last bulk-deleted dives, for [restoreDives] to
+  /// put back on undo (issue #2613).
+  List<DocumentSnapshotEntry> _deletedDocuments = const [];
   final Ref _ref;
   String? _currentDiverId;
 
@@ -627,6 +634,10 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
   Future<List<domain.Dive>> bulkDeleteDives(List<String> ids) async {
     // Get the dives before deleting for undo capability
     final divesToDelete = await _repository.getDivesByIds(ids);
+    _deletedDocuments = await DocumentRepository().captureForOwners(
+      DocumentOwnerKind.dive,
+      ids,
+    );
     await _repository.bulkDeleteDives(ids);
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
@@ -643,6 +654,12 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     for (final dive in dives) {
       await _repository.createDive(dive);
     }
+    final restoredIds = {for (final dive in dives) dive.id};
+    await _ref.read(documentMutationsProvider).restoreSnapshot([
+      for (final entry in _deletedDocuments)
+        if (restoredIds.contains(entry.document.owner.id)) entry,
+    ]);
+    _deletedDocuments = const [];
     await _loadDives();
     _ref.invalidate(diveStatisticsProvider);
     _ref.invalidate(diveNumberingInfoProvider);
@@ -721,6 +738,10 @@ final diveListNotifierProvider =
 class PaginatedDiveListNotifier
     extends StateNotifier<AsyncValue<PaginatedDiveListState>> {
   final DiveRepository _repository;
+
+  /// The documents of the last bulk-deleted dives, for [restoreDives] to
+  /// put back on undo (issue #2613).
+  List<DocumentSnapshotEntry> _deletedDocuments = const [];
   final Ref _ref;
   String? _currentDiverId;
 
@@ -1252,6 +1273,10 @@ class PaginatedDiveListNotifier
 
   Future<List<domain.Dive>> bulkDeleteDives(List<String> ids) async {
     final divesToDelete = await _repository.getDivesByIds(ids);
+    _deletedDocuments = await DocumentRepository().captureForOwners(
+      DocumentOwnerKind.dive,
+      ids,
+    );
     await _repository.bulkDeleteDives(ids);
 
     // Optimistic: remove items by IDs
@@ -1285,6 +1310,12 @@ class PaginatedDiveListNotifier
     for (final dive in dives) {
       await _repository.createDive(dive);
     }
+    final restoredIds = {for (final dive in dives) dive.id};
+    await _ref.read(documentMutationsProvider).restoreSnapshot([
+      for (final entry in _deletedDocuments)
+        if (restoredIds.contains(entry.document.owner.id)) entry,
+    ]);
+    _deletedDocuments = const [];
     // Restore is complex (ordering), reload first page
     await loadFirstPage();
     _invalidateStatistics();

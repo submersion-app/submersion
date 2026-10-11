@@ -327,6 +327,17 @@ abstract final class FigurePlacement {
           },
           defaultColor: FigureColors.black,
         );
+      // Socks (#2900) show on a bare foot in open-heel fins. Boots rank
+      // ahead of them in the canonical order, so with boots in the set they
+      // claim the feet and the socks inside them go to the tray.
+      case EquipmentType.socks:
+        return const FigurePlacementSpec(
+          zones: [FigureZone.feet],
+          piecesByZone: {
+            FigureZone.feet: ['socks_front', 'socks_back'],
+          },
+          defaultColor: FigureColors.darkGrey,
+        );
       case EquipmentType.fins:
         return const FigurePlacementSpec(
           zones: [FigureZone.fins],

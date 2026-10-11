@@ -147,6 +147,15 @@ class GearFeature extends Equatable {
       case EquipmentType.boots:
         if (mm == null) return null;
         return (0.12 * mm).clamp(0.0, 2.0);
+      // Socks (#2900). A drysuit sock sits inside the suit's air, so it
+      // shifts lead by a notch whatever its loft. A neoprene sock is half a
+      // boot of the same thickness, with no sole, and a thickness with no
+      // stated kind is read as neoprene: only neoprene is sold by the mm.
+      // The 15 mm thickness clamp already bounds it at 0.9 kg.
+      case EquipmentType.socks:
+        if (t.sockType == 'drysuit') return 0.05;
+        if (mm == null) return null;
+        return 0.06 * mm;
       // The drysuit layers (#1537). Undergarments are rated by warmth rather
       // than by millimetres, so the ladder reads insulationLevel instead of
       // thickness. The undersuit range is the delta a drysuit diver actually
@@ -274,6 +283,7 @@ class GearFeature extends Equatable {
     EquipmentType.vest => 1.0,
     EquipmentType.gloves => 0.2,
     EquipmentType.boots => 0.4,
+    EquipmentType.socks => 0.15,
     // Stated rather than left to the fallthrough, which already returns 0.0:
     // gear twins (v175) make this a case readers will look for.
     EquipmentType.computer => 0.0,
@@ -285,6 +295,7 @@ class GearFeature extends Equatable {
     EquipmentType.drysuit => 3.0,
     EquipmentType.undersuit => 1.5,
     EquipmentType.baselayer => 0.4,
+    EquipmentType.socks => 0.1,
     EquipmentType.vest => 0.8,
     EquipmentType.bcd => 3.5,
     // Rig accessories (#1877) weigh a fraction of the 0.5 kg fallthrough, and

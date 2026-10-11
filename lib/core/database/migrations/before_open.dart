@@ -61,7 +61,7 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertLateGasSwitchSettingColumn();
     // v276 backstop: diver_settings.icd_warnings_enabled.
     await _assertIcdWarningsColumn();
-    // v277 backstop: the dives visibility range columns.
+    // v278 backstop: the dives visibility range columns.
     await _assertVisibilityRangeColumns();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.

@@ -1,0 +1,251 @@
+import 'package:drift/drift.dart' show Uint8List;
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/domain/entities/document_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
+import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_database.dart';
+
+Future<Document> _save(
+  String title,
+  DocumentType type, {
+  DocumentOwner owner = const DocumentOwner.personal(),
+  DateTime? expiry,
+  String? issuer,
+}) => DocumentRepository().save(
+  Document(
+    id: '',
+    diverId: 'd1',
+    owner: owner,
+    type: type,
+    title: title,
+    issuer: issuer,
+    expiryDate: expiry,
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  ),
+  [
+    DocumentPage(
+      id: '',
+      documentId: '',
+      pageIndex: 0,
+      fileName: '$title.txt',
+      mimeType: 'text/plain',
+      sizeBytes: 1,
+      bytes: Uint8List.fromList([1]),
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    ),
+  ],
+);
+
+void main() {
+  final now = DateTime.now();
+  DateTime day(int offset) => DateTime(now.year, now.month, now.day + offset);
+
+  setUp(() async {
+    final db = await setUpTestDatabase();
+    await db.customStatement(
+      'INSERT INTO divers (id, name, is_default, created_at, updated_at) '
+      "VALUES ('d1', 'Ana', 1, 0, 0)",
+    );
+    await db.customStatement(
+      'INSERT INTO trips (id, diver_id, name, start_date, end_date, '
+      "created_at, updated_at) VALUES ('t1', 'd1', 'Bonaire', 0, 0, 0, 0)",
+    );
+  });
+  tearDown(tearDownTestDatabase);
+
+  Future<void> pump(WidgetTester t, String location, {Size? size}) async {
+    t.view.physicalSize = size ?? const Size(420, 900);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      initialLocation: location,
+      routes: [
+        GoRoute(
+          path: '/documents',
+          builder: (context, state) => DocumentsPage(
+            initialType: DocumentType.values
+                .asNameMap()[state.uri.queryParameters['type']],
+            initialPersonalOnly:
+                state.uri.queryParameters['owner'] == 'personal',
+          ),
+          routes: [
+            GoRoute(
+              path: 'new',
+              builder: (context, state) =>
+                  Scaffold(body: Text('NEW ${state.uri.query}')),
+            ),
+            GoRoute(
+              path: ':id',
+              builder: (context, state) =>
+                  DocumentDetailPage(documentId: state.pathParameters['id']!),
+              routes: [
+                GoRoute(
+                  path: 'edit',
+                  builder: (context, state) =>
+                      const Scaffold(body: Text('EDIT')),
+                ),
+              ],
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/trips/:id',
+          builder: (context, state) =>
+              Scaffold(body: Text('TRIP ${state.pathParameters['id']}')),
+        ),
+      ],
+    );
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        ].cast(),
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await t.pumpAndSettle();
+  }
+
+  testWidgets('the list groups by owner with a Needs attention strip', (
+    t,
+  ) async {
+    await _save('DAN', DocumentType.insurance, issuer: 'DAN Europe');
+    await _save('Clearance', DocumentType.medicalClearance, expiry: day(-3));
+    await _save(
+      'Park permit',
+      DocumentType.permit,
+      owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+      expiry: day(5),
+    );
+    await pump(t, '/documents');
+    expect(find.text('Needs attention'), findsOneWidget);
+    expect(find.text('Personal'), findsOneWidget);
+    expect(find.text('Trips'), findsOneWidget);
+    expect(find.textContaining('Bonaire'), findsWidgets);
+  });
+
+  testWidgets('search matches title, issuer and number', (t) async {
+    await _save('DAN', DocumentType.insurance, issuer: 'DAN Europe');
+    await _save('Clearance', DocumentType.medicalClearance);
+    await pump(t, '/documents');
+    await t.enterText(find.byType(TextField), 'europe');
+    await t.pumpAndSettle();
+    expect(find.text('DAN'), findsOneWidget);
+    expect(find.text('Clearance'), findsNothing);
+  });
+
+  testWidgets('a type from the route shows only that type', (t) async {
+    await _save('DAN', DocumentType.insurance);
+    await _save('Clearance', DocumentType.medicalClearance);
+    await pump(t, '/documents?type=insurance');
+    expect(find.text('DAN'), findsOneWidget);
+    expect(find.text('Clearance'), findsNothing);
+  });
+
+  testWidgets('adding from a filtered list keeps the filter\'s type', (
+    t,
+  ) async {
+    await pump(t, '/documents?type=insurance');
+    await t.tap(find.byType(FloatingActionButton));
+    await t.pumpAndSettle();
+    expect(find.text('NEW type=insurance'), findsOneWidget);
+  });
+
+  testWidgets('the personal filter from the hub is shown and can be cleared', (
+    t,
+  ) async {
+    await _save('Clearance', DocumentType.medicalClearance);
+    await _save(
+      'Park permit',
+      DocumentType.permit,
+      owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+    );
+    await pump(t, '/documents?owner=personal');
+    expect(find.text('Park permit'), findsNothing);
+    final chip = find.byKey(const ValueKey('documents-filter-personal'));
+    expect(chip, findsOneWidget);
+    t.widget<InputChip>(chip).onDeleted!();
+    await t.pumpAndSettle();
+    expect(find.text('Park permit'), findsOneWidget);
+  });
+
+  testWidgets('an empty library says so', (t) async {
+    await pump(t, '/documents');
+    expect(find.text('No documents yet'), findsOneWidget);
+  });
+
+  testWidgets('detail shows metadata and the owner, and deletes on confirm', (
+    t,
+  ) async {
+    final doc = await _save(
+      'Park permit',
+      DocumentType.permit,
+      owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+      issuer: 'Marine Park',
+    );
+    await pump(t, '/documents/${doc.id}');
+    expect(find.text('Park permit'), findsWidgets);
+    expect(find.text('Marine Park'), findsOneWidget);
+    expect(find.text('Bonaire'), findsOneWidget);
+    expect(find.text('Park permit.txt'), findsOneWidget);
+
+    await t.tap(find.byTooltip('Delete'));
+    await t.pumpAndSettle();
+    expect(find.text('Delete document?'), findsOneWidget);
+    await t.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await t.pumpAndSettle();
+    expect(await DocumentRepository().getById(doc.id), isNull);
+    expect(
+      await DatabaseService.instance.database
+          .customSelect("SELECT id FROM documents")
+          .get(),
+      isEmpty,
+    );
+  });
+
+  testWidgets('on a wide screen, Edit opens the editor in the detail pane', (
+    t,
+  ) async {
+    final doc = await _save('Park permit', DocumentType.permit);
+    await pump(t, '/documents?selected=${doc.id}', size: const Size(1400, 900));
+    await t.tap(find.byTooltip('Edit'));
+    await t.pumpAndSettle();
+    // Not the standalone /documents/:id/edit page over the whole shell.
+    expect(find.text('EDIT'), findsNothing);
+    expect(find.byType(DocumentEditPage), findsOneWidget);
+  });
+
+  testWidgets('the owner row opens the owner', (t) async {
+    final doc = await _save(
+      'Park permit',
+      DocumentType.permit,
+      owner: const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+    );
+    await pump(t, '/documents/${doc.id}');
+    await t.tap(find.text('Bonaire'));
+    await t.pumpAndSettle();
+    expect(find.text('TRIP t1'), findsOneWidget);
+  });
+}

@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
+import 'package:submersion/core/services/sync/changeset_log/rebase_request.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -308,6 +309,32 @@ void main() {
       ),
     );
     expect(manifest.headSeq, greaterThan(manifest.baseSeq!));
+  });
+
+  test('a requested rebase publishes a fresh base once, carrying rows with '
+      'no clock (the v277 documents, issue #2613)', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd1', diveNumber: 1),
+    );
+    await publish();
+    final db = DatabaseService.instance.database;
+    // What the v277 rung leaves: a migrated document with no clock, which
+    // no changeset selects, and the rebase request on the publish state.
+    await db.customStatement(
+      "INSERT INTO divers (id, name, created_at, updated_at) "
+      "VALUES ('dv', 'Ana', 0, 0)",
+    );
+    await db.customStatement(
+      "INSERT INTO documents (id, diver_id, type, created_at, updated_at) "
+      "VALUES ('doc1', 'dv', 'insurance', 0, 0)",
+    );
+    await requestRebase(db);
+
+    final rebased = await publish();
+    expect(rebased.kind, ChangesetWriteKind.base);
+
+    // Done once: the base cleared the request.
+    expect((await publish()).kind, ChangesetWriteKind.noop);
   });
 
   test('publish after base with no new changes is a no-op', () async {

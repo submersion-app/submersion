@@ -10,6 +10,7 @@ abstract final class TrendChartIds {
   static const sac = 'sac';
   static const weight = 'weight';
   static const waterTemp = 'water-temp';
+  static const airTemp = 'air-temp';
 }
 
 /// How one trend chart is drawn. Raw per-dive by default: the whole point of

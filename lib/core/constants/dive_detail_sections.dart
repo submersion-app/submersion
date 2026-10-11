@@ -38,6 +38,10 @@ enum DiveDetailSectionId {
   media,
   tags,
   notes,
+
+  /// Documents filed under the dive (issue #2613). After [notes], so an
+  /// order saved before it existed gains it there.
+  documents,
   customFields,
   dataSources;
 
@@ -73,6 +77,7 @@ enum DiveDetailSectionId {
       media => 'Media',
       tags => 'Tags',
       notes => 'Notes',
+      documents => 'Documents',
       customFields => 'Custom Fields',
       dataSources => 'Data Sources',
     };
@@ -106,6 +111,7 @@ enum DiveDetailSectionId {
       media => 'Photos/videos gallery',
       tags => 'Dive tags',
       notes => 'Dive notes/description',
+      documents => 'Permits, receipts and other papers filed under the dive',
       customFields => 'User-defined custom fields',
       dataSources => 'Connected dive computers, source management',
     };
@@ -137,6 +143,7 @@ enum DiveDetailSectionId {
       media => Icons.photo_library_outlined,
       tags => Icons.label_outline,
       notes => Icons.notes,
+      documents => Icons.folder_copy_outlined,
       customFields => Icons.tune,
       dataSources => Icons.watch_outlined,
     };
@@ -167,6 +174,7 @@ enum DiveDetailSectionId {
       media => l10n.diveDetailSection_media_name,
       tags => l10n.diveDetailSection_tags_name,
       notes => l10n.diveDetailSection_notes_name,
+      documents => l10n.documents_section_title,
       customFields => l10n.diveDetailSection_customFields_name,
       dataSources => l10n.diveDetailSection_dataSources_name,
     };
@@ -197,6 +205,7 @@ enum DiveDetailSectionId {
       media => l10n.diveDetailSection_media_description,
       tags => l10n.diveDetailSection_tags_description,
       notes => l10n.diveDetailSection_notes_description,
+      documents => l10n.diveDetailSection_documents_description,
       customFields => l10n.diveDetailSection_customFields_description,
       dataSources => l10n.diveDetailSection_dataSources_description,
     };
@@ -296,6 +305,7 @@ class DiveDetailSectionConfig {
     DiveDetailSectionConfig(id: DiveDetailSectionId.media, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.tags, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.notes, visible: true),
+    DiveDetailSectionConfig(id: DiveDetailSectionId.documents, visible: true),
     DiveDetailSectionConfig(
       id: DiveDetailSectionId.customFields,
       visible: true,

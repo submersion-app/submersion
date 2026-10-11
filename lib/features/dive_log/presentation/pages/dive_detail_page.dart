@@ -160,6 +160,8 @@ import 'package:submersion/features/dive_log/presentation/formatters/altitude_gr
 import 'package:submersion/features/tides/presentation/tide_state_display.dart';
 import 'package:submersion/features/tides/domain/services/site_wall_clock.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 class DiveDetailPage extends ConsumerStatefulWidget {
   final String diveId;
@@ -546,6 +548,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       DiveDetailSectionId.notes: (_) {
         return [_buildNotesSection(context, dive)];
+      },
+      DiveDetailSectionId.documents: (_) {
+        return [
+          DocumentsSection(
+            owner: DocumentOwner(DocumentOwnerKind.dive, dive.id),
+          ),
+        ];
       },
       DiveDetailSectionId.customFields: (_) {
         if (dive.customFields.isEmpty) return [];

@@ -68,7 +68,7 @@ import '../../../helpers/test_database.dart';
 
 /// The dives-table JSON keys a schema-137 (v1.7.2) build does not know.
 /// From the migration ladder: v144 added dives.visibility_meters; no other
-/// dives column landed between 138 and 153. v277 added
+/// dives column landed between 138 and 153. v278 added
 /// dives.visibility_min_meters and visibility_max_meters (issue #3226).
 /// Extend this list when a later migration adds a dives column, so the
 /// projection stays a faithful model of what the oldest supported reader

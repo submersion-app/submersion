@@ -273,6 +273,39 @@ void main() {
       });
     });
 
+    test('reads socks, wet or dry, ahead of the suit they go with (#2900)', () {
+      const socks = [
+        'Socks',
+        'Sock',
+        'Neoprene socks',
+        'Drysuit socks',
+        'Dry suit socks',
+        'Wetsuit socks',
+        '3mm socks',
+        'Thinsulate socks',
+        'Undersuit socks',
+        'Neoprensocken',
+      ];
+      for (final name in socks) {
+        expect(
+          MacDiveValueMapper.equipmentType(name),
+          EquipmentType.socks,
+          reason: name,
+        );
+      }
+      // "Sock" inside another word is not a sock.
+      expect(
+        MacDiveValueMapper.equipmentType('Socket wrench'),
+        isNot(EquipmentType.socks),
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Windsock'),
+        isNot(EquipmentType.socks),
+      );
+      // A bag named for what it holds is still a bag.
+      expect(MacDiveValueMapper.equipmentType('Sock bag'), EquipmentType.bag);
+    });
+
     test('is case- and whitespace-insensitive', () {
       expect(
         MacDiveValueMapper.equipmentType('  WETSUIT  '),
@@ -580,9 +613,10 @@ void main() {
         MacDiveValueMapper.equipmentType('Thermal boots'),
         EquipmentType.boots,
       );
+      // Socks have their own type since #2900, and still not a base layer.
       expect(
         MacDiveValueMapper.equipmentType('Thermal socks'),
-        EquipmentType.other,
+        EquipmentType.socks,
       );
       // Same for the plural noun: it names the garment on its own, but an
       // accessory word next to it is the more specific signal.

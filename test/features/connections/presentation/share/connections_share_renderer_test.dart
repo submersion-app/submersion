@@ -14,6 +14,7 @@ import 'package:submersion/features/connections/domain/layout/layout_frame.dart'
 import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/share/connections_share_caption.dart';
 import 'package:submersion/features/connections/presentation/share/connections_share_renderer.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
 
 NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
 
@@ -143,5 +144,23 @@ void main() {
     });
     expect(_u32(png!, 16), 1080);
     expect(_u32(png, 20), 1350);
+  });
+
+  testWidgets('selected-only lines are drawn thin, never left out', (
+    tester,
+  ) async {
+    Future<List<int>?> png(EdgeMode edges) => tester.runAsync(
+      () => ConnectionsShareRenderer.render(
+        graph: graph,
+        frame: frame,
+        highlight: HighlightMode.byKind,
+        groups: LabelPropagation.communities(graph),
+        caption: caption,
+        edges: edges,
+      ),
+    );
+    final selectedOnly = await png(EdgeMode.selectedOnly);
+    final thin = await png(EdgeMode.thin);
+    expect(selectedOnly, thin);
   });
 }

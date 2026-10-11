@@ -31,3 +31,27 @@ class HiddenNodesChip extends StatelessWidget {
     );
   }
 }
+
+/// Asks before raising the node budget past what lays out quickly; true
+/// when the diver chose to show all [total] entities.
+Future<bool> confirmShowAll(BuildContext context, int total) async {
+  final l10n = context.l10n;
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(l10n.connections_showAll_confirmTitle),
+      content: Text(l10n.connections_showAll_confirmBody(total)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(l10n.common_action_cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(l10n.connections_showAll),
+        ),
+      ],
+    ),
+  );
+  return ok == true;
+}

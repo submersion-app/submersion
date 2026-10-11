@@ -57,6 +57,7 @@ extension EquipmentTypeDisplay on EquipmentType {
     EquipmentType.hood => l10n.enum_equipmentType_hood,
     EquipmentType.gloves => l10n.enum_equipmentType_gloves,
     EquipmentType.boots => l10n.enum_equipmentType_boots,
+    EquipmentType.socks => l10n.enum_equipmentType_socks,
     EquipmentType.dpv => l10n.enum_equipmentType_dpv,
     EquipmentType.bag => l10n.enum_equipmentType_bag,
     EquipmentType.o2Cell => l10n.enum_equipmentType_o2Cell,

@@ -446,6 +446,246 @@ abstract class AppLocalizations {
   /// **'Recency'**
   String get connections_highlight_recency;
 
+  /// No description provided for @connections_display_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Display'**
+  String get connections_display_title;
+
+  /// No description provided for @connections_layout_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Layout'**
+  String get connections_layout_title;
+
+  /// No description provided for @connections_layout_web.
+  ///
+  /// In en, this message translates to:
+  /// **'Web'**
+  String get connections_layout_web;
+
+  /// No description provided for @connections_layout_radial.
+  ///
+  /// In en, this message translates to:
+  /// **'Radial'**
+  String get connections_layout_radial;
+
+  /// No description provided for @connections_layout_circle.
+  ///
+  /// In en, this message translates to:
+  /// **'Circle'**
+  String get connections_layout_circle;
+
+  /// No description provided for @connections_layout_columns.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns'**
+  String get connections_layout_columns;
+
+  /// No description provided for @connections_layout_clusters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clusters'**
+  String get connections_layout_clusters;
+
+  /// No description provided for @connections_layout_timeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get connections_layout_timeline;
+
+  /// No description provided for @connections_labels_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels'**
+  String get connections_labels_title;
+
+  /// No description provided for @connections_labels_auto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get connections_labels_auto;
+
+  /// No description provided for @connections_labels_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get connections_labels_all;
+
+  /// No description provided for @connections_labels_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get connections_labels_off;
+
+  /// No description provided for @connections_nodeSize_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Node size'**
+  String get connections_nodeSize_title;
+
+  /// No description provided for @connections_nodeSize_byDives.
+  ///
+  /// In en, this message translates to:
+  /// **'By dives'**
+  String get connections_nodeSize_byDives;
+
+  /// No description provided for @connections_nodeSize_uniform.
+  ///
+  /// In en, this message translates to:
+  /// **'Uniform'**
+  String get connections_nodeSize_uniform;
+
+  /// No description provided for @connections_edges_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Lines'**
+  String get connections_edges_title;
+
+  /// No description provided for @connections_edges_weighted.
+  ///
+  /// In en, this message translates to:
+  /// **'Weighted'**
+  String get connections_edges_weighted;
+
+  /// No description provided for @connections_edges_thin.
+  ///
+  /// In en, this message translates to:
+  /// **'Thin'**
+  String get connections_edges_thin;
+
+  /// No description provided for @connections_edges_selectedOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected only'**
+  String get connections_edges_selectedOnly;
+
+  /// No description provided for @connections_hideUnconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide unconnected'**
+  String get connections_hideUnconnected;
+
+  /// No description provided for @connections_spacing_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Spacing'**
+  String get connections_spacing_title;
+
+  /// No description provided for @connections_spacing_tight.
+  ///
+  /// In en, this message translates to:
+  /// **'Tight'**
+  String get connections_spacing_tight;
+
+  /// No description provided for @connections_spacing_spread.
+  ///
+  /// In en, this message translates to:
+  /// **'Spread'**
+  String get connections_spacing_spread;
+
+  /// No description provided for @connections_view_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Change view'**
+  String get connections_view_tooltip;
+
+  /// No description provided for @connections_view_graph.
+  ///
+  /// In en, this message translates to:
+  /// **'Graph'**
+  String get connections_view_graph;
+
+  /// No description provided for @connections_view_pairs.
+  ///
+  /// In en, this message translates to:
+  /// **'Pairs'**
+  String get connections_view_pairs;
+
+  /// No description provided for @connections_view_entities.
+  ///
+  /// In en, this message translates to:
+  /// **'Entities'**
+  String get connections_view_entities;
+
+  /// No description provided for @connections_view_matrix.
+  ///
+  /// In en, this message translates to:
+  /// **'Matrix'**
+  String get connections_view_matrix;
+
+  /// No description provided for @connections_table_entity.
+  ///
+  /// In en, this message translates to:
+  /// **'Entity'**
+  String get connections_table_entity;
+
+  /// No description provided for @connections_table_linkedWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked with'**
+  String get connections_table_linkedWith;
+
+  /// No description provided for @connections_table_sharedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared dives'**
+  String get connections_table_sharedDives;
+
+  /// No description provided for @connections_table_lastShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Last shared'**
+  String get connections_table_lastShared;
+
+  /// No description provided for @connections_table_firstShared.
+  ///
+  /// In en, this message translates to:
+  /// **'First shared'**
+  String get connections_table_firstShared;
+
+  /// No description provided for @connections_table_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get connections_table_name;
+
+  /// No description provided for @connections_table_kind.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get connections_table_kind;
+
+  /// No description provided for @connections_table_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get connections_table_dives;
+
+  /// No description provided for @connections_table_links.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get connections_table_links;
+
+  /// No description provided for @connections_table_strongest.
+  ///
+  /// In en, this message translates to:
+  /// **'Strongest connection'**
+  String get connections_table_strongest;
+
+  /// No description provided for @connections_table_firstDive.
+  ///
+  /// In en, this message translates to:
+  /// **'First dive'**
+  String get connections_table_firstDive;
+
+  /// No description provided for @connections_matrix_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Matrix, rows: {rows}, columns: {columns}, connections: {links}'**
+  String connections_matrix_semantics(int rows, int columns, int links);
+
   /// No description provided for @connections_legend_group.
   ///
   /// In en, this message translates to:
@@ -19195,18 +19435,6 @@ abstract class AppLocalizations {
   /// **'Blood Type'**
   String get divers_edit_bloodTypeLabel;
 
-  /// No description provided for @divers_edit_clearInsuranceExpiryTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear insurance expiry date'**
-  String get divers_edit_clearInsuranceExpiryTooltip;
-
-  /// No description provided for @divers_edit_clearMedicalClearanceTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear medical clearance date'**
-  String get divers_edit_clearMedicalClearanceTooltip;
-
   /// No description provided for @divers_edit_contactNameLabel.
   ///
   /// In en, this message translates to:
@@ -19255,83 +19483,11 @@ abstract class AppLocalizations {
   /// **'Error saving diver: {error}'**
   String divers_edit_errorSaving(Object error);
 
-  /// No description provided for @divers_edit_expiryDateNotSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Not set'**
-  String get divers_edit_expiryDateNotSet;
-
-  /// No description provided for @divers_edit_expiryDateTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Expiry Date'**
-  String get divers_edit_expiryDateTitle;
-
-  /// No description provided for @divers_edit_insuranceEmergencyPhoneHelper.
-  ///
-  /// In en, this message translates to:
-  /// **'Shown first on your emergency card.'**
-  String get divers_edit_insuranceEmergencyPhoneHelper;
-
-  /// No description provided for @divers_edit_insuranceEmergencyPhoneHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., +1 919 684 9111'**
-  String get divers_edit_insuranceEmergencyPhoneHint;
-
-  /// No description provided for @divers_edit_insuranceEmergencyPhoneLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'24h Emergency Assistance Number'**
-  String get divers_edit_insuranceEmergencyPhoneLabel;
-
-  /// No description provided for @divers_edit_insurancePhoneLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Insurance Office Number'**
-  String get divers_edit_insurancePhoneLabel;
-
-  /// No description provided for @divers_edit_insuranceProviderHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., DAN, DiveAssure'**
-  String get divers_edit_insuranceProviderHint;
-
-  /// No description provided for @divers_edit_insuranceProviderLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Insurance Provider'**
-  String get divers_edit_insuranceProviderLabel;
-
   /// No description provided for @divers_edit_keepEditingButton.
   ///
   /// In en, this message translates to:
   /// **'Keep Editing'**
   String get divers_edit_keepEditingButton;
-
-  /// No description provided for @divers_edit_medicalClearanceExpired.
-  ///
-  /// In en, this message translates to:
-  /// **'Expired'**
-  String get divers_edit_medicalClearanceExpired;
-
-  /// No description provided for @divers_edit_medicalClearanceExpiringSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Expiring Soon'**
-  String get divers_edit_medicalClearanceExpiringSoon;
-
-  /// No description provided for @divers_edit_medicalClearanceNotSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Not set'**
-  String get divers_edit_medicalClearanceNotSet;
-
-  /// No description provided for @divers_edit_medicalClearanceTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Medical Clearance Expiry'**
-  String get divers_edit_medicalClearanceTitle;
 
   /// No description provided for @divers_edit_medicalNotesLabel.
   ///
@@ -19375,12 +19531,6 @@ abstract class AppLocalizations {
   /// **'Phone'**
   String get divers_edit_phoneLabel;
 
-  /// No description provided for @divers_edit_policyNumberLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Policy Number'**
-  String get divers_edit_policyNumberLabel;
-
   /// No description provided for @divers_edit_primaryContactTitle.
   ///
   /// In en, this message translates to:
@@ -19410,18 +19560,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Secondary Contact'**
   String get divers_edit_secondaryContactTitle;
-
-  /// No description provided for @divers_edit_selectInsuranceExpiryTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Select insurance expiry date'**
-  String get divers_edit_selectInsuranceExpiryTooltip;
-
-  /// No description provided for @divers_edit_selectMedicalClearanceTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Select medical clearance date'**
-  String get divers_edit_selectMedicalClearanceTooltip;
 
   /// No description provided for @divers_detail_deleteDialogConfirmHint.
   ///
@@ -20130,6 +20268,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Boots'**
   String get enum_equipmentType_boots;
+
+  /// No description provided for @enum_equipmentType_socks.
+  ///
+  /// In en, this message translates to:
+  /// **'Socks'**
+  String get enum_equipmentType_socks;
 
   /// No description provided for @enum_equipmentType_camera.
   ///
@@ -37253,6 +37397,510 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buddy'**
   String get settings_conflict_ref_buddy;
+
+  /// No description provided for @nav_documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get nav_documents;
+
+  /// No description provided for @documents_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documents_title;
+
+  /// No description provided for @documents_type_insurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get documents_type_insurance;
+
+  /// No description provided for @documents_type_medicalClearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical clearance'**
+  String get documents_type_medicalClearance;
+
+  /// No description provided for @documents_type_certificationCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification card'**
+  String get documents_type_certificationCard;
+
+  /// No description provided for @documents_type_permit.
+  ///
+  /// In en, this message translates to:
+  /// **'Permit'**
+  String get documents_type_permit;
+
+  /// No description provided for @documents_type_booking.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking'**
+  String get documents_type_booking;
+
+  /// No description provided for @documents_type_receipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get documents_type_receipt;
+
+  /// No description provided for @documents_type_manual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get documents_type_manual;
+
+  /// No description provided for @documents_type_map.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get documents_type_map;
+
+  /// No description provided for @documents_type_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get documents_type_other;
+
+  /// No description provided for @documents_owner_personal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get documents_owner_personal;
+
+  /// No description provided for @documents_owner_dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get documents_owner_dive;
+
+  /// No description provided for @documents_owner_site.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get documents_owner_site;
+
+  /// No description provided for @documents_owner_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get documents_owner_trip;
+
+  /// No description provided for @documents_owner_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get documents_owner_equipment;
+
+  /// No description provided for @documents_owner_course.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get documents_owner_course;
+
+  /// No description provided for @documents_owner_certification.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get documents_owner_certification;
+
+  /// No description provided for @documents_owner_buddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get documents_owner_buddy;
+
+  /// No description provided for @documents_owner_diveCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive centers'**
+  String get documents_owner_diveCenter;
+
+  /// No description provided for @documents_expiring_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get documents_expiring_title;
+
+  /// No description provided for @documents_badge_expired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get documents_badge_expired;
+
+  /// No description provided for @documents_badge_expiresInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Expires today} =1{Expires tomorrow} other{Expires in {count} days}}'**
+  String documents_badge_expiresInDays(int count);
+
+  /// No description provided for @documents_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents yet'**
+  String get documents_empty;
+
+  /// No description provided for @documents_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search documents'**
+  String get documents_search_hint;
+
+  /// No description provided for @documents_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add document'**
+  String get documents_add;
+
+  /// No description provided for @documents_section_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documents_section_title;
+
+  /// No description provided for @documents_section_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents attached'**
+  String get documents_section_empty;
+
+  /// No description provided for @documents_edit_newTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New document'**
+  String get documents_edit_newTitle;
+
+  /// No description provided for @documents_edit_editTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit document'**
+  String get documents_edit_editTitle;
+
+  /// No description provided for @documents_field_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get documents_field_type;
+
+  /// No description provided for @documents_field_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get documents_field_title;
+
+  /// No description provided for @documents_field_issuer.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued by'**
+  String get documents_field_issuer;
+
+  /// No description provided for @documents_field_issuerInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurer'**
+  String get documents_field_issuerInsurance;
+
+  /// No description provided for @documents_field_referenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Number'**
+  String get documents_field_referenceNumber;
+
+  /// No description provided for @documents_field_referenceNumberInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Policy number'**
+  String get documents_field_referenceNumberInsurance;
+
+  /// No description provided for @documents_field_issueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued'**
+  String get documents_field_issueDate;
+
+  /// No description provided for @documents_field_expiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires'**
+  String get documents_field_expiryDate;
+
+  /// No description provided for @documents_field_reminderLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me'**
+  String get documents_field_reminderLead;
+
+  /// No description provided for @documents_field_reminderLeadDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Off} =1{{count} day before} other{{count} days before}}'**
+  String documents_field_reminderLeadDays(int count);
+
+  /// No description provided for @documents_field_emergencyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'24-hour emergency line'**
+  String get documents_field_emergencyPhone;
+
+  /// No description provided for @documents_field_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Office phone'**
+  String get documents_field_phone;
+
+  /// No description provided for @documents_field_isPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary insurance'**
+  String get documents_field_isPrimary;
+
+  /// No description provided for @documents_field_isPrimary_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown on the emergency card and the home screen'**
+  String get documents_field_isPrimary_subtitle;
+
+  /// No description provided for @documents_field_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get documents_field_notes;
+
+  /// No description provided for @documents_pages_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get documents_pages_title;
+
+  /// No description provided for @documents_pages_front.
+  ///
+  /// In en, this message translates to:
+  /// **'Front'**
+  String get documents_pages_front;
+
+  /// No description provided for @documents_pages_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get documents_pages_back;
+
+  /// No description provided for @documents_pages_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add page'**
+  String get documents_pages_add;
+
+  /// No description provided for @documents_pages_addCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get documents_pages_addCamera;
+
+  /// No description provided for @documents_pages_addGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose photo'**
+  String get documents_pages_addGallery;
+
+  /// No description provided for @documents_pages_addFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose file'**
+  String get documents_pages_addFile;
+
+  /// No description provided for @documents_pages_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove page'**
+  String get documents_pages_remove;
+
+  /// No description provided for @documents_pages_tooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is {size}. The limit is 10 MB.'**
+  String documents_pages_tooLarge(String size);
+
+  /// No description provided for @documents_pages_unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'{extension} files are not supported. Use a photo, PDF, Word or text file.'**
+  String documents_pages_unsupported(String extension);
+
+  /// No description provided for @documents_page_cannotDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t display this page'**
+  String get documents_page_cannotDisplay;
+
+  /// No description provided for @documents_page_openWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Open with...'**
+  String get documents_page_openWith;
+
+  /// No description provided for @documents_page_counter.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String documents_page_counter(int current, int total);
+
+  /// No description provided for @documents_delete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete document?'**
+  String get documents_delete_title;
+
+  /// No description provided for @documents_delete_content.
+  ///
+  /// In en, this message translates to:
+  /// **'This deletes the document and all its pages on every synced device.'**
+  String get documents_delete_content;
+
+  /// No description provided for @documents_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Document deleted'**
+  String get documents_deleted;
+
+  /// No description provided for @documents_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Document saved'**
+  String get documents_saved;
+
+  /// No description provided for @documents_error_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the document: {error}'**
+  String documents_error_save(String error);
+
+  /// No description provided for @documents_error_load.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load documents: {error}'**
+  String documents_error_load(String error);
+
+  /// No description provided for @documents_filter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get documents_filter_all;
+
+  /// No description provided for @documents_detail_owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Filed under'**
+  String get documents_detail_owner;
+
+  /// No description provided for @documents_profileHub_documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documents_profileHub_documents;
+
+  /// No description provided for @documents_profileHub_documents_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None yet} =1{{count} document} other{{count} documents}}'**
+  String documents_profileHub_documents_count(int count);
+
+  /// No description provided for @documents_medical_clearances.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical clearances'**
+  String get documents_medical_clearances;
+
+  /// No description provided for @documents_medical_addClearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Add clearance'**
+  String get documents_medical_addClearance;
+
+  /// No description provided for @documents_medical_clearancesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No medical clearance recorded'**
+  String get documents_medical_clearancesEmpty;
+
+  /// No description provided for @dashboard_gauges_documentExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} expires {date}'**
+  String dashboard_gauges_documentExpires(String title, String date);
+
+  /// No description provided for @dashboard_gauges_documentExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} expired'**
+  String dashboard_gauges_documentExpired(String title);
+
+  /// No description provided for @dashboard_gauges_documentsNeedAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} document needs attention} other{{count} documents need attention}}'**
+  String dashboard_gauges_documentsNeedAttention(int count);
+
+  /// No description provided for @settings_homeChips_documents.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get settings_homeChips_documents;
+
+  /// No description provided for @notifications_document_expiresSoon_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} expires soon'**
+  String notifications_document_expiresSoon_title(String title);
+
+  /// No description provided for @notifications_document_expiresSoon_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Expires tomorrow.} other{Expires in {count} days.}}'**
+  String notifications_document_expiresSoon_body(int count);
+
+  /// No description provided for @notifications_document_expiresToday_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} expires today'**
+  String notifications_document_expiresToday_title(String title);
+
+  /// No description provided for @notifications_document_expiresToday_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Renew it before your next dive.'**
+  String get notifications_document_expiresToday_body;
+
+  /// No description provided for @settings_conflict_field_pageOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Page order'**
+  String get settings_conflict_field_pageOrder;
+
+  /// No description provided for @settings_conflict_field_cardSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Card side'**
+  String get settings_conflict_field_cardSide;
+
+  /// No description provided for @diveDetailSection_documents_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Permits, receipts and other papers filed under the dive'**
+  String get diveDetailSection_documents_description;
+
+  /// No description provided for @siteDetailSection_documents_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Maps, permits and other papers for the site'**
+  String get siteDetailSection_documents_description;
+
+  /// No description provided for @settings_conflict_ref_document.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get settings_conflict_ref_document;
 
   /// No description provided for @settings_conflict_ref_certification.
   ///
@@ -54536,6 +55184,12 @@ abstract class AppLocalizations {
   /// **'Sole'**
   String get attrLabel_sole_type;
 
+  /// No description provided for @attrLabel_sock_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get attrLabel_sock_type;
+
   /// No description provided for @attrLabel_buoyancy_kg.
   ///
   /// In en, this message translates to:
@@ -55483,6 +56137,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Soft sole'**
   String get attrChoice_sole_type_soft;
+
+  /// No description provided for @attrChoice_sock_type_neoprene.
+  ///
+  /// In en, this message translates to:
+  /// **'Neoprene (wet)'**
+  String get attrChoice_sock_type_neoprene;
+
+  /// No description provided for @attrChoice_sock_type_drysuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Drysuit (thermal)'**
+  String get attrChoice_sock_type_drysuit;
 
   /// No description provided for @attrChoice_dpv_style_tow_behind.
   ///
@@ -75332,6 +75998,213 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load temperature trend'**
   String get insights_conditions_tempTrend_error;
+
+  /// Heading of the Conditions statistics group for water temperature, visibility and water type
+  ///
+  /// In en, this message translates to:
+  /// **'Water'**
+  String get insights_conditions_group_water;
+
+  /// Heading of the Conditions statistics group for air temperature, cloud, precipitation, wind, humidity and surface pressure
+  ///
+  /// In en, this message translates to:
+  /// **'Surface & Weather'**
+  String get insights_conditions_group_surfaceWeather;
+
+  /// Heading of the Conditions statistics group for current and swell
+  ///
+  /// In en, this message translates to:
+  /// **'Water Movement'**
+  String get insights_conditions_group_waterMovement;
+
+  /// Heading of the Conditions statistics group for site type, altitude, entry method and exit method
+  ///
+  /// In en, this message translates to:
+  /// **'Site & Access'**
+  String get insights_conditions_group_siteAccess;
+
+  /// Line under a Conditions chart: how many dives in the current filter have this field recorded, out of all dives in the filter
+  ///
+  /// In en, this message translates to:
+  /// **'{total, plural, one{Based on {recorded} of {total} dive} other{Based on {recorded} of {total} dives}}'**
+  String insights_conditions_coverage(int recorded, int total);
+
+  /// Error shown in a Conditions statistics group when the weather and conditions data could not be loaded
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load weather and conditions data'**
+  String get insights_conditions_weather_error;
+
+  /// Screen-reader summary of a Conditions chart: its title followed by each category or band with its dive count
+  ///
+  /// In en, this message translates to:
+  /// **'{chartTitle}. {description}'**
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  );
+
+  /// Title of the chart of air temperature on each dive over time
+  ///
+  /// In en, this message translates to:
+  /// **'Air Temperature Over Time'**
+  String get insights_conditions_airTempTrend_title;
+
+  /// Subtitle of the air temperature over time chart
+  ///
+  /// In en, this message translates to:
+  /// **'Air temperature on each dive'**
+  String get insights_conditions_airTempTrend_subtitle;
+
+  /// Error state of the air temperature over time chart
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load air temperature'**
+  String get insights_conditions_airTempTrend_error;
+
+  /// Title of the card counting dives per air-temperature band
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by Air Temperature'**
+  String get insights_conditions_airTempBands_title;
+
+  /// Subtitle of the dives-by-air-temperature card
+  ///
+  /// In en, this message translates to:
+  /// **'How your dives split across air temperature bands'**
+  String get insights_conditions_airTempBands_subtitle;
+
+  /// Title of the card showing the share of dives per cloud cover (clear to overcast)
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Cover'**
+  String get insights_conditions_cloudCover_title;
+
+  /// Subtitle of the cloud cover card
+  ///
+  /// In en, this message translates to:
+  /// **'Sky conditions on your dives'**
+  String get insights_conditions_cloudCover_subtitle;
+
+  /// Title of the card counting dives per precipitation type (none, drizzle, rain, snow and so on)
+  ///
+  /// In en, this message translates to:
+  /// **'Precipitation'**
+  String get insights_conditions_precipitation_title;
+
+  /// Subtitle of the precipitation card
+  ///
+  /// In en, this message translates to:
+  /// **'Rain, snow and other precipitation on your dives'**
+  String get insights_conditions_precipitation_subtitle;
+
+  /// Title of the card counting dives per wind-speed band
+  ///
+  /// In en, this message translates to:
+  /// **'Wind Speed'**
+  String get insights_conditions_windSpeed_title;
+
+  /// Subtitle of the wind speed card
+  ///
+  /// In en, this message translates to:
+  /// **'How your dives split across wind speed bands'**
+  String get insights_conditions_windSpeed_subtitle;
+
+  /// Title of the card counting dives per recorded wind direction (compass point)
+  ///
+  /// In en, this message translates to:
+  /// **'Wind Direction'**
+  String get insights_conditions_windDirection_title;
+
+  /// Subtitle of the wind direction card
+  ///
+  /// In en, this message translates to:
+  /// **'Wind direction recorded on your dives'**
+  String get insights_conditions_windDirection_subtitle;
+
+  /// Title of the card counting dives per relative-humidity band
+  ///
+  /// In en, this message translates to:
+  /// **'Humidity'**
+  String get insights_conditions_humidity_title;
+
+  /// Subtitle of the humidity card
+  ///
+  /// In en, this message translates to:
+  /// **'Relative humidity on your dives'**
+  String get insights_conditions_humidity_subtitle;
+
+  /// Title of the card counting dives per barometric surface-pressure band
+  ///
+  /// In en, this message translates to:
+  /// **'Surface Pressure'**
+  String get insights_conditions_surfacePressure_title;
+
+  /// Subtitle of the surface pressure card
+  ///
+  /// In en, this message translates to:
+  /// **'Barometric pressure at the surface on your dives'**
+  String get insights_conditions_surfacePressure_subtitle;
+
+  /// Title of the card showing the share of dives per current strength (none to strong)
+  ///
+  /// In en, this message translates to:
+  /// **'Current Strength'**
+  String get insights_conditions_currentStrength_title;
+
+  /// Subtitle of the current strength card
+  ///
+  /// In en, this message translates to:
+  /// **'How strong the current was on your dives'**
+  String get insights_conditions_currentStrength_subtitle;
+
+  /// Title of the card counting dives per recorded current direction (compass point)
+  ///
+  /// In en, this message translates to:
+  /// **'Current Direction'**
+  String get insights_conditions_currentDirection_title;
+
+  /// Subtitle of the current direction card
+  ///
+  /// In en, this message translates to:
+  /// **'Current direction recorded on your dives'**
+  String get insights_conditions_currentDirection_subtitle;
+
+  /// Title of the card counting dives per swell-height band
+  ///
+  /// In en, this message translates to:
+  /// **'Swell Height'**
+  String get insights_conditions_swellHeight_title;
+
+  /// Subtitle of the swell height card
+  ///
+  /// In en, this message translates to:
+  /// **'How your dives split across swell heights'**
+  String get insights_conditions_swellHeight_subtitle;
+
+  /// Title of the card counting dives per altitude group (sea level, altitude group 1 and so on)
+  ///
+  /// In en, this message translates to:
+  /// **'Altitude'**
+  String get insights_conditions_altitude_title;
+
+  /// Subtitle of the altitude card
+  ///
+  /// In en, this message translates to:
+  /// **'Dives by altitude group'**
+  String get insights_conditions_altitude_subtitle;
+
+  /// Title of the card counting dives per exit method (ladder, shore and so on)
+  ///
+  /// In en, this message translates to:
+  /// **'Exit Method'**
+  String get insights_conditions_exitMethod_title;
+
+  /// Subtitle of the exit method card
+  ///
+  /// In en, this message translates to:
+  /// **'How you left the water'**
+  String get insights_conditions_exitMethod_subtitle;
 
   /// Title of the Conditions statistics card that counts dives per water-temperature band (for example below 10, 10-18, 18-24 and 24+ degrees)
   ///

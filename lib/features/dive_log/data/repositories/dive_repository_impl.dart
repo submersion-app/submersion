@@ -95,6 +95,8 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// A dive that a conditions fetch can still do something for: its site carries
 /// coordinates and at least one weather column is empty.
@@ -2384,13 +2386,28 @@ class DiveRepository {
   /// action and would fail the delete. One transaction, so a failed delete
   /// leaves the plans linked. Chunked, so "select all" on a logbook past
   /// SQLite's bound-variable limit still deletes (issue #1953).
-  Future<void> _deleteDiveRows(List<String> ids) => _db.transaction(() async {
+  Future<void> _deleteDiveRows(
+    List<String> ids, {
+    required bool deleteDocuments,
+  }) => _db.transaction(() async {
     await clearPlanLinksToDives(
       _db,
       _syncRepository,
       ids,
       now: DateTime.now().millisecondsSinceEpoch,
     );
+    // The dives' documents go with them, tombstoned (issue #2613). A merge
+    // re-points them to the merged dive first, so it never loses them here.
+    // A restore-safe delete (a merge undo) leaves them to the FK's SET NULL
+    // and points them back at the restored dives itself, as it does media.
+    if (deleteDocuments) {
+      for (final chunk in seriesIdChunks(ids)) {
+        await DocumentRepository().deleteForOwners(
+          DocumentOwnerKind.dive,
+          chunk,
+        );
+      }
+    }
     for (final chunk in seriesIdChunks(ids)) {
       await (_db.delete(_db.dives)..where((t) => t.id.isIn(chunk))).go();
     }
@@ -2413,7 +2430,7 @@ class DiveRepository {
       // way to tell which routes it just unlinked from which were already
       // unlinked.
       final linkedRouteIds = await _navTrackRepository.routeIdsLinkedToDive(id);
-      await _deleteDiveRows([id]);
+      await _deleteDiveRows([id], deleteDocuments: cascadeMedia);
       await _navTrackRepository.normalizeAfterDiveDeletion(linkedRouteIds);
       // The FK cascade took this dive's dive_data_sources rows, which may
       // have held the last reference to a stored import file (issue #478).
@@ -2455,7 +2472,7 @@ class DiveRepository {
       final linkedRouteIds = await _navTrackRepository.routeIdsLinkedToDives(
         dives,
       );
-      await _deleteDiveRows(dives);
+      await _deleteDiveRows(dives, deleteDocuments: cascadeMedia);
       await _navTrackRepository.normalizeAfterDiveDeletion(linkedRouteIds);
       // See deleteDive: the cascade may have orphaned a stored import file.
       if (cascadeMedia) await _importedFileReclaimer.reclaimOrphans();

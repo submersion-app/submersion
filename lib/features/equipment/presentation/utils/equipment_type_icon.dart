@@ -84,6 +84,10 @@ IconData equipmentTypeIcon(EquipmentType type) {
       return MdiIcons.divingSnorkel;
     case EquipmentType.boots:
       return SubmersionIcons.boots;
+    // Drawn (#2900): no icon font has a sock. It has a cuff and no sole, so
+    // it reads apart from the bootie in the same exposure family.
+    case EquipmentType.socks:
+      return SubmersionIcons.socks;
     case EquipmentType.gloves:
       return SubmersionIcons.gloves;
     case EquipmentType.hood:

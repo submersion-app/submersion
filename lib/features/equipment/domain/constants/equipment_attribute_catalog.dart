@@ -77,6 +77,7 @@ abstract final class EquipmentAttrKeys {
   static const bcdStyle = 'bcd_style';
   static const liftCapacityKg = 'lift_capacity_kg';
   static const gloveType = 'glove_type';
+  static const sockType = 'sock_type';
   static const weightStyle = 'weight_style';
   static const insulationLevel = 'insulation_level';
   static const fillMaterial = 'fill_material';
@@ -815,6 +816,19 @@ abstract final class EquipmentAttributeCatalog {
         kind: AttributeKind.choice,
         choiceKeys: ['hard', 'soft'],
       ),
+    ],
+    // Socks (#2900): neoprene socks are sold by thickness like boots, and
+    // drysuit socks by fibre like the undergarments, so both are recorded
+    // and sock_type says which kind the pair is.
+    EquipmentType.socks: [
+      _size,
+      _thickness,
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.sockType,
+        kind: AttributeKind.choice,
+        choiceKeys: ['neoprene', 'drysuit'],
+      ),
+      _fillMaterial,
     ],
     EquipmentType.o2Cell: [
       EquipmentAttributeDef(

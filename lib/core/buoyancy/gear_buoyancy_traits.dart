@@ -15,6 +15,7 @@ class GearBuoyancyTraits extends Equatable {
   final double? liftCapacityKg;
   final String? gloveType;
   final String? insulationLevel;
+  final String? sockType;
 
   /// Whether a vest has its hood attached (#3108); null when not recorded.
   final bool? hooded;
@@ -28,6 +29,7 @@ class GearBuoyancyTraits extends Equatable {
     this.liftCapacityKg,
     this.gloveType,
     this.insulationLevel,
+    this.sockType,
     this.hooded,
   });
 
@@ -60,6 +62,7 @@ class GearBuoyancyTraits extends Equatable {
     liftCapacityKg,
     gloveType,
     insulationLevel,
+    sockType,
     hooded,
   ];
 }

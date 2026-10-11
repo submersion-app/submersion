@@ -81,6 +81,10 @@ enum EquipmentType {
   hood('Hood'),
   gloves('Gloves'),
   boots('Boots'),
+  // Requested in #2900. Neoprene socks worn in open-heel fins or under boots
+  // and thermal socks worn inside a drysuit's feet are one type, told apart
+  // by sock_type the way gloves are told apart by glove_type.
+  socks('Socks'),
   dpv('DPV'),
   // Requested in #2952. A bag carries gear rather than being worn, so it
   // has no place on the diver figure or in a body order, and adds no mass

@@ -97,6 +97,8 @@ void main() {
       'buddies',
       'diveBuddies',
       'certifications',
+      'documents',
+      'documentPages',
       'courses',
       'courseRequirements',
       'courseRequirementDives',
@@ -231,6 +233,8 @@ void main() {
         (type: 'buddies', table: db.buddies.actualTableName),
         (type: 'diveBuddies', table: db.diveBuddies.actualTableName),
         (type: 'certifications', table: db.certifications.actualTableName),
+        (type: 'documents', table: db.documents.actualTableName),
+        (type: 'documentPages', table: db.documentPages.actualTableName),
         (type: 'courses', table: db.courses.actualTableName),
         (
           type: 'courseRequirements',

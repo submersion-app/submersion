@@ -45,6 +45,7 @@ void main() {
       'getWaterTypeDistribution': (r) => r.getWaterTypeDistribution(),
       'getSiteTypeDistribution': (r) => r.getSiteTypeDistribution(),
       'getEntryMethodDistribution': (r) => r.getEntryMethodDistribution(),
+      'getConditionsRows': (r) => r.getConditionsRows(),
       'getEntryExitMethodPairsForSite': (r) =>
           r.getEntryExitMethodPairsForSite(siteId: 'site-1'),
       'getSiteDiveStatistics': (r) => r.getSiteDiveStatistics(siteId: 'site-1'),

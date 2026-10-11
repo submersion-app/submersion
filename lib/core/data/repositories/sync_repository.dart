@@ -126,6 +126,8 @@ class SyncRepository {
     'dives': (table: 'dives', pk: 'id'),
     'diveSites': (table: 'dive_sites', pk: 'id'),
     'certifications': (table: 'certifications', pk: 'id'),
+    'documents': (table: 'documents', pk: 'id'),
+    'documentPages': (table: 'document_pages', pk: 'id'),
     'serviceRecords': (table: 'service_records', pk: 'id'),
     'serviceKinds': (table: 'service_kinds', pk: 'id'),
     // Editing a schedule never touches the parent equipment row, so a

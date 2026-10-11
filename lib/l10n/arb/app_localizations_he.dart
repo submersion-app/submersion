@@ -222,6 +222,128 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_highlight_recency => 'עדכניות';
 
   @override
+  String get connections_display_title => 'תצוגה';
+
+  @override
+  String get connections_layout_title => 'פריסה';
+
+  @override
+  String get connections_layout_web => 'רשת';
+
+  @override
+  String get connections_layout_radial => 'רדיאלית';
+
+  @override
+  String get connections_layout_circle => 'מעגל';
+
+  @override
+  String get connections_layout_columns => 'עמודות';
+
+  @override
+  String get connections_layout_clusters => 'אשכולות';
+
+  @override
+  String get connections_layout_timeline => 'ציר זמן';
+
+  @override
+  String get connections_labels_title => 'תוויות';
+
+  @override
+  String get connections_labels_auto => 'אוטומטי';
+
+  @override
+  String get connections_labels_all => 'הכול';
+
+  @override
+  String get connections_labels_off => 'כבוי';
+
+  @override
+  String get connections_nodeSize_title => 'גודל צומת';
+
+  @override
+  String get connections_nodeSize_byDives => 'לפי צלילות';
+
+  @override
+  String get connections_nodeSize_uniform => 'אחיד';
+
+  @override
+  String get connections_edges_title => 'קווים';
+
+  @override
+  String get connections_edges_weighted => 'משוקללים';
+
+  @override
+  String get connections_edges_thin => 'דקים';
+
+  @override
+  String get connections_edges_selectedOnly => 'רק הנבחר';
+
+  @override
+  String get connections_hideUnconnected => 'הסתרת פריטים ללא קשרים';
+
+  @override
+  String get connections_spacing_title => 'ריווח';
+
+  @override
+  String get connections_spacing_tight => 'צפוף';
+
+  @override
+  String get connections_spacing_spread => 'מרווח';
+
+  @override
+  String get connections_view_tooltip => 'החלפת תצוגה';
+
+  @override
+  String get connections_view_graph => 'גרף';
+
+  @override
+  String get connections_view_pairs => 'זוגות';
+
+  @override
+  String get connections_view_entities => 'פריטים';
+
+  @override
+  String get connections_view_matrix => 'מטריצה';
+
+  @override
+  String get connections_table_entity => 'פריט';
+
+  @override
+  String get connections_table_linkedWith => 'מקושר אל';
+
+  @override
+  String get connections_table_sharedDives => 'צלילות משותפות';
+
+  @override
+  String get connections_table_lastShared => 'משותפת אחרונה';
+
+  @override
+  String get connections_table_firstShared => 'משותפת ראשונה';
+
+  @override
+  String get connections_table_name => 'שם';
+
+  @override
+  String get connections_table_kind => 'סוג';
+
+  @override
+  String get connections_table_dives => 'צלילות';
+
+  @override
+  String get connections_table_links => 'קשרים';
+
+  @override
+  String get connections_table_strongest => 'הקשר החזק ביותר';
+
+  @override
+  String get connections_table_firstDive => 'צלילה ראשונה';
+
+  @override
+  String connections_matrix_semantics(int rows, int columns, int links) {
+    return 'מטריצה, שורות: $rows, עמודות: $columns, קשרים: $links';
+  }
+
+  @override
   String get connections_legend_group => 'צבע: קבוצה';
 
   @override
@@ -11724,13 +11846,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_bloodTypeLabel => 'סוג דם';
 
   @override
-  String get divers_edit_clearInsuranceExpiryTooltip => 'נקה תאריך תפוגת ביטוח';
-
-  @override
-  String get divers_edit_clearMedicalClearanceTooltip =>
-      'נקה תאריך אישור רפואי';
-
-  @override
   String get divers_edit_contactNameLabel => 'שם איש קשר';
 
   @override
@@ -11758,46 +11873,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get divers_edit_expiryDateNotSet => 'לא הוגדר';
-
-  @override
-  String get divers_edit_expiryDateTitle => 'תאריך תפוגה';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHelper =>
-      'מוצג ראשון בכרטיס החירום שלך.';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneHint =>
-      'לדוגמה, +1 919 684 9111';
-
-  @override
-  String get divers_edit_insuranceEmergencyPhoneLabel =>
-      'מספר סיוע חירום 24 שעות';
-
-  @override
-  String get divers_edit_insurancePhoneLabel => 'מספר משרד חברת הביטוח';
-
-  @override
-  String get divers_edit_insuranceProviderHint => 'לדוגמה, DAN, DiveAssure';
-
-  @override
-  String get divers_edit_insuranceProviderLabel => 'ספק ביטוח';
-
-  @override
   String get divers_edit_keepEditingButton => 'המשך עריכה';
-
-  @override
-  String get divers_edit_medicalClearanceExpired => 'פג תוקף';
-
-  @override
-  String get divers_edit_medicalClearanceExpiringSoon => 'פג בקרוב';
-
-  @override
-  String get divers_edit_medicalClearanceNotSet => 'לא הוגדר';
-
-  @override
-  String get divers_edit_medicalClearanceTitle => 'תפוגת אישור רפואי';
 
   @override
   String get divers_edit_medicalNotesLabel => 'הערות רפואיות';
@@ -11821,9 +11897,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divers_edit_phoneLabel => 'טלפון';
 
   @override
-  String get divers_edit_policyNumberLabel => 'מספר פוליסה';
-
-  @override
   String get divers_edit_primaryContactTitle => 'איש קשר ראשי';
 
   @override
@@ -11837,14 +11910,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get divers_edit_secondaryContactTitle => 'איש קשר משני';
-
-  @override
-  String get divers_edit_selectInsuranceExpiryTooltip =>
-      'בחר תאריך תפוגת ביטוח';
-
-  @override
-  String get divers_edit_selectMedicalClearanceTooltip =>
-      'בחר תאריך אישור רפואי';
 
   @override
   String divers_detail_deleteDialogConfirmHint(String name) {
@@ -12208,6 +12273,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_boots => 'נעלי צלילה';
+
+  @override
+  String get enum_equipmentType_socks => 'גרביים';
 
   @override
   String get enum_equipmentType_camera => 'מצלמה';
@@ -22567,6 +22635,324 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_buddy => 'שותף';
+
+  @override
+  String get nav_documents => 'מסמכים';
+
+  @override
+  String get documents_title => 'מסמכים';
+
+  @override
+  String get documents_type_insurance => 'ביטוח';
+
+  @override
+  String get documents_type_medicalClearance => 'אישור רפואי';
+
+  @override
+  String get documents_type_certificationCard => 'כרטיס הסמכה';
+
+  @override
+  String get documents_type_permit => 'היתר';
+
+  @override
+  String get documents_type_booking => 'הזמנה';
+
+  @override
+  String get documents_type_receipt => 'קבלה';
+
+  @override
+  String get documents_type_manual => 'מדריך';
+
+  @override
+  String get documents_type_map => 'מפה';
+
+  @override
+  String get documents_type_other => 'מסמך';
+
+  @override
+  String get documents_owner_personal => 'אישי';
+
+  @override
+  String get documents_owner_dive => 'צלילות';
+
+  @override
+  String get documents_owner_site => 'אתרים';
+
+  @override
+  String get documents_owner_trip => 'טיולים';
+
+  @override
+  String get documents_owner_equipment => 'ציוד';
+
+  @override
+  String get documents_owner_course => 'קורסים';
+
+  @override
+  String get documents_owner_certification => 'הסמכות';
+
+  @override
+  String get documents_owner_buddy => 'שותפים';
+
+  @override
+  String get documents_owner_diveCenter => 'מרכזי צלילה';
+
+  @override
+  String get documents_expiring_title => 'דורש תשומת לב';
+
+  @override
+  String get documents_badge_expired => 'פג תוקף';
+
+  @override
+  String documents_badge_expiresInDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'פג בעוד $count ימים',
+      one: 'פג מחר',
+      zero: 'פג היום',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_empty => 'אין עדיין מסמכים';
+
+  @override
+  String get documents_search_hint => 'חיפוש מסמכים';
+
+  @override
+  String get documents_add => 'הוספת מסמך';
+
+  @override
+  String get documents_section_title => 'מסמכים';
+
+  @override
+  String get documents_section_empty => 'אין מסמכים מצורפים';
+
+  @override
+  String get documents_edit_newTitle => 'מסמך חדש';
+
+  @override
+  String get documents_edit_editTitle => 'עריכת מסמך';
+
+  @override
+  String get documents_field_type => 'סוג';
+
+  @override
+  String get documents_field_title => 'כותרת';
+
+  @override
+  String get documents_field_issuer => 'הונפק על ידי';
+
+  @override
+  String get documents_field_issuerInsurance => 'חברת הביטוח';
+
+  @override
+  String get documents_field_referenceNumber => 'מספר';
+
+  @override
+  String get documents_field_referenceNumberInsurance => 'מספר פוליסה';
+
+  @override
+  String get documents_field_issueDate => 'תאריך הנפקה';
+
+  @override
+  String get documents_field_expiryDate => 'תוקף עד';
+
+  @override
+  String get documents_field_reminderLead => 'תזכורת';
+
+  @override
+  String documents_field_reminderLeadDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ימים לפני',
+      one: 'יום אחד לפני',
+      zero: 'כבוי',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_field_emergencyPhone => 'קו חירום 24 שעות';
+
+  @override
+  String get documents_field_phone => 'טלפון משרד';
+
+  @override
+  String get documents_field_isPrimary => 'ביטוח ראשי';
+
+  @override
+  String get documents_field_isPrimary_subtitle =>
+      'מוצג בכרטיס החירום ובמסך הבית';
+
+  @override
+  String get documents_field_notes => 'הערות';
+
+  @override
+  String get documents_pages_title => 'עמודים';
+
+  @override
+  String get documents_pages_front => 'חזית';
+
+  @override
+  String get documents_pages_back => 'גב';
+
+  @override
+  String get documents_pages_add => 'הוספת עמוד';
+
+  @override
+  String get documents_pages_addCamera => 'צילום תמונה';
+
+  @override
+  String get documents_pages_addGallery => 'בחירת תמונה';
+
+  @override
+  String get documents_pages_addFile => 'בחירת קובץ';
+
+  @override
+  String get documents_pages_remove => 'הסרת עמוד';
+
+  @override
+  String documents_pages_tooLarge(String size) {
+    return 'גודל הקובץ $size. המגבלה היא 10 MB.';
+  }
+
+  @override
+  String documents_pages_unsupported(String extension) {
+    return 'קובצי $extension אינם נתמכים. השתמשו בתמונה או בקובץ PDF, Word או טקסט.';
+  }
+
+  @override
+  String get documents_page_cannotDisplay => 'לא ניתן להציג עמוד זה';
+
+  @override
+  String get documents_page_openWith => 'פתיחה באמצעות...';
+
+  @override
+  String documents_page_counter(int current, int total) {
+    return '$current מתוך $total';
+  }
+
+  @override
+  String get documents_delete_title => 'למחוק את המסמך?';
+
+  @override
+  String get documents_delete_content =>
+      'פעולה זו מוחקת את המסמך ואת כל עמודיו בכל המכשירים המסונכרנים.';
+
+  @override
+  String get documents_deleted => 'המסמך נמחק';
+
+  @override
+  String get documents_saved => 'המסמך נשמר';
+
+  @override
+  String documents_error_save(String error) {
+    return 'לא ניתן לשמור את המסמך: $error';
+  }
+
+  @override
+  String documents_error_load(String error) {
+    return 'לא ניתן לטעון מסמכים: $error';
+  }
+
+  @override
+  String get documents_filter_all => 'הכול';
+
+  @override
+  String get documents_detail_owner => 'מתויק תחת';
+
+  @override
+  String get documents_profileHub_documents => 'מסמכים';
+
+  @override
+  String documents_profileHub_documents_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מסמכים',
+      one: 'מסמך אחד',
+      zero: 'אין עדיין',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get documents_medical_clearances => 'אישורים רפואיים';
+
+  @override
+  String get documents_medical_addClearance => 'הוספת אישור';
+
+  @override
+  String get documents_medical_clearancesEmpty => 'לא נרשם אישור רפואי';
+
+  @override
+  String dashboard_gauges_documentExpires(String title, String date) {
+    return '$title פג ב-$date';
+  }
+
+  @override
+  String dashboard_gauges_documentExpired(String title) {
+    return '$title פג תוקף';
+  }
+
+  @override
+  String dashboard_gauges_documentsNeedAttention(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מסמכים דורשים תשומת לב',
+      one: 'מסמך אחד דורש תשומת לב',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_homeChips_documents => 'מסמכים';
+
+  @override
+  String notifications_document_expiresSoon_title(String title) {
+    return '$title יפוג בקרוב';
+  }
+
+  @override
+  String notifications_document_expiresSoon_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'פג בעוד $count ימים.',
+      one: 'פג מחר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String notifications_document_expiresToday_title(String title) {
+    return '$title פג היום';
+  }
+
+  @override
+  String get notifications_document_expiresToday_body =>
+      'חדשו אותו לפני הצלילה הבאה.';
+
+  @override
+  String get settings_conflict_field_pageOrder => 'סדר העמודים';
+
+  @override
+  String get settings_conflict_field_cardSide => 'צד הכרטיס';
+
+  @override
+  String get diveDetailSection_documents_description =>
+      'היתרים, קבלות ומסמכים נוספים שמתויקים תחת הצלילה';
+
+  @override
+  String get siteDetailSection_documents_description =>
+      'מפות, היתרים ומסמכים נוספים של האתר';
+
+  @override
+  String get settings_conflict_ref_document => 'מסמך';
 
   @override
   String get settings_conflict_ref_certification => 'הסמכה';
@@ -33671,6 +34057,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_sole_type => 'סוליה';
 
   @override
+  String get attrLabel_sock_type => 'סוג';
+
+  @override
   String get attrLabel_buoyancy_kg => 'ציפה';
 
   @override
@@ -34143,6 +34532,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'סוליה רכה';
+
+  @override
+  String get attrChoice_sock_type_neoprene => 'ניאופרן (רטובות)';
+
+  @override
+  String get attrChoice_sock_type_drysuit => 'חליפה יבשה (תרמיות)';
 
   @override
   String get attrChoice_dpv_style_tow_behind => 'נגרר';
@@ -46432,6 +46827,134 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get insights_conditions_tempTrend_error =>
       'טעינת מגמת הטמפרטורה נכשלה';
+
+  @override
+  String get insights_conditions_group_water => 'מים';
+
+  @override
+  String get insights_conditions_group_surfaceWeather => 'פני השטח ומזג האוויר';
+
+  @override
+  String get insights_conditions_group_waterMovement => 'תנועת מים';
+
+  @override
+  String get insights_conditions_group_siteAccess => 'אתר וגישה';
+
+  @override
+  String insights_conditions_coverage(int recorded, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'על סמך $recorded מתוך $total צלילות',
+      one: 'על סמך $recorded מתוך $total צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insights_conditions_weather_error =>
+      'לא ניתן לטעון את נתוני מזג האוויר והתנאים';
+
+  @override
+  String insights_conditions_chart_semanticLabel(
+    String chartTitle,
+    String description,
+  ) {
+    return '$chartTitle. $description';
+  }
+
+  @override
+  String get insights_conditions_airTempTrend_title => 'מגמת טמפרטורת האוויר';
+
+  @override
+  String get insights_conditions_airTempTrend_subtitle =>
+      'טמפרטורת האוויר בכל צלילה';
+
+  @override
+  String get insights_conditions_airTempTrend_error =>
+      'לא ניתן לטעון את טמפרטורת האוויר';
+
+  @override
+  String get insights_conditions_airTempBands_title =>
+      'צלילות לפי טמפרטורת אוויר';
+
+  @override
+  String get insights_conditions_airTempBands_subtitle =>
+      'חלוקת הצלילות שלך לפי טווחי טמפרטורת אוויר';
+
+  @override
+  String get insights_conditions_cloudCover_title => 'כיסוי עננים';
+
+  @override
+  String get insights_conditions_cloudCover_subtitle =>
+      'מצב השמיים בצלילות שלך';
+
+  @override
+  String get insights_conditions_precipitation_title => 'משקעים';
+
+  @override
+  String get insights_conditions_precipitation_subtitle =>
+      'גשם, שלג ומשקעים אחרים בצלילות שלך';
+
+  @override
+  String get insights_conditions_windSpeed_title => 'מהירות רוח';
+
+  @override
+  String get insights_conditions_windSpeed_subtitle =>
+      'חלוקת הצלילות שלך לפי טווחי מהירות רוח';
+
+  @override
+  String get insights_conditions_windDirection_title => 'כיוון רוח';
+
+  @override
+  String get insights_conditions_windDirection_subtitle =>
+      'כיוון הרוח שתועד בצלילות שלך';
+
+  @override
+  String get insights_conditions_humidity_title => 'לחות';
+
+  @override
+  String get insights_conditions_humidity_subtitle => 'לחות יחסית בצלילות שלך';
+
+  @override
+  String get insights_conditions_surfacePressure_title => 'לחץ פני שטח';
+
+  @override
+  String get insights_conditions_surfacePressure_subtitle =>
+      'לחץ ברומטרי בפני השטח בצלילות שלך';
+
+  @override
+  String get insights_conditions_currentStrength_title => 'עוצמת זרם';
+
+  @override
+  String get insights_conditions_currentStrength_subtitle =>
+      'עד כמה חזק היה הזרם בצלילות שלך';
+
+  @override
+  String get insights_conditions_currentDirection_title => 'כיוון זרם';
+
+  @override
+  String get insights_conditions_currentDirection_subtitle =>
+      'כיוון הזרם שתועד בצלילות שלך';
+
+  @override
+  String get insights_conditions_swellHeight_title => 'גובה גלים';
+
+  @override
+  String get insights_conditions_swellHeight_subtitle =>
+      'חלוקת הצלילות שלך לפי גובה גלים';
+
+  @override
+  String get insights_conditions_altitude_title => 'גובה';
+
+  @override
+  String get insights_conditions_altitude_subtitle => 'צלילות לפי קבוצת גובה';
+
+  @override
+  String get insights_conditions_exitMethod_title => 'שיטת יציאה';
+
+  @override
+  String get insights_conditions_exitMethod_subtitle => 'איך יצאת מהמים';
 
   @override
   String get insights_conditions_waterTempBands_title =>

@@ -496,6 +496,18 @@ add(
     ),
 )
 
+add(
+    "socks",
+    "Socks",
+    "A sock seen side-on: a ribbed cuff over the leg, turning into a rounded foot.",
+    g(
+        rrect(5.2, 2.0, 7.6, 3.0, 1.0),               # ribbed cuff
+        rrect(5.2, 6.0, 7.6, 11.0, 1.0),              # leg
+        capsule((9.0, 17.0), (18.6, 17.0), 7.6),      # foot, heel to toe
+        slot((15.4, 13.6), (15.4, 20.4), 0.9),        # toe seam
+    ),
+)
+
 # Private Use Area code points, assigned in declaration order and never
 # renumbered: they are baked into the committed font and into
 # lib/core/icons/submersion_icons.dart.

@@ -93,6 +93,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_course;
     case 'certifications':
       return l10n.settings_conflict_ref_certification;
+    case 'documents':
+      return l10n.settings_conflict_ref_document;
     case 'courseRequirements':
       return l10n.settings_conflict_ref_courseRequirement;
     case 'serviceKinds':

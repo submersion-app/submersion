@@ -34,7 +34,7 @@ design is the one v144 set: store the measurement, derive the adjective.
 
 ## Data model
 
-Schema v277 adds two nullable REAL columns to `dives`:
+Schema v278 adds two nullable REAL columns to `dives`:
 
 | Column | Meaning |
 | --- | --- |
@@ -170,11 +170,11 @@ The query field's empty check also requires both range columns to be null.
 - `dive_mirror_fields`, the sync conflict catalogue (`dive_log_fields.dart`)
   and planned-dive fill fields list the two new columns.
 - Sync: dive rows serialize generically and both columns are nullable, so a
-  payload from a pre-v277 peer hydrates them as null. A test confirms it.
+  payload from a pre-v278 peer hydrates them as null. A test confirms it.
 
 ## Migration
 
-v277 adds both columns with the repo's idempotent column-assert pattern,
+v278 adds both columns with the repo's idempotent column-assert pattern,
 called from the ladder rung in `migrations/ladder/rungs_v231_onward.dart` and
 from the beforeOpen backstop, so a database stranded by a version collision
 self-heals. Columns go in `lib/core/database/tables/dive_tables.dart`.
@@ -191,7 +191,7 @@ self-heals. Columns go in `lib/core/database/tables/dive_tables.dart`.
 - Formatter, Insights binning (fits and spans), filter bounds with open ends.
 - CSV and UDDF round trips; merge takes one shape; sync payload without the
   columns hydrates.
-- Migration test for v277.
+- Migration test for v278.
 
 ## Out of scope
 

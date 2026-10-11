@@ -18,6 +18,9 @@ import 'package:submersion/features/safety/presentation/providers/no_fly_provide
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/documents/domain/document_expiry.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 /// Every chip type the gauge strip can show. [name] is the stable id
 /// stored in AppSettings.hiddenHomeChips; all types are visible by
@@ -36,6 +39,10 @@ enum HomeChipType {
   sync,
   dataQuality,
   flightWindow,
+
+  /// Expiring and expired documents other than insurance (issue #2613).
+  /// Appended so stored hide keys never shift.
+  documents,
 }
 
 /// The worst service clock for one equipment type, shown as one chip.
@@ -117,6 +124,9 @@ class DashboardGauges {
   /// Dive window before the active trip's return flight, if one is set.
   final FlightWindowStatus? flightWindow;
 
+  /// Non-insurance documents that are expired or due, expired first.
+  final List<(Document, DocumentExpiryStatus)> attentionDocuments;
+
   const DashboardGauges({
     this.gearOverdue,
     this.gearDueSoon,
@@ -134,6 +144,7 @@ class DashboardGauges {
     this.syncPending = 0,
     this.dataQualityFindings = 0,
     this.flightWindow,
+    this.attentionDocuments = const [],
   });
 }
 
@@ -252,6 +263,11 @@ final dashboardGaugesProvider = FutureProvider<DashboardGauges>((ref) async {
   final syncEnabled = ref.watch(isSyncEnabledProvider);
   final syncPending = ref.watch(pendingChangesCountProvider);
   final findings = ref.watch(openQualityFindingsCountProvider).valueOrNull ?? 0;
+  // Read like the uploads count, not awaited: the strip never waits on the
+  // documents chip, and a documents failure costs only that chip.
+  final documents =
+      ref.watch(attentionDocumentsProvider).valueOrNull ??
+      const <(Document, DocumentExpiryStatus)>[];
 
   final firstCourse = courses
       .where((c) => c.progress.totalCount > 0)
@@ -276,5 +292,6 @@ final dashboardGaugesProvider = FutureProvider<DashboardGauges>((ref) async {
     syncPending: syncPending,
     dataQualityFindings: findings,
     flightWindow: flightWindow,
+    attentionDocuments: documents,
   );
 });

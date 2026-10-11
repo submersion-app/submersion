@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -55,14 +57,29 @@ void main() {
     );
   }
 
-  Future<_CapturingNotifier> pump(WidgetTester tester, Diver diver) async {
+  Document clearance(String id, DateTime? expiry) => Document(
+    id: id,
+    diverId: 'diver-1',
+    owner: const DocumentOwner.personal(),
+    type: DocumentType.medicalClearance,
+    title: 'Clearance $id',
+    expiryDate: expiry,
+    createdAt: now,
+    updatedAt: now,
+  );
+
+  Future<_CapturingNotifier> pump(
+    WidgetTester tester,
+    Diver diver, {
+    List<Document> documents = const [],
+  }) async {
     tester.view.physicalSize = const Size(800, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final notifier = _CapturingNotifier([diver]);
-    final overrides = await getBaseOverrides();
+    final overrides = await getBaseOverrides(ownerDocuments: documents);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -101,33 +118,86 @@ void main() {
     expect(find.text('O+'), findsOneWidget);
     expect(find.text('Penicillin'), findsOneWidget);
     expect(find.text('Cleared for deep diving'), findsOneWidget);
-    expect(find.textContaining('2030'), findsOneWidget);
     expect(notifier.updated, isNull);
   });
 
-  testWidgets('flags a clearance date that has already passed', (tester) async {
+  testWidgets('lists medical clearance documents with their badge (#2613)', (
+    tester,
+  ) async {
     await pump(
       tester,
-      makeDiver(clearanceExpiry: now.subtract(const Duration(days: 1))),
+      makeDiver(),
+      documents: [
+        clearance('old', now.subtract(const Duration(days: 1))),
+        Document(
+          id: 'permit',
+          diverId: 'diver-1',
+          owner: const DocumentOwner.personal(),
+          type: DocumentType.permit,
+          title: 'Park permit',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ],
     );
 
+    expect(find.text('Medical clearances'), findsOneWidget);
+    expect(find.text('Clearance old'), findsOneWidget);
     expect(find.text('Expired'), findsOneWidget);
-    expect(find.text('Expiring Soon'), findsNothing);
+    expect(find.text('Park permit'), findsNothing);
   });
 
-  testWidgets('flags a clearance date that is about to lapse', (tester) async {
-    await pump(
-      tester,
-      makeDiver(clearanceExpiry: now.add(const Duration(days: 7))),
-    );
+  testWidgets('with no clearance on record it says so', (tester) async {
+    await pump(tester, makeDiver());
+    expect(find.text('No medical clearance recorded'), findsOneWidget);
+    expect(find.byType(DatePickerDialog), findsNothing);
+  });
 
-    expect(find.text('Expiring Soon'), findsOneWidget);
-    expect(find.text('Expired'), findsNothing);
+  testWidgets('Add clearance opens a new clearance document', (tester) async {
+    tester.view.physicalSize = const Size(800, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final diver = makeDiver();
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      initialLocation: '/medical',
+      routes: [
+        GoRoute(
+          path: '/medical',
+          builder: (context, state) => const MedicalInfoEditPage(),
+        ),
+        GoRoute(
+          path: '/documents/new',
+          builder: (context, state) =>
+              Scaffold(body: Text('NEW ${state.uri.query}')),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          currentDiverProvider.overrideWith((_) async => diver),
+          diverListNotifierProvider.overrideWith(
+            (_) => _CapturingNotifier([diver]),
+          ),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add clearance'));
+    await tester.pumpAndSettle();
+    expect(find.text('NEW type=medicalClearance'), findsOneWidget);
   });
 
   testWidgets('saving persists the trimmed medical details', (tester) async {
-    final expiry = DateTime(2030, 6, 15);
-    final notifier = await pump(tester, makeDiver(clearanceExpiry: expiry));
+    final notifier = await pump(tester, makeDiver());
 
     await tester.enterText(
       find.widgetWithText(TextFormField, 'Blood Type'),
@@ -154,29 +224,6 @@ void main() {
     expect(notifier.updated!.allergies, 'Latex');
     expect(notifier.updated!.medications, 'Antihistamine');
     expect(notifier.updated!.medicalNotes, 'Annual physical on file');
-    expect(
-      notifier.updated!.medicalClearanceExpiryDate,
-      expiry,
-      reason: 'an untouched clearance date must survive the save',
-    );
-  });
-
-  testWidgets('clearing the clearance date persists null', (tester) async {
-    final notifier = await pump(
-      tester,
-      makeDiver(bloodType: 'O+', clearanceExpiry: DateTime(2030, 6, 15)),
-    );
-
-    await tester.tap(find.byTooltip('Clear medical clearance date'));
-    await tester.pumpAndSettle();
-    expect(find.text('Not set'), findsOneWidget);
-
-    await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
-
-    expect(notifier.updated, isNotNull);
-    expect(notifier.updated!.medicalClearanceExpiryDate, isNull);
-    expect(notifier.updated!.bloodType, 'O+');
   });
 
   testWidgets('clearing an optional field persists null', (tester) async {
@@ -192,20 +239,5 @@ void main() {
     expect(notifier.updated, isNotNull);
     expect(notifier.updated!.allergies, isNull);
     expect(notifier.updated!.bloodType, 'O+');
-  });
-
-  testWidgets('the clearance-date button opens the date picker (#765)', (
-    tester,
-  ) async {
-    await pump(tester, makeDiver());
-
-    await tester.tap(find.byIcon(Icons.edit_calendar));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(DatePickerDialog), findsOneWidget);
-
-    await tester.tap(find.text('Cancel'));
-    await tester.pumpAndSettle();
-    expect(find.byType(DatePickerDialog), findsNothing);
   });
 }

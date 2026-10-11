@@ -213,8 +213,9 @@ void main() {
 
     // No coordinates, altitude, hazards or access info on this site, so
     // Map, Features, Tides, Ecosystem, Altitude, Hazards and Access have
-    // nothing to show; the other nine cards fold.
-    expect(find.byType(SectionFold), findsNWidgets(9));
+    // nothing to show; the other ten cards (Documents among them, #2613)
+    // fold.
+    expect(find.byType(SectionFold), findsNWidgets(10));
     // Inside the folded depth card, so not built.
     expect(find.text('Deepest Dive'), findsNothing);
   });

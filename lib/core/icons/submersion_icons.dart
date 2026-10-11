@@ -100,4 +100,8 @@ abstract final class SubmersionIcons {
 
   /// A sleeveless vest with an attached hood and a front zip (#3108).
   static const IconData vest = IconData(0xe915, fontFamily: fontFamily);
+
+  /// A sock seen side-on: a ribbed cuff over the leg and a rounded foot,
+  /// with no sole, which is what tells it apart from the bootie.
+  static const IconData socks = IconData(0xe916, fontFamily: fontFamily);
 }

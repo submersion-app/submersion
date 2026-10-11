@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -28,6 +30,9 @@ import 'package:submersion/features/safety/presentation/providers/no_fly_provide
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/documents/domain/document_expiry.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 final _t0 = DateTime(2026, 1, 1);
 
@@ -110,6 +115,8 @@ ProviderContainer makeContainer({
   int syncPending = 0,
   int findings = 0,
   FlightWindowStatus? flightWindow,
+  Future<List<(Document, DocumentExpiryStatus)>> Function(Ref ref)?
+  attentionDocuments,
 }) {
   final container = ProviderContainer(
     overrides: [
@@ -139,6 +146,11 @@ ProviderContainer makeContainer({
         (ref) => Stream.value(findings),
       ),
       activeTripFlightWindowProvider.overrideWith((ref) async => flightWindow),
+      // The documents chip's input (issue #2613) reaches a database these
+      // tests do not have.
+      attentionDocumentsProvider.overrideWith(
+        attentionDocuments ?? (ref) async => const [],
+      ),
     ],
   );
   addTearDown(container.dispose);
@@ -176,6 +188,55 @@ void main() {
   });
 
   group('dashboardGaugesProvider', () {
+    test('keeps the documents chip while its list reloads', () async {
+      // The attention list refreshes on every document or page change; the
+      // chip must not blink out while the new query runs.
+      final permit = Document(
+        id: 'p1',
+        diverId: 'd1',
+        owner: const DocumentOwner.personal(),
+        type: DocumentType.permit,
+        expiryDate: _t0,
+        createdAt: _t0,
+        updatedAt: _t0,
+      );
+      final due = [
+        (permit, const DocumentExpiryStatus(DocumentExpiryKind.expired, -1)),
+      ];
+      final changes = StreamController<void>.broadcast();
+      addTearDown(changes.close);
+      final gate = Completer<void>();
+      var loads = 0;
+      final container = makeContainer(
+        attentionDocuments: (ref) async {
+          ref.invalidateSelfWhen(changes.stream);
+          if (++loads > 1) await gate.future;
+          return due;
+        },
+      );
+      container.listen(attentionDocumentsProvider, (_, _) {});
+      container.listen(dashboardGaugesProvider, (_, _) {});
+      await container.read(attentionDocumentsProvider.future);
+      expect(
+        (await container.read(
+          dashboardGaugesProvider.future,
+        )).attentionDocuments,
+        hasLength(1),
+      );
+
+      changes.add(null);
+      await Future<void>.delayed(Duration.zero);
+      expect(loads, 2);
+      expect(container.read(attentionDocumentsProvider).isLoading, isTrue);
+      expect(
+        (await container.read(
+          dashboardGaugesProvider.future,
+        )).attentionDocuments,
+        hasLength(1),
+      );
+      gate.complete();
+    });
+
     test('reports quiet defaults when nothing needs attention', () async {
       final container = makeContainer();
       final gauges = await container.read(dashboardGaugesProvider.future);

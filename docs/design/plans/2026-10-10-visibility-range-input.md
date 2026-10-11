@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema version 277 (main is at 276; no open PR or local worktree claims 277). `minimumCompatibleSchemaVersion` stays 275.
+- Schema version 278 (main is at 276; no open PR or local worktree claims 278). `minimumCompatibleSchemaVersion` stays 275.
 - Range ends are metres: `minM` inclusive, `maxM` exclusive, either may be null, never both.
 - One visibility shape per dive. Precedence everywhere: precise, then range, then legacy bucket.
 - A band pick is converted with the diver's scale at save time; stored metres never move when the scale changes.
@@ -24,7 +24,7 @@
 
 ## Review Focus
 
-1. **A dive carrying both a precise value and a range.** An older (pre-v277) device's sync overlay keeps the local range while writing a precise value. Every reader must treat that dive as precise: formatter, Insights (counted once, as precise), filter (matches by precise only). Pinned in Tasks 4, 5 and 6.
+1. **A dive carrying both a precise value and a range.** An older (pre-v278) device's sync overlay keeps the local range while writing a precise value. Every reader must treat that dive as precise: formatter, Insights (counted once, as precise), filter (matches by precise only). Pinned in Tasks 4, 5 and 6.
 2. **Scale changed after saving a range.** A Cold water "Good" (6-12 m) dive opened under Tropical shows no selected chip and the caption "6-12 m"; saving without touching visibility keeps 6-12 m. Pinned in Task 8.
 3. **Re-saving an untouched dive never rewrites visibility.** A precise 6.44 m dive saved after editing only its notes keeps 6.44 (today the form re-parses a rounded "6" and saves 6.0); a legacy dive keeps its bucket. Pinned in Task 8.
 4. **Open-ended ranges against filter bounds.** `visibility <= 20` must not match an Excellent "12 m+" dive; `visibility >= 5` must not match a Poor "under 2 m" dive. Pinned in Task 6.
@@ -346,11 +346,11 @@ git commit -m "feat(core): convert visibility bands to metre ranges and back"
 
 ---
 
-### Task 2: Schema v277 range columns
+### Task 2: Schema v278 range columns
 
 **Files:**
 - Modify: `lib/core/database/tables/dive_tables.dart:45-50`, `lib/core/database/database.dart:256` and the end of `migrationVersions` (about :1179-1181), `lib/core/database/migrations/helpers/dive_migrations.dart` (after `_assertVisibilityMetersColumn`, about :505), `lib/core/database/migrations/ladder/rungs_v231_onward.dart` (after the v276 rung, about :308), `lib/core/database/migrations/before_open.dart` (after the v276 backstop, about :63)
-- Test: `test/core/database/migration_v277_visibility_range_test.dart` (create)
+- Test: `test/core/database/migration_v278_visibility_range_test.dart` (create)
 
 **Interfaces:**
 - Produces: Drift getters `visibilityMinMeters`, `visibilityMaxMeters` on `$DivesTable`; `Dive` data class (generated) fields of the same names; `DivesCompanion` fields of the same names.
@@ -362,7 +362,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v277: dives.visibility_min_meters / visibility_max_meters (issue
+/// Schema v278: dives.visibility_min_meters / visibility_max_meters (issue
 /// #3226).
 void main() {
   Future<Set<String>> diveColumns(AppDatabase db) async {
@@ -370,17 +370,17 @@ void main() {
     return cols.map((c) => c.read<String>('name')).toSet();
   }
 
-  test('v277 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(277));
-    expect(AppDatabase.migrationVersions, contains(277));
+  test('v278 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(278));
+    expect(AppDatabase.migrationVersions, contains(278));
     expect(
       AppDatabase.migrationStepCount(276),
-      AppDatabase.migrationStepCount(277) + 1,
+      AppDatabase.migrationStepCount(278) + 1,
     );
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(277));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(278));
   });
 
   test('a fresh database has both range columns', () async {
@@ -429,7 +429,7 @@ void main() {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `flutter test test/core/database/migration_v277_visibility_range_test.dart`
+Run: `flutter test test/core/database/migration_v278_visibility_range_test.dart`
 Expected: FAIL (`currentSchemaVersion` is 276; columns missing).
 
 - [ ] **Step 3: Implement**
@@ -437,28 +437,28 @@ Expected: FAIL (`currentSchemaVersion` is 276; columns missing).
 `dive_tables.dart`, after the `visibilityMeters` getter:
 
 ```dart
-  /// v277: low end of a visibility range in meters, inclusive (issue #3226).
+  /// v278: low end of a visibility range in meters, inclusive (issue #3226).
   /// Set when the diver picked a band instead of measuring. Null with
   /// [visibilityMaxMeters] set means "under that". Never set together with
   /// [visibilityMeters]: the repository writes one shape or the other.
   RealColumn get visibilityMinMeters => real().nullable()();
 
-  /// v277: high end of a visibility range in meters, exclusive. Null with
+  /// v278: high end of a visibility range in meters, exclusive. Null with
   /// [visibilityMinMeters] set means "that or more".
   RealColumn get visibilityMaxMeters => real().nullable()();
 ```
 
-`database.dart`: `static const int currentSchemaVersion = 277;` and append to `migrationVersions` after `276,`:
+`database.dart`: `static const int currentSchemaVersion = 278;` and append to `migrationVersions` after `276,`:
 
 ```dart
-    // v277: dives.visibility_min_meters / visibility_max_meters (issue #3226).
-    277,
+    // v278: dives.visibility_min_meters / visibility_max_meters (issue #3226).
+    278,
 ```
 
 `dive_migrations.dart`, after `_assertVisibilityMetersColumn`:
 
 ```dart
-  /// v277: the visibility range columns (issue #3226). Idempotent, so the
+  /// v278: the visibility range columns (issue #3226). Idempotent, so the
   /// ladder rung and the beforeOpen backstop can both call it.
   Future<void> _assertVisibilityRangeColumns() async {
     await _addColumnIfMissing('dives', 'visibility_min_meters', 'REAL');
@@ -469,18 +469,18 @@ Expected: FAIL (`currentSchemaVersion` is 276; columns missing).
 `rungs_v231_onward.dart`, after the v276 rung:
 
 ```dart
-      // v277: dives.visibility_min_meters / visibility_max_meters (issue
+      // v278: dives.visibility_min_meters / visibility_max_meters (issue
       // #3226). Columns only; re-asserted in beforeOpen.
-      if (from < 277) {
+      if (from < 278) {
         await _assertVisibilityRangeColumns();
       }
-      if (from < 277) await reportProgress();
+      if (from < 278) await reportProgress();
 ```
 
 `before_open.dart`, after the v276 backstop line:
 
 ```dart
-    // v277 backstop: the dives visibility range columns.
+    // v278 backstop: the dives visibility range columns.
     await _assertVisibilityRangeColumns();
 ```
 
@@ -488,15 +488,15 @@ Then regenerate: `dart run build_runner build --delete-conflicting-outputs`
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `flutter test test/core/database/migration_v277_visibility_range_test.dart test/core/database/database_table_libraries_test.dart`
+Run: `flutter test test/core/database/migration_v278_visibility_range_test.dart test/core/database/database_table_libraries_test.dart`
 Expected: PASS (the second keeps every migration file under 800 lines).
 
 - [ ] **Step 5: Commit**
 
 ```bash
-dart format lib/core/database test/core/database/migration_v277_visibility_range_test.dart
-git add lib/core/database test/core/database/migration_v277_visibility_range_test.dart
-git commit -m "feat(core): add the dives visibility range columns (schema v277)"
+dart format lib/core/database test/core/database/migration_v278_visibility_range_test.dart
+git add lib/core/database test/core/database/migration_v278_visibility_range_test.dart
+git commit -m "feat(core): add the dives visibility range columns (schema v278)"
 ```
 
 ---
@@ -680,7 +680,7 @@ Expected: FAIL (no `visibilityMinMeters` parameter on `Dive`).
 `dive.dart`: import `visibility_range.dart`; after the `visibilityMeters` field:
 
 ```dart
-  /// Low end of a visibility range in meters, inclusive (v277, issue #3226).
+  /// Low end of a visibility range in meters, inclusive (v278, issue #3226).
   /// Set when the diver picked a band rather than measuring. Never set
   /// together with [visibilityMeters].
   final double? visibilityMinMeters;
@@ -773,7 +773,7 @@ and in the literal:
   ),
 ```
 
-`cross_version_roundtrip_test.dart:74`: `const postV137DiveKeys = ['visibilityMeters', 'visibilityMinMeters', 'visibilityMaxMeters'];` and extend the doc sentence: "v277 added dives.visibility_min_meters and visibility_max_meters."
+`cross_version_roundtrip_test.dart:74`: `const postV137DiveKeys = ['visibilityMeters', 'visibilityMinMeters', 'visibilityMaxMeters'];` and extend the doc sentence: "v278 added dives.visibility_min_meters and visibility_max_meters."
 
 `dive_edit_page.dart`, a minimal carry so a range synced from another device is not wiped by a save before Task 8 lands. Next to `_selectedVisibility` (:311):
 

@@ -73,7 +73,7 @@ class Dive extends Equatable {
   /// calibration, so this stores only what was actually observed.
   final double? visibilityMeters;
 
-  /// Low end of a visibility range in meters, inclusive (v277, issue #3226).
+  /// Low end of a visibility range in meters, inclusive (v278, issue #3226).
   /// Set when the diver picked a band rather than measuring. Never set
   /// together with [visibilityMeters].
   final double? visibilityMinMeters;

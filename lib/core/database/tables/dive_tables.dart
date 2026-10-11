@@ -49,13 +49,13 @@ class Dives extends Table {
   /// Cozumel and in Puget Sound, only the adjective differs.
   RealColumn get visibilityMeters => real().nullable()();
 
-  /// v277: low end of a visibility range in meters, inclusive (issue #3226).
+  /// v278: low end of a visibility range in meters, inclusive (issue #3226).
   /// Set when the diver picked a band instead of measuring. Null with
   /// [visibilityMaxMeters] set means "under that". Never set together with
   /// [visibilityMeters]: the repository writes one shape or the other.
   RealColumn get visibilityMinMeters => real().nullable()();
 
-  /// v277: high end of a visibility range in meters, exclusive. Null with
+  /// v278: high end of a visibility range in meters, exclusive. Null with
   /// [visibilityMinMeters] set means "that or more".
   RealColumn get visibilityMaxMeters => real().nullable()();
   TextColumn get diveType =>

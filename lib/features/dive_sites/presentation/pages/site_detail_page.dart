@@ -58,6 +58,8 @@ import 'package:submersion/shared/widgets/section_properties_menu.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 class SiteDetailPage extends ConsumerStatefulWidget {
   final String siteId;
@@ -387,6 +389,10 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
           : null,
       SiteDetailSectionId.notes: () =>
           (context) => _buildNotesSection(context, site),
+      SiteDetailSectionId.documents: () =>
+          (context) => DocumentsSection(
+            owner: DocumentOwner(DocumentOwnerKind.site, site.id),
+          ),
     };
     return {
       for (final section in sections)
