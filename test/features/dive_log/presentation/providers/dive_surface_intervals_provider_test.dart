@@ -66,4 +66,17 @@ void main() {
       const Duration(minutes: 40),
     );
   });
+
+  test('is released once the table stops listening', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final sub = container.listen(diveSurfaceIntervalsProvider, (_, _) {});
+    await container.read(diveSurfaceIntervalsProvider.future);
+    expect(container.exists(diveSurfaceIntervalsProvider), isTrue);
+
+    sub.close();
+    await container.pump();
+
+    expect(container.exists(diveSurfaceIntervalsProvider), isFalse);
+  });
 }
