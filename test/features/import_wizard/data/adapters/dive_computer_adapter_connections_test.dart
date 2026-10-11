@@ -165,6 +165,30 @@ void main() {
       expect(a.computer?.id, 'perdix');
     });
 
+    test('a second computer on the same USB port is not filed under the '
+        'first', () async {
+      // A port names the cable or the host, not the computer: two
+      // computers sharing one interface cable resolve to the same record by
+      // address, and only the serial the download reports tells them apart.
+      connections.computerIdByAddress['PORT-1'] = 'perdix';
+      when(
+        computers.getComputerById('perdix'),
+      ).thenAnswer((_) async => _computer());
+      when(computers.createComputer(any)).thenAnswer(
+        (_) async => _computer(id: 'second', serialNumber: 'B0B0B0B0'),
+      );
+      final a = adapter();
+      final device = _device(type: DeviceConnectionType.usb, address: 'PORT-1');
+
+      await a.resolveKnownComputer(device);
+      expect(a.computer?.id, 'perdix');
+      await a.ensureComputer(device: device, serialNumber: 'B0B0B0B0');
+
+      expect(a.computer?.id, 'second');
+      verify(computers.createComputer(any)).called(1);
+      expect(connections.recorded.map((r) => r.computerId), ['second']);
+    });
+
     test('falls back to the legacy Bluetooth address lookup', () async {
       when(
         computers.findByBluetoothAddress('AA:BB', diverId: 'diver-1'),

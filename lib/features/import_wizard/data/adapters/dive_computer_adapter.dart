@@ -172,6 +172,12 @@ class DiveComputerAdapter implements ImportSourceAdapter {
   bool _downloadInterrupted = false;
   bool _deliversOldestFirst = false;
   DiveComputer? _computer;
+
+  /// Whether [_computer] came from matching the discovered address rather
+  /// than from the caller. An address is not identity: a USB port names the
+  /// cable or the host, so [ensureComputer] re-checks it against the serial
+  /// the download reports (issue #3106).
+  bool _resolvedByAddress = false;
   String? _customDeviceName;
   DateTime? _sinceCutoff;
 
@@ -277,6 +283,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       );
       if (existing != null) {
         _computer = existing;
+        _resolvedByAddress = true;
       }
     }
   }
@@ -297,6 +304,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       final found = await _computerRepository.getComputerById(id);
       if (found == null) return false;
       _computer = found;
+      _resolvedByAddress = true;
       return true;
     } catch (e, stackTrace) {
       _log.error(
@@ -323,18 +331,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     if (computer == null || connections == null) return;
     final stored = computer.serialNumber?.trim() ?? '';
     final reported = reportedSerial?.trim() ?? '';
-    if (stored.isNotEmpty &&
-        reported.isNotEmpty &&
-        !computerSerialsMatch(
-          stored,
-          reported,
-          shearwater: shearwaterPair(
-            manufacturerA: computer.manufacturer,
-            modelA: computer.model,
-            manufacturerB: device.manufacturer,
-            modelB: device.model,
-          ),
-        )) {
+    if (_reportsAnotherComputer(computer, device, reportedSerial)) {
       _log.warning(
         'Not recording ${device.address} for ${computer.displayName}: it '
         'reported serial $reported, the record holds $stored',
@@ -354,6 +351,28 @@ class DiveComputerAdapter implements ImportSourceAdapter {
         stackTrace: stackTrace,
       );
     }
+  }
+
+  /// Whether the download from [device] reported a serial that is not
+  /// [computer]'s, which means another unit answered.
+  bool _reportsAnotherComputer(
+    DiveComputer computer,
+    DiscoveredDevice device,
+    String? reportedSerial,
+  ) {
+    final stored = computer.serialNumber?.trim() ?? '';
+    final reported = reportedSerial?.trim() ?? '';
+    if (stored.isEmpty || reported.isEmpty) return false;
+    return !computerSerialsMatch(
+      stored,
+      reported,
+      shearwater: shearwaterPair(
+        manufacturerA: computer.manufacturer,
+        modelA: computer.model,
+        manufacturerB: device.manufacturer,
+        modelB: device.model,
+      ),
+    );
   }
 
   /// Create or find the dive computer record from the discovered device info.
@@ -414,6 +433,21 @@ class DiveComputerAdapter implements ImportSourceAdapter {
       DeviceConnectionType.usb => 'usb',
       DeviceConnectionType.infrared => 'infrared',
     };
+
+    // A computer matched only by address that reports another serial was
+    // the wrong match (two computers on one USB cable share a port): forget
+    // it and identify the unit by its hardware instead.
+    final resolved = _computer;
+    if (resolved != null &&
+        _resolvedByAddress &&
+        _reportsAnotherComputer(resolved, device, serialNumber)) {
+      _log.warning(
+        '${device.address} matched ${resolved.displayName}, but the download '
+        'reported serial ${serialNumber?.trim()}; matching by serial instead',
+      );
+      _computer = null;
+      _resolvedByAddress = false;
+    }
 
     if (computer != null) {
       await _recordDirectConnection(device, serialNumber);
