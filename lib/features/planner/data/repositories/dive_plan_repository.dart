@@ -776,6 +776,7 @@ class DivePlanRepository {
       rate: Value(leg.rate),
       setpointBar: Value(segment.setpointBar),
       diveModeOverride: Value(segment.diveModeOverride?.name),
+      splitAtConfiguredRate: Value(segment.splitAtConfiguredRate),
       sortOrder: Value(sortOrder),
       createdAt: Value(createdAt ?? now),
       updatedAt: Value(now),
@@ -893,6 +894,7 @@ class DivePlanRepository {
               diveModeOverride: s.diveModeOverride != null
                   ? domain.PlanMode.values.byName(s.diveModeOverride!)
                   : null,
+              splitAtConfiguredRate: s.splitAtConfiguredRate,
               order: s.sortOrder,
             ),
           )

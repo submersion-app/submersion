@@ -9,11 +9,14 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/contingency_service.dart';
+import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/plan_best_mix.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
+import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
@@ -173,22 +176,31 @@ class PlanCanvasSeries {
 final planCanvasSeriesProvider = Provider<PlanCanvasSeries>((ref) {
   final state = ref.watch(divePlanNotifierProvider);
   final outcome = ref.watch(planOutcomeProvider);
-  return buildCanvasSeries(
-    segments: state.segments,
-    outcome: outcome,
-    isCcr: state.mode == domain.PlanMode.ccr,
-  );
+  return buildCanvasSeries(plan: divePlanFromState(state), outcome: outcome);
 });
 
-/// Builds the chart series for any (segments, outcome) pair — the live plan
-/// or a contingency variant (ghost overlay).
+/// Builds the chart series for any (plan, outcome) pair — the live plan or a
+/// contingency variant (ghost overlay). [outcome] is [plan]'s own computed
+/// schedule -- the same instance a caller like [PlanEngine.compute] already
+/// has at hand -- recomputing it here would be redundant.
 PlanCanvasSeries buildCanvasSeries({
-  required List<PlanSegment> segments,
+  required domain.DivePlan plan,
   required PlanOutcome outcome,
-  bool isCcr = false,
 }) {
-  final sorted = List<PlanSegment>.from(segments)
-    ..sort((a, b) => a.order.compareTo(b.order));
+  final isCcr = plan.mode == domain.PlanMode.ccr;
+  // Cylinder roles feed [withDiluentSwitchTime]'s diluent-switch detection,
+  // same as PlanEngine.compute and BailoutSolver.solve; a caller passing a
+  // plan with raw, unresolved roles must not read a different authored
+  // profile here than the engine computed [outcome] from.
+  final resolvedPlan = const TankRoleResolver().apply(plan);
+  final sorted = withDiluentSwitchTime(
+    expandRateSplitSegments(
+      List<PlanSegment>.from(resolvedPlan.segments)
+        ..sort((a, b) => a.order.compareTo(b.order)),
+      resolvedPlan,
+    ),
+    resolvedPlan,
+  );
 
   final profile = <CanvasPoint>[];
   var t = 0.0;
@@ -381,11 +393,7 @@ final selectedContingencyProvider =
 final contingencyGhostSeriesProvider = Provider<PlanCanvasSeries?>((ref) {
   final preview = ref.watch(selectedContingencyProvider);
   if (preview == null) return null;
-  return buildCanvasSeries(
-    segments: preview.plan.segments,
-    outcome: preview.outcome,
-    isCcr: preview.plan.mode == domain.PlanMode.ccr,
-  );
+  return buildCanvasSeries(plan: preview.plan, outcome: preview.outcome);
 });
 
 /// The outcome to display everywhere the headline stats (runtime, TTS/NDL,

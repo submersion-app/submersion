@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -324,8 +325,11 @@ class PlanEngine {
     );
 
     final segments = withDiluentSwitchTime(
-      List<PlanSegment>.from(plan.segments)
-        ..sort((a, b) => a.order.compareTo(b.order)),
+      expandRateSplitSegments(
+        List<PlanSegment>.from(plan.segments)
+          ..sort((a, b) => a.order.compareTo(b.order)),
+        plan,
+      ),
       plan,
     );
     // Waypoints carry only a target depth, so the profile they describe -

@@ -44,11 +44,7 @@ final planComparisonProvider =
           ComparedPlan(
             plan: plan,
             outcome: outcome,
-            series: buildCanvasSeries(
-              segments: plan.segments,
-              outcome: outcome,
-              isCcr: plan.mode == domain.PlanMode.ccr,
-            ),
+            series: buildCanvasSeries(plan: plan, outcome: outcome),
           ),
         );
       }

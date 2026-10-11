@@ -3190,6 +3190,8 @@
   "divePlanner_segmentEditor_derivedDescentNoRate": "Abstieg {from} -> {to}",
   "divePlanner_segmentEditor_derivedLevel": "Konstant auf {depth}",
   "divePlanner_segmentEditor_duration": "Dauer (min)",
+  "divePlanner_segmentEditor_splitAtRate": "Konfigurierte Rate verwenden",
+  "divePlanner_segmentEditor_splitAtRateHint": "Reise mit der konfigurierten Rate, der Rest der Dauer als Haltezeit",
   "divePlanner_segmentEditor_editTitle": "Segment bearbeiten",
   "divePlanner_segmentEditor_tankGas": "Flasche / Gas",
   "divePlanner_segmentList_addSegment": "Segment hinzufügen",

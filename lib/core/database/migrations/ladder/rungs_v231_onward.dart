@@ -307,5 +307,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertIcdWarningsColumn();
     }
     if (from < 276) await reportProgress();
+    // v277: dive_plan_segments.split_at_configured_rate (issue #3264).
+    // Column only, defaulting off; re-asserted in beforeOpen.
+    if (from < 277) {
+      await _assertSegmentSplitAtRateColumn();
+    }
+    if (from < 277) await reportProgress();
   }
 }

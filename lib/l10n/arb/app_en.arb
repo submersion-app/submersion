@@ -18915,6 +18915,11 @@
     }
   },
   "divePlanner_segmentEditor_duration": "Duration (min)",
+  "divePlanner_segmentEditor_splitAtRate": "Use configured rate",
+  "@divePlanner_segmentEditor_splitAtRate": {
+    "description": "Checkbox in the segment editor: split this leg into travel at the configured descent/ascent rate plus a hold at the target depth for the remainder of the entered duration"
+  },
+  "divePlanner_segmentEditor_splitAtRateHint": "Travel at the configured rate, the rest of the duration as hold time",
   "divePlanner_segmentEditor_editTitle": "Edit Segment",
   "divePlanner_segmentEditor_tankGas": "Tank / Gas",
   "divePlanner_segmentList_addSegment": "Add Segment",

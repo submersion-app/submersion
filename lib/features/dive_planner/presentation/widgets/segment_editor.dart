@@ -62,6 +62,14 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
   late String _selectedTankId;
   bool _unitsInitialized = false;
 
+  /// Whether the chart and the deco computation should read this segment as
+  /// travel (at the plan's configured descent/ascent rate) followed by a
+  /// hold at the target depth for whatever time remains of the duration
+  /// entered below, instead of stretching the whole duration linearly
+  /// across the depth change (#3264). The segment itself is unaffected --
+  /// one entry in the list, the same authored duration either way.
+  late bool _splitAtConfiguredRate;
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +99,7 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
         current != null && widget.availableTanks.any((t) => t.id == current)
         ? current
         : widget.availableTanks.first.id;
+    _splitAtConfiguredRate = segment?.splitAtConfiguredRate ?? false;
   }
 
   final _formKey = GlobalKey<FormState>();
@@ -175,6 +184,26 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
                 ),
                 onChanged: (_) => setState(() {}),
               ),
+
+              // Only meaningful when this segment actually changes depth --
+              // a level leg has no travel portion for a rate to govern.
+              if (units.depthToMeters(_summaryValue(_depthController)) !=
+                  widget.startDepth)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: _splitAtConfiguredRate,
+                  title: Text(
+                    context.l10n.divePlanner_segmentEditor_splitAtRate,
+                  ),
+                  subtitle: Text(
+                    context.l10n.divePlanner_segmentEditor_splitAtRateHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  onChanged: (value) {
+                    setState(() => _splitAtConfiguredRate = value ?? false);
+                  },
+                ),
               const SizedBox(height: 16),
 
               // Tank selection -- or, with one tank the segment can
@@ -320,6 +349,7 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
       // dive-mode override on every edit round-trip.
       setpointBar: existing?.setpointBar,
       diveModeOverride: existing?.diveModeOverride,
+      splitAtConfiguredRate: _splitAtConfiguredRate,
       order: existing?.order ?? 0,
     );
 

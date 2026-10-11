@@ -61,6 +61,8 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertLateGasSwitchSettingColumn();
     // v276 backstop: diver_settings.icd_warnings_enabled.
     await _assertIcdWarningsColumn();
+    // v277 backstop: dive_plan_segments.split_at_configured_rate.
+    await _assertSegmentSplitAtRateColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do

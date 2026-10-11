@@ -30949,6 +30949,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_segmentEditor_duration => 'Időtartam (min)';
 
   @override
+  String get divePlanner_segmentEditor_splitAtRate => 'Use configured rate';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRateHint =>
+      'Travel at the configured rate, the rest of the duration as hold time';
+
+  @override
   String get divePlanner_segmentEditor_editTitle => 'Szegmens szerkesztése';
 
   @override

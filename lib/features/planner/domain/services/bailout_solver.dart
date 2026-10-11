@@ -16,6 +16,7 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
+import 'package:submersion/features/planner/domain/services/segment_rate_split.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/domain/services/tank_usage_order.dart';
@@ -114,8 +115,11 @@ class BailoutSolver {
         .toList();
     if (bailoutTanks.isEmpty) return null;
     final segments = withDiluentSwitchTime(
-      List<PlanSegment>.from(plan.segments)
-        ..sort((a, b) => a.order.compareTo(b.order)),
+      expandRateSplitSegments(
+        List<PlanSegment>.from(plan.segments)
+          ..sort((a, b) => a.order.compareTo(b.order)),
+        plan,
+      ),
       plan,
     );
     if (segments.isEmpty) return null;

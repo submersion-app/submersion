@@ -55,6 +55,14 @@ class PlanSegment extends Equatable {
   /// bailout (e.g. a CCR plan with an OC segment), v120.
   final PlanMode? diveModeOverride;
 
+  /// Whether the profile chart and the deco computation split this segment
+  /// into travel (at the plan's configured descent/ascent rate) followed by
+  /// a hold at the target depth for whatever duration remains, instead of
+  /// stretching the whole entered [durationSeconds] linearly across the
+  /// depth change (#3264). Changes only how that duration is read -- this
+  /// stays the one segment a diver authored and edits.
+  final bool splitAtConfiguredRate;
+
   /// Order of this segment in the plan (0-indexed).
   final int order;
 
@@ -66,6 +74,7 @@ class PlanSegment extends Equatable {
     required this.gasMix,
     this.setpointBar,
     this.diveModeOverride,
+    this.splitAtConfiguredRate = false,
     this.order = 0,
   });
 
@@ -85,6 +94,7 @@ class PlanSegment extends Equatable {
     GasMix? gasMix,
     double? setpointBar,
     PlanMode? diveModeOverride,
+    bool? splitAtConfiguredRate,
     int? order,
     bool clearSetpointBar = false,
     bool clearDiveModeOverride = false,
@@ -99,6 +109,8 @@ class PlanSegment extends Equatable {
       diveModeOverride: clearDiveModeOverride
           ? null
           : (diveModeOverride ?? this.diveModeOverride),
+      splitAtConfiguredRate:
+          splitAtConfiguredRate ?? this.splitAtConfiguredRate,
       order: order ?? this.order,
     );
   }
@@ -183,6 +195,7 @@ class PlanSegment extends Equatable {
     gasMix,
     setpointBar,
     diveModeOverride,
+    splitAtConfiguredRate,
     order,
   ];
 }

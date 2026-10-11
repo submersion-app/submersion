@@ -31048,6 +31048,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_segmentEditor_duration => 'Dauer (min)';
 
   @override
+  String get divePlanner_segmentEditor_splitAtRate =>
+      'Konfigurierte Rate verwenden';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRateHint =>
+      'Reise mit der konfigurierten Rate, der Rest der Dauer als Haltezeit';
+
+  @override
   String get divePlanner_segmentEditor_editTitle => 'Segment bearbeiten';
 
   @override

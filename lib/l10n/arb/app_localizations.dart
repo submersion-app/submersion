@@ -49165,6 +49165,18 @@ abstract class AppLocalizations {
   /// **'Duration (min)'**
   String get divePlanner_segmentEditor_duration;
 
+  /// Checkbox in the segment editor: split this leg into travel at the configured descent/ascent rate plus a hold at the target depth for the remainder of the entered duration
+  ///
+  /// In en, this message translates to:
+  /// **'Use configured rate'**
+  String get divePlanner_segmentEditor_splitAtRate;
+
+  /// No description provided for @divePlanner_segmentEditor_splitAtRateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel at the configured rate, the rest of the duration as hold time'**
+  String get divePlanner_segmentEditor_splitAtRateHint;
+
   /// No description provided for @divePlanner_segmentEditor_editTitle.
   ///
   /// In en, this message translates to:

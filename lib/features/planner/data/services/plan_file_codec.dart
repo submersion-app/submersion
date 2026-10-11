@@ -101,6 +101,7 @@ String planToSubplanJson(domain.DivePlan plan) {
             'he': segment.gasMix.he,
             'setpointBar': segment.setpointBar,
             'diveModeOverride': segment.diveModeOverride?.name,
+            'splitAtConfiguredRate': segment.splitAtConfiguredRate,
             'order': segment.order,
           },
       ],
@@ -208,6 +209,8 @@ domain.DivePlan _planFromMap(Map<String, dynamic> plan, DateTime timestamp) {
         diveModeOverride: diveModeOverride is String
             ? domain.PlanMode.values.asNameMap()[diveModeOverride]
             : null,
+        splitAtConfiguredRate:
+            segment['splitAtConfiguredRate'] as bool? ?? false,
         order: (segment['order'] as num?)?.toInt() ?? index,
       ),
     );
