@@ -62,7 +62,7 @@ class SessionItemTile extends ConsumerWidget {
   /// service log entry cannot silently rewrite what the diver saw when they
   /// made the call).
   ///
-  /// The instant matters because [formatServiceTriggerText] decides between
+  /// The instant matters because [formatServiceTriggerLines] decides between
   /// "Due {date}" and "Overdue since {date}" by comparing it against the
   /// entry's dueDate. An entry frozen while overdue on its dives or hours
   /// trigger can still carry a dueDate in the future, so reading a resolved
@@ -268,7 +268,7 @@ class SessionItemTile extends ConsumerWidget {
             usageByUnit: entry.usageByUnit,
           ))
             Padding(
-              padding: const EdgeInsets.only(left: 12),
+              padding: const EdgeInsetsDirectional.only(start: 12),
               child: Text(
                 line,
                 style: theme.textTheme.bodySmall?.copyWith(

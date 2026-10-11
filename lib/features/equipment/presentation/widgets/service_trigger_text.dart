@@ -8,9 +8,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Formats the "Due {date}" / "Overdue since {date}" / "N of M dives left" /
 /// "N of M hours left" trigger line for one service clock, joining whichever
-/// triggers are configured with a middle dot. Shared by the pre-dive
-/// checklist item tile, the cylinder passport card and the status indicator
-/// (all one-line contexts), so they read the exact same wording.
+/// triggers are configured with a middle dot. Shared by the cylinder
+/// passport card and the status indicator (both one-line contexts), so they
+/// read the exact same wording.
 ///
 /// [formatServiceTriggerLines] returns the same triggers unjoined, for a
 /// caller that lays them out as separate lines instead.
