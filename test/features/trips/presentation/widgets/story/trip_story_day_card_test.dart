@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -623,6 +625,43 @@ void main() {
       final withoutPort = await cardHeight(null);
       final withPort = await cardHeight('Kralendijk');
       expect(withPort, withoutPort);
+    });
+
+    testWidgets('a port card stays while its site history reloads', (
+      tester,
+    ) async {
+      final pending = Completer<SiteHistory>();
+      var loads = 0;
+      await pumpCard(
+        tester,
+        TripStoryDay(
+          date: DateTime(2027, 1, 10),
+          dayNumber: 1,
+          kind: TripStoryDayKind.future,
+          itineraryDay: _itin(port: 'Kralendijk'),
+        ),
+        extra: [
+          siteHistoryByNameProvider('Kralendijk').overrideWith(
+            (ref) => loads++ == 0
+                ? Future.value((
+                    diveCount: 3,
+                    avgWaterTemp: null,
+                    avgMaxDepth: null,
+                  ))
+                : pending.future,
+          ),
+        ],
+      );
+      expect(find.textContaining('3 past dives here'), findsOneWidget);
+
+      // What a dive edit does: the history query runs again.
+      ProviderScope.containerOf(
+        tester.element(find.byType(TripStoryDayCard)),
+      ).invalidate(siteHistoryByNameProvider('Kralendijk'));
+      await tester.pump();
+
+      expect(find.byType(Card), findsOneWidget);
+      expect(find.textContaining('3 past dives here'), findsOneWidget);
     });
   });
 }

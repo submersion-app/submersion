@@ -67,4 +67,27 @@ void main() {
       expect(find.textContaining('ft'), findsOneWidget);
     });
   }
+
+  testWidgets('shows the entry time the itinerary groups the dive by', (
+    tester,
+  ) async {
+    final lateDive = Dive(
+      id: 'late',
+      dateTime: DateTime(2026, 3, 8, 23, 50),
+      entryTime: DateTime(2026, 3, 9, 0, 10),
+      site: const DiveSite(id: 's', name: 'Salt Pier'),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: ItineraryDiveRow(dive: lateDive, units: _imperial),
+        ),
+      ),
+    );
+    expect(find.textContaining('00:10'), findsOneWidget);
+    expect(find.textContaining('23:50'), findsNothing);
+  });
 }

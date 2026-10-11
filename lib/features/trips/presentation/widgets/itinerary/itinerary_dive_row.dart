@@ -26,7 +26,8 @@ class ItineraryDiveRow extends StatelessWidget {
     // Time, then time in the water, depth and water temperature, each only
     // when the dive logged it.
     final values = [
-      timeFormat.format(dive.dateTime),
+      // The entry time, which is also what files the dive under its day.
+      timeFormat.format(dive.effectiveEntryTime),
       if (runtime != null) formatDayRuntime(runtime),
       if (dive.maxDepth != null) units.formatDepth(dive.maxDepth),
       if (dive.waterTemp != null)
