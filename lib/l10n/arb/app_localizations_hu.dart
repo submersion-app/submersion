@@ -25090,6 +25090,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A felhasználónevet és a jelszót a saját mezőjükbe írja, ne a címbe';
 
   @override
+  String get settings_webdavConfig_validation_urlQuery =>
+      'Törölje a cím ? vagy # utáni részét';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'Ez a kiszolgáló http://-t használ, így a jelszó és a merülési adatok titkosítatlanul utaznak. Csak megbízható hálózaton használja.';
 

@@ -25156,6 +25156,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Benutzername und Passwort gehören in ihre eigenen Felder, nicht in die Adresse';
 
   @override
+  String get settings_webdavConfig_validation_urlQuery =>
+      'Entfernen Sie den Teil der Adresse nach ? oder #';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'Dieser Server verwendet http://, daher werden Passwort und Tauchdaten unverschlüsselt übertragen. Nur in vertrauenswürdigen Netzwerken verwenden.';
 

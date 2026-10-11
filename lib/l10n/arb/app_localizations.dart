@@ -40658,6 +40658,12 @@ abstract class AppLocalizations {
   /// **'Put the username and password in their own fields, not in the address'**
   String get settings_webdavConfig_validation_urlCredentials;
 
+  /// No description provided for @settings_webdavConfig_validation_urlQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the part of the address after ? or #'**
+  String get settings_webdavConfig_validation_urlQuery;
+
   /// No description provided for @settings_webdavConfig_warning_http.
   ///
   /// In en, this message translates to:

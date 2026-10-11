@@ -25207,6 +25207,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Inserisci nome utente e password nei rispettivi campi, non nell\'indirizzo';
 
   @override
+  String get settings_webdavConfig_validation_urlQuery =>
+      'Rimuovi la parte dell\'indirizzo dopo ? o #';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'Questo server usa http://, quindi password e dati delle immersioni viaggiano in chiaro. Usalo solo su una rete affidabile.';
 

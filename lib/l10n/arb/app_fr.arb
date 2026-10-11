@@ -6955,6 +6955,7 @@
   "settings_webdavConfig_validation_required": "Obligatoire",
   "settings_webdavConfig_validation_url": "Saisissez une adresse commençant par https:// ou http://",
   "settings_webdavConfig_validation_urlCredentials": "Saisissez le nom d'utilisateur et le mot de passe dans leurs propres champs, pas dans l'adresse",
+  "settings_webdavConfig_validation_urlQuery": "Supprimez la partie de l'adresse après ? ou #",
   "settings_webdavConfig_warning_http": "Ce serveur utilise http://, votre mot de passe et vos données de plongée transitent donc en clair. À n'utiliser que sur un réseau de confiance.",
   "settings_section_about_subtitle": "Infos et licences de l'application",
   "settings_section_about_title": "À propos",

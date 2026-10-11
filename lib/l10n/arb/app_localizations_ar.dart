@@ -25390,6 +25390,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'ضع اسم المستخدم وكلمة المرور في حقليهما، لا في العنوان';
 
   @override
+  String get settings_webdavConfig_validation_urlQuery =>
+      'احذف جزء العنوان الذي يلي ? أو #';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'يستخدم هذا الخادم http://، لذا تنتقل كلمة المرور وبيانات الغوص دون تشفير. استخدمه فقط على شبكة موثوقة.';
 

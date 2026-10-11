@@ -208,6 +208,24 @@ void main() {
     expect(find.byKey(const Key('webdav-http-warning')), findsOneWidget);
   });
 
+  testWidgets('an address with a query is refused before any request', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await fillValidForm(tester);
+    await tester.enterText(
+      find.byKey(const Key('webdav-server-url')),
+      'https://dav.test/dav?tenant=x',
+    );
+    await tester.tap(find.byKey(const Key('webdav-test')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Remove the part of the address after ? or #'),
+      findsOneWidget,
+    );
+    expect(server.captured, isEmpty);
+  });
+
   testWidgets('Test connection probes the server and reports success', (
     tester,
   ) async {

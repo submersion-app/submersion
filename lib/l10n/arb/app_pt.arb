@@ -7057,6 +7057,7 @@
   "settings_webdavConfig_validation_required": "Obrigatório",
   "settings_webdavConfig_validation_url": "Digite um endereço que comece com https:// ou http://",
   "settings_webdavConfig_validation_urlCredentials": "Coloque o usuário e a senha nos campos próprios, não no endereço",
+  "settings_webdavConfig_validation_urlQuery": "Remova a parte do endereço depois de ? ou #",
   "settings_webdavConfig_warning_http": "Este servidor usa http://, então sua senha e seus dados de mergulho trafegam sem criptografia. Use apenas em uma rede confiável.",
   "settings_section_about_subtitle": "Informações e licenças do aplicativo",
   "settings_section_about_title": "Sobre",

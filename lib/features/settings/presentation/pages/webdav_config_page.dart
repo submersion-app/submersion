@@ -50,10 +50,8 @@ class _WebDavConfigPageState extends ConsumerState<WebDavConfigPage> {
       if (!mounted || existing == null) return;
       // Remove must be offered whenever a config exists, typing or not.
       setState(() => _hasExistingConfig = true);
-      // A slow keychain read must not overwrite typing.
-      if (_form.username.text.isNotEmpty || _form.password.text.isNotEmpty) {
-        return;
-      }
+      // A slow keychain read must not overwrite anything the user changed.
+      if (_form.userEdited) return;
       _form.load(existing);
     } catch (_) {
       _showSnack(

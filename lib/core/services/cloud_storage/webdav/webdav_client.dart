@@ -291,8 +291,10 @@ class WebDavClient {
     final root = _rootSegments;
     final segs = resource.pathSegments;
     if (segs.length < root.length) return null;
+    // Case-insensitive servers echo the stored case of the root, not the
+    // requested one; whole segments still have to match.
     for (var i = 0; i < root.length; i++) {
-      if (segs[i] != root[i]) return null;
+      if (segs[i].toLowerCase() != root[i].toLowerCase()) return null;
     }
     return WebDavEntry(
       path: segs.sublist(root.length).join('/'),

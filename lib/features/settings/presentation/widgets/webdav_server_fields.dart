@@ -14,7 +14,9 @@ class WebDavFormController extends ChangeNotifier {
   WebDavFormController({String defaultFolder = kDefaultWebDavSyncFolder})
     : folder = TextEditingController(text: defaultFolder) {
     for (final c in [serverUrl, username, password, folder]) {
-      c.addListener(notifyListeners);
+      c
+        ..addListener(notifyListeners)
+        ..addListener(_markEdited);
     }
     // The resolved Nextcloud id belongs to one login on one server; a new
     // one must be resolved again, never inherited.
@@ -23,6 +25,15 @@ class WebDavFormController extends ChangeNotifier {
   }
 
   bool _loading = false;
+
+  /// True once the user changed a field or the server type, so a late load
+  /// of the saved config must not replace their input.
+  bool get userEdited => _userEdited;
+  bool _userEdited = false;
+
+  void _markEdited() {
+    if (!_loading) _userEdited = true;
+  }
 
   void _dropResolvedUserId() {
     if (!_loading) nextcloudUserId = null;
@@ -41,6 +52,7 @@ class WebDavFormController extends ChangeNotifier {
   void setPreset(WebDavPreset value) {
     preset = value;
     nextcloudUserId = null;
+    _userEdited = true;
     notifyListeners();
   }
 
@@ -64,9 +76,9 @@ class WebDavFormController extends ChangeNotifier {
     preset = config.preset;
     serverUrl.text = config.serverUrl;
     username.text = config.username;
-    _loading = false;
     password.text = config.password;
     folder.text = config.folder;
+    _loading = false;
     pinnedCertSha256 = config.pinnedCertSha256;
     nextcloudUserId = config.nextcloudUserId;
     notifyListeners();
@@ -76,6 +88,7 @@ class WebDavFormController extends ChangeNotifier {
   /// media never lands in the sync folder.
   void copyServerFrom(WebDavConfig source, {required String keepFolder}) {
     load(source.copyWith(folder: keepFolder));
+    _userEdited = true;
   }
 
   WebDavConfig build() => WebDavConfig(
@@ -240,6 +253,9 @@ class WebDavServerFields extends StatelessWidget {
                       (uri.scheme == 'http' || uri.scheme == 'https') &&
                       uri.host.isNotEmpty;
                   if (!ok) return l10n.settings_webdavConfig_validation_url;
+                  if (uri.hasQuery || uri.hasFragment) {
+                    return l10n.settings_webdavConfig_validation_urlQuery;
+                  }
                   return uri.userInfo.isEmpty
                       ? null
                       : l10n.settings_webdavConfig_validation_urlCredentials;

@@ -25025,6 +25025,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Zet de gebruikersnaam en het wachtwoord in hun eigen velden, niet in het adres';
 
   @override
+  String get settings_webdavConfig_validation_urlQuery =>
+      'Verwijder het deel van het adres na ? of #';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'Deze server gebruikt http://, dus uw wachtwoord en duikgegevens worden onversleuteld verzonden. Gebruik dit alleen op een vertrouwd netwerk.';
 

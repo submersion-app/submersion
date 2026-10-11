@@ -7174,6 +7174,7 @@
   "settings_webdavConfig_validation_required": "Erforderlich",
   "settings_webdavConfig_validation_url": "Geben Sie eine Adresse ein, die mit https:// oder http:// beginnt",
   "settings_webdavConfig_validation_urlCredentials": "Benutzername und Passwort gehören in ihre eigenen Felder, nicht in die Adresse",
+  "settings_webdavConfig_validation_urlQuery": "Entfernen Sie den Teil der Adresse nach ? oder #",
   "settings_webdavConfig_warning_http": "Dieser Server verwendet http://, daher werden Passwort und Tauchdaten unverschlüsselt übertragen. Nur in vertrauenswürdigen Netzwerken verwenden.",
   "settings_section_about_subtitle": "App-Info & Lizenzen",
   "settings_section_about_title": "Über",

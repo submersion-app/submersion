@@ -230,6 +230,13 @@ fingerprint as colon-separated uppercase hex, subject, issuer and expiry, with
 and re-runs the test. The settings page shows "Trusted certificate:
 AB:CD:..." with **Forget** while a pin is stored. A server that later gets a
 CA-valid certificate never reaches the callback, so a stale pin is harmless.
+
+The pin is therefore a trust exception for one certificate that fails normal
+verification, not strict pinning: a renewed self-signed certificate shows both
+fingerprints before it is accepted, while a CA-valid replacement is accepted by
+normal verification without the dialog. That is deliberate, since the system's
+trust store already vouches for it, and strict pinning would break every
+server that moves to a public certificate.
 The media form uses the same dialog.
 
 ## 8. Nextcloud chunking v2

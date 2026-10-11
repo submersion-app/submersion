@@ -116,6 +116,10 @@ class WebDavConfig {
         return 'Put the username and password in their own fields, '
             'not in the address';
       }
+      if (uri.hasQuery || uri.hasFragment) {
+        // The DAV paths are appended to the address and would land there.
+        return 'The server address cannot contain ? or #';
+      }
     }
     if (username.isEmpty) return 'Enter the username';
     if (password.isEmpty) return 'Enter the password';

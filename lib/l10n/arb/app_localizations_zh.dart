@@ -23820,6 +23820,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '请将用户名和密码填入各自的字段，不要写在地址中';
 
   @override
+  String get settings_webdavConfig_validation_urlQuery => '请删除地址中 ? 或 # 之后的部分';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       '此服务器使用 http://，因此您的密码和潜水数据将以明文传输。仅在可信网络中使用。';
 

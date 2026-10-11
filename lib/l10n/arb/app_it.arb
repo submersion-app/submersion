@@ -6951,6 +6951,7 @@
   "settings_webdavConfig_validation_required": "Obbligatorio",
   "settings_webdavConfig_validation_url": "Inserisci un indirizzo che inizi con https:// o http://",
   "settings_webdavConfig_validation_urlCredentials": "Inserisci nome utente e password nei rispettivi campi, non nell'indirizzo",
+  "settings_webdavConfig_validation_urlQuery": "Rimuovi la parte dell'indirizzo dopo ? o #",
   "settings_webdavConfig_warning_http": "Questo server usa http://, quindi password e dati delle immersioni viaggiano in chiaro. Usalo solo su una rete affidabile.",
   "settings_section_about_subtitle": "Informazioni app e licenze",
   "settings_section_about_title": "Informazioni",

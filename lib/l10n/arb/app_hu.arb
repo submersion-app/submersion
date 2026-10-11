@@ -6955,6 +6955,7 @@
   "settings_webdavConfig_validation_required": "Kötelező",
   "settings_webdavConfig_validation_url": "Adjon meg https:// vagy http:// kezdetű címet",
   "settings_webdavConfig_validation_urlCredentials": "A felhasználónevet és a jelszót a saját mezőjükbe írja, ne a címbe",
+  "settings_webdavConfig_validation_urlQuery": "Törölje a cím ? vagy # utáni részét",
   "settings_webdavConfig_warning_http": "Ez a kiszolgáló http://-t használ, így a jelszó és a merülési adatok titkosítatlanul utaznak. Csak megbízható hálózaton használja.",
   "settings_section_about_subtitle": "Alkalmazás info és licencek",
   "settings_section_about_title": "Rólunk",

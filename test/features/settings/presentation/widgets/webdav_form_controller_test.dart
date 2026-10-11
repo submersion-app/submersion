@@ -29,4 +29,26 @@ void main() {
     form.serverUrl.text = 'https://other.example.com';
     expect(form.build().nextcloudUserId, isNull);
   });
+
+  test('loading a config is not a user edit', () {
+    final form = WebDavFormController()..load(saved);
+    addTearDown(form.dispose);
+    expect(form.userEdited, isFalse);
+  });
+
+  test('editing any field or the server type is a user edit', () {
+    final edits = <String, void Function(WebDavFormController)>{
+      'server': (f) => f.serverUrl.text = 'https://x.example.com',
+      'username': (f) => f.username.text = 'bob',
+      'password': (f) => f.password.text = 'pw',
+      'folder': (f) => f.folder.text = 'Elsewhere',
+      'preset': (f) => f.setPreset(WebDavPreset.owncloud),
+    };
+    for (final MapEntry(:key, :value) in edits.entries) {
+      final form = WebDavFormController();
+      addTearDown(form.dispose);
+      value(form);
+      expect(form.userEdited, isTrue, reason: key);
+    }
+  });
 }

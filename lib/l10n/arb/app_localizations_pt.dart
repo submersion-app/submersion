@@ -25194,6 +25194,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Coloque o usuário e a senha nos campos próprios, não no endereço';
 
   @override
+  String get settings_webdavConfig_validation_urlQuery =>
+      'Remova a parte do endereço depois de ? ou #';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'Este servidor usa http://, então sua senha e seus dados de mergulho trafegam sem criptografia. Use apenas em uma rede confiável.';
 

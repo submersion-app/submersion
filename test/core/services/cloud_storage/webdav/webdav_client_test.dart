@@ -127,6 +127,18 @@ void main() {
     },
   );
 
+  test(
+    'a server that echoes the DAV root in another case still lists it',
+    () async {
+      server
+        ..seedFile('/dav/Submersion/a.json', [1, 2])
+        ..hrefPath = ((p) => p.replaceFirst('/dav', '/DAV'));
+      final children = await client.listChildren('Submersion');
+      expect(children.map((e) => e.path), ['Submersion/a.json']);
+      expect((await client.stat('Submersion/a.json'))?.sizeBytes, 2);
+    },
+  );
+
   test('a missing DAV root is a notFound naming the address', () async {
     server.collections.remove('/dav');
     await expectLater(

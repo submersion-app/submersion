@@ -126,4 +126,17 @@ void main() {
       isNotNull,
     );
   });
+
+  test('a server URL with a query or fragment is rejected', () {
+    // The DAV paths are appended to the address, so they would land in
+    // the query or fragment instead of the path.
+    expect(
+      make(serverUrl: 'https://dav.example.com/base?tenant=x').validate(),
+      isNotNull,
+    );
+    expect(
+      make(serverUrl: 'https://dav.example.com/base#frag').validate(),
+      isNotNull,
+    );
+  });
 }

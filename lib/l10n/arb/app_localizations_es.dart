@@ -25209,6 +25209,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Escriba el usuario y la contraseña en sus propios campos, no en la dirección';
 
   @override
+  String get settings_webdavConfig_validation_urlQuery =>
+      'Quita la parte de la dirección después de ? o #';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'Este servidor usa http://, así que su contraseña y sus datos de buceo viajan sin cifrar. Úselo solo en una red de confianza.';
 

@@ -24567,6 +24567,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הזינו את שם המשתמש והסיסמה בשדות שלהם, לא בכתובת';
 
   @override
+  String get settings_webdavConfig_validation_urlQuery =>
+      'יש להסיר את החלק בכתובת שאחרי ? או #';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'שרת זה משתמש ב-http://, ולכן הסיסמה ונתוני הצלילה עוברים ללא הצפנה. השתמשו בו רק ברשת מהימנה.';
 
