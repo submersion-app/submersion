@@ -264,6 +264,48 @@ void main() {
     expect(await repo.getById(docId), isNull);
   });
 
+  test(
+    'saveCardImages keeps extra pages the diver added to the card',
+    () async {
+      await seedCert(db, 'c1');
+      await repo.saveCardImages(
+        certificationId: 'c1',
+        diverId: 'd1',
+        front: Uint8List.fromList([1]),
+        back: null,
+      );
+      final docId = documentCertificationCardId('c1');
+      final card = (await repo.getById(docId))!;
+      final pages = await repo.getPages(docId);
+      await repo.save(card.copyWith(notes: 'e-card PDF too'), [
+        ...pages,
+        page(1, [5]),
+      ]);
+
+      // A photo change on the cert page keeps the extra page.
+      await repo.saveCardImages(
+        certificationId: 'c1',
+        diverId: 'd1',
+        front: Uint8List.fromList([2]),
+        back: null,
+      );
+      var after = await repo.getPages(docId);
+      expect(after.map((p) => p.bytes!.first), containsAll([2, 5]));
+      expect(after.where((p) => p.side == null), hasLength(1));
+
+      // Clearing both photos keeps the document, its notes and the extra page.
+      await repo.saveCardImages(
+        certificationId: 'c1',
+        diverId: 'd1',
+        front: null,
+        back: null,
+      );
+      after = await repo.getPages(docId);
+      expect(after.single.bytes, [5]);
+      expect((await repo.getById(docId))!.notes, 'e-card PDF too');
+    },
+  );
+
   test('saveCardImages with unchanged bytes writes nothing', () async {
     await seedCert(db, 'c1');
     await repo.saveCardImages(

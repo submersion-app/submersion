@@ -499,9 +499,12 @@ class DocumentRepository {
     return out;
   }
 
-  /// Writes a certification's card images. Null clears that side; both
-  /// null deletes the card document. Unchanged bytes write nothing, so a
-  /// rename of the certification does not re-stamp its pages.
+  /// Writes a certification's card images: only the Front and Back pages
+  /// change. Any other page the diver added to the card document stays, in
+  /// order. Null clears that side. The card document goes away only when
+  /// nothing the diver added would be left: no other page, no title, no
+  /// notes. Unchanged bytes write nothing, so a rename of the certification
+  /// does not re-stamp its pages.
   Future<void> saveCardImages({
     required String certificationId,
     required String diverId,
@@ -511,17 +514,30 @@ class DocumentRepository {
   }) async {
     final docId = documentCertificationCardId(certificationId);
     final existing = await getById(docId);
-    if (front == null && back == null) {
-      if (existing != null) {
-        await _db.transaction(() => _deleteIds([docId]));
-        if (notify) SyncEventBus.notifyLocalChange();
-      }
+    final pages = existing == null
+        ? const <DocumentPage>[]
+        : await getPages(docId);
+    final extras = [
+      for (final p in pages)
+        if (p.side == null) p,
+    ];
+    const eq = ListEquality<int>();
+    Uint8List? current(DocumentPageSide s) =>
+        pages.where((p) => p.side == s).firstOrNull?.bytes;
+    if (existing != null &&
+        eq.equals(current(DocumentPageSide.front), front) &&
+        eq.equals(current(DocumentPageSide.back), back)) {
       return;
     }
-    if (existing != null) {
-      final current = (await cardImagesFor([certificationId]))[certificationId];
-      const eq = ListEquality<int>();
-      if (eq.equals(current?.front, front) && eq.equals(current?.back, back)) {
+    if (front == null && back == null) {
+      if (existing == null) return;
+      final keep =
+          extras.isNotEmpty ||
+          existing.title.trim().isNotEmpty ||
+          existing.notes.trim().isNotEmpty;
+      if (!keep) {
+        await _db.transaction(() => _deleteIds([docId]));
+        if (notify) SyncEventBus.notifyLocalChange();
         return;
       }
     }
@@ -554,6 +570,7 @@ class DocumentRepository {
     await save(doc, [
       if (front != null) side(DocumentPageSide.front, front),
       if (back != null) side(DocumentPageSide.back, back),
+      ...extras,
     ], notify: notify);
   }
 
