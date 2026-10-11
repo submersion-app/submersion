@@ -234,6 +234,7 @@ const Map<String, String> keptEnglishValues = {
   'transfer_export_uddfSubtitle@de': _technology,
   'transfer_export_uddfSubtitle@it': _technology,
   'transfer_importCloud_divelogsTitle': _brand,
+  'trips_day_photoCount@fr': _sameWord,
   'trips_detail_preDive_action@nl': _loanword,
   'units_profileMetric_gPerL': _units,
   'universalImport_compare_serial@de': _germanSerial,

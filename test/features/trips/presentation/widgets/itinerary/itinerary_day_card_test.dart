@@ -109,4 +109,33 @@ void main() {
     await tester.pump();
     expect(find.text('1 photo'), findsOneWidget);
   });
+
+  testWidgets('every day type renders its own badge', (tester) async {
+    final overrides = await getBaseOverrides();
+    for (final type in DayType.values) {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides,
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: ItineraryDayCard(
+                day: _day.copyWith(dayType: type, portName: 'Kralendijk'),
+                dives: const [],
+                tripId: 'trip-1',
+                isLiveaboard: true,
+                kind: TripStoryDayKind.future,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull, reason: type.name);
+      expect(find.byType(Icon), findsWidgets, reason: type.name);
+      expect(find.text('Kralendijk'), findsOneWidget, reason: type.name);
+    }
+  });
 }
