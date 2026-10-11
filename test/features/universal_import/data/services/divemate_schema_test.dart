@@ -9,12 +9,15 @@ import 'package:submersion/features/universal_import/data/services/divemate_sche
 import '../../../../fixtures/divemate/build_divemate_ddb.dart';
 
 /// A Diving Log logbook: the same `Logbook` table, written by Diving Log.
-Uint8List _divingLogBytes({String? program}) {
+Uint8List _divingLogBytes({String? program, bool typeOfDive = false}) {
   final dir = Directory.systemTemp.createTempSync('divinglog_schema');
   addTearDown(() => dir.deleteSync(recursive: true));
   final path = p.join(dir.path, 'logbook.sql');
   final db = sqlite3.open(path);
-  db.execute('CREATE TABLE Logbook (ID INTEGER, Divedate TEXT)');
+  db.execute(
+    'CREATE TABLE Logbook (ID INTEGER, Divedate TEXT'
+    '${typeOfDive ? ', TypeOfDive INTEGER' : ''})',
+  );
   if (program != null) {
     db.execute('CREATE TABLE DBInfo (PrgName TEXT)');
     db.execute('INSERT INTO DBInfo VALUES (?)', [program]);
@@ -48,6 +51,17 @@ void main() {
     expect(await DiveMateSchema.isDiveMateDb(_divingLogBytes()), isFalse);
     expect(
       await DiveMateSchema.isDiveMateDb(_divingLogBytes(program: 'Diving Log')),
+      isFalse,
+    );
+  });
+
+  test('DBInfo naming another program wins over a TypeOfDive column', () async {
+    // The column is only a fallback for a file that does not say who wrote
+    // it; a file that does is taken at its word.
+    expect(
+      await DiveMateSchema.isDiveMateDb(
+        _divingLogBytes(program: 'Diving Log', typeOfDive: true),
+      ),
       isFalse,
     );
   });

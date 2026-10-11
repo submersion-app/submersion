@@ -17,24 +17,35 @@ import 'package:submersion/features/universal_import/data/services/sqlite_temp_c
 abstract final class DiveMateSchema {
   /// Whether the open [db], described by [caps], is DiveMate's.
   ///
-  /// `DBInfo.PrgName` names the program that wrote the file. A file without
-  /// that table still counts when its `Logbook` has `TypeOfDive`, a column
-  /// only DiveMate writes.
+  /// `DBInfo.PrgName` names the program that wrote the file, and a file
+  /// that names one is taken at its word. Only a file that names none falls
+  /// back to the `Logbook.TypeOfDive` column, which only DiveMate writes.
   static bool matches(Database db, DivingLogCapabilities caps) {
-    if (caps.hasColumn('Logbook', 'TypeOfDive')) return true;
+    final programs = _programNames(db, caps);
+    if (programs.isNotEmpty) {
+      return programs.any((p) => p.toLowerCase().contains('divemate'));
+    }
+    return caps.hasColumn('Logbook', 'TypeOfDive');
+  }
+
+  /// The non-blank `DBInfo.PrgName` values, empty when the file has none.
+  static List<String> _programNames(Database db, DivingLogCapabilities caps) {
     final table = caps.actualTable('DBInfo');
     final column = caps.actualColumn('DBInfo', 'PrgName');
-    if (table == null || column == null) return false;
+    if (table == null || column == null) return const [];
     try {
       final rows = db.select(
         'SELECT ${quoteSqlIdentifier(column)} AS name '
         'FROM ${quoteSqlIdentifier(table)}',
       );
-      return rows.any(
-        (r) => (r['name']?.toString() ?? '').toLowerCase().contains('divemate'),
-      );
+      return [
+        for (final r in rows)
+          if (r['name']?.toString().trim() case final String name
+              when name.isNotEmpty)
+            name,
+      ];
     } on SqliteException {
-      return false;
+      return const [];
     }
   }
 

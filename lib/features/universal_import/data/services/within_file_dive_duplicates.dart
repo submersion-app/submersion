@@ -7,8 +7,11 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 /// dive downloaded later, with different dive numbers. The multi-file batch
 /// pass in `ImportDuplicateChecker` matches loosely because two files of one
 /// trip overlap; within one file that would flag genuine back-to-back dives,
-/// so a pair here needs the same start minute and a near-perfect score
-/// (depth and duration inside the matcher's full-credit bands). Profiles are
+/// so a pair here must start less than a minute apart and reach a
+/// near-perfect score (depth and duration inside the matcher's full-credit
+/// bands). Elapsed time, not the clock minute: two dives cannot start
+/// seconds apart, so copies at 10:15:59 and 10:16:00 are one dive logged
+/// twice, which minute buckets would miss. Profiles are
 /// not compared: the copies' samples differ in 83 of those 186 pairs.
 ///
 /// Of each pair, the copy carrying less data is the one flagged, pointing at
@@ -16,7 +19,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 /// (skip the flagged row) keeps the fuller copy. On a tie the later row is
 /// flagged, as the batch pass does.
 abstract final class WithinFileDiveDuplicates {
-  /// The score a same-minute pair must reach.
+  /// The score a pair starting under a minute apart must reach.
   static const double minScore = 0.95;
 
   /// Flagged dive index to its match, for [dives] in payload order.

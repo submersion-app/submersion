@@ -1196,9 +1196,28 @@ void main() {
       expect(result.diveMatches[0]!.inBatchIndex, 1);
     });
 
+    test('copies a second apart across a minute boundary are one dive', () {
+      // Two dives cannot start a second apart, so with the same depth and
+      // duration these are one dive logged twice, whichever minute each
+      // clock put it in.
+      final result = checkFile([
+        dive(DateTime.utc(2026, 8, 1, 10, 15, 59)),
+        dive(DateTime.utc(2026, 8, 1, 10, 16)),
+      ]);
+      expect(result.diveMatches.keys, [1]);
+    });
+
+    test('dives a full minute apart are not flagged', () {
+      final result = checkFile([
+        dive(start),
+        dive(start.add(const Duration(minutes: 1))),
+      ]);
+      expect(result.diveMatches, isEmpty);
+    });
+
     test('dives minutes apart in one file are not flagged', () {
       // Two real dives can share a depth and length; within one file only
-      // the same start minute makes them one dive.
+      // starts under a minute apart make them one dive.
       final result = checkFile([
         dive(start),
         dive(start.add(const Duration(minutes: 3))),

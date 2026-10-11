@@ -65,7 +65,8 @@ off the repo) still loses or misstates a lot:
   and then applies `DiveMateDiveMapper` for the extra fields. Its messages
   say DiveMate, and its payload metadata source is `divemate_ddb`.
 - Detection and the reader share one test, `DiveMateSchema.matches`
-  (`DBInfo.PrgName`, else the `TypeOfDive` column), so the DiveMate-only
+  (`DBInfo.PrgName` when the file names its program, else the `TypeOfDive`
+  column), so the DiveMate-only
   rules (discard flag, transmitter pressures, extra columns) follow the file
   whichever parser reads it, and a file shown as DiveMate is always read as
   one. Diving Log schema notes that describe tables and columns DiveMate
@@ -119,7 +120,9 @@ multi-file batches (`checkIntraBatch = batchFileCount > 1` in
 review card for such a pair shows text only.
 
 - Run a within-file pass for single files, with a stricter rule than the
-  batch pass: the same start minute and a matcher score of at least 0.95
+  batch pass: starts less than a minute apart (elapsed time, so copies
+  either side of a minute boundary still pair) and a matcher score of at
+  least 0.95
   (depth and duration inside the full-credit bands). On the donated logbook
   it flags exactly the 186 pairs, and keeps the fuller copy of each.
 - The review card shows the other copy side by side (date, number, depth,
