@@ -307,5 +307,8 @@ extension RungsFromV231 on AppDatabase {
       await _assertIcdWarningsColumn();
     }
     if (from < 276) await reportProgress();
+    // v277: no data change (issue #2361). Carries the sync floor past the
+    // builds that cannot parse AccountKind.webdav.
+    if (from < 277) await reportProgress();
   }
 }
