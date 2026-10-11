@@ -18,6 +18,9 @@ QueryNode? _join(List<QueryNode> nodes) => switch (nodes.length) {
 
 bool _isOnKey(QueryNode node, String key) => switch (node) {
   ConditionNode(:final path) => path.segments.first == key,
+  // A scoped relation rule (`buddies[name contains "Sam"]`) is on the
+  // relation it scopes.
+  ScopedNode(:final path) => path.segments.first == key,
   NotNode(:final child) => _isOnKey(child, key),
   _ => false,
 };

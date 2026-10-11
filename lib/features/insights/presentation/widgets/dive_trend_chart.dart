@@ -18,6 +18,7 @@ import 'package:submersion/features/insights/presentation/widgets/dive_trend_cha
 import 'package:submersion/features/insights/presentation/formatters/trend_gap_label.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_break_band_painter.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_break_spots.dart';
+import 'package:submersion/features/insights/presentation/widgets/trend_reference_line.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_window_seater.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -45,10 +46,14 @@ class TrendSeries {
   final List<TrendDataPoint> points;
   final Color color;
 
+  /// Dot radius in raw mode; null draws the primary's size.
+  final double? pointRadius;
+
   const TrendSeries({
     required this.label,
     required this.points,
     required this.color,
+    this.pointRadius,
   });
 }
 
@@ -74,6 +79,7 @@ class DiveTrendChart extends StatefulWidget {
     this.range = TrendRange.all,
     this.onRangeChanged,
     this.gapThreshold = TrendGapThreshold.off,
+    this.referenceLine,
   });
 
   /// Stretches with no dives longer than this collapse into a hatched band
@@ -94,6 +100,9 @@ class DiveTrendChart extends StatefulWidget {
 
   /// A time span shaded behind the series, for a finding's evidence window.
   final ({DateTime start, DateTime end})? highlightRange;
+
+  /// A dashed horizontal marker, such as a threshold the diver set.
+  final TrendReferenceLine? referenceLine;
 
   /// The diver's date order, threaded in by the caller rather than read from
   /// the ambient locale, so the axis and the tooltip match Manage - Units
@@ -410,6 +419,8 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       ...allBuckets.expand((b) => [b.min, b.max]),
       ...smoothed.map((p) => p.value),
       if (fit != null) ...[fit.valueAt(firstDate), fit.valueAt(lastDate)],
+      // A threshold outside the data would otherwise sit off the plot.
+      ?widget.referenceLine?.value,
     ]);
 
     // Only rebuilt when what it is drawn from changes: pan and zoom rebuild
@@ -520,6 +531,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
               FlLine(color: theme.colorScheme.outlineVariant, strokeWidth: 1),
         ),
         lineBarsData: bars,
+        extraLinesData: trendReferenceLines(context, widget.referenceLine),
         betweenBarsData: _bands(context, isRaw),
         rangeAnnotations: RangeAnnotations(
           verticalRangeAnnotations: [
@@ -641,7 +653,14 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
     for (var i = 0; i < secondary.length; i++) {
       final placed = _bucketSpots(secondary[i], (b) => b.mean);
       secondarySource.add(placed.source);
-      bars.add(_dataBar(placed.spots, widget.secondarySeries[i].color, isRaw));
+      bars.add(
+        _dataBar(
+          placed.spots,
+          widget.secondarySeries[i].color,
+          isRaw,
+          radius: widget.secondarySeries[i].pointRadius,
+        ),
+      );
     }
     _drawnSecondarySource = secondarySource;
 
@@ -656,7 +675,12 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   /// A per-dive series: dots only in raw mode (a stroke between two dives
   /// eight months apart would assert something happened in between), dotted
   /// line when aggregated so the buckets stay findable without hovering.
-  LineChartBarData _dataBar(List<FlSpot> spots, Color color, bool isRaw) {
+  LineChartBarData _dataBar(
+    List<FlSpot> spots,
+    Color color,
+    bool isRaw, {
+    double? radius,
+  }) {
     return LineChartBarData(
       spots: spots,
       isCurved: false,
@@ -666,7 +690,7 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
       dotData: FlDotData(
         show: true,
         getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-          radius: isRaw ? 2.2 : 3,
+          radius: radius ?? (isRaw ? 2.2 : 3),
           color: color.withValues(alpha: isRaw ? 0.7 : 1),
           strokeWidth: 0,
         ),

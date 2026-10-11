@@ -15237,7 +15237,7 @@
   "insights_category_profile_subtitle": "Ascent rates & deco",
   "insights_category_profile_title": "Profile Analysis",
   "insights_category_progression_subtitle": "Depth & time trends",
-  "insights_category_focus_subtitle": "Best, worst and threshold groups",
+  "insights_category_focus_subtitle": "What your best and worst dives have in common",
   "insights_category_progression_title": "Progression",
   "insights_category_social_subtitle": "Buddies & dive centers",
   "insights_category_social_title": "Social",
@@ -15343,9 +15343,10 @@
   "insights_gas_sacTrend_subtitle": "Every dive in range",
   "insights_gas_sacTrend_title": "Gas consumption trend",
   "insights_focus_title": "Dive focus",
+  "insights_focus_intro": "See what a group of your dives has in common.",
   "insights_focus_error": "Failed to load dive focus",
   "insights_focus_empty": "No dives have this value yet",
-  "insights_focus_summary": "{count} of {total, plural, =1{1 dive} other{{total} dives}}, group average {group} vs {overall} overall",
+  "insights_focus_summary": "{count} of {total, plural, =1{1 dive} other{{total} dives}}. Average {group}, against {overall} across all your dives.",
   "@insights_focus_summary": {
     "placeholders": {
       "count": { "type": "int" },
@@ -15375,10 +15376,22 @@
     }
   },
   "insights_focus_enterValue": "Enter a value to see the dives above or below it",
-  "insights_focus_chart_title": "The group over time",
-  "insights_focus_chart_group": "In group",
-  "insights_focus_list_title": "Dives in the group",
+  "insights_focus_chart_title": "{metric} over time",
+  "@insights_focus_chart_title": {
+    "placeholders": {
+      "metric": { "type": "String" }
+    }
+  },
+  "insights_focus_chart_group": "In the group",
+  "insights_focus_chart_others": "Other dives",
+  "insights_focus_list_title": "The dives",
   "insights_focus_list_unknownSite": "No site",
+  "insights_focus_list_showAll": "{count, plural, =1{Show the 1 dive} other{Show all {count} dives}}",
+  "@insights_focus_list_showAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "insights_focus_unit_minutes": "min",
   "insights_focus_metric_rmv": "RMV",
   "insights_focus_metric_sac": "SAC",
@@ -15386,33 +15399,116 @@
   "insights_focus_metric_bottomTime": "Bottom time",
   "insights_focus_metric_weight": "Weight",
   "insights_focus_metric_waterTemp": "Water temp",
-  "insights_focus_mode_best": "Best",
-  "insights_focus_mode_worst": "Worst",
-  "insights_focus_mode_lowest": "Lowest",
-  "insights_focus_mode_highest": "Highest",
-  "insights_focus_mode_above": "Above",
-  "insights_focus_mode_below": "Below",
+  "insights_focus_metric_gasUsed": "Gas used",
+  "insights_focus_metric_avgDepth": "Average depth",
+  "insights_focus_metric_surfaceInterval": "Surface interval",
+  "insights_focus_metric_airTemp": "Air temp",
+  "insights_focus_metric_visibility": "Visibility",
+  "insights_focus_metric_altitude": "Altitude",
+  "insights_focus_metric_cns": "CNS at end",
+  "insights_focus_metric_otu": "OTU",
+  "insights_focus_metricGroup_gas": "Gas",
+  "insights_focus_metricGroup_depthTime": "Depth and time",
+  "insights_focus_metricGroup_conditions": "Conditions",
+  "insights_focus_metricGroup_exposure": "Exposure",
+  "insights_focus_metricGroup_kit": "Kit",
+  "insights_focus_mode_best": "best",
+  "insights_focus_mode_worst": "worst",
+  "insights_focus_mode_lowest": "lowest",
+  "insights_focus_mode_highest": "highest",
+  "insights_focus_mode_above": "above",
+  "insights_focus_mode_below": "below",
   "insights_focus_count_label": "Dives",
   "insights_focus_count_error": "Enter a whole number from 1 to 999",
-  "insights_focus_threshold_label": "Value",
   "insights_focus_threshold_error": "Enter a number",
   "insights_focus_threshold_negativeError": "Enter zero or more",
-  "insights_focus_factors_title": "Common factors",
-  "insights_focus_factors_subtitle": "This group compared with every dive that has the value",
-  "insights_focus_factors_tooFew": "Choose at least 3 dives to compare common factors",
+  "insights_focus_sentence_ranked": "Show the {count} dives with the {mode} {metric}",
+  "@insights_focus_sentence_ranked": {
+    "description": "Dive focus sentence builder. Each placeholder is replaced by a control; keep all three, in any order.",
+    "placeholders": {
+      "count": { "type": "String" },
+      "mode": { "type": "String" },
+      "metric": { "type": "String" }
+    }
+  },
+  "insights_focus_sentence_threshold": "Show the dives with {metric} {mode} {value}",
+  "@insights_focus_sentence_threshold": {
+    "description": "Dive focus sentence builder in threshold form. Each placeholder is replaced by a control; keep all three, in any order.",
+    "placeholders": {
+      "metric": { "type": "String" },
+      "mode": { "type": "String" },
+      "value": { "type": "String" }
+    }
+  },
+  "insights_focus_count_custom": "Custom...",
+  "insights_focus_count_dialogTitle": "How many dives?",
+  "insights_focus_comparison_title": "Full comparison",
+  "insights_focus_comparison_subtitle": "All dives means every dive in the current filter that has {metric}",
+  "@insights_focus_comparison_subtitle": {
+    "placeholders": {
+      "metric": { "type": "String" }
+    }
+  },
+  "insights_focus_column_these": "These dives",
+  "insights_focus_column_all": "All dives",
+  "insights_focus_column_difference": "Difference",
+  "insights_focus_comparison_showMore": "{count, plural, =1{Show 1 more factor} other{Show {count} more factors}}",
+  "@insights_focus_comparison_showMore": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "insights_focus_factors_standsOut": "Stands out",
-  "insights_focus_factors_standoutsSummary": "Stands out: {factors}",
-  "@insights_focus_factors_standoutsSummary": {
-    "placeholders": { "factors": { "type": "String" } }
-  },
-  "insights_focus_factors_versus": "{group} vs {baseline}",
-  "@insights_focus_factors_versus": {
-    "placeholders": { "group": { "type": "String" }, "baseline": { "type": "String" } }
-  },
   "insights_focus_factors_coverage": "{covered} of {total, plural, =1{1 dive} other{{total} dives}}",
   "@insights_focus_factors_coverage": {
     "placeholders": { "covered": { "type": "int" }, "total": { "type": "int" } }
   },
+  "insights_focus_standouts_title": "What stands out",
+  "insights_focus_standouts_none": "Nothing stands out about these dives.",
+  "insights_focus_standouts_tooFew": "Pick at least 3 dives to see what they share",
+  "insights_focus_standouts_more": "{count, plural, =1{and 1 more in the full comparison} other{and {count} more in the full comparison}}",
+  "@insights_focus_standouts_more": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "insights_focus_standouts_categoryAll": "All {count} were {value} ({baseline} of all your dives)",
+  "@insights_focus_standouts_categoryAll": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "value": { "type": "String" },
+      "baseline": { "type": "String" }
+    }
+  },
+  "insights_focus_standouts_categorySome": "{count} of {total} were {value}, against {baseline} of all your dives",
+  "@insights_focus_standouts_categorySome": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "total": { "type": "int" },
+      "value": { "type": "String" },
+      "baseline": { "type": "String" }
+    }
+  },
+  "insights_focus_standouts_numeric": "{factor} {difference} {direction} ({group} vs {baseline})",
+  "@insights_focus_standouts_numeric": {
+    "placeholders": {
+      "factor": { "type": "String" },
+      "difference": { "type": "String" },
+      "direction": { "type": "String" },
+      "group": { "type": "String" },
+      "baseline": { "type": "String" }
+    }
+  },
+  "insights_focus_direction_deeper": "deeper",
+  "insights_focus_direction_shallower": "shallower",
+  "insights_focus_direction_longer": "longer",
+  "insights_focus_direction_shorter": "shorter",
+  "insights_focus_direction_warmer": "warmer",
+  "insights_focus_direction_colder": "colder",
+  "insights_focus_direction_larger": "larger",
+  "insights_focus_direction_smaller": "smaller",
+  "insights_focus_direction_moreLead": "more lead",
+  "insights_focus_direction_lessLead": "less lead",
   "insights_focus_factorGroup_diveShape": "Dive shape",
   "insights_focus_factorGroup_conditions": "Conditions",
   "insights_focus_factorGroup_whenWhere": "When and where",
