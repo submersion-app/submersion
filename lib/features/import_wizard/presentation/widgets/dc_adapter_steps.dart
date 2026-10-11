@@ -305,6 +305,12 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
 
   bool _captured = false;
   bool _computerResolved = false;
+
+  /// The device handed to the download, when the step built it from the
+  /// saved computer rather than taking a discovery selection. Completion
+  /// bookkeeping (saving the computer, recording its connection and clock
+  /// sync answer) needs the device the download actually used (#3106).
+  DiscoveredDevice? _downloadDevice;
   bool _searchingForKnownDevice = false;
   bool _noDives = false;
 
@@ -551,6 +557,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       cutoffDefault = cutoffAsync.valueOrNull;
     }
 
+    _downloadDevice = device;
     return DownloadStepWidget(
       device: device,
       computer: computer,
@@ -647,7 +654,7 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       // it cannot skip the can-advance flip below, which is what left the
       // wizard on "Download complete" with Next disabled (issue #2439).
       final discoveryState = ref.read(discoveryNotifierProvider);
-      final device = discoveryState.selectedDevice;
+      final device = discoveryState.selectedDevice ?? _downloadDevice;
       if (device != null) {
         // If the save below fails, the adapter records this once a later
         // retry recovers the computer.
