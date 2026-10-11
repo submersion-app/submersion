@@ -55,6 +55,19 @@ class FakeWebDavServer {
   /// The next chunk-assembly MOVE applies, then fails in transit.
   bool moveFailsAfterApplying = false;
 
+  /// Chunk-assembly MOVEs answer 423 Locked this many times; the first of
+  /// them still assembles the file (Nextcloud finishing in the background).
+  int moveLockedResponses = 0;
+
+  /// Rewrites each href's decoded path before it is encoded, to mimic a
+  /// server that reports paths in its own canonical form (case-insensitive
+  /// servers echo the stored case, not the requested one).
+  String Function(String path)? hrefPath;
+
+  /// After this many requests every request answers 500, so a runaway
+  /// client loop fails a test instead of hanging it.
+  int? maxRequests;
+
   MockClient get client => MockClient(_handle);
 
   int count(String method) => captured.where((r) => r.method == method).length;
@@ -89,6 +102,10 @@ class FakeWebDavServer {
 
   Future<http.Response> _handle(http.Request request) async {
     captured.add(request);
+    final budget = maxRequests;
+    if (budget != null && captured.length > budget) {
+      return http.Response('request budget exhausted', 500);
+    }
     if (throwCount > 0) {
       throwCount--;
       throw throwNext!;
@@ -159,7 +176,10 @@ class FakeWebDavServer {
     for (final p in paths) {
       final isCol = collections.contains(p);
       final segs = p.split('/').where((s) => s.isNotEmpty).toList();
-      var href = '/${Uri(pathSegments: segs).path}';
+      final shown = hrefPath == null
+          ? segs
+          : hrefPath!(p).split('/').where((x) => x.isNotEmpty).toList();
+      var href = '/${Uri(pathSegments: shown).path}';
       if (isCol && href != '/') href = '$href/';
       if (absoluteHrefs) href = '$origin$href';
       buffer
@@ -228,6 +248,10 @@ class FakeWebDavServer {
     if (!collections.contains(_parent(destPath))) return http.Response('', 409);
     if (path.endsWith('/.file')) {
       final dir = _parent(path);
+      if (moveLockedResponses > 0 && !collections.contains(dir)) {
+        moveLockedResponses--;
+        return http.Response('', 423);
+      }
       if (!collections.contains(dir)) return http.Response('', 404);
       final chunkNames = files.keys.where((f) => _parent(f) == dir).toList()
         ..sort();
@@ -238,6 +262,10 @@ class FakeWebDavServer {
       files[destPath] = builder.takeBytes();
       modified[destPath] = now();
       _removeTree(dir);
+      if (moveLockedResponses > 0) {
+        moveLockedResponses--;
+        return http.Response('', 423);
+      }
       if (moveFailsAfterApplying) {
         moveFailsAfterApplying = false;
         throw http.ClientException('connection reset after MOVE');

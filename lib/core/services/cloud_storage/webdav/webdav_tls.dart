@@ -119,15 +119,15 @@ class CertificateTrustRecorder {
   }
 }
 
-/// A deadline-bounded transport whose TLS layer consults [recorder]. Built
-/// with `HttpClient()`, so `TrustedHttpOverrides` (the Windows root store)
-/// still applies.
+/// A transport whose TCP connect is bounded and whose TLS layer consults
+/// [recorder]. Built with `HttpClient()`, so `TrustedHttpOverrides` (the
+/// Windows root store) still applies. Response and idle deadlines are the
+/// WebDavClient's: a WebDAV upload is one request for the whole file, so the
+/// shared TimeoutHttpClient's fixed ten-minute upload cap would fail every
+/// large upload on a slow link.
 http.Client createWebDavHttpClient(CertificateTrustRecorder recorder) {
   final inner = HttpClient()
     ..connectionTimeout = TimeoutHttpClient.defaultConnectTimeout
     ..badCertificateCallback = recorder.onBadCertificate;
-  return TimeoutHttpClient(
-    IOClient(inner),
-    connectTimeout: TimeoutHttpClient.defaultConnectTimeout,
-  );
+  return IOClient(inner);
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -45,6 +46,23 @@ class _HandshakeFailingClient extends http.BaseClient {
     sends++;
     recorder.evaluate(details);
     throw const HandshakeException('CERTIFICATE_VERIFY_FAILED');
+  }
+}
+
+/// Takes the first body chunk, holds the stream paused for a while, then
+/// drains the rest: a real socket under a slow link behaves like this.
+class _PausingConsumer extends http.BaseClient {
+  _PausingConsumer(this.whilePaused);
+  final void Function() whilePaused;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final body = StreamIterator(request.finalize());
+    await body.moveNext();
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    whilePaused();
+    while (await body.moveNext()) {}
+    return http.StreamedResponse(const Stream.empty(), 201);
   }
 }
 
@@ -155,7 +173,8 @@ void main() {
       onProgress: (sent, total) => last = sent,
     );
     final put = recording.seen.lastWhere((r) => r.method == 'PUT');
-    expect(put, isA<http.StreamedRequest>());
+    // Not a buffered http.Request: the body is streamed from the file.
+    expect(put, isNot(isA<http.Request>()));
     expect(put.contentLength, 300000);
     expect(server.files['/dav/Submersion/big.bin']!.length, 300000);
     expect(last, 300000);
@@ -332,5 +351,45 @@ void main() {
     );
     addTearDown(ncClient.close);
     expect(await ncClient.resolveNextcloudUserId(), 'alice');
+  });
+
+  test(
+    'putFile reads the file only as fast as the transport takes it',
+    () async {
+      final source = File(p.join(tmp.path, 'video.bin'));
+      const total = 8 * 1024 * 1024;
+      await source.writeAsBytes(Uint8List(total));
+      var sent = 0;
+      int? sentWhilePaused;
+      final slow = WebDavClient(
+        _config(),
+        httpClient: _PausingConsumer(() => sentWhilePaused = sent),
+        backoff: (_) => Duration.zero,
+      );
+      addTearDown(slow.close);
+      await slow.putFile(
+        'Submersion/video.bin',
+        source,
+        onProgress: (s, _) => sent = s,
+      );
+      expect(
+        sentWhilePaused,
+        lessThan(total ~/ 2),
+        reason: 'the whole file was read while the transport sat paused',
+      );
+      expect(sent, total);
+    },
+  );
+
+  test('upload deadlines scale with the body size', () {
+    expect(WebDavClient.deadlineFor('GET', null), const Duration(seconds: 30));
+    expect(
+      WebDavClient.deadlineFor('PUT', 1024 * 1024),
+      const Duration(minutes: 10),
+    );
+    expect(
+      WebDavClient.deadlineFor('PUT', 1 << 30),
+      greaterThan(const Duration(hours: 2)),
+    );
   });
 }

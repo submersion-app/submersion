@@ -161,4 +161,54 @@ void main() {
       await uploader().abandon(null);
     },
   );
+
+  test(
+    'a MOVE that stays locked while Nextcloud assembles still succeeds',
+    () async {
+      server.moveLockedResponses = 10;
+      final upload = NextcloudChunkedUpload(
+        client,
+        newTransferId: () => 'submersion-t1',
+        pollDelay: Duration.zero,
+      );
+      expect(await upload.upload('Submersion/video.mp4', source), isTrue);
+      expect(server.files['$files/Submersion/video.mp4']!.length, size);
+    },
+  );
+
+  test(
+    'resume with an expired directory but a complete destination does not re-upload',
+    () async {
+      server.seedFile(
+        '$files/Submersion/video.mp4',
+        await source.readAsBytes(),
+      );
+      final state = NextcloudChunkState(
+        transferId: 'submersion-gone',
+        chunkSize: NextcloudChunkedUpload.chunkBytes,
+        total: size,
+        dest: client.uriFor('Submersion/video.mp4').toString(),
+      );
+      expect(
+        await uploader().upload(
+          'Submersion/video.mp4',
+          source,
+          resumeStateJson: state.toJsonString(),
+        ),
+        isTrue,
+      );
+      expect(server.captured.where((r) => r.method == 'PUT'), isEmpty);
+    },
+  );
+
+  test('the assembly MOVE gets a deadline that grows with the file', () {
+    expect(
+      NextcloudChunkedUpload.moveDeadline(1024),
+      const Duration(minutes: 10),
+    );
+    expect(
+      NextcloudChunkedUpload.moveDeadline(10 << 30),
+      greaterThan(const Duration(minutes: 30)),
+    );
+  });
 }

@@ -60,12 +60,47 @@ class NextcloudChunkState {
 /// `.file` onto the destination. Gets past server and proxy body-size
 /// limits and lets an interrupted media upload resume.
 class NextcloudChunkedUpload {
-  NextcloudChunkedUpload(this._client, {String Function()? newTransferId})
-    : _newTransferId =
-          newTransferId ?? (() => '$transferPrefix${const Uuid().v4()}');
+  NextcloudChunkedUpload(
+    this._client, {
+    String Function()? newTransferId,
+    Duration pollDelay = const Duration(seconds: 10),
+    int pollAttempts = 6,
+  }) : _newTransferId =
+           newTransferId ?? (() => '$transferPrefix${const Uuid().v4()}'),
+       _pollDelay = pollDelay,
+       _pollAttempts = pollAttempts;
 
   final WebDavClient _client;
   final String Function() _newTransferId;
+  final Duration _pollDelay;
+  final int _pollAttempts;
+
+  /// Deadline for the assembly MOVE. Nextcloud concatenates the chunks
+  /// inside that request before it answers, which takes minutes for a large
+  /// video, so the 30 second header deadline a bodiless request normally
+  /// gets would fire mid-assembly and retry into a lock.
+  static Duration moveDeadline(int totalBytes) {
+    final scaled = Duration(seconds: totalBytes ~/ _minAssemblyBytesPerSecond);
+    const floor = Duration(minutes: 10);
+    return scaled > floor ? scaled : floor;
+  }
+
+  static const int _minAssemblyBytesPerSecond = 4 * 1024 * 1024;
+
+  /// Whether [destPath] already holds all [total] bytes.
+  Future<bool> _destinationComplete(String destPath, int total) async {
+    final info = await _client.stat(destPath);
+    return info != null && info.sizeBytes == total;
+  }
+
+  /// Waits out an assembly that is still running server-side.
+  Future<bool> _awaitAssembled(String destPath, int total) async {
+    for (var attempt = 0; attempt < _pollAttempts; attempt++) {
+      if (await _destinationComplete(destPath, total)) return true;
+      await Future<void>.delayed(_pollDelay);
+    }
+    return _destinationComplete(destPath, total);
+  }
 
   static const int chunkBytes = 10 * 1024 * 1024;
   static const int thresholdBytes = chunkBytes;
@@ -118,6 +153,12 @@ class NextcloudChunkedUpload {
         };
       } on WebDavException catch (e) {
         if (e.code != WebDavErrorCode.notFound) rethrow;
+        // The directory is gone: Nextcloud expired it, or an earlier attempt
+        // finished assembling it before its reply was lost.
+        if (await _destinationComplete(destPath, total)) {
+          onProgress?.call(total, total);
+          return true;
+        }
         state = null;
       }
     }
@@ -177,13 +218,20 @@ class NextcloudChunkedUpload {
         'MOVE',
         _under(_uploads, [state.transferId, '.file']),
         headers: {...headers, 'overwrite': 'T'},
+        timeout: moveDeadline(total),
       );
       await response.stream.drain<void>();
     } on WebDavException catch (e) {
-      // A retried MOVE whose first attempt landed finds its source gone.
-      if (e.code != WebDavErrorCode.notFound) rethrow;
-      final info = await _client.stat(destPath);
-      if (info == null || info.sizeBytes != total) rethrow;
+      // A retried MOVE whose first attempt landed finds its source gone; one
+      // that timed out or hit the assembly lock may still be finishing.
+      const settling = {
+        WebDavErrorCode.notFound,
+        WebDavErrorCode.locked,
+        WebDavErrorCode.unreachable,
+        WebDavErrorCode.server,
+      };
+      if (!settling.contains(e.code)) rethrow;
+      if (!await _awaitAssembled(destPath, total)) rethrow;
     }
     return true;
   }

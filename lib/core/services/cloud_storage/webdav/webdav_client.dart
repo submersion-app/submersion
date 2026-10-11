@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/services/cloud_storage/http_timeouts.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_multistatus.dart';
@@ -48,9 +49,16 @@ class WebDavClient {
     Duration Function(int attempt)? backoff,
   }) : _trust = trustRecorder ?? CertificateTrustRecorder.forConfig(config),
        _maxAttempts = maxAttempts,
-       _backoff = backoff ?? _defaultBackoff {
+       _backoff = backoff ?? _defaultBackoff,
+       _ownsTransport = httpClient == null {
     _http = httpClient ?? createWebDavHttpClient(_trust);
   }
+
+  /// True when this client built its own socket transport. Only then does it
+  /// put the idle deadline on response bodies: an injected client (a test
+  /// double, or a caller's decorated transport) owns its own body timing,
+  /// exactly as when the shared TimeoutHttpClient wrapped only real sockets.
+  final bool _ownsTransport;
 
   final WebDavConfig config;
   final CertificateTrustRecorder _trust;
@@ -107,6 +115,7 @@ class WebDavClient {
     Uint8List? bytes,
     Set<int> accept = const {},
     bool isRoot = false,
+    Duration? timeout,
   }) => _send(
     method,
     uri,
@@ -114,7 +123,27 @@ class WebDavClient {
     bytes: bytes,
     accept: accept,
     isRoot: isRoot,
+    timeout: timeout,
   );
+
+  /// Deadline for a reply's status line. Uploads get the generous one, and a
+  /// single large PUT more again: WebDAV outside Nextcloud has no chunking,
+  /// so one request carries a whole video, and `send` does not complete
+  /// until the body is written. The floor of [minUploadBytesPerSecond]
+  /// still bounds a socket that has genuinely wedged.
+  static Duration deadlineFor(String method, int? bodyBytes) {
+    if (bodyBytes == null ||
+        bodyBytes <= TimeoutHttpClient.uploadBodyThresholdBytes) {
+      return TimeoutHttpClient.defaultResponseTimeout;
+    }
+    final scaled = Duration(seconds: bodyBytes ~/ minUploadBytesPerSecond);
+    return scaled > TimeoutHttpClient.defaultUploadTimeout
+        ? scaled
+        : TimeoutHttpClient.defaultUploadTimeout;
+  }
+
+  /// Slowest upload rate the deadline allows for (1 Mbit/s).
+  static const int minUploadBytesPerSecond = 128 * 1024;
 
   Future<http.StreamedResponse> _send(
     String method,
@@ -125,19 +154,15 @@ class WebDavClient {
     int? streamLength,
     Set<int> accept = const {},
     bool isRoot = false,
+    Duration? timeout,
   }) async {
+    final deadline =
+        timeout ?? deadlineFor(method, bytes?.length ?? streamLength);
     for (var attempt = 0; ; attempt++) {
       final http.BaseRequest request;
       if (stream != null) {
-        final streamed = http.StreamedRequest(method, uri)
+        request = _LazyBodyRequest(method, uri, stream)
           ..contentLength = streamLength;
-        stream().listen(
-          streamed.sink.add,
-          onError: streamed.sink.addError,
-          onDone: streamed.sink.close,
-          cancelOnError: true,
-        );
-        request = streamed;
       } else {
         final plain = http.Request(method, uri);
         if (bytes != null) plain.bodyBytes = bytes;
@@ -150,7 +175,20 @@ class WebDavClient {
 
       final http.StreamedResponse response;
       try {
-        response = await _http.send(request);
+        final sent = await _http.send(request).timeout(deadline);
+        // A body that stops arriving is dead however little it had left.
+        response = !_ownsTransport
+            ? sent
+            : http.StreamedResponse(
+                sent.stream.timeout(TimeoutHttpClient.defaultIdleTimeout),
+                sent.statusCode,
+                contentLength: sent.contentLength,
+                request: sent.request,
+                headers: sent.headers,
+                isRedirect: sent.isRedirect,
+                persistentConnection: sent.persistentConnection,
+                reasonPhrase: sent.reasonPhrase,
+              );
       } on Object catch (e) {
         if (e is! IOException &&
             e is! http.ClientException &&
@@ -284,10 +322,15 @@ class WebDavClient {
       1,
       isRoot: normalized.isEmpty,
     );
+    // The collection itself comes back too. It is told apart by depth, not
+    // by name: a case-insensitive server echoes the stored case, so the
+    // self entry need not equal what was asked for, and a walk that took it
+    // for a child would recurse into itself forever.
+    final childDepth = _segments(normalized).length + 1;
     return resources
         .map(_toEntry)
         .nonNulls
-        .where((e) => e.path != normalized)
+        .where((e) => _segments(e.path).length == childDepth)
         .toList();
   }
 
@@ -444,4 +487,23 @@ class WebDavClient {
   }
 
   void close() => _http.close();
+}
+
+/// A request whose body stream is opened only when the transport finalizes
+/// it, so the file is read as fast as the socket takes it.
+///
+/// `http.StreamedRequest` is the obvious tool and the wrong one: feeding a
+/// file into its sink ignores backpressure, so the whole file is read into
+/// the sink's buffer while the connection is still being set up, which is
+/// exactly what a multi-gigabyte video must never do on a phone.
+class _LazyBodyRequest extends http.BaseRequest {
+  _LazyBodyRequest(super.method, super.url, this._body);
+
+  final Stream<List<int>> Function() _body;
+
+  @override
+  http.ByteStream finalize() {
+    super.finalize();
+    return http.ByteStream(_body());
+  }
 }

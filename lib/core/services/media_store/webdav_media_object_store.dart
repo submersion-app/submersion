@@ -88,6 +88,11 @@ class WebDavMediaObjectStore implements MediaObjectStore {
       );
       if (done) return;
     }
+    // Create the shard folder first (cached per client). Relying on the
+    // 409 retry would send the whole body twice into every new shard, and a
+    // server that answers 409 mid-body and closes the socket surfaces as a
+    // transport error, never as the 409 the retry needs.
+    await _client.ensureCollection(WebDavClient.parentOf(path));
     await _client.putFile(
       path,
       source,

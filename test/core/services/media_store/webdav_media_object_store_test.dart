@@ -184,4 +184,37 @@ void main() {
     );
     await store.abandonResume('k', 'garbage');
   });
+
+  test(
+    'putFile into a new shard creates the folder first and sends the body once',
+    () async {
+      await store.putFile(
+        'smv1/objects/cd/cdef.jpg',
+        await fileWith([7, 7]),
+        contentType: 'image/jpeg',
+      );
+      expect(server.count('PUT'), 1);
+      expect(server.files['/dav/Submersion Media/smv1/objects/cd/cdef.jpg'], [
+        7,
+        7,
+      ]);
+    },
+  );
+
+  test(
+    'a server that echoes paths in another case does not loop the walk',
+    () async {
+      server
+        ..seedFile('/dav/Submersion Media/smv1/objects/ab/abcd.jpg', [1])
+        ..hrefPath = ((p) =>
+            p.replaceFirst('/dav/Submersion Media', '/dav/SUBMERSION MEDIA'))
+        ..maxRequests = 100;
+      final keys = await store
+          .list('smv1/')
+          .map((o) => o.key)
+          .toList()
+          .timeout(const Duration(seconds: 5));
+      expect(keys, ['smv1/objects/ab/abcd.jpg']);
+    },
+  );
 }
