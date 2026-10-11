@@ -63,6 +63,7 @@ class EntityQueryEditor extends ConsumerWidget {
     required this.onChanged,
     this.onSave,
     this.canSave,
+    this.initialTab = 0,
   });
 
   final QueryEntity root;
@@ -70,6 +71,9 @@ class EntityQueryEditor extends ConsumerWidget {
   final ValueChanged<QueryNode?> onChanged;
   final VoidCallback? onSave;
   final bool? canSave;
+
+  /// See [QueryEditor.initialTab].
+  final int initialTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -91,6 +95,22 @@ class EntityQueryEditor extends ConsumerWidget {
       onSave: onSave,
       canSave: canSave,
       describeError: (e) => describeQueryError(context.l10n, e),
+      initialTab: initialTab,
     );
   }
 }
+
+/// The editor context for [root], read once (for an action) rather than
+/// watched (#2984: the dive table's Add filter builds a rule with it).
+QueryEditorContext readQueryEditorContext(
+  BuildContext context,
+  WidgetRef ref,
+  QueryEntity root,
+) => QueryEditorContext(
+  registry: appQueryRegistry,
+  root: root,
+  prefs: ref.read(queryUnitPrefsProvider),
+  names: ref.read(queryNameIndexProvider).value ?? NameIndex.empty,
+  labels: AppQueryLabels(context),
+  now: DateTime.now,
+);

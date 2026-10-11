@@ -22,6 +22,8 @@ Future<ProviderContainer> openRefinePanel(
   FutureOr<int> Function(DiveFilterState draft)? count,
   List<SavedQueryLoad> saved = const [],
   List<Override> extra = const [],
+  DiveFilterState? initialDraft,
+  bool startOnRulesBuilder = false,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(420, 900);
@@ -48,8 +50,12 @@ Future<ProviderContainer> openRefinePanel(
             builder: (context) {
               container = ProviderScope.containerOf(context);
               return ElevatedButton(
-                onPressed: () =>
-                    showRefinePanel(context, filterProvider: target),
+                onPressed: () => showRefinePanel(
+                  context,
+                  filterProvider: target,
+                  initialDraft: initialDraft,
+                  startOnRulesBuilder: startOnRulesBuilder,
+                ),
                 child: const Text('open'),
               );
             },

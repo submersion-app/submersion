@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
@@ -14,7 +13,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_table_vie
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/shared/widgets/entity_table/entity_table_header_cell.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -202,7 +200,9 @@ void main() {
       expect(doubleTappedId, 'a');
     });
 
-    testWidgets('rows register no long-press recognizer', (tester) async {
+    testWidgets('rows register long-press only for the cell filter menu', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _buildTable(
           dives: [_makeDive(id: 'lp-1', diveNumber: 7)],
@@ -211,38 +211,32 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Long-press no longer enters selection mode anywhere, so no row may
-      // carry a handler for it.
-      //
-      // The assertion is on the recognizer, not on individual callbacks:
-      // GestureDetector registers one LongPressGestureRecognizer keyed by its
-      // own Type if ANY of seven long-press callbacks is non-null, so checking
-      // the map key covers onLongPressMoveUpdate, onLongPressEnd, onLongPressUp
-      // and the rest without having to enumerate them.
-      // Header cells are exempt: their long-press opens the column menu
-      // (#2984), which is not a way into selection.
-      final headerDetectors = tester
-          .widgetList<RawGestureDetector>(
-            find.descendant(
-              of: find.byType(EntityTableHeaderCell),
-              matching: find.byType(RawGestureDetector),
-            ),
-          )
-          .toSet();
-      final detectors = tester
-          .widgetList<RawGestureDetector>(
-            find.descendant(
-              of: find.byType(DiveTableView),
-              matching: find.byType(RawGestureDetector),
-            ),
-          )
-          .where((d) => !headerDetectors.contains(d));
-      expect(detectors, isNotEmpty);
-      for (final detector in detectors) {
-        expect(
-          detector.gestures.containsKey(LongPressGestureRecognizer),
-          isFalse,
-        );
+      // Long-press is not a way into selection (899d7f5), so the row's own
+      // detector, the one carrying the tap, has no long-press. Since #2984 a
+      // cell's long-press opens its filter menu: that detector carries no
+      // tap, so a hold never doubles as a row tap.
+      final detectors = tester.widgetList<GestureDetector>(
+        find.descendant(
+          of: find.byType(DiveTableView),
+          matching: find.byType(GestureDetector),
+        ),
+      );
+      bool hasLongPress(GestureDetector d) =>
+          d.onLongPress != null ||
+          d.onLongPressStart != null ||
+          d.onLongPressEnd != null ||
+          d.onLongPressUp != null ||
+          d.onLongPressDown != null ||
+          d.onLongPressMoveUpdate != null;
+      final rows = detectors.where((d) => d.onTap != null);
+      expect(rows, isNotEmpty);
+      for (final row in rows) {
+        expect(hasLongPress(row), isFalse);
+      }
+      final menus = detectors.where(hasLongPress);
+      expect(menus, isNotEmpty);
+      for (final menu in menus) {
+        expect(menu.onTap, isNull);
       }
     });
 

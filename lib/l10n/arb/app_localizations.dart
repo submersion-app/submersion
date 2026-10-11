@@ -71176,11 +71176,83 @@ abstract class AppLocalizations {
   /// **'Wipe all sync data on this backend'**
   String get settings_troubleshootSync_wipeAll_title;
 
+  /// No description provided for @tableMode_cell_anyValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Only dives with a {column}'**
+  String tableMode_cell_anyValue(String column);
+
+  /// No description provided for @tableMode_cell_atLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'At least {value}'**
+  String tableMode_cell_atLeast(String value);
+
+  /// No description provided for @tableMode_cell_atMost.
+  ///
+  /// In en, this message translates to:
+  /// **'At most {value}'**
+  String tableMode_cell_atMost(String value);
+
+  /// No description provided for @tableMode_cell_exclude.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclude {value}'**
+  String tableMode_cell_exclude(String value);
+
+  /// No description provided for @tableMode_cell_noValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Only dives with no {column}'**
+  String tableMode_cell_noValue(String column);
+
+  /// No description provided for @tableMode_cell_onOrAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'On or after {value}'**
+  String tableMode_cell_onOrAfter(String value);
+
+  /// No description provided for @tableMode_cell_onOrBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'On or before {value}'**
+  String tableMode_cell_onOrBefore(String value);
+
+  /// No description provided for @tableMode_cell_only.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {value}'**
+  String tableMode_cell_only(String value);
+
+  /// No description provided for @tableMode_cell_with.
+  ///
+  /// In en, this message translates to:
+  /// **'With {value}'**
+  String tableMode_cell_with(String value);
+
+  /// No description provided for @tableMode_cell_without.
+  ///
+  /// In en, this message translates to:
+  /// **'Without {value}'**
+  String tableMode_cell_without(String value);
+
+  /// No description provided for @tableMode_menu_addFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Add filter'**
+  String get tableMode_menu_addFilter;
+
   /// No description provided for @tableMode_menu_hideColumn.
   ///
   /// In en, this message translates to:
   /// **'Hide column'**
   String get tableMode_menu_hideColumn;
+
+  /// No description provided for @tableMode_menu_resetFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset filter'**
+  String get tableMode_menu_resetFilter;
 
   /// No description provided for @tableMode_tooltip_toggleDetailPane.
   ///

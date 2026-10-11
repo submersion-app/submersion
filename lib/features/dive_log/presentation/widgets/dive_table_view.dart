@@ -8,6 +8,8 @@ import 'package:submersion/features/dive_log/presentation/formatters/dive_type_l
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/table/dive_field_adapter.dart';
+import 'package:submersion/features/dive_log/presentation/table/dive_table_menus.dart';
+import 'package:submersion/features/dive_log/query/dive_column_filter_edits.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_view.dart';
 
@@ -53,6 +55,7 @@ class DiveTableView extends ConsumerWidget {
     final intervals =
         ref.watch(diveSurfaceIntervalsProvider).value ??
         const <String, Duration?>{};
+    final filter = ref.watch(diveFilterProvider);
     return EntityTableView<Dive, DiveField>(
       entities: dives,
       idExtractor: (d) => d.id,
@@ -72,6 +75,17 @@ class DiveTableView extends ConsumerWidget {
       selectedIds: selectedIds,
       isSelectionMode: isSelectionMode,
       highlightedId: highlightedId,
+      headerMenuBuilder: (context, field) =>
+          diveHeaderMenuItems(context, ref, field),
+      cellMenuBuilder: (context, dive, field) => diveCellMenuItems(
+        context,
+        ref,
+        dive,
+        field,
+        diveTypeLabel: diveTypeLabelResolver,
+        surfaceIntervals: intervals,
+      ),
+      isColumnFiltered: (field) => isDiveColumnFiltered(filter, field),
     );
   }
 }

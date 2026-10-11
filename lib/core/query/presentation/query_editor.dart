@@ -37,6 +37,7 @@ class QueryEditor extends StatefulWidget {
     this.onSave,
     this.canSave,
     this.describeError,
+    this.initialTab = 0,
   });
 
   final QueryEditorContext context;
@@ -56,13 +57,21 @@ class QueryEditor extends StatefulWidget {
   /// English message when null.
   final String Function(QueryError error)? describeError;
 
+  /// The tab shown first: 0 is Text, 1 is the Builder (#2984: the dive
+  /// table's Add filter opens on the rule it just added).
+  final int initialTab;
+
   @override
   State<QueryEditor> createState() => _QueryEditorState();
 }
 
 class _QueryEditorState extends State<QueryEditor>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 2, vsync: this);
+  late final TabController _tabs = TabController(
+    length: 2,
+    vsync: this,
+    initialIndex: widget.initialTab,
+  );
 
   @override
   void dispose() {

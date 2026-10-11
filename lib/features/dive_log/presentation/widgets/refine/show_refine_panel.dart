@@ -15,6 +15,8 @@ Future<void> showRefinePanel(
   BuildContext context, {
   required StateProvider<DiveFilterState> filterProvider,
   VoidCallback? onApplied,
+  DiveFilterState? initialDraft,
+  bool startOnRulesBuilder = false,
   @visibleForTesting Widget Function()? builder,
 }) {
   // Shrinks above the soft keyboard so the pinned Show button stays usable
@@ -24,7 +26,12 @@ Future<void> showRefinePanel(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child:
           builder?.call() ??
-          RefinePanel(filterProvider: filterProvider, onApplied: onApplied),
+          RefinePanel(
+            filterProvider: filterProvider,
+            onApplied: onApplied,
+            initialDraft: initialDraft,
+            startOnRulesBuilder: startOnRulesBuilder,
+          ),
     ),
   );
   if (!ResponsiveBreakpoints.isMasterDetail(context)) {
