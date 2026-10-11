@@ -278,3 +278,12 @@ Authoritative where the body above differs.
    no longer resolves as a tap there. Commit 899d7f5 removed long-press as
    a way into selection; this adds it back only as a menu gesture, only on
    tables given a cell menu (the dive table).
+10. Total Weight and Dive Master are header-only too. List loads never
+    hydrate a dive's weights, so the Total Weight cell is always empty while
+    the `weight` field reads `dive_weights`; the Dive Master cell shows guide
+    names resolved from linked buddies, not the `dive_master` column.
+11. Number cell rules keep their bounds inside the field's sanity range, and
+    a whole number outside it offers no items, so a rule the menu adds always
+    passes the query validator.
+12. The resize handle sits on the column's trailing edge, which is the left
+    edge in a right-to-left locale, and tracks the pointer there too.
