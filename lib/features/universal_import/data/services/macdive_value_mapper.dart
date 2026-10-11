@@ -121,6 +121,18 @@ class MacDiveValueMapper {
   /// divelogs.de geartype table so the two readers agree.
   static final breathingBag = RegExp(r'\bbreathing[\s-]*bags?\b');
 
+  /// A neoprene vest worn with a wetsuit, for [equipmentType] (#3108): the
+  /// hooded ice vest or a core warmer, in English or German. Only names of
+  /// the garment itself: a bare "vest" or "Weste" can mean a BCD. Shared
+  /// with the divelogs.de geartype table so the two readers agree.
+  static final vestGarment = RegExp(
+    r'\b(?:ice|hooded|hood|neoprene)[\s-]*vests?\b'
+    r'|\bcore[\s-]*warmers?\b'
+    // German compounds end on the garment word, so they match inside a
+    // longer word ("Kopfhaubenweste"); none of these is a "Tarierweste".
+    r'|(?:eis|hauben|neopren)westen?\b',
+  );
+
   /// Maps MacDive's free-text equipment type onto [EquipmentType].
   ///
   /// MacDive lets the diver type anything into the field, so real libraries
@@ -180,6 +192,10 @@ class MacDiveValueMapper {
         s.contains('skin suit')) {
       return EquipmentType.rashGuard;
     }
+    // The vest (#3108), by the same rule and above the hood and suit words
+    // its names contain: a "hooded vest" is not a hood, and a "wetsuit
+    // hooded vest" is the vest, not the suit it goes with.
+    if (vestGarment.hasMatch(s)) return EquipmentType.vest;
     // Rig accessories (#1877), which divers had been filing under BCD. Only
     // compound names land here, above the suit, BCD, tank and weight words
     // they contain: a "drysuit thigh pocket" is a pocket and a "tank band" is

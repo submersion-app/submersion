@@ -22,7 +22,7 @@ class _FileWritingAdapter implements BackupDatabaseAdapter {
   int restoreCalls = 0;
 
   @override
-  Future<void> backup(String destinationPath) async {
+  Future<void> backup(String destinationPath, {String? note}) async {
     final f = File(destinationPath);
     await f.parent.create(recursive: true);
     await File(dbPath).copy(destinationPath);

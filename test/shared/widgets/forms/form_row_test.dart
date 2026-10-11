@@ -628,4 +628,40 @@ void main() {
       );
     });
   });
+
+  group('FormRow.text textCapitalization', () {
+    TextCapitalization capitalizationOf(WidgetTester tester) =>
+        tester.widget<TextField>(find.byType(TextField)).textCapitalization;
+
+    testWidgets('defaults to none', (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.text(
+            label: 'Notes',
+            controller: controller,
+            alwaysEditing: true,
+          ),
+        ),
+      );
+      expect(capitalizationOf(tester), TextCapitalization.none);
+    });
+
+    testWidgets('passes the requested mode to the field', (tester) async {
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      await tester.pumpWidget(
+        _wrap(
+          FormRow.text(
+            label: 'Captain',
+            controller: controller,
+            alwaysEditing: true,
+            textCapitalization: TextCapitalization.words,
+          ),
+        ),
+      );
+      expect(capitalizationOf(tester), TextCapitalization.words);
+    });
+  });
 }

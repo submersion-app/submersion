@@ -263,4 +263,35 @@ void main() {
       expect(BackupLocation.values, contains(BackupLocation.both));
     });
   });
+
+  group('note', () {
+    final base = BackupRecord(
+      id: 'n',
+      filename: 'n.db',
+      timestamp: DateTime(2026, 10, 10, 9),
+      sizeBytes: 10,
+      location: BackupLocation.local,
+      note: 'Before the Cozumel trip',
+    );
+
+    test('survives a JSON round trip', () {
+      final restored = BackupRecord.fromJson(base.toJson());
+      expect(restored.note, 'Before the Cozumel trip');
+      expect(restored, base);
+    });
+
+    test('history written before notes existed loads with no note', () {
+      final json = base.toJson()..remove('note');
+      expect(BackupRecord.fromJson(json).note, isNull);
+    });
+
+    test('copyWith keeps or replaces the note', () {
+      expect(base.copyWith(pinned: true).note, 'Before the Cozumel trip');
+      expect(base.copyWith(note: 'Other').note, 'Other');
+    });
+
+    test('records differing only by note are not equal', () {
+      expect(base == base.copyWith(note: 'Other'), isFalse);
+    });
+  });
 }

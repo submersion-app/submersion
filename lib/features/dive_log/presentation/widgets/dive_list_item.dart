@@ -127,6 +127,7 @@ class DiveListItem extends ConsumerWidget {
           gradientStartColor: gradientStartColor,
           gradientEndColor: gradientEndColor,
           summary: summary,
+          fullDive: fullDive,
           titleField: _slotField(slots, 'title', DiveField.siteName),
           dateField: _slotField(slots, 'date', DiveField.dateTime),
           stat1Field: _slotField(slots, 'stat1', DiveField.maxDepth),

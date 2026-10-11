@@ -6,6 +6,7 @@ import 'package:ndef_record/ndef_record.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/ndef_fit.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
+import 'package:submersion/features/gear_passports/domain/services/tag_link_codec.dart';
 
 /// The package an Android Application Record names, so a tap opens
 /// Submersion rather than asking which app should (spec 6.4).
@@ -94,21 +95,73 @@ NdefRecord androidApplicationRecord() => NdefRecord(
   payload: Uint8List.fromList(utf8.encode(passportAndroidPackage)),
 );
 
-/// The first passport tag URI in [message], in record order. The Android
+/// What a write puts on a tag, whatever kind of tag it is.
+abstract interface class TagNdefPlan {
+  NdefMessage get message;
+
+  /// The link the identity record carries, after any drops.
+  String get url;
+
+  /// Keys the full payload had and the tag could not hold, in drop order.
+  List<String> get droppedKeys;
+
+  bool get includesAndroidRecord;
+
+  /// Whether a cylinder's newest fill rode along (never for gear).
+  bool get includesFill;
+}
+
+/// The fitting loop every tag kind shares (spec 6.4): the identity URI
+/// record of [url] with keys dropped in [dropOrder] until it fits
+/// [maxMessageBytes], then the Android Application Record when room
+/// remains. Null when even the payload with every optional key dropped
+/// does not fit.
+({NdefMessage message, T payload, List<String> dropped, bool withAar})?
+fitUriMessage<T>(
+  T payload, {
+  required String Function(T payload) url,
+  required List<String> dropOrder,
+  required T Function(T payload, String key) drop,
+  required int maxMessageBytes,
+}) {
+  var current = payload;
+  final dropped = <String>[];
+  var i = 0;
+  while (true) {
+    final identity = uriRecord(url(current));
+    if (identity.byteLength <= maxMessageBytes) {
+      final aar = androidApplicationRecord();
+      final withAar = identity.byteLength + aar.byteLength <= maxMessageBytes;
+      return (
+        message: NdefMessage(records: [identity, if (withAar) aar]),
+        payload: current,
+        dropped: List.unmodifiable(dropped),
+        withAar: withAar,
+      );
+    }
+    if (i >= dropOrder.length) return null;
+    final key = dropOrder[i++];
+    final next = drop(current, key);
+    if (next != current) dropped.add(key);
+    current = next;
+  }
+}
+
+/// The first tag URI in [message], cylinder or gear, in record order. The Android
 /// record, a fill record and another app's data are skipped (spec 6.4:
 /// readers ignore records they do not know).
 String? firstPassportUri(NdefMessage message) {
   for (final record in message.records) {
     final uri = uriOf(record);
-    if (uri != null && PassportPayloadCodec.extractQuery(uri) != null) {
+    if (uri != null && TagLinkCodec.isTagLink(uri)) {
       return uri;
     }
   }
   return null;
 }
 
-/// What a write puts on a tag.
-class PassportNdefPlan {
+/// What a cylinder passport write puts on a tag.
+class PassportNdefPlan implements TagNdefPlan {
   const PassportNdefPlan({
     required this.message,
     required this.payload,
@@ -116,15 +169,23 @@ class PassportNdefPlan {
     required this.includesAndroidRecord,
   });
 
+  @override
   final NdefMessage message;
 
   /// The payload the identity record carries, after any drops.
   final CylinderPassportPayload payload;
 
-  /// Keys the full payload had and the tag could not hold, in drop order.
+  @override
   final List<String> droppedKeys;
 
+  @override
   final bool includesAndroidRecord;
+
+  @override
+  String get url => PassportPayloadCodec.httpsUrl(payload);
+
+  @override
+  bool get includesFill => payload.fill != null;
 }
 
 /// The message for [payload] on a tag whose NDEF message may take
@@ -136,25 +197,18 @@ PassportNdefPlan? planPassportMessage(
   CylinderPassportPayload payload, {
   required int maxMessageBytes,
 }) {
-  var current = payload;
-  final dropped = <String>[];
-  var i = 0;
-  while (true) {
-    final identity = uriRecord(PassportPayloadCodec.httpsUrl(current));
-    if (identity.byteLength <= maxMessageBytes) {
-      final aar = androidApplicationRecord();
-      final withAar = identity.byteLength + aar.byteLength <= maxMessageBytes;
-      return PassportNdefPlan(
-        message: NdefMessage(records: [identity, if (withAar) aar]),
-        payload: current,
-        droppedKeys: List.unmodifiable(dropped),
-        includesAndroidRecord: withAar,
-      );
-    }
-    if (i >= NdefFit.dropOrder.length) return null;
-    final key = NdefFit.dropOrder[i++];
-    final next = NdefFit.drop(current, key);
-    if (next != current) dropped.add(key);
-    current = next;
-  }
+  final fitted = fitUriMessage<CylinderPassportPayload>(
+    payload,
+    url: PassportPayloadCodec.httpsUrl,
+    dropOrder: NdefFit.dropOrder,
+    drop: NdefFit.drop,
+    maxMessageBytes: maxMessageBytes,
+  );
+  if (fitted == null) return null;
+  return PassportNdefPlan(
+    message: fitted.message,
+    payload: fitted.payload,
+    droppedKeys: fitted.dropped,
+    includesAndroidRecord: fitted.withAar,
+  );
 }

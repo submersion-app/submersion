@@ -42,6 +42,11 @@ enum EquipmentType {
   // rather than in warmth, and a diver owns one for the reason they own a
   // baselayer for the opposite one.
   rashGuard('Rash Guard'),
+  // Requested in #3108. A neoprene vest worn with a wetsuit: the hooded ice
+  // vest over it or a core warmer under it. A layer rather than a second
+  // suit, so a dive in a full suit and a vest still has one suit for the
+  // suit statistics, the suit-thickness filter and the buoyancy history.
+  vest('Vest'),
   fins('Fins'),
   mask('Mask'),
   snorkel('Snorkel'),

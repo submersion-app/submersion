@@ -59,6 +59,12 @@ abstract final class DivelogsReferenceMappers {
     if (MacDiveValueMapper.breathingBag.hasMatch(lower)) {
       return EquipmentType.other;
     }
+    // The vest (#3108) ahead of the suit and hood rows its names contain
+    // ("Haubenweste" holds "haube"). A bare "Weste" stays unmatched: it is
+    // what a German diver calls a BCD.
+    if (MacDiveValueMapper.vestGarment.hasMatch(lower)) {
+      return EquipmentType.vest;
+    }
     for (final (keywords, type) in _leadingKeywords) {
       if (keywords.any(lower.contains)) return type;
     }

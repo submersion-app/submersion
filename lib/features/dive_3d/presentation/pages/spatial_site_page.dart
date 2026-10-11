@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_3d/application/site_seascape_providers.
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
-import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
@@ -41,9 +40,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///   [DivePlaybackContext], the same
 ///   shared base `SiteTerrainPane` gives the site-only view and the
 ///   underwater-route view, extended with this dive's path and timeline.
-/// - a measured route (a linked underwater route, shown) ->
-///   [_DiveSeascapeStandalone] at the route's own scale (#1445), since the
-///   route is a dot in the site's kilometres-wide terrain tile.
+///   A linked measured route rides on it as that path overlay too: it
+///   used to get its own route-scale scene (#1445) back when the site
+///   seascape was one kilometres-wide grid, but the inner detail grid and
+///   zoom now read it fine, and the standalone scene lacked the detail
+///   levels, markers and features (#3219).
 /// - no site, or one with no coordinates or bathymetry ->
 ///   [_DiveSeascapeStandalone], this page's original
 ///   self-contained implementation (own terrain fetch centered on the
@@ -85,20 +86,6 @@ class SpatialSitePage extends ConsumerWidget {
       );
     }
     if (siteSceneAsync.valueOrNull is! SiteSeascapeReady) {
-      return _DiveSeascapeStandalone(diveId: diveId);
-    }
-    // A measured route spans metres inside the site's kilometres-wide tile,
-    // too small to read there; the standalone scene builds at the route's
-    // own scale instead (#1445). Turning the route off (the toggle) makes
-    // the path an estimate again and brings back the site seascape.
-    final pathAsync = ref.watch(spatialReckonedPathProvider(diveId));
-    if (!pathAsync.hasSettled) {
-      return Scaffold(
-        appBar: AppBar(title: Text(context.l10n.dive3d_spatial_title)),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-    if (pathAsync.valueOrNull?.provenance == PathProvenance.measured) {
       return _DiveSeascapeStandalone(diveId: diveId);
     }
     return Scaffold(

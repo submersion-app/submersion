@@ -68,6 +68,10 @@ void main() {
       expect(d['precipitation'], 'none');
       expect(d['humidity'], 71.0);
       expect(d['weatherDescription'], 'Sunny');
+      expect(d['diveOperator'], 'Buddy Dive');
+      expect(d['boatName'], 'Bonaire Breeze');
+      expect(d['boatCaptain'], 'Rik');
+      expect(d['surfaceConditions'], 'Calm');
       expect(d['customFields'], [
         {'key': 'Boat', 'value': 'Sea Dog'},
         {'key': 'Formula', 'value': '=1+1'},

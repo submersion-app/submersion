@@ -416,6 +416,56 @@ void main() {
       );
     });
 
+    test('a neoprene vest is a vest, not a hood or a suit (#3108)', () {
+      const cases = {
+        'Ice vest': EquipmentType.vest,
+        '7mm ice vest': EquipmentType.vest,
+        'Hooded vest': EquipmentType.vest,
+        'Hood vest 5mm': EquipmentType.vest,
+        'Hooded-vest': EquipmentType.vest,
+        'Neoprene vest': EquipmentType.vest,
+        'Core warmer': EquipmentType.vest,
+        'Wetsuit hooded vest': EquipmentType.vest,
+        'Eisweste': EquipmentType.vest,
+        'Haubenweste 7mm': EquipmentType.vest,
+        'Kopfhaubenweste': EquipmentType.vest,
+        'Neoprenweste': EquipmentType.vest,
+      };
+      for (final MapEntry(key: input, value: expected) in cases.entries) {
+        expect(
+          MacDiveValueMapper.equipmentType(input),
+          expected,
+          reason: input,
+        );
+      }
+    });
+
+    test('a vest word that names another garment keeps its type (#3108)', () {
+      // A rash vest is the warm-water top and a thermal vest a base layer;
+      // a bare "vest" can mean a BCD, so it names nothing on its own.
+      expect(
+        MacDiveValueMapper.equipmentType('Rash vest'),
+        EquipmentType.rashGuard,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Thermal vest'),
+        EquipmentType.baselayer,
+      );
+      expect(MacDiveValueMapper.equipmentType('5mm hood'), EquipmentType.hood);
+      expect(
+        MacDiveValueMapper.equipmentType('7mm hooded wetsuit'),
+        EquipmentType.wetsuit,
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Vest'),
+        isNot(EquipmentType.vest),
+      );
+      expect(
+        MacDiveValueMapper.equipmentType('Ice vest bag'),
+        EquipmentType.bag,
+      );
+    });
+
     test('the Shearwater brand is not read as shears (#2299)', () {
       // "shear" sits inside the brand name, so a substring rule filed every
       // Shearwater computer and transmitter under knife.

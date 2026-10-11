@@ -18,6 +18,8 @@ const Set<String> kMirroredDiveFields = {
   'waterTemp', 'airTemp', 'visibility', 'visibilityMeters',
   'currentDirection', 'currentStrength', 'swellHeight',
   'entryMethod', 'exitMethod',
+  // the boat and the sea it left on (#3229)
+  'diveOperator', 'boatName', 'boatCaptain', 'surfaceConditions',
   // weather
   'windSpeed', 'windDirection', 'cloudCover', 'precipitation', 'humidity',
   'weatherDescription', 'weatherCode', 'weatherSource', 'weatherFetchedAt',
@@ -124,6 +126,10 @@ Dive mirroredDiveFrom(
     currentDirection: source.currentDirection,
     currentStrength: source.currentStrength,
     swellHeight: source.swellHeight,
+    surfaceConditions: source.surfaceConditions,
+    diveOperator: source.diveOperator,
+    boatName: source.boatName,
+    boatCaptain: source.boatCaptain,
     entryMethod: source.entryMethod,
     exitMethod: source.exitMethod,
     windSpeed: source.windSpeed,

@@ -57,6 +57,7 @@ enum DiveField implements EntityField {
   precipitation,
   humidity,
   weatherDescription,
+  surfaceConditions,
 
   // Gas
   primaryGas,
@@ -100,6 +101,9 @@ enum DiveField implements EntityField {
   // Location
   siteLocation,
   diveCenterName,
+  diveOperator,
+  boatName,
+  boatCaptain,
   siteLatitude,
   siteLongitude,
 
@@ -256,6 +260,7 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.precipitation:
       case DiveField.humidity:
       case DiveField.weatherDescription:
+      case DiveField.surfaceConditions:
         return DiveFieldCategory.environment;
 
       case DiveField.primaryGas:
@@ -299,6 +304,9 @@ extension DiveFieldMetadata on DiveField {
 
       case DiveField.siteLocation:
       case DiveField.diveCenterName:
+      case DiveField.diveOperator:
+      case DiveField.boatName:
+      case DiveField.boatCaptain:
       case DiveField.siteLatitude:
       case DiveField.siteLongitude:
         return DiveFieldCategory.location;
@@ -370,6 +378,8 @@ extension DiveFieldMetadata on DiveField {
         return 'Humidity';
       case DiveField.weatherDescription:
         return 'Weather';
+      case DiveField.surfaceConditions:
+        return 'Surface Conditions';
       case DiveField.primaryGas:
         return 'Primary Gas';
       case DiveField.diluentGas:
@@ -420,6 +430,12 @@ extension DiveFieldMetadata on DiveField {
         return 'Site Location';
       case DiveField.diveCenterName:
         return 'Dive Center';
+      case DiveField.diveOperator:
+        return 'Dive Operator';
+      case DiveField.boatName:
+        return 'Boat';
+      case DiveField.boatCaptain:
+        return 'Boat Captain';
       case DiveField.siteLatitude:
         return 'Latitude';
       case DiveField.siteLongitude:
@@ -494,6 +510,8 @@ extension DiveFieldMetadata on DiveField {
         return 'Humid';
       case DiveField.weatherDescription:
         return 'Weather';
+      case DiveField.surfaceConditions:
+        return 'Surface';
       case DiveField.primaryGas:
         return 'Gas';
       case DiveField.diluentGas:
@@ -544,6 +562,12 @@ extension DiveFieldMetadata on DiveField {
         return 'Location';
       case DiveField.diveCenterName:
         return 'Dive Ctr';
+      case DiveField.diveOperator:
+        return 'Operator';
+      case DiveField.boatName:
+        return 'Boat';
+      case DiveField.boatCaptain:
+        return 'Captain';
       case DiveField.siteLatitude:
         return 'Lat';
       case DiveField.siteLongitude:
@@ -683,6 +707,11 @@ extension DiveFieldMetadata on DiveField {
         return null;
       case DiveField.weatherDescription:
         return null;
+      case DiveField.surfaceConditions:
+      case DiveField.diveOperator:
+      case DiveField.boatName:
+      case DiveField.boatCaptain:
+        return null;
       case DiveField.importSource:
         return null;
       case DiveField.surfaceInterval:
@@ -698,6 +727,10 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.siteLatitude:
       case DiveField.siteLongitude:
       case DiveField.weatherDescription:
+      case DiveField.surfaceConditions:
+      case DiveField.diveOperator:
+      case DiveField.boatName:
+      case DiveField.boatCaptain:
       case DiveField.diveName:
         return false;
       default:

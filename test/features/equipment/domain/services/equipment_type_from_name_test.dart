@@ -78,6 +78,14 @@ void main() {
       expect(typeFromName('Drysuit bag')?.type, EquipmentType.bag);
     });
 
+    test('reads a vest, never the suit it is worn with (#3108)', () {
+      expect(typeFromName('7mm ice vest'), (
+        type: EquipmentType.vest,
+        thickness: '7mm',
+      ));
+      expect(typeFromName('Wetsuit hooded vest')?.type, EquipmentType.vest);
+    });
+
     test('proposes nothing when the name does not say what it is', () {
       expect(typeFromName('Hydros Pro'), isNull);
       expect(typeFromName('Spare parts'), isNull);

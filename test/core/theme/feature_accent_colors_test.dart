@@ -40,6 +40,7 @@ void main() {
         'profile',
         'safety',
         'manage',
+        'network',
         'notifications',
         'sharedData',
         'units',

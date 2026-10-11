@@ -11,6 +11,7 @@ class AppDelegate: FlutterAppDelegate {
   private var photoMetadataHandler: PhotoMetadataHandler?
   private var localMediaHandler: LocalMediaHandler?
   private var backupBookmarkHandler: BackupBookmarkHandler?
+  private var systemProxyHandler: SystemProxyHandler?
   private var updateChannel: FlutterMethodChannel?
   private var displayChannel: FlutterMethodChannel?
 
@@ -46,6 +47,7 @@ class AppDelegate: FlutterAppDelegate {
       photoMetadataHandler = PhotoMetadataHandler(messenger: messenger)
       localMediaHandler = LocalMediaHandler(messenger: messenger)
       backupBookmarkHandler = BackupBookmarkHandler(messenger: messenger)
+      systemProxyHandler = SystemProxyHandler(messenger: messenger)
       updateChannel = FlutterMethodChannel(
         name: "app.submersion/updates",
         binaryMessenger: messenger

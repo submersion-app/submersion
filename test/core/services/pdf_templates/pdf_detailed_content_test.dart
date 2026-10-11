@@ -474,4 +474,28 @@ void main() {
       expect(pdfVisibleText(await render(dive)), isNot(contains('MARINE')));
     });
   });
+
+  group('boat fields and surface conditions (#3229)', () {
+    test('print when present', () async {
+      final text = pdfVisibleText(
+        await render(
+          dive.copyWith(
+            diveOperator: 'Buddy Dive',
+            boatName: 'Bonaire Breeze',
+            boatCaptain: 'Captain Rik',
+            surfaceConditions: 'Choppy',
+          ),
+        ),
+      );
+      expect(text, contains('Buddy Dive'));
+      expect(text, contains('Bonaire Breeze'));
+      expect(text, contains('Captain Rik'));
+      expect(text, contains('Choppy'));
+    });
+
+    test('no label when absent', () async {
+      final text = pdfVisibleText(await render(dive));
+      expect(text, isNot(contains('Operator')));
+    });
+  });
 }

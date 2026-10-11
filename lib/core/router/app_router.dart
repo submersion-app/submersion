@@ -16,6 +16,9 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart'
     hide diveProvider;
+import 'package:submersion/features/gear_passports/presentation/pages/foreign_gear_page.dart';
+import 'package:submersion/features/gear_passports/presentation/pages/gear_passport_page.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
@@ -689,6 +692,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   tag: foreignTagFromQuery(state.uri.queryParameters['t']),
                 ),
               ),
+              // A scanned gear tag the diver does not hold (issue #2652).
+              // Before ':equipmentId' so 'gear-tag' is never read as an id.
+              GoRoute(
+                path: 'gear-tag',
+                name: 'foreignGearTag',
+                builder: (context, state) =>
+                    ForeignGearPage.fromQuery(state.uri.queryParameters['t']),
+              ),
               GoRoute(
                 path: ':equipmentId',
                 name: 'equipmentDetail',
@@ -709,6 +720,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => PassportPage(
                       equipmentId: state.pathParameters['equipmentId']!,
                       scannedTag: scannedTagFrom(state.extra),
+                    ),
+                  ),
+                  // Any other gear's tag page (issue #2652).
+                  GoRoute(
+                    path: 'gear-passport',
+                    name: 'gearPassport',
+                    builder: (context, state) => GearPassportPage(
+                      equipmentId: state.pathParameters['equipmentId']!,
+                      scannedTag: scannedGearTagFrom(state.extra),
                     ),
                   ),
                 ],

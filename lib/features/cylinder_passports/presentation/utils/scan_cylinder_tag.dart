@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/gear_passports/domain/services/tag_link_codec.dart';
+import 'package:submersion/features/gear_passports/domain/services/tag_resolver.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -16,18 +20,33 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('scanCylinderTag');
 
-/// Resolves [text] against the active diver's cylinders.
+/// Resolves [text] against the active diver's cylinders only: the tank
+/// editor and the blender take nothing else (issue #2652).
 Future<PassportResolution> resolveScannedTag(WidgetRef ref, String text) async {
   final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
   final repository = ref.read(cylinderPassportRepositoryProvider);
   return PassportResolver(
-    findEquipmentId: (passportId) =>
-        repository.findEquipmentIdByPassportId(passportId, diverId: diverId),
+    findEquipmentId: (passportId) => repository.findEquipmentIdByPassportId(
+      passportId,
+      diverId: diverId,
+      type: EquipmentType.tank,
+    ),
   ).resolve(text);
 }
 
-/// Opens what [text] points at: the diver's own passport (carrying the
-/// scanned tag, for the stale-tag hint), the foreign passport, or a message.
+/// Resolves [text] against every item the active diver can see.
+Future<TagResolution> resolveAnyTag(WidgetRef ref, String text) async {
+  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+  final repository = ref.read(cylinderPassportRepositoryProvider);
+  return TagResolver(
+    findHolder: (passportId) =>
+        repository.findHolderByPassportId(passportId, diverId: diverId),
+  ).resolve(text);
+}
+
+/// Opens what [text] points at, for either kind of tag: the own item's
+/// passport (cylinder or gear, carrying the scanned tag for the stale-tag
+/// hint), the foreign page for its kind, or a message.
 Future<void> openScannedTag(
   BuildContext context,
   WidgetRef ref,
@@ -37,36 +56,48 @@ Future<void> openScannedTag(
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
   try {
-    final resolution = await resolveScannedTag(ref, text);
+    final resolution = await resolveAnyTag(ref, text);
     // The diver left the page while the tag was looked up: open nothing.
     if (!context.mounted) return;
     switch (resolution) {
-      case OwnCylinder(:final equipmentId, :final tag):
-        // The fill the tag carries joins the history once (spec section 11).
-        final added = await importTagFill(
-          ref,
-          tag: tag,
-          equipmentId: equipmentId,
-        );
-        if (!context.mounted) return;
-        if (added != null) {
-          final units = UnitFormatter(ref.read(settingsProvider));
-          messenger.showSnackBar(
-            SnackBar(
-              content: Text(
-                l10n.passport_fill_addedFromTag(
-                  fillSummary(added.gasMix, added.pressureBar, units),
+      case OwnTaggedItem(:final equipmentId, :final type, :final link)
+          when type == EquipmentType.tank:
+        final tag = link is CylinderTagLink ? link.payload : null;
+        if (tag != null) {
+          // The fill the tag carries joins the history once (spec section 11).
+          final added = await importTagFill(
+            ref,
+            tag: tag,
+            equipmentId: equipmentId,
+          );
+          if (!context.mounted) return;
+          if (added != null) {
+            final units = UnitFormatter(ref.read(settingsProvider));
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(
+                  l10n.passport_fill_addedFromTag(
+                    fillSummary(added.gasMix, added.pressureBar, units),
+                  ),
                 ),
               ),
-            ),
-          );
+            );
+          }
         }
         router.push('/equipment/$equipmentId/passport', extra: tag);
-      case ForeignCylinder(:final tag):
+      case OwnTaggedItem(:final equipmentId, :final link):
+        router.push(
+          gearPassportLocation(equipmentId),
+          extra: link is GearTagLink ? link.payload : null,
+        );
+      case ForeignCylinderTag(:final tag):
         router.push(foreignPassportLocation(tag));
-      case NotACylinderTag():
+      case ForeignGearTag(:final tag):
+        router.push(foreignGearLocation(tag));
+      case UnreadableTag():
+        // Any tag kind is welcome here, so the message names none.
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.passport_tag_linkInvalid)),
+          SnackBar(content: Text(l10n.tagScan_linkInvalid)),
         );
     }
   } catch (e, stackTrace) {
@@ -85,7 +116,7 @@ Future<void> openScannedTag(
 }
 
 /// The scan button's whole flow: open the sheet, then open the result.
-Future<void> scanAndOpenCylinderTag(BuildContext context, WidgetRef ref) async {
+Future<void> scanAndOpenTag(BuildContext context, WidgetRef ref) async {
   final text = await ref.read(passportScanLauncherProvider)(context);
   if (text == null || !context.mounted) return;
   await openScannedTag(context, ref, text);

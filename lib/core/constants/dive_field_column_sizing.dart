@@ -53,6 +53,8 @@ extension DiveFieldColumnSizing on DiveField {
         return 80;
       case DiveField.weatherDescription:
         return 140;
+      case DiveField.surfaceConditions:
+        return 140;
       case DiveField.primaryGas:
         return 80;
       case DiveField.diluentGas:
@@ -102,6 +104,12 @@ extension DiveFieldColumnSizing on DiveField {
         return 160;
       case DiveField.diveCenterName:
         return 140;
+      case DiveField.diveOperator:
+        return 140;
+      case DiveField.boatName:
+        return 140;
+      case DiveField.boatCaptain:
+        return 120;
       case DiveField.siteLatitude:
         return 100;
       case DiveField.siteLongitude:
@@ -176,6 +184,8 @@ extension DiveFieldColumnSizing on DiveField {
         return 60;
       case DiveField.weatherDescription:
         return 80;
+      case DiveField.surfaceConditions:
+        return 80;
       case DiveField.primaryGas:
         return 60;
       case DiveField.diluentGas:
@@ -225,6 +235,12 @@ extension DiveFieldColumnSizing on DiveField {
         return 80;
       case DiveField.diveCenterName:
         return 80;
+      case DiveField.diveOperator:
+        return 80;
+      case DiveField.boatName:
+        return 80;
+      case DiveField.boatCaptain:
+        return 60;
       case DiveField.siteLatitude:
         return 60;
       case DiveField.siteLongitude:

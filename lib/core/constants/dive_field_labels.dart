@@ -67,6 +67,10 @@ extension DiveFieldLabels on DiveField {
     DiveField.importSource => l10n.enum_diveField_importSource,
     DiveField.diveTypeName => l10n.enum_diveField_diveTypeName,
     DiveField.surfaceInterval => l10n.enum_diveField_surfaceInterval,
+    DiveField.surfaceConditions => l10n.enum_diveField_surfaceConditions,
+    DiveField.diveOperator => l10n.enum_diveField_diveOperator,
+    DiveField.boatName => l10n.enum_diveField_boatName,
+    DiveField.boatCaptain => l10n.enum_diveField_boatCaptain,
   };
 
   /// Localized compact label for table column headers.
@@ -132,5 +136,9 @@ extension DiveFieldLabels on DiveField {
     DiveField.importSource => l10n.enum_diveField_importSource_short,
     DiveField.diveTypeName => l10n.enum_diveField_diveTypeName_short,
     DiveField.surfaceInterval => l10n.enum_diveField_surfaceInterval_short,
+    DiveField.surfaceConditions => l10n.enum_diveField_surfaceConditions_short,
+    DiveField.diveOperator => l10n.enum_diveField_diveOperator_short,
+    DiveField.boatName => l10n.enum_diveField_boatName_short,
+    DiveField.boatCaptain => l10n.enum_diveField_boatCaptain_short,
   };
 }
