@@ -77,6 +77,10 @@ class SurfaceWeatherGroup extends ConsumerWidget {
             valueFormatter: (value) => units.formatTemperature(value),
             // A per-year rate is a difference: no 32-degree offset in F.
             rateFormatter: (value) => units.formatTemperatureDelta(value),
+            footer: ConditionsCoverageLine(
+              recorded: stats.airTemp.recorded,
+              total: total,
+            ),
           ),
         ),
       ConditionsBandCard(

@@ -103,9 +103,15 @@ void main() {
   });
 
   testWidgets('air temperature shows trend and bands', (tester) async {
-    await pump(tester, () async => [row('a', airTemp: 22)]);
+    await pump(tester, () async => [row('a', airTemp: 22), row('b')]);
     expect(find.text('Air Temperature Over Time'), findsOneWidget);
     expect(find.text('Dives by Air Temperature'), findsOneWidget);
+    // The trend says how many dives it covers, as every new chart does.
+    final trend = find.byType(TrendChartSection);
+    expect(
+      find.descendant(of: trend, matching: find.text('Based on 1 of 2 dives')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('altitude and exit method cards show their localized values', (
