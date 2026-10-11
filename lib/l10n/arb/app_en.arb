@@ -12494,7 +12494,7 @@
   },
   "safetyReview_findingGroupSemantics": "{count, plural, =1{1 safety observation} other{{count} safety observations}}",
   "@safetyReview_findingGroupSemantics": {
-    "description": "Semantics label for a clustered chip in the chart safety lane",
+    "description": "Safety review findings count: the semantics label for a clustered chip in the chart safety lane, and the tooltip of the dive list safety badge",
     "placeholders": {
       "count": {
         "type": "int"

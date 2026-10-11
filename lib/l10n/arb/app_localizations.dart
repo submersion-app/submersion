@@ -31927,7 +31927,7 @@ abstract class AppLocalizations {
   /// **'Clear highlight'**
   String get safetyReview_clearHighlight;
 
-  /// Semantics label for a clustered chip in the chart safety lane
+  /// Safety review findings count: the semantics label for a clustered chip in the chart safety lane, and the tooltip of the dive list safety badge
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 safety observation} other{{count} safety observations}}'**
