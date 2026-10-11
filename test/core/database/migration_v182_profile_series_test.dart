@@ -57,6 +57,8 @@ const profileSeriesColumns = {
   'created_at',
   'updated_at',
   'hlc',
+  // v283 (issue #3189); the ladder these tests run ends at the current rung.
+  'activated_at',
 };
 
 const tankSeriesColumns = {

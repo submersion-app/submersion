@@ -341,5 +341,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertTrendGapCollapseColumn();
     }
     if (from < 281) await reportProgress();
+    // v283: dive_profile_series.activated_at (issue #3189). The column and
+    // its one-time backfill; re-asserted in beforeOpen.
+    if (from < 283) {
+      await _assertProfileSeriesActivatedAt();
+    }
+    if (from < 283) await reportProgress();
   }
 }

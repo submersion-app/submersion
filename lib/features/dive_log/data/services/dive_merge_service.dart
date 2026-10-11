@@ -368,6 +368,7 @@ class DiveMergeService {
             computerId: s.computerId,
             sourceId: s.sourceId,
             isPrimary: s.isPrimary,
+            activatedAt: Value(s.activatedAt),
             samples: [
               for (final p in s.samples)
                 p.shiftedBy(result.segmentOffsetsSeconds[s.diveId] ?? 0),
@@ -429,6 +430,7 @@ class DiveMergeService {
               ? null
               : mergedSourceIdFor(d.diveId, d.sourceId),
           isPrimary: d.isPrimary,
+          activatedAt: d.activatedAt,
           samples: d.samples,
           now: now,
         );
@@ -921,6 +923,7 @@ class _SeriesDraft {
     required this.sourceId,
     required this.isPrimary,
     required this.samples,
+    this.activatedAt = const Value.absent(),
     this.synthetic = false,
   });
 
@@ -928,6 +931,10 @@ class _SeriesDraft {
   final String? computerId;
   final String? sourceId;
   final bool isPrimary;
+
+  /// The original series' activation time, carried so the merged copies
+  /// rank as the originals did (issue #3189); absent for a synthetic fill.
+  final Value<int?> activatedAt;
   final bool synthetic;
   final List<ProfileSample> samples;
 }

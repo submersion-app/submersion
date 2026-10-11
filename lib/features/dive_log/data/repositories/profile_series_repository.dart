@@ -45,6 +45,12 @@ class ProfileSeriesRepository {
   /// [samples] must be non-empty; any order, the repository sorts by
   /// timestamp (stable) and drops exact duplicates. Throws [ArgumentError]
   /// on an empty list. Returns the row id.
+  ///
+  /// [activatedAt], when absent, is [now] for a primary series and null for
+  /// a demoted one: a series inserted live is its source's newest chosen
+  /// generation. A caller copying an existing series passes the original's
+  /// value, null included, so the copies rank as the originals did even
+  /// where the copy's primary flag differs (issue #3189).
   Future<String> insertSeries({
     required String diveId,
     String? computerId,
@@ -54,6 +60,7 @@ class ProfileSeriesRepository {
     String? parentSeriesId,
     String revisionKind = 'create',
     String? id,
+    Value<int?> activatedAt = const Value.absent(),
     int? now,
   }) async {
     final encoded = _codec.encode(
@@ -89,6 +96,9 @@ class ProfileSeriesRepository {
               samples: encoded.bytes,
               createdAt: nowMs,
               updatedAt: nowMs,
+              activatedAt: activatedAt.present
+                  ? activatedAt
+                  : Value(isPrimary ? nowMs : null),
             ),
           );
       await _upsertHistoryNode(
@@ -277,6 +287,9 @@ class ProfileSeriesRepository {
         }
       }
 
+      // A series made live by choice is its source's newest chosen
+      // generation, so a later primary swap back to the source promotes it
+      // over a newer edit it was chosen over (issue #3189).
       if (toPromote.isNotEmpty) {
         await (_db.update(
           _db.diveProfileSeries,
@@ -284,6 +297,7 @@ class ProfileSeriesRepository {
           DiveProfileSeriesCompanion(
             isPrimary: const Value(true),
             updatedAt: Value(nowMs),
+            activatedAt: Value(nowMs),
           ),
         );
         for (final id in toPromote) {
@@ -465,11 +479,16 @@ class ProfileSeriesRepository {
   /// nothing else the source owns supersedes. Returns the promoted ids,
   /// empty when the source owns nothing.
   ///
-  /// Ranking: the null-computer series first (a manual edit is the live
-  /// version of its source's samples, the rule `restoreOriginalProfile`
-  /// encodes), then the greatest id. Both halves are derived from synced
-  /// values, so every device resolves the same winners. `liveSeriesOf`
-  /// applies the same ranking on read.
+  /// Ranking: the most recently activated series first (`activated_at`, set
+  /// when a series is inserted live or chosen from history), then the
+  /// null-computer series (a manual edit is the live version of its source's
+  /// samples, the rule `restoreOriginalProfile` encodes), then the greatest
+  /// id. Every key is a synced value, so every device resolves the same
+  /// winners. `liveSeriesOf` applies the same ranking on read.
+  ///
+  /// The activation key comes first because the computer key cannot tell a
+  /// file import's original from its edit (neither names a computer), nor
+  /// one edit from the next, and the id is a random UUID (issue #3189).
   ///
   /// A lower-ranked series is superseded only where it overlaps a winner in
   /// time. `saveEditedProfile` does not replace what it supersedes: it
@@ -501,6 +520,11 @@ class ProfileSeriesRepository {
                     _ownedBy(t, sourceId: sourceId, computerId: computerId),
               )
               ..orderBy([
+                (t) => OrderingTerm(
+                  expression: t.activatedAt,
+                  mode: OrderingMode.desc,
+                  nulls: NullsOrder.last,
+                ),
                 (t) => OrderingTerm.desc(t.computerId.isNull()),
                 (t) => OrderingTerm.desc(t.id),
               ]))
@@ -1162,6 +1186,7 @@ class ProfileSeriesRepository {
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       hlc: row.hlc,
+      activatedAt: row.activatedAt,
     );
   }
 }
