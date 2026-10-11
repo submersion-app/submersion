@@ -64,39 +64,40 @@ Map<String, List<TankPressurePoint>> resolveTankPressureSeries(
 /// The pressure in bar at [timestamp], interpolated linearly between the
 /// samples either side of it. Before the first sample or after the last,
 /// the nearest sample's pressure. Null when [pressurePoints] is empty.
+///
+/// Series come from the repository in timestamp order, so the list is only
+/// copied and sorted when it is not; the range panel calls this on every
+/// drag frame.
 double? pressureAtTime(List<TankPressurePoint> pressurePoints, int timestamp) {
   if (pressurePoints.isEmpty) return null;
 
-  // Sort by timestamp
-  final sorted = List<TankPressurePoint>.from(pressurePoints)
-    ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-  // Exact match
-  final exact = sorted.where((p) => p.timestamp == timestamp).firstOrNull;
-  if (exact != null) return exact.pressure;
-
-  // Find surrounding points
-  TankPressurePoint? before;
-  TankPressurePoint? after;
-
-  for (final point in sorted) {
-    if (point.timestamp <= timestamp) {
-      before = point;
-    } else {
-      after = point;
+  var sorted = pressurePoints;
+  for (var i = 1; i < sorted.length; i++) {
+    if (sorted[i].timestamp < sorted[i - 1].timestamp) {
+      sorted = List<TankPressurePoint>.from(pressurePoints)
+        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
       break;
     }
   }
 
-  // Edge cases
-  if (before == null && after != null) return after.pressure;
-  if (before != null && after == null) return before.pressure;
-  if (before == null) return null;
+  // First sample at or after [timestamp]: an exact match (the first of
+  // any that share the timestamp), else the sample after it.
+  var low = 0;
+  var high = sorted.length;
+  while (low < high) {
+    final mid = (low + high) >> 1;
+    if (sorted[mid].timestamp < timestamp) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+  if (low == sorted.length) return sorted.last.pressure;
+  final after = sorted[low];
+  if (after.timestamp == timestamp || low == 0) return after.pressure;
 
-  // Linear interpolation
-  final timeDiff = after!.timestamp - before.timestamp;
-  if (timeDiff == 0) return before.pressure;
-
-  final ratio = (timestamp - before.timestamp) / timeDiff;
+  final before = sorted[low - 1];
+  final ratio =
+      (timestamp - before.timestamp) / (after.timestamp - before.timestamp);
   return before.pressure + (after.pressure - before.pressure) * ratio;
 }
