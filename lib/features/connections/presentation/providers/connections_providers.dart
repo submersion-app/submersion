@@ -75,16 +75,6 @@ final connectionsDateSpanProvider = FutureProvider.autoDispose<DayRange?>((
   return repository.diveDateSpan(diverId: diverId);
 });
 
-/// The years of [connectionsDateSpanProvider], for the year controls until
-/// the timeline replaces them.
-final connectionsYearSpanProvider =
-    FutureProvider.autoDispose<({int first, int last})?>((ref) async {
-      final span = await ref.watch(connectionsDateSpanProvider.future);
-      return span == null
-          ? null
-          : (first: span.start.year, last: span.end.year);
-    });
-
 /// The dive ids behind the selection, under the page's filter.
 final connectionsSelectionDiveIdsProvider = FutureProvider.autoDispose
     .family<List<String>, GraphSelection>((ref, selection) async {

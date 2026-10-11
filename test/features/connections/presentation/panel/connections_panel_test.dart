@@ -34,8 +34,9 @@ Future<ProviderContainer> _pump(WidgetTester tester) async {
     ProviderScope(
       overrides: [
         ...overrides,
-        connectionsYearSpanProvider.overrideWith(
-          (ref) async => (first: 2019, last: 2024),
+        connectionsDateSpanProvider.overrideWith(
+          (ref) async =>
+              (start: DateTime(2019, 1, 1), end: DateTime(2024, 12, 31)),
         ),
         connectionsSelectionDiveIdsProvider.overrideWith(
           (ref, s) async => ['d1'],

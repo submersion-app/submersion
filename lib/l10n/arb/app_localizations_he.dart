@@ -353,9 +353,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_legend_old => 'ישן';
 
   @override
-  String get connections_yearPlay_play => 'הפעלת השנים';
-
-  @override
   String get connections_yearPlay_pause => 'השהיה';
 
   @override
@@ -4930,11 +4927,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get connections_legend_title => 'מקרא';
-
-  @override
-  String connections_yearRange_label(int first, int last) {
-    return 'השנים $first עד $last';
-  }
 
   @override
   String connections_timeline_range(String start, String end) {

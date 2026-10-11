@@ -10,7 +10,7 @@ import 'package:submersion/features/connections/presentation/views/table_header_
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Pairs, Entities and Matrix views: a count line, the chosen view, the
-/// year play pill and the loading bar. The graph-only overlays stay away.
+/// timeline bar and the loading bar. The graph-only overlays stay away.
 class ConnectionsTableArea extends StatelessWidget {
   const ConnectionsTableArea({
     super.key,
@@ -21,7 +21,7 @@ class ConnectionsTableArea extends StatelessWidget {
     required this.onSelect,
     required this.onShowAll,
     required this.bottomInset,
-    required this.playPill,
+    required this.timelineBar,
     required this.loading,
   });
 
@@ -36,7 +36,7 @@ class ConnectionsTableArea extends StatelessWidget {
 
   /// Screen pixels at the bottom covered by the phone's panel sheet.
   final double bottomInset;
-  final Widget playPill;
+  final Widget timelineBar;
   final bool loading;
 
   Widget _body() => switch (view) {
@@ -81,7 +81,7 @@ class ConnectionsTableArea extends StatelessWidget {
             ),
           ),
         ),
-        playPill,
+        timelineBar,
         if (loading)
           Positioned(
             left: 0,

@@ -365,9 +365,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_legend_old => 'قديم';
 
   @override
-  String get connections_yearPlay_play => 'تشغيل الأعوام';
-
-  @override
   String get connections_yearPlay_pause => 'إيقاف مؤقت';
 
   @override
@@ -5109,11 +5106,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get connections_legend_title => 'مفتاح الرسم';
-
-  @override
-  String connections_yearRange_label(int first, int last) {
-    return 'الأعوام من $first إلى $last';
-  }
 
   @override
   String connections_timeline_range(String start, String end) {

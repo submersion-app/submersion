@@ -704,12 +704,6 @@ abstract class AppLocalizations {
   /// **'Old'**
   String get connections_legend_old;
 
-  /// No description provided for @connections_yearPlay_play.
-  ///
-  /// In en, this message translates to:
-  /// **'Play years'**
-  String get connections_yearPlay_play;
-
   /// No description provided for @connections_yearPlay_pause.
   ///
   /// In en, this message translates to:
@@ -7967,12 +7961,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Legend'**
   String get connections_legend_title;
-
-  /// No description provided for @connections_yearRange_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Years {first} to {last}'**
-  String connections_yearRange_label(int first, int last);
 
   /// No description provided for @connections_timeline_range.
   ///

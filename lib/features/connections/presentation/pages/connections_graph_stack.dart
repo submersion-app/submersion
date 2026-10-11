@@ -15,7 +15,7 @@ import 'package:submersion/features/connections/presentation/widgets/insight_str
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The graph view: the canvas with its overlays (insight strip, legend,
-/// hidden-node chip, reload error, year play pill, loading bar).
+/// hidden-node chip, reload error, timeline bar, loading bar).
 class ConnectionsGraphStack extends StatelessWidget {
   const ConnectionsGraphStack({
     super.key,
@@ -39,7 +39,7 @@ class ConnectionsGraphStack extends StatelessWidget {
     required this.onShowAll,
     required this.reloadFailed,
     required this.onRetry,
-    required this.playPill,
+    required this.timelineBar,
     required this.loading,
   });
 
@@ -66,7 +66,7 @@ class ConnectionsGraphStack extends StatelessWidget {
   final VoidCallback? onShowAll;
   final bool reloadFailed;
   final VoidCallback onRetry;
-  final Widget playPill;
+  final Widget timelineBar;
   final bool loading;
 
   /// [selection], unless it names a node the canvas does not draw (one
@@ -178,7 +178,7 @@ class ConnectionsGraphStack extends StatelessWidget {
               ),
             ),
           ),
-        playPill,
+        timelineBar,
         if (loading)
           Positioned(
             left: 0,

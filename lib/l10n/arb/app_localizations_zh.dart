@@ -351,9 +351,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_legend_old => '较旧';
 
   @override
-  String get connections_yearPlay_play => '按年播放';
-
-  @override
   String get connections_yearPlay_pause => '暂停';
 
   @override
@@ -4776,11 +4773,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get connections_legend_title => '图例';
-
-  @override
-  String connections_yearRange_label(int first, int last) {
-    return '$first 至 $last 年';
-  }
 
   @override
   String connections_timeline_range(String start, String end) {

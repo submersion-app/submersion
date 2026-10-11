@@ -38,7 +38,7 @@ Future<void> _pump(
             onSelect: (_) {},
             onShowAll: null,
             bottomInset: 0,
-            playPill: const SizedBox.shrink(),
+            timelineBar: const SizedBox.shrink(),
             loading: loading,
           ),
         ),

@@ -354,9 +354,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get connections_legend_old => 'Alt';
 
   @override
-  String get connections_yearPlay_play => 'Jahre abspielen';
-
-  @override
   String get connections_yearPlay_pause => 'Pause';
 
   @override
@@ -5044,11 +5041,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get connections_legend_title => 'Legende';
-
-  @override
-  String connections_yearRange_label(int first, int last) {
-    return 'Jahre $first bis $last';
-  }
 
   @override
   String connections_timeline_range(String start, String end) {

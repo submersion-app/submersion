@@ -353,9 +353,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_legend_old => 'Régi';
 
   @override
-  String get connections_yearPlay_play => 'Évek lejátszása';
-
-  @override
   String get connections_yearPlay_pause => 'Szünet';
 
   @override
@@ -5029,11 +5026,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get connections_legend_title => 'Jelmagyarázat';
-
-  @override
-  String connections_yearRange_label(int first, int last) {
-    return '$first és $last közötti évek';
-  }
 
   @override
   String connections_timeline_range(String start, String end) {
