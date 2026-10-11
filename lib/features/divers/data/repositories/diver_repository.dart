@@ -32,6 +32,9 @@ import 'package:submersion/features/site_types/data/repositories/site_type_repos
 import 'package:submersion/features/equipment/data/services/equipment_transfer_service.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/document_ids.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// Result returned by [DiverRepository.deleteDiverWithReassignment].
 ///
@@ -70,7 +73,9 @@ class DiverRepository {
     ImportedFileReclaimer? importedFileReclaimer,
     MediaDeletionCoordinator? mediaDeletionCoordinator,
     EquipmentTransferService? equipmentTransferService,
-  }) : _importedFileReclaimer =
+    DocumentRepository? documentRepository,
+  }) : _documentRepository = documentRepository ?? DocumentRepository(),
+       _importedFileReclaimer =
            importedFileReclaimer ?? ImportedFileReclaimer(),
        _injectedMediaDeletionCoordinator = mediaDeletionCoordinator,
        _equipmentTransfer =
@@ -78,6 +83,7 @@ class DiverRepository {
 
   AppDatabase get _db => DatabaseService.instance.database;
   final ImportedFileReclaimer _importedFileReclaimer;
+  final DocumentRepository _documentRepository;
   final MediaDeletionCoordinator? _injectedMediaDeletionCoordinator;
   final EquipmentTransferService _equipmentTransfer;
 
@@ -110,7 +116,9 @@ class DiverRepository {
       final query = _db.select(_db.divers)
         ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
       final rows = await query.get();
-      return sortedByText(rows, (r) => r.name).map(_mapRowToDiver).toList();
+      return await _withDocuments(
+        sortedByText(rows, (r) => r.name).map(_mapRowToDiver).toList(),
+      );
     } catch (e, stackTrace) {
       _log.error('Failed to get all divers', error: e, stackTrace: stackTrace);
       rethrow;
@@ -137,8 +145,15 @@ class DiverRepository {
 
   /// Emits whenever the `divers` table changes so list providers can
   /// refresh after a sync or any other write.
-  Stream<void> watchDiversChanges() =>
-      _db.tableUpdates(TableUpdateQuery.onTable(_db.divers));
+  ///
+  /// Insurance and medical clearance are read from documents (issue #2613),
+  /// so a document change ticks too.
+  Stream<void> watchDiversChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.divers),
+      TableUpdateQuery.onTable(_db.documents),
+    ]),
+  );
 
   /// Get the default diver (or first if none marked default)
   Future<domain.Diver?> getDefaultDiver() async {
@@ -149,7 +164,7 @@ class DiverRepository {
         ..limit(1);
       var row = await query.getSingleOrNull();
 
-      if (row != null) return _mapRowToDiver(row);
+      if (row != null) return await _withDocument(_mapRowToDiver(row));
 
       // Fallback to first diver
       query = _db.select(_db.divers)
@@ -157,7 +172,7 @@ class DiverRepository {
         ..limit(1);
       row = await query.getSingleOrNull();
 
-      return row != null ? _mapRowToDiver(row) : null;
+      return row != null ? await _withDocument(_mapRowToDiver(row)) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get default diver',
@@ -173,7 +188,7 @@ class DiverRepository {
     try {
       final query = _db.select(_db.divers)..where((t) => t.id.equals(id));
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToDiver(row) : null;
+      return row != null ? await _withDocument(_mapRowToDiver(row)) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get diver by id: $id',
@@ -227,16 +242,6 @@ class DiverRepository {
                 bloodType: Value(diver.bloodType),
                 allergies: Value(diver.allergies),
                 medications: Value(diver.medications),
-                medicalClearanceExpiryDate: Value(
-                  diver.medicalClearanceExpiryDate?.millisecondsSinceEpoch,
-                ),
-                insuranceProvider: Value(diver.insurance.provider),
-                insurancePolicyNumber: Value(diver.insurance.policyNumber),
-                insuranceExpiryDate: Value(
-                  diver.insurance.expiryDate?.millisecondsSinceEpoch,
-                ),
-                insuranceEmergencyPhone: Value(diver.insurance.emergencyPhone),
-                insurancePhone: Value(diver.insurance.phone),
                 notes: Value(diver.notes),
                 isDefault: Value(diver.isDefault),
                 createdAt: Value(now.millisecondsSinceEpoch),
@@ -251,6 +256,48 @@ class DiverRepository {
           id,
           settings: settings,
         );
+
+        // An import (the universal adapter's DAN number) can hand a new
+        // diver an insurance or a clearance date; they are filed as
+        // documents (issue #2613), never on the diver row.
+        if (diver.insurance.hasAnyDetail) {
+          await DocumentRepository().save(
+            Document(
+              id: documentInsuranceId(id),
+              diverId: id,
+              owner: const DocumentOwner.personal(),
+              type: DocumentType.insurance,
+              issuer: diver.insurance.providerLabel,
+              referenceNumber: diver.insurance.policyLabel,
+              expiryDate: diver.insurance.expiryDate,
+              emergencyPhone: diver.insurance.assistanceLine,
+              phone: diver.insurance.officeLine,
+              isPrimary: true,
+              createdAt: now,
+              updatedAt: now,
+            ),
+            const [],
+            // Notified once after the diver transaction commits.
+            notify: false,
+          );
+        }
+        final clearance = diver.medicalClearanceExpiryDate;
+        if (clearance != null) {
+          await DocumentRepository().save(
+            Document(
+              id: documentMedicalClearanceId(id),
+              diverId: id,
+              owner: const DocumentOwner.personal(),
+              type: DocumentType.medicalClearance,
+              expiryDate: clearance,
+              createdAt: now,
+              updatedAt: now,
+            ),
+            const [],
+            // Notified once after the diver transaction commits.
+            notify: false,
+          );
+        }
       });
 
       await _syncRepository.markRecordPending(
@@ -295,16 +342,6 @@ class DiverRepository {
           bloodType: Value(diver.bloodType),
           allergies: Value(diver.allergies),
           medications: Value(diver.medications),
-          medicalClearanceExpiryDate: Value(
-            diver.medicalClearanceExpiryDate?.millisecondsSinceEpoch,
-          ),
-          insuranceProvider: Value(diver.insurance.provider),
-          insurancePolicyNumber: Value(diver.insurance.policyNumber),
-          insuranceExpiryDate: Value(
-            diver.insurance.expiryDate?.millisecondsSinceEpoch,
-          ),
-          insuranceEmergencyPhone: Value(diver.insurance.emergencyPhone),
-          insurancePhone: Value(diver.insurance.phone),
           notes: Value(diver.notes),
           isDefault: Value(diver.isDefault),
           updatedAt: Value(now),
@@ -512,6 +549,18 @@ class DiverRepository {
 
       // Set inside the transaction, applied after it commits.
       late final MediaCascadePlan mediaPlan;
+      // The delete steps remove documents with raw SQL, so their expiry
+      // reminders are cancelled here once the delete commits (#2613).
+      final documentIds = [
+        for (final r
+            in await _db
+                .customSelect(
+                  'SELECT id FROM documents WHERE diver_id = ?',
+                  variables: [Variable.withString(id)],
+                )
+                .get())
+          r.read<String>('id'),
+      ];
 
       await _db.transaction(() async {
         // Step 0a: Hand over the gear other profiles need (issue #2852),
@@ -831,6 +880,7 @@ class DiverRepository {
         await _syncRepository.logDeletion(entityType: 'divers', recordId: id);
       });
       await _applyMediaCascade(id, mediaPlan);
+      await _documentRepository.cancelRemindersFor(documentIds);
       // The cascade above took dive_data_sources rows that can have been the
       // last references to a stored import file (issue #478). Swept after the
       // transaction commits, so a failure leaks a row rather than stranding a
@@ -996,6 +1046,33 @@ class DiverRepository {
     }
   }
 
+  /// Overlays each diver's insurance (their primary insurance document) and
+  /// medical clearance (their latest clearance document's expiry).
+  Future<List<domain.Diver>> _withDocuments(
+    List<domain.Diver> divers, {
+    String? diverId,
+  }) async {
+    if (divers.isEmpty) return divers;
+    final documents = DocumentRepository();
+    final insurance = await documents.primaryInsuranceByDiver(diverId: diverId);
+    final clearance = await documents.latestClearanceExpiryByDiver(
+      diverId: diverId,
+    );
+    return [
+      for (final d in divers)
+        d.copyWith(
+          insurance: switch (insurance[d.id]) {
+            final doc? => domain.DiverInsurance.fromDocument(doc),
+            null => const domain.DiverInsurance(),
+          },
+          medicalClearanceExpiryDate: clearance[d.id],
+        ),
+    ];
+  }
+
+  Future<domain.Diver> _withDocument(domain.Diver diver) async =>
+      (await _withDocuments([diver], diverId: diver.id)).single;
+
   domain.Diver _mapRowToDiver(Diver row) {
     return domain.Diver(
       id: row.id,
@@ -1018,18 +1095,8 @@ class DiverRepository {
       bloodType: row.bloodType,
       allergies: row.allergies,
       medications: row.medications,
-      medicalClearanceExpiryDate: row.medicalClearanceExpiryDate != null
-          ? DateTime.fromMillisecondsSinceEpoch(row.medicalClearanceExpiryDate!)
-          : null,
-      insurance: domain.DiverInsurance(
-        provider: row.insuranceProvider,
-        policyNumber: row.insurancePolicyNumber,
-        expiryDate: row.insuranceExpiryDate != null
-            ? DateTime.fromMillisecondsSinceEpoch(row.insuranceExpiryDate!)
-            : null,
-        emergencyPhone: row.insuranceEmergencyPhone,
-        phone: row.insurancePhone,
-      ),
+      // Insurance and clearance are filled from documents by
+      // _withDocuments (issue #2613); the row's own columns are legacy.
       notes: row.notes,
       isDefault: row.isDefault,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),

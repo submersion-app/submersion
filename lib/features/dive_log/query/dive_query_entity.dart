@@ -175,6 +175,11 @@ final QueryEntity diveQueryEntity = QueryEntity(
     "{r}.name LIKE ? ESCAPE '\\'",
     "{r}.buddy LIKE ? ESCAPE '\\'",
     "{r}.dive_master LIKE ? ESCAPE '\\'",
+    // Shown on the dive since #3229, so a search finds them too.
+    "{r}.dive_operator LIKE ? ESCAPE '\\'",
+    "{r}.boat_name LIKE ? ESCAPE '\\'",
+    "{r}.boat_captain LIKE ? ESCAPE '\\'",
+    "{r}.surface_conditions LIKE ? ESCAPE '\\'",
     'EXISTS (SELECT 1 FROM dive_sites ts WHERE ts.id = {r}.site_id '
         "AND (ts.name LIKE ? ESCAPE '\\' OR ts.country LIKE ? ESCAPE '\\' "
         "OR ts.region LIKE ? ESCAPE '\\'))",
@@ -404,6 +409,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
     _text('legacyBuddy', 'buddy'),
     _text('diveMaster', 'dive_master'),
     _text('boatName', 'boat_name'),
+    _text('boatCaptain', 'boat_captain'),
     _text('diveOperator', 'dive_operator'),
     _text('surfaceConditions', 'surface_conditions'),
     _enum(

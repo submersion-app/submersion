@@ -89,6 +89,24 @@ class ConnectionGraph extends Equatable {
     );
   }
 
+  /// This graph without nodes that have no edge, keeping [keep] (the focus)
+  /// whatever its edges. Returns `this` when nothing would be dropped, or
+  /// when everything would be (hiding every node helps nobody).
+  ConnectionGraph withoutUnconnected({NodeRef? keep}) {
+    final linked = <NodeRef>{?keep};
+    for (final e in edges) {
+      linked
+        ..add(e.source)
+        ..add(e.target);
+    }
+    final kept = [
+      for (final n in nodes)
+        if (linked.contains(n.ref)) n,
+    ];
+    if (kept.length == nodes.length || kept.isEmpty) return this;
+    return copyWith(nodes: kept);
+  }
+
   ConnectionGraph copyWith({
     List<ConnectionNode>? nodes,
     List<ConnectionEdge>? edges,

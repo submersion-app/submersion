@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_exception.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
@@ -10,6 +13,7 @@ import 'package:submersion/features/backup/presentation/widgets/restore_confirma
 import 'package:submersion/features/setup_wizard/presentation/widgets/steps/restore_step.dart';
 
 import '../../../../../helpers/mock_file_picker_platform.dart';
+import '../../../../../helpers/pump_until.dart';
 import '../../../../../helpers/test_app.dart';
 
 class _FakeBackupOp extends StateNotifier<BackupOperationState>
@@ -129,13 +133,50 @@ void main() {
       ),
     );
 
-    await tester.runAsync(() async {
-      await tester.tap(find.text('Choose backup file'));
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-    });
+    await tester.tap(find.text('Choose backup file'));
+    await pumpUntilRealAsync(
+      tester,
+      () => find.byType(RestoreConfirmationDialog).evaluate().isNotEmpty,
+      reason: 'the pick reads the file before the dialog opens',
+    );
     await tester.pumpAndSettle();
 
     expect(find.byType(RestoreConfirmationDialog), findsOneWidget);
+  });
+
+  testWidgets('the confirmation shows the note inside the picked file', (
+    tester,
+  ) async {
+    final dir = Directory.systemTemp.createTempSync('restore_step_note');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final backup = p.join(dir.path, 'noted.db');
+    final db = sqlite3.sqlite3.open(backup);
+    db.execute('CREATE TABLE dives (id TEXT)');
+    db.close();
+    stampBackupNote(backup, 'Before the Cozumel trip');
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          backupOperationProvider.overrideWith(
+            (ref) => _FakeBackupOp(const BackupOperationState()),
+          ),
+        ],
+        child: RestoreStep(
+          pickBackupFile: () async => (path: backup, name: 'noted.db'),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Choose backup file'));
+    await pumpUntilRealAsync(
+      tester,
+      () => find.byType(RestoreConfirmationDialog).evaluate().isNotEmpty,
+      reason: 'the pick reads the file before the dialog opens',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Before the Cozumel trip'), findsOneWidget);
   });
 
   testWidgets('encrypted backup prompts for the passphrase and retries', (

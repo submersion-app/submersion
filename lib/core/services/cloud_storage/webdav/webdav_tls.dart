@@ -120,7 +120,7 @@ class CertificateTrustRecorder {
 }
 
 /// A transport whose TCP connect is bounded and whose TLS layer consults
-/// [recorder]. Built with `HttpClient()`, so `TrustedHttpOverrides` (the
+/// [recorder]. Built with `HttpClient()`, so `AppHttpOverrides` (the
 /// Windows root store) still applies. Response and idle deadlines are the
 /// WebDavClient's: a WebDAV upload is one request for the whole file, so the
 /// shared TimeoutHttpClient's fixed ten-minute upload cap would fail every

@@ -18,6 +18,7 @@ void main() {
       ('buddies', '/buddies'),
       ('dive-centers', '/dive-centers'),
       ('certifications', '/certifications'),
+      ('documents', '/documents'),
       ('courses', '/courses'),
       ('species', '/species'),
       ('insights', '/insights'),

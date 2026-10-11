@@ -12,6 +12,7 @@ import 'package:submersion/core/services/sync/changeset_log/publish_state_store.
 import 'package:submersion/core/services/sync/changeset_log/resumable_base_publish.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_liveness.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
+import 'package:submersion/core/services/sync/changeset_log/rebase_request.dart';
 
 enum ChangesetWriteKind { base, changeset, compacted, heartbeat, noop }
 
@@ -122,7 +123,10 @@ class ChangesetWriter {
         (baseInCloud || adoptedMarker) &&
         await _serializer.pendingSeriesBlobBytes(watermark) >
             maxChangesetSeriesBlobBytes;
-    final publishBase = forceBase || oversizedDelta;
+    // A migration that added rows with no clock asked for a fresh base, so
+    // a device joining later adopts them (see rebase_request.dart).
+    final rebaseRequested = isRebaseRequested(state?.changesetBytesSinceBase);
+    final publishBase = forceBase || oversizedDelta || rebaseRequested;
     final hasBase = !publishBase && baseInCloud;
     // The post-adopt marker (a publish-state row with a null baseSeq): this
     // device's library IS the adopted epoch the peers already published, so

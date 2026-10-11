@@ -383,6 +383,28 @@ void main() {
     });
   });
 
+  testWidgets('fins cover the socks whichever comes first (#2900)', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      // Inside the fin's foot pocket, which the sock also spans.
+      final pocket = layout.toBox(FigureView.front, 80, 352);
+      final finsAlone = await paint(
+        composeFigure([item('f', EquipmentType.fins)]),
+      );
+      // Fins first in the list: equal layers would fall back to the item
+      // number and paint the sock over the pocket.
+      final finsFirst = await paint(
+        composeFigure([
+          item('f', EquipmentType.fins),
+          item('s', EquipmentType.socks),
+        ]),
+      );
+      expect(finsFirst(pocket), finsAlone(pocket));
+      expect(finsFirst(pocket), isNot(FigureColors.darkGrey));
+    });
+  });
+
   testWidgets('a hood, gloves and ankle weights show on the back view', (
     tester,
   ) async {

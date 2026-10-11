@@ -404,6 +404,10 @@ class DiveMergeBuilder {
       precipitation: _firstNonNull(sorted, (d) => d.precipitation),
       humidity: _firstNonNull(sorted, (d) => d.humidity),
       weatherDescription: _firstNonNull(sorted, (d) => d.weatherDescription),
+      diveOperator: _firstNonNull(sorted, (d) => d.diveOperator),
+      boatName: _firstNonNull(sorted, (d) => d.boatName),
+      boatCaptain: _firstNonNull(sorted, (d) => d.boatCaptain),
+      surfaceConditions: _firstNonNull(sorted, (d) => d.surfaceConditions),
       weatherSource: _firstNonNull(sorted, (d) => d.weatherSource),
       weatherFetchedAt: _firstNonNull(sorted, (d) => d.weatherFetchedAt),
     );

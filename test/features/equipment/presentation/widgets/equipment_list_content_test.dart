@@ -887,7 +887,7 @@ void main() {
       expect(tester.widget<PopupMenuItem<String>>(entry).enabled, isTrue);
     });
 
-    // Issue #2334: printing passport labels is a cylinder-only action.
+    // Issues #2334, #2652: labels print for any gear the diver owns.
     Future<PopupMenuItem<String>> printEntry(
       WidgetTester tester,
       List<EquipmentItem> items,
@@ -946,12 +946,27 @@ void main() {
       expect(find.text(l10n.passport_tag_printFailed), findsOneWidget);
     });
 
-    testWidgets('print labels is refused when a non-cylinder is checked', (
+    testWidgets('print labels is offered for any gear (issue #2652)', (
       tester,
     ) async {
       final entry = await printEntry(tester, const [
         EquipmentItem(id: 't1', name: 'Faber 12', type: EquipmentType.tank),
         EquipmentItem(id: 'r1', name: 'Apeks', type: EquipmentType.regulator),
+      ]);
+      expect(entry.enabled, isTrue);
+    });
+
+    testWidgets('print labels is refused when a wanted item is checked', (
+      tester,
+    ) async {
+      final entry = await printEntry(tester, const [
+        EquipmentItem(id: 't1', name: 'Faber 12', type: EquipmentType.tank),
+        EquipmentItem(
+          id: 'r1',
+          name: 'Apeks',
+          type: EquipmentType.regulator,
+          status: EquipmentStatus.wanted,
+        ),
       ]);
       expect(entry.enabled, isFalse);
     });

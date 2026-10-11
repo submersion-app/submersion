@@ -80,6 +80,8 @@ void main() {
     'sightings': 'sightings',
     'incidents': 'incidents',
     'certifications': 'certifications',
+    'documents': 'documents',
+    'document_pages': 'documentPages',
     'service_records': 'serviceRecords',
     'settings': 'settings',
     'media': 'media',

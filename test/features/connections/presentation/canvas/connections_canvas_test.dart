@@ -12,6 +12,7 @@ import 'package:submersion/features/connections/domain/views/highlight_mode.dart
 import 'package:submersion/features/connections/presentation/canvas/connections_canvas.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
+import 'package:submersion/features/connections/domain/layout/connections_layout.dart';
 
 NodeRef _b(String id) => NodeRef(ConnectionKind.buddy, id);
 
@@ -50,7 +51,7 @@ class _Host extends StatefulWidget {
 
 class _HostState extends State<_Host> with SingleTickerProviderStateMixin {
   late final controller = ConnectionsLayoutController(vsync: this)
-    ..setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('me'));
+    ..setGraph(_graph, layout: ConnectionsLayout.radial, focus: _b('me'));
   @override
   void dispose() {
     controller.dispose();
@@ -384,7 +385,7 @@ class _ReloadHost extends StatefulWidget {
 class _ReloadHostState extends State<_ReloadHost>
     with SingleTickerProviderStateMixin {
   late final controller = ConnectionsLayoutController(vsync: this)
-    ..setGraph(_graph, mode: GraphLayoutMode.web);
+    ..setGraph(_graph, layout: ConnectionsLayout.web);
   ConnectionGraph graph = _graph;
 
   void swap() {
@@ -395,7 +396,7 @@ class _ReloadHostState extends State<_ReloadHost>
           ConnectionNode(ref: _b('ken'), label: 'Ken', diveCount: 2),
         ],
       );
-      controller.setGraph(graph, mode: GraphLayoutMode.web);
+      controller.setGraph(graph, layout: ConnectionsLayout.web);
     });
   }
 
@@ -431,7 +432,7 @@ class _GlideHost extends StatefulWidget {
 class _GlideHostState extends State<_GlideHost>
     with SingleTickerProviderStateMixin {
   late final controller = ConnectionsLayoutController(vsync: this)
-    ..setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('me'));
+    ..setGraph(_graph, layout: ConnectionsLayout.radial, focus: _b('me'));
   ConnectionGraph graph = _graph;
 
   void spread({bool wider = false}) {
@@ -457,7 +458,7 @@ class _GlideHostState extends State<_GlideHost>
       );
       controller.setGraph(
         graph,
-        mode: GraphLayoutMode.ego,
+        layout: ConnectionsLayout.radial,
         focus: _b('me'),
         animate: !MediaQuery.disableAnimationsOf(context),
       );

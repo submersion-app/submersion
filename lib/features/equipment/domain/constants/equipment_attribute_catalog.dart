@@ -77,9 +77,13 @@ abstract final class EquipmentAttrKeys {
   static const bcdStyle = 'bcd_style';
   static const liftCapacityKg = 'lift_capacity_kg';
   static const gloveType = 'glove_type';
+  static const sockType = 'sock_type';
   static const weightStyle = 'weight_style';
   static const insulationLevel = 'insulation_level';
   static const fillMaterial = 'fill_material';
+  // Whether a vest has its hood attached (issue #3108), read by the buoyancy
+  // prior and the diver figure.
+  static const hooded = 'hooded';
 
   // The item's colour (issue #2326), read by the diver figure.
   static const color = 'color';
@@ -159,6 +163,13 @@ abstract final class EquipmentAttributeCatalog {
     EquipmentAttributeDef(
       key: EquipmentAttrKeys.identifier,
       kind: AttributeKind.text,
+    ),
+    // The item's tag identity (issues #2334, #2652). System: never rendered
+    // by a form, exported or imported.
+    EquipmentAttributeDef(
+      key: EquipmentAttrKeys.passportId,
+      kind: AttributeKind.text,
+      group: AttributeGroup.system,
     ),
   ];
 
@@ -324,6 +335,28 @@ abstract final class EquipmentAttributeCatalog {
       // Dimensionless: a UPF number is a ratio, not a measurement.
       EquipmentAttributeDef(key: 'upf_rating', kind: AttributeKind.number),
     ],
+    // The ice vest and core warmer (#3108). Thickness is the suit's own
+    // field, so a 7 mm vest reads like a 7 mm suit; the hood is a switch
+    // because it is what tells an ice vest from a core warmer, and it adds
+    // lift.
+    EquipmentType.vest: [
+      _size,
+      _thickness,
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.hooded,
+        kind: AttributeKind.flag,
+      ),
+      EquipmentAttributeDef(
+        key: 'vest_layer',
+        kind: AttributeKind.choice,
+        choiceKeys: ['over_suit', 'under_suit'],
+      ),
+      EquipmentAttributeDef(
+        key: 'vest_closure',
+        kind: AttributeKind.choice,
+        choiceKeys: ['front_zip', 'side_zip', 'pullover'],
+      ),
+    ],
     EquipmentType.tank: [
       EquipmentAttributeDef(
         key: EquipmentAttrKeys.volumeL,
@@ -350,11 +383,6 @@ abstract final class EquipmentAttributeCatalog {
         kind: AttributeKind.date,
       ),
       EquipmentAttributeDef(key: 'last_hydro_test', kind: AttributeKind.date),
-      EquipmentAttributeDef(
-        key: EquipmentAttrKeys.passportId,
-        kind: AttributeKind.text,
-        group: AttributeGroup.system,
-      ),
     ],
     EquipmentType.rebreather: [
       EquipmentAttributeDef(
@@ -788,6 +816,19 @@ abstract final class EquipmentAttributeCatalog {
         kind: AttributeKind.choice,
         choiceKeys: ['hard', 'soft'],
       ),
+    ],
+    // Socks (#2900): neoprene socks are sold by thickness like boots, and
+    // drysuit socks by fibre like the undergarments, so both are recorded
+    // and sock_type says which kind the pair is.
+    EquipmentType.socks: [
+      _size,
+      _thickness,
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.sockType,
+        kind: AttributeKind.choice,
+        choiceKeys: ['neoprene', 'drysuit'],
+      ),
+      _fillMaterial,
     ],
     EquipmentType.o2Cell: [
       EquipmentAttributeDef(

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
 import 'package:submersion/features/connections/presentation/panel/around_controls.dart';
+import 'package:submersion/features/connections/presentation/panel/display_section.dart';
 import 'package:submersion/features/connections/presentation/panel/highlight_mode_control.dart';
 import 'package:submersion/features/connections/presentation/panel/map_editor.dart';
 import 'package:submersion/features/connections/presentation/panel/mode_switch.dart';
 import 'package:submersion/features/connections/presentation/panel/preset_grid.dart';
 import 'package:submersion/features/connections/presentation/panel/summary_block.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_display_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 
 class ViewTab extends ConsumerWidget {
@@ -22,12 +25,18 @@ class ViewTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final view = ref.watch(connectionsViewProvider);
     final around = view.mode == ConnectionsMode.around;
+    final graphView = ref.watch(
+      connectionsDisplayProvider.select(
+        (d) => d.view == ConnectionsViewKind.graph,
+      ),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const ModeSwitch(),
         const SizedBox(height: 12),
         HighlightModeControl(groupCount: groupCount),
+        if (graphView) ...[const SizedBox(height: 16), const DisplaySection()],
         const SizedBox(height: 12),
         if (around)
           AroundControls(graph: graph)

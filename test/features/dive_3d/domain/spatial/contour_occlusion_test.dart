@@ -87,6 +87,21 @@ double _meanDrawnY(MeshData m, int tri) =>
   );
 }
 
+/// Twice the signed XZ area of a triangle: zero when its three vertices
+/// coincide. Since issue #3215, a stroke's corner carries a filler
+/// triangle between its two coincident vertex pairs (see
+/// MeshData.strokeHalfWidthPx) -- real on the canvas once the renderer
+/// widens it there, but a knife's-edge, floating-point-sensitive point in
+/// scene space before that, where it has no footprint to occlude-check.
+double _twiceAreaXz(MeshData m, int tri) {
+  final i0 = m.indices[tri * 3], i1 = m.indices[tri * 3 + 1];
+  final i2 = m.indices[tri * 3 + 2];
+  final ax = m.positions[i0 * 3], az = m.positions[i0 * 3 + 2];
+  final bx = m.positions[i1 * 3], bz = m.positions[i1 * 3 + 2];
+  final cx = m.positions[i2 * 3], cz = m.positions[i2 * 3 + 2];
+  return ((bx - ax) * (cz - az) - (bz - az) * (cx - ax)).abs();
+}
+
 bool _containsXz(MeshData m, int tri, double px, double pz) {
   final i0 = m.indices[tri * 3], i1 = m.indices[tri * 3 + 1];
   final i2 = m.indices[tri * 3 + 2];
@@ -118,6 +133,7 @@ void main() {
     final buried = <String>[];
     for (final m in contours) {
       for (var tri = 0; tri < m.triangleCount; tri++) {
+        if (_twiceAreaXz(m, tri) <= 1e-9) continue;
         final p = _centroidXz(m, tri);
         final key = _meanSortY(m, tri);
         checked++;
@@ -133,7 +149,9 @@ void main() {
         }
       }
     }
-    expect(checked, greaterThan(500), reason: 'the fixture must be rough');
+    // Lower since #3215: skipping each corner's zero-area filler triangle
+    // (see _twiceAreaXz) roughly halves the real-area count.
+    expect(checked, greaterThan(200), reason: 'the fixture must be rough');
     expect(buried, isEmpty, reason: '${buried.length}/$checked buried');
   });
 

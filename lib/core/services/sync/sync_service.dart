@@ -1747,6 +1747,14 @@ class SyncService {
             records: data.certifications,
             hasUpdatedAt: true,
           ),
+          // Documents after every owner they can link to, pages after
+          // their document (issue #2613).
+          (type: 'documents', records: data.documents, hasUpdatedAt: true),
+          (
+            type: 'documentPages',
+            records: data.documentPages,
+            hasUpdatedAt: true,
+          ),
           (
             type: 'serviceRecords',
             records: data.serviceRecords,
@@ -2680,6 +2688,8 @@ class SyncService {
     'tideRecords': false,
     'sightings': false,
     'certifications': true,
+    'documents': true,
+    'documentPages': true,
     'serviceRecords': true,
     'serviceKinds': true,
     'serviceSchedules': true,
@@ -3027,6 +3037,20 @@ class SyncService {
       (field: 'buddyId', parent: 'buddies', nullable: true),
     ],
     'courses': [(field: 'instructorId', parent: 'buddies', nullable: true)],
+    'documents': [
+      (field: 'diverId', parent: 'divers', nullable: false),
+      (field: 'diveId', parent: 'dives', nullable: true),
+      (field: 'siteId', parent: 'diveSites', nullable: true),
+      (field: 'tripId', parent: 'trips', nullable: true),
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
+      (field: 'courseId', parent: 'courses', nullable: true),
+      (field: 'certificationId', parent: 'certifications', nullable: true),
+      (field: 'buddyId', parent: 'buddies', nullable: true),
+      (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+    ],
+    'documentPages': [
+      (field: 'documentId', parent: 'documents', nullable: false),
+    ],
     'courseRequirements': [
       (field: 'courseId', parent: 'courses', nullable: false),
     ],

@@ -73,9 +73,25 @@ void main() {
       expect(typeFromName('Backup regulator')?.type, EquipmentType.regulator);
     });
 
+    test('reads socks rather than the suit they go with (#2900)', () {
+      expect(typeFromName('Drysuit socks'), (
+        type: EquipmentType.socks,
+        thickness: null,
+      ));
+      expect(typeFromName('5mm neoprene socks')?.type, EquipmentType.socks);
+    });
+
     test('reads a bag, whatever it holds (#2952)', () {
       expect(typeFromName('Spare parts bag')?.type, EquipmentType.bag);
       expect(typeFromName('Drysuit bag')?.type, EquipmentType.bag);
+    });
+
+    test('reads a vest, never the suit it is worn with (#3108)', () {
+      expect(typeFromName('7mm ice vest'), (
+        type: EquipmentType.vest,
+        thickness: '7mm',
+      ));
+      expect(typeFromName('Wetsuit hooded vest')?.type, EquipmentType.vest);
     });
 
     test('proposes nothing when the name does not say what it is', () {

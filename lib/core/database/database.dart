@@ -12,6 +12,7 @@ import 'package:submersion/core/database/tables/dive_profile_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_condition_tables.dart';
+import 'package:submersion/core/database/tables/document_tables.dart';
 import 'package:submersion/core/database/tables/equipment_location_tables.dart';
 import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
@@ -42,6 +43,7 @@ export 'package:submersion/core/database/tables/dive_profile_tables.dart';
 export 'package:submersion/core/database/tables/dive_tables.dart';
 export 'package:submersion/core/database/tables/diver_tables.dart';
 export 'package:submersion/core/database/tables/equipment_condition_tables.dart';
+export 'package:submersion/core/database/tables/document_tables.dart';
 export 'package:submersion/core/database/tables/equipment_location_tables.dart';
 export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
@@ -244,6 +246,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     CertificationCurrencyRules,
     CertificationCurrencyPrefs,
     CertificationCurrencyEvents,
+    // Documents store (v277, issue #2613)
+    Documents,
+    DocumentPages,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -253,7 +258,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 277;
+  static const int currentSchemaVersion = 278;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -349,14 +354,14 @@ class AppDatabase extends _$AppDatabase {
   /// payloads still arrive here and decode cleanly: drift's fromJson widens
   /// an int to a double.
   ///
-  /// Raised 275 -> 277 by the WebDAV backend (#2361): AccountKind.webdav is
+  /// Raised 275 -> 278 by the WebDAV backend (#2361): AccountKind.webdav is
   /// a new value in the synced column connected_accounts.kind, and every
-  /// build before 277 decodes that column with AccountKind.values.byName,
-  /// which throws on a name it does not know. Schema 277 changes no data; it
-  /// exists so the floor can rise past the 275 and 276 betas. From 277 on
+  /// build before 278 decodes that column with AccountKind.values.byName,
+  /// which throws on a name it does not know. Schema 278 changes no data; it
+  /// exists so the floor can rise past the 275 to 277 betas. From 278 on
   /// the accounts repository skips unknown kinds, so later kinds need no
   /// floor bump of their own.
-  static const int minimumCompatibleSchemaVersion = 277;
+  static const int minimumCompatibleSchemaVersion = 278;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1186,12 +1191,16 @@ class AppDatabase extends _$AppDatabase {
     275,
     // v276: diver_settings.icd_warnings_enabled (issue #3121).
     276,
-    // v277: no data change (issue #2361). AccountKind.webdav is a new value
+    // v277: documents and document_pages; insurance, medical clearance and
+    // certification card photos copied in (issue #2613).
+    277,
+    // v278: no data change (issue #2361). AccountKind.webdav is a new value
     // in the synced connected_accounts.kind column, which builds before this
     // one decode with a throwing AccountKind.values.byName. Raising the
-    // floor to 277 holds them until they update; see
-    // minimumCompatibleSchemaVersion.
-    277,
+    // floor to 278 holds them until they update; see
+    // minimumCompatibleSchemaVersion. Renumbered from 277 as main shipped
+    // that first.
+    278,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

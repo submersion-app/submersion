@@ -170,6 +170,10 @@ class SubmersionDivesCsvParser implements ImportParser {
         ),
         'humidity': table.number(row, 'Humidity'),
         'weatherDescription': table.text(row, 'Weather Description'),
+        'diveOperator': table.text(row, 'Dive Operator'),
+        'boatName': table.text(row, 'Boat Name'),
+        'boatCaptain': table.text(row, 'Boat Captain'),
+        'surfaceConditions': table.text(row, 'Surface Conditions'),
       }..removeWhere((_, value) => value == null);
 
       final typeIds = _diveTypes(table, row, diveTypesBySlug);

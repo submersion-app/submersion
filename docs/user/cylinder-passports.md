@@ -68,7 +68,7 @@ tag was written, the **Tag** card says so and offers **Rewrite tag** or
 
 ## Scanning a tag
 
-Choose **Scan a cylinder tag** from the menu on the Equipment list, or tap the
+Choose **Scan a tag** from the menu on the Equipment list, or tap the
 scan button on a tank in the dive editor. Point the camera at the label (iOS,
 Android and macOS), tap an NFC tag (phones with NFC), or paste the tag's link.
 

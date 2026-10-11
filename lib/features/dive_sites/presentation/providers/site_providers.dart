@@ -37,6 +37,7 @@ import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 
 // ============================================================================
 // Site Filter State
@@ -666,6 +667,10 @@ class SiteListNotifier
       await _repository.createSite(site);
     }
     await _repository.restoreSiteLinks(links);
+    // The delete cancelled the restored documents' reminders (#2613).
+    await _ref.read(documentMutationsProvider).rearmReminders([
+      for (final entry in links.documents) entry.document,
+    ]);
     await _loadSites();
     _invalidateSiteProviders([for (final site in sites) site.id]);
   }

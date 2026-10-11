@@ -5,9 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/insights/label_propagation.dart';
 import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
@@ -40,6 +42,10 @@ abstract final class ConnectionsShareRenderer {
     String appIconAsset = 'assets/icon/icon.png',
     String? fontFamily,
     TextDirection direction = TextDirection.ltr,
+    LabelMode labels = LabelMode.auto,
+    NodeSizeMode nodeSize = NodeSizeMode.byDives,
+    EdgeMode edges = EdgeMode.weighted,
+    Map<ConnectionKind, String> kindNames = const {},
   }) async {
     final photos = <NodeRef, ui.Image>{};
     ui.Image? icon;
@@ -77,6 +83,10 @@ abstract final class ConnectionsShareRenderer {
         appIcon: icon,
         fontFamily: fontFamily,
         direction: direction,
+        labels: labels,
+        nodeSize: nodeSize,
+        edges: edges,
+        kindNames: kindNames,
       );
     } finally {
       for (final img in photos.values) {
@@ -96,6 +106,10 @@ abstract final class ConnectionsShareRenderer {
     ui.Image? appIcon,
     String? fontFamily,
     TextDirection direction = TextDirection.ltr,
+    LabelMode labels = LabelMode.auto,
+    NodeSizeMode nodeSize = NodeSizeMode.byDives,
+    EdgeMode edges = EdgeMode.weighted,
+    Map<ConnectionKind, String> kindNames = const {},
   }) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder)..scale(pixelRatio);
@@ -130,6 +144,11 @@ abstract final class ConnectionsShareRenderer {
       haloColor: background,
       highlight: highlight,
       groupOf: groups.groupOf,
+      labels: labels,
+      nodeSize: nodeSize,
+      // The image has no selection, so selected-only would draw no lines.
+      edges: edges == EdgeMode.selectedOnly ? EdgeMode.thin : edges,
+      kindNames: kindNames,
     ).paint(canvas, mapSize);
     canvas.restore();
 

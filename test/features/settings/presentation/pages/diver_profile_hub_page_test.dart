@@ -11,6 +11,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -542,6 +543,7 @@ void main() {
             ),
           ],
           child: MaterialApp.router(
+            locale: const Locale('en'),
             routerConfig: router,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
@@ -552,6 +554,84 @@ void main() {
       await tester.tap(find.byIcon(Icons.person));
       await tester.pumpAndSettle();
       expect(find.text('PERSONAL_PAGE'), findsOneWidget);
+    });
+
+    Future<void> pumpHubRouter(
+      WidgetTester tester, {
+      List<Document> personalDocuments = const [],
+    }) async {
+      tester.view.physicalSize = const Size(800, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final overrides = await getBaseOverrides(
+        ownerDocuments: personalDocuments,
+      );
+      final diver = makeDiver();
+      final router = GoRouter(
+        initialLocation: '/hub',
+        routes: [
+          GoRoute(
+            path: '/hub',
+            builder: (context, state) => const DiverProfileHubPage(),
+          ),
+          GoRoute(
+            path: '/documents',
+            builder: (context, state) =>
+                Scaffold(body: Text('DOCUMENTS ${state.uri.query}')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            currentDiverProvider.overrideWith((_) async => diver),
+            diverListNotifierProvider.overrideWith(
+              (_) => _MockDiverListNotifier([diver]),
+            ),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the Insurance tile opens insurance documents (#2613)', (
+      tester,
+    ) async {
+      await pumpHubRouter(tester);
+      await tester.tap(find.byIcon(Icons.health_and_safety));
+      await tester.pumpAndSettle();
+      expect(find.text('DOCUMENTS type=insurance'), findsOneWidget);
+    });
+
+    testWidgets('the Documents tile counts personal documents and opens them', (
+      tester,
+    ) async {
+      await pumpHubRouter(
+        tester,
+        personalDocuments: [
+          for (final id in ['a', 'b'])
+            Document(
+              id: id,
+              diverId: 'diver-1',
+              owner: const DocumentOwner.personal(),
+              type: DocumentType.permit,
+              createdAt: DateTime(2026),
+              updatedAt: DateTime(2026),
+            ),
+        ],
+      );
+      expect(find.text('2 documents'), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.folder_copy_outlined));
+      await tester.pumpAndSettle();
+      expect(find.text('DOCUMENTS owner=personal'), findsOneWidget);
     });
 
     testWidgets('tapping Prior Experience tile navigates to route', (
@@ -587,6 +667,7 @@ void main() {
             ),
           ],
           child: MaterialApp.router(
+            locale: const Locale('en'),
             routerConfig: router,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,

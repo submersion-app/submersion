@@ -27,6 +27,7 @@ class DiveMergeSnapshot {
     required this.dataSourceRows,
     required this.tideRows,
     required this.mediaDiveIds,
+    this.documentDiveIds = const {},
     this.diverRoleRows = const [],
     this.buddyRoleRows = const [],
     this.profileSeriesRows = const [],
@@ -89,6 +90,10 @@ class DiveMergeSnapshot {
   /// Media id -> original dive id, so an undo can point media back at its
   /// source dive.
   final Map<String, String> mediaDiveIds;
+
+  /// Document id -> original dive id (issue #2613), so an undo can file
+  /// each document under its source dive again.
+  final Map<String, String> documentDiveIds;
 
   /// Raw packed profile / tank pressure series rows of [diveIds], undecoded,
   /// for an undo to restore verbatim. The only sample capture there is: v183
@@ -165,6 +170,12 @@ class DiveMergeSnapshot {
         db.diveBuddyRoles,
       )..where((t) => t.diveId.isIn(diveIds))).get(),
       mediaDiveIds: {for (final m in mediaRows) m.id: m.diveId!},
+      documentDiveIds: {
+        for (final d in await (db.select(
+          db.documents,
+        )..where((t) => t.diveId.isIn(diveIds))).get())
+          d.id: d.diveId!,
+      },
       profileSeriesRows: await ProfileSeriesRepository(
         database: db,
         syncRepository: SyncRepository(database: db),

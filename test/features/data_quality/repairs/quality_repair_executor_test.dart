@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show Uint8List, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/core/database/database.dart';
@@ -11,6 +11,9 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/domain/entities/document_page.dart';
 
 import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/test_database.dart';
@@ -844,6 +847,57 @@ void main() {
         (await diveRepo.getDiveProfile('dB')).map((p) => p.depth).toList(),
         [1.7, 0.0],
       );
+    });
+
+    test('undo brings back the documents filed under the copy', () async {
+      // Deleting a dive deletes its documents with it (issue #2613), so the
+      // undo has to put them back as the list's bulk-delete undo does.
+      await seedBoth();
+      await DatabaseService.instance.database.customStatement(
+        'INSERT INTO divers (id, name, is_default, created_at, updated_at) '
+        "VALUES ('v1', 'Ana', 1, 0, 0)",
+      );
+      final permit = await DocumentRepository().save(
+        Document(
+          id: '',
+          diverId: 'v1',
+          owner: const DocumentOwner(DocumentOwnerKind.dive, 'dB'),
+          type: DocumentType.permit,
+          title: 'Wreck permit',
+          createdAt: entry,
+          updatedAt: entry,
+        ),
+        [
+          DocumentPage(
+            id: '',
+            documentId: '',
+            pageIndex: 0,
+            fileName: 'permit.txt',
+            mimeType: 'text/plain',
+            sizeBytes: 2,
+            bytes: Uint8List.fromList([1, 2]),
+            createdAt: entry,
+            updatedAt: entry,
+          ),
+        ],
+      );
+      final finding = await seedPair();
+      final result = await executor.deleteDuplicate(
+        keepDiveId: 'dA',
+        deleteDiveId: 'dB',
+        findingId: finding.id,
+      );
+      expect(await DocumentRepository().getById(permit.id), isNull);
+
+      await result.undo!();
+
+      final restored = await DocumentRepository().getById(permit.id);
+      expect(
+        restored?.owner,
+        const DocumentOwner(DocumentOwnerKind.dive, 'dB'),
+      );
+      final pages = await DocumentRepository().getPages(permit.id);
+      expect(pages.single.bytes, [1, 2]);
     });
 
     test('survives the finding being cascaded away with its dive', () async {

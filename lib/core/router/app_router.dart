@@ -16,6 +16,9 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart'
     hide diveProvider;
+import 'package:submersion/features/gear_passports/presentation/pages/foreign_gear_page.dart';
+import 'package:submersion/features/gear_passports/presentation/pages/gear_passport_page.dart';
+import 'package:submersion/features/gear_passports/presentation/utils/gear_routes.dart';
 import 'package:submersion/features/import_wizard/data/adapters/healthkit_adapter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/unified_import_wizard.dart';
@@ -25,6 +28,10 @@ import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_list_page.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
+import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
+import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
@@ -138,7 +145,6 @@ import 'package:submersion/features/settings/presentation/pages/diver_profile_hu
 import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/emergency_contacts_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
-import 'package:submersion/features/settings/presentation/pages/insurance_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/notes_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/body_weight_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/prior_experience_edit_page.dart';
@@ -228,11 +234,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/welcome';
       }
 
-      // Check for notification deep link (reading clears the value)
-      final equipmentId = NotificationService.instance.selectedEquipmentId;
-      if (equipmentId != null) {
-        return '/equipment/$equipmentId';
-      }
+      // Check for notification deep link (reading clears the value). A
+      // document reminder's payload opens the document, not equipment.
+      final payload = NotificationService.instance.selectedEquipmentId;
+      final tapped = payload == null ? null : notificationPayloadRoute(payload);
+      if (tapped != null) return tapped;
 
       // If has divers and on welcome, redirect to dashboard
       if (hasDivers && isOnWelcome) {
@@ -690,6 +696,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   tag: foreignTagFromQuery(state.uri.queryParameters['t']),
                 ),
               ),
+              // A scanned gear tag the diver does not hold (issue #2652).
+              // Before ':equipmentId' so 'gear-tag' is never read as an id.
+              GoRoute(
+                path: 'gear-tag',
+                name: 'foreignGearTag',
+                builder: (context, state) =>
+                    ForeignGearPage.fromQuery(state.uri.queryParameters['t']),
+              ),
               GoRoute(
                 path: ':equipmentId',
                 name: 'equipmentDetail',
@@ -710,6 +724,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => PassportPage(
                       equipmentId: state.pathParameters['equipmentId']!,
                       scannedTag: scannedTagFrom(state.extra),
+                    ),
+                  ),
+                  // Any other gear's tag page (issue #2652).
+                  GoRoute(
+                    path: 'gear-passport',
+                    name: 'gearPassport',
+                    builder: (context, state) => GearPassportPage(
+                      equipmentId: state.pathParameters['equipmentId']!,
+                      scannedTag: scannedGearTagFrom(state.extra),
                     ),
                   ),
                 ],
@@ -804,6 +827,56 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editCertification',
                     builder: (context, state) => CertificationEditPage(
                       certificationId: state.pathParameters['certificationId'],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Documents (issue #2613)
+          GoRoute(
+            path: '/documents',
+            name: 'documents',
+            pageBuilder: (context, state) {
+              final q = state.uri.queryParameters;
+              return NoTransitionPage(
+                key: state.pageKey,
+                child: DocumentsPage(
+                  initialType: DocumentType.values.asNameMap()[q['type']],
+                  initialExpiringOnly: q['filter'] == 'expiring',
+                  initialPersonalOnly: q['owner'] == 'personal',
+                ),
+              );
+            },
+            routes: [
+              GoRoute(
+                path: 'new',
+                name: 'newDocument',
+                builder: (context, state) {
+                  final q = state.uri.queryParameters;
+                  final kind = DocumentOwnerKind.fromStorage(q['ownerKind']);
+                  final ownerId = q['ownerId'];
+                  return DocumentEditPage(
+                    owner: kind == DocumentOwnerKind.personal || ownerId == null
+                        ? const DocumentOwner.personal()
+                        : DocumentOwner(kind, ownerId),
+                    initialType: DocumentType.values.asNameMap()[q['type']],
+                  );
+                },
+              ),
+              GoRoute(
+                path: ':documentId',
+                name: 'documentDetail',
+                builder: (context, state) => DocumentDetailPage(
+                  documentId: state.pathParameters['documentId']!,
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: 'editDocument',
+                    builder: (context, state) => DocumentEditPage(
+                      documentId: state.pathParameters['documentId'],
                     ),
                   ),
                 ],
@@ -1533,9 +1606,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const MedicalInfoEditPage(),
                   ),
                   GoRoute(
+                    // Insurance is a document now (issue #2613); old links
+                    // land on the insurance documents.
                     path: 'insurance',
                     name: 'editInsurance',
-                    builder: (context, state) => const InsuranceEditPage(),
+                    redirect: (context, state) => '/documents?type=insurance',
                   ),
                   GoRoute(
                     path: 'notes',

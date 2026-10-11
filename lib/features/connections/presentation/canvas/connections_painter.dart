@@ -1,12 +1,16 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter/material.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
+import 'package:submersion/features/connections/domain/layout/layout_guide.dart';
+import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/domain/views/highlight_mode.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_group_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
@@ -32,10 +36,16 @@ class ConnectionsPainter extends CustomPainter {
     this.haloColor,
     this.highlight = HighlightMode.byKind,
     this.groupOf = const {},
+    this.labels = LabelMode.auto,
+    this.nodeSize = NodeSizeMode.byDives,
+    this.edges = EdgeMode.weighted,
+    this.kindNames = const {},
     Map<NodeRef, TextPainter>? labelCache,
     Map<NodeRef, TextPainter>? dimLabelCache,
     Map<(NodeRef, int), TextPainter>? initialsCache,
+    Map<String, TextPainter>? guideCache,
   }) : labelCache = labelCache ?? {},
+       guideCache = guideCache ?? {},
        dimLabelCache = dimLabelCache ?? {},
        initialsCache = initialsCache ?? {};
 
@@ -63,6 +73,18 @@ class ConnectionsPainter extends CustomPainter {
   /// [HighlightMode.groups].
   final Map<NodeRef, int> groupOf;
 
+  /// Which labels to draw.
+  final LabelMode labels;
+
+  /// How big each disc is.
+  final NodeSizeMode nodeSize;
+
+  /// How edges are drawn.
+  final EdgeMode edges;
+
+  /// Lane guide text per kind, in the diver's language.
+  final Map<ConnectionKind, String> kindNames;
+
   /// Laid-out text, owned by the canvas state so a frame never re-runs
   /// paragraph layout for every node (measured at about 7 ms per frame for
   /// 160 nodes without the cache). The canvas clears these when the graph or
@@ -70,6 +92,10 @@ class ConnectionsPainter extends CustomPainter {
   final Map<NodeRef, TextPainter> labelCache;
   final Map<NodeRef, TextPainter> dimLabelCache;
   final Map<(NodeRef, int), TextPainter> initialsCache;
+
+  /// Laid-out timeline guide text by guide and text, owned by the canvas
+  /// like the label caches, so panning a timeline never re-lays it out.
+  final Map<String, TextPainter> guideCache;
 
   /// The nodes lit up by [selection]: a node's far ends, or both ends of an
   /// edge. Empty without a selection.
@@ -106,7 +132,7 @@ class ConnectionsPainter extends CustomPainter {
   }
 
   double radiusOf(ConnectionNode n) =>
-      NodeMetrics.radiusFor(n.diveCount, graph.maxDiveCount) *
+      NodeMetrics.radiusIn(nodeSize, n.diveCount, graph.maxDiveCount) *
       viewport.scale.clamp(0.5, 1.5) *
       frame.appearOf(n.ref);
 
@@ -154,6 +180,8 @@ class ConnectionsPainter extends CustomPainter {
       }
     }
 
+    _paintGuides(canvas, ink);
+
     for (final e in graph.edges) {
       final a = frame.positions[e.source];
       final b = frame.positions[e.target];
@@ -163,18 +191,23 @@ class ConnectionsPainter extends CustomPainter {
         EdgeSelection(:final a, :final b) => e.touches(a) && e.touches(b),
         null => false,
       };
+      final touchesHover = hovered != null && e.touches(hovered!);
+      if (edges == EdgeMode.selectedOnly && !onSelection && !touchesHover) {
+        continue;
+      }
+      final thin = edges == EdgeMode.thin;
       final fade = newest != null && oldest != null
           ? recencyFactor(e.lastDiveAt, newest, oldest)
           : 1.0;
       final alpha =
-          NodeMetrics.edgeOpacityFor(e.weight, graph.maxWeight) *
+          (thin ? 0.5 : NodeMetrics.edgeOpacityFor(e.weight, graph.maxWeight)) *
           (dim && !onSelection ? 0.25 : 1) *
           fade;
       final paint = Paint()
         ..color = ink.withValues(alpha: alpha)
         ..strokeWidth =
-            NodeMetrics.edgeWidthFor(e.weight, graph.maxWeight) *
-            (onSelection ? 1.4 : 1)
+            (thin ? 1.0 : NodeMetrics.edgeWidthFor(e.weight, graph.maxWeight)) *
+            (onSelection && !thin ? 1.4 : 1)
         ..strokeCap = StrokeCap.round;
       canvas.drawLine(viewport.toScreen(a), viewport.toScreen(b), paint);
     }
@@ -279,19 +312,28 @@ class ConnectionsPainter extends CustomPainter {
       ));
     }
 
-    final allowed = viewport.scale < labelZoomThreshold
-        ? labelCandidates.take(maxLabelsAtLowZoom).toList()
-        : labelCandidates;
     final forced = {?selectedNode, ...lit, ?hovered};
+    final allowed = switch (labels) {
+      // Off keeps only what the diver is pointing at, so a picked node can
+      // still be named; its neighbours stay unlabelled.
+      LabelMode.off => [
+        for (final c in labelCandidates)
+          if (c.ref == selectedNode || c.ref == hovered) c,
+      ],
+      LabelMode.all => labelCandidates,
+      LabelMode.auto =>
+        viewport.scale < labelZoomThreshold
+            ? labelCandidates.take(maxLabelsAtLowZoom).toList()
+            : labelCandidates,
+    };
     final ranked = [
       ...allowed.where((c) => forced.contains(c.ref)),
       ...allowed.where((c) => !forced.contains(c.ref)),
     ];
-    final visible = LabelCollision.visible(
-      ranked,
-      obstacles: discs,
-      exempt: forced,
-    );
+    // All means every label, overlap accepted; the other modes thin them.
+    final visible = labels == LabelMode.all
+        ? {for (final c in ranked) c.ref}
+        : LabelCollision.visible(ranked, obstacles: discs, exempt: forced);
     for (final c in ranked) {
       if (!visible.contains(c.ref)) continue;
       final dimmed = dim && !forced.contains(c.ref);
@@ -315,6 +357,74 @@ class ConnectionsPainter extends CustomPainter {
     }
   }
 
+  /// Laid-out text for [g], cached by its text alone: a guide moved by a new
+  /// spacing reuses it, and a language change, which can leave the graph and
+  /// so the cache untouched, gets new text and so a new entry.
+  TextPainter _guidePainter(LayoutGuide g, Color ink) {
+    final text = switch (g) {
+      YearGuide(:final year) => '$year',
+      LaneGuide(:final kind) => kindNames[kind] ?? kind.name,
+    };
+    return guideCache.putIfAbsent(
+      text,
+      () => TextPainter(
+        text: TextSpan(
+          text: text,
+          style: labelStyle.copyWith(
+            color: ink.withValues(alpha: 0.6),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout(),
+    );
+  }
+
+  /// Draw every [_yearStep]th year: the fewest that keep one label's width
+  /// and a gap between neighbours at the current zoom.
+  int _yearStep(Color ink) {
+    final years = frame.guides.whereType<YearGuide>().toList();
+    if (years.length < 2) return 1;
+    final a = years[0];
+    final b = years[1];
+    final perYear =
+        (viewport.toScreen(b.at).dx - viewport.toScreen(a.at).dx).abs() /
+        math.max(1, (b.year - a.year).abs());
+    if (perYear <= 0) return 1;
+    final width = _guidePainter(a, ink).width;
+    return math.max(1, ((width + 8) / perYear).ceil());
+  }
+
+  /// Timeline years and kind lanes, drawn under the edges.
+  void _paintGuides(Canvas canvas, Color ink) {
+    final step = _yearStep(ink);
+    final years = frame.guides.whereType<YearGuide>();
+    final firstYear = years.firstOrNull?.year;
+    final lastYear = years.lastOrNull?.year;
+    bool shown(int year) {
+      if (year == lastYear) return true;
+      // Every [step]th year from the first, dropping one that would crowd
+      // the latest (the first too, when the whole range is under a step).
+      return (year - firstYear!) % step == 0 && lastYear! - year >= step;
+    }
+
+    for (final g in frame.guides) {
+      if (g is YearGuide && !shown(g.year)) continue;
+      final tp = _guidePainter(g, ink);
+      final at = viewport.toScreen(g.at);
+      final topLeft = switch (g) {
+        YearGuide() => at - Offset(tp.width / 2, tp.height / 2),
+        // Lane names end at the anchor, but never start off the canvas.
+        LaneGuide() => Offset(
+          math.max(4, at.dx - tp.width),
+          at.dy - tp.height / 2,
+        ),
+      };
+      tp.paint(canvas, topLeft);
+    }
+  }
+
   @override
   bool shouldRepaint(ConnectionsPainter old) =>
       old.frame != frame ||
@@ -327,5 +437,9 @@ class ConnectionsPainter extends CustomPainter {
       old.labelStyle != labelStyle ||
       old.haloColor != haloColor ||
       old.highlight != highlight ||
-      !mapEquals(old.groupOf, groupOf);
+      !mapEquals(old.groupOf, groupOf) ||
+      old.labels != labels ||
+      old.nodeSize != nodeSize ||
+      old.edges != edges ||
+      !mapEquals(old.kindNames, kindNames);
 }

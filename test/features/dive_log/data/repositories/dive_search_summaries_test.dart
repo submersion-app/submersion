@@ -160,4 +160,21 @@ void main() {
     );
     expect(scoped, isEmpty);
   });
+
+  test('matches the boat fields and surface conditions (#3229)', () async {
+    Future<void> logWith(String id, domain.Dive Function(domain.Dive) set) =>
+        repository.createDive(set(dive(id)));
+    await logWith('op', (d) => d.copyWith(diveOperator: 'Buddy Dive'));
+    await logWith('boat', (d) => d.copyWith(boatName: 'Bonaire Breeze'));
+    await logWith('cap', (d) => d.copyWith(boatCaptain: 'Captain Rik'));
+    await logWith('sea', (d) => d.copyWith(surfaceConditions: 'Choppy'));
+    await repository.createDive(dive('none', notes: 'nothing here'));
+
+    Future<List<String>> ids(String q) async =>
+        (await repository.searchDiveSummaries(q)).map((s) => s.id).toList();
+    expect(await ids('buddy dive'), ['op']);
+    expect(await ids('breeze'), ['boat']);
+    expect(await ids('rik'), ['cap']);
+    expect(await ids('choppy'), ['sea']);
+  });
 }

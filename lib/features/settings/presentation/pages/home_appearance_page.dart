@@ -50,6 +50,7 @@ class HomeAppearancePage extends ConsumerWidget {
       HomeChipType.sync => l10n.settings_homeChips_sync,
       HomeChipType.dataQuality => l10n.settings_homeChips_dataQuality,
       HomeChipType.flightWindow => l10n.settings_homeChips_flightWindow,
+      HomeChipType.documents => l10n.settings_homeChips_documents,
     };
 
     Widget sectionHeader(String text) => Padding(

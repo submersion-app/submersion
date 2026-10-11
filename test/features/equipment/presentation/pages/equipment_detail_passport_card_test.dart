@@ -10,6 +10,7 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/gear_passports/presentation/widgets/gear_passport_entry_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -64,6 +65,9 @@ void main() {
           passportIdProvider(item.id).overrideWith((ref) async => null),
           newestFillProvider(item.id).overrideWith((ref) async => newest),
           serviceClockStatusesProvider(item.id).overrideWith((ref) async => []),
+          serviceRecordsForEquipmentProvider(
+            item.id,
+          ).overrideWith((ref) async => []),
         ].cast(),
         child: MaterialApp.router(
           routerConfig: router,
@@ -93,8 +97,8 @@ void main() {
     expect(find.text(l10n.passport_entry_noFill), findsOneWidget);
   });
 
-  testWidgets('a regulator does not', (tester) async {
-    await pump(
+  testWidgets('a regulator shows the gear passport entry card', (tester) async {
+    final l10n = await pump(
       tester,
       const EquipmentItem(
         id: 'reg',
@@ -103,6 +107,21 @@ void main() {
       ),
     );
     expect(find.byType(PassportEntryCard), findsNothing);
+    expect(find.byType(GearPassportEntryCard), findsOneWidget);
+    expect(find.text(l10n.gearPassport_entry_noService), findsOneWidget);
+  });
+
+  testWidgets('a wanted regulator shows no passport card', (tester) async {
+    await pump(
+      tester,
+      const EquipmentItem(
+        id: 'reg',
+        name: 'Apeks',
+        type: EquipmentType.regulator,
+        status: EquipmentStatus.wanted,
+      ),
+    );
+    expect(find.byType(GearPassportEntryCard), findsNothing);
   });
 
   testWidgets('shows the newest fill and opens the passport', (tester) async {

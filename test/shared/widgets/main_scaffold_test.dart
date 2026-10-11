@@ -310,9 +310,10 @@ void main() {
       await tester.pumpWidget(await _buildTestApp());
       await tester.pumpAndSettle();
 
-      // Tracks is rail index 14 (after Transfer, before Settings).
+      // Tracks is rail index 15 (after Transfer, before Settings; Documents,
+      // issue #2613, sits after Certifications, earlier in the rail).
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      rail.onDestinationSelected!(14);
+      rail.onDestinationSelected!(15);
       await tester.pumpAndSettle();
 
       expect(find.text('Tracks Page'), findsOneWidget);
@@ -320,7 +321,7 @@ void main() {
       final selected = tester
           .widget<NavigationRail>(find.byType(NavigationRail))
           .selectedIndex;
-      expect(selected, 14);
+      expect(selected, 15);
     });
 
     testWidgets('the Tracks destination stays selected on a nested tracks '
@@ -340,7 +341,7 @@ void main() {
         tester
             .widget<NavigationRail>(find.byType(NavigationRail))
             .selectedIndex,
-        14,
+        15,
       );
     });
 
@@ -877,7 +878,7 @@ void main() {
       expect(find.widgetWithText(NavigationDestination, 'Trips'), findsNothing);
     });
 
-    testWidgets('wide-screen rail still shows all 16 default destinations', (
+    testWidgets('wide-screen rail still shows all 17 default destinations', (
       tester,
     ) async {
       // Wide viewport (desktop-extended so rail labels are rendered as Text).
@@ -891,12 +892,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // The rail reads its own storage key, which this repo leaves unset, so
-      // it keeps the default 16-entry order no matter how the phone bottom
+      // it keeps the default 17-entry order no matter how the phone bottom
       // bar was customized. That independence is the point of the two keys.
       // NavigationRailDestination is a descriptor (not a Widget), so inspect
       // the NavigationRail.destinations list directly.
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect(rail.destinations, hasLength(16));
+      expect(rail.destinations, hasLength(17));
 
       String labelOf(NavigationRailDestination d) {
         final label = d.label;
@@ -915,6 +916,7 @@ void main() {
         'Buddies',
         'Dive Centers',
         'Certifications',
+        'Documents',
         'Courses',
         'Species',
         'Insights',
@@ -968,7 +970,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
-      expect(rail.destinations, hasLength(16));
+      expect(rail.destinations, hasLength(17));
 
       String labelOf(NavigationRailDestination d) {
         final label = d.label;
@@ -985,7 +987,7 @@ void main() {
         'Dives',
       ]);
       // Nothing is lost: every destination still has a rail row.
-      expect(labels.toSet(), hasLength(16));
+      expect(labels.toSet(), hasLength(17));
     });
 
     testWidgets('rail customization leaves the phone bottom bar alone', (

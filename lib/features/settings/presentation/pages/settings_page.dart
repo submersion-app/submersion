@@ -67,6 +67,7 @@ import 'package:submersion/features/auto_update/domain/entities/update_status.da
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
+import 'package:submersion/features/settings/presentation/pages/network_settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/gtr_reserve_dialog.dart';
 import 'package:submersion/features/settings/presentation/format_enum_display.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -175,6 +176,8 @@ class SettingsPage extends ConsumerWidget {
         return _DecompressionSectionContent(ref: ref);
       case 'appearance':
         return const _AppearanceSectionContent();
+      case 'network':
+        return const NetworkSettingsPage();
       case 'notifications':
         return _NotificationsSectionContent(ref: ref);
       case 'manage':
@@ -286,8 +289,15 @@ class SettingsSectionDetailPage extends ConsumerWidget {
           // Pop the pushed section route; fall back to go() for deep links
           // where the detail page is the root of the stack.
           onPressed: () {
+            // maybePop, not pop: a section with unsaved edits (Network)
+            // can ask before its route closes.
             if (context.canPop()) {
-              context.pop();
+              unawaited(() async {
+                // maybePop bubbles (false) for the first route of a nested
+                // navigator; the router can still pop a parent then.
+                final handled = await Navigator.of(context).maybePop();
+                if (!handled && context.mounted) context.pop();
+              }());
             } else {
               context.go('/settings');
             }
@@ -304,6 +314,7 @@ class SettingsSectionDetailPage extends ConsumerWidget {
       'units' => context.l10n.settings_section_units_title,
       'decompression' => context.l10n.settings_section_decompression_title,
       'appearance' => context.l10n.settings_section_appearance_title,
+      'network' => context.l10n.settings_section_network_title,
       'notifications' => context.l10n.settings_section_notifications_title,
       'manage' => context.l10n.settings_section_manage_title,
       'data' => context.l10n.settings_section_data_title,
@@ -329,6 +340,8 @@ class SettingsSectionDetailPage extends ConsumerWidget {
         return _DecompressionSectionContent(ref: ref);
       case 'appearance':
         return const _AppearanceSectionContent();
+      case 'network':
+        return const NetworkSettingsPage();
       case 'notifications':
         return _NotificationsSectionContent(ref: ref);
       case 'manage':
@@ -393,6 +406,7 @@ class _MobileSettingsTile extends StatelessWidget {
       'units' => context.l10n.settings_section_units_title,
       'decompression' => context.l10n.settings_section_decompression_title,
       'appearance' => context.l10n.settings_section_appearance_title,
+      'network' => context.l10n.settings_section_network_title,
       'notifications' => context.l10n.settings_section_notifications_title,
       'manage' => context.l10n.settings_section_manage_title,
       'data' => context.l10n.settings_section_data_title,
@@ -412,6 +426,7 @@ class _MobileSettingsTile extends StatelessWidget {
       'units' => context.l10n.settings_section_units_subtitle,
       'decompression' => context.l10n.settings_section_decompression_subtitle,
       'appearance' => context.l10n.settings_section_appearance_subtitle,
+      'network' => context.l10n.settings_section_network_subtitle,
       'notifications' => context.l10n.settings_section_notifications_subtitle,
       'manage' => context.l10n.settings_section_manage_subtitle,
       'data' => context.l10n.settings_section_data_subtitle,

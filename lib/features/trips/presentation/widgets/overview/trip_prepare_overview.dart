@@ -5,6 +5,8 @@ import 'package:submersion/features/trips/presentation/widgets/overview/trip_ove
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// The Overview before departure (#2845): the hero with its countdown, one
 /// summary card whose rows open the other tabs, and the notes. No map, no
@@ -66,6 +68,12 @@ class TripPrepareOverview extends StatelessWidget {
               ),
             ),
           ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: DocumentsSection(
+            owner: DocumentOwner(DocumentOwnerKind.trip, trip.id),
+          ),
+        ),
       ],
     );
   }

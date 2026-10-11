@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
+import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -421,6 +422,14 @@ class _DiveProfilePanelContentState
                   gtrCurve: analysis?.gtrCurve,
                   cnsCurve: analysis?.cnsCurve,
                   otuCurve: analysis?.otuCurve,
+                  // As the detail and fullscreen charts (#3109): the curve
+                  // normalised to Dive.sac, in bar of the reference cylinder,
+                  // so that cylinder's volume converts it.
+                  tankVolume: dive.sacReferenceVolume,
+                  sacNormalizationFactor: calculateSacNormalizationFactor(
+                    dive,
+                    analysis,
+                  ),
                   markers: markers,
                   showMaxDepthMarker: showMaxDepthMarker,
                   showPressureThresholdMarkers: showPressureThresholdMarkers,

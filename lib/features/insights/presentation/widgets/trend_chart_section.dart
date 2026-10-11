@@ -28,6 +28,7 @@ class TrendChartSection extends ConsumerWidget {
     this.yAxisFormatter,
     this.rateFormatter,
     this.onDiveSelected,
+    this.footer,
   });
 
   /// Key into [trendChartSettingsProvider]. Use a [TrendChartIds] constant.
@@ -48,6 +49,10 @@ class TrendChartSection extends ConsumerWidget {
 
   /// Opens the dive behind a tapped point. Only fires in per-dive mode.
   final void Function(String diveId)? onDiveSelected;
+
+  /// Shown under the controls once the points have loaded, for a caller that
+  /// says something about the data, such as how many dives it covers.
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -121,6 +126,7 @@ class TrendChartSection extends ConsumerWidget {
                         settings.copyWith(range: TrendRange.preset(preset)),
                       ),
               ),
+              ?footer,
             ],
           );
         },

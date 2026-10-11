@@ -8,6 +8,8 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart'
     as domain;
+import 'package:submersion/features/documents/data/repositories/document_repository.dart';
+import 'package:submersion/features/documents/domain/entities/document.dart';
 
 class CourseRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -365,6 +367,9 @@ class CourseRepository {
       _log.info('Deleting course: $id');
 
       await _db.transaction(() async {
+        // Its documents go with it, tombstoned (issue #2613).
+        await DocumentRepository().deleteForOwner(DocumentOwnerKind.course, id);
+
         // First, clear courseId from any linked dives
         await _db.customStatement(
           'UPDATE dives SET course_id = NULL WHERE course_id = ?',

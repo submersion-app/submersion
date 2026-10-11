@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/documents/domain/entities/document.dart';
+
 /// Emergency contact information
 class EmergencyContact extends Equatable {
   final String? name;
@@ -51,6 +53,16 @@ class DiverInsurance extends Equatable {
     this.emergencyPhone,
     this.phone,
   });
+
+  /// The read model of a primary insurance document (issue #2613): the
+  /// insurer is the document's issuer, falling back to its title.
+  factory DiverInsurance.fromDocument(Document document) => DiverInsurance(
+    provider: _presentOrNull(document.issuer) ?? _presentOrNull(document.title),
+    policyNumber: document.referenceNumber,
+    expiryDate: document.expiryDate,
+    emergencyPhone: document.emergencyPhone,
+    phone: document.phone,
+  );
 
   /// Trims a stored value and reports a blank one as absent. An emptied text
   /// field round-trips through the database as `''` on some paths: a blank

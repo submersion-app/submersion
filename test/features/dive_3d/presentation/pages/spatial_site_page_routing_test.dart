@@ -70,9 +70,6 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
-      // The route check (is the dive's path a measured route?) settles one
-      // frame after the site scene.
-      await tester.pump(const Duration(milliseconds: 50));
 
       final pane = tester.widget<SiteTerrainPane>(find.byType(SiteTerrainPane));
       expect(pane.siteId, 'site-1');
@@ -81,10 +78,11 @@ void main() {
     },
   );
 
-  // A measured route spans metres inside the site's kilometres-wide tile:
-  // its dive gets the route-scale standalone scene, even at a site that has
-  // terrain (#1445).
-  testWidgets('a dive with a measured route uses the route-scale scene', (
+  // A measured route used to get the route-scale standalone scene (#1445),
+  // which has no detail levels, markers or features. The site seascape's
+  // inner detail grid reads the route fine, so the dive stays there and the
+  // route rides on it as the path overlay (#3219).
+  testWidgets('a dive with a measured route stays in the site seascape', (
     tester,
   ) async {
     final overrides = await getBaseOverrides();
@@ -102,6 +100,12 @@ void main() {
           siteSeascapeProvider(
             'site-1',
           ).overrideWith((ref) async => readyState()),
+          siteFeaturesProvider('site-1').overrideWith((ref) async => []),
+          siteActivePathOverlayProvider((
+            siteId: 'site-1',
+            pathId: 'd1',
+            source: PathOverlaySource.dive,
+          )).overrideWith((ref) async => null),
           spatialReckonedPathProvider('d1').overrideWith(
             (ref) async => const ReckonedPath(
               points: [
@@ -117,7 +121,10 @@ void main() {
               durationSeconds: 600,
             ),
           ),
-          spatialGeometryProvider('d1').overrideWith((ref) async => null),
+          // The standalone scene must not even be asked for.
+          spatialGeometryProvider(
+            'd1',
+          ).overrideWith((ref) async => fail('route-scale scene requested')),
         ],
         child: const SpatialSitePage(diveId: 'd1'),
       ),
@@ -125,7 +132,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
 
-    expect(find.byType(SiteTerrainPane), findsNothing);
+    final pane = tester.widget<SiteTerrainPane>(find.byType(SiteTerrainPane));
+    expect(pane.siteId, 'site-1');
+    expect((pane.playbackContext as DivePlaybackContext).diveId, 'd1');
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
