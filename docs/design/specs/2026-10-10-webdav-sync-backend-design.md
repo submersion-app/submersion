@@ -194,6 +194,10 @@ Media store:
   uploads (section 8); elsewhere they no-op and return 0.
 - `MediaStoreService.connectWebDav` mirrors `connectS3`: probe, marker
   adoption, credential write, attach state, synced store descriptor.
+- Media credentials live only in the account's per-account keychain blob.
+  Every WebDAV media attachment carries an account id, so the runtime
+  resolves the store through the adapter, and there is no legacy
+  single-key media blob (a rollback build cannot read WebDAV anyway).
 
 PROPFIND requests ask for `resourcetype`, `getcontentlength` and
 `getlastmodified`. `href` values may be absolute URLs or absolute paths, may be
