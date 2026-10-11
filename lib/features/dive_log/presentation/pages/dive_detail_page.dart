@@ -3402,10 +3402,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// cached permanently. Null without site coordinates, and for freshwater
   /// dives, whose water NOAA's ocean grid cannot see; the dive's own water
   /// type wins over its site's, as everywhere else. Null too while the
-  /// lookup loads, fails or comes back empty: a line saying so would be noise
-  /// in a card about the dive's conditions, and would be the only line in an
-  /// Environment card for a dive with nothing logged.
-  ReefHealth? _satelliteWaterConditions(WidgetRef ref, Dive dive) {
+  /// lookup loads, fails, comes back empty or has no reading to show: a line
+  /// saying so would be noise in a card about the dive's conditions, and
+  /// would be the only line in an Environment card for a dive with nothing
+  /// logged.
+  ///
+  /// [reefPossible] is false only once habitat has ruled a reef out; while it
+  /// resolves the coral lines stay, the conservative default.
+  ({ReefHealth health, bool reefPossible})? _satelliteWaterConditions(
+    WidgetRef ref,
+    Dive dive,
+  ) {
     final site = dive.site;
     if (site == null || !site.hasCoordinates) return null;
     if (dive.effectiveWaterType == WaterType.fresh) return null;
@@ -3419,7 +3426,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ),
         )
         .valueOrNull;
-    return part != null && part.hasValue ? part.value : null;
+    if (part == null || !part.hasValue) return null;
+    final health = part.value!;
+    final reefPossible = reefPossibleFor(
+      ref.watch(reefHabitatProvider(site.location!)).valueOrNull,
+    );
+    if (!hasWaterConditionsReadings(health, reefPossible: reefPossible)) {
+      return null;
+    }
+    return (health: health, reefPossible: reefPossible);
   }
 
   /// The Environment card: what the diver logged about the weather and the
@@ -3616,14 +3631,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 lines: buildWaterConditionsLines(
                   l10n: context.l10n,
                   units: units,
-                  health: satellite,
-                  // Null while still resolving: the coral lines then stay,
-                  // the conservative default.
-                  reefPossible: reefPossibleFor(
-                    ref
-                        .watch(reefHabitatProvider(dive.site!.location!))
-                        .valueOrNull,
-                  ),
+                  health: satellite.health,
+                  reefPossible: satellite.reefPossible,
                 ),
               ),
           ],

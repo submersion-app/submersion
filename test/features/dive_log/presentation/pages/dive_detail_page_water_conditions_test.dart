@@ -244,6 +244,23 @@ void main() {
       });
     }
 
+    testWidgets('an observation with no readings: nothing', (tester) async {
+      await pump(
+        tester,
+        _page(
+          dive: _satelliteOnlyDive('no-readings'),
+          prefs: prefs,
+          health: ReefPart.ok(
+            ReefHealth(observedAt: DateTime.utc(2023, 9, 1, 12)),
+          ),
+        ),
+      );
+
+      // A heading over a bare "As of" date says nothing.
+      expect(find.text('Environment'), findsNothing);
+      expect(find.text(_heading), findsNothing);
+    });
+
     testWidgets('freshwater: nothing, whatever the lookup says', (
       tester,
     ) async {

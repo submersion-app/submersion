@@ -115,6 +115,28 @@ void main() {
     });
   });
 
+  group('hasWaterConditionsReadings', () {
+    final bare = ReefHealth(observedAt: DateTime.utc(2023, 9, 1, 12));
+
+    test('agrees with the builder on whether any reading survives', () {
+      for (final (health, reefPossible) in [
+        (bare, true),
+        (bare.copyWith(sst: 28), false),
+        (bare.copyWith(sstAnomaly: -0.3), false),
+        (bare.copyWith(alertLevel: BleachingAlertLevel.watch), true),
+        (bare.copyWith(alertLevel: BleachingAlertLevel.watch), false),
+        (bare.copyWith(degreeHeatingWeeks: 2), true),
+        (bare.copyWith(degreeHeatingWeeks: 2), false),
+      ]) {
+        expect(
+          hasWaterConditionsReadings(health, reefPossible: reefPossible),
+          build(health, reefPossible: reefPossible).readings.isNotEmpty,
+          reason: '$health, reefPossible: $reefPossible',
+        );
+      }
+    });
+  });
+
   group('reefPossibleFor', () {
     test('is true until habitat rules a reef out', () {
       expect(reefPossibleFor(null), isTrue);

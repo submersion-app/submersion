@@ -36,6 +36,18 @@ class WaterConditionsLines {
 bool reefPossibleFor(ReefPart<ReefHabitat>? habitat) =>
     habitat == null || habitat.status != ReefDataStatus.empty;
 
+/// Whether [buildWaterConditionsLines] would produce any reading for
+/// [health], so a host can skip a heading that would sit over nothing but
+/// the observation date. Mirrors the builder's own gating.
+bool hasWaterConditionsReadings(
+  ReefHealth health, {
+  required bool reefPossible,
+}) =>
+    health.sst != null ||
+    health.sstAnomaly != null ||
+    (reefPossible &&
+        (health.alertLevel != null || health.degreeHeatingWeeks != null));
+
 /// [health] as display lines in the diver's units and locale.
 ///
 /// Sea surface temperature and its anomaly are valid anywhere in the ocean;
