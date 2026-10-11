@@ -97,4 +97,8 @@ abstract final class SubmersionIcons {
 
   /// A foam float: a fat banded body with a ball at each end.
   static const IconData floatArm = IconData(0xe914, fontFamily: fontFamily);
+
+  /// A sock seen side-on: a ribbed cuff over the leg and a rounded foot,
+  /// with no sole, which is what tells it apart from the bootie.
+  static const IconData socks = IconData(0xe915, fontFamily: fontFamily);
 }

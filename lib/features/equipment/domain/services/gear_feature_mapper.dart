@@ -49,6 +49,7 @@ GearFeature? gearFeatureFromEquipment(EquipmentItem item) {
       liftCapacityKg: attrs[EquipmentAttrKeys.liftCapacityKg]?.valueNum,
       gloveType: attrs[EquipmentAttrKeys.gloveType]?.valueText,
       insulationLevel: attrs[EquipmentAttrKeys.insulationLevel]?.valueText,
+      sockType: attrs[EquipmentAttrKeys.sockType]?.valueText,
     ),
   );
 }

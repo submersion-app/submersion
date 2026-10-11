@@ -12593,6 +12593,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_boots => 'أحذية';
 
   @override
+  String get enum_equipmentType_socks => 'جوارب';
+
+  @override
   String get enum_equipmentType_camera => 'كاميرا';
 
   @override
@@ -34647,6 +34650,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_sole_type => 'النعل';
 
   @override
+  String get attrLabel_sock_type => 'النوع';
+
+  @override
   String get attrLabel_buoyancy_kg => 'الطفو';
 
   @override
@@ -35110,6 +35116,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'نعل لين';
+
+  @override
+  String get attrChoice_sock_type_neoprene => 'نيوبرين (رطبة)';
+
+  @override
+  String get attrChoice_sock_type_drysuit => 'بدلة جافة (حرارية)';
 
   @override
   String get attrChoice_dpv_style_tow_behind => 'سحب خلفي';

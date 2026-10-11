@@ -59,6 +59,9 @@ abstract final class DivelogsReferenceMappers {
     if (MacDiveValueMapper.breathingBag.hasMatch(lower)) {
       return EquipmentType.other;
     }
+    // Socks (#2900) ahead of the suit rows, which would read the "trocken"
+    // of "Trockentauchsocken" as a drysuit.
+    if (MacDiveValueMapper.socks.hasMatch(lower)) return EquipmentType.socks;
     for (final (keywords, type) in _leadingKeywords) {
       if (keywords.any(lower.contains)) return type;
     }

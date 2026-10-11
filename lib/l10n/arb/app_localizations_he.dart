@@ -12169,6 +12169,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_boots => 'נעלי צלילה';
 
   @override
+  String get enum_equipmentType_socks => 'גרביים';
+
+  @override
   String get enum_equipmentType_camera => 'מצלמה';
 
   @override
@@ -33346,6 +33349,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_sole_type => 'סוליה';
 
   @override
+  String get attrLabel_sock_type => 'סוג';
+
+  @override
   String get attrLabel_buoyancy_kg => 'ציפה';
 
   @override
@@ -33809,6 +33815,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'סוליה רכה';
+
+  @override
+  String get attrChoice_sock_type_neoprene => 'ניאופרן (רטובות)';
+
+  @override
+  String get attrChoice_sock_type_drysuit => 'חליפה יבשה (תרמיות)';
 
   @override
   String get attrChoice_dpv_style_tow_behind => 'נגרר';

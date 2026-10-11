@@ -12352,6 +12352,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_boots => 'Laarzen';
 
   @override
+  String get enum_equipmentType_socks => 'Sokken';
+
+  @override
   String get enum_equipmentType_camera => 'Camera';
 
   @override
@@ -33958,6 +33961,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_sole_type => 'Zool';
 
   @override
+  String get attrLabel_sock_type => 'Type';
+
+  @override
   String get attrLabel_buoyancy_kg => 'Drijfvermogen';
 
   @override
@@ -34422,6 +34428,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => 'Zachte zool';
+
+  @override
+  String get attrChoice_sock_type_neoprene => 'Neopreen (nat)';
+
+  @override
+  String get attrChoice_sock_type_drysuit => 'Droogpak (thermisch)';
 
   @override
   String get attrChoice_dpv_style_tow_behind => 'Sleepmodel';

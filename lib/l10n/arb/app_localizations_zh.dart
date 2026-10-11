@@ -11849,6 +11849,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_boots => '潜水靴';
 
   @override
+  String get enum_equipmentType_socks => '袜子';
+
+  @override
   String get enum_equipmentType_camera => '相机';
 
   @override
@@ -32232,6 +32235,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_sole_type => '鞋底';
 
   @override
+  String get attrLabel_sock_type => '类型';
+
+  @override
   String get attrLabel_buoyancy_kg => '浮力';
 
   @override
@@ -32695,6 +32701,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_sole_type_soft => '软底';
+
+  @override
+  String get attrChoice_sock_type_neoprene => '氯丁橡胶（湿式）';
+
+  @override
+  String get attrChoice_sock_type_drysuit => '干衣（保暖）';
 
   @override
   String get attrChoice_dpv_style_tow_behind => '拖曳式';

@@ -20047,6 +20047,12 @@ abstract class AppLocalizations {
   /// **'Boots'**
   String get enum_equipmentType_boots;
 
+  /// No description provided for @enum_equipmentType_socks.
+  ///
+  /// In en, this message translates to:
+  /// **'Socks'**
+  String get enum_equipmentType_socks;
+
   /// No description provided for @enum_equipmentType_camera.
   ///
   /// In en, this message translates to:
@@ -53974,6 +53980,12 @@ abstract class AppLocalizations {
   /// **'Sole'**
   String get attrLabel_sole_type;
 
+  /// No description provided for @attrLabel_sock_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get attrLabel_sock_type;
+
   /// No description provided for @attrLabel_buoyancy_kg.
   ///
   /// In en, this message translates to:
@@ -54903,6 +54915,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Soft sole'**
   String get attrChoice_sole_type_soft;
+
+  /// No description provided for @attrChoice_sock_type_neoprene.
+  ///
+  /// In en, this message translates to:
+  /// **'Neoprene (wet)'**
+  String get attrChoice_sock_type_neoprene;
+
+  /// No description provided for @attrChoice_sock_type_drysuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Drysuit (thermal)'**
+  String get attrChoice_sock_type_drysuit;
 
   /// No description provided for @attrChoice_dpv_style_tow_behind.
   ///

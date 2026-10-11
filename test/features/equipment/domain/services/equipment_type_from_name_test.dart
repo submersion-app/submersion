@@ -73,6 +73,14 @@ void main() {
       expect(typeFromName('Backup regulator')?.type, EquipmentType.regulator);
     });
 
+    test('reads socks rather than the suit they go with (#2900)', () {
+      expect(typeFromName('Drysuit socks'), (
+        type: EquipmentType.socks,
+        thickness: null,
+      ));
+      expect(typeFromName('5mm neoprene socks')?.type, EquipmentType.socks);
+    });
+
     test('reads a bag, whatever it holds (#2952)', () {
       expect(typeFromName('Spare parts bag')?.type, EquipmentType.bag);
       expect(typeFromName('Drysuit bag')?.type, EquipmentType.bag);

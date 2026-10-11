@@ -74,6 +74,8 @@ const List<EquipmentType> kHeadToToeTypeOrder = [
   EquipmentType.tool,
   EquipmentType.dpv,
   EquipmentType.gloves,
+  // Socks (#2900) go on inside the boots, so they sit just above them.
+  EquipmentType.socks,
   EquipmentType.boots,
   EquipmentType.fins,
   // A bag (#2952) carries the gear above rather than being worn, so it
@@ -97,6 +99,9 @@ const List<EquipmentType> kDressingTypeOrder = [
   EquipmentType.rashGuard,
   EquipmentType.baselayer,
   EquipmentType.undersuit,
+  // Socks (#2900) go on with the under-layers: a drysuit sock before the
+  // suit's own feet, a neoprene sock before the boots or fin pockets.
+  EquipmentType.socks,
   EquipmentType.wetsuit,
   EquipmentType.drysuit,
   EquipmentType.boots,
@@ -186,6 +191,9 @@ const List<EquipmentType> kCanonicalTypeOrder = [
   EquipmentType.hood,
   EquipmentType.gloves,
   EquipmentType.boots,
+  // After the boots (#2900): the diver figure places items in this order,
+  // so boots claim the feet and socks hidden inside them go to the tray.
+  EquipmentType.socks,
   // Vision and propulsion.
   EquipmentType.mask,
   EquipmentType.snorkel,
