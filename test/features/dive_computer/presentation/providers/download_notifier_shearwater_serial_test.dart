@@ -92,6 +92,28 @@ void main() {
       expect(updates.last.serialNumber, 'A1B2C3D4');
     });
 
+    test('a device with no recognized model still stores hex, and a stored '
+        'hex serial is never overwritten by its decimal', () async {
+      final bare = DiscoveredDevice(
+        id: _address,
+        name: 'Perdix 2',
+        connectionType: DeviceConnectionType.ble,
+        address: _address,
+        discoveredAt: DateTime(2026, 10, 1),
+      );
+      await notifier.startDownload(
+        bare,
+        computer: _savedPerdix(serialNumber: 'A1B2C3D4'),
+      );
+      events.add(DownloadCompleteEvent(0, serialNumber: '2712847316'));
+      await pumpEventQueue();
+
+      expect(notifier.state.serialNumber, 'A1B2C3D4');
+      for (final saved in updates) {
+        expect(saved.serialNumber, 'A1B2C3D4');
+      }
+    });
+
     test(
       'a different Shearwater serial still leaves the record alone',
       () async {

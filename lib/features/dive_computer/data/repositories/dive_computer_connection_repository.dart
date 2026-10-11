@@ -175,7 +175,7 @@ class DiveComputerConnectionRepository {
   ///
   /// A connection the survivor already has is folded into its row: the
   /// earliest first use, the latest last use (library-wide and on this
-  /// device), and the survivor's address unless it has none. The duplicate's
+  /// device), and the address this device used most recently. The duplicate's
   /// rows are deleted with tombstones, so no peer keeps them under the
   /// deleted computer.
   Future<void> foldInto({
@@ -218,7 +218,13 @@ class DiveComputerConnectionRepository {
           DiveComputerConnectionsCompanion(
             firstUsedAt: Value(math.min(target.firstUsedAt, row.firstUsedAt)),
             lastUsedAt: Value(math.max(target.lastUsedAt, row.lastUsedAt)),
-            address: Value(_nonBlank(target.address) ?? _nonBlank(row.address)),
+            // The address this device used most recently: an older one
+            // may be a rotated Bluetooth identifier.
+            address: Value(
+              (row.localLastUsedAt ?? 0) > (target.localLastUsedAt ?? 0)
+                  ? _nonBlank(row.address) ?? _nonBlank(target.address)
+                  : _nonBlank(target.address) ?? _nonBlank(row.address),
+            ),
             localLastUsedAt: Value(
               local.isEmpty ? null : local.reduce(math.max),
             ),

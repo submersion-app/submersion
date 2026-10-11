@@ -339,10 +339,12 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         // hex the computer itself shows (issue #3106). Everything downstream
         // (the computer record, the dive snapshot, the data source) reads it
         // from here.
+        // The saved computer names the family when the device descriptor
+        // did not match and the download reported no product.
         final model = _device?.recognizedModel;
         final canonicalSerial = canonicalDownloadedSerial(
-          vendor: model?.manufacturer,
-          product: reportedProduct ?? model?.model,
+          vendor: model?.manufacturer ?? _computer?.manufacturer,
+          product: reportedProduct ?? model?.model ?? _computer?.model,
           serial: serialNumber,
         );
         state = state.copyWith(
@@ -432,8 +434,18 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
           identical(relabeled, computer)) {
         return;
       }
+      // A digits-only report that matches a stored hex serial (the other
+      // Shearwater radix) leaves the hex: rewriting it would churn the
+      // synced value between the two spellings.
+      final keepStored =
+          storedSerial != null &&
+          serialNumber != null &&
+          _digitsOnly.hasMatch(serialNumber) &&
+          !_digitsOnly.hasMatch(storedSerial);
       final updated = relabeled.copyWith(
-        serialNumber: serialNumber ?? computer.serialNumber,
+        serialNumber: keepStored
+            ? storedSerial
+            : serialNumber ?? computer.serialNumber,
         firmwareVersion: firmwareVersion ?? computer.firmwareVersion,
         bluetoothAddress: address ?? computer.bluetoothAddress,
       );
@@ -455,6 +467,8 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       );
     }
   }
+
+  static final RegExp _digitsOnly = RegExp(r'^\d+$');
 
   static String? _nonBlank(String? value) {
     final trimmed = value?.trim();

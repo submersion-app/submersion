@@ -133,4 +133,32 @@ void main() {
       ),
     });
   });
+
+  test('the address this device used most recently wins the fold', () async {
+    await insertConnection(
+      computerId: 'survivor',
+      kind: DiveComputerConnectionKind.ble,
+      address: 'OLD-ID',
+      first: 1,
+      last: 10,
+      local: 10,
+    );
+    await insertConnection(
+      computerId: 'duplicate',
+      kind: DiveComputerConnectionKind.ble,
+      address: 'CURRENT-ID',
+      first: 2,
+      last: 30,
+      local: 30,
+    );
+
+    await DiveComputerMergeRepository().mergeComputers(
+      survivorId: 'survivor',
+      duplicateIds: ['duplicate'],
+    );
+
+    final row = (await db.select(db.diveComputerConnections).get()).single;
+    expect(row.address, 'CURRENT-ID');
+    expect(row.localLastUsedAt, 30);
+  });
 }

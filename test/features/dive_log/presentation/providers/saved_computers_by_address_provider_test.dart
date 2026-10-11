@@ -56,4 +56,21 @@ void main() {
     expect(map['P1']?.id, 'usb');
     expect(map.containsKey('NOT-A-PORT'), isFalse);
   });
+
+  test('a failed connections read still maps the legacy addresses', () async {
+    final legacy = _computer('legacy', bluetoothAddress: 'AA:BB');
+    final container = ProviderContainer(
+      overrides: [
+        allDiveComputersProvider.overrideWith((ref) async => [legacy]),
+        allDiveComputerConnectionsProvider.overrideWith(
+          (ref) async => throw StateError('no database'),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final map = await container.read(savedComputersByAddressProvider.future);
+
+    expect(map['AA:BB']?.id, 'legacy');
+  });
 }

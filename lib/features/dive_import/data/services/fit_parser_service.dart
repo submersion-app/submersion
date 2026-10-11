@@ -20,14 +20,6 @@ import 'package:submersion/features/dive_import/domain/entities/imported_dive.da
 /// Garmin FIT sport codes that represent dive activities.
 const _diveSports = {Sport.diving};
 
-/// Parses Garmin FIT binary files into enriched [ImportedDive] entities.
-///
-/// Orchestrates focused extractors (see `fit/`) to pull depth/temp/HR samples,
-/// recorded deco (ceiling/TTS/NDL/CNS), air-integration tanks + pressure series,
-/// gas mixes, GPS, and dive-level summary fields. Returns null for non-dive
-/// activities and corrupt files. A dive with no depth samples still parses,
-/// with an empty profile.
-
 /// The manufacturer a FIT `file_id.manufacturer` code names, for the codes
 /// whose dive computers Submersion imports. Null for any other code, which
 /// leaves the computer's manufacturer blank as before (issue #3106).
@@ -36,6 +28,14 @@ String? fitManufacturerName(int? id) => switch (id) {
   23 => 'Suunto',
   _ => null,
 };
+
+/// Parses Garmin FIT binary files into enriched [ImportedDive] entities.
+///
+/// Orchestrates focused extractors (see `fit/`) to pull depth/temp/HR samples,
+/// recorded deco (ceiling/TTS/NDL/CNS), air-integration tanks + pressure series,
+/// gas mixes, GPS, and dive-level summary fields. Returns null for non-dive
+/// activities and corrupt files. A dive with no depth samples still parses,
+/// with an empty profile.
 
 class FitParserService {
   const FitParserService();

@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 
+import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/dive_computer_connection_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
@@ -43,9 +44,13 @@ final allDiveComputersProvider = FutureProvider<List<DiveComputer>>((
 final savedComputersByAddressProvider =
     FutureProvider<Map<String, DiveComputer>>((ref) async {
       final computers = await ref.watch(allDiveComputersProvider.future);
-      final connections = await ref.watch(
-        allDiveComputerConnectionsProvider.future,
-      );
+      // A failed connections read degrades to the legacy addresses rather
+      // than hiding every saved computer from the scan.
+      final connections = await ref
+          .watch(allDiveComputerConnectionsProvider.future)
+          .catchError(
+            (Object _) => const <String, List<DiveComputerConnection>>{},
+          );
       final map = <String, DiveComputer>{};
       for (final computer in computers) {
         if (computer.bluetoothAddress != null) {
