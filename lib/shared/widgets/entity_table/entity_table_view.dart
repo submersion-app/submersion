@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:submersion/core/text/text_sort.dart';
@@ -96,6 +97,16 @@ class EntityTableView<T, F extends EntityField> extends StatefulWidget {
 class _EntityTableViewState<T, F extends EntityField>
     extends State<EntityTableView<T, F>> {
   String? _hoveredEntityId;
+
+  static const _desktop = {
+    TargetPlatform.macOS,
+    TargetPlatform.windows,
+    TargetPlatform.linux,
+  };
+
+  /// Always-visible scrollbars on desktop, the platform default on touch.
+  bool? get _thumbVisibility =>
+      _desktop.contains(defaultTargetPlatform) ? true : null;
 
   /// Widths of columns being dragged right now (#2984): the column redraws
   /// on every move, and the config is written once, on drag end.
@@ -319,226 +330,250 @@ class _EntityTableViewState<T, F extends EntityField>
     final pinnedWidth = _pinnedWidth();
     final scrollableWidth = _scrollableWidth();
 
-    return Column(
-      children: [
-        // Header row
-        SizedBox(
-          height: kEntityTableRowHeight,
-          child: Row(
-            children: [
-              if (widget.isSelectionMode)
-                const SizedBox(
-                  width: _kCheckboxWidth,
-                  height: kEntityTableRowHeight,
-                ),
-              if (widget.leadingBuilder != null)
-                const SizedBox(
-                  width: _kLeadingWidth,
-                  height: kEntityTableRowHeight,
-                ),
-              ...pinned.map((col) {
-                return EntityTableHeaderCell(
-                  field: col.field,
-                  width: _widthOf(col),
-                  isSorted: widget.config.sortField == col.field,
-                  sortAscending: widget.config.sortAscending,
-                  onTap: () => widget.onSortFieldChanged(col.field),
-                  onResize: (w) => _resizeLive(col.field, w),
-                  onResizeEnd: () => _resizeCommit(col.field),
-                );
-              }),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  controller: _headerHorizontalController,
-                  physics: const ClampingScrollPhysics(),
-                  child: Row(
-                    children: scrollable.map((col) {
-                      return EntityTableHeaderCell(
-                        field: col.field,
-                        width: _widthOf(col),
-                        isSorted: widget.config.sortField == col.field,
-                        sortAscending: widget.config.sortAscending,
-                        onTap: () => widget.onSortFieldChanged(col.field),
-                        onResize: (w) => _resizeLive(col.field, w),
-                        onResizeEnd: () => _resizeCommit(col.field),
-                      );
-                    }).toList(),
+    // One explicit scrollbar per axis on the body (#2984), never one per
+    // inner scrollable (pinned list, header, body) as the desktop default
+    // would draw.
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+      child: Column(
+        children: [
+          // Header row
+          SizedBox(
+            height: kEntityTableRowHeight,
+            child: Row(
+              children: [
+                if (widget.isSelectionMode)
+                  const SizedBox(
+                    width: _kCheckboxWidth,
+                    height: kEntityTableRowHeight,
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Table body
-        Expanded(
-          child: Row(
-            children: [
-              // Pinned body columns
-              SizedBox(
-                width:
-                    pinnedWidth +
-                    (widget.isSelectionMode ? _kCheckboxWidth : 0) +
-                    (widget.leadingBuilder != null ? _kLeadingWidth : 0),
-                child: ListView.builder(
-                  controller: _pinnedVerticalController,
-                  itemExtent: kEntityTableRowHeight,
-                  itemCount: sorted.length,
-                  itemBuilder: (context, index) {
-                    final entity = sorted[index];
-                    final entityId = widget.idExtractor(entity);
-                    final isSelected =
-                        widget.isSelectionMode &&
-                        widget.selectedIds.contains(entityId);
-                    final isHighlighted =
-                        !widget.isSelectionMode &&
-                        widget.highlightedId == entityId;
-                    final isHovered = _hoveredEntityId == entityId;
-
-                    return MouseRegion(
-                      onEnter: (_) =>
-                          setState(() => _hoveredEntityId = entityId),
-                      onExit: (_) {
-                        if (_hoveredEntityId == entityId) {
-                          setState(() => _hoveredEntityId = null);
-                        }
-                      },
-                      child: Listener(
-                        onPointerDown: widget.onEntityTapDown != null
-                            ? (_) => widget.onEntityTapDown!(entityId)
-                            : null,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => widget.onEntityTap(entityId),
-                          onDoubleTap: widget.onEntityDoubleTap != null
-                              ? () => widget.onEntityDoubleTap!(entityId)
-                              : null,
-                          child: ColoredBox(
-                            color: _rowBackground(
-                              index: index,
-                              isSelected: isSelected,
-                              isHighlighted: isHighlighted,
-                              isHovered: isHovered,
-                              colorScheme: colorScheme,
-                            ),
-                            child: Row(
-                              children: [
-                                if (widget.isSelectionMode)
-                                  SizedBox(
-                                    width: _kCheckboxWidth,
-                                    height: kEntityTableRowHeight,
-                                    child: Checkbox(
-                                      value: isSelected,
-                                      onChanged: (_) =>
-                                          widget.onEntityTap(entityId),
-                                      materialTapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                  ),
-                                if (widget.leadingBuilder != null)
-                                  SizedBox(
-                                    width: _kLeadingWidth,
-                                    height: kEntityTableRowHeight,
-                                    child: Center(
-                                      child: widget.leadingBuilder!(entity),
-                                    ),
-                                  ),
-                                ...pinned.asMap().entries.map((entry) {
-                                  return _buildCell(
-                                    entity: entity,
-                                    column: entry.value,
-                                    theme: theme,
-                                    rowIndex: index,
-                                    isSelected: isSelected,
-                                    isLastPinned:
-                                        entry.key == pinned.length - 1,
-                                  );
-                                }),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              // Scrollable body columns
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  controller: _bodyHorizontalController,
-                  physics: const ClampingScrollPhysics(),
-                  child: SizedBox(
-                    width: scrollableWidth,
-                    child: ListView.builder(
-                      controller: _scrollableVerticalController,
-                      itemExtent: kEntityTableRowHeight,
-                      itemCount: sorted.length,
-                      itemBuilder: (context, index) {
-                        final entity = sorted[index];
-                        final entityId = widget.idExtractor(entity);
-                        final isSelected =
-                            widget.isSelectionMode &&
-                            widget.selectedIds.contains(entityId);
-                        final isHighlighted =
-                            !widget.isSelectionMode &&
-                            widget.highlightedId == entityId;
-                        final isHovered = _hoveredEntityId == entityId;
-
-                        return MouseRegion(
-                          onEnter: (_) =>
-                              setState(() => _hoveredEntityId = entityId),
-                          onExit: (_) {
-                            if (_hoveredEntityId == entityId) {
-                              setState(() => _hoveredEntityId = null);
-                            }
-                          },
-                          child: Listener(
-                            onPointerDown: widget.onEntityTapDown != null
-                                ? (_) => widget.onEntityTapDown!(entityId)
-                                : null,
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () => widget.onEntityTap(entityId),
-                              onDoubleTap: widget.onEntityDoubleTap != null
-                                  ? () => widget.onEntityDoubleTap!(entityId)
-                                  : null,
-                              child: ColoredBox(
-                                color: _rowBackground(
-                                  index: index,
-                                  isSelected: isSelected,
-                                  isHighlighted: isHighlighted,
-                                  isHovered: isHovered,
-                                  colorScheme: colorScheme,
-                                ),
-                                child: Row(
-                                  children: scrollable.map((col) {
-                                    return _buildCell(
-                                      entity: entity,
-                                      column: col,
-                                      theme: theme,
-                                      rowIndex: index,
-                                      isSelected: isSelected,
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ),
-                          ),
+                if (widget.leadingBuilder != null)
+                  const SizedBox(
+                    width: _kLeadingWidth,
+                    height: kEntityTableRowHeight,
+                  ),
+                ...pinned.map((col) {
+                  return EntityTableHeaderCell(
+                    field: col.field,
+                    width: _widthOf(col),
+                    isSorted: widget.config.sortField == col.field,
+                    sortAscending: widget.config.sortAscending,
+                    onTap: () => widget.onSortFieldChanged(col.field),
+                    onResize: (w) => _resizeLive(col.field, w),
+                    onResizeEnd: () => _resizeCommit(col.field),
+                  );
+                }),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    controller: _headerHorizontalController,
+                    physics: const ClampingScrollPhysics(),
+                    child: Row(
+                      children: scrollable.map((col) {
+                        return EntityTableHeaderCell(
+                          field: col.field,
+                          width: _widthOf(col),
+                          isSorted: widget.config.sortField == col.field,
+                          sortAscending: widget.config.sortAscending,
+                          onTap: () => widget.onSortFieldChanged(col.field),
+                          onResize: (w) => _resizeLive(col.field, w),
+                          onResizeEnd: () => _resizeCommit(col.field),
                         );
-                      },
+                      }).toList(),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+
+          // Table body
+          Expanded(
+            child: Row(
+              children: [
+                // Pinned body columns
+                SizedBox(
+                  width:
+                      pinnedWidth +
+                      (widget.isSelectionMode ? _kCheckboxWidth : 0) +
+                      (widget.leadingBuilder != null ? _kLeadingWidth : 0),
+                  child: ListView.builder(
+                    controller: _pinnedVerticalController,
+                    itemExtent: kEntityTableRowHeight,
+                    itemCount: sorted.length,
+                    itemBuilder: (context, index) {
+                      final entity = sorted[index];
+                      final entityId = widget.idExtractor(entity);
+                      final isSelected =
+                          widget.isSelectionMode &&
+                          widget.selectedIds.contains(entityId);
+                      final isHighlighted =
+                          !widget.isSelectionMode &&
+                          widget.highlightedId == entityId;
+                      final isHovered = _hoveredEntityId == entityId;
+
+                      return MouseRegion(
+                        onEnter: (_) =>
+                            setState(() => _hoveredEntityId = entityId),
+                        onExit: (_) {
+                          if (_hoveredEntityId == entityId) {
+                            setState(() => _hoveredEntityId = null);
+                          }
+                        },
+                        child: Listener(
+                          onPointerDown: widget.onEntityTapDown != null
+                              ? (_) => widget.onEntityTapDown!(entityId)
+                              : null,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => widget.onEntityTap(entityId),
+                            onDoubleTap: widget.onEntityDoubleTap != null
+                                ? () => widget.onEntityDoubleTap!(entityId)
+                                : null,
+                            child: ColoredBox(
+                              color: _rowBackground(
+                                index: index,
+                                isSelected: isSelected,
+                                isHighlighted: isHighlighted,
+                                isHovered: isHovered,
+                                colorScheme: colorScheme,
+                              ),
+                              child: Row(
+                                children: [
+                                  if (widget.isSelectionMode)
+                                    SizedBox(
+                                      width: _kCheckboxWidth,
+                                      height: kEntityTableRowHeight,
+                                      child: Checkbox(
+                                        value: isSelected,
+                                        onChanged: (_) =>
+                                            widget.onEntityTap(entityId),
+                                        materialTapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                    ),
+                                  if (widget.leadingBuilder != null)
+                                    SizedBox(
+                                      width: _kLeadingWidth,
+                                      height: kEntityTableRowHeight,
+                                      child: Center(
+                                        child: widget.leadingBuilder!(entity),
+                                      ),
+                                    ),
+                                  ...pinned.asMap().entries.map((entry) {
+                                    return _buildCell(
+                                      entity: entity,
+                                      column: entry.value,
+                                      theme: theme,
+                                      rowIndex: index,
+                                      isSelected: isSelected,
+                                      isLastPinned:
+                                          entry.key == pinned.length - 1,
+                                    );
+                                  }),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                // Scrollable body columns. Both bars sit outside the
+                // horizontal scroller, so the vertical one stays at the
+                // viewport's edge; the body list is one scrollable below the
+                // horizontal one (depth 1).
+                Expanded(
+                  child: Scrollbar(
+                    controller: _bodyHorizontalController,
+                    thumbVisibility: _thumbVisibility,
+                    notificationPredicate: (n) =>
+                        n.depth == 0 && n.metrics.axis == Axis.horizontal,
+                    child: Scrollbar(
+                      controller: _scrollableVerticalController,
+                      thumbVisibility: _thumbVisibility,
+                      notificationPredicate: (n) =>
+                          n.depth == 1 && n.metrics.axis == Axis.vertical,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        controller: _bodyHorizontalController,
+                        physics: const ClampingScrollPhysics(),
+                        child: SizedBox(
+                          width: scrollableWidth,
+                          child: ListView.builder(
+                            controller: _scrollableVerticalController,
+                            itemExtent: kEntityTableRowHeight,
+                            itemCount: sorted.length,
+                            itemBuilder: (context, index) {
+                              final entity = sorted[index];
+                              final entityId = widget.idExtractor(entity);
+                              final isSelected =
+                                  widget.isSelectionMode &&
+                                  widget.selectedIds.contains(entityId);
+                              final isHighlighted =
+                                  !widget.isSelectionMode &&
+                                  widget.highlightedId == entityId;
+                              final isHovered = _hoveredEntityId == entityId;
+
+                              return MouseRegion(
+                                onEnter: (_) =>
+                                    setState(() => _hoveredEntityId = entityId),
+                                onExit: (_) {
+                                  if (_hoveredEntityId == entityId) {
+                                    setState(() => _hoveredEntityId = null);
+                                  }
+                                },
+                                child: Listener(
+                                  onPointerDown: widget.onEntityTapDown != null
+                                      ? (_) => widget.onEntityTapDown!(entityId)
+                                      : null,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () => widget.onEntityTap(entityId),
+                                    onDoubleTap:
+                                        widget.onEntityDoubleTap != null
+                                        ? () => widget.onEntityDoubleTap!(
+                                            entityId,
+                                          )
+                                        : null,
+                                    child: ColoredBox(
+                                      color: _rowBackground(
+                                        index: index,
+                                        isSelected: isSelected,
+                                        isHighlighted: isHighlighted,
+                                        isHovered: isHovered,
+                                        colorScheme: colorScheme,
+                                      ),
+                                      child: Row(
+                                        children: scrollable.map((col) {
+                                          return _buildCell(
+                                            entity: entity,
+                                            column: col,
+                                            theme: theme,
+                                            rowIndex: index,
+                                            isSelected: isSelected,
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
