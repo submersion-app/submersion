@@ -61,4 +61,15 @@ void main() {
     expect(changed.pinMismatch, isTrue);
     expect(changed.code, WebDavErrorCode.untrustedCertificate);
   });
+
+  test('certificate errors say where to review the certificate', () {
+    expect(
+      WebDavUntrustedCertificateException(cert()).message,
+      contains('WebDAV settings'),
+    );
+    expect(
+      WebDavUntrustedCertificateException(cert(), pinnedSha256: pin).message,
+      contains('WebDAV settings'),
+    );
+  });
 }

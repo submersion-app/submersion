@@ -138,8 +138,11 @@ class WebDavUntrustedCertificateException extends WebDavException {
     super.cause,
   }) : super(
          pinnedSha256 == null
-             ? 'The server certificate for ${certificate.host} is not trusted.'
-             : 'The server certificate for ${certificate.host} changed since you trusted it.',
+             ? 'The server certificate for ${certificate.host} is not trusted. '
+                   'Open the WebDAV settings and test the connection to review it.'
+             : 'The server certificate for ${certificate.host} changed since '
+                   'you trusted it. Open the WebDAV settings and test the '
+                   'connection to review it.',
          code: WebDavErrorCode.untrustedCertificate,
        );
 
