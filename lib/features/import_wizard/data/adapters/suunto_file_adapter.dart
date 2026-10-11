@@ -46,8 +46,8 @@ class SuuntoFileAdapter extends SuuntoDiveImportCore {
     ]);
   }
 
-  /// Each computer imported here reached the library through a Suunto JSON export, under the import format's name
-  /// (issue #3106).
+  /// Each computer imported here reached the library through a Suunto JSON
+  /// export, recorded under the import format's name (issue #3106).
   @override
   (DiveComputerConnectionKind, String) get importConnection =>
       (DiveComputerConnectionKind.file, 'suuntoJson');
