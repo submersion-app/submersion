@@ -25318,6 +25318,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدخل عنواناً يبدأ بـ https:// أو http://';
 
   @override
+  String get settings_webdavConfig_validation_urlCredentials =>
+      'ضع اسم المستخدم وكلمة المرور في حقليهما، لا في العنوان';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'يستخدم هذا الخادم http://، لذا تنتقل كلمة المرور وبيانات الغوص دون تشفير. استخدمه فقط على شبكة موثوقة.';
 

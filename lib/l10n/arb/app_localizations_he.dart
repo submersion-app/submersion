@@ -24504,6 +24504,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הזינו כתובת שמתחילה ב-https:// או ב-http://';
 
   @override
+  String get settings_webdavConfig_validation_urlCredentials =>
+      'הזינו את שם המשתמש והסיסמה בשדות שלהם, לא בכתובת';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'שרת זה משתמש ב-http://, ולכן הסיסמה ונתוני הצלילה עוברים ללא הצפנה. השתמשו בו רק ברשת מהימנה.';
 

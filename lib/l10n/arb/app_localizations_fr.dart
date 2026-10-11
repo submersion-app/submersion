@@ -25211,6 +25211,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Saisissez une adresse commençant par https:// ou http://';
 
   @override
+  String get settings_webdavConfig_validation_urlCredentials =>
+      'Saisissez le nom d\'utilisateur et le mot de passe dans leurs propres champs, pas dans l\'adresse';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'Ce serveur utilise http://, votre mot de passe et vos données de plongée transitent donc en clair. À n\'utiliser que sur un réseau de confiance.';
 

@@ -14489,6 +14489,7 @@
   "settings_webdavConfig_validation_folder": "Folder names cannot contain . or .. segments",
   "settings_webdavConfig_validation_required": "Required",
   "settings_webdavConfig_validation_url": "Enter an address starting with https:// or http://",
+  "settings_webdavConfig_validation_urlCredentials": "Put the username and password in their own fields, not in the address",
   "settings_webdavConfig_warning_http": "This server uses http://, so your password and dive data travel unencrypted. Use it only on a network you trust.",
   "settings_section_about_subtitle": "App info & licenses",
   "settings_section_about_title": "About",

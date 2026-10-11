@@ -40598,6 +40598,12 @@ abstract class AppLocalizations {
   /// **'Enter an address starting with https:// or http://'**
   String get settings_webdavConfig_validation_url;
 
+  /// No description provided for @settings_webdavConfig_validation_urlCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Put the username and password in their own fields, not in the address'**
+  String get settings_webdavConfig_validation_urlCredentials;
+
   /// No description provided for @settings_webdavConfig_warning_http.
   ///
   /// In en, this message translates to:

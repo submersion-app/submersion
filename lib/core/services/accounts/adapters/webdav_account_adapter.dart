@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
@@ -18,10 +19,17 @@ import 'package:submersion/core/services/media_store/webdav_media_object_store.d
 /// different servers or folders.
 class WebDavAccountAdapter extends AccountProviderAdapter
     implements SyncCapable, MediaStoreCapable {
-  WebDavAccountAdapter({AccountCredentialsStore? credentials})
-    : _credentials = credentials ?? AccountCredentialsStore();
+  WebDavAccountAdapter({
+    AccountCredentialsStore? credentials,
+    WebDavCredentialsStore? legacySync,
+  }) : _credentials = credentials ?? AccountCredentialsStore(),
+       _legacySync = legacySync ?? WebDavCredentialsStore();
 
   final AccountCredentialsStore _credentials;
+
+  /// The sync settings page's own blob, the source the sync account's
+  /// per-account key is mirrored from.
+  final WebDavCredentialsStore _legacySync;
 
   @override
   AccountKind get kind => AccountKind.webdav;
@@ -40,9 +48,21 @@ class WebDavAccountAdapter extends AccountProviderAdapter
       ? AccountStatus.needsSignIn
       : AccountStatus.signedIn;
 
+  /// Removes this device's credentials for [account]. When [account] is the
+  /// sync endpoint, the sync settings blob goes too: otherwise the next
+  /// credential mirror would copy it straight back and sign the account in
+  /// again. A media account on another folder leaves sync alone.
   @override
-  Future<void> disconnect(domain.ConnectedAccount account) =>
-      _credentials.delete(account.id);
+  Future<void> disconnect(domain.ConnectedAccount account) async {
+    await _credentials.delete(account.id);
+    final sync = await _legacySync.load();
+    if (sync == null) return;
+    final syncAccountId = accountIdFor(
+      kind: AccountKind.webdav,
+      naturalKey: webdavNaturalKey(sync),
+    );
+    if (syncAccountId == account.id) await _legacySync.clear();
+  }
 
   @override
   CloudStorageProvider syncProvider(domain.ConnectedAccount account) =>

@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
 import 'package:submersion/core/services/accounts/account_credentials_store.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
@@ -32,6 +34,7 @@ void main() {
     () async {
       final adapter = WebDavAccountAdapter(
         credentials: AccountCredentialsStore(storage: InMemoryKeychain()),
+        legacySync: WebDavCredentialsStore(storage: InMemoryKeychain()),
       );
       expect(adapter.kind, AccountKind.webdav);
       expect(await adapter.status(account), AccountStatus.needsSignIn);
@@ -46,6 +49,50 @@ void main() {
       expect(adapter.syncProvider(account), isA<WebDavStorageProvider>());
       await adapter.disconnect(account);
       expect(await adapter.status(account), AccountStatus.needsSignIn);
+    },
+  );
+
+  test(
+    'disconnecting the sync endpoint account also clears the legacy sync blob',
+    () async {
+      final keychain = InMemoryKeychain();
+      final legacy = WebDavCredentialsStore(storage: keychain);
+      await legacy.save(config);
+      final adapter = WebDavAccountAdapter(
+        credentials: AccountCredentialsStore(storage: keychain),
+        legacySync: legacy,
+      );
+      final media = ConnectedAccount(
+        id: accountIdFor(
+          kind: AccountKind.webdav,
+          naturalKey: webdavNaturalKey(
+            config.copyWith(folder: kDefaultWebDavMediaFolder),
+          ),
+        ),
+        kind: AccountKind.webdav,
+        label: 'm',
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      );
+      await adapter.disconnect(media);
+      expect(
+        await legacy.load(),
+        isNotNull,
+        reason: 'a media account leaves sync alone',
+      );
+
+      final sync = ConnectedAccount(
+        id: accountIdFor(
+          kind: AccountKind.webdav,
+          naturalKey: webdavNaturalKey(config),
+        ),
+        kind: AccountKind.webdav,
+        label: 's',
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      );
+      await adapter.disconnect(sync);
+      expect(await legacy.load(), isNull);
     },
   );
 }

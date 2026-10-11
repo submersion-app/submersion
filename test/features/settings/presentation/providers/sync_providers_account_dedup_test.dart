@@ -139,4 +139,43 @@ void main() {
       expect(account.label, 'alice @ dav.test');
     },
   );
+
+  test(
+    'editing the WebDAV server moves sync to the new endpoint account',
+    () async {
+      final legacy = WebDavCredentialsStore(storage: keychain);
+      final first = WebDavConfig(
+        preset: WebDavPreset.other,
+        serverUrl: 'https://dav.test/dav',
+        username: 'alice',
+        password: 'secret',
+      );
+      await legacy.save(first);
+      final before = await ensureAccountForProviderType(
+        CloudProviderType.webdav,
+        repo,
+        webdavCredentials: legacy,
+      );
+      await SyncRepository().setSyncAccount(
+        accountId: before.id,
+        providerType: CloudProviderType.webdav,
+      );
+
+      final moved = first.copyWith(folder: 'Elsewhere');
+      await legacy.save(moved);
+      final after = await ensureAccountForProviderType(
+        CloudProviderType.webdav,
+        repo,
+        webdavCredentials: legacy,
+      );
+      expect(after.id, isNot(before.id));
+      expect(
+        after.id,
+        accountIdFor(
+          kind: AccountKind.webdav,
+          naturalKey: webdavNaturalKey(moved),
+        ),
+      );
+    },
+  );
 }

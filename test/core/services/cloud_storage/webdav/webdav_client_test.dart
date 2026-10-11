@@ -392,4 +392,30 @@ void main() {
       greaterThan(const Duration(hours: 2)),
     );
   });
+
+  test('a large error page is read only as far as the excerpt needs', () async {
+    var pulled = 0;
+    Stream<List<int>> largePage() async* {
+      for (var i = 0; i < 2000; i++) {
+        pulled++;
+        yield List<int>.filled(4096, 0x41);
+      }
+    }
+
+    final client = WebDavClient(
+      _config(),
+      httpClient: MockClient.streaming(
+        (request, body) async => http.StreamedResponse(largePage(), 418),
+      ),
+      backoff: (_) => Duration.zero,
+    );
+    addTearDown(client.close);
+    await expectLater(
+      client.getBytes('x'),
+      throwsA(
+        isA<WebDavException>().having((e) => e.statusCode, 'status', 418),
+      ),
+    );
+    expect(pulled, lessThan(10), reason: 'the whole 8 MB page was read');
+  });
 }

@@ -7054,6 +7054,7 @@
   "settings_webdavConfig_validation_folder": "שמות תיקיות אינם יכולים להכיל מקטעי . או ..",
   "settings_webdavConfig_validation_required": "שדה חובה",
   "settings_webdavConfig_validation_url": "הזינו כתובת שמתחילה ב-https:// או ב-http://",
+  "settings_webdavConfig_validation_urlCredentials": "הזינו את שם המשתמש והסיסמה בשדות שלהם, לא בכתובת",
   "settings_webdavConfig_warning_http": "שרת זה משתמש ב-http://, ולכן הסיסמה ונתוני הצלילה עוברים ללא הצפנה. השתמשו בו רק ברשת מהימנה.",
   "settings_section_about_subtitle": "מידע על האפליקציה ורישיונות",
   "settings_section_about_title": "אודות",

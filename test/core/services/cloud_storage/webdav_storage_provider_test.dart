@@ -174,4 +174,26 @@ void main() {
       throwsA(isA<CloudStorageException>()),
     );
   });
+
+  test('the probe never touches a file the user already has', () async {
+    server.seedFile('/dav/Submersion/.submersion-probe', [1, 2, 3]);
+    await provider.testConnection(config);
+    expect(server.files['/dav/Submersion/.submersion-probe'], [1, 2, 3]);
+    expect(
+      server.files.keys.where((k) => k.contains('submersion-probe-')),
+      isEmpty,
+    );
+  });
+
+  test('a probe whose read-back fails still removes its file', () async {
+    server.methodStatuses['GET'] = 403;
+    await expectLater(
+      provider.testConnection(config),
+      throwsA(isA<WebDavException>()),
+    );
+    expect(
+      server.files.keys.where((k) => k.contains('submersion-probe')),
+      isEmpty,
+    );
+  });
 }

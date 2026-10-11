@@ -7054,6 +7054,7 @@
   "settings_webdavConfig_validation_folder": "لا يمكن أن تحتوي أسماء المجلدات على مقاطع . أو ..",
   "settings_webdavConfig_validation_required": "مطلوب",
   "settings_webdavConfig_validation_url": "أدخل عنواناً يبدأ بـ https:// أو http://",
+  "settings_webdavConfig_validation_urlCredentials": "ضع اسم المستخدم وكلمة المرور في حقليهما، لا في العنوان",
   "settings_webdavConfig_warning_http": "يستخدم هذا الخادم http://، لذا تنتقل كلمة المرور وبيانات الغوص دون تشفير. استخدمه فقط على شبكة موثوقة.",
   "settings_section_about_subtitle": "معلومات التطبيق والتراخيص",
   "settings_section_about_title": "حول",

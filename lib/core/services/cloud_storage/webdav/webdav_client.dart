@@ -240,13 +240,21 @@ class WebDavClient {
   static bool _isRetryable(int status) =>
       status == 429 || status == 423 || (status >= 500 && status != 507);
 
+  static const int _excerptBytes = 1000;
+
+  /// The first [_excerptBytes] of an error body. Stops reading there: an
+  /// error page can be arbitrarily large, and only its start is shown.
   static Future<String> _excerpt(http.StreamedResponse response) async {
+    final collected = <int>[];
     try {
-      final body = await response.stream.bytesToString();
-      return body.length <= 1000 ? body : body.substring(0, 1000);
+      await for (final chunk in response.stream) {
+        collected.addAll(chunk.take(_excerptBytes - collected.length));
+        if (collected.length >= _excerptBytes) break;
+      }
     } catch (_) {
-      return '';
+      // The status code is the error; a broken body only loses the excerpt.
     }
+    return utf8.decode(collected, allowMalformed: true);
   }
 
   Future<List<DavResource>> propfindRaw(

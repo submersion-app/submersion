@@ -239,7 +239,10 @@ class WebDavServerFields extends StatelessWidget {
                       uri != null &&
                       (uri.scheme == 'http' || uri.scheme == 'https') &&
                       uri.host.isNotEmpty;
-                  return ok ? null : l10n.settings_webdavConfig_validation_url;
+                  if (!ok) return l10n.settings_webdavConfig_validation_url;
+                  return uri.userInfo.isEmpty
+                      ? null
+                      : l10n.settings_webdavConfig_validation_urlCredentials;
                 },
               ),
             ],

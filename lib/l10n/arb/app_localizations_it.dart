@@ -25146,6 +25146,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Inserisci un indirizzo che inizi con https:// o http://';
 
   @override
+  String get settings_webdavConfig_validation_urlCredentials =>
+      'Inserisci nome utente e password nei rispettivi campi, non nell\'indirizzo';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'Questo server usa http://, quindi password e dati delle immersioni viaggiano in chiaro. Usalo solo su una rete affidabile.';
 

@@ -68,6 +68,9 @@ class FakeWebDavServer {
   /// client loop fails a test instead of hanging it.
   int? maxRequests;
 
+  /// Every request with this method answers this status (persistently).
+  final Map<String, int> methodStatuses = {};
+
   MockClient get client => MockClient(_handle);
 
   int count(String method) => captured.where((r) => r.method == method).length;
@@ -110,6 +113,8 @@ class FakeWebDavServer {
       throwCount--;
       throw throwNext!;
     }
+    final methodStatus = methodStatuses[request.method];
+    if (methodStatus != null) return http.Response('', methodStatus);
     if (forcedStatuses.isNotEmpty) {
       return http.Response(
         'forced',

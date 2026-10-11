@@ -25030,6 +25030,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adjon meg https:// vagy http:// kezdetű címet';
 
   @override
+  String get settings_webdavConfig_validation_urlCredentials =>
+      'A felhasználónevet és a jelszót a saját mezőjükbe írja, ne a címbe';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'Ez a kiszolgáló http://-t használ, így a jelszó és a merülési adatok titkosítatlanul utaznak. Csak megbízható hálózaton használja.';
 

@@ -111,6 +111,11 @@ class WebDavConfig {
           uri.host.isEmpty) {
         return 'Enter the server address, starting with https://';
       }
+      if (uri.userInfo.isNotEmpty) {
+        // It would ride along in every request URL and on screen.
+        return 'Put the username and password in their own fields, '
+            'not in the address';
+      }
     }
     if (username.isEmpty) return 'Enter the username';
     if (password.isEmpty) return 'Enter the password';

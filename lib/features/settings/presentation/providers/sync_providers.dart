@@ -318,11 +318,26 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
   WebDavCredentialsStore? webdavCredentials,
 }) async {
   final kind = AccountKind.fromCloudProviderType(type);
+  // A WebDAV account is its endpoint: after a server or folder edit the
+  // persisted account names the old one, and reusing it would mirror the
+  // new settings under the old id (and over a media account sharing it).
+  final webdavConfig = kind == AccountKind.webdav
+      ? await (webdavCredentials ?? WebDavCredentialsStore()).load()
+      : null;
   final persistedId = await (syncRepository ?? SyncRepository())
       .getSyncAccountId();
   if (persistedId != null) {
     final persisted = await repo.getById(persistedId);
-    if (persisted != null && persisted.kind == kind) return persisted;
+    final sameEndpoint =
+        webdavConfig == null ||
+        persisted?.id ==
+            accountIdFor(
+              kind: AccountKind.webdav,
+              naturalKey: webdavNaturalKey(webdavConfig),
+            );
+    if (persisted != null && persisted.kind == kind && sameEndpoint) {
+      return persisted;
+    }
   }
   if (kind == AccountKind.s3) {
     // S3 accounts are instances, so the endpoint identifies them. Read the
@@ -347,7 +362,7 @@ Future<domain.ConnectedAccount> ensureAccountForProviderType(
   if (kind == AccountKind.webdav) {
     // An instance kind like S3: the endpoint in the legacy blob identifies
     // the account, and without it a fresh row waits for the deduplicator.
-    final config = await (webdavCredentials ?? WebDavCredentialsStore()).load();
+    final config = webdavConfig;
     if (config == null) {
       return repo.create(
         kind: kind,

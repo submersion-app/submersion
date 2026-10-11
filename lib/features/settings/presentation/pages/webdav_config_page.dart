@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
+import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -166,7 +169,26 @@ class _WebDavConfigPageState extends ConsumerState<WebDavConfigPage> {
     if (confirmed != true || !mounted) return;
     setState(() => _busy = true);
     try {
-      await ref.read(webdavStorageProviderInstanceProvider).signOut();
+      final provider = ref.read(webdavStorageProviderInstanceProvider);
+      final existing = await provider.loadConfig();
+      final selectedAccount = ref.read(selectedSyncAccountProvider).value;
+      await provider.signOut();
+      // Saving also copied the config, password included, under the sync
+      // account's own key; the confirmation promises it leaves this device.
+      // A media account on another folder has its own key and stays.
+      final accountCredentials = ref.read(accountCredentialsStoreProvider);
+      if (existing != null) {
+        await accountCredentials.delete(
+          accountIdFor(
+            kind: AccountKind.webdav,
+            naturalKey: webdavNaturalKey(existing),
+          ),
+        );
+      }
+      if (selectedAccount != null &&
+          selectedAccount.kind == AccountKind.webdav) {
+        await accountCredentials.delete(selectedAccount.id);
+      }
       if (ref.read(selectedCloudProviderTypeProvider) ==
           CloudProviderType.webdav) {
         await ref.read(syncStateProvider.notifier).signOut();

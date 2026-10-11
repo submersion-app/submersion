@@ -115,4 +115,15 @@ void main() {
     expect(make().displayLabel, 'alice@example.com @ dav.example.com');
     expect(make().toString(), isNot(contains('secret')));
   });
+
+  test('credentials embedded in the server URL are rejected', () {
+    expect(
+      make(serverUrl: 'https://u:secret@dav.example.com/dav').validate(),
+      isNotNull,
+    );
+    expect(
+      make(serverUrl: 'https://u@dav.example.com/dav').validate(),
+      isNotNull,
+    );
+  });
 }

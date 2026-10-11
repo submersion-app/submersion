@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -53,6 +54,11 @@ class WebDavStorageProvider
   static final _log = LoggerService.forClass(WebDavStorageProvider);
 
   static const String probeObjectName = '.submersion-probe';
+
+  static final Random _random = Random();
+
+  static String _probeSuffix() =>
+      '${DateTime.now().microsecondsSinceEpoch}-${_random.nextInt(1 << 32)}';
 
   WebDavStorageProvider({
     WebDavCredentialsStore? store,
@@ -134,16 +140,28 @@ class WebDavStorageProvider
       );
     }
     await client.ensureCollection(folder);
-    final probePath = '$folder/$probeObjectName';
-    await client.putBytes(probePath, Uint8List.fromList(utf8.encode('probe')));
-    final back = await client.getBytes(probePath);
-    if (utf8.decode(back, allowMalformed: true) != 'probe') {
-      throw WebDavException(
-        'The server returned different bytes for the test file.',
-        code: WebDavErrorCode.unexpected,
+    // A name of its own, so a probe never overwrites or deletes a file the
+    // user keeps there, nor one another device's probe is using right now.
+    final probePath = '$folder/$probeObjectName-${_probeSuffix()}';
+    try {
+      await client.putBytes(
+        probePath,
+        Uint8List.fromList(utf8.encode('probe')),
       );
+      final back = await client.getBytes(probePath);
+      if (utf8.decode(back, allowMalformed: true) != 'probe') {
+        throw WebDavException(
+          'The server returned different bytes for the test file.',
+          code: WebDavErrorCode.unexpected,
+        );
+      }
+    } finally {
+      try {
+        await client.delete(probePath);
+      } on WebDavException {
+        // Best effort; the original failure is the one to report.
+      }
     }
-    await client.delete(probePath);
   }
 
   @override

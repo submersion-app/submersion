@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_identity.dart';
+import 'package:submersion/core/services/accounts/account_credentials_store.dart';
+import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
 import 'package:submersion/core/providers/provider.dart';
@@ -114,9 +118,11 @@ class _FakeSyncNotifier extends StateNotifier<SyncState>
 void main() {
   late FakeWebDavServer server;
   late WebDavStorageProvider provider;
+  late AccountCredentialsStore accountCredentials;
 
   setUp(() {
     server = FakeWebDavServer();
+    accountCredentials = AccountCredentialsStore(storage: InMemoryKeychain());
     provider = WebDavStorageProvider(
       store: WebDavCredentialsStore(storage: InMemoryKeychain()),
       clientFactory: (c) => WebDavClient(
@@ -143,6 +149,10 @@ void main() {
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(prefs),
+          accountCredentialsStoreProvider.overrideWithValue(accountCredentials),
+          webdavCredentialsStoreProvider.overrideWithValue(
+            WebDavCredentialsStore(storage: InMemoryKeychain()),
+          ),
           webdavStorageProviderInstanceProvider.overrideWithValue(provider),
           syncStateProvider.overrideWith((ref) => _FakeSyncNotifier(ref)),
           selectedCloudProviderTypeProvider.overrideWith((ref) => selected),
@@ -268,5 +278,29 @@ void main() {
     await tester.tap(find.byKey(const Key('webdav-remove-confirm')));
     await tester.pumpAndSettle();
     expect(await provider.loadConfig(), isNull);
+  });
+
+  testWidgets('Remove also deletes the sync account copy of the password', (
+    tester,
+  ) async {
+    final saved = WebDavConfig(
+      preset: WebDavPreset.other,
+      serverUrl: 'https://dav.test/dav',
+      username: 'alice',
+      password: 'secret',
+    );
+    await provider.saveConfig(saved);
+    final accountId = accountIdFor(
+      kind: AccountKind.webdav,
+      naturalKey: webdavNaturalKey(saved),
+    );
+    await accountCredentials.write(accountId, '{}');
+    await pumpPage(tester);
+    await tester.ensureVisible(find.byKey(const Key('webdav-remove')));
+    await tester.tap(find.byKey(const Key('webdav-remove')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('webdav-remove-confirm')));
+    await tester.pumpAndSettle();
+    expect(await accountCredentials.read(accountId), isNull);
   });
 }

@@ -24710,6 +24710,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter an address starting with https:// or http://';
 
   @override
+  String get settings_webdavConfig_validation_urlCredentials =>
+      'Put the username and password in their own fields, not in the address';
+
+  @override
   String get settings_webdavConfig_warning_http =>
       'This server uses http://, so your password and dive data travel unencrypted. Use it only on a network you trust.';
 

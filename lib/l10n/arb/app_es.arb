@@ -7054,6 +7054,7 @@
   "settings_webdavConfig_validation_folder": "Los nombres de carpeta no pueden contener segmentos . o ..",
   "settings_webdavConfig_validation_required": "Obligatorio",
   "settings_webdavConfig_validation_url": "Introduzca una dirección que empiece por https:// o http://",
+  "settings_webdavConfig_validation_urlCredentials": "Escriba el usuario y la contraseña en sus propios campos, no en la dirección",
   "settings_webdavConfig_warning_http": "Este servidor usa http://, así que su contraseña y sus datos de buceo viajan sin cifrar. Úselo solo en una red de confianza.",
   "settings_section_about_subtitle": "Información de la app y licencias",
   "settings_section_about_title": "Acerca de",

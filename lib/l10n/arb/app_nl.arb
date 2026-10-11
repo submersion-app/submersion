@@ -7054,6 +7054,7 @@
   "settings_webdavConfig_validation_folder": "Mapnamen mogen geen segmenten . of .. bevatten",
   "settings_webdavConfig_validation_required": "Verplicht",
   "settings_webdavConfig_validation_url": "Voer een adres in dat begint met https:// of http://",
+  "settings_webdavConfig_validation_urlCredentials": "Zet de gebruikersnaam en het wachtwoord in hun eigen velden, niet in het adres",
   "settings_webdavConfig_warning_http": "Deze server gebruikt http://, dus uw wachtwoord en duikgegevens worden onversleuteld verzonden. Gebruik dit alleen op een vertrouwd netwerk.",
   "settings_section_about_subtitle": "App-info & licenties",
   "settings_section_about_title": "Over",

@@ -51,6 +51,7 @@ final accountProviderRegistryProvider = Provider<AccountProviderRegistry>(
     S3AccountAdapter(credentials: ref.watch(accountCredentialsStoreProvider)),
     WebDavAccountAdapter(
       credentials: ref.watch(accountCredentialsStoreProvider),
+      legacySync: ref.watch(webdavCredentialsStoreProvider),
     ),
     DropboxAccountAdapter(),
     GoogleDriveAccountAdapter(),
