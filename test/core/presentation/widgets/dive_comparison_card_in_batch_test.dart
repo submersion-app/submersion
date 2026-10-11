@@ -8,7 +8,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/presentation/widgets/dive_comparison_card.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/duplicate_action_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -101,19 +104,31 @@ void main() {
   });
 
   group('with the other copy at hand (#3110)', () {
+    List<Map<String, dynamic>> profile(double depth) => [
+      {'timestamp': 0, 'depth': 0.0},
+      {'timestamp': 600, 'depth': depth},
+      {'timestamp': 2700, 'depth': 0.0},
+    ];
     final partner = IncomingDiveData.fromImportMap({
       'dateTime': DateTime(2024, 1, 1, 10),
       'maxDepth': 18.0,
       'duration': const Duration(minutes: 45),
       'diveNumber': 300,
       'waterTemp': 27.0,
+      'profile': profile(18.0),
+    });
+    final withProfile = IncomingDiveData.fromImportMap({
+      'dateTime': DateTime(2024, 1, 1, 10),
+      'maxDepth': 18.0,
+      'duration': const Duration(minutes: 45),
+      'profile': profile(17.8),
     });
 
     Future<void> pumpPair(WidgetTester tester) async {
       await tester.pumpWidget(
         harness(
           DiveComparisonCard(
-            incoming: incoming,
+            incoming: withProfile,
             existingDiveId: '',
             matchScore: 1.0,
             incomingLabel: 'Incoming',
@@ -144,6 +159,42 @@ void main() {
       );
     });
 
+    testWidgets('the duplicate card passes its partner to the comparison', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        harness(
+          SingleChildScrollView(
+            child: DuplicateActionCard(
+              item: EntityItem(
+                title: 'Copy',
+                subtitle: '',
+                diveData: withProfile,
+              ),
+              matchResult: const DiveMatchResult(
+                diveId: '',
+                inBatchIndex: 0,
+                score: 1.0,
+                timeDifferenceMs: 0,
+              ),
+              selectedAction: DuplicateAction.skip,
+              availableActions: const {
+                DuplicateAction.skip,
+                DuplicateAction.importAsNew,
+              },
+              onActionChanged: (_) {},
+              existingDiveId: '',
+              inBatchPartner: partner,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('Copy'));
+      await tester.pumpAndSettle();
+      expect(find.text('Other copy (#300)'), findsWidgets);
+    });
+
     testWidgets('compares the two copies field by field', (tester) async {
       await pumpPair(tester);
       // The water temperature only the other copy has is a difference,
@@ -152,6 +203,7 @@ void main() {
       // Neither copy is stored yet, so the legend does not call one of them
       // the existing dive.
       expect(find.textContaining('Existing:'), findsNothing);
+      expect(find.text('Incoming'), findsWidgets);
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
   });

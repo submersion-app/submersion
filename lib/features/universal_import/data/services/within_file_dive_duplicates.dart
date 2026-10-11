@@ -17,7 +17,9 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 /// Of each pair, the copy carrying less data is the one flagged, pointing at
 /// the other through [DiveMatchResult.inBatchIndex], so the review's default
 /// (skip the flagged row) keeps the fuller copy. On a tie the later row is
-/// flagged, as the batch pass does.
+/// flagged, as the batch pass does. A third copy pairs with the copy already
+/// kept and is flagged itself, so the kept copy never also becomes a flagged
+/// one.
 abstract final class WithinFileDiveDuplicates {
   /// The score a pair starting under a minute apart must reach.
   static const double minScore = 0.95;
@@ -28,16 +30,19 @@ abstract final class WithinFileDiveDuplicates {
     DiveMatcher matcher,
   ) {
     final matches = <int, DiveMatchResult>{};
-    // Indexes already in a pair, either side. A dive pairs at most once.
-    final paired = <int>{};
+    // A flagged dive pairs once; a kept one stays the target for any further
+    // copy of the same dive.
+    final flaggedSet = <int>{};
+    final keptSet = <int>{};
     final near = _earlierWithinAMinute(dives);
 
     for (var i = 1; i < dives.length; i++) {
       final at = dives[i]['dateTime'] as DateTime?;
       final candidates = near[i];
       if (at == null || candidates == null) continue;
+      if (keptSet.contains(i)) continue;
       for (final j in candidates) {
-        if (paired.contains(j)) continue;
+        if (flaggedSet.contains(j)) continue;
         final otherAt = dives[j]['dateTime'] as DateTime;
         final gap = at.difference(otherAt).abs();
         final score = matcher.calculateMatchScore(
@@ -50,7 +55,8 @@ abstract final class WithinFileDiveDuplicates {
         );
         if (score < minScore) continue;
 
-        final flagJ = richness(dives[j]) < richness(dives[i]);
+        final flagJ =
+            !keptSet.contains(j) && richness(dives[j]) < richness(dives[i]);
         final flagged = flagJ ? j : i;
         final kept = flagJ ? i : j;
         matches[flagged] = DiveMatchResult(
@@ -59,7 +65,8 @@ abstract final class WithinFileDiveDuplicates {
           score: score,
           timeDifferenceMs: gap.inMilliseconds,
         );
-        paired.addAll({i, j});
+        flaggedSet.add(flagged);
+        keptSet.add(kept);
         break;
       }
     }

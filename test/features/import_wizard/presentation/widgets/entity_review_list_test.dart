@@ -200,6 +200,51 @@ void main() {
       expect(find.byType(DuplicateActionCard), findsOneWidget);
     });
 
+    testWidgets('an in-import copy hands the card its partner (#3110)', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      final partnerData = IncomingDiveData(
+        startTime: DateTime(2026, 8, 1, 10, 15),
+        maxDepth: 18.4,
+        diveNumber: 300,
+      );
+      final group = EntityGroup(
+        items: [
+          EntityItem(title: 'Dive A', subtitle: '', diveData: partnerData),
+          _dupItem,
+          _itemA,
+        ],
+        duplicateIndices: const {1, 2},
+        matchResults: const {
+          1: DiveMatchResult(
+            diveId: '',
+            inBatchIndex: 0,
+            score: 1.0,
+            timeDifferenceMs: 0,
+          ),
+          // A partner index outside the group yields no partner.
+          2: DiveMatchResult(
+            diveId: '',
+            inBatchIndex: 9,
+            score: 1.0,
+            timeDifferenceMs: 0,
+          ),
+        },
+      );
+
+      await tester.pumpWidget(_buildList(group: group, selectedIndices: {0}));
+      await tester.pump();
+
+      final cards = tester
+          .widgetList<DuplicateActionCard>(find.byType(DuplicateActionCard))
+          .toList();
+      expect(cards.map((c) => c.inBatchPartner), [partnerData, null]);
+    });
+
     testWidgets('duplicate card shows correct match percentage', (
       tester,
     ) async {
