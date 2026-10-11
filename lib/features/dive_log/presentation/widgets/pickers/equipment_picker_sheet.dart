@@ -266,7 +266,12 @@ class EquipmentPickerSheet extends ConsumerWidget {
                       : typeMatches.isEmpty
                       ? context.l10n.equipment_list_emptyState_noTypeMatch
                       : context.l10n.equipment_list_emptyState_noStatusMatch,
-                  hint: equipmentList.isEmpty
+                  // With retired or sold gear behind the switch above, the
+                  // switch is the way forward, not adding or removing gear
+                  // (#3210).
+                  hint: offersLeftKitSwitch && !showLeftKit
+                      ? null
+                      : equipmentList.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_addFromTab
                       : unselected.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_removeToAdd

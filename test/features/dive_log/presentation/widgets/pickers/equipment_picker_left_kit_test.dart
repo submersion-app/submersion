@@ -180,6 +180,15 @@ void main() {
       expect(find.text('Old Reg'), findsNothing);
     });
 
+    testWidgets('an empty list points at the switch, not the Equipment tab', (
+      tester,
+    ) async {
+      await _pump(tester, all: const [_oldReg]);
+
+      expect(find.text(_showLabel), findsOneWidget);
+      expect(find.text('Add equipment from the Equipment tab'), findsNothing);
+    });
+
     testWidgets('leaves out gear already on the dive', (tester) async {
       await _pump(tester, all: const [_bcd, _oldReg], selectedIds: {'old-reg'});
 
