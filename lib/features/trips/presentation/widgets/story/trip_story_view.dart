@@ -210,6 +210,15 @@ class TripStoryView extends ConsumerWidget {
         itemCount: todayIndex,
         itemBuilder: (context, i) =>
             _dayChapter(context, todayIndex - 1 - i, storedWeather),
+        // Keyed by date like the days below, so a shifted story moves each
+        // earlier chapter's state with it.
+        findChildIndexCallback: (key) {
+          if (key is! ValueKey<DateTime>) return null;
+          final index = story.days.indexWhere((d) => d.date == key.value);
+          return index < 0 || index >= todayIndex
+              ? null
+              : todayIndex - 1 - index;
+        },
       ),
       SliverMainAxisGroup(
         key: _todayKey,

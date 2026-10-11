@@ -1,5 +1,4 @@
 import 'package:clock/clock.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
+import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
@@ -107,6 +107,9 @@ class TripItineraryTab extends ConsumerWidget {
     // Photos and sightings come from the trip story, best effort: while it
     // loads or if it fails the cards simply go without their media line.
     final story = ref.watch(tripStoryProvider(tripId)).valueOrNull;
+    final storyDays = <DateTime, TripStoryDay>{
+      for (final d in story?.days ?? const <TripStoryDay>[]) tripDay(d.date): d,
+    };
     final storedWeather =
         ref.watch(tripDayWeatherProvider(tripId)).asData?.value ??
         const <int, TripDayWeather>{};
@@ -126,9 +129,7 @@ class TripItineraryTab extends ConsumerWidget {
     Widget card(int index) {
       final day = days[index];
       final dayDives = sortedDivesByDate[_dateKey(day.date)] ?? [];
-      final storyDay = story?.days.firstWhereOrNull(
-        (d) => tripDay(d.date) == tripDay(day.date),
-      );
+      final storyDay = storyDays[tripDay(day.date)];
       return ItineraryDayCard(
         day: day,
         dives: dayDives,
