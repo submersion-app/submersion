@@ -49,13 +49,18 @@ void _seed(sqlite.Database raw) {
     "'+1 555', 1790000000000, 1)",
   );
   raw.execute(
+    "UPDATE divers SET created_at = 1600000000000, updated_at = 1650000000000 "
+    "WHERE id = 'd1'",
+  );
+  raw.execute(
     "INSERT INTO divers (id, name, insurance_provider, created_at) "
     "VALUES ('d2', 'Ben', '   ', 2)",
   );
   raw.execute("INSERT INTO buddies (id, diver_id) VALUES ('b1', 'd2')");
   raw.execute(
-    'INSERT INTO certifications (id, diver_id, photo_front, photo_back) '
-    "VALUES ('c1', 'd1', X'0102', X'0304')",
+    'INSERT INTO certifications (id, diver_id, photo_front, photo_back, '
+    "created_at, updated_at) VALUES ('c1', 'd1', X'0102', X'0304', "
+    '1610000000000, 1660000000000)',
   );
   raw.execute(
     'INSERT INTO certifications (id, buddy_id, photo_front) '
@@ -149,6 +154,36 @@ void main() {
     expect(pages[0]['bytes'], Uint8List.fromList([1, 2]));
     expect(pages[0]['mime_type'], 'image/jpeg');
   });
+
+  test(
+    'migrated rows carry their source row timestamps, the same on every '
+    'device, so a peer edit made after the upgrade is not a conflict',
+    () async {
+      final db = AppDatabase(seeded());
+      addTearDown(db.close);
+      final docs = await rows(
+        db,
+        'SELECT type, created_at, updated_at FROM documents '
+        "WHERE diver_id = 'd1' AND (type != 'certificationCard' "
+        "OR certification_id = 'c1') ORDER BY type",
+      );
+      for (final d in docs) {
+        if (d['type'] == 'certificationCard') {
+          expect(d['created_at'], 1610000000000);
+          expect(d['updated_at'], 1660000000000);
+        } else {
+          expect(d['created_at'], 1600000000000, reason: '${d['type']}');
+          expect(d['updated_at'], 1650000000000, reason: '${d['type']}');
+        }
+      }
+      final pages = await rows(
+        db,
+        'SELECT updated_at FROM document_pages '
+        "WHERE document_id = '${documentCertificationCardId('c1')}'",
+      );
+      expect(pages.map((p) => p['updated_at']), everyElement(1660000000000));
+    },
+  );
 
   test('a cert with no photos gets no card document', () async {
     final db = AppDatabase(seeded());

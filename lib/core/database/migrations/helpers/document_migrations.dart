@@ -49,11 +49,16 @@ extension DocumentMigrations on AppDatabase {
   /// upgrades the same library produces the same rows, and they merge.
   ///
   /// The source columns are left as they are and never written again.
+  ///
+  /// Each row takes its source row's created/updated time, identical on
+  /// every device, rather than this device's migration time: a peer's edit
+  /// or delete made after its own upgrade then applies here as a plain
+  /// remote change, not as a conflict with an untouched local copy.
   Future<void> _migrateLegacyDocuments() async {
     if (!await _tableExists('documents')) return;
-    final now = DateTime.now().millisecondsSinceEpoch;
     final divers = await customSelect(
-      'SELECT id, is_default, insurance_provider, insurance_policy_number, '
+      'SELECT id, is_default, created_at, updated_at, '
+      'insurance_provider, insurance_policy_number, '
       'insurance_expiry_date, insurance_emergency_phone, insurance_phone, '
       'medical_clearance_expiry_date FROM divers ORDER BY created_at, id',
     ).get();
@@ -64,6 +69,8 @@ extension DocumentMigrations on AppDatabase {
 
     for (final d in divers) {
       final diverId = d.read<String>('id');
+      final created = d.read<int>('created_at');
+      final updated = d.read<int>('updated_at');
       final provider = present(d.readNullable<String>('insurance_provider'));
       final policy = present(d.readNullable<String>('insurance_policy_number'));
       final expiry = d.readNullable<int>('insurance_expiry_date');
@@ -89,8 +96,8 @@ extension DocumentMigrations on AppDatabase {
             expiry,
             emergency,
             phone,
-            now,
-            now,
+            created,
+            updated,
           ],
         );
       }
@@ -100,7 +107,13 @@ extension DocumentMigrations on AppDatabase {
           'INSERT OR IGNORE INTO documents (id, diver_id, type, title, '
           'expiry_date, is_primary, notes, created_at, updated_at) '
           "VALUES (?, ?, 'medicalClearance', '', ?, 0, '', ?, ?)",
-          [documentMedicalClearanceId(diverId), diverId, clearance, now, now],
+          [
+            documentMedicalClearanceId(diverId),
+            diverId,
+            clearance,
+            created,
+            updated,
+          ],
         );
       }
     }
@@ -115,6 +128,7 @@ extension DocumentMigrations on AppDatabase {
 
     final certs = await customSelect(
       'SELECT c.id, c.diver_id, c.photo_front, c.photo_back, '
+      'c.created_at, c.updated_at, '
       'b.diver_id AS buddy_diver_id FROM certifications c '
       'LEFT JOIN buddies b ON b.id = c.buddy_id '
       'WHERE c.photo_front IS NOT NULL OR c.photo_back IS NOT NULL',
@@ -126,11 +140,13 @@ extension DocumentMigrations on AppDatabase {
           c.readNullable<String>('buddy_diver_id') ??
           defaultDiverId;
       final docId = documentCertificationCardId(certId);
+      final created = c.read<int>('created_at');
+      final updated = c.read<int>('updated_at');
       await customStatement(
         'INSERT OR IGNORE INTO documents (id, diver_id, certification_id, '
         'type, title, is_primary, notes, created_at, updated_at) '
         "VALUES (?, ?, ?, 'certificationCard', '', 0, '', ?, ?)",
-        [docId, diverId, certId, now, now],
+        [docId, diverId, certId, created, updated],
       );
       var index = 0;
       for (final (side, column) in const [
@@ -152,8 +168,8 @@ extension DocumentMigrations on AppDatabase {
             'image/jpeg',
             bytes.length,
             bytes,
-            now,
-            now,
+            created,
+            updated,
           ],
         );
       }
