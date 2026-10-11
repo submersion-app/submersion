@@ -151,6 +151,32 @@ void main() {
     );
   });
 
+  test('every computer a multi-computer dive was worn with records the '
+      'file format', () async {
+    await runImport([
+      {
+        ...diveEntry(day: 1, model: 'Perdix', serial: 'SN-A'),
+        'additionalComputers': [
+          {
+            'diveComputerModel': 'Teric',
+            'diveComputerSerial': 'SN-B',
+            'maxDepth': 29.5,
+          },
+        ],
+      },
+    ], format: ImportFormat.subsurfaceXml);
+
+    final computers = await db.select(db.diveComputers).get();
+    expect(computers, hasLength(2));
+    final connections = await db.select(db.diveComputerConnections).get();
+    expect(
+      connections.map((c) => (c.computerId, c.kind, c.detail)),
+      unorderedEquals([
+        for (final c in computers) (c.id, 'file', 'subsurfaceXml'),
+      ]),
+    );
+  });
+
   test('dives without a registered computer record no connection', () async {
     await runImport([diveEntry(day: 1)], format: ImportFormat.fit);
     expect(await db.select(db.diveComputerConnections).get(), isEmpty);

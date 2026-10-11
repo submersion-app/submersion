@@ -3311,6 +3311,8 @@ class UddfEntityImporter {
         sourceFileFormat: diveSourceFormat?.name ?? 'uddf',
         now: now,
         onSkippedEvent: _log.warning,
+        onComputerWritten: (id) =>
+            usedConnections.add((id, diveSourceFormat?.name ?? 'uddf')),
       );
 
       if (computerId != null) {

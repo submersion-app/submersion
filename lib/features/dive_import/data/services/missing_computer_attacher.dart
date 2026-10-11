@@ -136,6 +136,7 @@ class MissingComputerAttacher {
         ? 0
         : parsedStart.difference(diveStart).inSeconds;
 
+    final writtenComputerIds = <String>{};
     final written = await _writer.write(
       computers: [
         for (final entry in missing)
@@ -156,10 +157,9 @@ class MissingComputerAttacher {
       sourceFileFormat: sourceFileFormat,
       now: now ?? DateTime.now(),
       onSkippedEvent: _log.warning,
+      onComputerWritten: writtenComputerIds.add,
     );
-    if (written > 0) {
-      await _recordFileConnections(idByKey.values, sourceFileFormat);
-    }
+    await _recordFileConnections(writtenComputerIds, sourceFileFormat);
     return (missing: missing.length, written: written);
   }
 
