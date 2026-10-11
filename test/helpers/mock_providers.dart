@@ -823,7 +823,7 @@ Future<List<Override>> getBaseOverrides({
     ),
     // The Diver Profile hub counts the active diver's near-miss log entries
     // (issue #3061); without this it reaches the real repository and a
-    // database widget tests do not have.
+    // database that widget tests do not have.
     incidentsProvider.overrideWith((ref) async => incidents),
     // Weather/elevation lookups must never hit the network in widget tests;
     // the default stub fails fast so altitude auto-fill resolves to null.
