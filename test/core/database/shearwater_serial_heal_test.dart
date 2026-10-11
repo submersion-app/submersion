@@ -113,12 +113,52 @@ void main() {
       'c2',
       manufacturer: 'Shearwater',
       model: 'Teric',
-      serial: '12345678',
+      serial: '3101949313',
     );
     await insertDiveWithSource(computerId: 'c2', sourceFormat: 'dive_computer');
 
     expect(await db.healShearwaterDownloadSerialsForTest(), 1);
-    expect((await read('c2')).serialNumber, '00BC614E');
+    expect((await read('c2')).serialNumber, 'B8E3FD81');
+  });
+
+  test('healing twice leaves a hex result made only of digits alone', () async {
+    // 0x12345678 == 305419896: the hex this build stores is all digits,
+    // and the next open must not read it as decimal again.
+    await insertComputer(
+      'c4',
+      manufacturer: 'Shearwater',
+      model: 'Perdix 2',
+      serial: '305419896',
+      connectionType: 'bluetooth',
+    );
+
+    expect(await db.healShearwaterDownloadSerialsForTest(), 1);
+    expect(await db.healShearwaterDownloadSerialsForTest(), 0);
+    expect((await read('c4')).serialNumber, '12345678');
+  });
+
+  test('an 8-digit serial on a downloaded row is left to the one-time '
+      'upgrade pass', () async {
+    // A file import's all-digit hex can sit on a row a later download
+    // rebound to Bluetooth, so on an ordinary open 8 digits are ambiguous.
+    await insertComputer(
+      'c5',
+      manufacturer: 'Shearwater',
+      model: 'Perdix 2',
+      serial: '12345678',
+      connectionType: 'bluetooth',
+    );
+
+    expect(await db.healShearwaterDownloadSerialsForTest(), 0);
+    expect((await read('c5')).serialNumber, '12345678');
+
+    // The v277 rung runs once, before this build has written any hex, when
+    // every 8-digit download serial is still libdivecomputer's decimal.
+    expect(
+      await db.healShearwaterDownloadSerialsForTest(includeAmbiguous: true),
+      1,
+    );
+    expect((await read('c5')).serialNumber, '00BC614E');
   });
 
   test('other brands and hex serials are untouched, and a second run does '

@@ -24,12 +24,23 @@ final RegExp _allDigits = RegExp(r'^\d+$');
 /// characters, so a row qualifies only when its connection type is a direct
 /// transport or a `source_format = 'dive_computer'` data source points at it.
 ///
+/// An 8-digit serial is ambiguous once this build has run: the hex it
+/// stores for a download can be all digits (`0x12345678` is stored as
+/// `12345678`), and a file import's all-digit hex can sit on a row a later
+/// download rebound to Bluetooth. So an ordinary open converts only the
+/// lengths a stored hex never has; [includeAmbiguous] adds the 8-digit
+/// serials, and only the v277 rung passes it, once, before this build has
+/// written any hex.
+///
 /// Local-only and idempotent: no HLC bump, no pending mark, `updated_at`
 /// untouched. Every device on this version derives the same value, so a
 /// synced fleet converges without traffic, and no device pushes a restamp
 /// that could override a rename made elsewhere. Matching treats both forms
 /// as one serial, so a peer that has not upgraded yet still lines up.
-Future<int> healShearwaterDownloadSerials(DatabaseConnectionUser db) async {
+Future<int> healShearwaterDownloadSerials(
+  DatabaseConnectionUser db, {
+  bool includeAmbiguous = false,
+}) async {
   // PRAGMA-guarded like every other self-heal: beforeOpen also runs on
   // minimal old-schema fixtures and databases caught mid-upgrade.
   Future<Set<String>> columnsOf(String table) async {
@@ -65,6 +76,7 @@ Future<int> healShearwaterDownloadSerials(DatabaseConnectionUser db) async {
   for (final row in rows) {
     final serial = row.read<String>('serial_number').trim();
     if (!_allDigits.hasMatch(serial)) continue;
+    if (serial.length == 8 && !includeAmbiguous) continue;
     if (!isShearwaterFamily(
       manufacturer: row.readNullable<String>('manufacturer'),
       model: row.readNullable<String>('model'),

@@ -311,6 +311,11 @@ extension RungsFromV231 on AppDatabase {
     // re-asserted in beforeOpen.
     if (from < 277) {
       await _assertDiveComputerConnectionSchema();
+      // Once, before this build writes any hex: every 8-digit Shearwater
+      // download serial is still libdivecomputer's decimal here. The
+      // every-open heal leaves 8 digits alone, since afterwards they can be
+      // hex (issue #3106).
+      await _healShearwaterDownloadSerialsOnUpgrade();
     }
     if (from < 277) await reportProgress();
   }

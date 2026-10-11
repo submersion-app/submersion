@@ -214,9 +214,15 @@ extension DataSourceMigrations on AppDatabase {
   Future<void> _healShearwaterDownloadSerials() =>
       healShearwaterDownloadSerials(this);
 
+  /// The v277 rung's one-time pass, which also converts the 8-digit serials
+  /// the every-open heal leaves alone (issue #3106).
+  Future<void> _healShearwaterDownloadSerialsOnUpgrade() =>
+      healShearwaterDownloadSerials(this, includeAmbiguous: true);
+
   /// Test-only hook exercising the #3106 serial heal directly.
-  Future<int> healShearwaterDownloadSerialsForTest() =>
-      healShearwaterDownloadSerials(this);
+  Future<int> healShearwaterDownloadSerialsForTest({
+    bool includeAmbiguous = false,
+  }) => healShearwaterDownloadSerials(this, includeAmbiguous: includeAmbiguous);
 
   /// Seed connections for computers registered before they existed (issue
   /// #3106). Body lives in `dive_computer_connection_seed.dart`.
