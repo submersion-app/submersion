@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -49,6 +50,18 @@ void main() {
 
     test('adds decimals for finely spaced ticks', () {
       expect(tick(ProfileRightAxisMetric.ppO2, 1.05, step: 0.05), '1.05');
+    });
+
+    test('never labels a tick on the zero line "-0"', () {
+      expect(tick(ProfileRightAxisMetric.ndl, -1e-13, step: 120), '0');
+      expect(tick(ProfileRightAxisMetric.temperature, -0.04, step: 0.3), '0.0');
+    });
+
+    test('uses the active locale decimal separator', () {
+      final previous = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previous);
+      Intl.defaultLocale = 'de';
+      expect(tick(ProfileRightAxisMetric.temperature, 30.7, step: 0.3), '30,7');
     });
 
     test('measures the step in display units', () {

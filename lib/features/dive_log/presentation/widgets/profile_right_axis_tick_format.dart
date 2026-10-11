@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 
 /// The most decimals a right-axis tick label is ever given.
@@ -34,7 +35,9 @@ String formatRightAxisTick(
         (_displayValue(metric, value + tickStep, units) - display).abs();
     decimals = math.max(decimals, _decimalsToSeparate(displayStep));
   }
-  return display.toStringAsFixed(decimals);
+  // A tick on the zero line can unmap to -1e-13, which would print "-0".
+  final rounded = double.parse(display.toStringAsFixed(decimals));
+  return formatFixedForDisplay(rounded == 0 ? 0 : display, decimals);
 }
 
 /// Fewest decimals at which two values [step] apart round to different
