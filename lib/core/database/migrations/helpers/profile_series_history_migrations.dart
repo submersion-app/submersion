@@ -156,13 +156,17 @@ extension ProfileSeriesActivatedAtMigrations on AppDatabase {
         'WHERE is_primary = 1',
       );
     }
+    // Lower-cased rather than left to LIKE's ASCII case folding, which
+    // PRAGMA case_sensitive_like would switch off: history holds the current
+    // `Edit: <kind>` and the legacy `edit` and `edit:<kind>` spellings.
     if (names.containsAll(const ['is_primary', 'created_at']) &&
         await _tableExists('dive_profile_series_history')) {
       await customStatement(
         'UPDATE dive_profile_series SET activated_at = created_at '
         'WHERE is_primary = 0 AND id IN ('
         'SELECT series_id FROM dive_profile_series_history '
-        "WHERE revision_kind = 'edit' OR revision_kind LIKE 'Edit:%')",
+        "WHERE lower(revision_kind) = 'edit' "
+        "OR lower(revision_kind) LIKE 'edit:%')",
       );
     }
   }

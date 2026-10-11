@@ -28,7 +28,8 @@ void main() {
           (id, dive_id, computer_id, is_primary, created_at, updated_at)
         VALUES ('live', 'dive-1', NULL, 1, 100, 400),
                ('demoted-edit', 'dive-1', NULL, 0, 200, 500),
-               ('demoted-original', 'dive-1', NULL, 0, 50, 600)
+               ('demoted-original', 'dive-1', NULL, 0, 50, 600),
+               ('demoted-legacy-edit', 'dive-1', NULL, 0, 300, 700)
       ''');
       rawDb.execute('''
         CREATE TABLE dive_profile_series_history (
@@ -49,7 +50,9 @@ void main() {
                ('demoted-edit', 'dive-1', 'demoted-original',
                 'demoted-original', 'h2', 'Edit: profile_editor', 200),
                ('demoted-original', 'dive-1', NULL, 'demoted-original',
-                'h3', 'legacy', 50)
+                'h3', 'legacy', 50),
+               ('demoted-legacy-edit', 'dive-1', 'demoted-original',
+                'demoted-original', 'h4', 'edit:profile_editor', 300)
       ''');
     },
   );
@@ -83,6 +86,8 @@ void main() {
         'live': 400,
         // A demoted edit the history knows of: its synced created_at.
         'demoted-edit': 200,
+        // The legacy lower-case spelling counts too.
+        'demoted-legacy-edit': 300,
         // Never live as far as anything recorded says.
         'demoted-original': null,
       },
