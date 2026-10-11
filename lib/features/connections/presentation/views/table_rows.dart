@@ -1,3 +1,4 @@
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
@@ -23,9 +24,9 @@ class EntityRow {
   final int strongestWeight;
 }
 
-/// Sorting for the Pairs and Entities tables. Ties always fall back to
-/// labels ascending, so equal rows keep one order whichever way the column
-/// runs.
+/// Sorting for the Pairs and Entities tables. Names compare alphabetically,
+/// ignoring case and accents. Ties always fall back to labels ascending, so
+/// equal rows keep one order whichever way the column runs.
 abstract final class ConnectionsTableRows {
   /// Text columns read A to Z first; numbers and dates biggest or newest
   /// first.
@@ -42,16 +43,18 @@ abstract final class ConnectionsTableRows {
     required bool ascending,
   }) {
     final labels = {for (final n in graph.nodes) n.ref: n.label};
-    String label(NodeRef r) => labels[r] ?? r.id;
+    final collator = TextCollator();
+    int byLabel(NodeRef x, NodeRef y) =>
+        collator.compare(labels[x] ?? x.id, labels[y] ?? y.id);
     int tieBreak(ConnectionEdge x, ConnectionEdge y) {
-      final a = label(x.source).compareTo(label(y.source));
-      return a != 0 ? a : label(x.target).compareTo(label(y.target));
+      final a = byLabel(x.source, y.source);
+      return a != 0 ? a : byLabel(x.target, y.target);
     }
 
     return [...graph.edges]..sort((x, y) {
       final primary = switch (by) {
-        PairsColumn.a => label(x.source).compareTo(label(y.source)),
-        PairsColumn.b => label(x.target).compareTo(label(y.target)),
+        PairsColumn.a => byLabel(x.source, y.source),
+        PairsColumn.b => byLabel(x.target, y.target),
         PairsColumn.shared => x.weight.compareTo(y.weight),
         PairsColumn.last => x.lastDiveAt.compareTo(y.lastDiveAt),
         PairsColumn.first => x.firstDiveAt.compareTo(y.firstDiveAt),
@@ -88,6 +91,7 @@ abstract final class ConnectionsTableRows {
           strongestWeight: best[n.ref]?.weight ?? 0,
         ),
     ];
+    final collator = TextCollator();
     // A missing date sorts as the oldest.
     int compareDates(DateTime? x, DateTime? y) {
       if (x == null || y == null) {
@@ -98,13 +102,14 @@ abstract final class ConnectionsTableRows {
 
     return rows..sort((x, y) {
       final primary = switch (by) {
-        EntitiesColumn.name => x.node.label.compareTo(y.node.label),
+        EntitiesColumn.name => collator.compare(x.node.label, y.node.label),
         EntitiesColumn.kind => x.node.ref.kind.index.compareTo(
           y.node.ref.kind.index,
         ),
         EntitiesColumn.dives => x.node.diveCount.compareTo(y.node.diveCount),
         EntitiesColumn.links => x.links.compareTo(y.links),
-        EntitiesColumn.strongest => (x.strongest?.label ?? '').compareTo(
+        EntitiesColumn.strongest => collator.compare(
+          x.strongest?.label ?? '',
           y.strongest?.label ?? '',
         ),
         EntitiesColumn.first => compareDates(
@@ -113,7 +118,9 @@ abstract final class ConnectionsTableRows {
         ),
       };
       final ordered = ascending ? primary : -primary;
-      return ordered != 0 ? ordered : x.node.label.compareTo(y.node.label);
+      return ordered != 0
+          ? ordered
+          : collator.compare(x.node.label, y.node.label);
     });
   }
 }

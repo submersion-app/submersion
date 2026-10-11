@@ -43,7 +43,7 @@ class ConnectionsPainter extends CustomPainter {
     Map<NodeRef, TextPainter>? labelCache,
     Map<NodeRef, TextPainter>? dimLabelCache,
     Map<(NodeRef, int), TextPainter>? initialsCache,
-    Map<Object, TextPainter>? guideCache,
+    Map<String, TextPainter>? guideCache,
   }) : labelCache = labelCache ?? {},
        guideCache = guideCache ?? {},
        dimLabelCache = dimLabelCache ?? {},
@@ -95,7 +95,7 @@ class ConnectionsPainter extends CustomPainter {
 
   /// Laid-out timeline guide text by guide and text, owned by the canvas
   /// like the label caches, so panning a timeline never re-lays it out.
-  final Map<Object, TextPainter> guideCache;
+  final Map<String, TextPainter> guideCache;
 
   /// The nodes lit up by [selection]: a node's far ends, or both ends of an
   /// edge. Empty without a selection.
@@ -357,16 +357,16 @@ class ConnectionsPainter extends CustomPainter {
     }
   }
 
-  /// Timeline years and kind lanes, drawn under the edges.
-  /// Laid-out text for [g], cached by guide and text: a language change can
-  /// leave the graph, and so the cache, untouched.
+  /// Laid-out text for [g], cached by its text alone: a guide moved by a new
+  /// spacing reuses it, and a language change, which can leave the graph and
+  /// so the cache untouched, gets new text and so a new entry.
   TextPainter _guidePainter(LayoutGuide g, Color ink) {
     final text = switch (g) {
       YearGuide(:final year) => '$year',
       LaneGuide(:final kind) => kindNames[kind] ?? kind.name,
     };
     return guideCache.putIfAbsent(
-      (g, text),
+      text,
       () => TextPainter(
         text: TextSpan(
           text: text,

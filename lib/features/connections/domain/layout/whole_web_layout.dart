@@ -89,10 +89,6 @@ class WholeWebLayout {
   LayoutFrame get frame => _frame;
   bool get settled => _layouts.every((l) => l.settled);
 
-  /// True while any node, island member or single, is pinned by a drag.
-  bool get hasPins =>
-      _singlePins.isNotEmpty || _layouts.any((l) => l.pinned.isNotEmpty);
-
   void advance(int iterations) {
     for (final l in _layouts) {
       l.advance(iterations);

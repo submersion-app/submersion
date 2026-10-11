@@ -20,12 +20,12 @@ String kindLabel(AppLocalizations l10n, ConnectionKind kind) => switch (kind) {
   ConnectionKind.course => l10n.connections_kind_course,
 };
 
-/// One entity's kind ("Buddy"), where [kindLabel] names the group.
 /// Every kind's plural name, for the timeline's lane labels.
 Map<ConnectionKind, String> kindNames(AppLocalizations l10n) => {
   for (final k in ConnectionKind.values) k: kindLabel(l10n, k),
 };
 
+/// One entity's kind ("Buddy"), where [kindLabel] names the group.
 String kindNameOne(AppLocalizations l10n, ConnectionKind kind) =>
     switch (kind) {
       ConnectionKind.buddy => l10n.connections_kindOne_buddy,

@@ -8,7 +8,7 @@ import 'package:submersion/features/connections/presentation/views/matrix_model.
 
 /// Laid-out matrix text, kept across frames by the matrix widget so a
 /// scroll never re-lays out the same header or count. The owner clears it
-/// when the map or the text style changes.
+/// when the map, the text style or the text direction changes.
 class MatrixTextCache {
   final Map<Object, TextPainter> painters = {};
 

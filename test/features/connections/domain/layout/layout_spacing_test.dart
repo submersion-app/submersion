@@ -4,7 +4,6 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/layout/force_layout.dart';
-import 'package:submersion/features/connections/domain/layout/graph_point.dart';
 import 'package:submersion/features/connections/domain/layout/radial_layout.dart';
 import 'package:submersion/features/connections/domain/layout/whole_web_layout.dart';
 
@@ -64,19 +63,5 @@ void main() {
 
     expect(singleGap(1), 90);
     expect(singleGap(1.5), 135);
-  });
-
-  test('hasPins follows moveNode and clearPins, singles included', () {
-    final web = WholeWebLayout(
-      nodes: [_b('a'), _b('b'), _b('lone')],
-      edges: [_e(_b('a'), _b('b'))],
-    );
-    expect(web.hasPins, isFalse);
-    web.moveNode(_b('a'), const GraphPoint(5, 5));
-    expect(web.hasPins, isTrue);
-    web.clearPins();
-    expect(web.hasPins, isFalse);
-    web.moveNode(_b('lone'), const GraphPoint(9, 9));
-    expect(web.hasPins, isTrue);
   });
 }

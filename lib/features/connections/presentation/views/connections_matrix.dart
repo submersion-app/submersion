@@ -38,6 +38,7 @@ class _ConnectionsMatrixState extends State<ConnectionsMatrix> {
 
   final _text = MatrixTextCache();
   TextStyle? _textStyle;
+  TextDirection? _textDirection;
 
   MatrixModel get _current {
     if (!identical(_modelFor, widget.graph)) {
@@ -95,9 +96,12 @@ class _ConnectionsMatrixState extends State<ConnectionsMatrix> {
     final textStyle = theme.textTheme.labelSmall!.copyWith(
       color: theme.colorScheme.onSurface,
     );
-    if (textStyle != _textStyle) {
+    final textDirection = Directionality.of(context);
+    // Cached text is laid out in one style and one direction.
+    if (textStyle != _textStyle || textDirection != _textDirection) {
       _text.clear();
       _textStyle = textStyle;
+      _textDirection = textDirection;
     }
     final selection = widget.selection;
     final ConnectionEdge? selectedEdge = switch (selection) {
@@ -147,7 +151,7 @@ class _ConnectionsMatrixState extends State<ConnectionsMatrix> {
                   grid: theme.colorScheme.outlineVariant,
                   tint: theme.colorScheme.secondaryContainer,
                   headerBackground: theme.colorScheme.surface,
-                  textDirection: Directionality.of(context),
+                  textDirection: textDirection,
                   selectedNode: switch (selection) {
                     NodeSelection(:final ref) => ref,
                     _ => null,

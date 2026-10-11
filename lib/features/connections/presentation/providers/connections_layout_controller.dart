@@ -56,9 +56,6 @@ class ConnectionsLayoutController extends ChangeNotifier {
   ConnectionsLayout get layout => _layout;
   bool get settled => _morphTo == null && (_web?.settled ?? true);
 
-  /// True while any node sits where the diver dropped it.
-  bool get hasPins => _web?.hasPins ?? _pins.isNotEmpty;
-
   /// Whether [relayout] would change anything: a live layout can always be
   /// laid out again; a computed one only while something is pinned. A
   /// separate listenable, so the button listening to it does not rebuild on

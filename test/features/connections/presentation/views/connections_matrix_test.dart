@@ -177,6 +177,45 @@ void main() {
     expect(painter.textDirection, TextDirection.rtl);
   });
 
+  testWidgets('a change of direction lays the cached text out again', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    Future<void> pumpIn(TextDirection direction) => tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Directionality(
+          textDirection: direction,
+          child: Scaffold(
+            body: ConnectionsMatrix(
+              graph: _graph,
+              colors: const ConnectionKindColors({}, Colors.grey),
+              selection: null,
+              onSelect: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await pumpIn(TextDirection.ltr);
+    await pumpIn(TextDirection.rtl);
+    final painter =
+        tester
+                .widget<CustomPaint>(
+                  find.byKey(const ValueKey('connections-matrix-paint')),
+                )
+                .painter!
+            as MatrixPainter;
+    expect(painter.text.painters, isNotEmpty);
+    expect(painter.text.painters.values.map((p) => p.textDirection).toSet(), {
+      TextDirection.rtl,
+    });
+  });
+
   testWidgets(
     'a selection reaches the painter, and a blank cell selects nothing',
     (tester) async {

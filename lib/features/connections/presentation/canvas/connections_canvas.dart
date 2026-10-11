@@ -116,7 +116,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas>
   final Map<NodeRef, TextPainter> _labelCache = {};
   final Map<NodeRef, TextPainter> _dimLabelCache = {};
   final Map<(NodeRef, int), TextPainter> _initialsCache = {};
-  final Map<Object, TextPainter> _guideCache = {};
+  final Map<String, TextPainter> _guideCache = {};
   TextStyle? _cachedLabelStyle;
 
   late final AnimationController _glide = AnimationController(
@@ -578,8 +578,9 @@ class _NodeDragGestureRecognizer extends PanGestureRecognizer {
   /// slop is passed.
   NodeRef? pressed;
 
-  /// Where each tracked pointer went down, and the farthest it has moved.
-  final Map<int, Offset> _downAt = {};
+  /// Where the last press went down, and the farthest it has moved. One
+  /// press at a time: each new one starts both again.
+  Offset? _downAt;
   double _farthest = 0;
 
   @override
@@ -589,20 +590,17 @@ class _NodeDragGestureRecognizer extends PanGestureRecognizer {
   @override
   void addAllowedPointer(PointerDownEvent event) {
     pressed = nodeAt(event.localPosition);
-    _downAt[event.pointer] = event.position;
+    _downAt = event.position;
     _farthest = 0;
     super.addAllowedPointer(event);
   }
 
   @override
   void handleEvent(PointerEvent event) {
-    final down = _downAt[event.pointer];
+    final down = _downAt;
     if (down != null && event is PointerMoveEvent) {
       final moved = (event.position - down).distance;
       if (moved > _farthest) _farthest = moved;
-    }
-    if (event is PointerUpEvent || event is PointerCancelEvent) {
-      _downAt.remove(event.pointer);
     }
     super.handleEvent(event);
   }

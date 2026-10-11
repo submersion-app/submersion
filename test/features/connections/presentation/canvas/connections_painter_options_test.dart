@@ -196,7 +196,7 @@ void main() {
   });
 
   test('guide text follows a change of language with the same graph', () {
-    final cache = <Object, TextPainter>{};
+    final cache = <String, TextPainter>{};
     void paintIn(String lane) {
       final recorder = ui.PictureRecorder();
       ConnectionsPainter(
@@ -219,6 +219,29 @@ void main() {
       cache.values.map((p) => p.text!.toPlainText()),
       contains('Tauchpartner'),
     );
+  });
+
+  test('a guide moved by a new spacing reuses its laid-out text', () {
+    final cache = <String, TextPainter>{};
+    void paintAt(double x) {
+      final recorder = ui.PictureRecorder();
+      ConnectionsPainter(
+        graph: graph,
+        frame: frame(
+          guides: [LaneGuide(ConnectionKind.buddy, GraphPoint(x, 0))],
+        ),
+        viewport: const GraphViewport(offset: Offset(200, 200)),
+        colors: const ConnectionKindColors({}, Colors.grey),
+        labelStyle: const TextStyle(fontSize: 12),
+        kindNames: const {ConnectionKind.buddy: 'Buddies'},
+        guideCache: cache,
+      ).paint(Canvas(recorder), const Size(400, 400));
+      recorder.endRecording().dispose();
+    }
+
+    paintAt(-70);
+    paintAt(-140);
+    expect(cache, hasLength(1));
   });
 
   test('year labels thin out when zoomed out so they never collide', () {
@@ -254,7 +277,7 @@ void main() {
       for (var y = 2000; y <= 2010; y++)
         YearGuide(y, GraphPoint((y - 2000) * 170.0, -70)),
     ];
-    final cache = <Object, TextPainter>{};
+    final cache = <String, TextPainter>{};
     final rec = _Recording();
     const scale = 0.1;
     ConnectionsPainter(
@@ -281,7 +304,7 @@ void main() {
 
   test('two years too close to label both keep only the latest', () {
     final rec = _Recording();
-    final cache = <Object, TextPainter>{};
+    final cache = <String, TextPainter>{};
     ConnectionsPainter(
       graph: ConnectionGraph.empty,
       frame: LayoutFrame.fromPositions(

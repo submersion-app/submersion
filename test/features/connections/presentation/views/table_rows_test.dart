@@ -132,4 +132,32 @@ void main() {
     );
     expect(byFirst, hasLength(3));
   });
+
+  test('names sort alphabetically, ignoring case and accents', () {
+    final graph = ConnectionGraph(
+      nodes: [
+        ConnectionNode(ref: _b('bob'), label: 'Bob', diveCount: 1),
+        ConnectionNode(ref: _b('emile'), label: 'Émile', diveCount: 1),
+        ConnectionNode(ref: _b('alice'), label: 'alice', diveCount: 1),
+        ConnectionNode(ref: _s('reef'), label: 'Reef', diveCount: 3),
+      ],
+      edges: [
+        _e(_b('bob'), _s('reef'), 1, 2020),
+        _e(_b('emile'), _s('reef'), 1, 2020),
+        _e(_b('alice'), _s('reef'), 1, 2020),
+      ],
+    );
+    final names = ConnectionsTableRows.entities(
+      graph,
+      EntitiesColumn.name,
+      ascending: true,
+    ).map((r) => r.node.label);
+    expect(names, ['alice', 'Bob', 'Émile', 'Reef']);
+    final pairs = ConnectionsTableRows.pairs(
+      graph,
+      PairsColumn.a,
+      ascending: true,
+    ).map((e) => e.source.id);
+    expect(pairs, ['alice', 'bob', 'emile']);
+  });
 }

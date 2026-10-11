@@ -51,9 +51,9 @@ void main() {
     c.moveNode(_b('a'), const GraphPoint(999, 999));
     expect(c.frame.positions[_b('a')], const GraphPoint(999, 999));
     expect(c.frame.positions[_b('b')], before[_b('b')]);
-    expect(c.hasPins, isTrue);
+    expect(c.canRelayout.value, isTrue);
     c.relayout();
-    expect(c.hasPins, isFalse);
+    expect(c.canRelayout.value, isFalse);
     expect(c.frame.positions, before);
   });
 
@@ -67,7 +67,7 @@ void main() {
     c.setGraph(_graph, layout: ConnectionsLayout.circle);
     c.moveNode(_b('a'), const GraphPoint(1, 1));
     c.setGraph(_graph, layout: ConnectionsLayout.circle, spacing: 1.5);
-    expect(c.hasPins, isFalse);
+    expect(c.canRelayout.value, isFalse);
   });
 
   test('switching layout morphs over the refocus duration', () {
@@ -92,11 +92,11 @@ void main() {
     expect(c.frame.positions[_b('b')], target[_b('b')]);
   });
 
-  test('web reports pins through the force layout', () {
+  test('web can always be laid out again, pinned or not', () {
     c.setGraph(_graph, layout: ConnectionsLayout.web);
-    expect(c.hasPins, isFalse);
+    expect(c.canRelayout.value, isTrue);
     c.moveNode(_b('a'), const GraphPoint(3, 3));
-    expect(c.hasPins, isTrue);
+    expect(c.canRelayout.value, isTrue);
   });
 
   test('clusters returns at once and settles over ticks', () {
@@ -124,7 +124,7 @@ void main() {
     }
     expect(c.frame.positions.length, 4);
     c.moveNode(_b('a'), const GraphPoint(400, 400));
-    expect(c.hasPins, isTrue);
+    expect(c.frame.positions[_b('a')], const GraphPoint(400, 400));
   });
 
   test('clusters uses the groups it is given instead of finding its own', () {
