@@ -256,6 +256,33 @@ void main() {
     expect(fills, isEmpty);
   });
 
+  testWidgets('a sold tank is refused before its tag fill is stored', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => seed(
+        'soldTank',
+        'Old tank',
+        'tank',
+        outId,
+        status: 'sold',
+        isActive: false,
+      ),
+    );
+    final (item, l10n) = await scan(
+      tester,
+      'https://submersion.app/c#f=1&p=$outId'
+      '&fi=77777777-8888-4999-8aaa-bbbbbbbbbbbb'
+      '&ft=2026-10-01T09%3A30%3A00Z&fo=32',
+    );
+    expect(item, isNull);
+    expect(find.text(l10n.gearPassport_scan_sold('Old tank')), findsOneWidget);
+    final fills = await tester.runAsync(
+      () => db.select(db.cylinderFills).get(),
+    );
+    expect(fills, isEmpty);
+  });
+
   testWidgets('an own tank tag with a fill says the fill was added', (
     tester,
   ) async {
