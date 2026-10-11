@@ -40,12 +40,7 @@ class GearTagPayload extends Equatable {
   });
 
   /// The type [typeCode] names, or null for one this app does not know.
-  EquipmentType? get type {
-    for (final t in EquipmentType.values) {
-      if (t.name == typeCode) return t;
-    }
-    return null;
-  }
+  EquipmentType? get type => EquipmentType.values.asNameMap()[typeCode];
 
   GearTagPayload copyWith({
     int? formatVersion,

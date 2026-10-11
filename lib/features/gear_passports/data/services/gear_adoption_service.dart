@@ -31,15 +31,6 @@ class GearAdoptionService {
   }) async {
     final at = now ?? DateTime.now();
     final item = await _equipment.transaction(() async {
-      // Across the whole library: an item another diver still uses keeps
-      // its tag. A retired or sold one (gear bought used) does not block.
-      final holder = await _passports.findEquipmentIdByPassportId(
-        tag.passportId,
-      );
-      if (holder != null &&
-          ((await _equipment.getEquipmentById(holder))?.isFitted ?? false)) {
-        throw PassportIdInUse(holder);
-      }
       final created = await _equipment.createEquipment(
         EquipmentItem(
           id: '',
@@ -52,6 +43,9 @@ class GearAdoptionService {
         ),
         notify: false,
       );
+      // Unscoped, across the whole library: an item another diver still
+      // uses keeps its tag and throws, rolling the new item back; a retired
+      // or sold one (gear bought used) gives the id up.
       await _passports.assignPassportId(
         equipmentId: created.id,
         passportId: tag.passportId,

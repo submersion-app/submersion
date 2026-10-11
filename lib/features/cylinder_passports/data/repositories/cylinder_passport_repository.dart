@@ -108,12 +108,8 @@ class CylinderPassportRepository {
     type: type,
   ))?.equipmentId;
 
-  static EquipmentType _typeOf(String name) {
-    for (final t in EquipmentType.values) {
-      if (t.name == name) return t;
-    }
-    return EquipmentType.other;
-  }
+  static EquipmentType _typeOf(String name) =>
+      EquipmentType.values.asNameMap()[name] ?? EquipmentType.other;
 
   /// In service: active and neither retired, sold nor wanted (#2025), as
   /// EquipmentItem.isFitted defines it.

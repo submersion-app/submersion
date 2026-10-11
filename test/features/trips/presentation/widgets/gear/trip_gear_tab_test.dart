@@ -185,11 +185,19 @@ class _FakePacks extends TripEquipmentRepository {
   final packed = <(String, List<String>)>[];
   final unpacked = <(String, String)>[];
 
+  /// Pairs the database already holds though the tab has not shown them
+  /// yet: packing one again adds nothing, as the real repository does.
+  final alreadyPacked = <String>{};
+
   @override
   Future<int> pack(String tripId, Iterable<String> equipmentIds) async {
     if (failing) throw StateError('database is locked');
-    packed.add((tripId, equipmentIds.toList()));
-    return equipmentIds.length;
+    final fresh = [
+      for (final id in equipmentIds)
+        if (!alreadyPacked.contains(id)) id,
+    ];
+    if (fresh.isNotEmpty) packed.add((tripId, fresh));
+    return fresh.length;
   }
 
   @override
@@ -968,6 +976,20 @@ void main() {
     testWidgets('an item already packed is not packed again', (tester) async {
       await seedTagged(tester);
       final h = await _pumpTab(tester, gear: const [reg], scanned: regLink);
+      final l10n = await scanFromChooser(tester);
+      expect(h.packs.packed, isEmpty);
+      expect(
+        find.text(l10n.gearPassport_scan_alreadyOnTrip('Regulator')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('an item packed since the tab last loaded says so', (
+      tester,
+    ) async {
+      await seedTagged(tester);
+      final h = await _pumpTab(tester, gear: const [fins], scanned: regLink);
+      h.packs.alreadyPacked.add('reg');
       final l10n = await scanFromChooser(tester);
       expect(h.packs.packed, isEmpty);
       expect(

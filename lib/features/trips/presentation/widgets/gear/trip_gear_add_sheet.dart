@@ -94,12 +94,18 @@ Future<void> showTripGearAddSheet(
       final added = await _apply(context, ref, trip, slots, [
         item,
       ], setName: null);
-      // A failure already said so; nothing written means nothing to report.
-      if (added > 0) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(l10n.gearPassport_scan_added(item.name))),
-        );
-      }
+      // A failure already said so. Nothing new written means the item got
+      // onto the trip after this tab last loaded.
+      if (added == null) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            added > 0
+                ? l10n.gearPassport_scan_added(item.name)
+                : l10n.gearPassport_scan_alreadyOnTrip(item.name),
+          ),
+        ),
+      );
     case _Way.rental:
       await showAddTripCylindersSheet(
         context,
@@ -155,8 +161,8 @@ Future<(EquipmentSet, List<EquipmentItem>)?> _pickSet(BuildContext context) =>
 /// Packs the non-cylinder items the diver may use and slots the cylinders
 /// not already on the board; says how many a set added, counting the slots
 /// with the packed items (#2877). A failure is logged and said. Returns
-/// how many items it packed or slotted; zero after a failure.
-Future<int> _apply(
+/// how many items it packed or slotted, or null after a failure.
+Future<int?> _apply(
   BuildContext context,
   WidgetRef ref,
   Trip trip,
@@ -228,6 +234,6 @@ Future<int> _apply(
   } catch (e, stackTrace) {
     _log.error('Failed to add trip gear', error: e, stackTrace: stackTrace);
     messenger.showSnackBar(SnackBar(content: Text(l10n.trips_gear_failed)));
-    return 0;
+    return null;
   }
 }

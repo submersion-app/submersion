@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - No em-dashes (U+2014) anywhere: code, comments, docs, commits, ARB values.
-- No mention of Claude, Claude Code or Anthropic in any committed text.
+- No AI tool attribution in any committed text.
 - No schema rung, no new table. `passport_id` stays an `AttributeGroup.system` attribute.
 - Gear tag URL: `https://submersion.app/g#<payload>`; custom scheme `submersion://g?<payload>` accepted, never written.
 - Payload keys in emission order: `f`, `p`, `w`, `t`, `n`, `b`, `mo`, `sn`, `ls`. Required on read: `f` (defaults to 1), `p`, `t`.
