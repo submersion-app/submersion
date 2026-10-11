@@ -29737,6 +29737,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Duplicato di un\'altra immersione in questo lotto di importazione.';
 
   @override
+  String get universalImport_review_inFileDuplicateHint =>
+      'Questa immersione compare due volte nell\'importazione. Salta mantiene l\'altra copia; Importa come nuovo mantiene invece questa.';
+
+  @override
+  String get universalImport_compare_otherCopy => 'Altra copia';
+
+  @override
   String get universalImport_summary_filesTitle => 'File';
 
   @override

@@ -8569,6 +8569,8 @@
   "universalImport_triage_allExcluded": "Ninguno de los archivos seleccionados puede importarse junto. Los archivos CSV deben importarse de uno en uno.",
   "universalImport_triage_noneImportable": "Ninguno de los archivos seleccionados se puede importar.",
   "universalImport_review_inBatchDuplicate": "Duplicado de otra inmersión en este lote de importación.",
+  "universalImport_review_inFileDuplicateHint": "Esta inmersión aparece dos veces en la importación. Omitir conserva la otra copia; Importar como nuevo conserva esta en su lugar.",
+  "universalImport_compare_otherCopy": "Otra copia",
   "universalImport_summary_filesTitle": "Archivos",
   "universalImport_divers_intro": "{count, plural, other{Este registro tiene inmersiones de {count} buceadores. Elige adónde van las inmersiones y certificaciones de cada buceador.}}",
   "universalImport_divers_diveCount": "{count, plural, =1{1 inmersión} other{{count} inmersiones}}",

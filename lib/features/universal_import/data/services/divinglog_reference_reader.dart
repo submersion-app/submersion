@@ -81,6 +81,8 @@ class DivingLogReferenceReader {
     'Category',
     'Info',
     'TypeID',
+    'Val1',
+    'Val3',
     'Manufacturer',
     'Serial',
     'DateP',
@@ -167,14 +169,22 @@ class DivingLogReferenceReader {
     'Pictures': ['LogID'],
   };
 
+  /// Diving Log tables DiveMate never writes (#3110).
+  static const _notInDiveMate = {'City', 'Country', 'Trip', 'Fish', 'FishRel'};
+
   /// One schema note per reference table this file cannot use, naming what
   /// the diver loses. A table that is present but keyless is a different
   /// message from one that is absent, because "no Buddy table" would be
   /// factually wrong for a table that exists.
-  static List<String> schemaNotes(DivingLogCapabilities caps) {
+  static List<String> schemaNotes(
+    DivingLogCapabilities caps, {
+    bool isDiveMate = false,
+  }) {
     final notes = <String>[];
     for (final entry in _tables.entries) {
       if (!caps.hasTable(entry.key)) {
+        // DiveMate has no such table at all, so its absence loses nothing.
+        if (isDiveMate && _notInDiveMate.contains(entry.key)) continue;
         notes.add('No ${entry.key} table, so its records were not imported.');
         continue;
       }
@@ -276,6 +286,9 @@ class DivingLogReferenceReader {
           object: rowString(r, 'Object'),
           category: rowString(r, 'Category'),
           setMemberIds: _setMemberIds(r),
+          typeId: rowInt(r, 'TypeID'),
+          volumeLiters: positiveOrNull(rowDouble(r, 'Val1')),
+          materialCode: rowInt(r, 'Val3'),
           manufacturer: rowString(r, 'Manufacturer'),
           serial: rowString(r, 'Serial'),
           purchaseDate: rowDate(r, 'DateP'),

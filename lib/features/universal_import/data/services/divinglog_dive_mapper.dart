@@ -2,6 +2,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/services/divemate_dive_fields.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_equipment_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_reference_mapper.dart';
@@ -157,6 +158,7 @@ class DivingLogDiveMapper {
       // Built before the profile because the gas-switch builder resolves
       // its tankRef against these.
       final tanks = _tanks(raw.tanks);
+      DiveMateDiveFields.applyToTanks(tanks, raw.tanks);
       if (tanks.isNotEmpty) map['tanks'] = tanks;
 
       final profile = _profile(raw.samples, tanks);
@@ -203,6 +205,7 @@ class DivingLogDiveMapper {
           (unresolved['dive type'] ?? 0) +
           DivingLogReferenceMapper.unresolvedDiveTypeCount(logbook, raw);
 
+      DiveMateDiveFields.applyToDive(map, raw, logbook);
       dives.add(map);
     }
 
@@ -300,7 +303,9 @@ class DivingLogDiveMapper {
     return ImportPayload(
       entities: entities,
       warnings: warnings,
-      metadata: const {'source': 'divinglog_sqlite'},
+      metadata: {
+        'source': logbook.isDiveMate ? 'divemate_ddb' : 'divinglog_sqlite',
+      },
     );
   }
 

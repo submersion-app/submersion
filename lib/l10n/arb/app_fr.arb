@@ -8467,6 +8467,8 @@
   "universalImport_triage_allExcluded": "Aucun des fichiers sélectionnés ne peut être importé ensemble. Les fichiers CSV doivent être importés un par un.",
   "universalImport_triage_noneImportable": "Aucun des fichiers sélectionnés ne peut être importé.",
   "universalImport_review_inBatchDuplicate": "Doublon d'une autre plongée dans ce lot d'importation.",
+  "universalImport_review_inFileDuplicateHint": "Cette plongée figure deux fois dans l'importation. Ignorer conserve l'autre copie ; Importer comme nouveau conserve celle-ci à la place.",
+  "universalImport_compare_otherCopy": "Autre copie",
   "universalImport_summary_filesTitle": "Fichiers",
   "universalImport_divers_intro": "{count, plural, other{Ce carnet contient des plongées de {count} plongeurs. Choisissez où importer les plongées et les brevets de chaque plongeur.}}",
   "universalImport_divers_diveCount": "{count, plural, =1{{count} plongée} other{{count} plongées}}",

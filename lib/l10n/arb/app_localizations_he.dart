@@ -28985,6 +28985,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'כפילות של צלילה אחרת באצוות הייבוא הזו.';
 
   @override
+  String get universalImport_review_inFileDuplicateHint =>
+      'צלילה זו מופיעה פעמיים בייבוא. דלג שומר את העותק האחר; ייבוא כחדש שומר את זה במקומו.';
+
+  @override
+  String get universalImport_compare_otherCopy => 'עותק אחר';
+
+  @override
   String get universalImport_summary_filesTitle => 'קבצים';
 
   @override

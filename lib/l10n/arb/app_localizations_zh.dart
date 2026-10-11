@@ -28041,6 +28041,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_review_inBatchDuplicate => '与此导入批次中的另一次潜水重复。';
 
   @override
+  String get universalImport_review_inFileDuplicateHint =>
+      '此潜水在导入中出现了两次。跳过将保留另一份副本；作为新导入将改为保留这一份。';
+
+  @override
+  String get universalImport_compare_otherCopy => '另一份副本';
+
+  @override
   String get universalImport_summary_filesTitle => '文件';
 
   @override

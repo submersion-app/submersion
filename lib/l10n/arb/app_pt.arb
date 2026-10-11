@@ -8569,6 +8569,8 @@
   "universalImport_triage_allExcluded": "Nenhum dos arquivos selecionados pode ser importado em conjunto. Arquivos CSV devem ser importados um de cada vez.",
   "universalImport_triage_noneImportable": "Nenhum dos arquivos selecionados pode ser importado.",
   "universalImport_review_inBatchDuplicate": "Duplicata de outro mergulho neste lote de importação.",
+  "universalImport_review_inFileDuplicateHint": "Este mergulho aparece duas vezes na importação. Pular mantém a outra cópia; Importar como novo mantém esta no lugar.",
+  "universalImport_compare_otherCopy": "Outra cópia",
   "universalImport_summary_filesTitle": "Arquivos",
   "universalImport_divers_intro": "{count, plural, other{Este registro tem mergulhos de {count} mergulhadores. Escolha para onde vão os mergulhos e as certificações de cada mergulhador.}}",
   "universalImport_divers_diveCount": "{count, plural, =1{{count} mergulho} other{{count} mergulhos}}",

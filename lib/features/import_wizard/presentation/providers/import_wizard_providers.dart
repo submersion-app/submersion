@@ -793,6 +793,19 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       currentSelection.add(index);
     }
 
+    // A copy of another dive in this same import (#3110): the two are one
+    // dive, so keeping this copy drops the other and skipping it brings the
+    // other back. Ticking the other row again still keeps both.
+    final partner =
+        state.bundle?.groups[type]?.matchResults?[index]?.inBatchIndex;
+    if (partner != null) {
+      if (action == DuplicateAction.importAsNew) {
+        currentSelection.remove(partner);
+      } else if (action == DuplicateAction.skip) {
+        currentSelection.add(partner);
+      }
+    }
+
     final updatedPending = _drainPending(type, {index});
 
     state = state.copyWith(

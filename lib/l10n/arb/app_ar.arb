@@ -8569,6 +8569,8 @@
   "universalImport_triage_allExcluded": "لا يمكن استيراد الملفات المحددة معًا. يجب استيراد ملفات CSV واحدًا تلو الآخر.",
   "universalImport_triage_noneImportable": "لا يمكن استيراد أي من الملفات المحددة.",
   "universalImport_review_inBatchDuplicate": "نسخة مكررة من غطسة أخرى في دفعة الاستيراد هذه.",
+  "universalImport_review_inFileDuplicateHint": "هذه الغطسة موجودة مرتين في الاستيراد. تخطي يحتفظ بالنسخة الأخرى؛ استيراد كجديد يحتفظ بهذه بدلاً منها.",
+  "universalImport_compare_otherCopy": "النسخة الأخرى",
   "universalImport_summary_filesTitle": "الملفات",
   "universalImport_divers_intro": "{count, plural, two{يحتوي هذا السجل على غطسات لغواصَين اثنين. اختر وجهة غطسات وشهادات كل غواص.} few{يحتوي هذا السجل على غطسات لـ {count} غواصين. اختر وجهة غطسات وشهادات كل غواص.} many{يحتوي هذا السجل على غطسات لـ {count} غواصًا. اختر وجهة غطسات وشهادات كل غواص.} other{يحتوي هذا السجل على غطسات لـ {count} غواص. اختر وجهة غطسات وشهادات كل غواص.}}",
   "universalImport_divers_diveCount": "{count, plural, =1{غطسة واحدة} two{غطستان} few{{count} غطسات} many{{count} غطسة} other{{count} غطسة}}",

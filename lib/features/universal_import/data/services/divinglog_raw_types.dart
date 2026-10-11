@@ -1,3 +1,5 @@
+import 'package:submersion/features/universal_import/data/services/divemate_raw_types.dart';
+
 /// Quotes [name] as a SQL identifier, doubling any embedded quote.
 ///
 /// Table and column names here come out of a file someone else wrote, so
@@ -135,6 +137,9 @@ class DivingLogRawTank {
   /// imported volume doubles.
   final bool isDouble;
 
+  /// DiveMate's extra columns, null for a Diving Log row.
+  final DiveMateTankExtras? diveMate;
+
   const DivingLogRawTank({
     required this.tankId,
     this.sizeLiters,
@@ -144,6 +149,7 @@ class DivingLogRawTank {
     this.o2Percent,
     this.hePercent,
     this.isDouble = false,
+    this.diveMate,
   });
 }
 
@@ -192,6 +198,9 @@ class DivingLogRawDive {
   final List<DivingLogRawTank> tanks;
   final List<DivingLogRawSample> samples;
 
+  /// DiveMate's extra columns, null for a Diving Log row.
+  final DiveMateDiveExtras? diveMate;
+
   const DivingLogRawDive({
     required this.id,
     this.uuid,
@@ -224,6 +233,7 @@ class DivingLogRawDive {
     this.tripId,
     this.tanks = const [],
     this.samples = const [],
+    this.diveMate,
   });
 }
 
@@ -256,6 +266,9 @@ class DivingLogLogbook {
   /// Rows DiveMate marks discarded (`Status` 2), left out of [dives].
   final int discardedDiveCount;
 
+  /// Whether DiveMate wrote the file (see `DiveMateSchema`).
+  final bool isDiveMate;
+
   const DivingLogLogbook({
     required this.dives,
     required this.capabilities,
@@ -273,6 +286,7 @@ class DivingLogLogbook {
     this.speciesIdsByLogId = const {},
     this.picturesByLogId = const {},
     this.discardedDiveCount = 0,
+    this.isDiveMate = false,
   });
 }
 
@@ -367,6 +381,16 @@ class DivingLogRawEquipment {
   /// The member ids of a DiveMate equipment set, or null for a real item.
   /// A set is a named group of gear, not gear itself.
   final List<int>? setMemberIds;
+
+  /// DiveMate's fixed kind code (`TypeID`): 11 cylinder, 12 weight, 17
+  /// computer, 0 for the category to say.
+  final int? typeId;
+
+  /// A DiveMate cylinder's volume in litres (`Val1`).
+  final double? volumeLiters;
+
+  /// A DiveMate cylinder's material code (`Val3`): 1 aluminium, 2 steel.
+  final int? materialCode;
   final String? manufacturer;
   final String? serial;
   final DateTime? purchaseDate;
@@ -382,6 +406,9 @@ class DivingLogRawEquipment {
     this.object,
     this.category,
     this.setMemberIds,
+    this.typeId,
+    this.volumeLiters,
+    this.materialCode,
     this.manufacturer,
     this.serial,
     this.purchaseDate,

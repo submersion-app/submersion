@@ -73,6 +73,12 @@ class DiveComparisonCard extends ConsumerWidget {
   /// the only case where the fill-planned button belongs.
   final bool showFillPlanned;
 
+  /// The other copy, when the match is another dive in this same import
+  /// rather than a stored one (an empty [existingDiveId]). Shown side by
+  /// side so the diver can choose which copy to keep (#3110). Null keeps the
+  /// one-line note, for a match whose other copy is not at hand.
+  final IncomingDiveData? inBatchPartner;
+
   const DiveComparisonCard({
     super.key,
     required this.incoming,
@@ -89,6 +95,7 @@ class DiveComparisonCard extends ConsumerWidget {
     this.embedded = false,
     this.isPending = false,
     this.showFillPlanned = false,
+    this.inBatchPartner,
   });
 
   @override
@@ -104,6 +111,22 @@ class DiveComparisonCard extends ConsumerWidget {
     // batch (DiveMatchResult.inBatchIndex) — there is no existing database
     // dive to load or compare against, but the action selector must still
     // render so the user can flip the default skip to import-as-new.
+    final partner = inBatchPartner;
+    if (existingDiveId.isEmpty && partner != null) {
+      final content = _buildPartnerComparison(
+        context,
+        ref,
+        partner,
+        resolvedIncomingLabel,
+        units,
+      );
+      if (embedded) return content;
+      return Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        clipBehavior: Clip.antiAlias,
+        child: content,
+      );
+    }
     if (existingDiveId.isEmpty) {
       final content = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -228,6 +251,58 @@ class DiveComparisonCard extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
       child: content,
+    );
+  }
+
+  /// The two copies of one dive from the same import, compared as the
+  /// stored-dive comparison does, with a note on what each button keeps.
+  Widget _buildPartnerComparison(
+    BuildContext context,
+    WidgetRef ref,
+    IncomingDiveData partner,
+    String incomingLabel,
+    UnitFormatter units,
+  ) {
+    final l10n = context.l10n;
+    final comparison = compareIncomingPair(partner, incoming);
+    final partnerLabel = partner.diveNumber != null
+        ? '${l10n.universalImport_compare_otherCopy} (#${partner.diveNumber})'
+        : l10n.universalImport_compare_otherCopy;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Text(
+            l10n.universalImport_review_inFileDuplicateHint,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: OverlaidProfileChart(
+            existingProfile: partner.profile,
+            incomingProfile: incoming.profile,
+            existingLabel: partnerLabel,
+            incomingLabel: incomingLabel,
+            height: 80,
+            prefixRoles: false,
+          ),
+        ),
+        if (comparison.sameFields.isNotEmpty)
+          _buildSameSummary(context, comparison, units),
+        if (comparison.diffFields.isNotEmpty)
+          _buildDiffTable(
+            context,
+            comparison,
+            partnerLabel,
+            incomingLabel,
+            units,
+          ),
+        _buildActionButtons(context, ref),
+      ],
     );
   }
 

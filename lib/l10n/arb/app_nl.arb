@@ -8569,6 +8569,8 @@
   "universalImport_triage_allExcluded": "Geen van de geselecteerde bestanden kan samen worden geïmporteerd. CSV-bestanden moeten één voor één worden geïmporteerd.",
   "universalImport_triage_noneImportable": "Geen van de geselecteerde bestanden kan worden geïmporteerd.",
   "universalImport_review_inBatchDuplicate": "Duplicaat van een andere duik in deze importbatch.",
+  "universalImport_review_inFileDuplicateHint": "Deze duik staat twee keer in de import. Overslaan behoudt de andere kopie; Als nieuw importeren behoudt in plaats daarvan deze.",
+  "universalImport_compare_otherCopy": "Andere kopie",
   "universalImport_summary_filesTitle": "Bestanden",
   "universalImport_divers_intro": "{count, plural, other{Dit logboek bevat duiken van {count} duikers. Kies waar de duiken en brevetten van elke duiker naartoe gaan.}}",
   "universalImport_divers_diveCount": "{count, plural, =1{1 duik} other{{count} duiken}}",

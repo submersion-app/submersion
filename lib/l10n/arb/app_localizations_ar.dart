@@ -30114,6 +30114,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'نسخة مكررة من غطسة أخرى في دفعة الاستيراد هذه.';
 
   @override
+  String get universalImport_review_inFileDuplicateHint =>
+      'هذه الغطسة موجودة مرتين في الاستيراد. تخطي يحتفظ بالنسخة الأخرى؛ استيراد كجديد يحتفظ بهذه بدلاً منها.';
+
+  @override
+  String get universalImport_compare_otherCopy => 'النسخة الأخرى';
+
+  @override
   String get universalImport_summary_filesTitle => 'الملفات';
 
   @override

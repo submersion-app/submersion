@@ -17,6 +17,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/services/within_file_dive_duplicates.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
 
 /// Result of duplicate checking across all entity types in an import payload.
@@ -100,6 +101,7 @@ class ImportDuplicateChecker {
     Map<String, String> existingSourceUuidByDiveId = const {},
     DiveMatcher matcher = const DiveMatcher(),
     bool checkIntraBatch = false,
+    bool checkWithinFile = false,
     UnitFormatter units = const UnitFormatter(AppSettings()),
     CertificationCatalog? certificationCatalog,
   }) {
@@ -180,6 +182,7 @@ class ImportDuplicateChecker {
             existingSourceUuidByDiveId,
             matcher,
             checkIntraBatch: checkIntraBatch,
+            checkWithinFile: checkWithinFile,
           )
         : <int, DiveMatchResult>{};
 
@@ -726,10 +729,13 @@ class ImportDuplicateChecker {
     Map<String, String> existingSourceUuidByDiveId,
     DiveMatcher matcher, {
     bool checkIntraBatch = false,
+    bool checkWithinFile = false,
   }) {
     // The intra-batch pass must run even against an empty database — a
     // first-ever bulk import is exactly where cross-file duplicates appear.
-    if (existingDives.isEmpty && !checkIntraBatch) return {};
+    if (existingDives.isEmpty && !checkIntraBatch && !checkWithinFile) {
+      return {};
+    }
 
     final matches = <int, DiveMatchResult>{};
     final handled = <int>{};
@@ -804,6 +810,14 @@ class ImportDuplicateChecker {
           }
         }
       }
+    }
+
+    // Pass F (single files only): the same dive twice in one file (#3110).
+    // Stricter than Pass I, which matches across files that overlap.
+    if (checkWithinFile && !checkIntraBatch) {
+      final withinFile = WithinFileDiveDuplicates.find(importedDives, matcher);
+      matches.addAll(withinFile);
+      handled.addAll(withinFile.keys);
     }
 
     // Pass 0: exact match by source_uuid. When a user imports MacDive's

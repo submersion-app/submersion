@@ -17485,6 +17485,8 @@
   "universalImport_triage_allExcluded": "None of the selected files can be imported together. CSV files must be imported one at a time.",
   "universalImport_triage_noneImportable": "None of the selected files can be imported.",
   "universalImport_review_inBatchDuplicate": "Duplicate of another dive in this import batch.",
+  "universalImport_review_inFileDuplicateHint": "This dive is in the import twice. Skip keeps the other copy; Import as New keeps this one instead.",
+  "universalImport_compare_otherCopy": "Other copy",
   "universalImport_summary_filesTitle": "Files",
   "universalImport_divers_intro": "{count, plural, other{This logbook has dives for {count} divers. Choose where each diver's dives and certifications go.}}",
   "universalImport_divers_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
@@ -17892,6 +17894,12 @@
   },
   "@universalImport_review_inBatchDuplicate": {
     "description": "Expanded duplicate card body when the match is another dive in the same import batch"
+  },
+  "@universalImport_review_inFileDuplicateHint": {
+    "description": "Expanded duplicate card body when the same dive appears twice in one imported file; names the Skip and Import as New buttons"
+  },
+  "@universalImport_compare_otherCopy": {
+    "description": "Column header and profile legend for the other copy of a dive that appears twice in one import"
   },
   "@universalImport_summary_filesTitle": {
     "description": "Section header for the per-file outcome list on the bulk import summary"

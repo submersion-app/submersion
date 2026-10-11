@@ -29671,6 +29671,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Duplikat eines anderen Tauchgangs in diesem Import-Stapel.';
 
   @override
+  String get universalImport_review_inFileDuplicateHint =>
+      'Dieser Tauchgang ist zweimal im Import. Überspringen behält die andere Kopie, Als neu importieren behält stattdessen diese.';
+
+  @override
+  String get universalImport_compare_otherCopy => 'Andere Kopie';
+
+  @override
   String get universalImport_summary_filesTitle => 'Dateien';
 
   @override

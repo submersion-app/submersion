@@ -8686,6 +8686,8 @@
   "universalImport_triage_allExcluded": "Keine der ausgewählten Dateien kann gemeinsam importiert werden. CSV-Dateien müssen einzeln importiert werden.",
   "universalImport_triage_noneImportable": "Keine der ausgewählten Dateien kann importiert werden.",
   "universalImport_review_inBatchDuplicate": "Duplikat eines anderen Tauchgangs in diesem Import-Stapel.",
+  "universalImport_review_inFileDuplicateHint": "Dieser Tauchgang ist zweimal im Import. Überspringen behält die andere Kopie, Als neu importieren behält stattdessen diese.",
+  "universalImport_compare_otherCopy": "Andere Kopie",
   "universalImport_summary_filesTitle": "Dateien",
   "universalImport_divers_intro": "{count, plural, other{Dieses Logbuch enthält Tauchgänge von {count} Tauchern. Wählen Sie, wohin die Tauchgänge und Brevets jedes Tauchers importiert werden.}}",
   "universalImport_divers_diveCount": "{count, plural, =1{1 Tauchgang} other{{count} Tauchgänge}}",

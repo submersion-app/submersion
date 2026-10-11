@@ -99,4 +99,60 @@ void main() {
       findsOneWidget,
     );
   });
+
+  group('with the other copy at hand (#3110)', () {
+    final partner = IncomingDiveData.fromImportMap({
+      'dateTime': DateTime(2024, 1, 1, 10),
+      'maxDepth': 18.0,
+      'duration': const Duration(minutes: 45),
+      'diveNumber': 300,
+      'waterTemp': 27.0,
+    });
+
+    Future<void> pumpPair(WidgetTester tester) async {
+      await tester.pumpWidget(
+        harness(
+          DiveComparisonCard(
+            incoming: incoming,
+            existingDiveId: '',
+            matchScore: 1.0,
+            incomingLabel: 'Incoming',
+            onActionChanged: (_) {},
+            availableActions: const {
+              DuplicateAction.skip,
+              DuplicateAction.importAsNew,
+            },
+            inBatchPartner: partner,
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('says what each button keeps', (tester) async {
+      await pumpPair(tester);
+      expect(
+        find.text(
+          'This dive is in the import twice. Skip keeps the other copy; '
+          'Import as New keeps this one instead.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Duplicate of another dive in this import batch.'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('compares the two copies field by field', (tester) async {
+      await pumpPair(tester);
+      // The water temperature only the other copy has is a difference,
+      // headed by that copy's number.
+      expect(find.text('Other copy (#300)'), findsWidgets);
+      // Neither copy is stored yet, so the legend does not call one of them
+      // the existing dive.
+      expect(find.textContaining('Existing:'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
+  });
 }

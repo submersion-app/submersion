@@ -8569,6 +8569,8 @@
   "universalImport_triage_allExcluded": "לא ניתן לייבא יחד את הקבצים שנבחרו. יש לייבא קובצי CSV אחד אחד.",
   "universalImport_triage_noneImportable": "לא ניתן לייבא אף אחד מהקבצים שנבחרו.",
   "universalImport_review_inBatchDuplicate": "כפילות של צלילה אחרת באצוות הייבוא הזו.",
+  "universalImport_review_inFileDuplicateHint": "צלילה זו מופיעה פעמיים בייבוא. דלג שומר את העותק האחר; ייבוא כחדש שומר את זה במקומו.",
+  "universalImport_compare_otherCopy": "עותק אחר",
   "universalImport_summary_filesTitle": "קבצים",
   "universalImport_divers_intro": "{count, plural, other{יומן זה מכיל צלילות של {count} צוללים. בחר לאן ייובאו הצלילות וההסמכות של כל צולל.}}",
   "universalImport_divers_diveCount": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",

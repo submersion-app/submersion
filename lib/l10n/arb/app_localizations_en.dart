@@ -29219,6 +29219,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Duplicate of another dive in this import batch.';
 
   @override
+  String get universalImport_review_inFileDuplicateHint =>
+      'This dive is in the import twice. Skip keeps the other copy; Import as New keeps this one instead.';
+
+  @override
+  String get universalImport_compare_otherCopy => 'Other copy';
+
+  @override
   String get universalImport_summary_filesTitle => 'Files';
 
   @override

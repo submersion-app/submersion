@@ -821,6 +821,66 @@ void main() {
           isNull,
         );
       });
+
+      group('a copy of another dive in the same import (#3110)', () {
+        // Dive 1 is flagged as the same dive as dive 0, which stays selected.
+        ImportBundle pair() => buildBundle(
+          diveItems: [makeItem('Dive 0'), makeItem('Dive 1')],
+          diveDuplicateIndices: {1},
+          diveMatchResults: {
+            1: const DiveMatchResult(
+              diveId: '',
+              inBatchIndex: 0,
+              score: 1.0,
+              timeDifferenceMs: 0,
+            ),
+          },
+        );
+
+        Set<int> selected() =>
+            notifier.state.selections[ImportEntityType.dives] ?? const {};
+
+        test('defaults to keeping the other copy', () {
+          notifier.setBundle(pair());
+          expect(selected(), {0});
+        });
+
+        test('keeping this copy drops the other', () {
+          notifier.setBundle(pair());
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.importAsNew,
+          );
+          expect(selected(), {1});
+        });
+
+        test('skipping it again brings the other back', () {
+          notifier.setBundle(pair());
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.importAsNew,
+          );
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.skip,
+          );
+          expect(selected(), {0});
+        });
+
+        test('the other copy can still be ticked to keep both', () {
+          notifier.setBundle(pair());
+          notifier.setDuplicateAction(
+            ImportEntityType.dives,
+            1,
+            DuplicateAction.importAsNew,
+          );
+          notifier.toggleSelection(ImportEntityType.dives, 0);
+          expect(selected(), {0, 1});
+        });
+      });
     });
 
     // -------------------------------------------------------------------------

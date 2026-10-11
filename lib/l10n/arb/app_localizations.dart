@@ -47141,6 +47141,18 @@ abstract class AppLocalizations {
   /// **'Duplicate of another dive in this import batch.'**
   String get universalImport_review_inBatchDuplicate;
 
+  /// Expanded duplicate card body when the same dive appears twice in one imported file; names the Skip and Import as New buttons
+  ///
+  /// In en, this message translates to:
+  /// **'This dive is in the import twice. Skip keeps the other copy; Import as New keeps this one instead.'**
+  String get universalImport_review_inFileDuplicateHint;
+
+  /// Column header and profile legend for the other copy of a dive that appears twice in one import
+  ///
+  /// In en, this message translates to:
+  /// **'Other copy'**
+  String get universalImport_compare_otherCopy;
+
   /// Section header for the per-file outcome list on the bulk import summary
   ///
   /// In en, this message translates to:

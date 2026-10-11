@@ -29824,6 +29824,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Doublon d\'une autre plongée dans ce lot d\'importation.';
 
   @override
+  String get universalImport_review_inFileDuplicateHint =>
+      'Cette plongée figure deux fois dans l\'importation. Ignorer conserve l\'autre copie ; Importer comme nouveau conserve celle-ci à la place.';
+
+  @override
+  String get universalImport_compare_otherCopy => 'Autre copie';
+
+  @override
   String get universalImport_summary_filesTitle => 'Fichiers';
 
   @override

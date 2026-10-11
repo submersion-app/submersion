@@ -8467,6 +8467,8 @@
   "universalImport_triage_allExcluded": "A kiválasztott fájlok együtt nem importálhatók. A CSV-fájlokat egyenként kell importálni.",
   "universalImport_triage_noneImportable": "A kiválasztott fájlok egyike sem importálható.",
   "universalImport_review_inBatchDuplicate": "Egy másik merülés duplikátuma ebben az importálási kötegben.",
+  "universalImport_review_inFileDuplicateHint": "Ez a merülés kétszer szerepel az importban. A Kihagyás a másik példányt tartja meg, az Importálás újként helyette ezt.",
+  "universalImport_compare_otherCopy": "Másik példány",
   "universalImport_summary_filesTitle": "Fájlok",
   "universalImport_divers_intro": "{count, plural, other{Ez a napló {count} búvár merüléseit tartalmazza. Válaszd ki, hová kerüljenek az egyes búvárok merülései és minősítései.}}",
   "universalImport_divers_diveCount": "{count, plural, =1{1 merülés} other{{count} merülés}}",

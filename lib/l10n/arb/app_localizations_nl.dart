@@ -29517,6 +29517,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Duplicaat van een andere duik in deze importbatch.';
 
   @override
+  String get universalImport_review_inFileDuplicateHint =>
+      'Deze duik staat twee keer in de import. Overslaan behoudt de andere kopie; Als nieuw importeren behoudt in plaats daarvan deze.';
+
+  @override
+  String get universalImport_compare_otherCopy => 'Andere kopie';
+
+  @override
   String get universalImport_summary_filesTitle => 'Bestanden';
 
   @override
