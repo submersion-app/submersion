@@ -490,4 +490,34 @@ void main() {
       expect(sweepTimers(async), isEmpty);
     });
   });
+
+  test('play started during a span reload stops when a new span lands', () {
+    fakeAsync((async) {
+      final c = container();
+      flush(async);
+      // The reload is under way; the old span is still the value.
+      c.read(_spanState.notifier).state = (
+        start: DateTime(2019, 1, 1),
+        end: DateTime(2023, 3, 1),
+      );
+      notifier(c).play();
+      expect(timeline(c).playing, isTrue);
+      flush(async);
+      expect(timeline(c).playing, isFalse);
+      expect(sweepTimers(async), isEmpty);
+    });
+  });
+
+  test('timeline states with the same range and play flag are equal', () {
+    final DayRange range = (start: DateTime(2020), end: DateTime(2021));
+    expect(
+      TimelineState(pending: range, playing: true),
+      TimelineState(pending: range, playing: true),
+    );
+    expect(
+      TimelineState(pending: range, playing: true).hashCode,
+      TimelineState(pending: range, playing: true).hashCode,
+    );
+    expect(TimelineState(pending: range), isNot(TimelineState.idle));
+  });
 }
