@@ -4,6 +4,7 @@ import 'package:http/testing.dart';
 // ignore: implementation_imports
 import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
@@ -382,6 +383,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setEndLimit(double value) async =>
       state = state.copyWith(endLimit: value);
+  @override
+  Future<void> setTrendGapThreshold(TrendGapThreshold value) async =>
+      state = state.copyWith(trendGapThreshold: value);
   @override
   Future<void> setIcdWarningsEnabled(bool value) async =>
       state = state.copyWith(icdWarningsEnabled: value);

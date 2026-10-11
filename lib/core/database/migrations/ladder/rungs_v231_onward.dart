@@ -314,5 +314,11 @@ extension RungsFromV231 on AppDatabase {
       await _migrateLegacyDocuments();
     }
     if (from < 277) await reportProgress();
+    // v278: diver_settings.trend_gap_collapse_months (issue #3251). Column
+    // only, defaulting to a year; re-asserted in beforeOpen.
+    if (from < 278) {
+      await _assertTrendGapCollapseColumn();
+    }
+    if (from < 278) await reportProgress();
   }
 }

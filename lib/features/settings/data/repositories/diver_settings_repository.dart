@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
 import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -321,6 +322,7 @@ class DiverSettingsRepository {
                 _formatReminderDays(s.serviceReminderDays),
               ),
               tripServiceLeadDays: Value(s.tripServiceLeadDays),
+              trendGapCollapseMonths: Value(s.trendGapThreshold.months),
               reminderTime: Value(_formatReminderTime(s.reminderTime)),
               showDataSourceBadges: Value(s.showDataSourceBadges),
               showDiveFigure: Value(s.showDiveFigure),
@@ -609,6 +611,7 @@ class DiverSettingsRepository {
       _formatReminderDays(settings.serviceReminderDays),
     ),
     tripServiceLeadDays: Value(settings.tripServiceLeadDays),
+    trendGapCollapseMonths: Value(settings.trendGapThreshold.months),
     reminderTime: Value(_formatReminderTime(settings.reminderTime)),
     showDataSourceBadges: Value(settings.showDataSourceBadges),
     showDiveFigure: Value(settings.showDiveFigure),
@@ -833,6 +836,9 @@ class DiverSettingsRepository {
       notificationsEnabled: row.notificationsEnabled,
       serviceReminderDays: _parseReminderDays(row.serviceReminderDays),
       tripServiceLeadDays: row.tripServiceLeadDays,
+      trendGapThreshold: TrendGapThreshold.fromMonths(
+        row.trendGapCollapseMonths,
+      ),
       reminderTime: _parseReminderTime(row.reminderTime),
       showDataSourceBadges: row.showDataSourceBadges,
       showDiveFigure: row.showDiveFigure,
