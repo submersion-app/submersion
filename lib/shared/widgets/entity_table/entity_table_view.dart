@@ -97,6 +97,10 @@ class _EntityTableViewState<T, F extends EntityField>
     extends State<EntityTableView<T, F>> {
   String? _hoveredEntityId;
 
+  /// Widths of columns being dragged right now (#2984): the column redraws
+  /// on every move, and the config is written once, on drag end.
+  final Map<F, double> _liveWidths = {};
+
   late final LinkedScrollControllerGroup _horizontalGroup;
   late final ScrollController _headerHorizontalController;
   late final ScrollController _bodyHorizontalController;
@@ -215,12 +219,25 @@ class _EntityTableViewState<T, F extends EntityField>
     return widget.config.columns.where((c) => !c.isPinned).toList();
   }
 
+  double _widthOf(EntityTableColumnConfig<F> c) =>
+      _liveWidths[c.field] ?? c.width;
+
   double _pinnedWidth() {
-    return _pinnedColumns().fold(0.0, (sum, c) => sum + c.width);
+    return _pinnedColumns().fold(0.0, (sum, c) => sum + _widthOf(c));
   }
 
   double _scrollableWidth() {
-    return _scrollableColumns().fold(0.0, (sum, c) => sum + c.width);
+    return _scrollableColumns().fold(0.0, (sum, c) => sum + _widthOf(c));
+  }
+
+  void _resizeLive(F field, double width) =>
+      setState(() => _liveWidths[field] = width);
+
+  void _resizeCommit(F field) {
+    final width = _liveWidths[field];
+    if (width == null) return;
+    widget.onResizeColumn(field, width);
+    setState(() => _liveWidths.remove(field));
   }
 
   // ---------------------------------------------------------------------------
@@ -239,7 +256,7 @@ class _EntityTableViewState<T, F extends EntityField>
     final text = widget.adapter.formatValue(column.field, value, widget.units);
 
     return Container(
-      width: column.width,
+      width: _widthOf(column),
       height: kEntityTableRowHeight,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       alignment: column.field.isRightAligned
@@ -322,11 +339,12 @@ class _EntityTableViewState<T, F extends EntityField>
               ...pinned.map((col) {
                 return EntityTableHeaderCell(
                   field: col.field,
-                  width: col.width,
+                  width: _widthOf(col),
                   isSorted: widget.config.sortField == col.field,
                   sortAscending: widget.config.sortAscending,
                   onTap: () => widget.onSortFieldChanged(col.field),
-                  onResize: (w) => widget.onResizeColumn(col.field, w),
+                  onResize: (w) => _resizeLive(col.field, w),
+                  onResizeEnd: () => _resizeCommit(col.field),
                 );
               }),
               Expanded(
@@ -338,11 +356,12 @@ class _EntityTableViewState<T, F extends EntityField>
                     children: scrollable.map((col) {
                       return EntityTableHeaderCell(
                         field: col.field,
-                        width: col.width,
+                        width: _widthOf(col),
                         isSorted: widget.config.sortField == col.field,
                         sortAscending: widget.config.sortAscending,
                         onTap: () => widget.onSortFieldChanged(col.field),
-                        onResize: (w) => widget.onResizeColumn(col.field, w),
+                        onResize: (w) => _resizeLive(col.field, w),
+                        onResizeEnd: () => _resizeCommit(col.field),
                       );
                     }).toList(),
                   ),

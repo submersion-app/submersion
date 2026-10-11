@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_resize_handle.dart';
 
 /// A single column header cell for the generic entity table view.
 ///
@@ -15,7 +16,15 @@ class EntityTableHeaderCell extends StatelessWidget {
   final bool isSorted;
   final bool sortAscending;
   final VoidCallback? onTap;
+
+  /// Called with the live absolute width while the handle is dragged.
   final ValueChanged<double>? onResize;
+
+  /// Called once when a resize drag ends or is cancelled (#2984).
+  final VoidCallback? onResizeEnd;
+
+  /// Narrowest the handle drags to; [EntityField.minWidth] when null.
+  final double? minWidth;
   final bool showResizeHandle;
 
   const EntityTableHeaderCell({
@@ -26,6 +35,8 @@ class EntityTableHeaderCell extends StatelessWidget {
     this.sortAscending = true,
     this.onTap,
     this.onResize,
+    this.onResizeEnd,
+    this.minWidth,
     this.showResizeHandle = true,
   });
 
@@ -95,25 +106,13 @@ class EntityTableHeaderCell extends StatelessWidget {
               right: 0,
               top: 0,
               bottom: 0,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onHorizontalDragUpdate: (details) {
-                  onResize?.call(width + details.delta.dx);
-                },
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.resizeColumn,
-                  child: SizedBox(
-                    width: handleWidth,
-                    child: Center(
-                      child: Container(
-                        width: 1,
-                        color: colorScheme.outlineVariant.withValues(
-                          alpha: 0.3,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+              child: EntityTableResizeHandle(
+                width: width,
+                minWidth: minWidth ?? field.minWidth,
+                handleWidth: handleWidth,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                onResize: onResize!,
+                onResizeEnd: onResizeEnd,
               ),
             ),
         ],
