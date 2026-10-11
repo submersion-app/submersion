@@ -16,6 +16,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_export_fil
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/sheet_messenger_scope.dart';
 
 /// Present the saved-plans picker as a modal bottom sheet.
 Future<void> showSavedPlansSheet(BuildContext context) {
@@ -23,7 +24,10 @@ Future<void> showSavedPlansSheet(BuildContext context) {
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
-    builder: (_) => const SavedPlansSheet(),
+    // The sheet's own snackbar host, so export confirmations and import
+    // errors show on the sheet rather than on the page underneath it.
+    builder: (_) =>
+        const SheetMessengerScope(shrinkWrap: true, child: SavedPlansSheet()),
   );
 }
 

@@ -265,6 +265,45 @@ void main() {
     expect(find.text('Plan file saved'), findsOneWidget);
   });
 
+  testWidgets('snackbars show inside the sheet, not behind it', (tester) async {
+    await repository.savePlan(_plan('a', 'Reef dive'));
+    final original = FilePickerPlatform.instance;
+    addTearDown(() => FilePickerPlatform.instance = original);
+    FilePickerPlatform.instance = MockFilePickerPlatform()
+      ..saveFileResult = Uri.file(p.join(documents.path, 'saved'));
+
+    // Opened as the real modal sheet: a snackbar sent to the page's
+    // messenger would render underneath it.
+    await openSheet(tester);
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Export plan file').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save to File'));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 50 && find.byType(SnackBar).evaluate().isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(
+        of: find.byType(BottomSheet),
+        matching: find.text('Plan file saved'),
+      ),
+      findsOneWidget,
+    );
+    // The sheet keeps its content height rather than filling the screen.
+    final screen = tester.getSize(find.byType(MaterialApp));
+    expect(
+      tester.getSize(find.byType(BottomSheet)).height,
+      lessThan(screen.height / 2),
+    );
+  });
+
   testWidgets('tapping a plan opens it', (tester) async {
     await repository.savePlan(_plan('a', 'Reef dive'));
 
