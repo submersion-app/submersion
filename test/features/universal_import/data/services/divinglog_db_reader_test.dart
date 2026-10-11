@@ -202,15 +202,18 @@ CREATE TABLE Place (
 CREATE TABLE Equipment (
   ID INTEGER PRIMARY KEY, Object TEXT, Manufacturer TEXT, Serial TEXT,
   DateP TEXT, Price REAL, Weight REAL, Inactive INTEGER, O2ServiceDate TEXT,
-  Comments TEXT
+  Comments TEXT, Category TEXT, Info TEXT, TypeID INTEGER, Val1 REAL,
+  Val3 INTEGER
 )""");
   db.execute(
     "INSERT INTO Equipment VALUES (3, 'Go Sport Fins', 'ScubaPro', 'SN1', "
-    "'2020-01-02', 99.0, 1.4968, 0, NULL, 'blue')",
+    "'2020-01-02', 99.0, 1.4968, 0, NULL, 'blue', '---SET', '7', 11, 12.0, "
+    "2)",
   );
   db.execute(
     "INSERT INTO Equipment VALUES (7, 'Wet Suit (5mm full body)', "
-    "'Henderson', NULL, NULL, NULL, NULL, 1, NULL, NULL)",
+    "'Henderson', NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, NULL, "
+    "NULL, NULL)",
   );
   db.execute("""
 CREATE TABLE Trip (
@@ -700,6 +703,19 @@ void main() {
       expect(book.equipmentById[3]!.weightKg, closeTo(1.4968, 1e-9));
       expect(book.equipmentById[3]!.inactive, isFalse);
       expect(book.equipmentById[7]!.inactive, isTrue);
+    });
+
+    test('reads no DiveMate codes from a Diving Log equipment row', () async {
+      // TypeID, Val1, Val3 and the set marker mean something only in a
+      // DiveMate file; a Diving Log row carrying such columns must not be
+      // retyped as a cylinder or expanded as a set (#3110).
+      final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
+      final fins = book.equipmentById[3]!;
+      expect(book.isDiveMate, isFalse);
+      expect(fins.typeId, isNull);
+      expect(fins.volumeLiters, isNull);
+      expect(fins.materialCode, isNull);
+      expect(fins.setMemberIds, isNull);
     });
 
     test('reads trips, shops, dive types and certifications', () async {

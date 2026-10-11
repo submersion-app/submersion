@@ -212,7 +212,14 @@ class DivingLogReferenceReader {
     return notes;
   }
 
-  static DivingLogReferences read(Database db, DivingLogCapabilities caps) {
+  /// [isDiveMate] gates the equipment columns whose codes only DiveMate
+  /// defines (`TypeID`, `Val1`, `Val3` and the set marker): a Diving Log
+  /// file is never read through DiveMate's code tables.
+  static DivingLogReferences read(
+    Database db,
+    DivingLogCapabilities caps, {
+    bool isDiveMate = false,
+  }) {
     final cities = _read(
       db,
       caps,
@@ -285,10 +292,12 @@ class DivingLogReferenceReader {
           name: rowString(r, 'Name'),
           object: rowString(r, 'Object'),
           category: rowString(r, 'Category'),
-          setMemberIds: _setMemberIds(r),
-          typeId: rowInt(r, 'TypeID'),
-          volumeLiters: positiveOrNull(rowDouble(r, 'Val1')),
-          materialCode: rowInt(r, 'Val3'),
+          setMemberIds: isDiveMate ? _setMemberIds(r) : null,
+          typeId: isDiveMate ? rowInt(r, 'TypeID') : null,
+          volumeLiters: isDiveMate
+              ? positiveOrNull(rowDouble(r, 'Val1'))
+              : null,
+          materialCode: isDiveMate ? rowInt(r, 'Val3') : null,
           manufacturer: rowString(r, 'Manufacturer'),
           serial: rowString(r, 'Serial'),
           purchaseDate: rowDate(r, 'DateP'),

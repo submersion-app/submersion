@@ -266,7 +266,11 @@ class DivingLogDbReader {
         notes.addAll(
           DivingLogReferenceReader.schemaNotes(caps, isDiveMate: isDiveMate),
         );
-        final references = DivingLogReferenceReader.read(db, caps);
+        final references = DivingLogReferenceReader.read(
+          db,
+          caps,
+          isDiveMate: isDiveMate,
+        );
 
         final selectList = caps.selectList('Logbook', [
           ..._logbookColumns,
