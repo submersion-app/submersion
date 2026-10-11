@@ -220,4 +220,32 @@ void main() {
       contains('Tauchpartner'),
     );
   });
+
+  test('year labels thin out when zoomed out so they never collide', () {
+    final years = [
+      for (var y = 2000; y <= 2010; y++)
+        YearGuide(y, GraphPoint((y - 2000) * 170.0, -70)),
+    ];
+    int yearLabels(double scale) {
+      int paragraphs(List<LayoutGuide> guides) {
+        final rec = _Recording();
+        ConnectionsPainter(
+          graph: graph,
+          frame: frame(guides: guides),
+          viewport: GraphViewport(scale: scale, offset: const Offset(100, 100)),
+          colors: const ConnectionKindColors({}, Colors.grey),
+          labelStyle: const TextStyle(fontSize: 12),
+          labels: LabelMode.off,
+        ).paint(rec, const Size(2000, 800));
+        return rec.count(#drawParagraph);
+      }
+
+      return paragraphs(years) - paragraphs(const []);
+    }
+
+    expect(yearLabels(1), 11);
+    final zoomedOut = yearLabels(0.1);
+    expect(zoomedOut, lessThan(11));
+    expect(zoomedOut, greaterThanOrEqualTo(2));
+  });
 }

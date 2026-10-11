@@ -358,28 +358,51 @@ class ConnectionsPainter extends CustomPainter {
   }
 
   /// Timeline years and kind lanes, drawn under the edges.
-  void _paintGuides(Canvas canvas, Color ink) {
-    for (final g in frame.guides) {
-      final text = switch (g) {
-        YearGuide(:final year) => '$year',
-        LaneGuide(:final kind) => kindNames[kind] ?? kind.name,
-      };
-      // Keyed by the text too: a language change can leave the graph, and
-      // so the cache, untouched.
-      final tp = guideCache.putIfAbsent(
-        (g, text),
-        () => TextPainter(
-          text: TextSpan(
-            text: text,
-            style: labelStyle.copyWith(
-              color: ink.withValues(alpha: 0.6),
-              fontWeight: FontWeight.w600,
-            ),
+  /// Laid-out text for [g], cached by guide and text: a language change can
+  /// leave the graph, and so the cache, untouched.
+  TextPainter _guidePainter(LayoutGuide g, Color ink) {
+    final text = switch (g) {
+      YearGuide(:final year) => '$year',
+      LaneGuide(:final kind) => kindNames[kind] ?? kind.name,
+    };
+    return guideCache.putIfAbsent(
+      (g, text),
+      () => TextPainter(
+        text: TextSpan(
+          text: text,
+          style: labelStyle.copyWith(
+            color: ink.withValues(alpha: 0.6),
+            fontWeight: FontWeight.w600,
           ),
-          textDirection: TextDirection.ltr,
-          maxLines: 1,
-        )..layout(),
-      );
+        ),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+      )..layout(),
+    );
+  }
+
+  /// Draw every [_yearStep]th year: the fewest that keep one label's width
+  /// and a gap between neighbours at the current zoom.
+  int _yearStep(Color ink) {
+    final years = frame.guides.whereType<YearGuide>().toList();
+    if (years.length < 2) return 1;
+    final a = years[0];
+    final b = years[1];
+    final perYear =
+        (viewport.toScreen(b.at).dx - viewport.toScreen(a.at).dx).abs() /
+        math.max(1, (b.year - a.year).abs());
+    if (perYear <= 0) return 1;
+    final width = _guidePainter(a, ink).width;
+    return math.max(1, ((width + 8) / perYear).ceil());
+  }
+
+  /// Timeline years and kind lanes, drawn under the edges.
+  void _paintGuides(Canvas canvas, Color ink) {
+    final step = _yearStep(ink);
+    final firstYear = frame.guides.whereType<YearGuide>().firstOrNull?.year;
+    for (final g in frame.guides) {
+      if (g is YearGuide && (g.year - firstYear!) % step != 0) continue;
+      final tp = _guidePainter(g, ink);
       final at = viewport.toScreen(g.at);
       final topLeft = switch (g) {
         YearGuide() => at - Offset(tp.width / 2, tp.height / 2),
