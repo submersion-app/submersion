@@ -75,6 +75,41 @@ Future<int> seedDiveComputerConnections(DatabaseConnectionUser db) async {
     )
   ''').get();
 
+  // Every unseeded computer's file formats in one read, before any row is
+  // inserted (the NOT EXISTS would otherwise drop a computer this pass just
+  // gave a direct connection). A source belongs to its own computer, or to
+  // its dive's when it names none. A Drift DateTimeColumn stores Unix
+  // seconds; connections use milliseconds like the rest of the registry.
+  final formatsByComputer =
+      <String, List<({String format, int firstAt, int lastAt})>>{};
+  if (hasSources && computers.isNotEmpty) {
+    final owner = hasDiveComputer
+        ? 'COALESCE(s.computer_id, d.computer_id)'
+        : 's.computer_id';
+    final rows = await db
+        .customSelect(
+          'SELECT $owner AS owner, s.source_file_format AS format, '
+          'MIN(s.created_at) AS first_at, MAX(s.created_at) AS last_at '
+          'FROM dive_data_sources s '
+          '${hasDiveComputer ? 'LEFT JOIN dives d ON d.id = s.dive_id ' : ''}'
+          'WHERE $owner IN (SELECT c.id FROM dive_computers c WHERE NOT EXISTS '
+          '(SELECT 1 FROM dive_computer_connections x '
+          'WHERE x.computer_id = c.id)) '
+          'AND s.source_file_format IS NOT NULL '
+          "AND TRIM(s.source_file_format) <> '' "
+          "AND (s.source_format IS NULL OR s.source_format <> 'dive_computer') "
+          'GROUP BY owner, s.source_file_format',
+        )
+        .get();
+    for (final row in rows) {
+      (formatsByComputer[row.read<String>('owner')] ??= []).add((
+        format: row.read<String>('format').trim(),
+        firstAt: row.read<int>('first_at') * 1000,
+        lastAt: row.read<int>('last_at') * 1000,
+      ));
+    }
+  }
+
   final now = DateTime.now().millisecondsSinceEpoch;
   var inserted = 0;
 
@@ -159,36 +194,14 @@ Future<int> seedDiveComputerConnections(DatabaseConnectionUser db) async {
       }
     }
 
-    if (hasSources) {
-      // A Drift DateTimeColumn stores Unix seconds; connections use
-      // milliseconds like the rest of the registry.
-      final ownedBy = hasDiveComputer
-          ? '(s.computer_id = ?1 OR (s.computer_id IS NULL AND '
-                'd.computer_id = ?1))'
-          : 's.computer_id = ?1';
-      final formats = await db
-          .customSelect(
-            'SELECT s.source_file_format AS format, '
-            'MIN(s.created_at) AS first_at, MAX(s.created_at) AS last_at '
-            'FROM dive_data_sources s '
-            '${hasDiveComputer ? 'LEFT JOIN dives d ON d.id = s.dive_id ' : ''}'
-            'WHERE $ownedBy '
-            "AND s.source_file_format IS NOT NULL "
-            "AND TRIM(s.source_file_format) <> '' "
-            "AND (s.source_format IS NULL OR s.source_format <> 'dive_computer') "
-            'GROUP BY s.source_file_format',
-            variables: [Variable<String>(id)],
-          )
-          .get();
-      for (final format in formats) {
-        await insert(
-          computerId: id,
-          kind: DiveComputerConnectionKind.file,
-          detail: format.read<String>('format').trim(),
-          firstUsedAt: format.read<int>('first_at') * 1000,
-          lastUsedAt: format.read<int>('last_at') * 1000,
-        );
-      }
+    for (final format in formatsByComputer[id] ?? const []) {
+      await insert(
+        computerId: id,
+        kind: DiveComputerConnectionKind.file,
+        detail: format.format,
+        firstUsedAt: format.firstAt,
+        lastUsedAt: format.lastAt,
+      );
     }
   }
 

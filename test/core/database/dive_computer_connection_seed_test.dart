@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
 
 import '../../helpers/test_database.dart';
@@ -323,6 +327,38 @@ void main() {
     expect(
       pending.where((r) => r.entityType == 'diveComputerConnections'),
       isEmpty,
+    );
+  });
+
+  test('reads the data sources once however many computers it seeds', () async {
+    await tearDownTestDatabase();
+    db = AppDatabase(NativeDatabase.memory(logStatements: true));
+    DatabaseService.instance.setTestDatabase(db);
+    for (final id in ['a', 'b', 'c']) {
+      await insertComputer(id);
+      await insertSource(
+        's-$id',
+        computerId: id,
+        sourceFileFormat: 'fit',
+        createdAt: DateTime.fromMillisecondsSinceEpoch(1710000000000),
+      );
+    }
+
+    final logged = <String>[];
+    final seeded = await runZoned(
+      () => db.seedDiveComputerConnectionsForTest(),
+      zoneSpecification: ZoneSpecification(
+        print: (self, parent, zone, line) => logged.add(line),
+      ),
+    );
+
+    expect(seeded, 3);
+    expect(
+      logged.where(
+        (l) =>
+            l.startsWith('Drift: Sent') && l.contains('FROM dive_data_sources'),
+      ),
+      hasLength(1),
     );
   });
 }
