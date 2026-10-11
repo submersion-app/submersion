@@ -199,6 +199,10 @@ List<CellFilterOption> diveCellFilterOptions({
   }
 }
 
+/// The stored text, or null for an empty one (the cell shows "--").
+String? _nonBlank(String? text) =>
+    text == null || text.trim().isEmpty ? null : text;
+
 bool _sameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 
@@ -259,6 +263,10 @@ Object? _queriedValue(
   // The `name` field compares the stored text; the cell shows it trimmed.
   DiveField.diveName =>
     dive.name == dive.effectiveName ? dive.effectiveName : null,
+  DiveField.boatName => _nonBlank(dive.boatName),
+  DiveField.boatCaptain => _nonBlank(dive.boatCaptain),
+  DiveField.diveOperator => _nonBlank(dive.diveOperator),
+  DiveField.surfaceConditions => _nonBlank(dive.surfaceConditions),
   DiveField.currentStrength => dive.currentStrength,
   DiveField.entryMethod => dive.entryMethod,
   DiveField.exitMethod => dive.exitMethod,

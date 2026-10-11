@@ -159,6 +159,25 @@ void main() {
     expect(o[2].valueLabel, 'Wreck');
   });
 
+  test('a boat offers Only and Exclude by its text, an empty one none/any', () {
+    final o = options(DiveField.boatName, base.copyWith(boatName: 'Sea Hawk'));
+    expect(
+      o.first.rule,
+      ConditionNode(
+        FieldPath(['boatName']),
+        QueryOp.eq,
+        const StringValue('Sea Hawk'),
+      ),
+    );
+    expect(
+      options(
+        DiveField.boatName,
+        base.copyWith(boatName: ''),
+      ).map((x) => x.kind),
+      [CellFilterKind.noValue, CellFilterKind.anyValue],
+    );
+  });
+
   test('an enum offers Only and Exclude by name', () {
     final o = options(
       DiveField.diveMode,

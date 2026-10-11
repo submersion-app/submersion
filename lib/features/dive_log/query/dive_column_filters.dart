@@ -118,6 +118,19 @@ const Map<DiveField, DiveColumnFilter> kDiveColumnFilters = {
   ),
   DiveField.dateTime: DiveColumnFilter('date', DiveColumnFilterKind.date),
   DiveField.diveName: DiveColumnFilter('name', DiveColumnFilterKind.text),
+  DiveField.boatName: DiveColumnFilter('boatName', DiveColumnFilterKind.text),
+  DiveField.boatCaptain: DiveColumnFilter(
+    'boatCaptain',
+    DiveColumnFilterKind.text,
+  ),
+  DiveField.diveOperator: DiveColumnFilter(
+    'diveOperator',
+    DiveColumnFilterKind.text,
+  ),
+  DiveField.surfaceConditions: DiveColumnFilter(
+    'surfaceConditions',
+    DiveColumnFilterKind.text,
+  ),
   DiveField.currentStrength: DiveColumnFilter(
     'currentStrength',
     DiveColumnFilterKind.enumValue,
