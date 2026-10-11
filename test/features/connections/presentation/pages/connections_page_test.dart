@@ -24,6 +24,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_timeline_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/saved_connection_maps_provider.dart';
+import 'package:submersion/features/connections/presentation/widgets/connections_empty_state.dart';
 import 'package:submersion/features/connections/presentation/widgets/hidden_nodes_chip.dart';
 import 'package:submersion/features/connections/presentation/widgets/insight_strip.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -780,6 +781,31 @@ void main() {
     }
     expect(c.read(connectionsFilterProvider).endDate, DateTime(2019, 4, 1));
   });
+  testWidgets('an empty map keeps its message clear of the timeline bar', (
+    tester,
+  ) async {
+    // A short phone: the canvas above the sheet is only a few hundred
+    // pixels tall.
+    await _pump(
+      tester,
+      size: const Size(400, 600),
+      graph: (ref, budget) => ConnectionGraph.empty,
+    );
+    await tester.pump(const Duration(milliseconds: 50));
+    final message = find
+        .descendant(
+          of: find.byType(ConnectionsEmptyState),
+          matching: find.byType(Column),
+        )
+        .first;
+    final bar = find.byKey(const ValueKey('connections-timeline-bar'));
+    expect(bar, findsOneWidget);
+    expect(
+      tester.getBottomLeft(message).dy,
+      lessThanOrEqualTo(tester.getTopLeft(bar).dy),
+    );
+  });
+
   testWidgets('play carries on through a range with an empty map', (
     tester,
   ) async {

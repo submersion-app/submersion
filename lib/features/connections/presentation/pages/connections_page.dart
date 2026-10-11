@@ -461,7 +461,13 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         // A played year can be empty; the pill stays so play can be paused.
         return Stack(
           children: [
-            Positioned.fill(child: empty),
+            // Centred in the canvas above the sheet and the bar.
+            Positioned.fill(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: bottomInset + timelineInset),
+                child: empty,
+              ),
+            ),
             timelineBar,
           ],
         );

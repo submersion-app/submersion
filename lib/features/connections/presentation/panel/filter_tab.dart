@@ -7,8 +7,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/active_filter_
 import 'package:submersion/features/dive_log/presentation/widgets/refine/show_refine_panel.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The timeline, the active filter axes as removable chips, the full filter sheet
-/// and Clear. Everything here writes `connectionsFilterProvider`.
+/// The timeline, the active filter axes as removable chips, the full filter
+/// sheet and Clear. Everything here writes `connectionsFilterProvider`.
 class FilterTab extends ConsumerWidget {
   const FilterTab({super.key});
 
