@@ -50,6 +50,45 @@ void main() {
     expect(preferences.getHistory(), isEmpty);
   });
 
+  test('signing in after a signed-out visit lists the cloud backups on the '
+      'next visit', () async {
+    // Cloud Sync selects the provider before authenticate() runs, and a
+    // re-sign-in to an already selected provider changes no provider state,
+    // so the history must not keep the empty listing from a signed-out visit.
+    SharedPreferences.setMockInitialValues({});
+    final cloud = FakeCloudStorageProvider()
+      ..authenticated = false
+      ..seedFile(
+        'submersion_backup_2026-03-14_093015.db',
+        Uint8List.fromList(List.filled(64, 1)),
+      );
+    final service = BackupService(
+      dbAdapter: UnusedBackupDatabaseAdapter(),
+      preferences: BackupPreferences(await SharedPreferences.getInstance()),
+      cloudProvider: cloud,
+    );
+    final container = ProviderContainer(
+      overrides: [backupServiceProvider.overrideWithValue(service)],
+    );
+    addTearDown(container.dispose);
+
+    final firstVisit = container.listen(
+      backupHistoryProvider.future,
+      (_, _) {},
+    );
+    expect(await firstVisit.read(), isEmpty);
+    firstVisit.close();
+    await container.pump();
+
+    cloud.authenticated = true;
+    final secondVisit = container.listen(
+      backupHistoryProvider.future,
+      (_, _) {},
+    );
+    addTearDown(secondVisit.close);
+    expect(await secondVisit.read(), hasLength(1));
+  });
+
   test('a history failure surfaces its own error, not a wrapper', () async {
     SharedPreferences.setMockInitialValues({});
     final service = _FailingHistoryService(

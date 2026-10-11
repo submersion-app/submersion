@@ -64,6 +64,28 @@ void main() {
       expect(stored.pinned, isTrue);
     });
 
+    test('adopting two rows at once keeps both', () async {
+      // The history write is read-modify-write, but SharedPreferences updates
+      // its cache synchronously inside setString, so with no await between
+      // the read and the write two adoptions cannot lose one another.
+      cloud.seedFile(
+        'submersion_backup_2026-03-15_093015.db',
+        Uint8List.fromList(List.filled(64, 2)),
+      );
+      final rows = [
+        for (final f in await service().getCloudBackups())
+          backupRecordFromCloudFile(f)!,
+      ];
+      expect(rows, hasLength(2));
+
+      await Future.wait([for (final r in rows) service().pinRecord(r)]);
+
+      expect(
+        preferences.getHistory().map((r) => r.id).toSet(),
+        rows.map((r) => r.id).toSet(),
+      );
+    });
+
     test('pinning a tracked record pins it in place', () async {
       final tracked = BackupRecord(
         id: 'tracked',

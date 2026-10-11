@@ -727,7 +727,15 @@ final backupOperationProvider =
 /// Backup history sorted newest-first, plus the backups in the connected
 /// cloud folder that the local history has no record of (issue #3214: after a
 /// fresh install the local history is empty, the cloud copies are not).
-final backupHistoryProvider = FutureProvider<List<BackupRecord>>((ref) async {
+///
+/// Auto-disposed so every visit to the backup page lists the cloud folder
+/// afresh. Signing in changes no provider state this could watch (Cloud Sync
+/// selects the provider before authenticating, and a re-sign-in to the same
+/// provider selects nothing), so a cached signed-out listing would otherwise
+/// hide the cloud backups until something else invalidated it.
+final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
+  ref,
+) async {
   final service = ref.watch(backupServiceProvider);
   // Started first so the listing overlaps the local read. Not joined with a
   // record `.wait`, which would wrap a history failure in ParallelWaitError
