@@ -8,11 +8,13 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/shared/widgets/entity_table/entity_table_header_cell.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -111,6 +113,7 @@ Widget _buildTable({
   return testApp(
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
+      diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
       tableViewConfigProvider.overrideWith(
         (ref) => _TestTableConfigNotifier(config ?? _testConfig),
       ),
@@ -216,12 +219,24 @@ void main() {
       // own Type if ANY of seven long-press callbacks is non-null, so checking
       // the map key covers onLongPressMoveUpdate, onLongPressEnd, onLongPressUp
       // and the rest without having to enumerate them.
-      final detectors = tester.widgetList<RawGestureDetector>(
-        find.descendant(
-          of: find.byType(DiveTableView),
-          matching: find.byType(RawGestureDetector),
-        ),
-      );
+      // Header cells are exempt: their long-press opens the column menu
+      // (#2984), which is not a way into selection.
+      final headerDetectors = tester
+          .widgetList<RawGestureDetector>(
+            find.descendant(
+              of: find.byType(EntityTableHeaderCell),
+              matching: find.byType(RawGestureDetector),
+            ),
+          )
+          .toSet();
+      final detectors = tester
+          .widgetList<RawGestureDetector>(
+            find.descendant(
+              of: find.byType(DiveTableView),
+              matching: find.byType(RawGestureDetector),
+            ),
+          )
+          .where((d) => !headerDetectors.contains(d));
       expect(detectors, isNotEmpty);
       for (final detector in detectors) {
         expect(
@@ -322,6 +337,7 @@ void main() {
         testApp(
           overrides: [
             settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
             tableViewConfigProvider.overrideWith(
               (ref) => _TestTableConfigNotifier(_testConfig),
             ),
@@ -478,6 +494,7 @@ void main() {
         testApp(
           overrides: [
             settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
             tableViewConfigProvider.overrideWith(
               (ref) => _TestTableConfigNotifier(_testConfig),
             ),
@@ -637,6 +654,7 @@ void main() {
         testApp(
           overrides: [
             settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
             tableViewConfigProvider.overrideWith(
               (ref) => _TestTableConfigNotifier(_testConfig),
             ),
@@ -656,6 +674,7 @@ void main() {
         testApp(
           overrides: [
             settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+            diveSurfaceIntervalsProvider.overrideWith((ref) async => const {}),
             tableViewConfigProvider.overrideWith(
               (ref) => _TestTableConfigNotifier(_testConfig),
             ),
