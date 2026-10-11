@@ -62,11 +62,16 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: CnsOtuStatusCard(
-              snapshot: snapshot,
-              units: units,
-              gfLow: gfLow,
-              gfHigh: gfHigh,
+            // Scrollable, same as CnsOtuPage's real ListView: the card can
+            // now render an O2ToxicityCard, a tissue loading card and two
+            // About cards, taller than the fixed test viewport.
+            body: SingleChildScrollView(
+              child: CnsOtuStatusCard(
+                snapshot: snapshot,
+                units: units,
+                gfLow: gfLow,
+                gfHigh: gfHigh,
+              ),
             ),
           ),
         ),

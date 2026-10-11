@@ -10523,6 +10523,10 @@
   "safetyHub_cnsOtu_elapsedDaysHours": "{days}d {hours}h",
   "safetyHub_cnsOtu_noProfile_title": "Último mergulho sem perfil",
   "safetyHub_cnsOtu_noProfile_body": "Sem perfil de profundidade, não é possível calcular o CNS% e as OTU dele. Os totais abaixo não o incluem.",
+  "safetyHub_cnsOtu_about_title": "Sobre CNS e OTU",
+  "safetyHub_cnsOtu_about_body": "O seu CNS% (relógio de oxigênio) decai após o mergulho com uma meia-vida de 90 minutos -- praticamente volta a 0 depois de cerca de um dia.\n\nA OTU diária é reiniciada todas as noites à meia-noite. A OTU semanal é um total móvel dos últimos 7 dias: mergulhos mais antigos saem automaticamente do cálculo assim que ficam fora dessa janela.",
+  "safetyHub_tissueLoading_about_title": "Sobre a carga tissular",
+  "safetyHub_tissueLoading_about_body": "O seu corpo tem 16 compartimentos teciduais que absorvem e liberam nitrogênio (e, em mergulhos com trimix ou rebreather, também hélio) em velocidades diferentes. Tecidos rápidos saturam e dessaturam depressa; tecidos lentos levam bem mais tempo para ambos.\n\nApós um mergulho com hélio, o nitrogênio e o hélio num mesmo compartimento podem mover-se brevemente em direções opostas: enquanto o hélio ainda está saindo, esse mesmo compartimento pode estar absorvendo um pouco de nitrogênio ao mesmo tempo, até que ambos os gases atinjam o equilíbrio com o ar que você respira. Por isso um compartimento pode mostrar brevemente \"Ongassing\" mesmo enquanto sua carga total continua caindo.",
   "safetyHub_noFly_category_single": "Após um único mergulho sem deco: orientação de {hours} h",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
