@@ -177,7 +177,13 @@ class FitParserService {
 
     final serial = fileId?.serialNumber ?? 0;
     final sourceId = 'garmin-$serial-$sessionStartMs';
-    final productCode = fileId?.garminProduct ?? fileId?.product;
+    final manufacturerName = fitManufacturerName(fileId?.manufacturer);
+    final model = FitDeviceMapper.modelFor(
+      manufacturer: fileId?.manufacturer,
+      manufacturerName: manufacturerName,
+      product: fileId?.garminProduct ?? fileId?.product,
+      productName: fileId?.productName,
+    );
 
     return ImportedDive(
       sourceId: sourceId,
@@ -205,8 +211,8 @@ class FitParserService {
       decoModel: summary.decoModel,
       gfLow: summary.gfLow,
       gfHigh: summary.gfHigh,
-      computerManufacturer: fitManufacturerName(fileId?.manufacturer),
-      computerModel: FitDeviceMapper.modelName(productCode),
+      computerManufacturer: manufacturerName,
+      computerModel: model,
       computerSerial: serial != 0 ? '$serial' : null,
       tanks: tanks,
       gasSwitches: gasSwitches,

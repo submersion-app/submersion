@@ -20,6 +20,9 @@ Uint8List buildTestDiveFitFile({
   List<double?>? temperatureSamples,
   List<int?>? heartRateSamples,
   int serialNumber = 12345,
+  int manufacturer = 1, // Garmin
+  int product = 3943, // Descent Mk2
+  String? productName,
   double? startLat,
   double? startLong,
   double? endLat,
@@ -32,12 +35,11 @@ Uint8List buildTestDiveFitFile({
   // FileId message: identifies this as an activity file
   final fileId = FileIdMessage()
     ..type = FileType.activity
-    ..manufacturer =
-        1 // Garmin
-    ..product =
-        3943 // Descent Mk2
+    ..manufacturer = manufacturer
+    ..product = product
     ..serialNumber = serialNumber
     ..timeCreated = startTime.millisecondsSinceEpoch;
+  if (productName != null) fileId.productName = productName;
 
   builder.add(fileId);
 
@@ -378,6 +380,58 @@ void main() {
       final result = await service.parseFitFile(bytes);
       expect(result?.computerManufacturer, 'Garmin');
     });
+  });
+
+  group('computer model from file_id (#3045)', () {
+    test(
+      'a serial-less Suunto Nautic S export names its manufacturer and model',
+      () async {
+        final bytes = buildTestDiveFitFile(
+          startTime: DateTime(2024, 6, 15, 10, 30),
+          durationSeconds: 600,
+          depthSamples: [0.0, 10.0, 0.0],
+          serialNumber: 0,
+          manufacturer: 23,
+          product: 73,
+          productName: 'Suunto Nautic S',
+        );
+        final result = await service.parseFitFile(bytes);
+        expect(result?.computerManufacturer, 'Suunto');
+        expect(result?.computerModel, 'Nautic S');
+        expect(result?.computerSerial, isNull);
+      },
+    );
+
+    test(
+      'a Garmin file still takes its model from the product table',
+      () async {
+        final bytes = buildTestDiveFitFile(
+          startTime: DateTime(2024, 6, 15, 10, 30),
+          durationSeconds: 600,
+          depthSamples: [0.0, 10.0, 0.0],
+          product: 4223,
+        );
+        final result = await service.parseFitFile(bytes);
+        expect(result?.computerModel, 'Descent Mk3i');
+      },
+    );
+
+    test(
+      'an unrecognized manufacturer without product_name has no model',
+      () async {
+        final bytes = buildTestDiveFitFile(
+          startTime: DateTime(2024, 6, 15, 10, 30),
+          durationSeconds: 600,
+          depthSamples: [0.0, 10.0, 0.0],
+          manufacturer: 255,
+          product: 73,
+        );
+        final result = await service.parseFitFile(bytes);
+        expect(result, isNotNull);
+        expect(result!.computerManufacturer, isNull);
+        expect(result.computerModel, isNull);
+      },
+    );
   });
 
   group('parseFitFile', () {
