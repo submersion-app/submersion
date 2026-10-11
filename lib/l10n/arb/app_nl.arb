@@ -13727,6 +13727,7 @@
   "maps_regionDownload_presetDetail": "Detail",
   "maps_regionDownload_presetFull": "Volledig",
   "maps_regionDownload_tooManyTiles": "Meer dan 100.000 tegels: verklein het gebied of verlaag de maximale zoom.",
+  "maps_regionDownload_socks5Unsupported": "Regiodownloads kunnen geen SOCKS5-proxy gebruiken: kies in de netwerkinstellingen een HTTP-proxy of 'Geen proxy'.",
   "diveLog_map_title": "Duikactiviteit",
   "diveLog_map_infoCard_minutes": "{minutes} min",
   "trips_gallery_diveSection_subtitle": "{date} ({count} {photoLabel})",

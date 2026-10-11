@@ -46133,6 +46133,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Über 100.000 Kacheln: Verkleinern Sie den Bereich oder senken Sie den maximalen Zoom.';
 
   @override
+  String get maps_regionDownload_socks5Unsupported =>
+      'Regionsdownloads können keinen SOCKS5-Proxy verwenden: Wechseln Sie in den Netzwerkeinstellungen zu einem HTTP-Proxy oder zu „Kein Proxy“.';
+
+  @override
   String get diveLog_map_title => 'Tauchaktivität';
 
   @override

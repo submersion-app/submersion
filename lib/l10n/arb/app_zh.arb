@@ -13727,6 +13727,7 @@
   "maps_regionDownload_presetDetail": "详细",
   "maps_regionDownload_presetFull": "完整",
   "maps_regionDownload_tooManyTiles": "超过 100,000 个瓦片：请缩小区域或降低最大缩放级别。",
+  "maps_regionDownload_socks5Unsupported": "区域下载无法使用 SOCKS5 代理：请在网络设置中切换到 HTTP 代理或“不使用代理”。",
   "diveLog_map_title": "潜水活动",
   "diveLog_map_infoCard_minutes": "{minutes} 分钟",
   "trips_gallery_diveSection_subtitle": "{date}（{count} {photoLabel}）",

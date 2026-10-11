@@ -2,6 +2,7 @@ import 'package:flutter_map/flutter_map.dart';
 
 import 'package:submersion/core/network/proxy/effective_proxy.dart';
 import 'package:submersion/core/network/proxy/isolate_http_overrides.dart';
+import 'package:submersion/core/network/proxy/proxy_routing.dart';
 
 /// A tile provider that holds no HTTP client, used only to describe a download.
 ///
@@ -53,3 +54,29 @@ TileLayer regionDownloadTileLayer({
   maxZoom: maxZoom,
   tileProvider: DownloadTileProvider(proxy: proxy ?? currentAppProxy()),
 );
+
+/// Whether [proxy] would send [urlTemplate]'s tiles through SOCKS5, which a
+/// region download cannot use.
+///
+/// FMTC's download threads build their clients before app code runs there,
+/// and dart:io can only route such a client through an HTTP proxy or
+/// directly ([DownloadTileProvider]). Every tile would fail, so the download
+/// dialog checks this first and says why instead (#3269). A SOCKS5 proxy that
+/// bypasses the tile server does not block it.
+bool socks5BlocksRegionDownload({
+  required String urlTemplate,
+  required EffectiveProxy proxy,
+}) {
+  if (proxy.kind != ProxyKind.socks5) return false;
+  final layer = regionDownloadTileLayer(
+    urlTemplate: urlTemplate,
+    maxZoom: 1,
+    proxy: proxy,
+  );
+  final sample = layer.tileProvider.getTileUrl(
+    const TileCoordinates(0, 0, 0),
+    layer,
+  );
+  final url = Uri.tryParse(sample);
+  return url == null || defaultShouldProxy(url, proxy);
+}

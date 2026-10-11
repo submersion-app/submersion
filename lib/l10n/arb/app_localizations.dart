@@ -73549,6 +73549,12 @@ abstract class AppLocalizations {
   /// **'Over 100,000 tiles: shrink the area or lower the maximum zoom.'**
   String get maps_regionDownload_tooManyTiles;
 
+  /// No description provided for @maps_regionDownload_socks5Unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Region downloads can\'t use a SOCKS5 proxy: switch to an HTTP proxy or to No proxy in the network settings.'**
+  String get maps_regionDownload_socks5Unsupported;
+
   /// No description provided for @diveLog_map_title.
   ///
   /// In en, this message translates to:

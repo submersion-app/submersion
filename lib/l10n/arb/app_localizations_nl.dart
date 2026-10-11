@@ -45936,6 +45936,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Meer dan 100.000 tegels: verklein het gebied of verlaag de maximale zoom.';
 
   @override
+  String get maps_regionDownload_socks5Unsupported =>
+      'Regiodownloads kunnen geen SOCKS5-proxy gebruiken: kies in de netwerkinstellingen een HTTP-proxy of \'Geen proxy\'.';
+
+  @override
   String get diveLog_map_title => 'Duikactiviteit';
 
   @override

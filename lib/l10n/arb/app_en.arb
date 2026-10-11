@@ -26890,6 +26890,7 @@
   "maps_regionDownload_presetDetail": "Detail",
   "maps_regionDownload_presetFull": "Full",
   "maps_regionDownload_tooManyTiles": "Over 100,000 tiles: shrink the area or lower the maximum zoom.",
+  "maps_regionDownload_socks5Unsupported": "Region downloads can't use a SOCKS5 proxy: switch to an HTTP proxy or to No proxy in the network settings.",
   "diveLog_map_title": "Dive Activity",
   "diveLog_map_infoCard_minutes": "{minutes} min",
   "trips_gallery_diveSection_subtitle": "{date} ({count} {photoLabel})",

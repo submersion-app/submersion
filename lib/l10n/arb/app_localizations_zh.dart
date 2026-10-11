@@ -43459,6 +43459,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '超过 100,000 个瓦片：请缩小区域或降低最大缩放级别。';
 
   @override
+  String get maps_regionDownload_socks5Unsupported =>
+      '区域下载无法使用 SOCKS5 代理：请在网络设置中切换到 HTTP 代理或“不使用代理”。';
+
+  @override
   String get diveLog_map_title => '潜水活动';
 
   @override

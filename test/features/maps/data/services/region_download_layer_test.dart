@@ -110,4 +110,69 @@ void main() {
       expect(await _proxyForEarlyClient(layer), 'DIRECT');
     });
   });
+  group('socks5BlocksRegionDownload', () {
+    const osm = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+    EffectiveProxy proxyOf(ProxyKind kind, {List<String> bypass = const []}) =>
+        EffectiveProxy(
+          kind: kind,
+          host: 'proxy.example.test',
+          port: 1080,
+          bypass: bypass,
+          source: ProxySource.manual,
+        );
+
+    test('a SOCKS5 proxy the tiles would go through blocks the download', () {
+      expect(
+        socks5BlocksRegionDownload(
+          urlTemplate: osm,
+          proxy: proxyOf(ProxyKind.socks5),
+        ),
+        isTrue,
+      );
+    });
+
+    test('a template with a subdomain placeholder is checked too', () {
+      expect(
+        socks5BlocksRegionDownload(
+          urlTemplate: 'https://{s}.tile.example.test/{z}/{x}/{y}.png',
+          proxy: proxyOf(ProxyKind.socks5),
+        ),
+        isTrue,
+      );
+    });
+
+    test('an HTTP proxy does not block it', () {
+      expect(
+        socks5BlocksRegionDownload(
+          urlTemplate: osm,
+          proxy: proxyOf(ProxyKind.http),
+        ),
+        isFalse,
+      );
+    });
+
+    test('no proxy does not block it', () {
+      expect(
+        socks5BlocksRegionDownload(
+          urlTemplate: osm,
+          proxy: const EffectiveProxy.direct(),
+        ),
+        isFalse,
+      );
+    });
+
+    test('a SOCKS5 proxy that bypasses the tile server does not block it', () {
+      expect(
+        socks5BlocksRegionDownload(
+          urlTemplate: osm,
+          proxy: proxyOf(
+            ProxyKind.socks5,
+            bypass: const ['tile.openstreetmap.org'],
+          ),
+        ),
+        isFalse,
+      );
+    });
+  });
 }

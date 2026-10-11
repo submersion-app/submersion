@@ -13727,6 +13727,7 @@
   "maps_regionDownload_presetDetail": "Détail",
   "maps_regionDownload_presetFull": "Complet",
   "maps_regionDownload_tooManyTiles": "Plus de 100 000 tuiles : réduisez la zone ou baissez le zoom maximal.",
+  "maps_regionDownload_socks5Unsupported": "Les téléchargements de régions ne peuvent pas utiliser de proxy SOCKS5 : passez à un proxy HTTP ou à « Aucun proxy » dans les réglages réseau.",
   "diveLog_map_title": "Activité de plongée",
   "diveLog_map_infoCard_minutes": "{minutes} min",
   "trips_gallery_diveSection_subtitle": "{date} ({count} {photoLabel})",

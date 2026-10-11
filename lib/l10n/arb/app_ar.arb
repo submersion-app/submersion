@@ -13727,6 +13727,7 @@
   "maps_regionDownload_presetDetail": "تفصيلي",
   "maps_regionDownload_presetFull": "كامل",
   "maps_regionDownload_tooManyTiles": "أكثر من 100,000 بلاطة: صغّر المنطقة أو اخفض أقصى تكبير.",
+  "maps_regionDownload_socks5Unsupported": "لا يمكن لتنزيلات المناطق استخدام وكيل SOCKS5: انتقل إلى وكيل HTTP أو إلى «بدون وكيل» في إعدادات الشبكة.",
   "diveLog_map_title": "نشاط الغوص",
   "diveLog_map_infoCard_minutes": "{minutes} دقيقة",
   "trips_gallery_diveSection_subtitle": "{date} ({count} {photoLabel})",

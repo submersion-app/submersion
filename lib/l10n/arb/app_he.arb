@@ -13727,6 +13727,7 @@
   "maps_regionDownload_presetDetail": "פירוט",
   "maps_regionDownload_presetFull": "מלא",
   "maps_regionDownload_tooManyTiles": "יותר מ-100,000 אריחים: הקטן את האזור או הנמך את הזום המרבי.",
+  "maps_regionDownload_socks5Unsupported": "הורדות אזורים אינן יכולות להשתמש בפרוקסי SOCKS5: עבור לפרוקסי HTTP או ל\"ללא פרוקסי\" בהגדרות הרשת.",
   "diveLog_map_title": "פעילות צלילה",
   "diveLog_map_infoCard_minutes": "{minutes} דקות",
   "trips_gallery_diveSection_subtitle": "{date} ({count} {photoLabel})",

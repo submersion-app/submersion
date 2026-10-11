@@ -13727,6 +13727,7 @@
   "maps_regionDownload_presetDetail": "Detalhe",
   "maps_regionDownload_presetFull": "Completo",
   "maps_regionDownload_tooManyTiles": "Mais de 100.000 tiles: reduza a área ou diminua o zoom máximo.",
+  "maps_regionDownload_socks5Unsupported": "As transferências de regiões não podem usar um proxy SOCKS5: mude para um proxy HTTP ou para \"Sem proxy\" nas definições de rede.",
   "diveLog_map_title": "Atividade de Mergulho",
   "diveLog_map_infoCard_minutes": "{minutes} min",
   "trips_gallery_diveSection_subtitle": "{date} ({count} {photoLabel})",

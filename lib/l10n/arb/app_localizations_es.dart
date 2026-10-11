@@ -46270,6 +46270,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Más de 100 000 teselas: reduce el área o baja el zoom máximo.';
 
   @override
+  String get maps_regionDownload_socks5Unsupported =>
+      'Las descargas de regiones no pueden usar un proxy SOCKS5: cambia a un proxy HTTP o a «Sin proxy» en los ajustes de red.';
+
+  @override
   String get diveLog_map_title => 'Actividad de buceo';
 
   @override

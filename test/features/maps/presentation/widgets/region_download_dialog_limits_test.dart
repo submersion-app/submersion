@@ -5,12 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/network/proxy/effective_proxy.dart';
+import 'package:submersion/core/network/proxy/proxy_controller.dart';
+import 'package:submersion/core/network/proxy/proxy_settings.dart';
 import 'package:submersion/core/services/geocoding/nominatim_throttle.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/entities/cached_region.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/region_download_dialog.dart';
+import 'package:submersion/features/settings/presentation/providers/network_proxy_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/fake_hosts.dart';
@@ -45,8 +49,9 @@ void main() {
 
   Future<void> pumpDialog(
     WidgetTester tester,
-    Future<int> Function(int call) onEstimate,
-  ) async {
+    Future<int> Function(int call) onEstimate, {
+    EffectiveProxy proxy = const EffectiveProxy.direct(),
+  }) async {
     final base = await getBaseOverrides();
 
     await tester.pumpWidget(
@@ -57,6 +62,16 @@ void main() {
             _FakeTileCache(onEstimate),
           ),
           cachedRegionsProvider.overrideWith((ref) async => <CachedRegion>[]),
+          proxyStateProvider.overrideWith(
+            (ref) => Stream.value(
+              ProxyControllerState(
+                settings: ProxySettings.defaults,
+                system: null,
+                detecting: false,
+                effective: proxy,
+              ),
+            ),
+          ),
         ],
         child: const MaterialApp(
           // Pinned: the assertions read English labels, and the host locale
@@ -106,6 +121,38 @@ void main() {
 
     expect(downloadButton(tester).onPressed, isNotNull);
     expect(find.textContaining('Over 100,000 tiles'), findsNothing);
+  });
+
+  testWidgets('a SOCKS5 proxy disables Download and says why', (tester) async {
+    await pumpDialog(
+      tester,
+      (_) async => 5000,
+      proxy: const EffectiveProxy(
+        kind: ProxyKind.socks5,
+        host: 'proxy.example.test',
+        port: 1080,
+        source: ProxySource.manual,
+      ),
+    );
+
+    expect(downloadButton(tester).onPressed, isNull);
+    expect(find.textContaining('SOCKS5'), findsOneWidget);
+  });
+
+  testWidgets('an HTTP proxy leaves Download enabled', (tester) async {
+    await pumpDialog(
+      tester,
+      (_) async => 5000,
+      proxy: const EffectiveProxy(
+        kind: ProxyKind.http,
+        host: 'proxy.example.test',
+        port: 3128,
+        source: ProxySource.manual,
+      ),
+    );
+
+    expect(downloadButton(tester).onPressed, isNotNull);
+    expect(find.textContaining('SOCKS5'), findsNothing);
   });
 
   testWidgets('Download is disabled above the tile limit', (tester) async {

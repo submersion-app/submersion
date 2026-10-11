@@ -45278,6 +45278,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'יותר מ-100,000 אריחים: הקטן את האזור או הנמך את הזום המרבי.';
 
   @override
+  String get maps_regionDownload_socks5Unsupported =>
+      'הורדות אזורים אינן יכולות להשתמש בפרוקסי SOCKS5: עבור לפרוקסי HTTP או ל\"ללא פרוקסי\" בהגדרות הרשת.';
+
+  @override
   String get diveLog_map_title => 'פעילות צלילה';
 
   @override

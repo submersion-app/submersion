@@ -13727,6 +13727,7 @@
   "maps_regionDownload_presetDetail": "Detalle",
   "maps_regionDownload_presetFull": "Completo",
   "maps_regionDownload_tooManyTiles": "Más de 100 000 teselas: reduce el área o baja el zoom máximo.",
+  "maps_regionDownload_socks5Unsupported": "Las descargas de regiones no pueden usar un proxy SOCKS5: cambia a un proxy HTTP o a «Sin proxy» en los ajustes de red.",
   "diveLog_map_title": "Actividad de buceo",
   "diveLog_map_infoCard_minutes": "{minutes} min",
   "trips_gallery_diveSection_subtitle": "{date} ({count} {photoLabel})",

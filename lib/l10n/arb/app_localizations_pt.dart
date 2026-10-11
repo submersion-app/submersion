@@ -46240,6 +46240,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mais de 100.000 tiles: reduza a área ou diminua o zoom máximo.';
 
   @override
+  String get maps_regionDownload_socks5Unsupported =>
+      'As transferências de regiões não podem usar um proxy SOCKS5: mude para um proxy HTTP ou para \"Sem proxy\" nas definições de rede.';
+
+  @override
   String get diveLog_map_title => 'Atividade de Mergulho';
 
   @override

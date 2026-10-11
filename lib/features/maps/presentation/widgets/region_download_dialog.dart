@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:submersion/core/network/proxy/effective_proxy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/features/maps/data/services/region_download_layer.dart';
 import 'package:submersion/features/maps/domain/region_size_estimate.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/network_proxy_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Dialog for configuring and starting a region download.
@@ -50,7 +53,19 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
   /// within the limit. No count (still estimating, or the estimate failed)
   /// blocks it: the limit protects a public tile server, so it fails closed.
   bool get _canDownload =>
-      !_isEstimating && _estimatedTiles != null && !_overLimit;
+      !_isEstimating &&
+      _estimatedTiles != null &&
+      !_overLimit &&
+      !_socks5Blocked;
+
+  /// A SOCKS5 proxy the tiles would go through: every tile request of the
+  /// download would fail, so it is refused up front with the reason (#3269).
+  bool get _socks5Blocked => socks5BlocksRegionDownload(
+    urlTemplate: ref.read(mapTileUrlProvider),
+    proxy:
+        ref.read(proxyStateProvider).value?.effective ??
+        const EffectiveProxy.direct(),
+  );
 
   /// Counts the estimates started, so a slow earlier one cannot overwrite the
   /// count of a later one.
@@ -196,6 +211,9 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final l10n = context.l10n;
+    // Rebuilds when the proxy or the tile server changes, for _socks5Blocked.
+    ref.watch(proxyStateProvider);
+    ref.watch(mapTileUrlProvider);
 
     return AlertDialog(
       title: Text(l10n.maps_regionDownload_title),
@@ -399,6 +417,17 @@ class _RegionDownloadDialogState extends ConsumerState<RegionDownloadDialog> {
                         ),
                       ),
                     ],
+                  ),
+                ),
+              ),
+            if (_socks5Blocked)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  l10n.maps_regionDownload_socks5Unsupported,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.error,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),

@@ -13860,6 +13860,7 @@
   "maps_regionDownload_presetDetail": "Detail",
   "maps_regionDownload_presetFull": "Vollständig",
   "maps_regionDownload_tooManyTiles": "Über 100.000 Kacheln: Verkleinern Sie den Bereich oder senken Sie den maximalen Zoom.",
+  "maps_regionDownload_socks5Unsupported": "Regionsdownloads können keinen SOCKS5-Proxy verwenden: Wechseln Sie in den Netzwerkeinstellungen zu einem HTTP-Proxy oder zu „Kein Proxy“.",
   "diveLog_map_title": "Tauchaktivität",
   "diveLog_map_infoCard_minutes": "{minutes} Min.",
   "trips_gallery_diveSection_subtitle": "{date} ({count} {photoLabel})",
