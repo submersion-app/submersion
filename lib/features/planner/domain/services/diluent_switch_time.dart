@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
@@ -8,13 +9,28 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 domain.PlanMode modeFor(domain.DivePlan plan, PlanSegment? segment) =>
     segment?.diveModeOverride ?? plan.mode;
 
-/// [segments] (already sorted) with the configured gas-switch time added to
-/// whichever segment starts the dive breathing a different diluent than the
-/// one before it -- the authored-segment counterpart of the floor the
-/// computed ascent's own invented stops get at a real OC switch (#3225,
-/// #3263). The extra time lands entirely inside that segment, at the depth
-/// it begins and on the diluent it already breathes, rather than being
-/// split out as a leg of its own.
+/// [segments] (already sorted, already rate-split if #3264 applies) with a
+/// new flat leg inserted wherever the dive starts breathing a different
+/// diluent than the one before it -- the authored-segment counterpart of
+/// the floor the computed ascent's own invented stops get at a real OC
+/// switch (#3225, #3263).
+///
+/// The stop is its own leg, at the depth the switching segment itself
+/// starts from (where the previous leg left off), not folded into that
+/// segment's own duration: a switching segment can be a rate-split travel
+/// leg with its own rate already fixed by the configured descent/ascent
+/// rate and the depth it covers (#3264), and stretching its duration in
+/// place would silently dilute that rate into a slower blended descent
+/// instead of the intended fast-travel-then-flat-stop shape (confirmed: a
+/// 5-minute switch time halved the apparent descent rate for the rest of
+/// the leg instead of showing as a stop).
+///
+/// The inserted leg breathes whichever of the two diluents carries more
+/// total inert gas (the lower O2 fraction): the diver asked for the
+/// decompression math to stay conservative through the switch even when
+/// the more efficient gas might already be in use by then, so the stop is
+/// costed on whichever gas is worse for that, not on a fixed "old" or
+/// "new" convention.
 ///
 /// Only a CCR segment (per-segment dive-mode override honoured) carrying an
 /// explicit diluent tank can switch; nothing is added before the first
@@ -33,29 +49,42 @@ List<PlanSegment> withDiluentSwitchTime(
 ) {
   if (plan.gasSwitchStopSeconds <= 0) return segments;
 
-  String? diluentTankIdFor(PlanSegment segment) {
+  DiveTank? diluentTankFor(PlanSegment segment) {
     if (modeFor(plan, segment) != domain.PlanMode.ccr) return null;
     final tank = plan.tanks.where((t) => t.id == segment.tankId).firstOrNull;
-    return tank?.role == TankRole.diluent ? tank!.id : null;
+    return tank?.role == TankRole.diluent ? tank : null;
   }
 
   final result = <PlanSegment>[];
-  String? previousDiluentId;
+  DiveTank? previousDiluent;
+  var depth = 0.0;
   for (final segment in segments) {
-    final diluentId = diluentTankIdFor(segment);
+    final diluent = diluentTankFor(segment);
     final isSwitch =
-        previousDiluentId != null &&
-        diluentId != null &&
-        diluentId != previousDiluentId;
-    result.add(
-      isSwitch
-          ? segment.copyWith(
-              durationSeconds:
-                  segment.durationSeconds + plan.gasSwitchStopSeconds,
-            )
-          : segment,
-    );
-    previousDiluentId = diluentId ?? previousDiluentId;
+        previousDiluent != null &&
+        diluent != null &&
+        diluent.id != previousDiluent.id;
+    if (isSwitch) {
+      // Lower O2% carries more total inert gas (He + N2), the conservative
+      // side to cost an ambiguous mid-switch stop on.
+      final conservative = diluent.gasMix.o2 <= previousDiluent.gasMix.o2
+          ? diluent
+          : previousDiluent;
+      result.add(
+        PlanSegment(
+          id: '${segment.id}__gasSwitchStop',
+          targetDepth: depth,
+          durationSeconds: plan.gasSwitchStopSeconds,
+          tankId: conservative.id,
+          gasMix: conservative.gasMix,
+          diveModeOverride: segment.diveModeOverride,
+          order: segment.order,
+        ),
+      );
+    }
+    result.add(segment);
+    depth = segment.targetDepth;
+    previousDiluent = diluent ?? previousDiluent;
   }
   return result;
 }

@@ -35,31 +35,30 @@ class SegmentList extends ConsumerWidget {
     // `order` in step with the list), which is what SegmentChain chains.
     final legs = const SegmentChain().resolve(planState.segments);
 
-    // The configured gas-switch stop time (#3263) stretches the switching
-    // segment's effective duration past what the diver typed into it, and
+    // The configured gas-switch stop time (#3263) inserts a flat stop leg
+    // of its own wherever the dive switches diluent, and
     // PlanEngine.compute/buildCanvasSeries add it before computing the RT
     // this list's subtitle claims to match -- so this list must add it too,
     // or its own RT silently falls behind the computed schedule it promises
     // to agree with (confirmed: a 5-minute configured gas-switch time never
-    // showed up here at all). Only [legs]' own runtimeSeconds is replaced,
-    // through a second, separately-resolved chain -- not the segment [legs]
-    // itself, which must keep showing the diver's own typed duration, and
-    // must keep its own id-for-id correspondence to [planState.segments]
-    // that edit/delete/reorder rely on. withDiluentSwitchTime never adds or
-    // removes a segment (only a switching one's own duration), so the two
-    // chains stay the same length and index-for-index comparable;
-    // expandRateSplitSegments (#3264) would not -- it can add a hold leg of
-    // its own -- so it is deliberately left out here.
-    //
-    // No extra sort here: [legs] above trusts the state's list order as-is,
-    // and this must stay index-for-index comparable with it, not sorted by
-    // a possibly different key.
+    // showed up here at all). A second, separately-resolved chain supplies
+    // just the adjusted runtimeSeconds, looked up by the original segment's
+    // own id below -- withDiluentSwitchTime's inserted stop leg means this
+    // chain is no longer the same length as [legs] and must not be indexed
+    // the same way. expandRateSplitSegments (#3264) is left out here on
+    // purpose: it can ALSO add a leg of its own, which [legs] above must
+    // never see -- this list shows exactly one row per authored segment,
+    // the diver's own typed duration, since edit/delete/reorder key off
+    // that same one-row-per-segment correspondence to [planState.segments].
     final resolvedPlan = const TankRoleResolver().apply(
       divePlanFromState(planState),
     );
     final adjustedLegs = const SegmentChain().resolve(
       withDiluentSwitchTime(resolvedPlan.segments, resolvedPlan),
     );
+    int runtimeSecondsFor(String segmentId) => adjustedLegs
+        .firstWhere((l) => l.segment.id == segmentId)
+        .runtimeSeconds;
 
     return Card(
       child: Padding(
@@ -110,7 +109,7 @@ class SegmentList extends ConsumerWidget {
                   return _SegmentTile(
                     key: ValueKey(segment.id),
                     leg: leg,
-                    runtimeSeconds: adjustedLegs[index].runtimeSeconds,
+                    runtimeSeconds: runtimeSecondsFor(segment.id),
                     // A gas switch is not a segment: it is this leg
                     // breathing a different tank than the one before it.
                     switchedGas:
