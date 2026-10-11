@@ -368,6 +368,8 @@ void main() {
     (tester) async {
       await _pumpGrouped(
         tester,
+        // A second country, so Australia isn't the only group -- the only
+        // group auto-opens, which would make the tap below close it again.
         sites: [
           _site('q1', 'Cod Hole', country: 'Australia', region: 'Queensland'),
           _site(
@@ -377,6 +379,7 @@ void main() {
             region: 'Queensland',
           ),
           _site('w1', 'Navy Pier', country: 'Australia', region: 'Western'),
+          _site('eg1', 'Blue Hole', country: 'Egypt'),
         ],
       );
       await tester.tap(_header('Australia'));

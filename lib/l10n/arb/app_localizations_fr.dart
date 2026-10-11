@@ -11604,7 +11604,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_group_noCountry => 'Sans pays';
 
   @override
-  String get diveSites_group_noBodyOfWater => 'No body of water';
+  String get diveSites_group_noBodyOfWater => 'Sans plan d\'eau';
 
   @override
   String diveSites_group_siteCount(int count) {
@@ -11627,14 +11627,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_list_groupBy_location => 'Pays et région';
 
   @override
-  String get diveSites_list_groupBy_locationAndWater =>
-      'Country & body of water';
+  String get diveSites_list_groupBy_locationAndWater => 'Pays et plan d\'eau';
 
   @override
   String get diveSites_list_groupBy_none => 'Aucun';
 
   @override
-  String get diveSites_list_groupBy_water => 'Body of water';
+  String get diveSites_list_groupBy_water => 'Plan d\'eau';
 
   @override
   String diveSites_list_tile_diveCount(int count) {

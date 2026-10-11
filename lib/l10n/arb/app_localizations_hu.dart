@@ -11534,7 +11534,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_group_noCountry => 'Nincs ország';
 
   @override
-  String get diveSites_group_noBodyOfWater => 'No body of water';
+  String get diveSites_group_noBodyOfWater => 'Nincs víztest';
 
   @override
   String diveSites_group_siteCount(int count) {
@@ -11557,14 +11557,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_list_groupBy_location => 'Ország és régió';
 
   @override
-  String get diveSites_list_groupBy_locationAndWater =>
-      'Country & body of water';
+  String get diveSites_list_groupBy_locationAndWater => 'Ország és víztest';
 
   @override
   String get diveSites_list_groupBy_none => 'Nincs';
 
   @override
-  String get diveSites_list_groupBy_water => 'Body of water';
+  String get diveSites_list_groupBy_water => 'Víztest';
 
   @override
   String diveSites_list_tile_diveCount(int count) {

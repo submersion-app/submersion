@@ -11567,7 +11567,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_group_noCountry => 'Nessun paese';
 
   @override
-  String get diveSites_group_noBodyOfWater => 'No body of water';
+  String get diveSites_group_noBodyOfWater => 'Nessuno specchio d\'acqua';
 
   @override
   String diveSites_group_siteCount(int count) {
@@ -11591,13 +11591,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_list_groupBy_locationAndWater =>
-      'Country & body of water';
+      'Paese e specchio d\'acqua';
 
   @override
   String get diveSites_list_groupBy_none => 'Nessuno';
 
   @override
-  String get diveSites_list_groupBy_water => 'Body of water';
+  String get diveSites_list_groupBy_water => 'Specchio d\'acqua';
 
   @override
   String diveSites_list_tile_diveCount(int count) {
