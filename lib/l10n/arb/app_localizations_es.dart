@@ -13746,6 +13746,21 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String gearPassport_scan_retired(String name) {
+    return '$name tiene el estado Retirado';
+  }
+
+  @override
+  String gearPassport_scan_sold(String name) {
+    return '$name tiene el estado Vendido';
+  }
+
+  @override
+  String gearPassport_scan_lost(String name) {
+    return '$name tiene el estado Perdido';
+  }
+
+  @override
   String get pdf_unknownSite => 'Sitio desconocido';
 
   @override

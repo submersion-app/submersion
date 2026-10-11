@@ -13653,6 +13653,21 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String gearPassport_scan_retired(String name) {
+    return '$name heeft de status Uit gebruik';
+  }
+
+  @override
+  String gearPassport_scan_sold(String name) {
+    return '$name heeft de status Verkocht';
+  }
+
+  @override
+  String gearPassport_scan_lost(String name) {
+    return '$name heeft de status Verloren';
+  }
+
+  @override
   String get pdf_unknownSite => 'Onbekende duikstek';
 
   @override

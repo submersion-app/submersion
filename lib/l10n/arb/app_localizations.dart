@@ -22393,6 +22393,24 @@ abstract class AppLocalizations {
   /// **'{name} is marked Wanted'**
   String gearPassport_scan_wishlist(String name);
 
+  /// Said when a scanned item is retired (or switched inactive, which the app shows as Retired), so it is not added to a dive or trip.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is marked Retired'**
+  String gearPassport_scan_retired(String name);
+
+  /// Said when a scanned item has the Sold status, so it is not added to a dive or trip.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is marked Sold'**
+  String gearPassport_scan_sold(String name);
+
+  /// Said when a scanned item is marked Lost and out of the kit, so it is not added to a dive or trip.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is marked Lost'**
+  String gearPassport_scan_lost(String name);
+
   /// No description provided for @pdf_unknownSite.
   ///
   /// In en, this message translates to:

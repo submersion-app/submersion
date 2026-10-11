@@ -13709,6 +13709,21 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String gearPassport_scan_retired(String name) {
+    return '$name állapota: Kivonva';
+  }
+
+  @override
+  String gearPassport_scan_sold(String name) {
+    return '$name állapota: Eladva';
+  }
+
+  @override
+  String gearPassport_scan_lost(String name) {
+    return '$name állapota: Elveszett';
+  }
+
+  @override
   String get pdf_unknownSite => 'Ismeretlen merülőhely';
 
   @override

@@ -8086,6 +8086,33 @@
   "gearPassport_scan_notYours": "Not in your gear",
   "gearPassport_scan_view": "View",
   "gearPassport_scan_wishlist": "{name} is marked Wanted",
+  "@gearPassport_scan_retired": {
+    "description": "Said when a scanned item is retired (or switched inactive, which the app shows as Retired), so it is not added to a dive or trip.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "gearPassport_scan_retired": "{name} is marked Retired",
+  "@gearPassport_scan_sold": {
+    "description": "Said when a scanned item has the Sold status, so it is not added to a dive or trip.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "gearPassport_scan_sold": "{name} is marked Sold",
+  "@gearPassport_scan_lost": {
+    "description": "Said when a scanned item is marked Lost and out of the kit, so it is not added to a dive or trip.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "gearPassport_scan_lost": "{name} is marked Lost",
   "pdf_unknownSite": "Unknown Site",
   "pdf_signaturePlaceholder": "[Signature]",
   "pdf_signerBuddy": "Buddy",

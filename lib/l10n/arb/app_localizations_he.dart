@@ -13450,6 +13450,21 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String gearPassport_scan_retired(String name) {
+    return 'הסטטוס של $name: הוצא משימוש';
+  }
+
+  @override
+  String gearPassport_scan_sold(String name) {
+    return 'הסטטוס של $name: נמכר';
+  }
+
+  @override
+  String gearPassport_scan_lost(String name) {
+    return 'הסטטוס של $name: אבוד';
+  }
+
+  @override
   String get pdf_unknownSite => 'אתר לא ידוע';
 
   @override

@@ -13117,6 +13117,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String gearPassport_scan_retired(String name) {
+    return '$name 的状态为已退役';
+  }
+
+  @override
+  String gearPassport_scan_sold(String name) {
+    return '$name 的状态为已售出';
+  }
+
+  @override
+  String gearPassport_scan_lost(String name) {
+    return '$name 的状态为遗失';
+  }
+
+  @override
   String get pdf_unknownSite => '未知潜水点';
 
   @override
