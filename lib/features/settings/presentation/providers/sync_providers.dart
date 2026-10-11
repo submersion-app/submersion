@@ -791,6 +791,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// skips the auto-only first-contact deferral.
   bool? _queuedSyncAuto;
 
+  /// How long a finished sync waits for the post-sync findings pass before
+  /// settling its count. Bounded: a large first pull can keep the sweep busy
+  /// for minutes, and requests queue rather than drop meanwhile.
+  static const _postSyncFindingsWait = Duration(seconds: 30);
+
   /// The cloud error that failed the last [libraryReplaceInfo] pre-check,
   /// held for the next [performSync] only. A revoked sign-in fails the
   /// pre-check first, and the provider clears the dead grant as it throws, so
@@ -1404,6 +1409,9 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// completed successfully (with or without conflicts).
   Future<bool> _runSyncOnce({required bool auto}) async {
     var succeeded = false;
+    // An auto-sync armed before this run is covered by it: the publish reads
+    // every change made so far. Firing afterwards would only repeat it.
+    _autoSyncTimer?.cancel();
     // Load any stored encryption key BEFORE resolving the sync service:
     // the provider wrap watches the session, so a launch-triggered sync
     // must not race the async key load and run unencrypted-eyed.
@@ -1615,6 +1623,15 @@ class SyncNotifier extends StateNotifier<SyncState> {
     // Refresh state after a brief delay so status is readable.
     if (state.status == SyncStatus.success ||
         state.status == SyncStatus.hasConflicts) {
+      // The findings pass that follows the summary sweep is the post-sync
+      // work most likely to mark rows pending, and it runs unawaited. Give it
+      // a bounded wait, so the settled count below (and with it the
+      // follow-up decision in performSync) sees what it wrote.
+      await SensorSummaryScheduler.instance.idle.timeout(
+        _postSyncFindingsWait,
+        onTimeout: () {},
+      );
+      if (!mounted) return false;
       await Future.delayed(const Duration(seconds: 2));
       if (!mounted) return false;
       await refreshState();

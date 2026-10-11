@@ -7,11 +7,15 @@ import 'package:submersion/core/data/repositories/sync_repository.dart'
     hide SyncStatus;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/equipment/data/services/equipment_findings_pass.dart';
+import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_thresholds.dart';
 import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 import '../../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../../helpers/global_test_defaults.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Issue #3265: a sync reported success, then showed ~20 unsynced items that
@@ -30,7 +34,13 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  tearDown(() => DatabaseService.instance.resetForTesting());
+  tearDown(() async {
+    // Waits out any batch a test queued before restoring the harness's
+    // scheduler defaults (one test turns the summary scheduler on).
+    await SensorSummaryScheduler.instance.idle;
+    applyGlobalTestDefaults();
+    DatabaseService.instance.resetForTesting();
+  });
 
   Future<ProviderContainer> makeContainer(
     Future<void> Function() postSyncWork,
@@ -126,6 +136,37 @@ void main() {
     await container.read(syncStateProvider.notifier).performSync();
 
     expect(runs, 1);
+    expect(container.read(syncStateProvider).pendingChanges, 0);
+  });
+
+  test('the follow-up waits for the post-sync findings pass', () async {
+    // The findings pass after the summary sweep runs unawaited and is the
+    // likeliest source of the stranded rows. One that writes after the
+    // settle delay must still be published by the same press.
+    final scheduler = SensorSummaryScheduler.instance;
+    final loader = scheduler.conditionInputsLoader;
+    addTearDown(() => scheduler.conditionInputsLoader = loader);
+    SensorSummaryScheduler.enabled = true;
+    var passes = 0;
+    scheduler.conditionInputsLoader = () async {
+      passes++;
+      if (passes == 1) {
+        // Later than the 2s settle the count used to be read after.
+        await Future<void>.delayed(const Duration(seconds: 3));
+        await stampAfterPublish('equipment-finding');
+      }
+      return const ConditionPassInputs(
+        diverId: null,
+        thresholds: ExposureThresholds.defaults,
+        engineEnabled: false,
+      );
+    };
+    var runs = 0;
+    final container = await makeContainer(() async => runs++);
+
+    await container.read(syncStateProvider.notifier).performSync();
+
+    expect(runs, 2, reason: 'the findings stamp went out in a follow-up');
     expect(container.read(syncStateProvider).pendingChanges, 0);
   });
 }
