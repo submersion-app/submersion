@@ -14557,7 +14557,7 @@ class AppLocalizationsDe extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '$used Tauchgänge, $remaining von $total Tauchgängen übrig';
+    return '$used von $total Tauchgängen, $remaining übrig';
   }
 
   @override
@@ -14687,7 +14687,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used Stunden, $remaining von $total Stunden übrig';
+    return '$used von $total Stunden, $remaining übrig';
   }
 
   @override
@@ -14696,7 +14696,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used Salzwasserstunden, $remaining von $total Salzwasserstunden übrig';
+    return '$used von $total Salzwasserstunden, $remaining übrig';
   }
 
   @override
@@ -14705,7 +14705,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used Kaltwassertauchgänge, $remaining von $total Kaltwassertauchgängen übrig';
+    return '$used von $total Kaltwassertauchgängen, $remaining übrig';
   }
 
   @override
@@ -14714,7 +14714,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used Stunden mit hohem O2, $remaining von $total Stunden mit hohem O2 übrig';
+    return '$used von $total Stunden mit hohem O2, $remaining übrig';
   }
 
   @override
@@ -14723,7 +14723,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used tiefe Tauchgänge, $remaining von $total tiefen Tauchgängen übrig';
+    return '$used von $total tiefen Tauchgängen, $remaining übrig';
   }
 
   @override
@@ -14732,7 +14732,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used Batteriezyklen, $remaining von $total Batteriezyklen übrig';
+    return '$used von $total Batteriezyklen, $remaining übrig';
   }
 
   @override

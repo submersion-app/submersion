@@ -4239,7 +4239,7 @@
   "equipment_serviceClocks_dueOn": "Fällig am {date}",
   "equipment_serviceClocks_overdueSince": "Überfällig seit {date}",
   "equipment_serviceClocks_countingSince": "Zählt seit {date}",
-  "equipment_serviceClocks_divesUsedAndLeft": "{used} Tauchgänge, {remaining} von {total} Tauchgängen übrig",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} von {total} Tauchgängen, {remaining} übrig",
   "@equipment_serviceClocks_divesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4333,7 +4333,7 @@
   "cylinderConfigs_fieldMaterial": "Material",
   "cylinderConfigs_sectionTitle": "Konfigurationen",
   "equipment_serviceClocks_hoursSource": "Aus der protokollierten Tauchzeit berechnet",
-  "equipment_serviceClocks_hoursUsedAndLeft": "{used} Stunden, {remaining} von {total} Stunden übrig",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} von {total} Stunden, {remaining} übrig",
   "@equipment_serviceClocks_hoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4347,7 +4347,7 @@
       }
     }
   },
-  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} Salzwasserstunden, {remaining} von {total} Salzwasserstunden übrig",
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} von {total} Salzwasserstunden, {remaining} übrig",
   "@equipment_serviceClocks_saltHoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4361,7 +4361,7 @@
       }
     }
   },
-  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} Kaltwassertauchgänge, {remaining} von {total} Kaltwassertauchgängen übrig",
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} von {total} Kaltwassertauchgängen, {remaining} übrig",
   "@equipment_serviceClocks_coldDivesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4375,7 +4375,7 @@
       }
     }
   },
-  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} Stunden mit hohem O2, {remaining} von {total} Stunden mit hohem O2 übrig",
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} von {total} Stunden mit hohem O2, {remaining} übrig",
   "@equipment_serviceClocks_o2HoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4389,7 +4389,7 @@
       }
     }
   },
-  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} tiefe Tauchgänge, {remaining} von {total} tiefen Tauchgängen übrig",
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} von {total} tiefen Tauchgängen, {remaining} übrig",
   "@equipment_serviceClocks_deepCyclesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4403,7 +4403,7 @@
       }
     }
   },
-  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} Batteriezyklen, {remaining} von {total} Batteriezyklen übrig",
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} von {total} Batteriezyklen, {remaining} übrig",
   "@equipment_serviceClocks_cyclesUsedAndLeft": {
     "placeholders": {
       "used": {

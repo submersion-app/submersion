@@ -23674,7 +23674,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_divesUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} dives, {remaining} of {total} dives left'**
+  /// **'{used} of {total} dives, {remaining} left'**
   String equipment_serviceClocks_divesUsedAndLeft(
     int used,
     int remaining,
@@ -23858,7 +23858,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_hoursUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} hours, {remaining} of {total} hours left'**
+  /// **'{used} of {total} hours, {remaining} left'**
   String equipment_serviceClocks_hoursUsedAndLeft(
     String used,
     String remaining,
@@ -23868,7 +23868,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_saltHoursUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} salt-water hours, {remaining} of {total} salt-water hours left'**
+  /// **'{used} of {total} salt-water hours, {remaining} left'**
   String equipment_serviceClocks_saltHoursUsedAndLeft(
     String used,
     String remaining,
@@ -23878,7 +23878,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_coldDivesUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} cold dives, {remaining} of {total} cold dives left'**
+  /// **'{used} of {total} cold dives, {remaining} left'**
   String equipment_serviceClocks_coldDivesUsedAndLeft(
     String used,
     String remaining,
@@ -23888,7 +23888,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_o2HoursUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} high-O2 hours, {remaining} of {total} high-O2 hours left'**
+  /// **'{used} of {total} high-O2 hours, {remaining} left'**
   String equipment_serviceClocks_o2HoursUsedAndLeft(
     String used,
     String remaining,
@@ -23898,7 +23898,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_deepCyclesUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} deep dives, {remaining} of {total} deep dives left'**
+  /// **'{used} of {total} deep dives, {remaining} left'**
   String equipment_serviceClocks_deepCyclesUsedAndLeft(
     String used,
     String remaining,
@@ -23908,7 +23908,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_cyclesUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} battery cycles, {remaining} of {total} battery cycles left'**
+  /// **'{used} of {total} battery cycles, {remaining} left'**
   String equipment_serviceClocks_cyclesUsedAndLeft(
     String used,
     String remaining,

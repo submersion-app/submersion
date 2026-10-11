@@ -13917,7 +13917,7 @@ class AppLocalizationsZh extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '已用 $used 次，剩余 $remaining/$total 次潜水';
+    return '已用 $used/$total 次潜水，剩余 $remaining 次';
   }
 
   @override
@@ -14040,7 +14040,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '已用 $used 小时，剩余 $remaining/$total 小时';
+    return '已用 $used/$total 小时，剩余 $remaining 小时';
   }
 
   @override
@@ -14049,7 +14049,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '海水小时数已用 $used，剩余 $remaining / $total';
+    return '海水小时已用 $used/$total，剩余 $remaining';
   }
 
   @override
@@ -14058,7 +14058,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '冷水潜水已用 $used 次，剩余 $remaining / $total 次';
+    return '冷水潜水已用 $used/$total 次，剩余 $remaining 次';
   }
 
   @override
@@ -14067,7 +14067,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '高氧小时数已用 $used，剩余 $remaining / $total';
+    return '高氧小时已用 $used/$total，剩余 $remaining';
   }
 
   @override
@@ -14076,7 +14076,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '深潜已用 $used 次，剩余 $remaining / $total 次';
+    return '深潜已用 $used/$total 次，剩余 $remaining 次';
   }
 
   @override
@@ -14085,7 +14085,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '电池循环已用 $used 次，剩余 $remaining / $total 次';
+    return '电池循环已用 $used/$total 次，剩余 $remaining 次';
   }
 
   @override

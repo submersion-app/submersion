@@ -147,7 +147,7 @@ void main() {
     test('a baseline set after a newer service was logged wins', () {
       // The reported bug: a service logged the day before the diver set a
       // baseline a year back silently outranked it, so the clock read "100
-      // of 100 dives left".
+      // of 100 dives, 0 left".
       final statuses = regRun(
         baselineSetAt: setAt,
         records: [

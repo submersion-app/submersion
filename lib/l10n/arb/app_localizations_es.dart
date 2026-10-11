@@ -14557,7 +14557,7 @@ class AppLocalizationsEs extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '$used inmersiones, quedan $remaining de $total';
+    return '$used de $total inmersiones, quedan $remaining';
   }
 
   @override
@@ -14688,7 +14688,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used horas, quedan $remaining de $total';
+    return '$used de $total horas, quedan $remaining';
   }
 
   @override
@@ -14697,7 +14697,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used horas en agua salada, quedan $remaining de $total';
+    return '$used de $total horas en agua salada, quedan $remaining';
   }
 
   @override
@@ -14706,7 +14706,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used inmersiones en agua fría, quedan $remaining de $total';
+    return '$used de $total inmersiones en agua fría, quedan $remaining';
   }
 
   @override
@@ -14715,7 +14715,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used horas con alto O2, quedan $remaining de $total';
+    return '$used de $total horas con alto O2, quedan $remaining';
   }
 
   @override
@@ -14724,7 +14724,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used inmersiones profundas, quedan $remaining de $total';
+    return '$used de $total inmersiones profundas, quedan $remaining';
   }
 
   @override
@@ -14733,7 +14733,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used ciclos de batería, quedan $remaining de $total';
+    return '$used de $total ciclos de batería, quedan $remaining';
   }
 
   @override

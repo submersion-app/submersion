@@ -14732,7 +14732,7 @@ class AppLocalizationsAr extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '$used غوصة، متبقٍ $remaining من $total غوصة';
+    return '$used من $total غوصة، متبقٍ $remaining';
   }
 
   @override
@@ -14870,7 +14870,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used ساعة، متبقٍ $remaining من $total ساعة';
+    return '$used من $total ساعة، متبقٍ $remaining';
   }
 
   @override
@@ -14879,7 +14879,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used ساعة في الماء المالح، تبقى $remaining من $total ساعة في الماء المالح';
+    return '$used من $total ساعة في الماء المالح، متبقٍ $remaining';
   }
 
   @override
@@ -14888,7 +14888,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used غطسة في الماء البارد، تبقى $remaining من $total غطسة في الماء البارد';
+    return '$used من $total غطسة في الماء البارد، متبقٍ $remaining';
   }
 
   @override
@@ -14897,7 +14897,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used ساعة بأكسجين مرتفع، تبقى $remaining من $total ساعة بأكسجين مرتفع';
+    return '$used من $total ساعة بأكسجين مرتفع، متبقٍ $remaining';
   }
 
   @override
@@ -14906,7 +14906,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used غطسة عميقة، تبقى $remaining من $total غطسة عميقة';
+    return '$used من $total غطسة عميقة، متبقٍ $remaining';
   }
 
   @override
@@ -14915,7 +14915,7 @@ class AppLocalizationsAr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used دورة بطارية، تبقى $remaining من $total دورة بطارية';
+    return '$used من $total دورة بطارية، متبقٍ $remaining';
   }
 
   @override

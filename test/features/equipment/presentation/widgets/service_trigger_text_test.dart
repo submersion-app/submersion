@@ -91,8 +91,8 @@ void main() {
       hoursSinceAnchor: 12.0,
       hoursRemaining: -1.0,
     );
-    expect(text, contains('0 of 35 dives left'));
-    expect(text, contains('0.0 of 11.0 hours left'));
+    expect(text, contains('40 of 35 dives, 0 left'));
+    expect(text, contains('12.0 of 11.0 hours, 0.0 left'));
   });
 
   testWidgets('dives and hours triggers show the used value alongside the '
@@ -105,8 +105,8 @@ void main() {
       hoursSinceAnchor: 10.0,
       hoursRemaining: 30.0,
     );
-    expect(text, contains('61 dives, 59 of 120 dives left'));
-    expect(text, contains('10.0 hours, 30.0 of 40.0 hours left'));
+    expect(text, contains('61 of 120 dives, 59 left'));
+    expect(text, contains('10.0 of 40.0 hours, 30.0 left'));
   });
 
   testWidgets('multiple triggers join with a middle dot', (tester) async {

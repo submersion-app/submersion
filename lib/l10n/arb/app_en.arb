@@ -8553,7 +8553,7 @@
       }
     }
   },
-  "equipment_serviceClocks_divesUsedAndLeft": "{used} dives, {remaining} of {total} dives left",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} of {total} dives, {remaining} left",
   "@equipment_serviceClocks_divesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8647,7 +8647,7 @@
   "cylinderConfigs_fieldMaterial": "Material",
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Counted from logged dive time",
-  "equipment_serviceClocks_hoursUsedAndLeft": "{used} hours, {remaining} of {total} hours left",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} of {total} hours, {remaining} left",
   "@equipment_serviceClocks_hoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8661,7 +8661,7 @@
       }
     }
   },
-  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} salt-water hours, {remaining} of {total} salt-water hours left",
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} of {total} salt-water hours, {remaining} left",
   "@equipment_serviceClocks_saltHoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8675,7 +8675,7 @@
       }
     }
   },
-  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} cold dives, {remaining} of {total} cold dives left",
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} of {total} cold dives, {remaining} left",
   "@equipment_serviceClocks_coldDivesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8689,7 +8689,7 @@
       }
     }
   },
-  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} high-O2 hours, {remaining} of {total} high-O2 hours left",
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} of {total} high-O2 hours, {remaining} left",
   "@equipment_serviceClocks_o2HoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8703,7 +8703,7 @@
       }
     }
   },
-  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} deep dives, {remaining} of {total} deep dives left",
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} of {total} deep dives, {remaining} left",
   "@equipment_serviceClocks_deepCyclesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8717,7 +8717,7 @@
       }
     }
   },
-  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} battery cycles, {remaining} of {total} battery cycles left",
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} of {total} battery cycles, {remaining} left",
   "@equipment_serviceClocks_cyclesUsedAndLeft": {
     "placeholders": {
       "used": {
