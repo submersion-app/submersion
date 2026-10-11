@@ -8026,6 +8026,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'أزل عناصر لإضافة عناصر مختلفة';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'عرض المعدات المتقاعدة والمباعة';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'غيّر حالة العنصر إلى نشط لإضافته إلى غطسة';
 
@@ -10157,6 +10161,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'لا شيء';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'عرض منظمات التنفس المتقاعدة والمباعة';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'أسطوانة الرحلة';

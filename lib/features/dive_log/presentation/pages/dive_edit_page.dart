@@ -4427,6 +4427,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             scrollController: scrollController,
             selectedEquipmentIds: _selectedEquipment.map((e) => e.id).toSet(),
             hideSpare: true,
+            // A dive logged after the fact may have used gear since retired
+            // or sold (#3210).
+            offerLeftKit: true,
             overlapNote: _sharedGearNotes(
               ref
                       .watch(
@@ -4575,6 +4578,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           scrollController: scrollController,
           selectedEquipmentIds: _equipmentMembers.map((e) => e.id).toSet(),
           hideSpare: true,
+          offerLeftKit: true,
           onEquipmentSelected: (equipment) {
             setState(() {
               if (!_equipmentMembers.any((e) => e.id == equipment.id)) {

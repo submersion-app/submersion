@@ -7521,6 +7521,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_equipmentPicker_removeToAdd => '移除项目以添加新项目';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit => '显示已退役和已售出的装备';
+
+  @override
   String get diveLog_equipmentPicker_spareHint => '将物品状态设为活跃即可添加到潜水';
 
   @override
@@ -9546,6 +9549,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => '无';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit => '显示已退役和已售出的调节器';
 
   @override
   String get diveLog_tank_tripCylinderLabel => '行程气瓶';

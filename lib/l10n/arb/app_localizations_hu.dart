@@ -7894,6 +7894,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Távolítson el elemeket mások hozzáadásához';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Kivont és eladott felszerelés megjelenítése';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Állítsa a tárgy állapotát Aktívra, hogy merüléséhez adja';
 
@@ -10013,6 +10017,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nincs';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Kivont és eladott reduktorok megjelenítése';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Az utazás palackja';

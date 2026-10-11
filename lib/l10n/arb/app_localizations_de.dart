@@ -7918,6 +7918,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Entfernen Sie Gegenstände, um andere hinzuzufügen';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Ausgemusterte und verkaufte Ausrüstung anzeigen';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Setzen Sie den Status eines Gegenstands auf Aktiv, um ihn einem Tauchgang hinzuzufügen';
 
@@ -10034,6 +10038,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Keiner';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Ausgemusterte und verkaufte Atemregler anzeigen';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Flasche der Reise';

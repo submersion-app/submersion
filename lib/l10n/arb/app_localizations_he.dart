@@ -7745,6 +7745,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_equipmentPicker_removeToAdd => 'הסר פריטים להוספת אחרים';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'הצג ציוד שהוצא משימוש ושנמכר';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'שנה את סטטוס הפריט לפעיל כדי להוסיף אותו לצלילה';
 
@@ -9811,6 +9815,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'ללא';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'הצג וסתים שהוצאו משימוש ושנמכרו';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'מכל הטיול';

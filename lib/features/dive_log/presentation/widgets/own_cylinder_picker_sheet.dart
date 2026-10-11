@@ -46,6 +46,9 @@ Future<EquipmentItem?> showOwnCylinderPicker(BuildContext context) {
         selectedEquipmentIds: const {},
         typeFilter: EquipmentType.tank,
         hideSpare: true,
+        // A dive logged after the fact may have used a cylinder since
+        // retired or sold (#3210).
+        offerLeftKit: true,
         title: context.l10n.diveLog_tank_ownCylinderTitle,
         hint: context.l10n.diveLog_tank_ownCylinderHint,
         onEquipmentSelected: (item) => Navigator.of(context).pop(item),

@@ -7870,6 +7870,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verwijder items om andere toe te voegen';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Uitrusting die uit gebruik of verkocht is tonen';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Zet de status van een item op Actief om het aan een duik toe te voegen';
 
@@ -9971,6 +9975,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Geen';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Ademautomaten die uit gebruik of verkocht zijn tonen';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Fles van de reis';

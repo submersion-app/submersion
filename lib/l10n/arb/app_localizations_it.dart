@@ -7914,6 +7914,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rimuovi elementi per aggiungerne altri';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Mostra attrezzatura dismessa e venduta';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Imposta lo stato di un elemento su Attivo per aggiungerlo a un\'immersione';
 
@@ -10037,6 +10041,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nessuno';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Mostra erogatori dismessi e venduti';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Bombola del viaggio';
