@@ -36,10 +36,11 @@ trip starts, no change to the itinerary edit sheet.
 
 The Itinerary tab keeps its numbered rows (`numberedItineraryDaysProvider`) and
 its edit sheet, and looks up each row's `TripStoryDay` in `tripStoryProvider`
-by calendar date (`tripDay`). That story day supplies the dives, media,
-sightings, `kind` (past, today, future) and logged weather. The tab no longer
-groups `divesForTripProvider` itself. One source means the two tabs can never
-disagree about a day.
+by calendar date (`tripDay`) for its media and sightings, as a best-effort
+enrichment: while the story loads, or if it fails, the cards go without their
+media line. The tab keeps grouping `divesForTripProvider` for the dives, so it
+never waits on the story's checklist and media reads, and takes today from
+`clock.now()` through the same `tripDayKind` rule the story builder uses.
 
 New shared pieces:
 
@@ -92,7 +93,8 @@ New shared pieces:
 
 ### 3. Itinerary cards
 
-- Today: card colour `primaryContainer` at reduced alpha with a `primary`
+- Today: card colour `primaryContainer` at reduced alpha, blended onto the
+  card's opaque surface (never a translucent fill), with a `primary`
   outline, and a `TodayChip` beside "Day N".
 - Date line: the date, then `DayWeatherBadge` when there is weather (logged or
   stored from `tripDayWeatherProvider`).

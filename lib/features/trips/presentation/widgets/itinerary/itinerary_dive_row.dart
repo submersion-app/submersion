@@ -4,8 +4,10 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/trips/presentation/widgets/day/day_format.dart';
 
-/// A compact dive row shown under an itinerary day.
+/// A compact dive row shown under an itinerary day: number, site, time,
+/// runtime, max depth and water temperature.
 class ItineraryDiveRow extends StatelessWidget {
   final Dive dive;
   final UnitFormatter units;
@@ -17,6 +19,19 @@ class ItineraryDiveRow extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final timeFormat = DateFormat.Hm();
+    final muted = theme.textTheme.bodySmall?.copyWith(
+      color: colorScheme.onSurfaceVariant,
+    );
+    final runtime = dive.runtime ?? dive.bottomTime;
+    // Time, then time in the water, depth and water temperature, each only
+    // when the dive logged it.
+    final values = [
+      timeFormat.format(dive.dateTime),
+      if (runtime != null) formatDayRuntime(runtime),
+      if (dive.maxDepth != null) units.formatDepth(dive.maxDepth),
+      if (dive.waterTemp != null)
+        units.formatTemperature(dive.waterTemp, decimals: 0),
+    ];
 
     return InkWell(
       onTap: () => context.push('/dives/${dive.id}'),
@@ -41,20 +56,9 @@ class ItineraryDiveRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Text(
-              timeFormat.format(dive.dateTime),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (dive.maxDepth != null) ...[
-              const SizedBox(width: 8),
-              Text(
-                units.formatDepth(dive.maxDepth),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
+            for (final (i, value) in values.indexed) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Text(value, style: muted),
             ],
           ],
         ),

@@ -1,11 +1,18 @@
+import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
+import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary/itinerary_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary/trip_itinerary_generate_button.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -93,6 +100,14 @@ class TripItineraryTab extends ConsumerWidget {
       ),
     );
 
+    // Photos and sightings come from the trip story, best effort: while it
+    // loads or if it fails the cards simply go without their media line.
+    final story = ref.watch(tripStoryProvider(tripId)).valueOrNull;
+    final storedWeather =
+        ref.watch(tripDayWeatherProvider(tripId)).asData?.value ??
+        const <int, TripDayWeather>{};
+    final now = clock.now();
+
     // The fill-in button renders nothing once every date has a row.
     final header = trip == null
         ? null
@@ -114,11 +129,19 @@ class TripItineraryTab extends ConsumerWidget {
         }
         final day = days[index];
         final dayDives = sortedDivesByDate[_dateKey(day.date)] ?? [];
+        final storyDay = story?.days.firstWhereOrNull(
+          (d) => tripDay(d.date) == tripDay(day.date),
+        );
         return ItineraryDayCard(
           day: day,
           dives: dayDives,
           tripId: tripId,
           isLiveaboard: trip?.isLiveaboard ?? false,
+          kind: tripDayKind(day.date, now),
+          media: storyDay?.media ?? const [],
+          sightings: storyDay?.sightings ?? const [],
+          storedWeather: storedWeather[tripDayMillis(day.date)]
+              ?.toStoryWeather(),
         );
       },
     );
