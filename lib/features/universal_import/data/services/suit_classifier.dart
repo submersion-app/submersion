@@ -40,7 +40,10 @@ SuitClassification? classifySuit(String? text) {
 
   if (_notASuit.hasMatch(s)) return null;
 
-  final hasAccessory = _accessory.hasMatch(s);
+  // Every vest alias counts (#3108), not only the English word in
+  // [_accessory]: "7mm core warmer" and "7mm Eisweste" name the vest.
+  final hasAccessory =
+      _accessory.hasMatch(s) || MacDiveValueMapper.vestGarment.hasMatch(s);
   final thickness = hasAccessory ? null : _singleThickness(s);
 
   if (_semiDry.hasMatch(s)) {

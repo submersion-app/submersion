@@ -259,6 +259,19 @@ void main() {
         type: EquipmentType.vest,
         thickness: null,
       ));
+      // Every vest alias, not just the English word, stops a thickness token
+      // from reading as a wetsuit.
+      for (final name in [
+        '7mm core warmer',
+        '7mm Eisweste',
+        '7mm Haubenweste',
+      ]) {
+        expect(classifySuit(name), isNull, reason: name);
+        expect(classifySuitGear(name), (
+          type: EquipmentType.vest,
+          thickness: '7mm',
+        ), reason: name);
+      }
       // Beside another accessory the thickness may be that item's.
       expect(classifySuitGear('Ice vest, 5mm gloves'), (
         type: EquipmentType.vest,
