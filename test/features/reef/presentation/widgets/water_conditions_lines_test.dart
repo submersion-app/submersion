@@ -88,6 +88,7 @@ void main() {
       final readings = build(_health()).readings;
       expect(readings, contains('Sea surface 30,1°C'));
       expect(readings, contains('Anomaly +0,8°C'));
+      expect(readings, contains('Degree Heating Weeks 4,2 C-weeks'));
     });
 
     test('converts the anomaly as a delta, not a reading', () {

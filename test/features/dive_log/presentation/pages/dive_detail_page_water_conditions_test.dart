@@ -262,6 +262,19 @@ void main() {
       expect(find.text(_heading), findsNothing);
     });
 
+    testWidgets('a dive logged in fresh water at a sea site: nothing', (
+      tester,
+    ) async {
+      // The dive's own water type wins over its site's, as everywhere else.
+      final dive = _satelliteOnlyDive(
+        'fresh-dive',
+      ).copyWith(waterType: WaterType.fresh);
+      await pump(tester, _page(dive: dive, prefs: prefs));
+
+      expect(find.text('Environment'), findsNothing);
+      expect(find.text(_heading), findsNothing);
+    });
+
     testWidgets('a dive without a site: nothing', (tester) async {
       final dive = Dive(id: 'no-site', dateTime: DateTime(2023, 9, 1, 10));
       await pump(tester, _page(dive: dive, prefs: prefs));

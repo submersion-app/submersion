@@ -3400,14 +3400,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   ///
   /// Historical NOAA readings are immutable, so the lookup is fetched once and
   /// cached permanently. Null without site coordinates, and for freshwater
-  /// sites, whose water NOAA's ocean grid cannot see. Null too while the
+  /// dives, whose water NOAA's ocean grid cannot see; the dive's own water
+  /// type wins over its site's, as everywhere else. Null too while the
   /// lookup loads, fails or comes back empty: a line saying so would be noise
   /// in a card about the dive's conditions, and would be the only line in an
   /// Environment card for a dive with nothing logged.
   ReefHealth? _satelliteWaterConditions(WidgetRef ref, Dive dive) {
     final site = dive.site;
     if (site == null || !site.hasCoordinates) return null;
-    if (site.waterType == WaterType.fresh) return null;
+    if (dive.effectiveWaterType == WaterType.fresh) return null;
     final part = ref
         .watch(
           reefHealthForDiveProvider(

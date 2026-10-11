@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
@@ -54,8 +55,11 @@ WaterConditionsLines buildWaterConditionsLines({
     final level = health.alertLevel;
     if (level != null) readings.add(_levelLabel(l10n, level));
     if (health.degreeHeatingWeeks case final dhw?) {
-      // Celsius-weeks have no imperial equivalent, so this stays unconverted.
-      readings.add(l10n.reef_health_degreeHeatingWeeks(dhw.toStringAsFixed(1)));
+      // Celsius-weeks have no imperial equivalent, so this stays unconverted;
+      // only the decimal separator follows the locale.
+      readings.add(
+        l10n.reef_health_degreeHeatingWeeks(formatFixedForDisplay(dhw, 1)),
+      );
     }
   }
   if (health.sst case final sst?) {
@@ -83,13 +87,19 @@ WaterConditionsLines buildWaterConditionsLines({
 /// [UnitFormatter.formatTemperatureDelta], which scales a difference without
 /// the Fahrenheit offset.
 String _signedDelta(UnitFormatter units, double celsiusDelta) {
+  // One precision for both the sign test and the figure, so they agree.
+  const decimals = 1;
   final scaled = TemperatureUnit.celsius.convertDelta(
     celsiusDelta,
     units.settings.temperatureUnit,
   );
-  final shown = double.parse(scaled.abs().toStringAsFixed(1));
+  final shown = double.parse(scaled.abs().toStringAsFixed(decimals));
   final sign = shown == 0 ? '' : (scaled > 0 ? '+' : '-');
-  return '$sign${units.formatTemperatureDelta(celsiusDelta.abs())}';
+  final magnitude = units.formatTemperatureDelta(
+    celsiusDelta.abs(),
+    decimals: decimals,
+  );
+  return '$sign$magnitude';
 }
 
 String _levelLabel(AppLocalizations l10n, BleachingAlertLevel level) =>
