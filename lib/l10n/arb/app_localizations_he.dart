@@ -10098,8 +10098,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
-  String get divePlanner_field_diluentGasHint =>
-      'Unticked cylinders are bailout';
+  String get divePlanner_field_diluentGasHint => 'מיכלים שלא סומנו הם bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10201,7 +10200,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_gasOptions_problemSolvingMinutes => 'זמן לפתרון תקלה';
 
   @override
-  String get divePlanner_gasOptions_gasSwitchStopSeconds => 'Gas switch stop';
+  String get divePlanner_gasOptions_gasSwitchStopSeconds => 'עצירת החלפת גז';
 
   @override
   String get divePlanner_gasOptions_ppO2Bottom => 'ppO₂ בקרקעית';
@@ -10226,7 +10225,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_label_bailoutGases => 'Bailout';
 
   @override
-  String get divePlanner_label_noBailout => 'No bailout cylinder yet';
+  String get divePlanner_label_noBailout => 'עדיין אין מיכל bailout';
 
   @override
   String get divePlanner_savedTanks_title => 'מכלים שמורים';
@@ -18848,7 +18847,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'גז חילוץ אינו מספיק למקרה הגרוע ביותר';
 
   @override
-  String get plannerCanvas_bailout_schedule => 'Schedule from the worst case';
+  String get plannerCanvas_bailout_schedule => 'לוח זמנים מהמקרה הגרוע ביותר';
 
   @override
   String plannerCanvas_bailout_required(String liters) {
@@ -22575,7 +22574,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_splitAtConfiguredRate =>
-      'Split at the configured rate';
+      'פיצול בקצב המוגדר';
 
   @override
   String get settings_conflict_field_startDateTime => 'התחלה מתוכננת';
@@ -31779,11 +31778,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_segmentEditor_duration => 'משך (min)';
 
   @override
-  String get divePlanner_segmentEditor_splitAtRate => 'Use configured rate';
+  String get divePlanner_segmentEditor_splitAtRate => 'השתמש בקצב המוגדר';
 
   @override
   String get divePlanner_segmentEditor_splitAtRateHint =>
-      'Travel at the configured rate, the rest of the duration as hold time';
+      'נסיעה בקצב המוגדר, שאר משך הזמן כזמן שהייה';
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'עריכת קטע';

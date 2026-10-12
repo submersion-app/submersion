@@ -10324,7 +10324,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get divePlanner_field_diluentGasHint =>
-      'Unticked cylinders are bailout';
+      'Las botellas sin marcar son bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10427,7 +10427,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tiempo de resolución del problema';
 
   @override
-  String get divePlanner_gasOptions_gasSwitchStopSeconds => 'Gas switch stop';
+  String get divePlanner_gasOptions_gasSwitchStopSeconds =>
+      'Parada de cambio de gas';
 
   @override
   String get divePlanner_gasOptions_ppO2Bottom => 'ppO₂ de fondo';
@@ -10452,7 +10453,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_label_bailoutGases => 'Bailout';
 
   @override
-  String get divePlanner_label_noBailout => 'No bailout cylinder yet';
+  String get divePlanner_label_noBailout => 'Aún no hay botella de bailout';
 
   @override
   String get divePlanner_savedTanks_title => 'Botellas guardadas';
@@ -19269,7 +19270,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Gas de bailout insuficiente para el peor caso';
 
   @override
-  String get plannerCanvas_bailout_schedule => 'Schedule from the worst case';
+  String get plannerCanvas_bailout_schedule => 'Plan desde el peor caso';
 
   @override
   String plannerCanvas_bailout_required(String liters) {
@@ -23173,7 +23174,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_splitAtConfiguredRate =>
-      'Split at the configured rate';
+      'Dividir a la velocidad configurada';
 
   @override
   String get settings_conflict_field_startDateTime => 'Inicio previsto';
@@ -32609,11 +32610,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_segmentEditor_duration => 'Duración (min)';
 
   @override
-  String get divePlanner_segmentEditor_splitAtRate => 'Use configured rate';
+  String get divePlanner_segmentEditor_splitAtRate =>
+      'Usar velocidad configurada';
 
   @override
   String get divePlanner_segmentEditor_splitAtRateHint =>
-      'Travel at the configured rate, the rest of the duration as hold time';
+      'Viaja a la velocidad configurada; el resto de la duración como tiempo de permanencia';
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'Editar segmento';

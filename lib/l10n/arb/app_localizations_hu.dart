@@ -10305,7 +10305,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get divePlanner_field_diluentGasHint =>
-      'Unticked cylinders are bailout';
+      'A nem jelölt palackok bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10408,7 +10408,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Problémamegoldási idő';
 
   @override
-  String get divePlanner_gasOptions_gasSwitchStopSeconds => 'Gas switch stop';
+  String get divePlanner_gasOptions_gasSwitchStopSeconds =>
+      'Gázváltási megállás';
 
   @override
   String get divePlanner_gasOptions_ppO2Bottom => 'Fenék-ppO₂';
@@ -10433,7 +10434,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_label_bailoutGases => 'Bailout';
 
   @override
-  String get divePlanner_label_noBailout => 'No bailout cylinder yet';
+  String get divePlanner_label_noBailout => 'Még nincs bailout palack';
 
   @override
   String get divePlanner_savedTanks_title => 'Mentett palackok';
@@ -19210,7 +19211,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'A bailout gáz nem elegendő a legrosszabb esethez';
 
   @override
-  String get plannerCanvas_bailout_schedule => 'Schedule from the worst case';
+  String get plannerCanvas_bailout_schedule => 'Terv a legrosszabb esetből';
 
   @override
   String plannerCanvas_bailout_required(String liters) {
@@ -23059,7 +23060,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_splitAtConfiguredRate =>
-      'Split at the configured rate';
+      'Felosztás a beállított sebességgel';
 
   @override
   String get settings_conflict_field_startDateTime => 'Tervezett kezdés';
@@ -32416,11 +32417,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_segmentEditor_duration => 'Időtartam (min)';
 
   @override
-  String get divePlanner_segmentEditor_splitAtRate => 'Use configured rate';
+  String get divePlanner_segmentEditor_splitAtRate =>
+      'Beállított sebesség használata';
 
   @override
   String get divePlanner_segmentEditor_splitAtRateHint =>
-      'Travel at the configured rate, the rest of the duration as hold time';
+      'Utazás a beállított sebességgel, a fennmaradó idő tartózkodási időként';
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'Szegmens szerkesztése';

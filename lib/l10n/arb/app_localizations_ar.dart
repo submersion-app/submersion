@@ -10449,7 +10449,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get divePlanner_field_diluentGasHint =>
-      'Unticked cylinders are bailout';
+      'الأسطوانات غير المحددة هي bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10551,7 +10551,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_gasOptions_problemSolvingMinutes => 'زمن حل المشكلة';
 
   @override
-  String get divePlanner_gasOptions_gasSwitchStopSeconds => 'Gas switch stop';
+  String get divePlanner_gasOptions_gasSwitchStopSeconds => 'توقف تبديل الغاز';
 
   @override
   String get divePlanner_gasOptions_ppO2Bottom => 'ppO₂ القاع';
@@ -10576,7 +10576,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_label_bailoutGases => 'Bailout';
 
   @override
-  String get divePlanner_label_noBailout => 'No bailout cylinder yet';
+  String get divePlanner_label_noBailout => 'لا توجد أسطوانة bailout بعد';
 
   @override
   String get divePlanner_savedTanks_title => 'الأسطوانات المحفوظة';
@@ -19527,7 +19527,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'غاز الإنقاذ غير كافٍ لأسوأ حالة';
 
   @override
-  String get plannerCanvas_bailout_schedule => 'Schedule from the worst case';
+  String get plannerCanvas_bailout_schedule => 'الجدول من أسوأ حالة';
 
   @override
   String plannerCanvas_bailout_required(String liters) {
@@ -23347,7 +23347,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_splitAtConfiguredRate =>
-      'Split at the configured rate';
+      'التقسيم بالمعدل المُهيأ';
 
   @override
   String get settings_conflict_field_startDateTime => 'البداية المخططة';
@@ -33011,11 +33011,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_segmentEditor_duration => 'المدة (min)';
 
   @override
-  String get divePlanner_segmentEditor_splitAtRate => 'Use configured rate';
+  String get divePlanner_segmentEditor_splitAtRate => 'استخدام المعدل المُهيأ';
 
   @override
   String get divePlanner_segmentEditor_splitAtRateHint =>
-      'Travel at the configured rate, the rest of the duration as hold time';
+      'الانتقال بالمعدل المُهيأ، وبقية المدة كوقت ثبات';
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'تعديل المقطع';
