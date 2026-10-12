@@ -31,6 +31,7 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
@@ -62,6 +63,7 @@ class UddfFullExportService {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     List<EquipmentObservation>? observations,
+    List<CylinderFill>? fills,
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -389,6 +391,7 @@ class UddfFullExportService {
           species: species,
           serviceRecords: serviceRecords,
           observations: observations,
+          fills: fills,
           settings: settings,
           owner: owner,
           tags: tags,
@@ -450,6 +453,7 @@ class UddfFullExportService {
     List<EquipmentComponent>? components,
     List<DiveSourceExport>? dataSources,
     List<EquipmentObservation>? observations,
+    List<CylinderFill>? fills,
     List<ServiceRecord>? serviceRecords,
     Map<String, List<Tag>>? diveTags,
     Map<String, List<DiveWeight>>? diveWeights,
@@ -481,6 +485,7 @@ class UddfFullExportService {
     components: components,
     dataSources: dataSources,
     observations: observations,
+    fills: fills,
     serviceRecords: serviceRecords,
     diveTags: diveTags,
     diveWeights: diveWeights,
@@ -504,6 +509,7 @@ class UddfFullExportService {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     List<EquipmentObservation>? observations,
+    List<CylinderFill>? fills,
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -544,6 +550,7 @@ class UddfFullExportService {
       species: species,
       serviceRecords: serviceRecords,
       observations: observations,
+      fills: fills,
       settings: settings,
       diveBuddies: diveBuddies,
       owner: owner,
@@ -587,6 +594,7 @@ class UddfFullExportService {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     List<EquipmentObservation>? observations,
+    List<CylinderFill>? fills,
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -627,6 +635,7 @@ class UddfFullExportService {
       species: species,
       serviceRecords: serviceRecords,
       observations: observations,
+      fills: fills,
       settings: settings,
       diveBuddies: diveBuddies,
       owner: owner,

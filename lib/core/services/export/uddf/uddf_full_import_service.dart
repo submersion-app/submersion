@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dar
 import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
+import 'package:submersion/core/services/export/uddf/uddf_fill_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_fold.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
@@ -307,6 +308,7 @@ class UddfFullImportService {
     final diveCenters = <Map<String, dynamic>>[];
     final species = <Map<String, dynamic>>[];
     final serviceRecords = <Map<String, dynamic>>[];
+    var fills = const <Map<String, dynamic>>[];
     final settings = <String, String>{};
     final tags = <Map<String, dynamic>>[];
     final customDiveTypes = <Map<String, dynamic>>[];
@@ -408,6 +410,9 @@ class UddfFullImportService {
             }
           }
         }
+
+        // Cylinder fills (issue #2651)
+        fills = UddfFillWriters.parseFills(submersionElement);
 
         // Parse settings
         final settingsSection = submersionElement
@@ -697,6 +702,7 @@ class UddfFullImportService {
       species: species,
       sightings: sightings,
       serviceRecords: serviceRecords,
+      fills: fills,
       settings: settings,
       owner: owner,
       trips: trips,

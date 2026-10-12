@@ -11,6 +11,7 @@ import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
+import 'package:submersion/core/services/export/uddf/uddf_fill_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
@@ -34,6 +35,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
@@ -773,6 +775,9 @@ class UddfExportBuilders {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     List<EquipmentObservation>? observations,
+    // Cylinder fills (issue #2651): keyed by passport id, so a section of
+    // their own rather than a child of the item.
+    List<CylinderFill>? fills,
     Map<String, String>? settings,
     Diver? owner,
     List<Tag>? tags,
@@ -841,6 +846,7 @@ class UddfExportBuilders {
         (species?.isNotEmpty ?? false) ||
         (serviceRecords?.isNotEmpty ?? false) ||
         (observations?.isNotEmpty ?? false) ||
+        (fills?.isNotEmpty ?? false) ||
         (settings?.isNotEmpty ?? false) ||
         owner != null ||
         (tags?.isNotEmpty ?? false) ||
@@ -1189,6 +1195,9 @@ class UddfExportBuilders {
                 },
               );
             }
+
+            // Cylinder fills (issue #2651)
+            UddfFillWriters.writeFills(builder, fills ?? const []);
 
             // Settings
             if (settings != null && settings.isNotEmpty) {
