@@ -160,8 +160,12 @@ void main() {
     );
     await tester.tap(find.text(l10n.passport_trip_assign));
     await tester.pump();
+    // A second tap while waiting opens no second picker.
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pump();
     loading.complete([packed('a')]);
     await tester.pumpAndSettle();
+    expect(find.byType(TripPickerSheet), findsOneWidget);
     expect(
       tester
           .widget<TripPickerSheet>(find.byType(TripPickerSheet))

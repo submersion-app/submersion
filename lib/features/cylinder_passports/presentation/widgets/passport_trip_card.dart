@@ -29,13 +29,26 @@ class PassportTripCard extends ConsumerStatefulWidget {
 class _PassportTripCardState extends ConsumerState<PassportTripCard> {
   bool _expanded = false;
 
+  /// Set while [_assign] is running, so a second tap opens no second picker.
+  bool _assigning = false;
+
   Future<void> _assign() async {
+    if (_assigning) return;
+    _assigning = true;
+    try {
+      await _assignOnce();
+    } finally {
+      _assigning = false;
+    }
+  }
+
+  Future<void> _assignOnce() async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     // Packing for one of these again would change nothing, so the picker
-    // marks them and will not pick them (issue #2654). A slot-only trip stays
-    // pickable: picking it packs the cylinder too.
-    // Awaited, so a list still loading does not leave every trip unmarked.
+    // marks them and will not pick them (issue #2654); a slot-only trip stays
+    // pickable, since picking it packs the cylinder too. The list is awaited
+    // so one still loading does not leave every trip unmarked.
     Set<String> packedTripIds;
     try {
       final trips = await ref.read(
