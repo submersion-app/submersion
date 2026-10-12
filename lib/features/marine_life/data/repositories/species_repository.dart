@@ -110,15 +110,16 @@ class SpeciesRepository {
     String? scientificName,
     required SpeciesCategory category,
   }) async {
-    // Try to find existing species with same name
+    // Try to find existing species with same name. Both sides go through
+    // SQLite's LOWER, which folds ASCII only, so "Étoile" still matches.
     final existing = await _db
         .customSelect(
           '''
       SELECT * FROM species
-      WHERE LOWER(common_name) = ?
+      WHERE LOWER(common_name) = LOWER(?)
       LIMIT 1
     ''',
-          variables: [Variable.withString(commonName.toLowerCase())],
+          variables: [Variable.withString(commonName)],
         )
         .getSingleOrNull();
 
