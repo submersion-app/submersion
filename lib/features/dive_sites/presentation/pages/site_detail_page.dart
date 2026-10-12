@@ -14,6 +14,7 @@ import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/domain/grid_sampling.dart';
@@ -483,7 +484,9 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
                 // MasterDetailScaffold to identify the DIVE. If we change it to the siteId,
                 // the scaffold will try to find a dive with that siteId and fail.
                 params['site'] = widget.siteId;
-                context.push(
+                // In place, not push: a pushed copy of the Dives list would
+                // stay behind after save, with a back arrow of its own (#3292).
+                context.goInPlace(
                   Uri(path: currentPath, queryParameters: params).toString(),
                 );
               } else {

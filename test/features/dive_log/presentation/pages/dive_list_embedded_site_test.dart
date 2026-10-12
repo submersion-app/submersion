@@ -102,6 +102,15 @@ void main() {
         findsAtLeastNWidgets(1),
       );
       expect(find.byType(SiteDetailPage), findsOneWidget);
+
+      // Editing the embedded site changes this list's own URL. It must not
+      // stack a second copy of the Dives list, which would then carry a
+      // back arrow on what looks like the Dives tab (#3292).
+      await tester.tap(find.byTooltip('Edit'));
+      await tester.pumpAndSettle();
+      expect(router.canPop(), isFalse);
+      expect(router.state.uri.queryParameters['mode'], 'edit');
+      expect(router.state.uri.queryParameters['site'], siteId);
     });
   });
 }
