@@ -44340,7 +44340,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String common_elapsed_minutes(int minutes) {
-    return '$minutes min';
+    return '$minutes Min';
   }
 
   @override

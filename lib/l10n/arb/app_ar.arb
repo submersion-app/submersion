@@ -13320,7 +13320,7 @@
   "common_relativeTime_daysAgo": "{count, plural, zero{منذ {count} يوم} one{منذ يوم} two{منذ يومين} few{منذ {count} أيام} many{منذ {count} يومًا} other{منذ {count} يوم}}",
   "common_relativeTime_hoursAgo": "{count, plural, zero{منذ {count} ساعة} one{منذ ساعة} two{منذ ساعتين} few{منذ {count} ساعات} many{منذ {count} ساعة} other{منذ {count} ساعة}}",
   "common_relativeTime_inDays": "{count, plural, zero{خلال {count} يوم} one{خلال يوم} two{خلال يومين} few{خلال {count} أيام} many{خلال {count} يومًا} other{خلال {count} يوم}}",
-  "common_elapsed_minutes": "{minutes} د",
+  "common_elapsed_minutes": "{minutes} دقيقة",
   "common_elapsed_hoursMinutes": "{hours} س {minutes} د",
   "common_elapsed_daysHours": "{days} ي {hours} س",
   "common_elapsed_yearsDays": "{years} سنة {days} ي",

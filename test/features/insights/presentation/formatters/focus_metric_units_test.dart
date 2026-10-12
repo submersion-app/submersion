@@ -60,6 +60,18 @@ void main() {
     );
   });
 
+  test('under an hour surface interval and run time read alike', () {
+    // Both sit side by side on the Focus page, in every language.
+    for (final locale in AppLocalizations.supportedLocales) {
+      final local = lookupAppLocalizations(locale);
+      expect(
+        units(FocusMetric.surfaceInterval, metric).format(45, local),
+        units(FocusMetric.runtime, metric).format(45, local),
+        reason: '$locale',
+      );
+    }
+  });
+
   test('surface interval past a day reads in days, past a year in years', () {
     final si = units(FocusMetric.surfaceInterval, metric);
     expect(si.format(9462, l10n), '6d 13h');

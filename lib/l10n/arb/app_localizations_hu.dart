@@ -44193,7 +44193,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String common_elapsed_minutes(int minutes) {
-    return '$minutes p';
+    return '$minutes perc';
   }
 
   @override

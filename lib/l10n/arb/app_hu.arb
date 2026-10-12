@@ -13320,7 +13320,7 @@
   "common_relativeTime_daysAgo": "{count, plural, one{{count} napja} other{{count} napja}}",
   "common_relativeTime_hoursAgo": "{count, plural, one{{count} órája} other{{count} órája}}",
   "common_relativeTime_inDays": "{count, plural, one{{count} nap múlva} other{{count} nap múlva}}",
-  "common_elapsed_minutes": "{minutes} p",
+  "common_elapsed_minutes": "{minutes} perc",
   "common_elapsed_hoursMinutes": "{hours}ó {minutes}p",
   "common_elapsed_daysHours": "{days}n {hours}ó",
   "common_elapsed_yearsDays": "{years}é {days}n",

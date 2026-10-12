@@ -13320,7 +13320,7 @@
   "common_relativeTime_daysAgo": "{count, plural, one{לפני יום} two{לפני יומיים} many{לפני {count} ימים} other{לפני {count} ימים}}",
   "common_relativeTime_hoursAgo": "{count, plural, one{לפני שעה} two{לפני שעתיים} many{לפני {count} שעות} other{לפני {count} שעות}}",
   "common_relativeTime_inDays": "{count, plural, one{בעוד יום} two{בעוד יומיים} many{בעוד {count} ימים} other{בעוד {count} ימים}}",
-  "common_elapsed_minutes": "{minutes} דק'",
+  "common_elapsed_minutes": "{minutes} דקות",
   "common_elapsed_hoursMinutes": "{hours} שע' {minutes} דק'",
   "common_elapsed_daysHours": "{days} ימ' {hours} שע'",
   "common_elapsed_yearsDays": "{years} שנ' {days} ימ'",

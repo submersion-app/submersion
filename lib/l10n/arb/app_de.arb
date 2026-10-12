@@ -13453,7 +13453,7 @@
   "common_relativeTime_daysAgo": "{count, plural, one{vor {count}T} other{vor {count}T}}",
   "common_relativeTime_hoursAgo": "{count, plural, one{vor {count}Std} other{vor {count}Std}}",
   "common_relativeTime_inDays": "{count, plural, one{in {count}T} other{in {count}T}}",
-  "common_elapsed_minutes": "{minutes} min",
+  "common_elapsed_minutes": "{minutes} Min",
   "common_elapsed_hoursMinutes": "{hours} h {minutes} min",
   "common_elapsed_daysHours": "{days}T {hours}h",
   "common_elapsed_yearsDays": "{years}J {days}T",

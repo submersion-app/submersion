@@ -44952,7 +44952,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String common_elapsed_minutes(int minutes) {
-    return '$minutes د';
+    return '$minutes دقيقة';
   }
 
   @override
