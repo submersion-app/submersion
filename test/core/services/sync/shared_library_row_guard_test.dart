@@ -9,6 +9,7 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
 
 SyncService _svc(FakeCloudStorageProvider cloud) => SyncService(
@@ -127,6 +129,50 @@ void main() {
       await tearDownTestDatabase();
     },
   );
+
+  test('an edit on a device without the library keeps the dive at its '
+      'club site', () async {
+    final cloud = FakeCloudStorageProvider();
+    final dir = Directory.systemTemp.createTempSync('row_guard_dive_');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final aFile = File(p.join(dir.path, 'a.sqlite'));
+    void openA() => DatabaseService.instance.setTestDatabase(
+      AppDatabase(NativeDatabase(aFile)),
+    );
+
+    // The phone holds the club library and a dive at one of its sites.
+    openA();
+    await _addDiver();
+    await SiteRepository().createSite(
+      const DiveSite(id: 'club', name: 'Club wall', sharedLibraryId: 'L'),
+    );
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'dv', diveNumber: 1).copyWith(
+        site: const DiveSite(id: 'club', name: 'Club wall'),
+      ),
+    );
+    await _sync(cloud);
+    await tearDownTestDatabase();
+
+    // The tablet has no copy of the club site, so the dive lands without
+    // it; the diver adds a note there.
+    await setUpTestDatabase();
+    await _sync(cloud);
+    final onTablet = (await DiveRepository().getDiveById('dv'))!;
+    await DiveRepository().updateDive(onTablet.copyWith(notes: 'great vis'));
+    await _sync(cloud);
+    await tearDownTestDatabase();
+
+    // Back on the phone: the note arrives, the club site stays.
+    openA();
+    await _sync(cloud);
+    final rows = await DatabaseService.instance.database
+        .customSelect("SELECT site_id, notes FROM dives WHERE id = 'dv'")
+        .get();
+    expect(rows.single.read<String>('notes'), 'great vis');
+    expect(rows.single.read<String?>('site_id'), 'club');
+    await tearDownTestDatabase();
+  });
 
   test('a peer\'s tombstone never deletes a library row', () async {
     final cloud = FakeCloudStorageProvider();

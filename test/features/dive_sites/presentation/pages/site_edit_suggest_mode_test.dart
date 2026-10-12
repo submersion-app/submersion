@@ -189,4 +189,23 @@ void main() {
     expect(find.text('Edit Site'), findsWidgets);
     expect(find.text('Send'), findsNothing);
   });
+
+  testWidgets('without the library on this device nothing is queued', (
+    tester,
+  ) async {
+    // The membership synced here; the library itself is not connected.
+    await SharedLibraryStore().deleteLibrary('L');
+    await pump(tester, suggest: true);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('suggestion-note')),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.enterText(find.byKey(const Key('suggestion-note')), 'hi');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Send'));
+    await tester.pumpAndSettle();
+    expect(find.text('Not connected on this device'), findsOneWidget);
+    expect(await SharedLibraryStore().suggestions('L'), isEmpty);
+  });
 }

@@ -258,8 +258,24 @@ class SharedLibraryPage extends ConsumerWidget {
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return;
     final publisher = ref.read(sharedSitePublisherProvider);
-    for (final id in chosen) {
-      await publisher.push(siteId: id, libraryId: library.id, diverId: diverId);
+    try {
+      for (final id in chosen) {
+        await publisher.push(
+          siteId: id,
+          libraryId: library.id,
+          diverId: diverId,
+        );
+      }
+    } catch (e) {
+      // A role lowered since the page loaded, or a site no longer this
+      // profile's: the service refuses, and says so here.
+      ref.invalidate(sitesProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(libraryErrorText(l10n, e))));
+      }
+      return;
     }
     ref.invalidate(sitesProvider);
     if (!context.mounted) return;

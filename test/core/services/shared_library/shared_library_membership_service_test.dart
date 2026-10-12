@@ -426,4 +426,62 @@ void main() {
     expect(roles.roleOf(bob.memberId), SharedLibraryRole.reader);
     expect(roles.roleOf(ann.memberId), SharedLibraryRole.owner);
   });
+
+  test('the last-owner rule reads the roles in the folder', () async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'club',
+      name: 'Club',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    await _diver('d2');
+    await service.join(
+      account: account,
+      prefix: 'club',
+      diverId: 'd2',
+      displayName: 'Bob',
+    );
+    final store = SharedLibraryStore();
+    final ann = (await store.membership(diverId: 'd1', libraryId: lib.id))!;
+    final bob = (await store.membership(diverId: 'd2', libraryId: lib.id))!;
+    await service.setRole(
+      libraryId: lib.id,
+      actingMemberId: ann.memberId,
+      memberId: bob.memberId,
+      role: SharedLibraryRole.owner,
+    );
+    // Another device demoted Bob since; this device's cache still lists him.
+    final t = SharedLibraryTransport(cloud, prefix: 'club');
+    await t.writeRoles(SharedLibraryRoles(owners: {ann.memberId}));
+
+    await expectLater(
+      service.leave(libraryId: lib.id, diverId: 'd1'),
+      throwsA(isA<LastOwnerLeaveError>()),
+    );
+    expect((await t.readRoles()).roleOf(ann.memberId), SharedLibraryRole.owner);
+  });
+
+  test('a library no local profile belongs to any more is released', () async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'club',
+      name: 'Club',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    await SiteRepository().createSite(
+      DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: lib.id),
+    );
+    // The profile left on its other device: the membership tombstone
+    // arrived here, the library row and its sites did not go.
+    final store = SharedLibraryStore();
+    final ann = (await store.membership(diverId: 'd1', libraryId: lib.id))!;
+    await store.deleteMembership(ann.id);
+
+    await service.releaseOrphanedLibraries(fallbackOwnerDiverId: 'd1');
+
+    expect(await store.getLibrary(lib.id), isNull);
+    expect(await SiteRepository().getSiteById('lib'), isNull);
+  });
 }

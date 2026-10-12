@@ -114,8 +114,14 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
     // used (a queued run starts even later).
     final store = _store;
     final service = _service;
+    final membershipService = _ref.read(sharedLibraryMembershipServiceProvider);
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null || !mounted) return;
+    // A library the profile left on another device: its rows go here too.
+    await membershipService.releaseOrphanedLibraries(
+      fallbackOwnerDiverId: diverId,
+    );
+    if (!mounted) return;
     final memberships = await store.membershipsForDiver(diverId);
     final connected = {for (final l in await store.getLibraries()) l.id};
     if (!mounted) return;

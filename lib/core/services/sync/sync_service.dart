@@ -2805,6 +2805,42 @@ class SyncService {
     },
   };
 
+  /// A device that has not connected a club library holds no copy of its
+  /// sites, so the FK repair clears its rows' links to one, and its next
+  /// edit of such a row sends that null back (issue #2567). Where the club
+  /// site exists, the null is the peer's blindness, not an unlink: keep the
+  /// local link. The rest of the row merges as usual.
+  Future<List<Map<String, dynamic>>> _keepLibrarySiteLinks(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    final fields = [
+      for (final ref in parentRefs[entityType] ?? const <ParentRef>[])
+        if (ref.parent == 'diveSites' && ref.nullable) ref.field,
+    ];
+    if (fields.isEmpty) return records;
+    final cleared = [
+      for (final r in records)
+        if (r['id'] is String && fields.any((f) => r[f] == null))
+          r['id'] as String,
+    ];
+    if (cleared.isEmpty) return records;
+    final guarded = await _serializer.librarySiteIds();
+    if (guarded.isEmpty) return records;
+    final local = await _serializer.fetchRecords(entityType, cleared);
+    return [
+      for (final r in records)
+        if (local[r['id']] case final mine?)
+          {
+            ...r,
+            for (final f in fields)
+              if (r[f] == null && guarded.contains(mine[f])) f: mine[f],
+          }
+        else
+          r,
+    ];
+  }
+
   @visibleForTesting
   static const Map<String, List<ParentRef>> parentRefs = {
     'dives': [
@@ -3187,6 +3223,7 @@ class SyncService {
         }
       }
     }
+    records = await _keepLibrarySiteLinks(entityType, records);
 
     var applied = 0;
     var conflicts = 0;

@@ -9,6 +9,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
@@ -1333,8 +1334,23 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return BulkActionOutcome.failed;
     final publisher = ref.read(sharedSitePublisherProvider);
-    for (final id in personal) {
-      await publisher.push(siteId: id, libraryId: libraryId, diverId: diverId);
+    try {
+      for (final id in personal) {
+        await publisher.push(
+          siteId: id,
+          libraryId: libraryId,
+          diverId: diverId,
+        );
+      }
+    } catch (e) {
+      ref.invalidate(sitesProvider);
+      ref.invalidate(sitesWithCountsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(libraryErrorText(context.l10n, e))),
+        );
+      }
+      return BulkActionOutcome.failed;
     }
     ref.invalidate(sitesProvider);
     ref.invalidate(sitesWithCountsProvider);

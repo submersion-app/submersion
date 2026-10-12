@@ -22,6 +22,7 @@ import 'package:submersion/features/bathymetry/presentation/bathymetry_depth_ove
 import 'package:submersion/features/dive_3d/application/career_providers.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/career_terrain_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_marker_layer.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
@@ -719,9 +720,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     if (confirmed != true) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return;
-    await ref
-        .read(sharedSitePublisherProvider)
-        .deleteFromLibrary(siteId: site.id, diverId: diverId);
+    try {
+      await ref
+          .read(sharedSitePublisherProvider)
+          .deleteFromLibrary(siteId: site.id, diverId: diverId);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(libraryErrorText(context.l10n, e))),
+        );
+      }
+      return;
+    }
     ref.invalidate(siteProvider(site.id));
     ref.invalidate(sitesProvider);
     ref.invalidate(sitesWithCountsProvider);
@@ -742,9 +752,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     if (libraryId == null) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return;
-    await ref
-        .read(sharedSitePublisherProvider)
-        .push(siteId: site.id, libraryId: libraryId, diverId: diverId);
+    try {
+      await ref
+          .read(sharedSitePublisherProvider)
+          .push(siteId: site.id, libraryId: libraryId, diverId: diverId);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(libraryErrorText(context.l10n, e))),
+        );
+      }
+      return;
+    }
     ref.invalidate(siteProvider(site.id));
     ref.invalidate(sitesProvider);
     ref.invalidate(sitesWithCountsProvider);

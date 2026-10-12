@@ -4,8 +4,10 @@ import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.da
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/core/services/shared_library/shared_site_publisher.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 
@@ -17,11 +19,15 @@ Future<Widget> _page(
   bool readOnly = false,
   String? error,
   SharedLibraryMembershipService? service,
+  SharedSitePublisher? publisher,
 }) async => testApp(
   overrides: [
     ...await getBaseOverrides(),
     if (service != null)
       sharedLibraryMembershipServiceProvider.overrideWithValue(service),
+    if (publisher != null)
+      sharedSitePublisherProvider.overrideWithValue(publisher),
+    validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
     sharedLibrariesProvider.overrideWith(
       (ref) => Stream.value([
         SharedLibrary(
@@ -165,6 +171,24 @@ void main() {
     expect(find.textContaining('Network unreachable'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('a push the service refuses says so', (tester) async {
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.editor, publisher: _RefusingPublisher()),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add my sites'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reef'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Add to club library'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _OfflineRename extends SharedLibraryMembershipService {
@@ -181,4 +205,13 @@ class _OfflineRename extends SharedLibraryMembershipService {
     required String diverId,
     required String displayName,
   }) async => throw const CloudStorageException('Network unreachable');
+}
+
+class _RefusingPublisher extends SharedSitePublisher {
+  @override
+  Future<void> push({
+    required String siteId,
+    required String libraryId,
+    required String diverId,
+  }) async => throw StateError('a reader cannot add sites');
 }

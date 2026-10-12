@@ -149,8 +149,8 @@ class SharedLibraryMembershipService {
       prefix: prefix,
       roles: roles,
     );
-    await _store.upsertLibrary(library);
-    await _store.replaceMembers(libraryId, [me]);
+    // The membership before the library row: a library row with none is
+    // released by the next sync (releaseOrphanedLibraries).
     await _store.upsertMembership(
       _membership(
         libraryId: libraryId,
@@ -162,6 +162,8 @@ class SharedLibraryMembershipService {
         prefix: prefix,
       ),
     );
+    await _store.upsertLibrary(library);
+    await _store.replaceMembers(libraryId, [me]);
     return library;
   }
 
@@ -214,12 +216,6 @@ class SharedLibraryMembershipService {
       formatVersion: found.formatVersion,
       roles: roles,
     );
-    await _store.upsertLibrary(library);
-    await _store.replaceMembers(libraryId, [
-      for (final m in members)
-        if (m.memberId != memberId) m,
-      me,
-    ]);
     // Connecting on another device finds the profile's membership already
     // synced in: keep its id, or the profile ends up with two and leaving
     // ends only one of them.
@@ -246,6 +242,12 @@ class SharedLibraryMembershipService {
               locationHint: fresh.locationHint,
             ),
     );
+    await _store.upsertLibrary(library);
+    await _store.replaceMembers(libraryId, [
+      for (final m in members)
+        if (m.memberId != memberId) m,
+      me,
+    ]);
     return library;
   }
 
@@ -283,10 +285,19 @@ class SharedLibraryMembershipService {
       libraryId: libraryId,
     );
     final library = await _store.getLibrary(libraryId);
+    SharedLibraryTransport? t;
+    var roles = library?.roles ?? SharedLibraryRoles.empty;
     if (membership != null && library != null) {
+      // The folder's roles when it can be reached: the cache may predate
+      // another owner's change, and the revocation below writes these.
+      try {
+        t = await transportForLibrary(library);
+        roles = await t.readRoles();
+      } catch (e) {
+        _log.warning('Using cached roles to leave $libraryId: $e');
+      }
       // As setRole keeps an owner, so does leave: nobody else could manage
       // roles or review suggestions afterwards.
-      final roles = library.roles;
       final others = [
         for (final m in await _store.getMembers(libraryId))
           if (m.memberId != membership.memberId) m,
@@ -299,12 +310,10 @@ class SharedLibraryMembershipService {
     }
     if (membership != null) {
       await _store.deleteMembership(membership.id);
-      if (library != null) {
+      if (t != null) {
         try {
-          final t = await transportForLibrary(library);
           // The member id outlives this library when the profile is in
           // another one, so a role left behind would come back on a rejoin.
-          final roles = await t.readRoles();
           if (roles.roleOf(membership.memberId) != SharedLibraryRole.reader) {
             await t.writeRoles(
               roles.withRole(membership.memberId, SharedLibraryRole.reader),
@@ -319,14 +328,40 @@ class SharedLibraryMembershipService {
     // Another profile on this device may still belong to the library; its
     // sites stay until the last local membership goes.
     if ((await _store.membershipsForLibrary(libraryId)).isNotEmpty) return;
+    await _releaseLocalRows(libraryId, ownerDiverId: diverId);
+  }
+
+  /// Detaches or removes [libraryId]'s sites here and drops its row.
+  Future<void> _releaseLocalRows(
+    String libraryId, {
+    required String ownerDiverId,
+  }) async {
     final rows = await (_db.select(
       _db.diveSites,
     )..where((t) => t.sharedLibraryId.equals(libraryId))).get();
     for (final row in rows) {
-      await _detacher.detachOrRemove(siteId: row.id, ownerDiverId: diverId);
+      await _detacher.detachOrRemove(
+        siteId: row.id,
+        ownerDiverId: ownerDiverId,
+      );
     }
     await _store.deleteLibrary(libraryId);
   }
+
+  /// Libraries this device holds that no local profile belongs to any
+  /// more, because the membership was left on another device: released as
+  /// a leave here would have, linked sites surviving as personal copies
+  /// owned by [fallbackOwnerDiverId] (shared with every local profile).
+  Future<void> releaseOrphanedLibraries({
+    required String fallbackOwnerDiverId,
+  }) => SyncCoordinator.run(() async {
+    for (final library in await _store.getLibraries()) {
+      if ((await _store.membershipsForLibrary(library.id)).isNotEmpty) {
+        continue;
+      }
+      await _releaseLocalRows(library.id, ownerDiverId: fallbackOwnerDiverId);
+    }
+  });
 
   /// Renames the profile's member card and membership.
   Future<void> rename({

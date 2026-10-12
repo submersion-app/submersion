@@ -165,4 +165,72 @@ void main() {
     );
     expect(kept.map((d) => d.id), [doc.id]);
   });
+
+  test(
+    'two devices detaching the same site make the same personal copy',
+    () async {
+      Future<String?> detachOnThisDevice() async {
+        await DiveRepository().createDive(
+          createTestDiveWithBottomTime(id: 'dv', diveNumber: 1).copyWith(
+            site: const DiveSite(id: 'lib', name: 'Club'),
+          ),
+        );
+        return SiteDetacher().detachOrRemove(siteId: 'lib', ownerDiverId: 'd1');
+      }
+
+      // The phone (this test's database from setUp)...
+      final onPhone = await detachOnThisDevice();
+      await tearDownTestDatabase();
+
+      // ...and the tablet, each receiving the same library tombstone.
+      await setUpTestDatabase();
+      await DiverRepository().createDiver(
+        Diver(
+          id: 'd1',
+          name: 'Ann',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      await SiteRepository().createSite(
+        const DiveSite(
+          id: 'lib',
+          name: 'Club',
+          hazards: 'h',
+          sharedLibraryId: 'L',
+        ),
+      );
+      final onTablet = await detachOnThisDevice();
+
+      expect(onPhone, isNotNull);
+      expect(
+        onTablet,
+        onPhone,
+        reason: 'personal sync merges one row, not two',
+      );
+      expect(onPhone, isNot('lib'));
+    },
+  );
+
+  test('a copy that already arrived from another device is reused', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'dv', diveNumber: 1).copyWith(
+        site: const DiveSite(id: 'lib', name: 'Club'),
+      ),
+    );
+    // The phone detached first; its copy reached this device by personal
+    // sync before this device's library sync saw the tombstone.
+    await SiteRepository().createSite(
+      DiveSite(id: detachedSiteId('lib'), diverId: 'd1', name: 'Club'),
+    );
+
+    final id = await SiteDetacher().detachOrRemove(
+      siteId: 'lib',
+      ownerDiverId: 'd1',
+    );
+
+    expect(id, detachedSiteId('lib'));
+    expect((await DiveRepository().getDiveById('dv'))!.site?.id, id);
+    expect(await SiteRepository().getSiteById('lib'), isNull);
+  });
 }

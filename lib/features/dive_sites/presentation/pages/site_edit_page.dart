@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
@@ -14,6 +15,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_sites/presentation/utils/suggestion_child_fields.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
@@ -1838,9 +1840,27 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     if (widget.suggest) return true;
     final id = _originalSite?.sharedLibraryId;
     if (id == null) return false;
-    final role = await ref.read(libraryRoleProvider(id).future);
-    final connected = await ref.read(libraryConnectedHereProvider(id).future);
-    return !(connected && canEditLibrarySite(role));
+    final role = await _libraryRoleNow(id);
+    return role == null || !canEditLibrarySite(role);
+  }
+
+  /// The profile's effective role in [libraryId] from the store, or null
+  /// when the library is not connected here. Read from the store, not the
+  /// providers: in requested suggestion mode nothing watches them, and a
+  /// one-shot read of a paused stream provider never returns.
+  Future<SharedLibraryRole?> _libraryRoleNow(String libraryId) async {
+    final store = ref.read(sharedLibraryStoreProvider);
+    final library = await store.getLibrary(libraryId);
+    if (library == null) return null;
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final membership = diverId == null
+        ? null
+        : await store.membership(diverId: diverId, libraryId: libraryId);
+    if (membership == null) return SharedLibraryRole.reader;
+    return effectiveRole(
+      listed: library.roles.roleOf(membership.memberId),
+      readOnlyDetected: library.readOnlyDetected,
+    );
   }
 
   /// A reader's save on a club library site (issue #2567): the changed
@@ -1851,16 +1871,18 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   ) async {
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null || !mounted) return;
-    final childFields = <String, Object?>{};
+    var childFields = const <String, Object?>{};
     if (classificationChanged) {
       final types = await SiteTypeRepository().getAllSiteTypes(
         diverId: diverId,
       );
-      final typeNames = {for (final t in types) t.id: t.name};
-      childFields['siteTypes'] = [
-        for (final id in _selectedTypeIds) ?typeNames[id],
-      ];
-      childFields['tags'] = [for (final tag in _selectedTags) tag.name];
+      childFields = suggestionChildFields(
+        originalTypeIds: _originalTypeIds,
+        selectedTypeIds: _selectedTypeIds,
+        typeNames: {for (final t in types) t.id: t.name},
+        originalTagIds: _originalTagIds,
+        selectedTags: [for (final t in _selectedTags) (id: t.id, name: t.name)],
+      );
     }
     final suggestion = await ref
         .read(suggestionServiceProvider)
@@ -2023,6 +2045,20 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
               tagIds: [for (final t in _selectedTags) t.id],
             )
           : null;
+
+      // A club library not connected on this device: neither an edit nor a
+      // suggestion could ever reach it from here (issue #2567).
+      final libraryId = _originalSite?.sharedLibraryId;
+      if (libraryId != null && await _libraryRoleNow(libraryId) == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n.sharedLibrary_list_notConnected),
+            ),
+          );
+        }
+        return;
+      }
 
       if (await _suggestModeAtSave()) {
         await _sendSuggestion(site, classificationChanged);

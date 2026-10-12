@@ -169,6 +169,42 @@ void main() {
     store.release.complete();
     await expectLater(running, completes);
   });
+
+  test(
+    'a library the profile left on another device is released here',
+    () async {
+      await setUpTestDatabase();
+      addTearDown(tearDownTestDatabase);
+      await DiverRepository().createDiver(
+        Diver(
+          id: 'd1',
+          name: 'Ann',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      final store = SharedLibraryStore();
+      // A connected library with no membership left on this device.
+      await store.upsertLibrary(
+        const SharedLibrary(
+          id: 'L',
+          name: 'Club',
+          connectedAccountId: 'acc',
+          prefix: 'club',
+        ),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(sharedLibrarySyncProvider.notifier).syncAll();
+
+      expect(await store.getLibrary('L'), isNull);
+    },
+  );
 }
 
 /// Lists one connected library, then fails when the sync reads it.
