@@ -411,6 +411,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     final canDestroy = canDestroySharedItemOnceKnown(
       ref.watch(validatedCurrentDiverIdProvider),
       ownerId: site.diverId,
+      isLibrarySite: site.isLibrarySite,
     );
     // A site this profile already removed offers Unhide (issue #2679).
     final hidden = watchHiddenHere(

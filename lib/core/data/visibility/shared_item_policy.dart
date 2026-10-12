@@ -6,6 +6,8 @@
 /// `equipment_ownership.dart` does for gear.
 library;
 
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+
 /// The two kinds of item shared through an `is_shared` flag.
 enum SharedItemKind { trip, site }
 
@@ -15,7 +17,10 @@ enum SharedItemKind { trip, site }
 bool canDestroySharedItem({
   required String? ownerId,
   required String? activeDiverId,
-}) => activeDiverId == null || ownerId == null || ownerId == activeDiverId;
+  bool isLibrarySite = false,
+}) =>
+    !isLibrarySite &&
+    (activeDiverId == null || ownerId == null || ownerId == activeDiverId);
 
 /// The active profile sees the item only because another profile shared
 /// it, so it may hide it from itself. For any owned shared item exactly one
@@ -24,11 +29,11 @@ bool canHideSharedItem({
   required String? ownerId,
   required bool isShared,
   required String? activeDiverId,
+  bool isLibrarySite = false,
 }) =>
     activeDiverId != null &&
-    isShared &&
-    ownerId != null &&
-    ownerId != activeDiverId;
+    (isLibrarySite ||
+        (isShared && ownerId != null && ownerId != activeDiverId));
 
 /// Splits a bulk-delete selection: the items the active profile may
 /// destroy, and the shared items of other profiles it hides instead. An
@@ -39,10 +44,14 @@ bool canHideSharedItem({
   required String? Function(T) ownerOf,
   required bool Function(T) isSharedOf,
   required String? activeDiverId,
+  bool Function(T)? isLibraryOf,
 }) {
   final destroy = <T>[];
   final hide = <T>[];
   for (final item in items) {
+    // A club library site is neither destroyed nor hidden by a bulk
+    // delete (issue #2567): its own role-gated action removes it.
+    if (isLibraryOf?.call(item) ?? false) continue;
     final owner = ownerOf(item);
     if (canDestroySharedItem(ownerId: owner, activeDiverId: activeDiverId)) {
       destroy.add(item);
@@ -56,3 +65,17 @@ bool canHideSharedItem({
   }
   return (destroy: destroy, hide: hide);
 }
+
+/// Role-gated actions on a club library site (issue #2567). The storage
+/// credentials are the hard boundary; these decide what the UI offers.
+bool canEditLibrarySite(SharedLibraryRole role) =>
+    role != SharedLibraryRole.reader;
+
+bool canDeleteLibrarySite(SharedLibraryRole role) =>
+    role != SharedLibraryRole.reader;
+
+bool canManageLibrary(SharedLibraryRole role) =>
+    role == SharedLibraryRole.owner;
+
+bool canSuggestOnLibrarySite(SharedLibraryRole role) =>
+    role == SharedLibraryRole.reader;

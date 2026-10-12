@@ -93,7 +93,11 @@ Future<({String? activeDiverId, int diverCount})?> readSharingContext(
 bool? canDestroySharedItemOnceKnown(
   AsyncValue<String?> activeDiver, {
   required String? ownerId,
+  bool isLibrarySite = false,
 }) {
+  // A club library site follows its role, never the profile rule
+  // (issue #2567).
+  if (isLibrarySite) return false;
   if (ownerId == null) return true;
   if (activeDiver.isLoading || activeDiver.hasError || !activeDiver.hasValue) {
     return null;

@@ -48,7 +48,9 @@ void main() {
       expect(
         frag.whereClause,
         equals(
-          ' WHERE (trips.diver_id = ? OR trips.is_shared = 1)'
+          ' WHERE (trips.diver_id = ? OR trips.is_shared = 1 OR '
+          'trips.shared_library_id IN (SELECT library_id FROM '
+          'shared_library_memberships WHERE diver_id = ?))'
           ' AND trips.id NOT IN '
           '(SELECT site_id FROM site_hides WHERE diver_id = ?)',
         ),

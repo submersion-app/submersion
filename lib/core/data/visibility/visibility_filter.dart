@@ -41,9 +41,17 @@ class VisibilityFilter {
   ) {
     if (diverId == null) return;
     final hides = db.siteHides;
+    final memberships = db.sharedLibraryMemberships;
     query.where(
       (t) =>
-          (t.diverId.equals(diverId) | t.isShared.equals(true)) &
+          (t.diverId.equals(diverId) |
+              t.isShared.equals(true) |
+              // A club library's sites, for its members (issue #2567).
+              t.sharedLibraryId.isInQuery(
+                db.selectOnly(memberships)
+                  ..addColumns([memberships.libraryId])
+                  ..where(memberships.diverId.equals(diverId)),
+              )) &
           t.id.isNotInQuery(
             db.selectOnly(hides)
               ..addColumns([hides.siteId])
@@ -107,6 +115,14 @@ class VisibilityFilter {
   static String ownerOrSharedSql(String tableAlias, String viewer) =>
       '($tableAlias.diver_id = $viewer OR $tableAlias.is_shared = 1)';
 
+  /// [ownerOrSharedSql] for `dive_sites`, which a club library's members
+  /// also see (issue #2567). [viewer] appears twice, so a `?` placeholder
+  /// needs two variables.
+  static String ownerOrSharedOrLibrarySql(String tableAlias, String viewer) =>
+      '($tableAlias.diver_id = $viewer OR $tableAlias.is_shared = 1 OR '
+      '$tableAlias.shared_library_id IN (SELECT library_id FROM '
+      'shared_library_memberships WHERE diver_id = $viewer))';
+
   /// Returns a SQL fragment and its variables for raw-SQL composition:
   /// owner-or-shared, minus the items [diverId] has hidden (issue #2594).
   ///
@@ -131,13 +147,21 @@ class VisibilityFilter {
       SharedItemKind.trip => ('trip_hides', 'trip_id'),
       SharedItemKind.site => ('site_hides', 'site_id'),
     };
+    final visible = switch (kind) {
+      SharedItemKind.trip => ownerOrSharedSql(tableAlias, '?'),
+      SharedItemKind.site => ownerOrSharedOrLibrarySql(tableAlias, '?'),
+    };
     final clause =
-        ' $conjunction ${ownerOrSharedSql(tableAlias, '?')}'
+        ' $conjunction $visible'
         ' AND $tableAlias.id NOT IN '
         '(SELECT $column FROM $hides WHERE diver_id = ?)';
     return SqlFragment(
       whereClause: clause,
-      variables: [Variable.withString(diverId), Variable.withString(diverId)],
+      variables: [
+        Variable.withString(diverId),
+        if (kind == SharedItemKind.site) Variable.withString(diverId),
+        Variable.withString(diverId),
+      ],
     );
   }
 }

@@ -1,0 +1,121 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/providers/account_providers.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+
+/// The device-local store for club libraries (issue #2567).
+final sharedLibraryStoreProvider = Provider<SharedLibraryStore>(
+  (ref) => SharedLibraryStore(),
+);
+
+/// Every library connected on this device, re-read on any library, member
+/// or membership change.
+final sharedLibrariesProvider = StreamProvider<List<SharedLibrary>>((
+  ref,
+) async* {
+  final store = ref.watch(sharedLibraryStoreProvider);
+  yield await store.getLibraries();
+  await for (final _ in store.watchLibraries()) {
+    yield await store.getLibraries();
+  }
+});
+
+/// The active profile's memberships.
+final currentMembershipsProvider =
+    FutureProvider<List<SharedLibraryMembership>>((ref) async {
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      if (diverId == null) return const [];
+      // Re-read when a membership row changes.
+      ref.watch(sharedLibrariesProvider);
+      return ref.watch(sharedLibraryStoreProvider).membershipsForDiver(diverId);
+    });
+
+/// The active profile's membership of [libraryId], null when none.
+final currentMembershipProvider =
+    FutureProvider.family<SharedLibraryMembership?, String>((
+      ref,
+      libraryId,
+    ) async {
+      final all = await ref.watch(currentMembershipsProvider.future);
+      for (final m in all) {
+        if (m.libraryId == libraryId) return m;
+      }
+      return null;
+    });
+
+/// Whether [libraryId] is connected on this device (credentials present).
+final libraryConnectedHereProvider = FutureProvider.family<bool, String>((
+  ref,
+  libraryId,
+) async {
+  final libraries = await ref.watch(sharedLibrariesProvider.future);
+  return libraries.any((l) => l.id == libraryId);
+});
+
+/// The role the UI honours for the active profile in [libraryId]: the
+/// listed role capped by read-only detection; reader when not a member or
+/// not connected here.
+final libraryRoleProvider = FutureProvider.family<SharedLibraryRole, String>((
+  ref,
+  libraryId,
+) async {
+  final membership = await ref.watch(
+    currentMembershipProvider(libraryId).future,
+  );
+  if (membership == null) return SharedLibraryRole.reader;
+  final libraries = await ref.watch(sharedLibrariesProvider.future);
+  for (final l in libraries) {
+    if (l.id == libraryId) {
+      return effectiveRole(
+        listed: l.roles.roleOf(membership.memberId),
+        readOnlyDetected: l.readOnlyDetected,
+      );
+    }
+  }
+  return SharedLibraryRole.reader;
+});
+
+/// Member id to display name for [libraryId], from the member cache.
+final libraryMemberNamesProvider =
+    FutureProvider.family<Map<String, String>, String>((ref, libraryId) async {
+      ref.watch(sharedLibrariesProvider);
+      return ref.watch(sharedLibraryStoreProvider).memberNames(libraryId);
+    });
+
+/// The member cards of [libraryId].
+final libraryMembersProvider =
+    FutureProvider.family<List<SharedLibraryMember>, String>((
+      ref,
+      libraryId,
+    ) async {
+      ref.watch(sharedLibrariesProvider);
+      return ref.watch(sharedLibraryStoreProvider).getMembers(libraryId);
+    });
+
+/// The per-site library state (clocks, last editor) of [siteId].
+final siteLibraryStateProvider =
+    FutureProvider.family<SharedSiteState?, String>((ref, siteId) async {
+      final store = ref.watch(sharedLibraryStoreProvider);
+      ref.watch(_siteStateTickProvider);
+      return store.getSiteState(siteId);
+    });
+
+final _siteStateTickProvider = StreamProvider<void>((ref) async* {
+  yield null;
+  yield* ref.watch(sharedLibraryStoreProvider).watchSiteStates();
+});
+
+/// Connected accounts that can back a club library.
+final eligibleLibraryAccountsProvider = FutureProvider<List<ConnectedAccount>>((
+  ref,
+) async {
+  final all = await ref.watch(connectedAccountsRepositoryProvider).getAll();
+  return [
+    for (final a in all)
+      if (a.kind == AccountKind.s3 || a.kind == AccountKind.webdav) a,
+  ];
+});

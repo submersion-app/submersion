@@ -120,9 +120,13 @@ class ProfileHidesRepository {
     final t = _of(kind);
     if (ids.isEmpty) return 0;
     try {
+      // A club library site is hideable by any member who sees it (issue
+      // #2567); only dive_sites carries the column.
+      final isSite = kind == SharedItemKind.site;
       final parents = await _db
           .customSelect(
-            'SELECT id, diver_id, is_shared FROM ${t.parentTable} '
+            'SELECT id, diver_id, is_shared'
+            '${isSite ? ', shared_library_id' : ''} FROM ${t.parentTable} '
             'WHERE id IN (${List.filled(ids.length, '?').join(', ')})',
             variables: [for (final id in ids) Variable.withString(id)],
           )
@@ -133,6 +137,8 @@ class ProfileHidesRepository {
             ownerId: p.read<String?>('diver_id'),
             isShared: p.read<int>('is_shared') != 0,
             activeDiverId: diverId,
+            isLibrarySite:
+                isSite && p.read<String?>('shared_library_id') != null,
           ))
             p.read<String>('id'),
       };
@@ -234,7 +240,7 @@ class ProfileHidesRepository {
           'SELECT s.id, s.name, s.diver_id, s.is_shared, s.region, '
           's.country FROM site_hides h JOIN dive_sites s ON s.id = h.site_id '
           'WHERE h.diver_id = ? '
-          'AND ${VisibilityFilter.ownerOrSharedSql('s', 'h.diver_id')} '
+          'AND ${VisibilityFilter.ownerOrSharedOrLibrarySql('s', 'h.diver_id')} '
           'ORDER BY s.name COLLATE NOCASE',
           variables: [Variable.withString(diverId)],
         )

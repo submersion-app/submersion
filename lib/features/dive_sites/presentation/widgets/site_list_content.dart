@@ -383,6 +383,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         if (!canDestroySharedItem(
           ownerId: s.diverId,
           activeDiverId: sharing.activeDiverId,
+          isLibrarySite: s.isLibrarySite,
         ))
           s.id,
     ];
@@ -467,6 +468,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       selectedSites,
       ownerOf: (s) => s.diverId,
       isSharedOf: (s) => s.isShared,
+      isLibraryOf: (s) => s.isLibrarySite,
       activeDiverId: sharing.activeDiverId,
     );
     final destroyIds = [for (final s in split.destroy) s.id];

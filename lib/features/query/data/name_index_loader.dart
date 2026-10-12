@@ -146,9 +146,24 @@ class NameIndexLoader {
         visible.add('t.$scope = ?');
         variables.add(Variable<String>(diverId));
       }
-      visible.add('t.$scope IS NULL');
+      // An ownerless site that belongs to a club library is visible to the
+      // library's members only (issue #2567).
+      visible.add(
+        subject == QuerySubject.sites
+            ? '(t.$scope IS NULL AND t.shared_library_id IS NULL)'
+            : 't.$scope IS NULL',
+      );
       switch (subject) {
-        case QuerySubject.sites || QuerySubject.trips:
+        case QuerySubject.sites:
+          visible.add('t.is_shared = 1');
+          if (diverId != null) {
+            visible.add(
+              't.shared_library_id IN (SELECT library_id '
+              'FROM shared_library_memberships WHERE diver_id = ?)',
+            );
+            variables.add(Variable<String>(diverId));
+          }
+        case QuerySubject.trips:
           visible.add('t.is_shared = 1');
         case QuerySubject.equipment when diverId != null:
           visible.add(
