@@ -175,6 +175,11 @@ void main() {
           .getSchedulesForEquipment(restoredTank);
       final hydro = restoredClocks.where((s) => s.serviceKindId == 'hydro');
       expect(hydro.map((s) => s.intervalDays), [1095]);
+      // Exactly the backup's clocks: no default VIP clock it did not list.
+      expect(
+        {for (final s in restoredClocks) s.serviceKindId},
+        {'hydro', mine.single.id},
+      );
       expect(
         restoredClocks
             .where((s) => s.serviceKindId == mine.single.id)

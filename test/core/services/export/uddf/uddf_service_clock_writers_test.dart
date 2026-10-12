@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -98,7 +99,7 @@ void main() {
 
   test('an item writes its clocks, parsed back whole', () async {
     final item = (await backup()).findAllElements('item').single;
-    expect(UddfServiceClockWriters.parseSchedules(item).single, {
+    expect(UddfServiceClockWriters.parseSchedules(item)!.single, {
       'kindRef': 'hydro',
       'intervalDays': 1095,
       'exposureIntervals': {'cycles': 500.0},
@@ -128,9 +129,34 @@ void main() {
       equipment: [tank],
     );
     expect(xml, isNot(contains('servicekinds')));
-    expect(xml, isNot(contains('serviceschedules')));
     expect(xml, isNot(contains('servicekind>')));
   });
+
+  test(
+    'an item without clocks says so, and an old item reads as absent',
+    () async {
+      final xml = await UddfFullExportService().generateAllDataXmlForTest(
+        dives: [dive],
+        equipment: [tank],
+      );
+      final item = XmlDocument.parse(xml).findAllElements('item').single;
+      // Written empty, so a restore can tell "no clocks" from an old file.
+      expect(item.findElements('serviceschedules').single.children, isEmpty);
+      expect(
+        UddfImportParsers.parseEquipmentItem(item)['serviceSchedules'],
+        isEmpty,
+      );
+      final old = XmlDocument.parse(
+        '<item id="equip_x"><name>Old</name><type>tank</type></item>',
+      ).rootElement;
+      expect(
+        UddfImportParsers.parseEquipmentItem(
+          old,
+        ).containsKey('serviceSchedules'),
+        isFalse,
+      );
+    },
+  );
 
   test('an unknown exposure unit and a ref-less schedule are dropped', () {
     final item = XmlDocument.parse(

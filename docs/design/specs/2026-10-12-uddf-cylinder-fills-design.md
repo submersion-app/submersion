@@ -246,6 +246,9 @@ satisfy none.
   ids are fixed in every database.
 - Every optional value is omitted when null; `exposureinterval` repeats once
   per unit present; dates are UTC instants.
+- Every item writes `<serviceschedules>`, empty when it has no clocks, so a
+  restore can tell "no clocks" from a file written before clocks travelled
+  (no element at all).
 - Schedules nest in their `<item>` because a schedule cannot exist without
   one (required `equipment_id`, cascade delete), and the item map survives
   the wizard's flattening.
@@ -275,8 +278,10 @@ and the schedules of every exported item
   `universalImportRepositories` and asserted in
   `universal_adapter_repositories_test.dart`. Without them kinds and clocks
   are skipped and record kinds stay null.
-- **Kinds,** before equipment so auto-attach sees them as the source library
-  did: each file kind maps to the visible kind with the same id, else the
+- **Kinds,** after equipment (decided at review, 2026-10-12: importing them
+  first let a custom auto-attach kind attach to restored items that never
+  had that clock), and only when gear is selected and the file names a
+  kind: each file kind maps to the visible kind with the same id, else the
   visible kind with the same name (case-insensitive), else a new kind owned
   by the importing diver under a fresh id. A ref then resolves through that
   mapping, or to itself when a visible kind (a built-in) has that id, or to
@@ -285,7 +290,10 @@ and the schedules of every exported item
   duplicate, the service-record rule): each schedule whose kind resolves
   replaces the item's unclaimed clock of the same kind (the auto-attached or
   legacy clock `createEquipment` just made), keeping that clock's id;
-  otherwise a new clock is created. One clock per kind per item.
+  otherwise a new clock is created. A seeded clock the backup does not list
+  is removed, so the item ends with exactly the backup's clocks (decided at
+  review). An item from a file with no `<serviceschedules>` keeps its
+  default clocks. One clock per kind per item.
 - **Records** take `serviceKindId` from the resolved ref, or null.
 
 ### 9.4 Testing

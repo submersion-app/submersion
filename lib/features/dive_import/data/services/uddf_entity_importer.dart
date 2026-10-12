@@ -525,23 +525,6 @@ class UddfEntityImporter {
           );
 
     final equipmentRan = !stopped();
-    // Custom service kinds (issue #2651) land before equipment, so
-    // auto-attach sees them as the source library did. A file with no
-    // kinds, clocks or record kinds reads none, as most imports are.
-    final kindResolver =
-        !equipmentRan ||
-            repositories.serviceKindRepository == null ||
-            !carriesServiceKinds(
-              data.serviceKinds,
-              data.equipment,
-              data.serviceRecords,
-            )
-        ? const ServiceKindResolver({}, {})
-        : await importServiceKinds(
-            data.serviceKinds,
-            repositories.serviceKindRepository!,
-            diverId: diverId,
-          );
     final equipmentCount = !equipmentRan
         ? 0
         : await _importEquipment(
@@ -576,8 +559,28 @@ class UddfEntityImporter {
       );
     }
 
-    // Each created item's clocks (issue #2651), merged by kind with the
-    // ones createEquipment seeded.
+    // Custom service kinds (issue #2651) come with the gear that uses them,
+    // after it exists: a backup's clocks are restored exactly below, so no
+    // kind may auto-attach to a restored item on the way in. An import with
+    // no gear selected, or naming no kind, reads none.
+    final kindResolver =
+        !equipmentRan ||
+            selections.equipment.isEmpty ||
+            repositories.serviceKindRepository == null ||
+            !carriesServiceKinds(
+              data.serviceKinds,
+              data.equipment,
+              data.serviceRecords,
+            )
+        ? const ServiceKindResolver({}, {})
+        : await importServiceKinds(
+            data.serviceKinds,
+            repositories.serviceKindRepository!,
+            diverId: diverId,
+          );
+
+    // Each created item's clocks (issue #2651): exactly the backup's,
+    // merged by kind with the ones createEquipment seeded.
     if (equipmentRan && repositories.serviceScheduleRepository != null) {
       await restoreServiceClocks(
         data.equipment,

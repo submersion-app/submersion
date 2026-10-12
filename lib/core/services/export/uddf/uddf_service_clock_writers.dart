@@ -49,13 +49,13 @@ abstract final class UddfServiceClockWriters {
     );
   }
 
-  /// Writes an item's [schedules] as `<serviceschedules>`; nothing when
-  /// there are none.
+  /// Writes an item's [schedules] as `<serviceschedules>`, empty when it
+  /// has none, so a restore can tell "no clocks" from a file written before
+  /// clocks travelled.
   static void writeSchedules(
     XmlBuilder builder,
     List<ServiceSchedule> schedules,
   ) {
-    if (schedules.isEmpty) return;
     builder.element(
       'serviceschedules',
       nest: () {
@@ -142,11 +142,12 @@ abstract final class UddfServiceClockWriters {
     };
   }
 
-  /// The clocks under [item]'s `<serviceschedules>`; one without a kind
-  /// ref is dropped.
-  static List<Map<String, dynamic>> parseSchedules(XmlElement item) {
+  /// The clocks under [item]'s `<serviceschedules>`, or null when the item
+  /// has no such element (a file from before clocks travelled); one without
+  /// a kind ref is dropped.
+  static List<Map<String, dynamic>>? parseSchedules(XmlElement item) {
     final section = item.findElements('serviceschedules').firstOrNull;
-    if (section == null) return const [];
+    if (section == null) return null;
     return [
       for (final element in section.findElements('schedule'))
         ?_parseSchedule(element),

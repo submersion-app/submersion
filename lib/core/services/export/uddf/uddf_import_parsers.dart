@@ -1033,9 +1033,11 @@ class UddfImportParsers {
     // importer only into an empty slot.
     item['passportId'] = getElementText(itemElement, 'passportid');
     // The item's service clocks (issue #2651), restored after the item.
-    item['serviceSchedules'] = UddfServiceClockWriters.parseSchedules(
-      itemElement,
-    );
+    // Absent in a file from before them, so the item keeps its defaults.
+    if (UddfServiceClockWriters.parseSchedules(itemElement)
+        case final schedules?) {
+      item['serviceSchedules'] = schedules;
+    }
     final observationsElement = itemElement
         .findElements('observations')
         .firstOrNull;

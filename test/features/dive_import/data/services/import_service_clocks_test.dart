@@ -200,4 +200,73 @@ void main() {
     );
     expect(await schedules.getSchedulesForEquipment(matched.id), matchedBefore);
   });
+
+  group('a restored item ends with exactly the backup clocks', () {
+    Future<String> newTank() async =>
+        (await EquipmentRepository().createEquipment(
+          const EquipmentItem(
+            id: '',
+            name: 'AL80',
+            type: EquipmentType.tank,
+            diverId: 'd1',
+          ),
+        )).id;
+
+    Future<Set<String>> kindsOn(String id) async => {
+      for (final s in await schedules.getSchedulesForEquipment(id))
+        s.serviceKindId,
+    };
+
+    test('a seeded clock the backup does not list is removed', () async {
+      final id = await newTank();
+      expect(await kindsOn(id), containsAll(['hydro', 'vip']));
+      await restoreServiceClocks(
+        [
+          {
+            'uddfId': 'equip_a',
+            'serviceSchedules': [
+              {'kindRef': 'hydro', 'intervalDays': 1095},
+            ],
+          },
+        ],
+        {0},
+        {'equip_a': id},
+        const {},
+        schedules,
+        await importServiceKinds(const [], kinds, diverId: 'd1'),
+      );
+      expect(await kindsOn(id), {'hydro'});
+    });
+
+    test('an empty clock list leaves the item with none', () async {
+      final id = await newTank();
+      await restoreServiceClocks(
+        [
+          {'uddfId': 'equip_a', 'serviceSchedules': <Map<String, dynamic>>[]},
+        ],
+        {0},
+        {'equip_a': id},
+        const {},
+        schedules,
+        await importServiceKinds(const [], kinds, diverId: 'd1'),
+      );
+      expect(await kindsOn(id), isEmpty);
+    });
+
+    test('an item from a file without clocks keeps its defaults', () async {
+      final id = await newTank();
+      final before = await kindsOn(id);
+      await restoreServiceClocks(
+        [
+          {'uddfId': 'equip_a'},
+        ],
+        {0},
+        {'equip_a': id},
+        const {},
+        schedules,
+        await importServiceKinds(const [], kinds, diverId: 'd1'),
+      );
+      expect(await kindsOn(id), before);
+    });
+  });
 }

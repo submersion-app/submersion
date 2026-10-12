@@ -98,11 +98,13 @@ Future<ServiceKindResolver> importServiceKinds(
 
 /// Restores the clocks a backup carries on its items (issue #2651), only
 /// for items this import created: a duplicate matched to an existing row
-/// keeps its own clocks, as it keeps its service records. Each clock
-/// replaces the item's unclaimed clock of the same kind (one
-/// createEquipment just seeded, auto-attached or legacy), keeping its id,
-/// or is created, so an item never holds two clocks of one kind from a
-/// restore. Returns how many clocks were written.
+/// keeps its own clocks, as it keeps its service records. The item ends
+/// with exactly the backup's clocks. Each replaces the item's unclaimed
+/// clock of the same kind (one createEquipment just seeded, auto-attached
+/// or legacy), keeping its id, or is created; a seeded clock the backup
+/// does not list is removed, as the diver had removed it. An item from a
+/// file written before clocks travelled carries no list and keeps its
+/// defaults. Returns how many clocks were written.
 Future<int> restoreServiceClocks(
   List<Map<String, dynamic>> items,
   Set<int> selected,
@@ -116,7 +118,7 @@ Future<int> restoreServiceClocks(
     if (!selected.contains(i)) continue;
     final uddfId = item['uddfId'] as String?;
     final rows = item['serviceSchedules'];
-    if (uddfId == null || rows is! List || rows.isEmpty) continue;
+    if (uddfId == null || rows is! List) continue;
     final equipmentId = equipmentIdMapping[uddfId];
     if (equipmentId == null || preResolvedEquipmentIds[uddfId] == equipmentId) {
       continue;
@@ -157,6 +159,14 @@ Future<int> restoreServiceClocks(
         count++;
       } catch (e) {
         _log.warning('Could not restore a $kindId clock on $equipmentId: $e');
+      }
+    }
+    // Seeded moments ago by createEquipment; the backup did not list them.
+    for (final extra in unclaimed) {
+      try {
+        await repository.deleteSchedule(extra.id);
+      } catch (e) {
+        _log.warning('Could not remove a default clock on $equipmentId: $e');
       }
     }
   }
