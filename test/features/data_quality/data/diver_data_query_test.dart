@@ -110,7 +110,17 @@ void main() {
               updatedAt: 0,
             ),
           );
-      await writeDive(id, DivesCompanion(courseId: Value('co-$id')));
+      // Through the junction only, as the app writes it (#2515).
+      await db
+          .into(db.diveCourses)
+          .insert(
+            DiveCoursesCompanion.insert(
+              id: 'dc-$id',
+              diveId: id,
+              courseId: 'co-$id',
+              createdAt: 0,
+            ),
+          );
     },
     'gear': (id) async {
       await db

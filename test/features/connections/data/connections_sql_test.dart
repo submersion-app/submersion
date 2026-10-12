@@ -22,9 +22,10 @@ void main() {
         membershipSql(ConnectionKind.site),
         contains('site_id IS NOT NULL'),
       );
+      // A dive's courses come from the junction (#2515).
       expect(
         membershipSql(ConnectionKind.course),
-        contains('course_id IS NOT NULL'),
+        contains('FROM dive_courses'),
       );
     });
   });

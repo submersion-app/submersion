@@ -484,7 +484,15 @@ final QueryEntity diveQueryEntity = QueryEntity(
       aliases: ['diveCenter'],
     ),
     _fk('computer', QuerySubject.computers, 'computer_id'),
-    _fk('course', QuerySubject.courses, 'course_id'),
+    // A dive's courses live in dive_courses (#2515); the key stays 'course'
+    // so saved queries keep working.
+    _junction(
+      'course',
+      QuerySubject.courses,
+      'dive_courses',
+      'course_id',
+      aliases: ['courses'],
+    ),
     _junction(
       'buddies',
       QuerySubject.buddies,

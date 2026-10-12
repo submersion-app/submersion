@@ -137,8 +137,8 @@ class SignatureStorageService {
           .customSelect(
             '''
         SELECT m.* FROM media m
-        INNER JOIN dives d ON m.dive_id = d.id
-        WHERE d.course_id = ? AND m.file_type = ?
+        INNER JOIN dive_courses dc ON dc.dive_id = m.dive_id
+        WHERE dc.course_id = ? AND m.file_type = ?
         ORDER BY m.taken_at DESC
       ''',
             variables: [
