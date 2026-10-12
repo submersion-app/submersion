@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -129,6 +131,7 @@ Future<List<Override>> _buildPhoneOverrides({
   required List<BuddyWithDiveCount> buddies,
   ListViewMode viewMode = ListViewMode.detailed,
   String? highlightedBuddyId,
+  FutureOr<List<BuddyWithDiveCount>> Function(Ref ref)? loadBuddies,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -137,7 +140,9 @@ Future<List<Override>> _buildPhoneOverrides({
     sharedPreferencesProvider.overrideWithValue(prefs),
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
-    allBuddiesWithDiveCountProvider.overrideWith((ref) => buddies),
+    allBuddiesWithDiveCountProvider.overrideWith(
+      loadBuddies ?? (ref) => buddies,
+    ),
     buddyListNotifierProvider.overrideWith((ref) => _MockBuddyListNotifier()),
     buddyListViewModeProvider.overrideWith((ref) => viewMode),
     // Detailed rows resolve the usual-role chip through the role map; keep
@@ -258,37 +263,21 @@ void main() {
           _makeBuddy(id: 'b1', name: 'Alice'),
           _makeBuddy(id: 'b2', name: 'Bob'),
         ];
-        SharedPreferences.setMockInitialValues({});
-        final prefs = await SharedPreferences.getInstance();
         await tester.pumpWidget(
           testApp(
-            overrides: [
-              sharedPreferencesProvider.overrideWithValue(prefs),
-              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-              currentDiverIdProvider.overrideWith(
-                (ref) => MockCurrentDiverIdNotifier(),
-              ),
+            overrides: await _buildPhoneOverrides(
+              buddies: all,
+              viewMode: mode,
               // A source that reloads from a moved dependency while it still
               // holds the previous rows.
-              allBuddiesWithDiveCountProvider.overrideWith((ref) {
+              loadBuddies: (ref) {
                 ref.watch(_buddyReloadProvider);
                 return Future.delayed(
                   const Duration(milliseconds: 50),
                   () => all,
                 );
-              }),
-              buddyListNotifierProvider.overrideWith(
-                (ref) => _MockBuddyListNotifier(),
-              ),
-              buddyListViewModeProvider.overrideWith((ref) => mode),
-              diveRoleMapProvider.overrideWith(
-                (ref) async => <String, DiveRole>{},
-              ),
-              buddyTableConfigProvider.overrideWith(
-                (ref) => _TestBuddyTableConfigNotifier(_testConfig),
-              ),
-              highlightedBuddyIdProvider.overrideWith((ref) => null),
-            ],
+              },
+            ),
             locale: const Locale('en'),
             child: BuddyListContent(
               showAppBar: true,

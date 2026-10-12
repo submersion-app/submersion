@@ -161,10 +161,13 @@ Widget _buildTestWidget({
   List<TagStatistic> stats = const [],
   _MockTagListNotifier? notifier,
   TagRepository? repository,
+  FutureOr<List<TagStatistic>> Function(Ref ref)? loadStats,
 }) {
   return ProviderScope(
     overrides: [
-      tagStatisticsProvider.overrideWith((ref) => Future.value(stats)),
+      tagStatisticsProvider.overrideWith(
+        loadStats ?? (ref) => Future.value(stats),
+      ),
       tagListNotifierProvider.overrideWith(
         (ref) => notifier ?? _MockTagListNotifier(_tagsFromStats(stats)),
       ),
@@ -1440,27 +1443,15 @@ void main() {
   group('a reload holding its previous value', () {
     testWidgets('keeps the checks', (tester) async {
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tagStatisticsProvider.overrideWith((ref) {
-              ref.watch(_statsReloadProvider);
-              return Future.delayed(
-                const Duration(milliseconds: 50),
-                () => _testStats,
-              );
-            }),
-            tagListNotifierProvider.overrideWith(
-              (ref) => _MockTagListNotifier(_tagsFromStats(_testStats)),
-            ),
-            tagRepositoryProvider.overrideWithValue(_MockTagRepository()),
-            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          ],
-          child: const MaterialApp(
-            locale: Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TagManagePage(),
-          ),
+        _buildTestWidget(
+          stats: _testStats,
+          loadStats: (ref) {
+            ref.watch(_statsReloadProvider);
+            return Future.delayed(
+              const Duration(milliseconds: 50),
+              () => _testStats,
+            );
+          },
         ),
       );
       await tester.pumpAndSettle();
