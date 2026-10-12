@@ -6,7 +6,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/certifications/presentation/widgets/certification_picker.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_multi_select_field.dart';
+import 'package:submersion/features/courses/domain/entities/course.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -24,13 +26,16 @@ final _now = DateTime(2026, 8, 24);
 
 Certification _makeCert({
   required String name,
+  String id = 'c1',
   String? level,
   DateTime? issueDate,
   String agency = 'padi',
+  String? courseId,
   List<CertificationCredential> additionalCredentials = const [],
 }) {
   return Certification(
-    id: 'c1',
+    id: id,
+    courseId: courseId,
     name: name,
     agency: agency,
     level: level,
@@ -41,29 +46,25 @@ Certification _makeCert({
   );
 }
 
-/// The collapsed picker field, which shows the current selection.
-Future<void> _pumpField(WidgetTester tester, Certification? selected) async {
-  await tester.pumpWidget(
-    testApp(
-      locale: const Locale('en'),
-      overrides: [
-        certificationListNotifierProvider.overrideWith(
-          (ref) => _MockCertListNotifier(const []),
-        ),
-      ],
-      child: CertificationPicker(
-        selectedCertification: selected,
-        onCertificationSelected: (_) {},
-      ),
-    ),
-  );
-  await tester.pump();
-}
+final _rescue = Course(
+  id: 'rescue',
+  diverId: 'd',
+  name: 'Rescue course',
+  agency: 'padi',
+  startDate: _now,
+  createdAt: _now,
+  updatedAt: _now,
+);
 
 /// The sheet body directly, rather than through showModalBottomSheet: it is a
 /// public widget, so rendering it avoids driving a modal route just to read
 /// two lines of text off a tile.
-Future<void> _pumpSheet(WidgetTester tester, List<Certification> certs) async {
+Future<void> _pumpSheet(
+  WidgetTester tester,
+  List<Certification> certs, {
+  List<String> selected = const [],
+  ValueChanged<List<String>>? onChanged,
+}) async {
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
@@ -71,14 +72,16 @@ Future<void> _pumpSheet(WidgetTester tester, List<Certification> certs) async {
         certificationListNotifierProvider.overrideWith(
           (ref) => _MockCertListNotifier(certs),
         ),
+        allCoursesProvider.overrideWith((ref) async => [_rescue]),
       ],
-      child: CertificationPickerSheet(
-        scrollController: ScrollController(),
-        selectedCertification: null,
-        onCertificationSelected: (_) {},
+      child: CertificationMultiPickerSheet(
+        courseId: 'this-course',
+        selectedCertificationIds: selected,
+        onChanged: onChanged ?? (_) {},
       ),
     ),
   );
+  await tester.pump();
   await tester.pump();
 }
 
@@ -87,18 +90,13 @@ String _subtitleOf(WidgetTester tester, Finder tile) =>
 
 /// The label a tile's own [ListTile] contributes when it is NOT excluded from
 /// the semantics tree: its visible title and subtitle, newline-joined.
-///
-/// Asserting this is absent is what distinguishes a label that stands in for
-/// the tile from one that merely sits alongside it. Only the rendered tree
-/// shows the difference, so a check on the [Semantics] widget cannot see it.
 String _visibleTextNode(String title, String subtitle) => '$title\n$subtitle';
 
 void main() {
   // The sheet subtitle dates itself with DateFormat.yMMMd(), which resolves
   // against Intl.defaultLocale (a process global) rather than the
-  // MaterialApp.locale the harness passes. Pin it so the "Aug 24, 2026"
-  // assertion states its real dependency, and restore it afterwards because
-  // the global leaks across tests in the same isolate.
+  // MaterialApp.locale the harness passes. Pin it, and restore it afterwards
+  // because the global leaks across tests in the same isolate.
   String? previousLocale;
   setUp(() {
     previousLocale = Intl.defaultLocale;
@@ -106,56 +104,61 @@ void main() {
   });
   tearDown(() => Intl.defaultLocale = previousLocale);
 
-  group('collapsed picker field', () {
-    testWidgets('a custom name keeps the certification in the subtitle', (
-      tester,
-    ) async {
-      // Issue #1265: the title is the custom name, so the subtitle is the only
-      // place left for the level.
-      await _pumpField(
-        tester,
-        _makeCert(
-          name: 'Bill Ansell',
-          level: CertificationLevel.diveMaster.name,
-        ),
-      );
-
-      expect(find.text('Bill Ansell'), findsOneWidget);
-      expect(_subtitleOf(tester, find.byType(ListTile)), 'PADI - Divemaster');
-    });
-
-    testWidgets('a derived title does not repeat the level', (tester) async {
-      await _pumpField(
-        tester,
-        _makeCert(name: '', level: CertificationLevel.diveMaster.name),
-      );
-
-      expect(find.text('Divemaster'), findsOneWidget);
-      expect(_subtitleOf(tester, find.byType(ListTile)), 'PADI');
-    });
-
-    testWidgets('a multi-credential card names every recognition', (
-      tester,
-    ) async {
-      await _pumpField(
-        tester,
-        _makeCert(
-          name: '',
-          agency: CertificationAgency.ffessm.name,
-          level: CertificationLevel.ffessmN1.name,
-          additionalCredentials: const [
-            CertificationCredential(agency: 'cmas', level: 'cmas1StarDiver'),
+  group('chip field (#2515)', () {
+    testWidgets('shows a chip per selected certification', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            certificationListNotifierProvider.overrideWith(
+              (ref) => _MockCertListNotifier([
+                _makeCert(id: 'a', name: 'Advanced Nitrox'),
+                _makeCert(id: 'b', name: 'Deco Procedures'),
+              ]),
+            ),
+            allCoursesProvider.overrideWith((ref) async => [_rescue]),
           ],
+          child: CertificationMultiSelectField(
+            courseId: 'this-course',
+            selectedCertificationIds: const ['a', 'b'],
+            onChanged: (_) {},
+          ),
         ),
       );
-
-      final subtitle = _subtitleOf(tester, find.byType(ListTile));
-      expect(subtitle, contains('FFESSM'));
-      expect(subtitle, contains('CMAS'));
+      await tester.pump();
+      expect(find.widgetWithText(InputChip, 'Advanced Nitrox'), findsOneWidget);
+      expect(find.widgetWithText(InputChip, 'Deco Procedures'), findsOneWidget);
     });
   });
 
   group('picker sheet', () {
+    testWidgets('a toggle reports the whole selection at once', (tester) async {
+      final changes = <List<String>>[];
+      await _pumpSheet(
+        tester,
+        [
+          _makeCert(id: 'a', name: 'Advanced Nitrox'),
+          _makeCert(id: 'b', name: 'Deco Procedures'),
+        ],
+        selected: const ['a'],
+        onChanged: changes.add,
+      );
+      await tester.tap(find.text('Deco Procedures'));
+      await tester.pump();
+      expect(changes.single, ['a', 'b']);
+    });
+
+    testWidgets('a certification on another course says which (#2515)', (
+      tester,
+    ) async {
+      await _pumpSheet(tester, [
+        _makeCert(id: 'a', name: 'Rescue Diver', courseId: 'rescue'),
+        _makeCert(id: 'b', name: 'Mine', courseId: 'this-course'),
+      ]);
+      expect(find.textContaining('Linked to: Rescue course'), findsOneWidget);
+      expect(find.textContaining('Linked to: '), findsOneWidget);
+    });
+
     testWidgets('a custom name keeps the certification in the subtitle', (
       tester,
     ) async {
@@ -205,7 +208,6 @@ void main() {
       final subtitle = _subtitleOf(tester, find.byType(ListTile));
       expect(subtitle, contains('FFESSM'));
       expect(subtitle, contains('CMAS'));
-      // The a11y label also names the extra recognition.
       expect(find.bySemanticsLabel(RegExp('CMAS')), findsWidgets);
 
       handle.dispose();
@@ -223,14 +225,10 @@ void main() {
         ),
       ]);
 
-      // A screen reader must hear the level even when a custom name owns the
-      // title, since the title alone no longer carries it.
       expect(
         find.bySemanticsLabel('PADI Bill Ansell, Divemaster'),
         findsOneWidget,
       );
-      // And exactly once: without excludeSemantics the tile keeps a second
-      // node carrying its visible text, so the row is announced twice.
       expect(
         find.bySemanticsLabel(
           _visibleTextNode('Bill Ansell', 'PADI - Divemaster'),
@@ -245,40 +243,22 @@ void main() {
       tester,
     ) async {
       final handle = tester.ensureSemantics();
-      Certification? picked;
+      final changes = <List<String>>[];
 
-      await tester.pumpWidget(
-        testApp(
-          locale: const Locale('en'),
-          overrides: [
-            certificationListNotifierProvider.overrideWith(
-              (ref) => _MockCertListNotifier([
-                _makeCert(
-                  name: 'Bill Ansell',
-                  level: CertificationLevel.diveMaster.name,
-                ),
-              ]),
-            ),
-          ],
-          child: CertificationPickerSheet(
-            scrollController: ScrollController(),
-            selectedCertification: null,
-            onCertificationSelected: (cert) => picked = cert,
-          ),
+      await _pumpSheet(tester, [
+        _makeCert(
+          name: 'Bill Ansell',
+          level: CertificationLevel.diveMaster.name,
         ),
-      );
-      await tester.pump();
+      ], onChanged: changes.add);
 
-      // Excluding the subtree drops the ListTile's own tap action, so the
-      // wrapper must carry one or the row becomes unreachable by a screen
-      // reader even though it still looks tappable.
       tester.semantics.performAction(
         find.semantics.byLabel('PADI Bill Ansell, Divemaster'),
         SemanticsAction.tap,
       );
       await tester.pump();
 
-      expect(picked?.name, 'Bill Ansell');
+      expect(changes.single, ['c1']);
 
       handle.dispose();
     });
@@ -291,7 +271,6 @@ void main() {
       ]);
 
       expect(_subtitleOf(tester, find.byType(ListTile)), 'PADI');
-      // The title is already the level, so the label says it once, not twice.
       expect(find.bySemanticsLabel('PADI Divemaster'), findsOneWidget);
       expect(
         find.bySemanticsLabel(_visibleTextNode('Divemaster', 'PADI')),
