@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -285,15 +286,8 @@ class InsightsTimePatternsPage extends ConsumerWidget {
     );
   }
 
-  String _formatMinutes(BuildContext context, double minutes) {
-    if (minutes < 60) {
-      return context.l10n.insights_timePatterns_surfaceInterval_formatMinutes(
-        minutes.round(),
-      );
-    }
-    final hours = (minutes / 60).floor();
-    final mins = (minutes % 60).round();
-    return context.l10n
-        .insights_timePatterns_surfaceInterval_formatHoursMinutes(hours, mins);
-  }
+  /// The stats are fractional-minute averages: round once to whole minutes,
+  /// then let the shared formatter pick the tier.
+  String _formatMinutes(BuildContext context, double minutes) =>
+      formatElapsed(context.l10n, Duration(minutes: minutes.round()));
 }
