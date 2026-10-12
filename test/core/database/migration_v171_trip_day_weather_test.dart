@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v171 adds `trip_day_weather`: fetched historical weather for trip days
@@ -42,7 +43,9 @@ void main() {
   });
 
   test('a fresh database has trip_day_weather with every column', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     expect(
@@ -73,7 +76,9 @@ void main() {
   test('the weather payload columns are all nullable', () async {
     // A fetch that resolves only some fields must still store a row; every
     // reading is independently optional.
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db
@@ -95,7 +100,9 @@ void main() {
   });
 
   test('one row per trip and date', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customStatement('PRAGMA foreign_keys = OFF');
 

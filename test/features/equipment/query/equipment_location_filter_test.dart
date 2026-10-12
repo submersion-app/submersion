@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_default_view.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/query/equipment_filter_query.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
@@ -60,8 +61,9 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  Future<Set<String>> ids(EquipmentFilterState f) =>
-      QueryIdSetRunner(db).ids(compileEquipmentFilter(f));
+  Future<Set<String>> ids(EquipmentFilterState f) => QueryIdSetRunner(db).ids(
+    compileEquipmentFilter(f, defaultStatuses: factoryDefaultEquipmentStatuses),
+  );
 
   test('filters by current place, not past ones', () async {
     expect(await ids(const EquipmentFilterState(locationNames: {'Garage'})), {
@@ -109,6 +111,7 @@ void main() {
   test('the field reads the moves table, so the list refreshes on a move', () {
     final compiled = compileEquipmentFilter(
       const EquipmentFilterState(locationNames: {"Joe's Scuba"}),
+      defaultStatuses: factoryDefaultEquipmentStatuses,
     );
     expect(compiled.tablesTouched, contains('equipment_location_moves'));
   });

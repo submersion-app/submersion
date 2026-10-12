@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DivesCompanion, TransmittersCompanion;
 import 'package:submersion/core/providers/provider.dart';
@@ -38,7 +39,12 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
-    db = AppDatabase(NativeDatabase.memory(logStatements: true));
+    db = AppDatabase(
+      NativeDatabase.memory(
+        setup: registerAppSqlFunctions,
+        logStatements: true,
+      ),
+    );
     DatabaseService.instance.setTestDatabase(db);
     equipment = EquipmentRepository();
     final diver = await DiverRepository().createDiver(

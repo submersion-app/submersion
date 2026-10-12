@@ -127,6 +127,47 @@ void main() {
     expect((o.first.rule as ConditionNode).value, const NumberValue(65, null));
   });
 
+  test('a long interval filters on the whole span its cell shows', () {
+    // 9430 and 9462 minutes both read "6d 13h": the filter picked from one
+    // must keep the other (issue #3119).
+    final o = options(
+      DiveField.surfaceInterval,
+      base,
+      si: const {'d': Duration(minutes: 9462)},
+    );
+    expect(o.first.valueLabel, '6d 13h');
+    expect(betweenOf(o.first.rule), (9420.0, 9479.0));
+    final atLeast = (o[1].rule as ConditionNode).value! as NumberValue;
+    expect(atLeast.value, 9420);
+    final atMost = (o[2].rule as ConditionNode).value! as NumberValue;
+    expect(atMost.value, 9479);
+    for (final option in o) {
+      expect(
+        validateQuery(option.rule, diveQueryEntity, appQueryRegistry),
+        isEmpty,
+        reason: '${option.kind}',
+      );
+    }
+  });
+
+  test('a year-plus interval filters on the whole day its cell shows', () {
+    // 400 days 5 hours reads "1y 35d".
+    final o = options(
+      DiveField.surfaceInterval,
+      base,
+      si: const {'d': Duration(days: 400, hours: 5)},
+    );
+    expect(o.first.valueLabel, '1y 35d');
+    expect(betweenOf(o.first.rule), (576000.0, 577439.0));
+    for (final option in o) {
+      expect(
+        validateQuery(option.rule, diveQueryEntity, appQueryRegistry),
+        isEmpty,
+        reason: '${option.kind}',
+      );
+    }
+  });
+
   test('an unloaded interval map offers nothing for an unstored interval', () {
     // The cell shows "--" until the map arrives; "no value" would then drop
     // a dive whose interval the query computes.

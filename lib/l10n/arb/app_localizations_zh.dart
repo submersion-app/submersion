@@ -3945,9 +3945,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_list_tooltip_walletView => '卡包视图';
 
   @override
-  String get certifications_picker_clearTooltip => '清除证书选择';
-
-  @override
   String get certifications_picker_empty_addButton => '添加证书';
 
   @override
@@ -3968,10 +3965,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get certifications_picker_newCert => '新证书';
 
   @override
-  String get certifications_picker_noSelection => '未选择证书';
-
-  @override
-  String get certifications_picker_sheetTitle => '关联证书';
+  String get certifications_picker_selectTitle => '选择证书';
 
   @override
   String get certifications_search_empty_hint => '按名称、机构或卡号搜索';
@@ -4932,9 +4926,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get courses_detail_certificationNotFound => '未找到证书';
-
-  @override
   String get courses_detail_noTrainingDives => '尚未关联训练潜水';
 
   @override
@@ -4996,7 +4987,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_field_instructorNumber => '教练编号';
 
   @override
-  String get courses_field_linkCertificationHint => '关联此课程获得的证书';
+  String get courses_field_linkCertificationsHint => '关联此课程获得的证书';
 
   @override
   String get courses_field_location => '位置';
@@ -5045,9 +5036,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_picker_active => '活跃';
 
   @override
-  String get courses_picker_clearSelection => '清除选择';
-
-  @override
   String get courses_picker_createCourse => '创建课程';
 
   @override
@@ -5062,10 +5050,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_picker_noCourses => '暂无课程';
 
   @override
-  String get courses_picker_noneSelected => '无课程已选择';
+  String get courses_picker_selectCoursesTitle => '选择训练课程';
 
   @override
-  String get courses_picker_selectTitle => '选择训练课程';
+  String courses_picker_linkedTo(String courseName) {
+    return '已关联到：$courseName';
+  }
 
   @override
   String get courses_picker_selected => '已选择';
@@ -5105,7 +5095,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_section_details => '课程详情';
 
   @override
-  String get courses_section_earnedCertification => '获得的证书';
+  String get courses_section_earnedCertifications => '获得的证书';
 
   @override
   String get courses_section_instructor => '教练';
@@ -5338,6 +5328,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String dashboard_gauges_lastDiveDays(int days) {
     return '上次潜水 $days 天前';
+  }
+
+  @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return '上次潜水 $span前';
   }
 
   @override
@@ -7215,9 +7210,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_row_addSite => '添加潜点';
 
   @override
-  String get diveLog_edit_row_course => '课程';
-
-  @override
   String get diveLog_edit_row_diveCenter => '潜水中心';
 
   @override
@@ -7320,7 +7312,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_section_tags => '标签';
 
   @override
-  String get diveLog_edit_section_trainingCourse => '培训课程';
+  String get diveLog_edit_section_trainingCourses => '培训课程';
 
   @override
   String get diveLog_edit_section_trip => '旅行';
@@ -7431,7 +7423,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => '移除';
 
   @override
-  String get diveLog_edit_trainingCourseHint => '将此次潜水关联到培训课程';
+  String get diveLog_edit_trainingCoursesHint => '将此次潜水关联到一个或多个培训课程';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -12941,10 +12933,64 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已从 $name 填入。此前用于 $count 次潜水。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => '气瓶标签';
 
   @override
   String get passport_foreign_notInGear => '此气瓶不在您的装备中。';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '您已使用此气瓶 $count 次',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => '潜水';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '用于 $count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return '上次使用：$date';
+  }
+
+  @override
+  String get passport_usage_noSite => '无潜点';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return '第 $number 次潜水';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return '显示全部 $count 项';
+  }
+
+  @override
+  String get passport_usage_loadFailed => '无法加载您使用此气瓶的潜水记录';
 
   @override
   String passport_foreign_writtenOn(String date) {
@@ -13323,11 +13369,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '$minutes分钟';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes 分钟';
   }
@@ -13607,8 +13648,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pdf_pressureEnd => '结束';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return '间隔：$minutes分钟';
+  String pdf_surfaceIntervalSpan(String interval) {
+    return '间隔：$interval';
   }
 
   @override
@@ -14562,6 +14603,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_emptyState_addPrompt => '添加您的潜水装备以追踪使用情况和维护';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle => '默认视图隐藏了你的其他装备。';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title => '默认视图中没有装备';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => '装备';
 
   @override
@@ -14601,6 +14648,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_emptyState_noTypeMatch => '此类别中没有装备';
 
   @override
+  String get equipment_list_emptyState_showAll => '显示全部装备';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate => '您的所有装备维护都已是最新状态！';
 
   @override
@@ -14618,7 +14668,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_filterAll => '全部装备';
 
   @override
-  String get equipment_list_filterCurrent => '当前装备';
+  String get equipment_list_filterCurrent => '默认视图';
 
   @override
   String get equipment_list_filterServiceDue => '需要维护';
@@ -14657,6 +14707,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => '状态';
+
+  @override
+  String get equipment_filter_editDefault => '编辑默认';
 
   @override
   String get equipment_filter_section_tags => '标签';
@@ -21080,6 +21133,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => '用途';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses => '装备默认视图';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => '严重程度';
 
   @override
@@ -23517,6 +23573,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_manage_locations_subtitle => '装备存放、保养或借出的地方';
+
+  @override
+  String get settings_equipmentDefaultView_intro => '未设置筛选时，装备列表显示这些状态的装备。';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => '、';
+
+  @override
+  String get settings_equipmentDefaultView_title => '装备默认视图';
 
   @override
   String get settings_manage_currencyRules => '证书有效性';
@@ -26184,6 +26249,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String insights_observations_diveGapSpan(String span) {
+    return '您的上一次潜水是在 $span前';
+  }
+
+  @override
   String insights_observations_favouriteSite(
     String site,
     String dives,
@@ -26414,19 +26484,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_timePatterns_surfaceInterval_error => '加载水面间隔数据失败';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '$hours小时$minutes分钟';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes 分钟';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => '最大';
@@ -28415,6 +28472,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => '查看全部';
+
+  @override
+  String get trips_picker_alreadyPacked => '已打包';
 
   @override
   String get trips_picker_clearTooltip => '清除选择';
@@ -42041,6 +42101,36 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes 分钟';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '$hours小时$minutes分钟';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '$days天$hours小时';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '$years年$days天';
+  }
+
+  @override
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes) {
+    return '$days天$hours小时$minutes分钟';
+  }
+
+  @override
+  String common_elapsed_yearsDaysHours(int years, int days, int hours) {
+    return '$years年$days天$hours小时';
+  }
+
+  @override
   String common_relativeTime_inHours(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -43763,6 +43853,15 @@ class AppLocalizationsZh extends AppLocalizations {
     Object endDate,
   ) {
     return '$name，$startDate 至 $endDate，已选择';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name，$startDate 至 $endDate，已打包';
   }
 
   @override

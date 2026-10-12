@@ -4236,9 +4236,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_list_tooltip_walletView => 'عرض المحفظة';
 
   @override
-  String get certifications_picker_clearTooltip => 'مسح اختيار الشهادة';
-
-  @override
   String get certifications_picker_empty_addButton => 'إضافة شهادة';
 
   @override
@@ -4259,10 +4256,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_picker_newCert => 'شهادة جديدة';
 
   @override
-  String get certifications_picker_noSelection => 'لم يتم اختيار شهادة';
-
-  @override
-  String get certifications_picker_sheetTitle => 'الربط بشهادة';
+  String get certifications_picker_selectTitle => 'اختيار الشهادات';
 
   @override
   String get certifications_search_empty_hint =>
@@ -5277,9 +5271,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get courses_detail_certificationNotFound => 'الاعتماد غير موجود';
-
-  @override
   String get courses_detail_noTrainingDives =>
       'لا توجد غطسات تدريبية مربوطة بعد';
 
@@ -5343,8 +5334,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_field_instructorNumber => 'رقم المدرب';
 
   @override
-  String get courses_field_linkCertificationHint =>
-      'ربط الاعتماد المكتسب من هذه الدورة';
+  String get courses_field_linkCertificationsHint =>
+      'ربط الاعتمادات المكتسبة من هذه الدورة';
 
   @override
   String get courses_field_location => 'الموقع';
@@ -5393,9 +5384,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_picker_active => 'نشط';
 
   @override
-  String get courses_picker_clearSelection => 'مسح التحديد';
-
-  @override
   String get courses_picker_createCourse => 'إنشاء دورة';
 
   @override
@@ -5410,10 +5398,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_picker_noCourses => 'لا توجد دورات بعد';
 
   @override
-  String get courses_picker_noneSelected => 'لم يتم اختيار دورة';
+  String get courses_picker_selectCoursesTitle => 'اختيار الدورات التدريبية';
 
   @override
-  String get courses_picker_selectTitle => 'اختيار دورة تدريبية';
+  String courses_picker_linkedTo(String courseName) {
+    return 'مرتبط بـ: $courseName';
+  }
 
   @override
   String get courses_picker_selected => 'محدد';
@@ -5454,7 +5444,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_section_details => 'تفاصيل الدورة';
 
   @override
-  String get courses_section_earnedCertification => 'الاعتماد المكتسب';
+  String get courses_section_earnedCertifications => 'الاعتمادات المكتسبة';
 
   @override
   String get courses_section_instructor => 'المدرب';
@@ -5702,6 +5692,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String dashboard_gauges_lastDiveDays(int days) {
     return 'آخر غطسة منذ $days يوم';
+  }
+
+  @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'آخر غطسة منذ $span';
   }
 
   @override
@@ -7692,9 +7687,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_row_addSite => 'إضافة موقع';
 
   @override
-  String get diveLog_edit_row_course => 'الدورة';
-
-  @override
   String get diveLog_edit_row_diveCenter => 'مركز الغوص';
 
   @override
@@ -7801,7 +7793,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_section_tags => 'الوسوم';
 
   @override
-  String get diveLog_edit_section_trainingCourse => 'دورة التدريب';
+  String get diveLog_edit_section_trainingCourses => 'الدورات التدريبية';
 
   @override
   String get diveLog_edit_section_trip => 'الرحلة';
@@ -7927,7 +7919,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'إزالة';
 
   @override
-  String get diveLog_edit_trainingCourseHint => 'ربط هذه الغوصة بدورة تدريبية';
+  String get diveLog_edit_trainingCoursesHint =>
+      'ربط هذه الغوصة بدورة تدريبية واحدة أو أكثر';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -13719,10 +13712,76 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'مُلئ من $name. استُخدمت في $count غطسة سابقة.',
+      many: 'مُلئ من $name. استُخدمت في $count غطسة سابقة.',
+      few: 'مُلئ من $name. استُخدمت في $count غطسات سابقة.',
+      two: 'مُلئ من $name. استُخدمت في غطستين سابقتين.',
+      one: 'مُلئ من $name. استُخدمت في $count غطسة سابقة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'بطاقة الأسطوانة';
 
   @override
   String get passport_foreign_notInGear => 'هذه الأسطوانة ليست ضمن معداتك.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'لقد استخدمت هذه الأسطوانة $count مرة',
+      many: 'لقد استخدمت هذه الأسطوانة $count مرة',
+      few: 'لقد استخدمت هذه الأسطوانة $count مرات',
+      two: 'لقد استخدمت هذه الأسطوانة مرتين',
+      one: 'لقد استخدمت هذه الأسطوانة $count مرة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'الغطسات';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'استُخدمت في $count غطسة',
+      many: 'استُخدمت في $count غطسة',
+      few: 'استُخدمت في $count غطسات',
+      two: 'استُخدمت في غطستين',
+      one: 'استُخدمت في $count غطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'آخر استخدام: $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'لا يوجد موقع';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return 'الغطسة $number';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get passport_usage_loadFailed => 'تعذّر تحميل غطساتك بهذه الأسطوانة';
 
   @override
   String passport_foreign_writtenOn(String date) {
@@ -14122,11 +14181,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '$minutes د';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes دقيقة';
   }
@@ -14411,8 +14465,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pdf_pressureEnd => 'النهاية';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return 'فترة السطح: $minutes د';
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'فترة السطح: $interval';
   }
 
   @override
@@ -15439,6 +15493,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'أضف معدات الغوص لتتبع الاستخدام والصيانة';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'يخفي العرض الافتراضي بقية معداتك.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'لا توجد معدات في العرض الافتراضي';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'معدات';
 
   @override
@@ -15485,6 +15547,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد معدات في هذه الفئة';
 
   @override
+  String get equipment_list_emptyState_showAll => 'عرض جميع المعدات';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'جميع معداتك محدثة الصيانة!';
 
@@ -15505,7 +15570,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_filterAll => 'جميع المعدات';
 
   @override
-  String get equipment_list_filterCurrent => 'المعدات الحالية';
+  String get equipment_list_filterCurrent => 'العرض الافتراضي';
 
   @override
   String get equipment_list_filterServiceDue => 'الصيانة مستحقة';
@@ -15544,6 +15609,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'الحالة';
+
+  @override
+  String get equipment_filter_editDefault => 'تعديل الافتراضي';
 
   @override
   String get equipment_filter_section_tags => 'الوسوم';
@@ -22483,6 +22551,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'الدور';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'العرض الافتراضي للمعدات';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'الخطورة';
 
   @override
@@ -25062,6 +25134,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'أين تُخزَّن معداتك أو تُصان أو تُعار';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'عند عدم تعيين أي عامل تصفية، تعرض قائمة المعدات المعدات ذات هذه الحالات.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => '، ';
+
+  @override
+  String get settings_equipmentDefaultView_title => 'العرض الافتراضي للمعدات';
 
   @override
   String get settings_manage_currencyRules => 'صلاحية الشهادات';
@@ -27917,6 +27999,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'كانت آخر غوصة لك قبل $span';
+  }
+
+  @override
   String insights_observations_favouriteSite(
     String site,
     String dives,
@@ -28157,19 +28244,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get insights_timePatterns_surfaceInterval_error =>
       'فشل تحميل بيانات فترة السطح';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '$hours س $minutes د';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes min';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => 'الأقصى';
@@ -30437,6 +30511,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'عرض الكل';
+
+  @override
+  String get trips_picker_alreadyPacked => 'مجهزة بالفعل';
 
   @override
   String get trips_picker_clearTooltip => 'مسح الاختيار';
@@ -45208,6 +45285,36 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '$hours س $minutes د';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '$days ي $hours س';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '$years سنة $days ي';
+  }
+
+  @override
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes) {
+    return '$days ي $hours س $minutes د';
+  }
+
+  @override
+  String common_elapsed_yearsDaysHours(int years, int days, int hours) {
+    return '$years سنة $days ي $hours س';
+  }
+
+  @override
   String common_relativeTime_inHours(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -47179,6 +47286,15 @@ class AppLocalizationsAr extends AppLocalizations {
     Object endDate,
   ) {
     return '$name، من $startDate إلى $endDate، محددة';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name، من $startDate إلى $endDate، مجهزة بالفعل';
   }
 
   @override

@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart' as constants;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -103,9 +104,13 @@ class TankPresetRepository {
   /// Get a preset by name (case-insensitive, checks custom then built-in)
   Future<TankPresetEntity?> getPresetByName(String name) async {
     try {
-      // Check custom presets first
+      // Check custom presets first. No index keeps names unique, so two
+      // can fold equal; the lowest id wins rather than a "too many
+      // elements" throw.
       final query = _db.select(_db.tankPresets)
-        ..where((t) => t.name.lower().equals(name.toLowerCase()));
+        ..where((t) => t.name.unicodeLower().equals(name.toLowerCase()))
+        ..orderBy([(t) => OrderingTerm.asc(t.id)])
+        ..limit(1);
       final row = await query.getSingleOrNull();
       if (row != null) {
         return _mapRowToEntity(row);

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v203 adds the equipment_components assembly template and the two
@@ -46,7 +47,9 @@ void main() {
   test(
     'a fresh database has the components table and both column pairs',
     () async {
-      final db = AppDatabase(NativeDatabase.memory());
+      final db = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
 
       expect(await _tables(db), contains('equipment_components'));
@@ -121,7 +124,9 @@ void main() {
   });
 
   test('deleting either end of a component row cascades it away', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     for (final id in ['e1', 'e2', 'e3']) {
@@ -170,7 +175,9 @@ void main() {
   });
 
   test('the same pair cannot be inserted twice', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     for (final id in ['e1', 'e2']) {

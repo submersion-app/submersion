@@ -4151,10 +4151,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_list_tooltip_walletView => 'Kártya nézet';
 
   @override
-  String get certifications_picker_clearTooltip =>
-      'Tanúsítvány kiválasztás törlése';
-
-  @override
   String get certifications_picker_empty_addButton => 'Tanúsítvány hozzáadása';
 
   @override
@@ -4176,11 +4172,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get certifications_picker_newCert => 'Új tanúsítvány';
 
   @override
-  String get certifications_picker_noSelection =>
-      'Nincs tanúsítvány kiválasztva';
-
-  @override
-  String get certifications_picker_sheetTitle => 'Csatolás tanúsítványhoz';
+  String get certifications_picker_selectTitle => 'Tanúsítványok kiválasztása';
 
   @override
   String get certifications_search_empty_hint =>
@@ -5185,9 +5177,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get courses_detail_certificationNotFound => 'Képesítés nem található';
-
-  @override
   String get courses_detail_noTrainingDives =>
       'Még nincsenek hozzákapcsolt képzési merülések';
 
@@ -5254,8 +5243,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_field_instructorNumber => 'Oktató száma';
 
   @override
-  String get courses_field_linkCertificationHint =>
-      'Csatolj egy tanfolyamból szerzett képesítést';
+  String get courses_field_linkCertificationsHint =>
+      'Csatold a tanfolyamból szerzett képesítéseket';
 
   @override
   String get courses_field_location => 'Helyszín';
@@ -5304,9 +5293,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_picker_active => 'Aktív';
 
   @override
-  String get courses_picker_clearSelection => 'Kijelölés törlése';
-
-  @override
   String get courses_picker_createCourse => 'Tanfolyam létrehozása';
 
   @override
@@ -5321,10 +5307,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_picker_noCourses => 'Még nincsenek tanfolyamok';
 
   @override
-  String get courses_picker_noneSelected => 'Nincs kiválasztott tanfolyam';
+  String get courses_picker_selectCoursesTitle =>
+      'Képzési tanfolyamok kiválasztása';
 
   @override
-  String get courses_picker_selectTitle => 'Képzési tanfolyam kiválasztása';
+  String courses_picker_linkedTo(String courseName) {
+    return 'Csatolva ehhez: $courseName';
+  }
 
   @override
   String get courses_picker_selected => 'kiválasztva';
@@ -5366,7 +5355,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get courses_section_details => 'Tanfolyam részletei';
 
   @override
-  String get courses_section_earnedCertification => 'Megszerzett képesítés';
+  String get courses_section_earnedCertifications => 'Megszerzett képesítések';
 
   @override
   String get courses_section_instructor => 'Oktató';
@@ -5601,6 +5590,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String dashboard_gauges_lastDiveDays(int days) {
     return 'Utolsó merülés $days napja';
+  }
+
+  @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'Utolsó merülés $span ezelőtt';
   }
 
   @override
@@ -7567,9 +7561,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_row_addSite => 'Merülőhely hozzáadása';
 
   @override
-  String get diveLog_edit_row_course => 'Tanfolyam';
-
-  @override
   String get diveLog_edit_row_diveCenter => 'Búvárközpont';
 
   @override
@@ -7675,7 +7666,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_section_tags => 'Címkék';
 
   @override
-  String get diveLog_edit_section_trainingCourse => 'Képzési tanfolyam';
+  String get diveLog_edit_section_trainingCourses => 'Képzési tanfolyamok';
 
   @override
   String get diveLog_edit_section_trip => 'Út';
@@ -7793,8 +7784,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Eltávolítás';
 
   @override
-  String get diveLog_edit_trainingCourseHint =>
-      'Merülés összekapcsolása egy képzési tanfolyammal';
+  String get diveLog_edit_trainingCoursesHint =>
+      'Merülés összekapcsolása egy vagy több képzési tanfolyammal';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -13522,11 +13513,69 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Kitöltve innen: $name. $count korábbi merülésen használva.',
+      one: 'Kitöltve innen: $name. $count korábbi merülésen használva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'Palackcímke';
 
   @override
   String get passport_foreign_notInGear =>
       'Ez a palack nem szerepel a felszerelésében.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ezt a palackot $count alkalommal használta',
+      one: 'Ezt a palackot $count alkalommal használta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'Merülések';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülésen használva',
+      one: '$count merülésen használva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'Utoljára használva: $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'Nincs merülőhely';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return '$number. merülés';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'Mind a(z) $count megjelenítése';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'Nem sikerült betölteni a palackkal végzett merüléseit';
 
   @override
   String passport_foreign_writtenOn(String date) {
@@ -13921,11 +13970,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '$minutes p';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes perc';
   }
@@ -14206,8 +14250,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get pdf_pressureEnd => 'Záró';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return 'Felsz.: $minutes p';
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'Felsz.: $interval';
   }
 
   @override
@@ -15199,6 +15243,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adja hozzá búvárfelszerelését a használat és szerviz köveTéséhez';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'Az alapnézet elrejti a többi felszerelésedet.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'Nincs felszerelés az alapnézetben';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'felszerelés';
 
   @override
@@ -15245,6 +15297,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs felszerelés ebben a kategóriában';
 
   @override
+  String get equipment_list_emptyState_showAll =>
+      'Összes felszerelés megjelenítése';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'Minden felszerelése naprakész a szervizzel!';
 
@@ -15265,7 +15321,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_list_filterAll => 'Összes felszerelés';
 
   @override
-  String get equipment_list_filterCurrent => 'Jelenlegi felszerelés';
+  String get equipment_list_filterCurrent => 'Alapnézet';
 
   @override
   String get equipment_list_filterServiceDue => 'Szerviz esedékes';
@@ -15304,6 +15360,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Állapot';
+
+  @override
+  String get equipment_filter_editDefault => 'Alapnézet szerkesztése';
 
   @override
   String get equipment_filter_section_tags => 'Címkék';
@@ -22176,6 +22235,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'Szerep';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'Felszerelés alapnézete';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'Súlyosság';
 
   @override
@@ -24766,6 +24829,16 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'Hol tárolod, szervizelteted vagy adtad kölcsön a felszerelésed';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'Szűrő nélkül a felszereléslista az ilyen állapotú felszereléseket mutatja.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title => 'Felszerelés alapnézete';
 
   @override
   String get settings_manage_currencyRules => 'Képesítések érvényessége';
@@ -27604,6 +27677,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'Az utolsó merülése $span ezelőtt volt';
+  }
+
+  @override
   String insights_observations_favouriteSite(
     String site,
     String dives,
@@ -27849,19 +27927,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get insights_timePatterns_surfaceInterval_error =>
       'Nem sikerült a felszíni intervallum adatok betöltése';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '$hoursó ${minutes}p';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes min';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => 'Maximum';
@@ -29945,6 +30010,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Összes megtekintése';
+
+  @override
+  String get trips_picker_alreadyPacked => 'Már bepakolva';
 
   @override
   String get trips_picker_clearTooltip => 'Kiválasztás törlése';
@@ -44449,6 +44517,36 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes perc';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '$hoursó ${minutes}p';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '${days}n $hoursó';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '$yearsé ${days}n';
+  }
+
+  @override
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes) {
+    return '${days}n $hoursó ${minutes}p';
+  }
+
+  @override
+  String common_elapsed_yearsDaysHours(int years, int days, int hours) {
+    return '$yearsé ${days}n $hoursó';
+  }
+
+  @override
   String common_relativeTime_inHours(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46302,6 +46400,15 @@ class AppLocalizationsHu extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, $startDate és $endDate között, kiválasztva';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, $startDate és $endDate között, már bepakolva';
   }
 
   @override

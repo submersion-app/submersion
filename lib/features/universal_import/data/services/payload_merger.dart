@@ -140,6 +140,7 @@ class PayloadMerger {
     // across files by design, like dive type slugs, so the same id in two
     // files is the same type and is not namespaced.
     final customSiteTypes = <String, Map<String, dynamic>>{};
+    final serviceKinds = <String, Map<String, dynamic>>{};
     // Certification currency (issue #2267). Rules key on their own id, like
     // dive roles. Prefs and events name a certification by its uddfId, which
     // is namespaced per file below, so their certificationRef is namespaced
@@ -174,6 +175,12 @@ class PayloadMerger {
       for (final type in siteTypes is List ? siteTypes : const []) {
         if (type is Map<String, dynamic> && type['id'] is String) {
           customSiteTypes.putIfAbsent(type['id'] as String, () => type);
+        }
+      }
+      final kinds = input.payload.metadata[ImportPayload.serviceKindsKey];
+      for (final kind in kinds is List ? kinds : const []) {
+        if (kind is Map<String, dynamic> && kind['id'] is String) {
+          serviceKinds.putIfAbsent(kind['id'] as String, () => kind);
         }
       }
       final rules = input.payload.metadata[ImportPayload.currencyRulesKey];
@@ -261,6 +268,8 @@ class PayloadMerger {
           ImportPayload.customDiveRolesKey: customDiveRoles.values.toList(),
         if (customSiteTypes.isNotEmpty)
           ImportPayload.customSiteTypesKey: customSiteTypes.values.toList(),
+        if (serviceKinds.isNotEmpty)
+          ImportPayload.serviceKindsKey: serviceKinds.values.toList(),
         if (currencyRules.isNotEmpty)
           ImportPayload.currencyRulesKey: currencyRules.values.toList(),
         if (currencyPrefs.isNotEmpty)
@@ -285,6 +294,12 @@ class PayloadMerger {
       if (uddfId is String && uddfId.isNotEmpty) {
         item['uddfId'] = '$fileId:$uddfId';
       }
+    }
+
+    // A course names its certifications by uddfId, namespaced per file like
+    // the certifications themselves (#2515).
+    if (type == ImportEntityType.courses) {
+      _rewriteCourseCertRefs(item, (ref) => '$fileId:$ref');
     }
 
     if (type == ImportEntityType.dives) {
@@ -599,6 +614,25 @@ class PayloadMerger {
     }
   }
 
+  /// Rewrites a course's `certificationRef` and `certificationRefs` through
+  /// [rewrite] (#2515).
+  static void _rewriteCourseCertRefs(
+    Map<String, dynamic> course,
+    String Function(String ref) rewrite,
+  ) {
+    final ref = course['certificationRef'];
+    if (ref is String && ref.isNotEmpty) {
+      course['certificationRef'] = rewrite(ref);
+    }
+    final refs = course['certificationRefs'];
+    if (refs is List) {
+      course['certificationRefs'] = [
+        for (final r in refs)
+          if (r is String && r.isNotEmpty) rewrite(r) else r,
+      ];
+    }
+  }
+
   void _rewriteAliases(
     Map<ImportEntityType, List<Map<String, dynamic>>> entities,
     Map<String, String> aliases,
@@ -606,6 +640,10 @@ class PayloadMerger {
     if (aliases.isEmpty) return;
 
     String resolve(String id) => aliases[id] ?? id;
+
+    for (final course in entities[ImportEntityType.courses] ?? const []) {
+      _rewriteCourseCertRefs(course, resolve);
+    }
 
     for (final dive in entities[ImportEntityType.dives] ?? const []) {
       final site = dive['site'];

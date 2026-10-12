@@ -135,7 +135,7 @@ void main() {
         id: '',
         diverId: diver.id,
         dateTime: DateTime(2024, 6, 1),
-        courseId: course.id,
+        courseIds: [course.id],
       ),
     );
     final loser = await diveRepo.createDive(
@@ -143,7 +143,7 @@ void main() {
         id: '',
         diverId: diver.id,
         dateTime: DateTime(2024, 6, 2),
-        courseId: course.id,
+        courseIds: [course.id],
       ),
     );
     return (course, survivor, loser);

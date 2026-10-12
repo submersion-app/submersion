@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/certifications/data/repositories/dive_activity_repository.dart';
@@ -17,7 +18,12 @@ void main() {
   var seq = 0;
 
   setUp(() async {
-    db = AppDatabase(NativeDatabase.memory(logStatements: true));
+    db = AppDatabase(
+      NativeDatabase.memory(
+        setup: registerAppSqlFunctions,
+        logStatements: true,
+      ),
+    );
     DatabaseService.instance.setTestDatabase(db);
     repository = DiveActivityRepository();
     for (final id in ['me', 'other']) {

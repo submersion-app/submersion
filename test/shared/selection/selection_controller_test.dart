@@ -1,6 +1,55 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+
+/// A real reload that holds its previous value, built the way the app makes
+/// one: a provider whose dependency moves. `copyWithPrevious` is internal to
+/// Riverpod, so the state cannot be constructed directly.
+Future<AsyncValue<List<String>>> _reloadingFrom(List<String> previous) async {
+  final container = ProviderContainer();
+  addTearDown(container.dispose);
+  final trigger = StateProvider<int>((ref) => 0);
+  var next = Completer<List<String>>();
+  final rows = FutureProvider<List<String>>((ref) {
+    ref.watch(trigger);
+    return next.future;
+  });
+  container.listen(rows, (_, _) {});
+  next.complete(previous);
+  await container.read(rows.future);
+  next = Completer<List<String>>();
+  container.read(trigger.notifier).state++;
+  final reloading = container.read(rows);
+  expect(reloading.isLoading && reloading.hasValue, isTrue);
+  return reloading;
+}
+
+/// A refresh that failed while holding its previous value, built the same
+/// way as [_reloadingFrom].
+Future<AsyncValue<List<String>>> _failedHolding(List<String> previous) async {
+  final container = ProviderContainer();
+  addTearDown(container.dispose);
+  final trigger = StateProvider<int>((ref) => 0);
+  var next = Completer<List<String>>();
+  final rows = FutureProvider<List<String>>((ref) {
+    ref.watch(trigger);
+    return next.future;
+  });
+  container.listen(rows, (_, _) {});
+  next.complete(previous);
+  await container.read(rows.future);
+  next = Completer<List<String>>();
+  container.read(trigger.notifier).state++;
+  container.read(rows);
+  next.completeError(StateError('refresh failed'));
+  await pumpEventQueue();
+  final failed = container.read(rows);
+  expect(failed.hasError && failed.hasValue, isTrue);
+  return failed;
+}
 
 void main() {
   group('SelectionState', () {
@@ -402,6 +451,115 @@ void main() {
       controller.addListener(() => notifications++);
       controller.pruneTo(['a', 'b']);
       expect(notifications, 0);
+    });
+  });
+  group('SelectionController.pruneToSettled', () {
+    late SelectionController controller;
+    setUp(() => controller = SelectionController()..selectAll(['a', 'b']));
+    tearDown(() => controller.dispose());
+
+    List<String> ids(List<String> rows) => rows;
+
+    test('is settled before any rows are reported', () {
+      expect(controller.rowsSettled.value, isTrue);
+    });
+
+    test('a first load keeps the checks and reports unsettled', () {
+      controller.pruneToSettled(const AsyncLoading<List<String>>(), ids);
+      expect(controller.value.checkedIds, {'a', 'b'});
+      expect(controller.rowsSettled.value, isFalse);
+    });
+
+    test('data prunes to the ids derived from it', () {
+      controller.pruneToSettled(const AsyncData(['a', 'c']), ids);
+      expect(controller.value.checkedIds, {'a'});
+      expect(controller.rowsSettled.value, isTrue);
+    });
+
+    test('idsOf receives the settled value, so derived filters apply', () {
+      controller.pruneToSettled(
+        const AsyncData(['a', 'b']),
+        (rows) => rows.where((id) => id != 'b'),
+      );
+      expect(controller.value.checkedIds, {'a'});
+    });
+
+    test('a reload holding its previous value prunes to that value', () async {
+      final reloading = await _reloadingFrom(['b']);
+      controller.pruneToSettled(reloading, ids);
+      expect(controller.value.checkedIds, {'b'});
+      expect(controller.rowsSettled.value, isTrue);
+    });
+
+    test('an error with no value prunes to nothing', () {
+      controller.pruneToSettled(
+        AsyncError<List<String>>(StateError('boom'), StackTrace.empty),
+        ids,
+      );
+      expect(controller.value.checkedIds, isEmpty);
+      expect(controller.rowsSettled.value, isTrue);
+    });
+
+    test('an error holding its previous value prunes to that value', () async {
+      final failed = await _failedHolding(['b']);
+      controller.pruneToSettled(failed, ids);
+      expect(controller.value.checkedIds, {'b'});
+      expect(controller.rowsSettled.value, isTrue);
+    });
+
+    test('an error with no value ends an implicit selection', () {
+      final implicit = SelectionController()..enterImplicit('a');
+      addTearDown(implicit.dispose);
+      implicit.pruneToSettled(
+        AsyncError<List<String>>(StateError('boom'), StackTrace.empty),
+        ids,
+      );
+      expect(implicit.value.isActive, isFalse);
+    });
+
+    test('settling again reports settled', () {
+      controller.pruneToSettled(const AsyncLoading<List<String>>(), ids);
+      controller.pruneToSettled(const AsyncData(['a', 'b']), ids);
+      expect(controller.rowsSettled.value, isTrue);
+      expect(controller.value.checkedIds, {'a', 'b'});
+    });
+
+    test('select all does nothing while rows are unsettled', () {
+      controller.pruneToSettled(const AsyncLoading<List<String>>(), ids);
+      controller.selectAll(const []);
+      expect(controller.value.checkedIds, {'a', 'b'});
+    });
+
+    test('exit keeps the rows unsettled, so re-entry cannot select all', () {
+      controller.pruneToSettled(const AsyncLoading<List<String>>(), ids);
+      controller
+        ..exit()
+        ..enterExplicit()
+        ..selectAll(const ['x']);
+      expect(controller.rowsSettled.value, isFalse);
+      expect(controller.value.checkedIds, isEmpty);
+    });
+
+    test('derives no ids while the mode is inactive', () {
+      final idle = SelectionController();
+      addTearDown(idle.dispose);
+      var derived = 0;
+      idle.pruneToSettled(const AsyncLoading<List<String>>(), ids);
+      idle.pruneToSettled(const AsyncData(['a']), (rows) {
+        derived++;
+        return rows;
+      });
+      expect(derived, 0);
+      expect(idle.rowsSettled.value, isTrue);
+    });
+
+    test('notifies rowsSettled listeners only on a change', () {
+      var calls = 0;
+      controller.rowsSettled.addListener(() => calls++);
+      controller.pruneToSettled(const AsyncData(['a', 'b']), ids);
+      controller.pruneToSettled(const AsyncLoading<List<String>>(), ids);
+      controller.pruneToSettled(const AsyncLoading<List<String>>(), ids);
+      expect(calls, 1);
     });
   });
 }

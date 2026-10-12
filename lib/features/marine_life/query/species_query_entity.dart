@@ -27,9 +27,9 @@ final speciesQueryEntity = QueryEntity(
   subject: QuerySubject.species,
   table: 'species',
   textSearchSql: const [
-    "{r}.common_name LIKE ? ESCAPE '\\'",
-    "{r}.scientific_name LIKE ? ESCAPE '\\'",
-    "{r}.taxonomy_class LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.common_name) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.scientific_name) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.taxonomy_class) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'common_name'),

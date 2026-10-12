@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -134,7 +135,12 @@ void main() {
     'getActiveEquipment statement count does not grow with shares',
     () async {
       DatabaseService.instance.setTestDatabase(
-        AppDatabase(NativeDatabase.memory(logStatements: true)),
+        AppDatabase(
+          NativeDatabase.memory(
+            setup: registerAppSqlFunctions,
+            logStatements: true,
+          ),
+        ),
       );
       db = DatabaseService.instance.database;
       repo = EquipmentRepository();

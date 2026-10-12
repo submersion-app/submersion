@@ -139,6 +139,33 @@ void main() {
       expect(find.text('50 min'), findsOneWidget);
     });
 
+    testWidgets('shows a long surface interval in days', (tester) async {
+      final dive = createTestDiveWithBottomTime().copyWith(
+        surfaceInterval: const Duration(hours: 157, minutes: 42),
+      );
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            diveProvider(dive.id).overrideWith((ref) async => dive),
+            diveDataSourcesProvider(
+              dive.id,
+            ).overrideWith((ref) async => <DiveDataSource>[]),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailPage(diveId: dive.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('6d 13h'), findsOneWidget);
+    });
+
     testWidgets('handles null bottomTime', (tester) async {
       final dive = createTestDiveWithBottomTime(bottomTime: null);
       final overrides = await getBaseOverrides();

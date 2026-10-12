@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
@@ -218,7 +219,12 @@ void main() {
     () async {
       await tearDownTestDatabase();
       DatabaseService.instance.setTestDatabase(
-        AppDatabase(NativeDatabase.memory(logStatements: true)),
+        AppDatabase(
+          NativeDatabase.memory(
+            setup: registerAppSqlFunctions,
+            logStatements: true,
+          ),
+        ),
       );
       sites = SiteRepository();
       await seedTag();

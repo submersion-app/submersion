@@ -14,6 +14,9 @@ class BulkEditSnapshot {
   final Map<String, List<String>>? priorTagIds;
   final Map<String, List<String>>? priorDiveTypeIds;
 
+  /// Each dive's courses before a `DiveCoursesOp` (#2515).
+  final Map<String, List<String>>? priorCourseIds;
+
   /// Prior gear rows with their provenance, restored exactly rather than
   /// re-expanded (issue #1487).
   final Map<String, List<GearProvenance>>? priorGear;
@@ -35,6 +38,7 @@ class BulkEditSnapshot {
     required this.priorDiveRows,
     this.priorTagIds,
     this.priorDiveTypeIds,
+    this.priorCourseIds,
     this.priorGear,
     this.priorBuddies,
     this.priorDiverRoleIds,

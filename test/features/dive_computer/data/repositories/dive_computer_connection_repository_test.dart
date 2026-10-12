@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/data/repositories/dive_computer_connection_repository.dart';
 import 'package:submersion/features/dive_computer/domain/entities/dive_computer_connection.dart';
@@ -257,7 +258,9 @@ void main() {
 
   test('a repository given its own database writes there, not to the '
       'app\'s', () async {
-    final other = AppDatabase(NativeDatabase.memory());
+    final other = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(other.close);
     await other
         .into(other.diveComputers)

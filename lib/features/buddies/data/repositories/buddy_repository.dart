@@ -156,8 +156,8 @@ class BuddyRepository {
 
     final results = await _db.customSelect('''
       SELECT * FROM buddies
-      WHERE (LOWER(name) LIKE ?
-         OR LOWER(email) LIKE ?
+      WHERE (unicode_lower(name) LIKE ?
+         OR unicode_lower(email) LIKE ?
          OR phone LIKE ?)
       $diverFilter
       ORDER BY name COLLATE NOCASE ASC
@@ -259,7 +259,7 @@ class BuddyRepository {
           .customSelect(
             '''
         SELECT * FROM buddies
-        WHERE LOWER(name) = LOWER(?) $scope
+        WHERE unicode_lower(name) = unicode_lower(?) $scope
         LIMIT 1
       ''',
             variables: [
@@ -912,7 +912,8 @@ class BuddyRepository {
       final conditions = <String>[
         if (diverId != null) 'b.diver_id = ?',
         if (query != null && query.isNotEmpty)
-          '(LOWER(b.name) LIKE ? OR LOWER(b.email) LIKE ? OR b.phone LIKE ?)',
+          '(unicode_lower(b.name) LIKE ? OR unicode_lower(b.email) LIKE ? '
+              'OR b.phone LIKE ?)',
       ];
       final where = conditions.isEmpty
           ? ''

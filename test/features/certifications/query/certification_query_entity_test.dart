@@ -81,15 +81,15 @@ void main() {
     },
   );
 
-  test('the course hop reads either stored link direction', () async {
-    // The link can be stored on the course side only (an import or a sync);
-    // the certification detail page shows it, so the query must find it.
+  test('the course hop reads the certification side only (#2515)', () async {
+    // Since v288 certifications.course_id is the truth; a course-side-only
+    // pointer is a stale representative, and the detail page ignores it too.
     await db.customStatement(
       'INSERT INTO courses (id, diver_id, name, agency, start_date, '
       "certification_id, created_at, updated_at) VALUES ('res', 'me', "
       "'Rescue course', 'ssi', $now, 'c2', $now, $now)",
     );
-    expect(await ids('course.name = "Rescue course"'), {'c2'});
+    expect(await ids('course.name = "Rescue course"'), isEmpty);
     expect(await ids('course.name = AOW'), {'c1'});
   });
 

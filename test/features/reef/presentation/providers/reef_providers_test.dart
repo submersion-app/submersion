@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
@@ -16,7 +17,7 @@ void main() {
   // must be primed with an in-memory instance before any provider resolves.
   setUp(() {
     LocalCacheDatabaseService.instance.setTestDatabase(
-      LocalCacheDatabase(NativeDatabase.memory()),
+      LocalCacheDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions)),
     );
   });
 

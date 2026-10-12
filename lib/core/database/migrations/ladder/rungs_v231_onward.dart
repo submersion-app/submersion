@@ -360,13 +360,36 @@ extension RungsFromV231 on AppDatabase {
       await _assertNavTrackSourceMetadataColumn();
     }
     if (from < 285) await reportProgress();
-    // v286: dive_plan_segments.split_at_configured_rate (issue #3264).
-    // Column only, defaulting off; re-asserted in beforeOpen. Renumbered
-    // from 277 then 282, as #2613's documents store, #3189, #3012 and
-    // #3047 shipped first in turn.
+    // v286: diver_settings.equipment_default_statuses (issue #2628). Column
+    // only; re-asserted in beforeOpen.
     if (from < 286) {
-      await _assertSegmentSplitAtRateColumn();
+      await _assertEquipmentDefaultStatusesColumn();
     }
     if (from < 286) await reportProgress();
+    // v287: dive_tanks.passport_id (issue #2650). Column only, no backfill:
+    // nothing recorded which tag an older tank came from. Re-asserted in
+    // beforeOpen; the index is in performance_indexes.dart. Renumbered from
+    // 285 and 286, which #3306 and #3319 shipped first.
+    if (from < 287) {
+      await _assertTankPassportIdColumn();
+    }
+    if (from < 287) await reportProgress();
+    // v288: the dive_courses junction and the certification-side course link
+    // (issue #2515). Schema re-asserted and links re-seeded in beforeOpen;
+    // the certification backfill runs here only.
+    if (from < 288) {
+      await _assertDiveCourseSchema();
+      await seedDiveCourseLinks(this);
+      await backfillCertificationCourseLinks(this);
+    }
+    if (from < 288) await reportProgress();
+    // v290: dive_plan_segments.split_at_configured_rate (issue #3264).
+    // Column only, defaulting off; re-asserted in beforeOpen. Renumbered
+    // from 277, 282 then 286, as earlier rungs shipped or were claimed
+    // first.
+    if (from < 290) {
+      await _assertSegmentSplitAtRateColumn();
+    }
+    if (from < 290) await reportProgress();
   }
 }

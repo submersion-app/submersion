@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_default_view.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/helpers/saved_equipment_visibility.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
@@ -59,13 +60,45 @@ void main() {
   Future<EquipmentFilterState?> reveal(
     EquipmentFilterState filter,
     String id,
-    EquipmentStatus status,
-  ) => viewRevealingSavedEquipment(
+    EquipmentStatus status, {
+    Set<EquipmentStatus> defaults = factoryDefaultEquipmentStatuses,
+  }) => viewRevealingSavedEquipment(
     runner: runner,
     filter: filter,
     diverId: 'me',
     equipmentId: id,
     status: status,
+    defaultStatuses: defaults,
+  );
+
+  test(
+    'a custom default view that shows the item needs no new view (#2628)',
+    () async {
+      expect(
+        await reveal(
+          const EquipmentFilterState(),
+          'old',
+          EquipmentStatus.retired,
+          defaults: {EquipmentStatus.active, EquipmentStatus.retired},
+        ),
+        isNull,
+      );
+    },
+  );
+
+  test(
+    'a custom default view that hides the item offers its status view',
+    () async {
+      expect(
+        await reveal(
+          const EquipmentFilterState(),
+          'fins',
+          EquipmentStatus.active,
+          defaults: {EquipmentStatus.wanted},
+        ),
+        const EquipmentFilterState(status: EquipmentStatus.active),
+      );
+    },
   );
 
   test(
@@ -141,6 +174,7 @@ void main() {
       equipmentId: 'fins',
       status: EquipmentStatus.active,
       beforeQuery: (tables) async => synced.add(tables),
+      defaultStatuses: factoryDefaultEquipmentStatuses,
     );
     // The service-due view, then the default view it falls back to.
     expect(synced, hasLength(2));

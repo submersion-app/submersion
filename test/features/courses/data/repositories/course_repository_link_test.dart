@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_course_identity.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart'
     as domain;
@@ -160,30 +161,153 @@ void main() {
     );
   });
 
-  group('linkDiveToCourse / unlinkDiveFromCourse', () {
-    test('sets and clears the course_id on the dive', () async {
+  Future<Set<String>> diveCourses(String diveId) async => {
+    for (final r in await (db.select(
+      db.diveCourses,
+    )..where((t) => t.diveId.equals(diveId))).get())
+      r.courseId,
+  };
+
+  group('linkDiveToCourse / unlinkDiveFromCourse (#2515)', () {
+    test('a dive can be linked to two courses', () async {
       await insertDiver('alice');
       await insertCourse(id: 'course-3', diverId: 'alice');
+      await insertCourse(id: 'course-5', diverId: 'alice');
       await insertDive(id: 'dive-2', diverId: 'alice');
 
       await repository.linkDiveToCourse('dive-2', 'course-3');
-      expect(await diveCourseId('dive-2'), 'course-3');
+      await repository.linkDiveToCourse('dive-2', 'course-5');
 
-      await repository.unlinkDiveFromCourse('dive-2');
-      expect(await diveCourseId('dive-2'), isNull);
+      expect(await diveCourses('dive-2'), {'course-3', 'course-5'});
+      expect(
+        (await repository.getCoursesForDive('dive-2')).map((c) => c.id),
+        containsAll(['course-3', 'course-5']),
+      );
+    });
+
+    test('unlinking one course keeps the other as representative', () async {
+      await insertDiver('alice');
+      await insertCourse(id: 'course-3', diverId: 'alice');
+      await insertCourse(id: 'course-5', diverId: 'alice');
+      await insertDive(id: 'dive-2', diverId: 'alice');
+      await repository.linkDiveToCourse('dive-2', 'course-3');
+      await repository.linkDiveToCourse('dive-2', 'course-5');
+
+      await repository.unlinkDiveFromCourse('dive-2', 'course-3');
+
+      expect(await diveCourses('dive-2'), {'course-5'});
+      expect(await diveCourseId('dive-2'), 'course-5');
     });
   });
 
-  group('linkCourseToCertification', () {
-    test('sets course_id and certification_id bidirectionally', () async {
+  group('deleteCourse with a multi-course dive (#2515)', () {
+    test("keeps the dive's other course and tombstones the link", () async {
+      await insertDiver('alice');
+      await insertCourse(id: 'course-a', diverId: 'alice');
+      await insertCourse(id: 'course-b', diverId: 'alice');
+      await insertDive(id: 'dive-3', diverId: 'alice');
+      await repository.linkDiveToCourse('dive-3', 'course-a');
+      await repository.linkDiveToCourse('dive-3', 'course-b');
+      final rep = await diveCourseId('dive-3');
+      final other = rep == 'course-a' ? 'course-b' : 'course-a';
+
+      await repository.deleteCourse(rep!);
+
+      expect(await diveCourses('dive-3'), {other});
+      expect(await diveCourseId('dive-3'), other);
+      final tombstones = await (db.select(
+        db.deletionLog,
+      )..where((t) => t.entityType.equals('diveCourses'))).get();
+      expect(tombstones.map((t) => t.recordId), [
+        diveCourseLinkId('dive-3', rep),
+      ]);
+    });
+  });
+
+  group('certifications (#2515)', () {
+    test('setCourseCertifications links several certifications', () async {
       await insertDiver('alice');
       await insertCourse(id: 'course-4', diverId: 'alice');
       await insertCertification(id: 'cert-2', diverId: 'alice');
+      await insertCertification(id: 'cert-3', diverId: 'alice');
 
-      await repository.linkCourseToCertification('course-4', 'cert-2');
+      await repository.setCourseCertifications('course-4', [
+        'cert-2',
+        'cert-3',
+      ]);
 
-      expect(await courseCertificationId('course-4'), 'cert-2');
       expect(await certificationCourseId('cert-2'), 'course-4');
+      expect(await certificationCourseId('cert-3'), 'course-4');
+      expect(await courseCertificationId('course-4'), isNotNull);
     });
+
+    test('getCourseForCertification reads the certification side', () async {
+      await insertDiver('alice');
+      await insertCourse(id: 'course-6', diverId: 'alice');
+      await insertCertification(
+        id: 'cert-6',
+        diverId: 'alice',
+        courseId: 'course-6',
+      );
+      // A stale course-side pointer from an older app version is ignored.
+      await insertCourse(
+        id: 'course-7',
+        diverId: 'alice',
+        certificationId: 'cert-6',
+      );
+
+      final course = await repository.getCourseForCertification('cert-6');
+      expect(course?.id, 'course-6');
+    });
+
+    test(
+      'updateCourse never overwrites the derived certification_id',
+      () async {
+        await insertDiver('alice');
+        final course = await insertCourse(id: 'course-8', diverId: 'alice');
+        await insertCertification(id: 'cert-8', diverId: 'alice');
+        await repository.setCourseCertifications('course-8', ['cert-8']);
+
+        // The entity still carries the stale null it was loaded with.
+        await repository.updateCourse(course.copyWith(name: 'Renamed'));
+
+        expect(await courseCertificationId('course-8'), 'cert-8');
+      },
+    );
   });
+
+  test('getCoursesForDive falls back to a representative-only link', () async {
+    await insertDiver('alice');
+    await insertCourse(id: 'course-9', diverId: 'alice');
+    await insertDive(id: 'dive-9', diverId: 'alice', courseId: 'course-9');
+    final courses = await repository.getCoursesForDive('dive-9');
+    expect(courses.map((c) => c.id), ['course-9']);
+  });
+
+  test(
+    "moving a course's start date refreshes its dives' representative",
+    () async {
+      await insertDiver('alice');
+      await insertCourse(id: 'course-early', diverId: 'alice');
+      final late = await repository.createCourse(
+        domain.Course(
+          id: 'course-late',
+          diverId: 'alice',
+          name: 'Later',
+          agency: CertificationAgency.padi.name,
+          startDate: DateTime(2025, 1, 1),
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await insertDive(id: 'dive-r', diverId: 'alice');
+      await repository.linkDiveToCourse('dive-r', 'course-early');
+      await repository.linkDiveToCourse('dive-r', 'course-late');
+      expect(await diveCourseId('dive-r'), 'course-early');
+
+      await repository.updateCourse(late.copyWith(startDate: DateTime(2020)));
+
+      expect(await diveCourseId('dive-r'), 'course-late');
+    },
+  );
 }

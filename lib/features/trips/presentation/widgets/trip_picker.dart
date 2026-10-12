@@ -164,12 +164,18 @@ class TripPickerSheet extends ConsumerWidget {
   final ValueChanged<Trip> onTripSelected;
   final VoidCallback onCreateNewTrip;
 
+  /// Trips the item being assigned is already packed for (issue #2654). Each
+  /// is marked "Already packed" and cannot be picked, since packing it again
+  /// would change nothing.
+  final Set<String> packedTripIds;
+
   const TripPickerSheet({
     super.key,
     required this.scrollController,
     required this.selectedTrip,
     required this.onTripSelected,
     required this.onCreateNewTrip,
+    this.packedTripIds = const {},
   });
 
   @override
@@ -249,18 +255,27 @@ class TripPickerSheet extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final trip = trips[index];
                   final isSelected = selectedTrip?.id == trip.id;
+                  final isPacked = packedTripIds.contains(trip.id);
                   final units = UnitFormatter(ref.watch(settingsProvider));
+                  final start = units.formatDate(trip.startDate);
+                  final end = units.formatDate(trip.endDate);
 
-                  final tripLabel = isSelected
+                  final tripLabel = isPacked
+                      ? context.l10n.trips_picker_tileSemanticsPacked(
+                          trip.name,
+                          start,
+                          end,
+                        )
+                      : isSelected
                       ? context.l10n.trips_picker_tileSemanticsSelected(
                           trip.name,
-                          units.formatDate(trip.startDate),
-                          units.formatDate(trip.endDate),
+                          start,
+                          end,
                         )
                       : context.l10n.trips_picker_tileSemantics(
                           trip.name,
-                          units.formatDate(trip.startDate),
-                          units.formatDate(trip.endDate),
+                          start,
+                          end,
                         );
 
                   return Semantics(
@@ -282,10 +297,23 @@ class TripPickerSheet extends ConsumerWidget {
                         ),
                       ),
                       title: Text(trip.name),
-                      subtitle: Text(
-                        '${units.formatDate(trip.startDate)} - ${units.formatDate(trip.endDate)}',
-                      ),
-                      trailing: isSelected
+                      subtitle: isPacked
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('$start - $end'),
+                                Text(context.l10n.trips_picker_alreadyPacked),
+                              ],
+                            )
+                          : Text('$start - $end'),
+                      isThreeLine: isPacked,
+                      // A disabled tile greys itself from the theme and
+                      // ignores taps.
+                      enabled: !isPacked,
+                      trailing: isPacked
+                          ? const Icon(Icons.luggage_outlined)
+                          : isSelected
                           ? Icon(
                               Icons.check_circle,
                               color: Theme.of(context).colorScheme.primary,

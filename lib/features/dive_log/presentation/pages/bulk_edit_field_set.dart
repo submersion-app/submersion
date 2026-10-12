@@ -11,7 +11,6 @@ enum BulkField {
   boatName,
   boatCaptain,
   trip,
-  course,
   rating,
   isFavorite,
   excludedFromStats,
@@ -73,7 +72,6 @@ class BulkScalarInputs {
     this.boatName,
     this.boatCaptain,
     this.tripId,
-    this.courseId,
     this.rating,
     this.isFavorite,
     this.excludedFromStats,
@@ -118,7 +116,6 @@ class BulkScalarInputs {
   final String? boatName;
   final String? boatCaptain;
   final String? tripId;
-  final String? courseId;
   final int? rating;
   final bool? isFavorite;
 
@@ -183,7 +180,6 @@ DivesCompanion buildScalarCompanion(
       BulkField.boatName => c.copyWith(boatName: Value(i.boatName)),
       BulkField.boatCaptain => c.copyWith(boatCaptain: Value(i.boatCaptain)),
       BulkField.trip => c.copyWith(tripId: Value(i.tripId)),
-      BulkField.course => c.copyWith(courseId: Value(i.courseId)),
       BulkField.rating => c.copyWith(rating: Value(i.rating)),
       BulkField.excludedFromStats => c.copyWith(
         excludedFromStats: Value(i.excludedFromStats ?? false),

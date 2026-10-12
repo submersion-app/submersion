@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v206: the condition engine's master and per-rule toggles on
@@ -31,7 +32,9 @@ void main() {
   });
 
   test('a fresh database has both toggle columns', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     expect(
       await _columns(db, 'diver_settings'),
@@ -89,7 +92,9 @@ void main() {
   // 3b), beside its existing link to the cylinder it feeds. The dropout
   // rules read serials through it.
   test('a fresh database has the registry\'s transmitter link', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     expect(
       await _columns(db, 'transmitters'),

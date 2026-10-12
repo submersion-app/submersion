@@ -191,7 +191,7 @@ class DivePlanSegments extends Table {
   /// into travel (at the plan's configured descent/ascent rate) followed by
   /// a hold at the target depth for whatever duration remains, instead of
   /// stretching the whole entered duration linearly across the depth change
-  /// (v277, issue #3264). The segment itself is unchanged either way -- one
+  /// (v290, issue #3264). The segment itself is unchanged either way -- one
   /// row in the list, one authored duration; this only changes how that
   /// duration is read.
   BoolColumn get splitAtConfiguredRate =>

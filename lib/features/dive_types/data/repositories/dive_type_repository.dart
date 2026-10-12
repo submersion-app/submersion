@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -132,8 +133,12 @@ class DiveTypeRepository {
   /// Get a dive type by name (case-insensitive)
   Future<domain.DiveTypeEntity?> getDiveTypeByName(String name) async {
     try {
+      // No index keeps names unique, so two can fold equal; the lowest id
+      // wins rather than a "too many elements" throw.
       final query = _db.select(_db.diveTypes)
-        ..where((t) => t.name.lower().equals(name.toLowerCase()));
+        ..where((t) => t.name.unicodeLower().equals(name.toLowerCase()))
+        ..orderBy([(t) => OrderingTerm.asc(t.id)])
+        ..limit(1);
       final row = await query.getSingleOrNull();
       return row != null ? _mapRowToDiveType(row) : null;
     } catch (e, stackTrace) {

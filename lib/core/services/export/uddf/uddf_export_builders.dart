@@ -11,8 +11,10 @@ import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
+import 'package:submersion/core/services/export/uddf/uddf_fill_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_feature_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
@@ -34,9 +36,13 @@ import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
@@ -290,12 +296,9 @@ class UddfExportBuilders {
               builder.element('isplanned', nest: 'true');
             }
             buildDiverRole(builder, dive);
-            // Course association
-            if (dive.courseId != null) {
-              builder.element(
-                'link',
-                attributes: {'ref': 'course_${dive.courseId}'},
-              );
+            // Course associations, one link per course (#2515)
+            for (final courseId in dive.courseIds) {
+              builder.element('link', attributes: {'ref': 'course_$courseId'});
             }
             if (dive.effectiveEntryMethod != null) {
               builder.element(
@@ -772,6 +775,13 @@ class UddfExportBuilders {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     List<EquipmentObservation>? observations,
+    // Cylinder fills (issue #2651): keyed by passport id, so a section of
+    // their own rather than a child of the item.
+    List<CylinderFill>? fills,
+    // The diver's custom service kinds and each item's service clocks
+    // (issue #2651); an item absent from the map writes none.
+    List<ServiceKind>? serviceKinds,
+    Map<String, List<ServiceSchedule>> serviceSchedulesByItem = const {},
     Map<String, String>? settings,
     Diver? owner,
     List<Tag>? tags,
@@ -802,6 +812,11 @@ class UddfExportBuilders {
     // A file shared with other people carries no purchase date, price or
     // currency on its items; a backup keeps them.
     bool omitPurchaseDetails = false,
+    // Only a full backup writes each item's tag identity and its clock list
+    // (issue #2651). A shared file must not hand the reader the sender's
+    // cylinder tags, and an empty clock list tells a restore to remove the
+    // default clocks of the gear it creates.
+    bool backup = false,
   }) {
     final catalog = certificationCatalog ?? CertificationCatalog.builtInOnly;
     // Gear provenance per dive (issue #1487): only rows attached through
@@ -840,6 +855,8 @@ class UddfExportBuilders {
         (species?.isNotEmpty ?? false) ||
         (serviceRecords?.isNotEmpty ?? false) ||
         (observations?.isNotEmpty ?? false) ||
+        (fills?.isNotEmpty ?? false) ||
+        (serviceKinds?.isNotEmpty ?? false) ||
         (settings?.isNotEmpty ?? false) ||
         owner != null ||
         (tags?.isNotEmpty ?? false) ||
@@ -967,6 +984,18 @@ class UddfExportBuilders {
                           builder,
                           equipmentTagIdsByItem[item.id] ?? const [],
                         );
+                        // The item's tag identity (issue #2651), so a
+                        // restore links the fills stored under it.
+                        if (backup) {
+                          if (_passportIdOf(item) case final passportId?) {
+                            builder.element('passportid', nest: passportId);
+                          }
+                          // The item's service clocks (issue #2651).
+                          UddfServiceClockWriters.writeSchedules(
+                            builder,
+                            serviceSchedulesByItem[item.id] ?? const [],
+                          );
+                        }
                       },
                     );
                   }
@@ -1126,6 +1155,12 @@ class UddfExportBuilders {
                           );
                         }
                         builder.element('category', nest: spec.category.name);
+                        if (spec.taxonomyClass != null) {
+                          builder.element(
+                            'taxonomyclass',
+                            nest: spec.taxonomyClass,
+                          );
+                        }
                         if (spec.description != null) {
                           builder.element(
                             'description',
@@ -1138,6 +1173,13 @@ class UddfExportBuilders {
                 },
               );
             }
+
+            // Custom service kinds (issue #2651), before anything refers
+            // to them.
+            UddfServiceClockWriters.writeKinds(
+              builder,
+              serviceKinds ?? const [],
+            );
 
             // Service Records
             if (serviceRecords != null && serviceRecords.isNotEmpty) {
@@ -1157,6 +1199,9 @@ class UddfExportBuilders {
                           'servicecategory',
                           nest: record.serviceCategory.name,
                         );
+                        if (record.serviceKindId case final kind?) {
+                          builder.element('servicekind', nest: kind);
+                        }
                         builder.element(
                           'servicedate',
                           nest: record.serviceDate.toIso8601String(),
@@ -1183,6 +1228,9 @@ class UddfExportBuilders {
                 },
               );
             }
+
+            // Cylinder fills (issue #2651)
+            UddfFillWriters.writeFills(builder, fills ?? const []);
 
             // Settings
             if (settings != null && settings.isNotEmpty) {
@@ -1530,13 +1578,14 @@ class UddfExportBuilders {
                         if (course.notes.isNotEmpty) {
                           builder.element('notes', nest: course.notes);
                         }
-                        // Link to certification earned
-                        if (course.certificationId != null) {
+                        // Links to the certifications earned, read from the
+                        // certification side (#2515)
+                        for (final cert in [
+                          ...?certifications,
+                        ].where((c) => c.courseId == course.id)) {
                           builder.element(
                             'link',
-                            attributes: {
-                              'ref': 'cert_${course.certificationId}',
-                            },
+                            attributes: {'ref': 'cert_${cert.id}'},
                           );
                         }
                         // Link to instructor buddy record
@@ -2100,7 +2149,18 @@ class UddfExportBuilders {
   }
 }
 
+/// [item]'s passport id: the curated `passport_id` attribute, or null.
+String? _passportIdOf(EquipmentItem item) {
+  for (final a in item.attributes) {
+    if (a.isCustom || a.key != EquipmentAttrKeys.passportId) continue;
+    final value = a.valueText?.trim();
+    if (value != null && value.isNotEmpty) return value;
+  }
+  return null;
+}
+
 /// One `<observation>` under an equipment item (condition phase 3a).
+
 void _buildObservation(XmlBuilder builder, EquipmentObservation o) {
   builder.element(
     'observation',

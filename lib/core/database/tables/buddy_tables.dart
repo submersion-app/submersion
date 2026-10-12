@@ -300,6 +300,30 @@ class CourseRequirementDives extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
+/// The courses a dive belongs to (v288, issue #2515). The source of truth for
+/// a dive's courses; `dives.course_id` stays as a denormalized representative
+/// for older app versions and single-value exports.
+///
+/// The id is a DETERMINISTIC UUIDv5 of (dive, course), see
+/// `diveCourseLinkId`, and the pair is also uniquely indexed
+/// (`idx_dive_courses_dive_course_unique`).
+@DataClassName('DiveCourseRow')
+class DiveCourses extends Table {
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get courseId =>
+      text().references(Courses, #id, onDelete: KeyAction.cascade)();
+  IntColumn get createdAt => integer()();
+
+  /// This child's own clock, stamped when it is marked pending
+  /// (SyncDataSerializer.parentGatedChildEntities).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// The diver's own roles on a dive (v272, issue #1221). `dives.diver_role`
 /// stays as the primary role for older app versions (see DiveRoleSet).
 /// Surrogate uuid key, as `dive_dive_types`; `roleId` has no foreign key

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/watched_folder_repository.dart';
@@ -49,7 +50,9 @@ void main() {
   late _FakeScanner scanner;
 
   setUp(() {
-    cacheDb = LocalCacheDatabase(NativeDatabase.memory());
+    cacheDb = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     watched = WatchedFolderRepository(database: cacheDb);
     settings = FakeAppSettingsRepository();
     scanner = _FakeScanner();

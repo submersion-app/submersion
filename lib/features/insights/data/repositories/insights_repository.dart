@@ -2012,7 +2012,7 @@ class InsightsRepository {
         FROM dive_sites ds
         JOIN dives d ON d.site_id = ds.id
         WHERE TRIM(ds.country, $dartWhitespaceSqlChars) != '' $diverFilter ${df.clause}
-        GROUP BY LOWER(TRIM(ds.country, $dartWhitespaceSqlChars))
+        GROUP BY unicode_lower(TRIM(ds.country, $dartWhitespaceSqlChars))
         ORDER BY dive_count DESC
         LIMIT ?
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -2058,8 +2058,8 @@ class InsightsRepository {
         FROM dive_sites ds
         JOIN dives d ON d.site_id = ds.id
         WHERE TRIM(ds.region, $dartWhitespaceSqlChars) != '' $diverFilter ${df.clause}
-        GROUP BY LOWER(TRIM(ds.region, $dartWhitespaceSqlChars)),
-          LOWER(NULLIF(TRIM(ds.country, $dartWhitespaceSqlChars), ''))
+        GROUP BY unicode_lower(TRIM(ds.region, $dartWhitespaceSqlChars)),
+          unicode_lower(NULLIF(TRIM(ds.country, $dartWhitespaceSqlChars), ''))
         ORDER BY dive_count DESC
         LIMIT ?
         ''', variables: params.map((p) => Variable(p)).toList()).get();
@@ -2993,7 +2993,7 @@ class InsightsRepository {
              AVG(d.max_depth) AS avg_max_depth
       FROM dives d
       JOIN dive_sites ds ON d.site_id = ds.id
-      WHERE LOWER(ds.name) = LOWER(?) AND d.diver_id = ?
+      WHERE unicode_lower(ds.name) = unicode_lower(?) AND d.diver_id = ?
             ${DiveStatsScope.and(alias: 'd')}
     ''',
           variables: [

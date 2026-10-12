@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Migration 77 adds a nullable `hlc` (Hybrid Logical Clock) column to every
@@ -8,7 +9,9 @@ import 'package:submersion/core/database/database.dart';
 /// fresh createAll schema).
 void main() {
   test('v77 schema includes a nullable hlc column on dives', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db.customSelect("PRAGMA table_info('dives')").get();

@@ -5,6 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart' show sqlite3;
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/background_database_connection.dart';
 
 /// Minimal drift database used only to drive the remote executor.
@@ -76,7 +77,7 @@ class _SlowClosingExecutor implements QueryExecutor {
 DatabaseConnection Function() _slowClosingOpener(int closeDelayMs) {
   return () => DatabaseConnection(
     _SlowClosingExecutor(
-      NativeDatabase.memory(),
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
       Duration(milliseconds: closeDelayMs),
     ),
   );

@@ -439,7 +439,7 @@ class CourseRequirementRepository {
   }
 
   /// Candidate dives for crediting: the course diver's dives that are either
-  /// assigned to this course (dives.course_id) or dated on/after the course
+  /// assigned to this course (dive_courses) or dated on/after the course
   /// start, excluding dives already credited to any requirement of this
   /// course. Newest first, capped at 10.
   /// Deliberately does NOT apply DiveStatsScope. The diver linked this dive
@@ -464,7 +464,10 @@ class CourseRequirementRepository {
             FROM dives d
             LEFT JOIN dive_sites s ON s.id = d.site_id
             WHERE d.diver_id = ?2
-              AND (d.course_id = ?1 OR d.dive_date_time >= ?3)
+              AND (EXISTS (
+                    SELECT 1 FROM dive_courses dc
+                    WHERE dc.dive_id = d.id AND dc.course_id = ?1
+                  ) OR d.dive_date_time >= ?3)
               AND d.id NOT IN (
                 SELECT l.dive_id
                 FROM course_requirement_dives l
@@ -481,6 +484,7 @@ class CourseRequirementRepository {
             ],
             readsFrom: {
               _db.dives,
+              _db.diveCourses,
               _db.diveSites,
               _db.courseRequirementDives,
               _db.courseRequirements,

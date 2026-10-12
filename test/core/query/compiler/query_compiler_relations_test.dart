@@ -20,7 +20,7 @@ void main() {
     expect(
       q.where,
       '(EXISTS (SELECT 1 FROM dive_sites r1 WHERE r1.id = r0.site_id '
-      'AND (LOWER(r1.country) = LOWER(?))))',
+      'AND (unicode_lower(r1.country) = unicode_lower(?))))',
     );
     expect(q.tablesTouched, {'dives', 'dive_sites'});
   });
@@ -48,7 +48,7 @@ void main() {
       j.where,
       '(EXISTS (SELECT 1 FROM buddies r1 WHERE EXISTS (SELECT 1 FROM '
       'dive_buddies j WHERE j.dive_id = r0.id AND j.buddy_id = r1.id) '
-      "AND (r1.name LIKE ? ESCAPE '\\')))",
+      "AND (unicode_lower(r1.name) LIKE ? ESCAPE '\\')))",
     );
     expect(j.tablesTouched, {'dives', 'buddies', 'dive_buddies'});
   });
@@ -66,7 +66,7 @@ void main() {
       q.where,
       contains('FROM certifications r2 WHERE r2.buddy_id = r1.id'),
     );
-    expect(q.where, contains('LOWER(r2.level) = LOWER(?)'));
+    expect(q.where, contains('unicode_lower(r2.level) = unicode_lower(?)'));
   });
 
   test('presence on relations: :any, :none, and the emptySql override', () {
@@ -168,7 +168,7 @@ void main() {
       q.where,
       contains(
         'FROM certifications r2 WHERE r2.buddy_id = r1.id '
-        'AND (LOWER(r2.level) = LOWER(?))',
+        'AND (unicode_lower(r2.level) = unicode_lower(?))',
       ),
     );
   });

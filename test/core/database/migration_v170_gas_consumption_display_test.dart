@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v170 renames diver_settings.sac_unit to gas_consumption_display, maps its
@@ -89,7 +90,9 @@ void main() {
   test(
     'a fresh database has gas_consumption_display defaulting to both',
     () async {
-      final db = AppDatabase(NativeDatabase.memory());
+      final db = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
 
       final cols = await db

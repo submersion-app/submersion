@@ -211,7 +211,9 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
     final visibleIds =
         mediaAsync.value?.map((m) => m.id).toList() ?? const <String>[];
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(mediaAsync, (rows) => rows.map((m) => m.id));
+      }
     });
 
     return SelectableListScope(
@@ -232,6 +234,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
+    final selectionMedia = mediaAsync.value ?? const <MediaItem>[];
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -239,43 +242,43 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header: selection mode or normal
+            // Built from the value rather than the data branch, so a reload
+            // that holds its rows keeps the bar (and its exit) on screen; the
+            // controller disables the row actions while the rows are loading.
             if (_isSelectionMode)
-              mediaAsync.whenOrNull(
-                    data: (media) => SelectionAppBar(
-                      controller: _selection,
-                      selectableIds: media.map((m) => m.id).toList(),
-                      shell: SelectionBarShell.pane,
-                      // Unlinking removes the rows from the library unless
-                      // a dive still uses them; files on disk are never
-                      // touched. There is no separate delete here.
-                      onDelete: null,
-                      actions: [
-                        BulkAction(
-                          id: 'unlink',
-                          icon: Icons.link_off,
-                          label: context.l10n
-                              .media_diveMediaSection_unlinkSelectedButton(
-                                _selection.value.count,
-                              ),
-                          onInvoke: () => _unlinkSelected(context, media),
+              SelectionAppBar(
+                controller: _selection,
+                selectableIds: selectionMedia.map((m) => m.id).toList(),
+                shell: SelectionBarShell.pane,
+                // Unlinking removes the rows from the library unless
+                // a dive still uses them; files on disk are never
+                // touched. There is no separate delete here.
+                onDelete: null,
+                actions: [
+                  BulkAction(
+                    id: 'unlink',
+                    icon: Icons.link_off,
+                    label: context.l10n
+                        .media_diveMediaSection_unlinkSelectedButton(
+                          _selection.value.count,
                         ),
-                        BulkAction(
-                          id: 'setCategory',
-                          icon: Icons.label_outline,
-                          label: context.l10n.media_siteAttachment_setCategory,
-                          onInvoke: () => _setCategoryForSelected(context),
-                        ),
-                        BulkAction(
-                          id: 'editDetails',
-                          icon: Icons.edit_outlined,
-                          label: context.l10n.media_siteAttachment_editDetails,
-                          maxCount: 1,
-                          onInvoke: () => _editSelected(context, media),
-                        ),
-                      ],
-                    ),
-                  ) ??
-                  const SizedBox.shrink()
+                    onInvoke: () => _unlinkSelected(context, selectionMedia),
+                  ),
+                  BulkAction(
+                    id: 'setCategory',
+                    icon: Icons.label_outline,
+                    label: context.l10n.media_siteAttachment_setCategory,
+                    onInvoke: () => _setCategoryForSelected(context),
+                  ),
+                  BulkAction(
+                    id: 'editDetails',
+                    icon: Icons.edit_outlined,
+                    label: context.l10n.media_siteAttachment_editDetails,
+                    maxCount: 1,
+                    onInvoke: () => _editSelected(context, selectionMedia),
+                  ),
+                ],
+              )
             else
               Row(
                 children: [

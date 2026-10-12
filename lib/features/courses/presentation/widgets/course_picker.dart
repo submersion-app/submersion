@@ -11,263 +11,264 @@ import 'package:submersion/features/certification_agencies/presentation/certific
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
-/// A widget for selecting a training course for a dive.
-class CoursePicker extends ConsumerWidget {
-  final Course? selectedCourse;
-  final ValueChanged<Course?> onCourseSelected;
-
-  const CoursePicker({
+/// The training courses a dive belongs to, as removable chips (#2515).
+/// Tapping the field opens a checklist sheet that reports every toggle
+/// through [onChanged], so several courses can be ticked in one visit.
+class CourseMultiSelectField extends ConsumerWidget {
+  const CourseMultiSelectField({
     super.key,
-    this.selectedCourse,
-    required this.onCourseSelected,
+    required this.selectedCourseIds,
+    required this.onChanged,
+    this.labelText,
   });
+
+  final List<String> selectedCourseIds;
+  final ValueChanged<List<String>> onChanged;
+  final String? labelText;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
-    final colorScheme = Theme.of(context).colorScheme;
+    // The retained value, so a background reload never blanks the chips.
+    final courses = ref.watch(courseListNotifierProvider).value ?? const [];
+    final nameById = {for (final c in courses) c.id: c.name};
+    final theme = Theme.of(context);
 
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(
-        backgroundColor: selectedCourse?.isCompleted == true
-            ? Colors.green.withValues(alpha: 0.15)
-            : colorScheme.primaryContainer,
-        child: Icon(
-          selectedCourse?.isCompleted == true
-              ? Icons.check_circle_outline
-              : Icons.school,
-          color: selectedCourse?.isCompleted == true
-              ? Colors.green
-              : colorScheme.onPrimaryContainer,
-        ),
-      ),
-      title: Text(
-        selectedCourse?.name ?? context.l10n.courses_picker_noneSelected,
-      ),
-      subtitle: selectedCourse != null
-          ? Text(
-              '${context.certificationCatalog.agency(selectedCourse!.agency).localizedName(context.l10n)} - ${selectedCourse!.isCompleted ? context.l10n.courses_status_completed : context.l10n.courses_status_inProgress}',
-            )
-          : Text(context.l10n.courses_picker_tapToLink),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (selectedCourse != null)
-            IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: () => onCourseSelected(null),
-              tooltip: context.l10n.courses_picker_clearSelection,
-            ),
-          const Icon(Icons.chevron_right),
-        ],
-      ),
-      onTap: () => showCoursePickerSheet(
+    return InkWell(
+      onTap: () => showCourseMultiPickerSheet(
         context,
-        selectedCourse: selectedCourse,
-        onCourseSelected: onCourseSelected,
+        selectedCourseIds: selectedCourseIds,
+        onChanged: onChanged,
+      ),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: labelText,
+          suffixIcon: const Icon(Icons.arrow_drop_down),
+        ),
+        child: selectedCourseIds.isEmpty
+            ? Text(
+                context.l10n.courses_picker_tapToLink,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              )
+            : Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  for (final id in selectedCourseIds)
+                    // A course not loaded yet gets no blank chip.
+                    if (nameById[id] != null)
+                      InputChip(
+                        avatar: const Icon(Icons.school, size: 16),
+                        label: Text(nameById[id]!),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                        onDeleted: () => onChanged([
+                          for (final other in selectedCourseIds)
+                            if (other != id) other,
+                        ]),
+                      ),
+                ],
+              ),
       ),
     );
   }
 }
 
-/// Opens [CoursePickerSheet] in a draggable modal sheet. The sheet closes
-/// before [onCourseSelected] runs.
-Future<void> showCoursePickerSheet(
+/// Opens the course checklist. Each toggle reaches [onChanged] at once, so
+/// closing the sheet by dragging keeps the selection.
+Future<void> showCourseMultiPickerSheet(
   BuildContext context, {
-  required Course? selectedCourse,
-  required ValueChanged<Course> onCourseSelected,
+  required List<String> selectedCourseIds,
+  required ValueChanged<List<String>> onChanged,
 }) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    builder: (sheetContext) => DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.5,
-      maxChildSize: 0.9,
-      expand: false,
-      builder: (_, scrollController) => CoursePickerSheet(
-        scrollController: scrollController,
-        selectedCourse: selectedCourse,
-        onCourseSelected: (course) {
-          Navigator.of(sheetContext).pop();
-          onCourseSelected(course);
-        },
-      ),
+    showDragHandle: true,
+    builder: (_) => CourseMultiPickerSheet(
+      selectedCourseIds: selectedCourseIds,
+      onChanged: onChanged,
     ),
   );
 }
 
-/// A bottom sheet widget for selecting a course from a list.
-class CoursePickerSheet extends ConsumerWidget {
-  final ScrollController scrollController;
-  final Course? selectedCourse;
-  final ValueChanged<Course> onCourseSelected;
-
-  const CoursePickerSheet({
+/// The checklist of the diver's courses: in-progress first, then by start
+/// date, newest first.
+class CourseMultiPickerSheet extends ConsumerStatefulWidget {
+  const CourseMultiPickerSheet({
     super.key,
-    required this.scrollController,
-    required this.selectedCourse,
-    required this.onCourseSelected,
+    required this.selectedCourseIds,
+    required this.onChanged,
   });
 
+  final List<String> selectedCourseIds;
+  final ValueChanged<List<String>> onChanged;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CourseMultiPickerSheet> createState() =>
+      _CourseMultiPickerSheetState();
+}
+
+class _CourseMultiPickerSheetState
+    extends ConsumerState<CourseMultiPickerSheet> {
+  late List<String> _working = [...widget.selectedCourseIds];
+
+  void _toggle(String id, bool selected) {
+    final next = [
+      for (final c in _working)
+        if (c != id) c,
+      if (selected) id,
+    ];
+    setState(() => _working = next);
+    widget.onChanged(next);
+  }
+
+  void _createCourse() {
+    Navigator.of(context).pop();
+    context.push('/courses/new');
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(certificationCatalogSyncProvider);
     final coursesAsync = ref.watch(courseListNotifierProvider);
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-    return Column(
-      children: [
-        // Handle bar
-        Container(
-          margin: const EdgeInsets.only(top: 12),
-          width: 40,
-          height: 4,
-          decoration: BoxDecoration(
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-            borderRadius: BorderRadius.circular(2),
-          ),
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
         ),
-
-        // Title and add button
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  context.l10n.courses_picker_selectTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  context.push('/courses/new');
-                },
-                icon: const Icon(Icons.add),
-                label: Text(context.l10n.courses_picker_newCourse),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-
-        // Course list
-        Expanded(
-          child: coursesAsync.when(
-            data: (courses) {
-              if (courses.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.school_outlined,
-                        size: 48,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        context.l10n.courses_picker_noCourses,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          context.push('/courses/new');
-                        },
-                        icon: const Icon(Icons.add),
-                        label: Text(context.l10n.courses_picker_createCourse),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              // Sort: in-progress first, then by start date descending
-              final sortedCourses = List<Course>.from(courses)
-                ..sort((a, b) {
-                  if (a.isInProgress && !b.isInProgress) return -1;
-                  if (!a.isInProgress && b.isInProgress) return 1;
-                  return b.startDate.compareTo(a.startDate);
-                });
-
-              return ListView.builder(
-                controller: scrollController,
-                itemCount: sortedCourses.length,
-                itemBuilder: (context, index) {
-                  final course = sortedCourses[index];
-                  final isSelected = selectedCourse?.id == course.id;
-                  final formatter = UnitFormatter(ref.watch(settingsProvider));
-                  final startDateStr = formatter.formatDate(course.startDate);
-
-                  final courseLabel =
-                      '${context.certificationCatalog.agency(course.agency).localizedName(context.l10n)} ${course.name}, ${context.l10n.courses_card_started(startDateStr)}${isSelected ? ', ${context.l10n.courses_picker_selected}' : ''}${course.isInProgress ? ', ${context.l10n.courses_picker_active}' : ''}';
-
-                  return Semantics(
-                    label: courseLabel,
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: isSelected
-                            ? colorScheme.primary
-                            : course.isCompleted
-                            ? Colors.green.withValues(alpha: 0.15)
-                            : colorScheme.primaryContainer,
-                        child: Icon(
-                          course.isCompleted
-                              ? Icons.check_circle_outline
-                              : Icons.school_outlined,
-                          color: isSelected
-                              ? colorScheme.onPrimary
-                              : course.isCompleted
-                              ? Colors.green
-                              : colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                      title: Text(course.name),
-                      subtitle: Text(
-                        '${context.certificationCatalog.agency(course.agency).localizedName(context.l10n)} - ${context.l10n.courses_card_started(startDateStr)}',
-                      ),
-                      trailing: isSelected
-                          ? Icon(Icons.check_circle, color: colorScheme.primary)
-                          : course.isInProgress
-                          ? Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                context.l10n.courses_picker_active,
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(
-                                      color: colorScheme.onPrimaryContainer,
-                                    ),
-                              ),
-                            )
-                          : null,
-                      onTap: () => onCourseSelected(course),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 12, 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      context.l10n.courses_picker_selectCoursesTitle,
+                      style: theme.textTheme.titleMedium,
                     ),
-                  );
-                },
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => Center(
-              child: Text(
-                context.l10n.courses_picker_errorLoading(error.toString()),
+                  ),
+                  IconButton(
+                    onPressed: _createCourse,
+                    icon: const Icon(Icons.add),
+                    tooltip: context.l10n.courses_picker_newCourse,
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(context.l10n.common_action_done),
+                  ),
+                ],
               ),
             ),
-          ),
+            const Divider(height: 1),
+            Flexible(
+              child: coursesAsync.when(
+                data: (courses) {
+                  if (courses.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.school_outlined,
+                            size: 48,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            context.l10n.courses_picker_noCourses,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: _createCourse,
+                            icon: const Icon(Icons.add),
+                            label: Text(
+                              context.l10n.courses_picker_createCourse,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  final sorted = [...courses]
+                    ..sort((a, b) {
+                      if (a.isInProgress != b.isInProgress) {
+                        return a.isInProgress ? -1 : 1;
+                      }
+                      return b.startDate.compareTo(a.startDate);
+                    });
+                  return ListView(
+                    shrinkWrap: true,
+                    children: [for (final c in sorted) _row(context, c)],
+                  );
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, _) => Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    context.l10n.courses_picker_errorLoading(error.toString()),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
+    );
+  }
+
+  Widget _row(BuildContext context, Course course) {
+    final l10n = context.l10n;
+    final colorScheme = Theme.of(context).colorScheme;
+    final selected = _working.contains(course.id);
+    final agency = context.certificationCatalog
+        .agency(course.agency)
+        .localizedName(l10n);
+    final started = l10n.courses_card_started(
+      UnitFormatter(ref.watch(settingsProvider)).formatDate(course.startDate),
+    );
+    final label =
+        '$agency ${course.name}, $started'
+        '${selected ? ', ${l10n.courses_picker_selected}' : ''}'
+        '${course.isInProgress ? ', ${l10n.courses_picker_active}' : ''}';
+
+    return Semantics(
+      label: label,
+      excludeSemantics: true,
+      child: CheckboxListTile(
+        value: selected,
+        onChanged: (v) => _toggle(course.id, v ?? false),
+        title: Text(course.name),
+        subtitle: Text('$agency - $started'),
+        secondary: course.isInProgress
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  l10n.courses_picker_active,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              )
+            : null,
+      ),
     );
   }
 }

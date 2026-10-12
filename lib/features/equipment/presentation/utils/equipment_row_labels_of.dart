@@ -9,12 +9,14 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Row labels for [items] as one list shows them, in the app's language and
 /// the active diver's date format. Pass every row the list shows, not one
-/// row at a time: collisions are detected across the list.
+/// row at a time: collisions are detected across the list. [shownWith] is
+/// passed through to [buildEquipmentRowLabels].
 Map<String, EquipmentRowLabel> equipmentRowLabelsOf(
   BuildContext context,
   WidgetRef ref,
-  Iterable<EquipmentItem> items,
-) {
+  Iterable<EquipmentItem> items, {
+  String Function(EquipmentItem item)? shownWith,
+}) {
   final l10n = context.l10n;
   final units = UnitFormatter(ref.watch(settingsProvider));
   return buildEquipmentRowLabels(
@@ -25,5 +27,6 @@ Map<String, EquipmentRowLabel> equipmentRowLabelsOf(
       purchased: l10n.equipment_rowLabel_purchased,
       formatDate: units.formatDate,
     ),
+    shownWith: shownWith,
   );
 }

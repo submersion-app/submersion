@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -81,9 +82,10 @@ class TagRepository {
 
   /// Get a tag by name (case-insensitive, whitespace-insensitive)
   ///
-  /// Normalizes both sides exactly as `idx_tags_diver_name_unique` does
-  /// (`lower(trim(name))`), so a lookup can never miss a row the index
-  /// considers the same tag.
+  /// Normalizes both sides as `idx_tags_diver_name_unique` does
+  /// (`lower(trim(name))`), with unicode_lower also folding the non-ASCII
+  /// capitals the index's lower() leaves alone (#3032), so a lookup can
+  /// never miss a row the index considers the same tag.
   ///
   /// Deliberately takes the lowest id rather than asserting a single match:
   /// an unscoped lookup legitimately spans two divers who both use "Wreck",
@@ -93,7 +95,9 @@ class TagRepository {
   Future<domain.Tag?> getTagByName(String name, {String? diverId}) async {
     try {
       final query = _db.select(_db.tags)
-        ..where((t) => t.name.trim().lower().equals(name.trim().toLowerCase()));
+        ..where(
+          (t) => t.name.trim().unicodeLower().equals(name.trim().toLowerCase()),
+        );
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -116,16 +120,21 @@ class TagRepository {
 
   /// The tag occupying [name]'s uniqueness slot in [diverId]'s scope, if any.
   ///
-  /// Mirrors `idx_tags_diver_name_unique` exactly -- (COALESCE(diver_id, ''),
-  /// lower(trim(name))) -- so a caller that checks here can never be surprised by
-  /// the index. A NULL `diverId` is the shared "unassigned" scope, not a scope
-  /// of its own per row.
+  /// Mirrors `idx_tags_diver_name_unique` -- (COALESCE(diver_id, ''),
+  /// lower(trim(name))) -- except that the name is folded by unicode_lower,
+  /// which also folds non-ASCII capitals the index's lower() leaves alone
+  /// (#3032). Folding more than the index never misses a row the index would
+  /// reject, so a caller that checks here can never be surprised by it. A
+  /// NULL `diverId` is the shared "unassigned" scope, not a scope of its own
+  /// per row.
   Future<domain.Tag?> _tagOccupying(String name, String? diverId) async {
     final rows =
         await (_db.select(_db.tags)
               ..where(
                 (t) =>
-                    t.name.trim().lower().equals(name.trim().toLowerCase()) &
+                    t.name.trim().unicodeLower().equals(
+                      name.trim().toLowerCase(),
+                    ) &
                     coalesce([
                       t.diverId,
                       const Constant(''),
@@ -792,7 +801,7 @@ class TagRepository {
       if (query.isEmpty) return await getAllTags(diverId: diverId);
 
       final searchQuery = _db.select(_db.tags)
-        ..where((t) => t.name.lower().contains(query.toLowerCase()))
+        ..where((t) => t.name.unicodeLower().contains(query.toLowerCase()))
         ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {

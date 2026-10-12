@@ -41,9 +41,9 @@ final certificationQueryEntity = QueryEntity(
   diverScopeColumn: 'diver_id',
   // The certification search route's columns.
   textSearchSql: const [
-    "{r}.name LIKE ? ESCAPE '\\'",
-    "{r}.agency LIKE ? ESCAPE '\\'",
-    "{r}.card_number LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.agency) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.card_number) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),
@@ -75,16 +75,13 @@ final certificationQueryEntity = QueryEntity(
   relations: [
     _buddy('buddy', 'buddy_id'),
     _buddy('instructor', 'instructor_id'),
-    // The link is stored on either side (certifications.course_id or
-    // courses.certification_id), as the course side's `certification`
-    // relation and the certification detail read it.
+    // certifications.course_id is the truth since v288 (#2515).
     const QueryRelation(
       key: 'course',
       target: QuerySubject.courses,
-      shape: RelationShape.custom,
-      joinSql:
-          '({to}.id = {from}.course_id OR {to}.certification_id = {from}.id)',
-      isMany: true,
+      shape: RelationShape.fk,
+      joinSql: '{to}.id = {from}.course_id',
+      isMany: false,
       labelKey: 'query_certifications_course',
     ),
   ],

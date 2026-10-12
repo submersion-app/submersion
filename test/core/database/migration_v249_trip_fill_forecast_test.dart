@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show QueryRow;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v249: the trip fill forecast's inputs (issue #2325, PR 4). Columns only,
@@ -54,7 +55,9 @@ void main() {
   });
 
   test('a fresh database has every column; sharing is not null, 1', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     for (final MapEntry(key: table, value: names) in expected.entries) {
       final cols = await columns(db, table);

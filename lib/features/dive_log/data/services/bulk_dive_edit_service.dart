@@ -49,6 +49,7 @@ class BulkDiveEditService {
 
     Map<String, List<String>>? priorTagIds;
     Map<String, List<String>>? priorDiveTypeIds;
+    Map<String, List<String>>? priorCourseIds;
     Map<String, List<GearProvenance>>? priorGear;
     Map<String, List<BuddyWithRole>>? priorBuddies;
     Map<String, List<String>>? priorDiverRoleIds;
@@ -86,6 +87,11 @@ class BulkDiveEditService {
               priorDiveTypeIds[row.id]!.add(row.diveType);
             }
           }
+        case DiveCoursesOp():
+          final current = await _diveRepo.courseIdsForDives(ids);
+          priorCourseIds = {
+            for (final id in ids) id: current[id] ?? const <String>[],
+          };
         case EquipmentOp():
           final rows = await (_db.select(
             _db.diveEquipment,
@@ -156,6 +162,7 @@ class BulkDiveEditService {
       priorDiveRows: priorDiveRows,
       priorTagIds: priorTagIds,
       priorDiveTypeIds: priorDiveTypeIds,
+      priorCourseIds: priorCourseIds,
       priorGear: priorGear,
       priorBuddies: priorBuddies,
       priorDiverRoleIds: priorDiverRoleIds,
@@ -203,6 +210,14 @@ class BulkDiveEditService {
       if (diveTypes != null) {
         for (final id in ids) {
           await _diveRepo.bulkReplaceDiveTypes([id], diveTypes[id] ?? const []);
+        }
+      }
+      // After the dive rows, whose representative course_id the replace then
+      // rewrites from the restored set (#2515).
+      final courses = snapshot.priorCourseIds;
+      if (courses != null) {
+        for (final id in ids) {
+          await _diveRepo.bulkReplaceCourses([id], courses[id] ?? const []);
         }
       }
       final gear = snapshot.priorGear;
@@ -277,6 +292,17 @@ class BulkDiveEditService {
             await _diveRepo.bulkReplaceDiveTypes(ids, diveTypeIds);
           case BulkCollectionMode.update:
             throw UnsupportedError('Dive types have no in-place update');
+        }
+      case DiveCoursesOp(:final mode, :final courseIds):
+        switch (mode) {
+          case BulkCollectionMode.add:
+            await _diveRepo.bulkAddCourses(ids, courseIds);
+          case BulkCollectionMode.remove:
+            await _diveRepo.bulkRemoveCourses(ids, courseIds);
+          case BulkCollectionMode.replace:
+            await _diveRepo.bulkReplaceCourses(ids, courseIds);
+          case BulkCollectionMode.update:
+            throw UnsupportedError('Courses have no in-place update');
         }
       case EquipmentOp(:final mode, :final equipmentIds):
         switch (mode) {
@@ -394,6 +420,8 @@ class BulkDiveEditService {
         sourceId: r.sourceId,
         regulatorEquipmentId: r.regulatorEquipmentId,
         tripCylinderId: r.tripCylinderId,
+        // The tagged cylinder (#2650), restore-only like the slot.
+        passportId: r.passportId,
         sourceTankIndex: r.sourceTankIndex,
         // The cylinder link the registry recorded; bulkReplaceTanks writes
         // it only when told this is a restore.

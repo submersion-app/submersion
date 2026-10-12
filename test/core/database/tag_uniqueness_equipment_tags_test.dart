@@ -1,13 +1,16 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/tag_uniqueness.dart';
 
 /// The duplicate-tag repair and the equipment_tags index (v219, issue #1942).
 void main() {
   Future<AppDatabase> openWithItem() async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customStatement(
       "INSERT INTO equipment (id, name, type, created_at, updated_at) "

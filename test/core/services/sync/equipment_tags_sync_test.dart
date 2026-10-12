@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -88,7 +89,9 @@ void main() {
     // service at the receiving database for the apply. The tearDown closes
     // that one; this closes the sender.
     addTearDown(db.close);
-    final receiver = AppDatabase(NativeDatabase.memory());
+    final receiver = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     DatabaseService.instance.resetForTesting();
     DatabaseService.instance.setTestDatabase(receiver);
     final applier = SyncDataSerializer();

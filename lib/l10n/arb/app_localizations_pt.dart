@@ -4167,10 +4167,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Visualização em Carteira';
 
   @override
-  String get certifications_picker_clearTooltip =>
-      'Limpar seleção de certificação';
-
-  @override
   String get certifications_picker_empty_addButton => 'Adicionar Certificação';
 
   @override
@@ -4192,11 +4188,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get certifications_picker_newCert => 'Nova Cert.';
 
   @override
-  String get certifications_picker_noSelection =>
-      'Nenhuma certificação selecionada';
-
-  @override
-  String get certifications_picker_sheetTitle => 'Vincular a Certificação';
+  String get certifications_picker_selectTitle => 'Selecionar Certificações';
 
   @override
   String get certifications_search_empty_hint =>
@@ -5194,10 +5186,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get courses_detail_certificationNotFound =>
-      'Certificação não encontrada';
-
-  @override
   String get courses_detail_noTrainingDives =>
       'Nenhum mergulho de treinamento vinculado ainda';
 
@@ -5264,8 +5252,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get courses_field_instructorNumber => 'Número do Instrutor';
 
   @override
-  String get courses_field_linkCertificationHint =>
-      'Vincular uma certificação obtida neste curso';
+  String get courses_field_linkCertificationsHint =>
+      'Vincular as certificações obtidas neste curso';
 
   @override
   String get courses_field_location => 'Local';
@@ -5314,9 +5302,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get courses_picker_active => 'Ativo';
 
   @override
-  String get courses_picker_clearSelection => 'Limpar seleção';
-
-  @override
   String get courses_picker_createCourse => 'Criar Curso';
 
   @override
@@ -5331,10 +5316,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get courses_picker_noCourses => 'Nenhum curso ainda';
 
   @override
-  String get courses_picker_noneSelected => 'Nenhum curso selecionado';
+  String get courses_picker_selectCoursesTitle =>
+      'Selecionar Cursos de Treinamento';
 
   @override
-  String get courses_picker_selectTitle => 'Selecionar Curso de Treinamento';
+  String courses_picker_linkedTo(String courseName) {
+    return 'Vinculada a: $courseName';
+  }
 
   @override
   String get courses_picker_selected => 'selecionado';
@@ -5376,7 +5364,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get courses_section_details => 'Detalhes do Curso';
 
   @override
-  String get courses_section_earnedCertification => 'Certificação Obtida';
+  String get courses_section_earnedCertifications => 'Certificações Obtidas';
 
   @override
   String get courses_section_instructor => 'Instrutor';
@@ -5615,6 +5603,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String dashboard_gauges_lastDiveDays(int days) {
     return 'Último mergulho há ${days}d';
+  }
+
+  @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'Último mergulho há $span';
   }
 
   @override
@@ -7586,9 +7579,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_row_addSite => 'Adicionar ponto';
 
   @override
-  String get diveLog_edit_row_course => 'Curso';
-
-  @override
   String get diveLog_edit_row_diveCenter => 'Operadora de mergulho';
 
   @override
@@ -7695,7 +7685,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_section_tags => 'Tags';
 
   @override
-  String get diveLog_edit_section_trainingCourse => 'Curso de Treinamento';
+  String get diveLog_edit_section_trainingCourses => 'Cursos de Treinamento';
 
   @override
   String get diveLog_edit_section_trip => 'Viagem';
@@ -7813,8 +7803,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Remover';
 
   @override
-  String get diveLog_edit_trainingCourseHint =>
-      'Vincular este mergulho a um curso de treinamento';
+  String get diveLog_edit_trainingCoursesHint =>
+      'Vincular este mergulho a um ou mais cursos de treinamento';
 
   @override
   String diveLog_edit_tripSuggested(Object name) {
@@ -13555,11 +13545,70 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String passport_scan_filledFromUsed(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Preenchido a partir de $name. Usado em $count mergulhos anteriores.',
+      one: 'Preenchido a partir de $name. Usado em $count mergulho anterior.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get passport_foreign_title => 'Etiqueta do cilindro';
 
   @override
   String get passport_foreign_notInGear =>
       'Este cilindro não está no seu equipamento.';
+
+  @override
+  String passport_usage_foreignTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Você usou este cilindro $count vezes',
+      one: 'Você usou este cilindro $count vez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_usage_title => 'Mergulhos';
+
+  @override
+  String passport_usage_ownTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Usado em $count mergulhos',
+      one: 'Usado em $count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String passport_usage_lastUsed(String date) {
+    return 'Último uso: $date';
+  }
+
+  @override
+  String get passport_usage_noSite => 'Sem local';
+
+  @override
+  String passport_usage_diveNumber(int number) {
+    return 'Mergulho $number';
+  }
+
+  @override
+  String passport_usage_showAll(int count) {
+    return 'Mostrar todos ($count)';
+  }
+
+  @override
+  String get passport_usage_loadFailed =>
+      'Não foi possível carregar seus mergulhos com este cilindro';
 
   @override
   String passport_foreign_writtenOn(String date) {
@@ -13959,11 +14008,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String pdf_minutesShort(String minutes) {
-    return '${minutes}min';
-  }
-
-  @override
   String pdf_minutes(String minutes) {
     return '$minutes min';
   }
@@ -14244,8 +14288,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pdf_pressureEnd => 'Fim';
 
   @override
-  String pdf_surfaceIntervalShort(String minutes) {
-    return 'IS: ${minutes}min';
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'IS: $interval';
   }
 
   @override
@@ -15246,6 +15290,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicione seu equipamento de mergulho para acompanhar uso e manutenção';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'Sua visualização padrão oculta o restante dos seus equipamentos.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'Nenhum equipamento na sua visualização padrão';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'equipamento';
 
   @override
@@ -15292,6 +15344,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum equipamento nesta categoria';
 
   @override
+  String get equipment_list_emptyState_showAll =>
+      'Mostrar Todos os Equipamentos';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'Todo o seu equipamento está em dia com a manutenção!';
 
@@ -15312,7 +15368,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_list_filterAll => 'Todos os Equipamentos';
 
   @override
-  String get equipment_list_filterCurrent => 'Equipamentos Atuais';
+  String get equipment_list_filterCurrent => 'Visualização Padrão';
 
   @override
   String get equipment_list_filterServiceDue => 'Manutenção Pendente';
@@ -15351,6 +15407,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Status';
+
+  @override
+  String get equipment_filter_editDefault => 'Editar padrão';
 
   @override
   String get equipment_filter_section_tags => 'Etiquetas';
@@ -22249,6 +22308,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'Função';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'Visualização padrão dos equipamentos';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'Gravidade';
 
   @override
@@ -24870,6 +24933,17 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'Onde o equipamento está guardado, em manutenção ou emprestado';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'Sem filtro, a lista de equipamentos mostra os equipamentos com estes status.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title =>
+      'Visualização padrão dos equipamentos';
 
   @override
   String get settings_manage_currencyRules => 'Validade das certificações';
@@ -27738,6 +27812,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'Seu último mergulho foi há $span';
+  }
+
+  @override
   String insights_observations_favouriteSite(
     String site,
     String dives,
@@ -27985,19 +28064,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get insights_timePatterns_surfaceInterval_error =>
       'Falha ao carregar dados de intervalo de superfície';
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  ) {
-    return '${hours}h ${minutes}min';
-  }
-
-  @override
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes) {
-    return '$minutes min';
-  }
 
   @override
   String get insights_timePatterns_surfaceInterval_maximum => 'Máximo';
@@ -30097,6 +30163,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Ver Todas';
+
+  @override
+  String get trips_picker_alreadyPacked => 'Já preparado';
 
   @override
   String get trips_picker_clearTooltip => 'Limpar seleção';
@@ -44691,6 +44760,36 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '${years}a ${days}d';
+  }
+
+  @override
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes) {
+    return '${days}d ${hours}h ${minutes}min';
+  }
+
+  @override
+  String common_elapsed_yearsDaysHours(int years, int days, int hours) {
+    return '${years}a ${days}d ${hours}h';
+  }
+
+  @override
   String common_relativeTime_inHours(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -46564,6 +46663,15 @@ class AppLocalizationsPt extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, de $startDate a $endDate, selecionada';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, de $startDate a $endDate, já preparado';
   }
 
   @override

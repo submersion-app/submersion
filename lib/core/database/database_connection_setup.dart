@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:sqlite3/sqlite3.dart' show Database, SqliteException;
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/sqlcipher_setup.dart';
 
 /// How long a connection waits for a lock another connection holds before it
@@ -56,11 +57,15 @@ String applyMainDatabaseSetup(Database db, {String? keyHex}) {
 /// `-wal`/`-shm` next to it and make the next read-only open (a file the
 /// picker handed us out of a read-only directory) need an `-shm` it cannot
 /// create.
+///
+/// The app's SQL functions are registered here too: like the key, they live
+/// on the connection and leave nothing in the file.
 void applyConnectionBasics(Database db, {String? keyHex}) {
   if (keyHex != null) {
     db.execute(cipherKeyPragma(keyHex));
   }
   db.execute('PRAGMA busy_timeout = ${kDatabaseBusyTimeout.inMilliseconds}');
+  registerAppSqlFunctions(db);
 }
 
 /// Asks for WAL and reports what SQLite actually settled on.

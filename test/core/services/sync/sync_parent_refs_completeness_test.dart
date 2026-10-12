@@ -108,6 +108,7 @@ void main() {
     'equipment_observations': 'equipmentObservations',
     'equipment_findings': 'equipmentFindings',
     'dive_dive_types': 'diveDiveTypes',
+    'dive_courses': 'diveCourses',
     'site_types': 'siteTypes',
     'site_site_types': 'siteSiteTypes',
     'dive_diver_roles': 'diveDiverRoles',

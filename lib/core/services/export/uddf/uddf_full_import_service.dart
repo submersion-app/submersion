@@ -12,10 +12,13 @@ import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dar
 import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
+import 'package:submersion/core/services/export/uddf/uddf_fill_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_fold.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:submersion/core/services/export/uddf/uddf_operator_centers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_sighting_species.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -307,6 +310,8 @@ class UddfFullImportService {
     final diveCenters = <Map<String, dynamic>>[];
     final species = <Map<String, dynamic>>[];
     final serviceRecords = <Map<String, dynamic>>[];
+    var fills = const <Map<String, dynamic>>[];
+    var serviceKinds = const <Map<String, dynamic>>[];
     final settings = <String, String>{};
     final tags = <Map<String, dynamic>>[];
     final customDiveTypes = <Map<String, dynamic>>[];
@@ -408,6 +413,12 @@ class UddfFullImportService {
             }
           }
         }
+
+        // Cylinder fills (issue #2651)
+        fills = UddfFillWriters.parseFills(submersionElement);
+
+        // Custom service kinds (issue #2651)
+        serviceKinds = UddfServiceClockWriters.parseKinds(submersionElement);
 
         // Parse settings
         final settingsSection = submersionElement
@@ -683,6 +694,7 @@ class UddfFullImportService {
 
     _harvestCustomDiveTypes(dives, customDiveTypes);
     UddfOperatorCenters.harvest(dives, diveCenters);
+    UddfSightingSpecies.resolve(dives, species);
 
     return UddfImportResult(
       dataSourcesByDiveRef: sources.byDiveRef,
@@ -697,6 +709,8 @@ class UddfFullImportService {
       species: species,
       sightings: sightings,
       serviceRecords: serviceRecords,
+      fills: fills,
+      serviceKinds: serviceKinds,
       settings: settings,
       owner: owner,
       trips: trips,
@@ -1329,6 +1343,7 @@ class UddfFullImportService {
 
       // Extract link references for trip, dive center, and buddies
       final buddyRefs = <String>[];
+      final courseRefs = <String>[];
       final unmatchedBuddyNames = <String>[];
       for (final linkElement in beforeElement.findElements('link')) {
         final ref = linkElement.getAttribute('ref');
@@ -1338,12 +1353,18 @@ class UddfFullImportService {
           } else if (ref.startsWith('center_')) {
             diveData['diveCenterRef'] = ref;
           } else if (ref.startsWith('course_')) {
-            diveData['courseRef'] = ref;
+            // A dive can be in several courses (#2515).
+            courseRefs.add(ref);
           } else if (ref.startsWith('buddy_') || buddies.containsKey(ref)) {
             // Handle both our format (buddy_xxx) and other formats (e.g., Subsurface idp...)
             buddyRefs.add(ref);
           }
         }
+      }
+
+      if (courseRefs.isNotEmpty) {
+        diveData['courseRefs'] = courseRefs;
+        diveData['courseRef'] = courseRefs.first;
       }
 
       // Subsurface points a dive at its trip with <tripmembership>, and its

@@ -29,8 +29,8 @@ final courseQueryEntity = QueryEntity(
   table: 'courses',
   diverScopeColumn: 'diver_id',
   textSearchSql: const [
-    "{r}.name LIKE ? ESCAPE '\\'",
-    "{r}.location LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.name) LIKE ? ESCAPE '\\'",
+    "unicode_lower({r}.location) LIKE ? ESCAPE '\\'",
   ],
   fields: [
     _text('name', 'name'),
@@ -58,24 +58,27 @@ final courseQueryEntity = QueryEntity(
       isMany: false,
       labelKey: 'query_courses_instructor',
     ),
-    // The link is stored on either side (courses.certification_id or
-    // certifications.course_id); the course detail reads both.
+    // certifications.course_id is the truth since v288 (#2515);
+    // courses.certification_id is only a representative.
     QueryRelation(
       key: 'certification',
       target: QuerySubject.certifications,
-      shape: RelationShape.custom,
-      joinSql:
-          '({to}.id = {from}.certification_id OR {to}.course_id = {from}.id)',
-      isMany: true,
-      labelKey: 'query_courses_certification',
-    ),
-    QueryRelation(
-      key: 'dives',
-      target: QuerySubject.dives,
       shape: RelationShape.child,
       joinSql: '{to}.course_id = {from}.id',
       isMany: true,
+      labelKey: 'query_courses_certification',
+    ),
+    // A course's dives come from the dive_courses junction (#2515).
+    QueryRelation(
+      key: 'dives',
+      target: QuerySubject.dives,
+      shape: RelationShape.junction,
+      joinSql:
+          '{to}.id IN (SELECT j.dive_id FROM dive_courses j '
+          'WHERE j.course_id = {from}.id)',
+      isMany: true,
       labelKey: 'query_courses_dives',
+      tables: ['dive_courses'],
     ),
   ],
 );

@@ -76,9 +76,9 @@ class SpeciesRepository {
         .customSelect(
           '''
       SELECT * FROM species
-      WHERE LOWER(common_name) LIKE ?
-         OR LOWER(scientific_name) LIKE ?
-         OR LOWER(taxonomy_class) LIKE ?
+      WHERE unicode_lower(common_name) LIKE ?
+         OR unicode_lower(scientific_name) LIKE ?
+         OR unicode_lower(taxonomy_class) LIKE ?
       ORDER BY category ASC, common_name COLLATE NOCASE ASC
       LIMIT 50
     ''',
@@ -111,20 +111,8 @@ class SpeciesRepository {
     required SpeciesCategory category,
   }) async {
     // Try to find existing species with same name
-    final existing = await _db
-        .customSelect(
-          '''
-      SELECT * FROM species
-      WHERE LOWER(common_name) = ?
-      LIMIT 1
-    ''',
-          variables: [Variable.withString(commonName.toLowerCase())],
-        )
-        .getSingleOrNull();
-
-    if (existing != null) {
-      return _mapRawRowToSpecies(existing);
-    }
+    final existing = await findSpeciesByCommonName(commonName);
+    if (existing.isNotEmpty) return existing.first;
 
     // Create new species
     final id = _uuid.v4();
@@ -164,12 +152,37 @@ class SpeciesRepository {
     if (needle.isEmpty) return null;
     final row = await _db
         .customSelect(
-          'SELECT id FROM species WHERE LOWER(scientific_name) = ? LIMIT 1',
+          'SELECT id FROM species WHERE unicode_lower(scientific_name) = ? '
+          'ORDER BY is_built_in DESC, rowid LIMIT 1',
           variables: [Variable.withString(needle)],
         )
         .getSingleOrNull();
     if (row == null) return null;
     return getSpeciesById(row.data['id'] as String);
+  }
+
+  /// Every species whose common name equals [commonName], ignoring case,
+  /// built-in rows first and then in the order they were added.
+  ///
+  /// unicode_lower, not LOWER: the built-in folds ASCII only, so "Étoile"
+  /// and "étoile" never compared equal in SQL and each import minted a
+  /// twin (#3032).
+  Future<List<domain.Species>> findSpeciesByCommonName(
+    String commonName,
+  ) async {
+    final needle = commonName.trim();
+    if (needle.isEmpty) return const [];
+    final rows = await _db
+        .customSelect(
+          '''
+      SELECT * FROM species
+      WHERE unicode_lower(common_name) = ?
+      ORDER BY is_built_in DESC, rowid
+    ''',
+          variables: [Variable.withString(needle.toLowerCase())],
+        )
+        .get();
+    return rows.map(_mapRawRowToSpecies).toList();
   }
 
   /// Add sighting to a dive

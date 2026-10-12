@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/presentation/widgets/dive_sparkline.dart';
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
@@ -773,15 +774,10 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
     );
   }
 
-  // Matches the shared duration format (dive_field_formatter.dart): "Xh Ym"
-  // for >= 1 hour, "Xmin" otherwise.
-  String _formatDuration(Duration duration) {
-    final totalMinutes = duration.inMinutes;
-    if (totalMinutes < 60) return '${totalMinutes}min';
-    final hours = totalMinutes ~/ 60;
-    final minutes = totalMinutes % 60;
-    return '${hours}h ${minutes}m';
-  }
+  // The shared elapsed-time format: a long gap between two picked dives reads
+  // in days rather than hundreds of hours.
+  String _formatDuration(Duration duration) =>
+      formatElapsed(context.l10n, duration);
 }
 
 /// Shows the combine-dives dialog and returns the merge outcome on success,

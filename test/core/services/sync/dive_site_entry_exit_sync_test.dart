@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Sync serializes whole Drift rows with `row.toJson()`
@@ -10,7 +11,9 @@ import 'package:submersion/core/database/database.dart';
 /// stays true for the site entry/exit method columns.
 void main() {
   test('a dive_sites row carries entry/exit method through toJson', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     await db
@@ -40,7 +43,9 @@ void main() {
   });
 
   test('an unset entry/exit method round-trips as null', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     await db

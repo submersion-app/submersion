@@ -906,7 +906,17 @@ void main() {
 
     testWidgets('past the alert threshold', (tester) async {
       await pumpDays(tester, kCurrencyAlertDays + 1);
-      expect(find.text('Last dive 366d ago'), findsOneWidget);
+      expect(find.text('Last dive 1y 1d ago'), findsOneWidget);
+    });
+
+    testWidgets('just under a year still counts days', (tester) async {
+      await pumpDays(tester, 364);
+      expect(find.text('Last dive 364d ago'), findsOneWidget);
+    });
+
+    testWidgets('a long break reads in years and days', (tester) async {
+      await pumpDays(tester, 800);
+      expect(find.text('Last dive 2y 70d ago'), findsOneWidget);
     });
 
     testWidgets('opens the dive log', (tester) async {

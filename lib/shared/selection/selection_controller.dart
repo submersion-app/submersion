@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 
 /// Inclusive id span between [anchorId] and [targetId] within [orderedIds].
@@ -28,6 +29,18 @@ List<String> idsInRange(
 /// A plain [ValueNotifier] is testable without a ProviderContainer.
 class SelectionController extends ValueNotifier<SelectionState> {
   SelectionController() : super(SelectionState.inactive);
+
+  final ValueNotifier<bool> _rowsSettled = ValueNotifier(true);
+
+  /// Whether the rows last reported through [pruneToSettled] have loaded or
+  /// failed.
+  ///
+  /// True until a surface reports otherwise, so a surface that never calls
+  /// [pruneToSettled] (the media library prunes a plain list) is unaffected.
+  /// Kept apart from [SelectionState] because it describes the rows, not the
+  /// selection: [exit] resets the state, and must not forget that the rows
+  /// are still loading.
+  ValueListenable<bool> get rowsSettled => _rowsSettled;
 
   /// Enter selection mode deliberately, with nothing checked.
   ///
@@ -119,7 +132,12 @@ class SelectionController extends ValueNotifier<SelectionState> {
   /// The surface passes only rows that can actually be acted on, so
   /// non-selectable rows are excluded by omission rather than by a filter
   /// here. Counts as explicit entry: the user asked for all of them.
+  ///
+  /// Does nothing while [rowsSettled] is false: the surface passes empty ids
+  /// until its rows load, and checking "all" of nothing would replace the
+  /// checks the diver kept through a filter change.
   void selectAll(List<String> selectableIds) {
+    if (!_rowsSettled.value) return;
     value = SelectionState(
       checkedIds: Set<String>.from(selectableIds),
       isActive: true,
@@ -207,8 +225,38 @@ class SelectionController extends ValueNotifier<SelectionState> {
     );
   }
 
+  /// Record whether [rows] have settled and, once they have, prune to the
+  /// ids [idsOf] derives from them.
+  ///
+  /// The one way an async list prunes, so the settled check and the ids it
+  /// prunes to come from the same value and cannot disagree. A first load
+  /// has no rows yet (a new query's id set starts that way), and pruning to
+  /// that empty frame would drop every check; it leaves the selection alone.
+  /// A reload holding its previous value prunes to that value, and an error
+  /// with no value prunes to nothing.
+  ///
+  /// [idsOf] needs to repeat only the steps that filter rows: pruning works
+  /// on membership, so sort order is irrelevant.
+  void pruneToSettled<T>(
+    AsyncValue<T> rows,
+    Iterable<String> Function(T rows) idsOf,
+  ) {
+    _rowsSettled.value = rows.hasSettled;
+    // Settledness is recorded either way, so a bar opened later starts
+    // right; deriving ids is skipped when there is no selection to prune.
+    if (!rows.hasSettled || !value.isActive) return;
+    final settledRows = rows.value;
+    pruneTo(settledRows == null ? const [] : idsOf(settledRows).toList());
+  }
+
   /// Leave selection mode and discard the selection.
   void exit() {
     value = SelectionState.inactive;
+  }
+
+  @override
+  void dispose() {
+    _rowsSettled.dispose();
+    super.dispose();
   }
 }

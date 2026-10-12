@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/certification_levels.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/certifications/domain/entities/currency_scope.dart';
 
@@ -14,7 +15,10 @@ import 'package:submersion/features/certifications/domain/entities/currency_scop
 void main() {
   late AppDatabase db;
 
-  setUp(() => db = AppDatabase(NativeDatabase.memory()));
+  setUp(
+    () =>
+        db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions)),
+  );
   tearDown(() => db.close());
 
   Future<({Set<CertificationAgency> agencies, Set<CertificationLevel> levels})>

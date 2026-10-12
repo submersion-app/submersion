@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Minimal pre-v143 shape stamped at v142 (main's version when this phase
@@ -38,7 +39,9 @@ void main() {
   });
 
   test('fresh databases get both tables', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     expect(
@@ -50,7 +53,9 @@ void main() {
   test('the repair log is per-device: not a synced entity', () async {
     // A row in a synced table carries an hlc column; the repair log
     // deliberately does not, and nothing registers it for sync.
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db

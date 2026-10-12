@@ -208,6 +208,34 @@ void main() {
     expect(used!.id, faber.id);
   });
 
+  testWidgets('a picked cylinder stamps its passport id (#2650)', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+    );
+    await pick(tester, faber);
+    expect(changed!.passportId, '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab');
+  });
+
+  testWidgets('a picked cylinder with no passport id clears one (#2650)', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+      tank: const DiveTank(id: 'tank-1', passportId: 'p-old'),
+    );
+    await pick(tester, bare);
+    expect(changed!.volume, 11.1);
+    expect(changed!.passportId, isNull);
+  });
+
   testWidgets('a cylinder with no fills keeps the tank mix', (tester) async {
     DiveTank? changed;
     await pump(

@@ -180,6 +180,7 @@ class SyncRepository {
     'courseRequirementDives': (table: 'course_requirement_dives', pk: 'id'),
     'diveTags': (table: 'dive_tags', pk: 'id'),
     'diveDiveTypes': (table: 'dive_dive_types', pk: 'id'),
+    'diveCourses': (table: 'dive_courses', pk: 'id'),
     'weightPresetEntries': (table: 'weight_preset_entries', pk: 'id'),
     'diveCenterGearNotes': (table: 'dive_center_gear_notes', pk: 'id'),
     'tideRecords': (table: 'tide_records', pk: 'id'),

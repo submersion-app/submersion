@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Variable;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Schema v232: trip-scale gas logistics, phase 1 (issue #2325). Two children
@@ -214,7 +215,9 @@ void main() {
   test('a fresh database matches the upgraded one', () async {
     final upgraded = AppDatabase(setupDb());
     addTearDown(upgraded.close);
-    final fresh = AppDatabase(NativeDatabase.memory());
+    final fresh = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(fresh.close);
 
     for (final table in const ['trip_cylinders', 'trip_cylinder_events']) {

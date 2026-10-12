@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v230 adds the nav_tracks table for measured underwater routes (spec
@@ -39,7 +40,9 @@ void main() {
   });
 
   test('a fresh database has the nav_tracks table and its columns', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     expect(await _tables(db), contains('nav_tracks'));
@@ -144,7 +147,9 @@ void main() {
   });
 
   test('deleting the linked dive nulls dive_id, not the route', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     await _insertMinimalDive(db, 'd1');
@@ -163,7 +168,9 @@ void main() {
   });
 
   test('a route can exist with no linked dive at all', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     await db.customStatement(

@@ -718,70 +718,102 @@ void main() {
   });
 
   group('a new filter', () {
+    /// Pumps the list in [mode] with both trips checked, behind an id set
+    /// that takes a query's time, so a filter change has a loading frame.
+    Future<void> pumpSelected(WidgetTester tester, ListViewMode mode) async {
+      // Table mode has no menu inside the list (issue #2775), so both
+      // modes enter through the controller a page would pass in.
+      final controller = SelectionController();
+      addTearDown(controller.dispose);
+      final all = <TripWithStats>[
+        _makeTrip(id: 't1', name: 'Aaa Trip'),
+        _makeTrip(id: 't2', name: 'Bbb Trip'),
+      ];
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tripListNotifierProvider.overrideWith(
+              (ref) => _MockTripListNotifier(all),
+            ),
+            tripListViewModeProvider.overrideWith((ref) => mode),
+            tripTableConfigProvider.overrideWith(
+              (ref) => _TestTripTableConfigNotifier(_testConfig),
+            ),
+            highlightedTripIdProvider.overrideWith((ref) => null),
+            // A real id set takes a query's time, so the list has a loading
+            // frame.
+            queryFilteredTripIdsProvider.overrideWith(
+              (ref, filter) => Future.delayed(
+                const Duration(milliseconds: 50),
+                () => const {'t1', 't2'},
+              ),
+            ),
+          ],
+          locale: const Locale('en'),
+          child: TripListContent(
+            showAppBar: true,
+            selectionController: controller,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      controller.enterExplicit();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+      expect(find.text('2 selected'), findsOneWidget);
+    }
+
+    void changeFilter(WidgetTester tester) {
+      ProviderScope.containerOf(
+        tester.element(find.byType(TripListContent)),
+      ).read(tripFilterProvider.notifier).state = const TripFilterState(
+        equipmentId: 'e1',
+      );
+    }
+
     for (final mode in [ListViewMode.detailed, ListViewMode.table]) {
       testWidgets('keeps the checks that stay on screen (${mode.name})', (
         tester,
       ) async {
-        // Table mode has no menu inside the list (issue #2775), so both
-        // modes enter through the controller a page would pass in.
-        final controller = SelectionController();
-        addTearDown(controller.dispose);
-        final all = <TripWithStats>[
-          _makeTrip(id: 't1', name: 'Aaa Trip'),
-          _makeTrip(id: 't2', name: 'Bbb Trip'),
-        ];
-
-        SharedPreferences.setMockInitialValues({});
-        final prefs = await SharedPreferences.getInstance();
-        await tester.pumpWidget(
-          testApp(
-            overrides: [
-              sharedPreferencesProvider.overrideWithValue(prefs),
-              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-              currentDiverIdProvider.overrideWith(
-                (ref) => MockCurrentDiverIdNotifier(),
-              ),
-              tripListNotifierProvider.overrideWith(
-                (ref) => _MockTripListNotifier(all),
-              ),
-              tripListViewModeProvider.overrideWith((ref) => mode),
-              tripTableConfigProvider.overrideWith(
-                (ref) => _TestTripTableConfigNotifier(_testConfig),
-              ),
-              highlightedTripIdProvider.overrideWith((ref) => null),
-              // A real id set takes a query's time, so the list has a loading
-              // frame.
-              queryFilteredTripIdsProvider.overrideWith(
-                (ref, filter) => Future.delayed(
-                  const Duration(milliseconds: 50),
-                  () => const {'t1', 't2'},
-                ),
-              ),
-            ],
-            locale: const Locale('en'),
-            child: TripListContent(
-              showAppBar: true,
-              selectionController: controller,
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-        controller.enterExplicit();
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('selection_select_all')));
-        await tester.pumpAndSettle();
-        expect(find.text('2 selected'), findsOneWidget);
+        await pumpSelected(tester, mode);
 
         // The new filter's id set loads first; the selection must survive that.
-        ProviderScope.containerOf(
-          tester.element(find.byType(TripListContent)),
-        ).read(tripFilterProvider.notifier).state = const TripFilterState(
-          equipmentId: 'e1',
-        );
+        changeFilter(tester);
         // One frame at once, as the app draws it, before the query answers.
         await tester.pump();
         await tester.pumpAndSettle();
         expect(find.text('2 selected'), findsOneWidget);
+      });
+
+      testWidgets('disables bulk actions while it loads (${mode.name})', (
+        tester,
+      ) async {
+        await pumpSelected(tester, mode);
+
+        changeFilter(tester);
+        await tester.pump(); // builds the loading frame; the prune reports it
+        await tester.pump(); // the bar repaints disabled
+        final selectAll = tester.widget<IconButton>(
+          find.byKey(const ValueKey('selection_select_all')),
+        );
+        expect(selectAll.onPressed, isNull);
+        await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 10));
+        final delete = tester.widget<PopupMenuItem<String>>(
+          find.byKey(const ValueKey('selection_delete')),
+        );
+        expect(delete.enabled, isFalse);
+        await tester.pumpAndSettle();
       });
     }
   });

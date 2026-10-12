@@ -133,7 +133,7 @@ extension DivePlanMigrations on AppDatabase {
     }
   }
 
-  /// Idempotent DDL for the v277 dive_plan_segments rate-split flag (issue
+  /// Idempotent DDL for the v290 dive_plan_segments rate-split flag (issue
   /// #3264). Additive, defaulting off: an existing segment keeps reading as
   /// the single linear leg it always has.
   Future<void> _assertSegmentSplitAtRateColumn() async {

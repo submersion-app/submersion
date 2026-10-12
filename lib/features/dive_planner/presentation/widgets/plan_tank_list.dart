@@ -35,6 +35,11 @@ class PlanTankList extends ConsumerWidget {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+    // The planner derives roles rather than storing them, so each chip's
+    // glyph follows the plan as the diver edits it (issue #2901).
+    final roles = const TankRoleResolver().rolesFor(
+      divePlanFromState(planState),
+    );
 
     return Card(
       child: Padding(
@@ -81,7 +86,14 @@ class PlanTankList extends ConsumerWidget {
             // oxygen on bailout adds a separate cylinder below.
             if (planState.mode == PlanMode.ccr) ...[
               _groupHeading(theme, context.l10n.divePlanner_label_loopGases),
-              _chips(context, ref, units, planState, _loopTanks(planState)),
+              _chips(
+                context,
+                ref,
+                units,
+                planState,
+                roles,
+                _loopTanks(planState),
+              ),
               const SizedBox(height: 12),
               _groupHeading(theme, context.l10n.divePlanner_label_bailoutGases),
               if (_bailoutTanks(planState).isEmpty)
@@ -97,10 +109,11 @@ class PlanTankList extends ConsumerWidget {
                   ref,
                   units,
                   planState,
+                  roles,
                   _bailoutTanks(planState),
                 ),
             ] else
-              _chips(context, ref, units, planState, planState.tanks),
+              _chips(context, ref, units, planState, roles, planState.tanks),
           ],
         ),
       ),
@@ -147,6 +160,7 @@ class PlanTankList extends ConsumerWidget {
     WidgetRef ref,
     UnitFormatter units,
     DivePlanState planState,
+    Map<String, TankRole> roles,
     List<DiveTank> tanks,
   ) {
     final isCcr = planState.mode == PlanMode.ccr;
@@ -160,6 +174,7 @@ class PlanTankList extends ConsumerWidget {
                 tank.role == TankRole.oxygenSupply);
         return _TankChip(
           tank: tank,
+          role: roles[tank.id] ?? tank.role,
           units: units,
           roleBadge: isLoopSlot ? tank.role.localizedName(context.l10n) : null,
           onEdit: () => _showEditTankDialog(context, ref, tank, units),
@@ -243,6 +258,9 @@ TankRole Function(DiveTank provisional) _roleResolverFor(WidgetRef ref) {
 
 class _TankChip extends StatelessWidget {
   final DiveTank tank;
+
+  /// The role the plan derives for [tank], shown as the avatar glyph.
+  final TankRole role;
   final UnitFormatter units;
   final VoidCallback onEdit;
   final VoidCallback? onDelete;
@@ -254,6 +272,7 @@ class _TankChip extends StatelessWidget {
 
   const _TankChip({
     required this.tank,
+    required this.role,
     required this.units,
     required this.onEdit,
     this.onDelete,
@@ -265,15 +284,19 @@ class _TankChip extends StatelessWidget {
     final theme = Theme.of(context);
 
     final tankSize = units.formatTankVolume(tank.volume, tank.workingPressure);
-    final badge = roleBadge;
-    final detail =
-        '${badge == null ? '' : '$badge • '}'
-        '${units.formatPressure(tank.startPressure)} • $tankSize';
-    final tankLabel =
-        '${tank.name ?? tank.gasMix.name}, '
-        '${badge == null ? '' : '$badge, '}'
-        '${units.formatPressure(tank.startPressure)}, '
-        '$tankSize';
+    final roleName = role.localizedName(context.l10n);
+    // The avatar shows the role, not the gas initial it used to, so a named
+    // cylinder carries its gas on the second line; an unnamed one is already
+    // titled by its gas.
+    final gas = tank.name == null ? null : tank.gasMix.name;
+    final details = [?gas, units.formatPressure(tank.startPressure), tankSize];
+    // The screen-reader label already names the role, so the loop-slot badge
+    // is added to the visible line only.
+    final tankLabel = [
+      tank.name ?? tank.gasMix.name,
+      roleName,
+      ...details,
+    ].join(', ');
 
     return Semantics(
       label: tankLabel,
@@ -281,12 +304,10 @@ class _TankChip extends StatelessWidget {
         avatar: CircleAvatar(
           backgroundColor: theme.colorScheme.primaryContainer,
           child: ExcludeSemantics(
-            child: Text(
-              tank.gasMix.name.substring(0, 1),
-              style: TextStyle(
-                fontSize: 12,
-                color: theme.colorScheme.onPrimaryContainer,
-              ),
+            child: Icon(
+              role.icon,
+              size: 16,
+              color: theme.colorScheme.onPrimaryContainer,
             ),
           ),
         ),
@@ -295,7 +316,10 @@ class _TankChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(tank.name ?? tank.gasMix.name),
-            Text(detail, style: theme.textTheme.bodySmall),
+            Text(
+              [?roleBadge, ...details].join(' • '),
+              style: theme.textTheme.bodySmall,
+            ),
           ],
         ),
         onPressed: onEdit,

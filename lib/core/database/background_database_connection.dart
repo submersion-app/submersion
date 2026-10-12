@@ -7,6 +7,7 @@ import 'package:drift/isolate.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database_connection_setup.dart';
 
 /// Builds the worker's database opener in its own scope.
@@ -30,7 +31,9 @@ DatabaseConnection Function() _openerFor(String path, String? keyHex) {
 /// The opener for [BackgroundDatabaseConnection.openPlain], minted in its own
 /// scope for the same reason as [_openerFor].
 DatabaseConnection Function() _plainOpenerFor(String path) {
-  return () => DatabaseConnection(NativeDatabase(File(path)));
+  return () => DatabaseConnection(
+    NativeDatabase(File(path), setup: registerAppSqlFunctions),
+  );
 }
 
 /// Closes [db] for process shutdown, tolerating the two ways a plain

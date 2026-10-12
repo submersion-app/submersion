@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media_store/data/media_backfill_service.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
@@ -115,7 +116,9 @@ void main() {
   });
 
   test('the transfer stream providers subscribe to the queue', () async {
-    final db = LocalCacheDatabase(NativeDatabase.memory());
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     final repo = MediaTransferQueueRepository(database: db);
     final container = ProviderContainer(

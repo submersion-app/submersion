@@ -3,8 +3,9 @@ import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// A dive tank describing the cylinder a tag names (spec section 9, "Use on
-/// a dive"). A copy, never a link: the dive records what was breathed, and
-/// nothing on the tank points back at the tag. The id is left for the dive
+/// a dive"). A copy of the spec, never a gear link: the dive records what
+/// was breathed. It does carry the tag's passport id, so the diver's uses of
+/// this cylinder can be counted (issue #2650). The id is left for the dive
 /// edit page to assign.
 DiveTank tankFromPassport(
   CylinderPassportPayload tag, {
@@ -23,5 +24,6 @@ DiveTank tankFromPassport(
     gasMix: mix,
     material: tag.material,
     presetName: preset?.name,
+    passportId: tag.passportId,
   );
 }

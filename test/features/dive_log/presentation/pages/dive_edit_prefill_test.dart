@@ -251,6 +251,27 @@ void main() {
       expect(tank.gasMix.o2, 32);
     });
 
+    testWidgets('a cylinder prefill keeps the tag it came from (#2650)', (
+      tester,
+    ) async {
+      String? savedId;
+      await pumpEditPage(
+        tester,
+        prefill: const DivePrefill(
+          tank: DiveTank(id: '', volume: 10, passportId: 'p-1'),
+        ),
+        onSaved: (id) => savedId = id,
+      );
+      await tester.tap(find.text('Save'));
+      for (var i = 0; i < 100 && savedId == null; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final dive = await tester.runAsync(
+        () => repository.getDiveById(savedId!),
+      );
+      expect(dive!.tanks.first.passportId, 'p-1');
+    });
+
     testWidgets('an identity-only tag keeps the default tank', (tester) async {
       String? savedId;
       await pumpEditPage(
@@ -303,6 +324,17 @@ void main() {
       final dive = await tester.runAsync(() => repository.getDiveById(id));
       expect(dive!.tanks.first.volume, 15);
       expect(dive.tanks.first.presetName, 'club15');
+    });
+
+    testWidgets('an identity-only tag keeps its id through a custom default '
+        'preset (#2650)', (tester) async {
+      final id = await saveWithCustomDefault(
+        tester,
+        const DiveTank(id: '', passportId: 'p-1'),
+      );
+      final dive = await tester.runAsync(() => repository.getDiveById(id));
+      expect(dive!.tanks.first.presetName, 'club15');
+      expect(dive.tanks.first.passportId, 'p-1');
     });
 
     testWidgets('a tag with a spec survives a custom default preset', (

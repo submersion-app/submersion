@@ -22,9 +22,10 @@ void main() {
         membershipSql(ConnectionKind.site),
         contains('site_id IS NOT NULL'),
       );
+      // A dive's courses come from the junction (#2515).
       expect(
         membershipSql(ConnectionKind.course),
-        contains('course_id IS NOT NULL'),
+        contains('FROM dive_courses'),
       );
     });
   });
@@ -182,7 +183,10 @@ void main() {
         labelLike: '%tur%',
         limit: 5,
       );
-      expect(r.sql, contains("t.common_name LIKE ? ESCAPE '\\'"));
+      expect(
+        r.sql,
+        contains("unicode_lower(t.common_name) LIKE ? ESCAPE '\\'"),
+      );
       expect(r.sql, contains('LIMIT ?'));
       expect(r.params, ['me', 'sp1', '%tur%', 5]);
     });

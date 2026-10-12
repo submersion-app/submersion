@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 
@@ -121,7 +122,9 @@ void main() {
   });
 
   test('a fresh database has every v202 column and table', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     expect(await _columns(db, 'equipment'), contains('parent_equipment_id'));
@@ -158,7 +161,9 @@ void main() {
   });
 
   test('a fresh database seeds exposure defaults on built-in kinds', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     Future<String> col(String id, String column) async =>
@@ -265,7 +270,9 @@ void main() {
   );
 
   test('exposure thresholds default on a settings row', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customStatement(
       "INSERT INTO divers (id, name, created_at, updated_at) "

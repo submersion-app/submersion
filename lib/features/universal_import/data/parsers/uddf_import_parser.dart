@@ -68,6 +68,15 @@ class UddfImportParser implements ImportParser {
       if (result.customDiveTypes.isNotEmpty) {
         entities[ImportEntityType.diveTypes] = result.customDiveTypes;
       }
+      // Service records and cylinder fills (issue #2651): the wizard keeps
+      // only these entity lists, so a list left out here never reaches the
+      // importer, which silently dropped every UDDF service record.
+      if (result.serviceRecords.isNotEmpty) {
+        entities[ImportEntityType.serviceRecords] = result.serviceRecords;
+      }
+      if (result.fills.isNotEmpty) {
+        entities[ImportEntityType.fills] = result.fills;
+      }
 
       return ImportPayload(
         entities: entities,
@@ -82,6 +91,8 @@ class UddfImportParser implements ImportParser {
             ImportPayload.customDiveRolesKey: result.customDiveRoles,
           if (result.customSiteTypes.isNotEmpty)
             ImportPayload.customSiteTypesKey: result.customSiteTypes,
+          if (result.serviceKinds.isNotEmpty)
+            ImportPayload.serviceKindsKey: result.serviceKinds,
           if (result.currencyRules.isNotEmpty)
             ImportPayload.currencyRulesKey: result.currencyRules,
           if (result.currencyPrefs.isNotEmpty)

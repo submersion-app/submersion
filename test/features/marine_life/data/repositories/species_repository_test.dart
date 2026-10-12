@@ -432,6 +432,96 @@ void main() {
           expect(found.scientificName, 'Mobula birostris');
         },
       );
+
+      test('matches a name with non-ASCII capitals', () async {
+        // SQLite's LOWER folds ASCII only, so a needle lowered in Dart
+        // ("étoile") never equalled LOWER("Étoile") and a twin was created.
+        final created = await repository.createSpecies(
+          commonName: 'Étoile de mer',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        final found = await repository.getOrCreateSpecies(
+          commonName: 'Étoile de mer',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        expect(found.id, created.id);
+      });
+
+      test('matches when only an accented letter differs in case', () async {
+        final created = await repository.createSpecies(
+          commonName: 'étoile de mer',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        final found = await repository.getOrCreateSpecies(
+          commonName: 'Étoile de mer',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        expect(found.id, created.id);
+      });
+
+      // #3032: the issue's own case, an import naming the stored species
+      // with a different word case.
+      test('matches a name that starts with an accented capital', () async {
+        final created = await repository.createSpecies(
+          commonName: 'Éponge pinceau',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        final found = await repository.getOrCreateSpecies(
+          commonName: 'Éponge Pinceau',
+          category: SpeciesCategory.other,
+        );
+
+        expect(found.id, created.id);
+        expect(found.commonName, 'Éponge pinceau');
+      });
+
+      test('matches an all-capital name with an accented letter', () async {
+        final created = await repository.createSpecies(
+          commonName: 'ÖRNFISK',
+          category: SpeciesCategory.fish,
+        );
+
+        final found = await repository.getOrCreateSpecies(
+          commonName: 'örnfisk',
+          category: SpeciesCategory.other,
+        );
+
+        expect(found.id, created.id);
+      });
+    });
+
+    group('findSpeciesByScientificName', () {
+      test('matches a name with a non-ASCII capital', () async {
+        final created = await repository.createSpecies(
+          commonName: 'Test species',
+          scientificName: 'Ébria tripartita',
+          category: SpeciesCategory.other,
+        );
+
+        final found = await repository.findSpeciesByScientificName(
+          'ébria TRIPARTITA',
+        );
+
+        expect(found?.id, created.id);
+      });
+    });
+
+    group('searchSpecies with accented capitals', () {
+      test('finds a name by its accented first word in any case', () async {
+        await repository.createSpecies(
+          commonName: 'Éponge pinceau',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        expect(await repository.searchSpecies('Éponge'), hasLength(1));
+        expect(await repository.searchSpecies('éponge'), hasLength(1));
+        expect(await repository.searchSpecies('ÉPONGE'), hasLength(1));
+      });
     });
   });
 }

@@ -39,6 +39,10 @@ enum FieldKind {
   durationMinutes,
   durationHours,
 
+  /// A career total in seconds (a diver's prior dive time): shown in hours
+  /// and minutes, never days, as divers count logged time.
+  totalDurationSeconds,
+
   /// A real instant, shown in the device's time zone.
   dateTime,
 

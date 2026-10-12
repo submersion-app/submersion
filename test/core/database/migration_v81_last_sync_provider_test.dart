@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// Migration 81 adds a nullable `last_sync_provider` column to sync_metadata.
@@ -9,7 +10,9 @@ import 'package:submersion/core/database/database.dart';
 /// exercises the real onUpgrade ALTER TABLE path.
 void main() {
   test('v81 schema includes a nullable last_sync_provider', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final cols = await db

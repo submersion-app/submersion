@@ -224,7 +224,12 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     final visibleIds = visibleCenters.map((c) => c.id).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && centersAsync.hasSettled) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          centersAsync,
+          (rows) => rows.map((c) => c.id),
+        );
+      }
     });
 
     // Built inside the selection listener below so rows re-render as checks
@@ -462,7 +467,12 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
     // Same pruning the list path does: drop checked centers that fell out of
     // the visible list, so the count matches what is on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && centersAsync.hasSettled) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          centersAsync,
+          (rows) => rows.map((c) => c.id),
+        );
+      }
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and

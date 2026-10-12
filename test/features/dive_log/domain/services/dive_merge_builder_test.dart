@@ -314,7 +314,7 @@ void main() {
         waterTemp: 19.5,
         diveComputerModel: 'Perdix 2',
         diveNumber: 102,
-        courseId: 'course-1',
+        courseIds: ['course-1'],
       );
       final merged = builder.build([b, a]).mergedDive; // unsorted input
       expect(merged.rating, 4); // a is chronologically first

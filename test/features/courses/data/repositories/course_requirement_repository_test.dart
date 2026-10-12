@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/dive_course_links_schema.dart';
 import 'package:submersion/core/constants/course_templates.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
@@ -35,6 +36,9 @@ Future<void> _seedDive(
     "created_at, updated_at) "
     "VALUES ('$id', '$diverId', $dateTime, $courseCol, $siteCol, 1000, 1000)",
   );
+  // The app keeps every course link in dive_courses (#2515); the seed is
+  // what an open or a sync apply runs for a representative-only row.
+  if (courseId != null) await seedDiveCourseLinks(db);
 }
 
 void main() {

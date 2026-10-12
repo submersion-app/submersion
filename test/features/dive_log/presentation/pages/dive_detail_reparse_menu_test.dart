@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
@@ -49,7 +50,10 @@ class _FakeReparseService extends ReparseService {
 void main() {
   late AppDatabase db;
 
-  setUp(() => db = AppDatabase(NativeDatabase.memory()));
+  setUp(
+    () =>
+        db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions)),
+  );
   tearDown(() => db.close());
 
   Future<_FakeReparseService> pumpDetail(

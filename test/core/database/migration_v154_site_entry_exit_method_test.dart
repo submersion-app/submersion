@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
@@ -12,7 +13,9 @@ void main() {
   test(
     'a fresh database has the dive_sites entry/exit method columns',
     () async {
-      final db = AppDatabase(NativeDatabase.memory());
+      final db = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
 
       final cols = await db
@@ -72,7 +75,9 @@ void main() {
   test('the assert leaves exactly one copy of each column', () async {
     // beforeOpen re-runs the helper on every open, so a healthy database must
     // survive the second pass rather than failing on a duplicate column.
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
     await db.customSelect('SELECT 1').get();
 

@@ -22,6 +22,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_profile_chart.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
+import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -362,7 +363,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       if (dive.surfaceInterval != null)
         _Field(
           l10n.pdf_surfaceInterval,
-          _duration(dive.surfaceInterval!, l10n),
+          formatElapsed(l10n, dive.surfaceInterval!),
         ),
       ..._gasConsumptionFields(dive, units, l10n),
     ];
@@ -904,14 +905,6 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         ],
       ),
     ];
-  }
-
-  String _duration(Duration d, AppLocalizations l10n) {
-    final hours = d.inHours;
-    final minutes = d.inMinutes % 60;
-    return hours > 0
-        ? l10n.pdf_hoursMinutes('$hours', '$minutes')
-        : l10n.pdf_minutesShort('$minutes');
   }
 }
 

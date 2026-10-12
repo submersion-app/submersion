@@ -31,7 +31,7 @@ const String kDiverDataExistsSql =
     'OR dives.site_id IS NOT NULL '
     'OR dives.trip_id IS NOT NULL '
     'OR dives.dive_center_id IS NOT NULL '
-    'OR dives.course_id IS NOT NULL '
+    'OR EXISTS (SELECT 1 FROM dive_courses c WHERE c.dive_id = dives.id) '
     'OR EXISTS (SELECT 1 FROM dive_equipment c WHERE c.dive_id = dives.id) '
     'OR EXISTS (SELECT 1 FROM dive_buddies c WHERE c.dive_id = dives.id) '
     'OR EXISTS (SELECT 1 FROM dive_tags c WHERE c.dive_id = dives.id) '
@@ -80,7 +80,8 @@ const String kDiverDataCountsSql =
     '(dives.site_id IS NOT NULL) AS has_site, '
     '(dives.trip_id IS NOT NULL) AS has_trip, '
     '(dives.dive_center_id IS NOT NULL) AS has_dive_center, '
-    '(dives.course_id IS NOT NULL) AS has_course';
+    'EXISTS (SELECT 1 FROM dive_courses c WHERE c.dive_id = dives.id) '
+    'AS has_course';
 
 /// Every table both fragments read, so a write to any of them invalidates a
 /// query that carries either one.
@@ -88,6 +89,7 @@ Set<ResultSetImplementation<dynamic, dynamic>> diverDataTables(
   AppDatabase db,
 ) => {
   db.dives,
+  db.diveCourses,
   db.diveEquipment,
   db.diveBuddies,
   db.diveTags,

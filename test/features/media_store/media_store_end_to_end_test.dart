@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
 import 'package:submersion/core/services/media_store/dropbox_media_object_store.dart';
@@ -41,8 +42,12 @@ void main() {
     await setUpTestDatabase();
     rootA = await Directory.systemTemp.createTemp('e2e_device_a');
     rootB = await Directory.systemTemp.createTemp('e2e_device_b');
-    cacheDbA = LocalCacheDatabase(NativeDatabase.memory());
-    cacheDbB = LocalCacheDatabase(NativeDatabase.memory());
+    cacheDbA = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    cacheDbB = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     bucket = InMemoryMediaObjectStore();
   });
 

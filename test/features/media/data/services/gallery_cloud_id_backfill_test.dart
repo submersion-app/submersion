@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:drift/native.dart' show NativeDatabase;
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
@@ -39,7 +40,9 @@ void main() {
     prefs = await SharedPreferences.getInstance();
     library = FakePhotoPickerService();
     clock = DateTime(2026, 9, 23, 12);
-    cacheDb = LocalCacheDatabase(NativeDatabase.memory());
+    cacheDb = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     assetCache = LocalAssetCacheRepository(database: cacheDb);
   });
   tearDown(() => cacheDb.close());

@@ -14,6 +14,8 @@ import 'package:submersion/features/dive_import/data/repositories/imported_file_
 import 'package:submersion/features/dive_import/data/services/additional_computer_writer.dart';
 import 'package:submersion/features/dive_import/data/services/currency_restorer.dart';
 import 'package:submersion/features/dive_import/data/services/import_map_readers.dart';
+import 'package:submersion/features/dive_import/data/services/import_passport_adoption.dart';
+import 'package:submersion/features/dive_import/data/services/import_service_clocks.dart';
 import 'package:submersion/features/dive_import/data/services/import_weight_mapper.dart';
 import 'package:submersion/features/dive_import/data/services/imported_profile_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
@@ -68,7 +70,9 @@ import 'package:submersion/features/equipment/data/repositories/equipment_locati
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
     as equipment_domain;
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
@@ -86,7 +90,9 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/data/services/imported_species_resolver.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
@@ -171,6 +177,12 @@ class ImportRepositories {
   final CylinderFillRepository? cylinderFillRepository;
   final CylinderPassportRepository? cylinderPassportRepository;
 
+  /// Optional for the same reason; when either is null, a full backup's
+  /// custom service kinds and item clocks are skipped and its service
+  /// records restore without a kind (issue #2651).
+  final ServiceKindRepository? serviceKindRepository;
+  final ServiceScheduleRepository? serviceScheduleRepository;
+
   /// Optional for the same reason; when null, the certification currency
   /// rows in a full backup (issue #2267) are skipped.
   final CertificationCurrencyRepository? certificationCurrencyRepository;
@@ -203,6 +215,8 @@ class ImportRepositories {
     this.speciesRepository,
     this.cylinderFillRepository,
     this.cylinderPassportRepository,
+    this.serviceKindRepository,
+    this.serviceScheduleRepository,
     this.certificationCurrencyRepository,
   });
 }
@@ -536,6 +550,54 @@ class UddfEntityImporter {
       );
     }
 
+    // Passport ids ride on the items of a full backup (issue #2651); they
+    // must land before the fills below link to them.
+    if (equipmentRan && repositories.cylinderPassportRepository != null) {
+      await adoptImportedPassportIds(
+        data.equipment,
+        equipmentIdMapping,
+        repositories.cylinderPassportRepository!,
+        diverId: diverId,
+      );
+    }
+
+    // Custom service kinds (issue #2651) come with the gear that uses them,
+    // after it exists: a backup's clocks are restored exactly below, so no
+    // kind may auto-attach to a restored item on the way in. An import with
+    // no gear selected, or naming no kind, reads none.
+    final kindResolver =
+        !equipmentRan ||
+            selections.equipment.isEmpty ||
+            repositories.serviceKindRepository == null ||
+            !carriesServiceKinds(
+              data.serviceKinds,
+              data.equipment,
+              data.serviceRecords,
+            )
+        ? const ServiceKindResolver({}, {})
+        : await importServiceKinds(
+            data.serviceKinds,
+            repositories.serviceKindRepository!,
+            diverId: diverId,
+          );
+
+    // Each created item's clocks (issue #2651): exactly the backup's,
+    // merged by kind with the ones createEquipment seeded.
+    // Without the kind repository no ref can resolve, so restoring would
+    // drop every listed clock and then the item's defaults: leave both.
+    if (equipmentRan &&
+        repositories.serviceKindRepository != null &&
+        repositories.serviceScheduleRepository != null) {
+      await restoreServiceClocks(
+        data.equipment,
+        selections.equipment,
+        equipmentIdMapping,
+        preResolvedEquipmentIds,
+        repositories.serviceScheduleRepository!,
+        kindResolver,
+      );
+    }
+
     // Service history belongs to the equipment it describes, so it rides
     // along with whatever equipment was selected rather than being its own
     // choice in the wizard. A pre-resolved duplicate still mapped to its
@@ -551,6 +613,7 @@ class UddfEntityImporter {
               entry.key: entry.value,
         },
         now,
+        kindResolver,
       );
     }
 
@@ -751,6 +814,7 @@ class UddfEntityImporter {
             diverId,
             courseIdMapping,
             buddyIdMapping,
+            certIdMapping,
             now,
             onProgress,
             certResolver,
@@ -884,6 +948,7 @@ class UddfEntityImporter {
     ServiceRecordRepository? repository,
     Map<String, String> equipmentIdMapping,
     DateTime now,
+    ServiceKindResolver kinds,
   ) async {
     if (repository == null || items.isEmpty) return 0;
     var count = 0;
@@ -903,6 +968,7 @@ class UddfEntityImporter {
         serviceCategory:
             _parseEnum(recordData['serviceCategory'], ServiceCategory.values) ??
             ServiceCategory.other,
+        serviceKindId: kinds.resolve(recordData['serviceKindRef'] as String?),
         serviceDate: serviceDate,
         provider: recordData['provider'] as String?,
         cost: asDoubleOrNull(recordData['cost']),
@@ -2157,6 +2223,7 @@ class UddfEntityImporter {
     String diverId,
     Map<String, String> idMapping,
     Map<String, String> buddyIdMapping,
+    Map<String, String> certIdMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
     CertificationImportResolver certResolver,
@@ -2203,6 +2270,20 @@ class UddfEntityImporter {
 
       await repository.createCourse(course);
       if (uddfId != null) idMapping[uddfId] = newId;
+
+      // The certifications this course earned (#2515). Certifications are
+      // imported before courses, so certIdMapping is complete here; a file
+      // from before #2515 carries only certificationRef.
+      final certIds = [
+        for (final ref in _refList(
+          courseData['certificationRefs'],
+          courseData['certificationRef'],
+        ))
+          ?certIdMapping[ref],
+      ];
+      if (certIds.isNotEmpty) {
+        await repository.setCourseCertifications(newId, certIds);
+      }
       count++;
       onProgress?.call(ImportPhase.courses, count, selected.length);
     }
@@ -2676,10 +2757,15 @@ class UddfEntityImporter {
         }
       }
 
-      // Link to imported course
-      String? linkedCourseId;
-      final courseRef = diveData['courseRef'] as String?;
-      if (courseRef != null) linkedCourseId = courseIdMapping[courseRef];
+      // Link to every imported course (#2515); older files carry one
+      // courseRef.
+      final linkedCourseIds = [
+        for (final ref in _refList(
+          diveData['courseRefs'],
+          diveData['courseRef'],
+        ))
+          ?courseIdMapping[ref],
+      ];
 
       // Link to imported equipment
       final linkedEquipment = await _resolveEquipmentRefs(
@@ -2913,7 +2999,7 @@ class UddfEntityImporter {
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,
-        courseId: linkedCourseId,
+        courseIds: linkedCourseIds,
         setpointLow: asDoubleOrNull(diveData['setpointLow']),
         setpointHigh: asDoubleOrNull(diveData['setpointHigh']),
         setpointDeco: asDoubleOrNull(diveData['setpointDeco']),
@@ -3474,9 +3560,10 @@ class UddfEntityImporter {
   /// Writes the dive's marine life, creating any species it names.
   ///
   /// `sightings.species_id` is a foreign key to `species`, so the species
-  /// row has to exist first. `getOrCreateSpecies` matches on the lowercased
-  /// common name, which is what keeps an import from minting a twin of a
-  /// species already in the bundled catalogue.
+  /// row has to exist first. [ImportedSpeciesResolver] matches on the
+  /// scientific name and then the common name, which is what keeps an import
+  /// from minting a twin of a species already in the bundled catalogue, even
+  /// when the file names it in another language (issue #3033).
   ///
   /// Best effort per sighting: one unreadable entry must not fail a dive
   /// that is otherwise fine.
@@ -3489,6 +3576,8 @@ class UddfEntityImporter {
     if (repository == null) return;
     final raw = diveData['sightings'];
     if (raw is! List || raw.isEmpty) return;
+    final resolver = ImportedSpeciesResolver(repository);
+    String? text(Object? value) => value is String ? value : null;
 
     for (final entry in raw) {
       if (entry is! Map) continue;
@@ -3496,27 +3585,18 @@ class UddfEntityImporter {
       // number where a name belongs would otherwise throw out of this loop
       // and take the whole import with it, which is the opposite of the
       // best-effort contract above.
-      // A source may name the species outright, or only reference it, in
-      // which case the ref carries the name.
-      final named = entry['speciesName'] is String
-          ? (entry['speciesName'] as String).trim()
-          : null;
-      final ref = entry['speciesRef'] is String
-          ? (entry['speciesRef'] as String).trim()
-          : null;
-      final commonName = named != null && named.isNotEmpty
-          ? named
-          : (ref == null || ref.isEmpty ? null : _speciesNameFromRef(ref));
-      if (commonName == null || commonName.isEmpty) continue;
+      final scientific = trimmedOrNull(text(entry['speciesScientificName']));
+      final commonName = _sightingSpeciesName(entry);
+      if (commonName == null) continue;
 
       try {
-        final scientific = entry['speciesScientificName'] is String
-            ? (entry['speciesScientificName'] as String).trim()
-            : null;
-        final species = await repository.getOrCreateSpecies(
+        final category = entry['speciesCategory'];
+        final species = await resolver.resolve(
           commonName: commonName,
           scientificName: scientific,
-          category: SpeciesCategory.other,
+          category: category is SpeciesCategory ? category : null,
+          taxonomyClass: text(entry['speciesTaxonomyClass']),
+          description: text(entry['speciesDescription']),
         );
         await repository.addSighting(
           diveId: diveId,
@@ -3538,14 +3618,30 @@ class UddfEntityImporter {
       for (final sightingData in sightingsData)
         if (sightingData['speciesRef'] case final String speciesRef
             when speciesRef.isNotEmpty)
-          MarineSighting(
-            id: _uuid.v4(),
-            speciesId: speciesRef,
-            speciesName: _speciesNameFromRef(speciesRef),
-            count: sightingData['count'] as int? ?? 1,
-            notes: sightingData['notes'] as String? ?? '',
-          ),
+          if (_sightingSpeciesName(sightingData) case final String name)
+            MarineSighting(
+              id: _uuid.v4(),
+              speciesId: speciesRef,
+              speciesName: name,
+              count: sightingData['count'] as int? ?? 1,
+              notes: sightingData['notes'] as String? ?? '',
+            ),
     ];
+  }
+
+  /// The name a sighting's species goes by, or null when it has none.
+  ///
+  /// A source may name the species outright, or only reference it. The
+  /// scientific name beats the ref as a fallback: a Submersion ref is
+  /// `species_<uuid>`, which makes a poor name. [_importSightings] and
+  /// [_buildSightings] share this so the dive and the species row agree.
+  String? _sightingSpeciesName(Map<dynamic, dynamic> entry) {
+    String? text(Object? value) =>
+        value is String ? trimmedOrNull(value) : null;
+    final ref = text(entry['speciesRef']);
+    return text(entry['speciesName']) ??
+        text(entry['speciesScientificName']) ??
+        (ref == null ? null : trimmedOrNull(_speciesNameFromRef(ref)));
   }
 
   String _speciesNameFromRef(String ref) {
@@ -3850,3 +3946,12 @@ class _DiveImportResult {
     this.diveIdBySourceUuid = const {},
   ]);
 }
+
+/// The refs in [list] (a parsed list of strings), else [single] alone: a file
+/// written before #2515 carries one ref where newer files carry a list.
+List<String> _refList(Object? list, Object? single) => [
+  if (list is List)
+    ...list.whereType<String>()
+  else if (single is String)
+    single,
+];

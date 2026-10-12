@@ -6488,12 +6488,6 @@ abstract class AppLocalizations {
   /// **'Wallet View'**
   String get certifications_list_tooltip_walletView;
 
-  /// No description provided for @certifications_picker_clearTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear certification selection'**
-  String get certifications_picker_clearTooltip;
-
   /// No description provided for @certifications_picker_empty_addButton.
   ///
   /// In en, this message translates to:
@@ -6530,17 +6524,11 @@ abstract class AppLocalizations {
   /// **'New Cert'**
   String get certifications_picker_newCert;
 
-  /// No description provided for @certifications_picker_noSelection.
+  /// Title of the multi-select certification sheet in the course editor
   ///
   /// In en, this message translates to:
-  /// **'No certification selected'**
-  String get certifications_picker_noSelection;
-
-  /// No description provided for @certifications_picker_sheetTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Link to Certification'**
-  String get certifications_picker_sheetTitle;
+  /// **'Select Certifications'**
+  String get certifications_picker_selectTitle;
 
   /// No description provided for @certifications_search_empty_hint.
   ///
@@ -8196,12 +8184,6 @@ abstract class AppLocalizations {
   /// **'Started {date}'**
   String courses_card_started(Object date);
 
-  /// No description provided for @courses_detail_certificationNotFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Certification not found'**
-  String get courses_detail_certificationNotFound;
-
   /// No description provided for @courses_detail_noTrainingDives.
   ///
   /// In en, this message translates to:
@@ -8316,11 +8298,11 @@ abstract class AppLocalizations {
   /// **'Instructor Number'**
   String get courses_field_instructorNumber;
 
-  /// No description provided for @courses_field_linkCertificationHint.
+  /// Hint under the Earned Certifications header in the course editor
   ///
   /// In en, this message translates to:
-  /// **'Link a certification earned from this course'**
-  String get courses_field_linkCertificationHint;
+  /// **'Link the certifications earned from this course'**
+  String get courses_field_linkCertificationsHint;
 
   /// No description provided for @courses_field_location.
   ///
@@ -8406,12 +8388,6 @@ abstract class AppLocalizations {
   /// **'Active'**
   String get courses_picker_active;
 
-  /// No description provided for @courses_picker_clearSelection.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear selection'**
-  String get courses_picker_clearSelection;
-
   /// No description provided for @courses_picker_createCourse.
   ///
   /// In en, this message translates to:
@@ -8436,17 +8412,17 @@ abstract class AppLocalizations {
   /// **'No courses yet'**
   String get courses_picker_noCourses;
 
-  /// No description provided for @courses_picker_noneSelected.
+  /// Title of the multi-select course sheet
   ///
   /// In en, this message translates to:
-  /// **'No course selected'**
-  String get courses_picker_noneSelected;
+  /// **'Select Training Courses'**
+  String get courses_picker_selectCoursesTitle;
 
-  /// No description provided for @courses_picker_selectTitle.
+  /// Subtitle on a certification already linked to another course; ticking it moves it here
   ///
   /// In en, this message translates to:
-  /// **'Select Training Course'**
-  String get courses_picker_selectTitle;
+  /// **'Linked to: {courseName}'**
+  String courses_picker_linkedTo(String courseName);
 
   /// No description provided for @courses_picker_selected.
   ///
@@ -8514,11 +8490,11 @@ abstract class AppLocalizations {
   /// **'Course Details'**
   String get courses_section_details;
 
-  /// No description provided for @courses_section_earnedCertification.
+  /// Course editor and course detail section listing the certifications the course earned
   ///
   /// In en, this message translates to:
-  /// **'Earned Certification'**
-  String get courses_section_earnedCertification;
+  /// **'Earned Certifications'**
+  String get courses_section_earnedCertifications;
 
   /// No description provided for @courses_section_instructor.
   ///
@@ -8861,6 +8837,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last dive {days}d ago'**
   String dashboard_gauges_lastDiveDays(int days);
+
+  /// Dashboard chip when the last dive was a year or more ago; span is a formatted elapsed time such as 1y 35d
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive {span} ago'**
+  String dashboard_gauges_lastDiveSpan(String span);
 
   /// No description provided for @dashboard_gauges_lastDiveToday.
   ///
@@ -12037,12 +12019,6 @@ abstract class AppLocalizations {
   /// **'Add site'**
   String get diveLog_edit_row_addSite;
 
-  /// Row label: training course picker
-  ///
-  /// In en, this message translates to:
-  /// **'Course'**
-  String get diveLog_edit_row_course;
-
   /// Row label: dive center picker
   ///
   /// In en, this message translates to:
@@ -12223,11 +12199,11 @@ abstract class AppLocalizations {
   /// **'Tags'**
   String get diveLog_edit_section_tags;
 
-  /// No description provided for @diveLog_edit_section_trainingCourse.
+  /// Dive editor, bulk editor and dive detail label for the training courses a dive belongs to
   ///
   /// In en, this message translates to:
-  /// **'Training Course'**
-  String get diveLog_edit_section_trainingCourse;
+  /// **'Training Courses'**
+  String get diveLog_edit_section_trainingCourses;
 
   /// No description provided for @diveLog_edit_section_trip.
   ///
@@ -12373,11 +12349,11 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get diveLog_edit_tooltip_removeWeight;
 
-  /// No description provided for @diveLog_edit_trainingCourseHint.
+  /// Hint above the course chips in the dive editor
   ///
   /// In en, this message translates to:
-  /// **'Link this dive to a training course'**
-  String get diveLog_edit_trainingCourseHint;
+  /// **'Link this dive to one or more training courses'**
+  String get diveLog_edit_trainingCoursesHint;
 
   /// No description provided for @diveLog_edit_tripSuggested.
   ///
@@ -22033,6 +22009,12 @@ abstract class AppLocalizations {
   /// **'Filled from {name}'**
   String passport_scan_filledFrom(String name);
 
+  /// No description provided for @passport_scan_filledFromUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Filled from {name}. Used on {count} earlier dive.} other{Filled from {name}. Used on {count} earlier dives.}}'**
+  String passport_scan_filledFromUsed(String name, int count);
+
   /// No description provided for @passport_foreign_title.
   ///
   /// In en, this message translates to:
@@ -22044,6 +22026,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This cylinder is not in your gear.'**
   String get passport_foreign_notInGear;
+
+  /// No description provided for @passport_usage_foreignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{You have used this cylinder {count} time} other{You have used this cylinder {count} times}}'**
+  String passport_usage_foreignTitle(int count);
+
+  /// No description provided for @passport_usage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get passport_usage_title;
+
+  /// No description provided for @passport_usage_ownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Used on {count} dive} other{Used on {count} dives}}'**
+  String passport_usage_ownTitle(int count);
+
+  /// No description provided for @passport_usage_lastUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Last used {date}'**
+  String passport_usage_lastUsed(String date);
+
+  /// No description provided for @passport_usage_noSite.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get passport_usage_noSite;
+
+  /// No description provided for @passport_usage_diveNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {number}'**
+  String passport_usage_diveNumber(int number);
+
+  /// No description provided for @passport_usage_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all {count}'**
+  String passport_usage_showAll(int count);
+
+  /// No description provided for @passport_usage_loadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load your dives with this cylinder'**
+  String get passport_usage_loadFailed;
 
   /// No description provided for @passport_foreign_writtenOn.
   ///
@@ -22681,12 +22711,6 @@ abstract class AppLocalizations {
   /// **'{hours}h {minutes}m'**
   String pdf_hoursMinutes(String hours, String minutes);
 
-  /// No description provided for @pdf_minutesShort.
-  ///
-  /// In en, this message translates to:
-  /// **'{minutes}m'**
-  String pdf_minutesShort(String minutes);
-
   /// No description provided for @pdf_minutes.
   ///
   /// In en, this message translates to:
@@ -23203,11 +23227,11 @@ abstract class AppLocalizations {
   /// **'End'**
   String get pdf_pressureEnd;
 
-  /// No description provided for @pdf_surfaceIntervalShort.
+  /// Short surface interval line in the NAUI logbook; interval is a formatted elapsed time
   ///
   /// In en, this message translates to:
-  /// **'SI: {minutes}min'**
-  String pdf_surfaceIntervalShort(String minutes);
+  /// **'SI: {interval}'**
+  String pdf_surfaceIntervalSpan(String interval);
 
   /// No description provided for @pdf_diveDataHeading.
   ///
@@ -24689,6 +24713,18 @@ abstract class AppLocalizations {
   /// **'Add your diving equipment to track usage and service'**
   String get equipment_list_emptyState_addPrompt;
 
+  /// Empty Equipment list when the diver's default view (Settings > Manage > Default equipment view) hides every item they own
+  ///
+  /// In en, this message translates to:
+  /// **'Your default view hides the rest of your gear.'**
+  String get equipment_list_emptyState_defaultView_subtitle;
+
+  /// Heading of the empty Equipment list when the default view hides every item the diver owns
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment in your default view'**
+  String get equipment_list_emptyState_defaultView_title;
+
   /// No description provided for @equipment_list_emptyState_filterText_equipment.
   ///
   /// In en, this message translates to:
@@ -24755,6 +24791,12 @@ abstract class AppLocalizations {
   /// **'No equipment in this category'**
   String get equipment_list_emptyState_noTypeMatch;
 
+  /// Button on the empty Equipment list that switches the status filter to All Equipment
+  ///
+  /// In en, this message translates to:
+  /// **'Show All Equipment'**
+  String get equipment_list_emptyState_showAll;
+
   /// No description provided for @equipment_list_emptyState_serviceDueUpToDate.
   ///
   /// In en, this message translates to:
@@ -24785,10 +24827,10 @@ abstract class AppLocalizations {
   /// **'All Equipment'**
   String get equipment_list_filterAll;
 
-  /// Equipment filter status chip for the default view: every item except retired and sold gear
+  /// Equipment filter status chip for the diver's default view: the statuses chosen in Settings > Manage > Default equipment view (issue #2628)
   ///
   /// In en, this message translates to:
-  /// **'Current Equipment'**
+  /// **'Default View'**
   String get equipment_list_filterCurrent;
 
   /// No description provided for @equipment_list_filterServiceDue.
@@ -24862,6 +24904,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get equipment_filter_section_status;
+
+  /// Button beside the Status heading in the equipment filter panel that opens the default equipment view settings
+  ///
+  /// In en, this message translates to:
+  /// **'Edit default'**
+  String get equipment_filter_editDefault;
 
   /// No description provided for @equipment_filter_section_tags.
   ///
@@ -35592,6 +35640,12 @@ abstract class AppLocalizations {
   /// **'Role'**
   String get settings_conflict_field_equipmentComponents_role;
 
+  /// No description provided for @settings_conflict_field_equipmentDefaultStatuses.
+  ///
+  /// In en, this message translates to:
+  /// **'Default equipment view'**
+  String get settings_conflict_field_equipmentDefaultStatuses;
+
   /// No description provided for @settings_conflict_field_equipmentFindings_severity.
   ///
   /// In en, this message translates to:
@@ -40147,6 +40201,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Where your gear is kept, serviced or lent'**
   String get settings_manage_locations_subtitle;
+
+  /// Explanation at the top of the Default equipment view settings page (issue #2628)
+  ///
+  /// In en, this message translates to:
+  /// **'When no filter is set, the Equipment list shows gear with these statuses.'**
+  String get settings_equipmentDefaultView_intro;
+
+  /// Joins status names in the default equipment view summary, e.g. 'Active, Spare'
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get settings_equipmentDefaultView_listSeparator;
+
+  /// Title of the settings page, and its Settings > Manage row, choosing which statuses the Equipment list shows with no filter set
+  ///
+  /// In en, this message translates to:
+  /// **'Default equipment view'**
+  String get settings_equipmentDefaultView_title;
 
   /// Settings > Manage tile: the certification currency rule catalog
   ///
@@ -44770,6 +44842,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Your last dive was 1 day ago} other{Your last dive was {count} days ago}}'**
   String insights_observations_diveGap(int count);
 
+  /// Observation when the last dive was a year or more ago; span is a formatted elapsed time such as 1y 35d
+  ///
+  /// In en, this message translates to:
+  /// **'Your last dive was {span} ago'**
+  String insights_observations_diveGapSpan(String span);
+
   /// One site holds a large share of recent dives
   ///
   /// In en, this message translates to:
@@ -45176,21 +45254,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load surface interval data'**
   String get insights_timePatterns_surfaceInterval_error;
-
-  /// No description provided for @insights_timePatterns_surfaceInterval_formatHoursMinutes.
-  ///
-  /// In en, this message translates to:
-  /// **'{hours}h {minutes}m'**
-  String insights_timePatterns_surfaceInterval_formatHoursMinutes(
-    Object hours,
-    Object minutes,
-  );
-
-  /// No description provided for @insights_timePatterns_surfaceInterval_formatMinutes.
-  ///
-  /// In en, this message translates to:
-  /// **'{minutes} min'**
-  String insights_timePatterns_surfaceInterval_formatMinutes(Object minutes);
 
   /// No description provided for @insights_timePatterns_surfaceInterval_maximum.
   ///
@@ -47933,6 +47996,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View All'**
   String get trips_photos_viewAll;
+
+  /// No description provided for @trips_picker_alreadyPacked.
+  ///
+  /// In en, this message translates to:
+  /// **'Already packed'**
+  String get trips_picker_alreadyPacked;
 
   /// No description provided for @trips_picker_clearTooltip.
   ///
@@ -71537,6 +71606,42 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{in {count}d} other{in {count}d}}'**
   String common_relativeTime_inDays(int count);
 
+  /// An elapsed time under an hour, such as a short surface interval
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String common_elapsed_minutes(int minutes);
+
+  /// An elapsed time from one hour up to a day
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String common_elapsed_hoursMinutes(int hours, int minutes);
+
+  /// An elapsed time from one day up to a year, minutes left out
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h'**
+  String common_elapsed_daysHours(int days, int hours);
+
+  /// An elapsed time of a year or more (365-day years), hours left out
+  ///
+  /// In en, this message translates to:
+  /// **'{years}y {days}d'**
+  String common_elapsed_yearsDays(int years, int days);
+
+  /// An exact elapsed time from one day up to a year, for the sync conflict dialog where two values must stay distinguishable
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h {minutes}m'**
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes);
+
+  /// An exact elapsed time of a year or more (365-day years), for the sync conflict dialog
+  ///
+  /// In en, this message translates to:
+  /// **'{years}y {days}d {hours}h'**
+  String common_elapsed_yearsDaysHours(int years, int days, int hours);
+
   /// Relative future time in whole hours (abbreviated)
   ///
   /// In en, this message translates to:
@@ -74066,6 +74171,16 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}, {startDate} to {endDate}, selected'**
   String trips_picker_tileSemanticsSelected(
+    Object name,
+    Object startDate,
+    Object endDate,
+  );
+
+  /// No description provided for @trips_picker_tileSemanticsPacked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {startDate} to {endDate}, already packed'**
+  String trips_picker_tileSemanticsPacked(
     Object name,
     Object startDate,
     Object endDate,

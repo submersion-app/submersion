@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -193,7 +194,12 @@ void main() {
       // Statement logging rather than a stopwatch: the regression this guards
       // is the query count, which timing on an in-memory database would hide.
       await tearDownTestDatabase();
-      db = AppDatabase(NativeDatabase.memory(logStatements: true));
+      db = AppDatabase(
+        NativeDatabase.memory(
+          setup: registerAppSqlFunctions,
+          logStatements: true,
+        ),
+      );
       DatabaseService.instance.setTestDatabase(db);
       repository = DiveRepository();
       seriesRepository = ProfileSeriesRepository();

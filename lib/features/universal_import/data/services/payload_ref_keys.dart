@@ -20,6 +20,8 @@ const Map<String, ImportEntityType> diveListRefTypes = {
   'buddyRefs': ImportEntityType.buddies,
   'diveGuideRefs': ImportEntityType.buddies,
   'tagRefs': ImportEntityType.tags,
+  // Every course a dive is in (#2515); courseRef stays for older files.
+  'courseRefs': ImportEntityType.courses,
 };
 
 /// Fields inside a dive's `gearLinks` entries (issue #1487).

@@ -75,6 +75,9 @@ reason.
 - UDDF export of fills. CSV joins in PR 5; the `.db` backup is a byte copy
   and already carries every table.
 
+  Decided 2026-10-12 (#2651): built. A full UDDF backup carries fills and
+  each item's passport id; see `2026-10-12-uddf-cylinder-fills-design.md`.
+
   Decided 2026-09-29 (PR 5): there is no multi-file CSV "bundle" in the
   code. The app has three self-describing Submersion CSVs (dives, sites,
   equipment), each with a header signature and a parser, plus an
@@ -709,7 +712,8 @@ Filed as their own issues, not part of this program:
   times", rental memory across seasons.
 - A signed record from a gas blender result, and linking a fill to a billed
   fill in the blender's invoice archive.
-- UDDF export of fills.
+- UDDF export of fills. Built 2026-10-12 (#2651), see
+  `2026-10-12-uddf-cylinder-fills-design.md`.
 - Explicit station key exchange (scanning a station identity QR before its
   records count). The fingerprint on the identity card is the manual form.
 - Tags and passports for gear other than cylinders.

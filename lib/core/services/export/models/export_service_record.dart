@@ -8,6 +8,10 @@ class ServiceRecord {
   final String id;
   final String equipmentId;
   final ServiceCategory serviceCategory;
+
+  /// The service kind (clock) the record fulfils (issue #2651); null when
+  /// untagged.
+  final String? serviceKindId;
   final DateTime serviceDate;
   final String? provider;
   final double? cost;
@@ -19,6 +23,7 @@ class ServiceRecord {
     required this.id,
     required this.equipmentId,
     required this.serviceCategory,
+    this.serviceKindId,
     required this.serviceDate,
     this.provider,
     this.cost,

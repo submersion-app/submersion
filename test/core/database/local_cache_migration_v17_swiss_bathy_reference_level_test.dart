@@ -1,13 +1,16 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 
 void main() {
   test(
     'fresh database exposes reference_level_meters on swiss_bathy_tile_cache',
     () async {
-      final db = LocalCacheDatabase(NativeDatabase.memory());
+      final db = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
       expect(db.schemaVersion, greaterThanOrEqualTo(17));
       await db

@@ -1614,6 +1614,7 @@ class SyncService {
             records: data.diveDiveTypes,
             hasUpdatedAt: false,
           ),
+          (type: 'diveCourses', records: data.diveCourses, hasUpdatedAt: false),
           (
             type: 'diveDiverRoles',
             records: data.diveDiverRoles,
@@ -2659,6 +2660,7 @@ class SyncService {
     'diveEquipment': false,
     'diveTags': false,
     'diveDiveTypes': false,
+    'diveCourses': false,
     'diveBuddies': false,
     'diveProfileEvents': false,
     'diveSafetyReviews': false,
@@ -2864,6 +2866,10 @@ class SyncService {
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
     'diveDiveTypes': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveCourses': [
+      (field: 'diveId', parent: 'dives', nullable: false),
+      (field: 'courseId', parent: 'courses', nullable: false),
+    ],
     'diveDiverRoles': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveBuddyRoles': [
       (field: 'diveId', parent: 'dives', nullable: false),
@@ -3912,6 +3918,7 @@ class SyncService {
           // The batch paths re-derive this in repairDanglingForeignKeys;
           // this single-record write skips it.
           await _serializer.alignLinkedRouteOwners();
+          await _serializer.seedRepresentativeCourseLinks();
         }
         await _syncRepository.clearConflict(
           entityType: entityType,
@@ -3924,6 +3931,7 @@ class SyncService {
           remoteData['id'] = _uuid.v4();
           await _serializer.upsertRecord(entityType, remoteData);
           await _serializer.alignLinkedRouteOwners();
+          await _serializer.seedRepresentativeCourseLinks();
         }
         await _syncRepository.clearConflict(
           entityType: entityType,

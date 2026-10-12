@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 import 'test_fixtures.dart';
@@ -53,7 +54,9 @@ void main() {
     }
 
     test('fresh database has MacDive dive columns on dives table', () async {
-      final db = AppDatabase(NativeDatabase.memory());
+      final db = AppDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
       addTearDown(db.close);
 
       final cols = await db.customSelect("PRAGMA table_info('dives')").get();
@@ -68,7 +71,9 @@ void main() {
     test(
       'fresh database has MacDive site columns on dive_sites table',
       () async {
-        final db = AppDatabase(NativeDatabase.memory());
+        final db = AppDatabase(
+          NativeDatabase.memory(setup: registerAppSqlFunctions),
+        );
         addTearDown(db.close);
 
         final cols = await db

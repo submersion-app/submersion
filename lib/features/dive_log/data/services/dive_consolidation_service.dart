@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/courses/data/dive_course_links.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -677,6 +678,17 @@ class DiveConsolidationService {
           );
         }
 
+        // Courses: union onto the target, which keeps its representative
+        // unless a secondary course starts earlier (#2515).
+        await DiveCourseLinks(_db, _sync).addCourses(
+          [targetDiveId],
+          [
+            for (final r in snapshot.diveCourseRows)
+              if (r.diveId == secondary.id) r.courseId,
+          ],
+          now: now,
+        );
+
         // Sightings: union by speciesId -- the same species seen by both
         // computers is one sighting; keep the target's row, add
         // secondary-only species.
@@ -887,6 +899,7 @@ class DiveConsolidationService {
             '${r.diveId}|${r.equipmentId}',
         },
         'diveDiveTypes': {for (final r in snapshot.diveTypeRows) r.id},
+        'diveCourses': {for (final r in snapshot.diveCourseRows) r.id},
         'sightings': {for (final r in snapshot.sightingRows) r.id},
         'diveWeights': {for (final r in snapshot.weightRows) r.id},
         'diveCustomFields': {for (final r in snapshot.customFieldRows) r.id},
@@ -952,6 +965,12 @@ class DiveConsolidationService {
           )..where((t) => t.diveId.equals(mergedId))).get())
             r.id,
         ],
+        'diveCourses': [
+          for (final r in await (_db.select(
+            _db.diveCourses,
+          )..where((t) => t.diveId.equals(mergedId))).get())
+            r.id,
+        ],
         'sightings': [
           for (final r in await (_db.select(
             _db.sightings,
@@ -1000,6 +1019,7 @@ class DiveConsolidationService {
         );
         batch.deleteWhere(_db.diveEquipment, (t) => t.diveId.equals(mergedId));
         batch.deleteWhere(_db.diveDiveTypes, (t) => t.diveId.equals(mergedId));
+        batch.deleteWhere(_db.diveCourses, (t) => t.diveId.equals(mergedId));
         batch.deleteWhere(_db.diveTags, (t) => t.diveId.equals(mergedId));
         batch.deleteWhere(_db.diveBuddies, (t) => t.diveId.equals(mergedId));
         batch.deleteWhere(_db.sightings, (t) => t.diveId.equals(mergedId));
@@ -1140,6 +1160,16 @@ class DiveConsolidationService {
             .insert(r.toCompanion(false), mode: InsertMode.insertOrReplace);
         await _sync.markRecordPending(
           entityType: 'diveDiveTypes',
+          recordId: r.id,
+          localUpdatedAt: now,
+        );
+      }
+      for (final r in snapshot.diveCourseRows) {
+        await _db
+            .into(_db.diveCourses)
+            .insert(r.toCompanion(false), mode: InsertMode.insertOrReplace);
+        await _sync.markRecordPending(
+          entityType: 'diveCourses',
           recordId: r.id,
           localUpdatedAt: now,
         );

@@ -92,6 +92,25 @@ void main() {
     expect(find.text('3h 0m'), findsOneWidget);
   });
 
+  testWidgets('long surface intervals read in days and years', (tester) async {
+    await pumpPage(
+      tester,
+      days: () async => const [(dayOfWeek: 6, count: 1)],
+      timesOfDay: () async => [
+        DistributionSegment(label: 'Morning', count: 1, percentage: 100),
+      ],
+      months: () async => const [(month: 7, count: 1)],
+      // 157h 42m and 400 days; the minimum sits just under an hour so the
+      // rounded average must not read "60 min".
+      surfaceInterval: () async =>
+          (avgMinutes: 9462.0, minMinutes: 59.6, maxMinutes: 576000.0),
+    );
+
+    expect(find.text('6d 13h'), findsOneWidget);
+    expect(find.text('1h 0m'), findsOneWidget);
+    expect(find.text('1y 35d'), findsOneWidget);
+  });
+
   testWidgets('shows each empty state when there is nothing to chart', (
     tester,
   ) async {

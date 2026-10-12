@@ -154,6 +154,22 @@ void main() {
       expect((await TagRepository().getTagsForDive('dive-9')).length, 1);
     });
 
+    test('names differing only in an accented capital fold (#3032)', () async {
+      // The local row holds the capital: LOWER() leaves "É" alone on the
+      // stored side while Dart folds the incoming name, so the comparison
+      // missed only in this direction.
+      await createTaggedDive('dive-1', 'tag-aaa', name: 'épave');
+      await seedPeerLog(cloud, 'device-a');
+
+      await createTaggedDive('dive-2', 'tag-zzz', name: 'Épave');
+
+      final result = await buildService().performSync();
+      expect(result.status, isNot(SyncResultStatus.error));
+
+      expect(await tagIds(), ['tag-aaa']);
+      expect(await junctionPairs(), ['dive-1|tag-aaa', 'dive-2|tag-aaa']);
+    });
+
     test('a peer junction for a pair we already have is a no-op', () async {
       // Same tag id on both sides (the ordinary case) but a different
       // junction uuid: the surrogate key made this a second row.

@@ -4,6 +4,7 @@ import 'dart:ui' show Size;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
@@ -23,7 +24,9 @@ void main() {
   final bytes = Uint8List.fromList(List<int>.generate(64, (i) => i));
 
   setUp(() {
-    cacheDb = LocalCacheDatabase(NativeDatabase.memory());
+    cacheDb = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     gallery = FakePhotoPickerService(
       assets: [FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken)],
     );

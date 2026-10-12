@@ -31,7 +31,10 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -62,6 +65,9 @@ class UddfFullExportService {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     List<EquipmentObservation>? observations,
+    List<CylinderFill>? fills,
+    List<ServiceKind>? serviceKinds,
+    Map<String, List<ServiceSchedule>> serviceSchedulesByItem = const {},
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -380,6 +386,7 @@ class UddfFullExportService {
         // Application data section for all non-standard data
         UddfExportBuilders.buildApplicationData(
           builder,
+          backup: true,
           equipment: equipment,
           equipmentTagIdsByItem: equipmentTagIdsByItem,
           certifications: certifications,
@@ -389,6 +396,9 @@ class UddfFullExportService {
           species: species,
           serviceRecords: serviceRecords,
           observations: observations,
+          fills: fills,
+          serviceKinds: serviceKinds,
+          serviceSchedulesByItem: serviceSchedulesByItem,
           settings: settings,
           owner: owner,
           tags: tags,
@@ -450,6 +460,9 @@ class UddfFullExportService {
     List<EquipmentComponent>? components,
     List<DiveSourceExport>? dataSources,
     List<EquipmentObservation>? observations,
+    List<CylinderFill>? fills,
+    List<ServiceKind>? serviceKinds,
+    Map<String, List<ServiceSchedule>> serviceSchedulesByItem = const {},
     List<ServiceRecord>? serviceRecords,
     Map<String, List<Tag>>? diveTags,
     Map<String, List<DiveWeight>>? diveWeights,
@@ -460,10 +473,13 @@ class UddfFullExportService {
     // agencies and levels (issue #690).
     List<Certification>? certifications,
     CertificationCatalog? certificationCatalog,
+    // A backup's courses and their links (issue #2515).
+    List<Course>? courses,
     UddfExportOptions options = const UddfExportOptions(),
   }) => _generateAllDataXml(
     dives: dives,
     certifications: certifications,
+    courses: courses,
     certificationCatalog: certificationCatalog,
     sites: sites,
     tags: tags,
@@ -481,6 +497,9 @@ class UddfFullExportService {
     components: components,
     dataSources: dataSources,
     observations: observations,
+    fills: fills,
+    serviceKinds: serviceKinds,
+    serviceSchedulesByItem: serviceSchedulesByItem,
     serviceRecords: serviceRecords,
     diveTags: diveTags,
     diveWeights: diveWeights,
@@ -504,6 +523,9 @@ class UddfFullExportService {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     List<EquipmentObservation>? observations,
+    List<CylinderFill>? fills,
+    List<ServiceKind>? serviceKinds,
+    Map<String, List<ServiceSchedule>> serviceSchedulesByItem = const {},
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -544,6 +566,9 @@ class UddfFullExportService {
       species: species,
       serviceRecords: serviceRecords,
       observations: observations,
+      fills: fills,
+      serviceKinds: serviceKinds,
+      serviceSchedulesByItem: serviceSchedulesByItem,
       settings: settings,
       diveBuddies: diveBuddies,
       owner: owner,
@@ -587,6 +612,9 @@ class UddfFullExportService {
     List<Species>? species,
     List<ServiceRecord>? serviceRecords,
     List<EquipmentObservation>? observations,
+    List<CylinderFill>? fills,
+    List<ServiceKind>? serviceKinds,
+    Map<String, List<ServiceSchedule>> serviceSchedulesByItem = const {},
     Map<String, String>? settings,
     Map<String, List<BuddyWithRole>>? diveBuddies,
     Diver? owner,
@@ -627,6 +655,9 @@ class UddfFullExportService {
       species: species,
       serviceRecords: serviceRecords,
       observations: observations,
+      fills: fills,
+      serviceKinds: serviceKinds,
+      serviceSchedulesByItem: serviceSchedulesByItem,
       settings: settings,
       diveBuddies: diveBuddies,
       owner: owner,

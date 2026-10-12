@@ -146,7 +146,9 @@ class _Ctx {
     // builder text row) whose words must appear together, in order. Bare
     // words arrive as separate one-word nodes under an AND (#2773).
     final raw = words.join(' ');
-    final term = '%${escapeLike(raw)}%';
+    // Lowered here, the column by unicode_lower in each template: LIKE
+    // folds ASCII only, so "écueil" missed "Écueil" (#3032).
+    final term = '%${escapeLike(raw.toLowerCase())}%';
     final alts = <String>[];
     for (final t in entity.textSearchSql) {
       alts.add(substituteRow(t, alias));
@@ -357,8 +359,8 @@ class _Ctx {
           for (final v in items) {
             params.add((v as StringValue).value);
           }
-          final ph = List.filled(items.length, 'LOWER(?)').join(', ');
-          return '(LOWER($c) IN ($ph))';
+          final ph = List.filled(items.length, 'unicode_lower(?)').join(', ');
+          return '(unicode_lower($c) IN ($ph))';
         }
         for (final v in items) {
           params.add(_bind(f, v));
@@ -366,8 +368,9 @@ class _Ctx {
         return '($c IN (${List.filled(items.length, '?').join(', ')}))';
       case QueryOp.contains:
         final c = col();
-        params.add('%${escapeLike((value as StringValue).value)}%');
-        return "($c LIKE ? ESCAPE '\\')";
+        final needle = (value as StringValue).value.toLowerCase();
+        params.add('%${escapeLike(needle)}%');
+        return "(unicode_lower($c) LIKE ? ESCAPE '\\')";
       case QueryOp.eq:
       case QueryOp.neq:
         return _equality(f, col, op, value!, alias);
@@ -427,7 +430,10 @@ class _Ctx {
     if (f.type == FieldType.text) {
       final c = col();
       params.add((value as StringValue).value);
-      return positive ? '(LOWER($c) = LOWER(?))' : '(LOWER($c) != LOWER(?))';
+      // unicode_lower, not LOWER(): the built-in folds ASCII only (#3032).
+      return positive
+          ? '(unicode_lower($c) = unicode_lower(?))'
+          : '(unicode_lower($c) != unicode_lower(?))';
     }
     if (positive) {
       final c = col();

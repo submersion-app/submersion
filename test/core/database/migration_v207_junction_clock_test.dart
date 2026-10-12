@@ -1,6 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
 /// v207 gives the three composite-natural-key gear junctions an `updated_at`
@@ -39,7 +40,9 @@ void main() {
   });
 
   test('a fresh database has updated_at on all three junctions', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     for (final table in _junctions) {
@@ -48,7 +51,9 @@ void main() {
   });
 
   test('an inserted link is stamped without the caller saying so', () async {
-    final db = AppDatabase(NativeDatabase.memory());
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
     addTearDown(db.close);
 
     final before = DateTime.now().millisecondsSinceEpoch;

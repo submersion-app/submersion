@@ -527,15 +527,19 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       );
     }
 
-    final loadedBuddies =
-        buddiesAsync.valueOrNull ?? const <BuddyWithDiveCount>[];
+    final loadedBuddies = buddiesAsync.value ?? const <BuddyWithDiveCount>[];
     final visibleIds = loadedBuddies.map((b) => b.buddy.id).toList();
 
     // Drop checked buddies that fell out of the visible list, so the count
-    // always matches what is on screen. pruneTo is a no-op when nothing
+    // always matches what is on screen. pruneToSettled is a no-op when nothing
     // changed, which keeps this off a rebuild loop.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && buddiesAsync.hasSettled) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          buddiesAsync,
+          (rows) => rows.map((b) => b.buddy.id),
+        );
+      }
     });
 
     if (!widget.showAppBar) {
@@ -655,14 +659,18 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     BuildContext context,
     AsyncValue<List<BuddyWithDiveCount>> buddiesAsync,
   ) {
-    final loadedBuddies =
-        buddiesAsync.valueOrNull ?? const <BuddyWithDiveCount>[];
+    final loadedBuddies = buddiesAsync.value ?? const <BuddyWithDiveCount>[];
     final visibleIds = loadedBuddies.map((b) => b.buddy.id).toList();
 
     // Same pruning the list path does: drop checked buddies that fell out of
     // the visible list, so the count always matches what is on screen.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && buddiesAsync.hasSettled) _selection.pruneTo(visibleIds);
+      if (mounted) {
+        _selection.pruneToSettled(
+          buddiesAsync,
+          (rows) => rows.map((b) => b.buddy.id),
+        );
+      }
     });
 
     // The scope carries Escape, Ctrl/Cmd-A and the Android back handling, and
