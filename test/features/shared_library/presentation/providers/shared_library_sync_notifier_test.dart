@@ -148,6 +148,27 @@ void main() {
     await expectLater(notifier.syncAll(), throwsStateError);
     expect(container.read(sharedLibrarySyncProvider).syncing, isFalse);
   });
+
+  test('disposal while the memberships load does not throw', () async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final store = _SlowStore();
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        sharedLibraryStoreProvider.overrideWithValue(store),
+      ],
+    );
+    final running = container
+        .read(sharedLibrarySyncProvider.notifier)
+        .syncAll();
+    for (var i = 0; i < 5; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    container.dispose();
+    store.release.complete();
+    await expectLater(running, completes);
+  });
 }
 
 /// Lists one connected library, then fails when the sync reads it.
@@ -175,4 +196,17 @@ class _BrokenStore extends SharedLibraryStore {
   @override
   Future<SharedLibrary?> getLibrary(String id) async =>
       throw StateError('database closed');
+}
+
+/// Holds the membership read until [release] completes.
+class _SlowStore extends SharedLibraryStore {
+  final release = Completer<void>();
+
+  @override
+  Future<List<SharedLibraryMembership>> membershipsForDiver(
+    String diverId,
+  ) async {
+    await release.future;
+    return const [];
+  }
 }

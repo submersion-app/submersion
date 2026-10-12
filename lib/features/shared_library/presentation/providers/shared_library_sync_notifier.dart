@@ -109,13 +109,16 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
   }
 
   Future<void> _syncAllOnce() async {
+    // Everything the Ref gives, read before the first await: the notifier
+    // may be disposed during any of them, after which the Ref may not be
+    // used (a queued run starts even later).
+    final store = _store;
+    final service = _service;
     final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null || !mounted) return;
-    final memberships = await _store.membershipsForDiver(diverId);
-    final connected = {for (final l in await _store.getLibraries()) l.id};
-    // Read now: a queued run may start after this notifier is disposed,
-    // when its Ref may no longer be used.
-    final service = _service;
+    final memberships = await store.membershipsForDiver(diverId);
+    final connected = {for (final l in await store.getLibraries()) l.id};
+    if (!mounted) return;
     final results = Map<String, SharedLibrarySyncResult>.from(
       state.lastResults,
     );
