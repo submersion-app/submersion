@@ -340,6 +340,11 @@ void main() {
     );
     await settle(tester);
 
+    // It returns to the page that opened the map, not to a dive list, so it
+    // is labelled as a plain Back.
+    expect(find.byTooltip('Back to dive list'), findsNothing);
+    expect(find.byTooltip('Back'), findsOneWidget);
+
     await tester.tap(find.byIcon(Icons.arrow_back).first);
     await settle(tester);
 

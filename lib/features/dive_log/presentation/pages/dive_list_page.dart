@@ -530,16 +530,18 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
 
     // Mobile: Check if map view is requested
     if (_isMapView) {
+      // A pushed map (a trip's "View on map") returns where it came from,
+      // labelled as a plain Back; the Dives tab's own map returns to its list.
+      final pushed = isPushedRoute(context);
       return Scaffold(
         appBar: AppBar(
           title: Text(context.l10n.diveLog_listPage_appBar_diveMap),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: context.l10n.diveLog_listPage_tooltip_backToDiveList,
-            // A pushed map (a trip's "View on map") returns where it came
-            // from; the Dives tab's own map returns to its list.
-            onPressed: () =>
-                isPushedRoute(context) ? context.pop() : context.go('/dives'),
+            tooltip: pushed
+                ? MaterialLocalizations.of(context).backButtonTooltip
+                : context.l10n.diveLog_listPage_tooltip_backToDiveList,
+            onPressed: () => pushed ? context.pop() : context.go('/dives'),
           ),
           actions: [
             IconButton(
