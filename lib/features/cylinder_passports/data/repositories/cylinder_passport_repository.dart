@@ -196,6 +196,43 @@ class CylinderPassportRepository {
     });
   }
 
+  /// Writes [passportId] onto [equipmentId] for an import (issue #2651) and
+  /// returns whether it did. Unlike [assignPassportId], which a diver runs
+  /// deliberately, an import only fills an empty slot: an item keeps a tag
+  /// it already has, and an id held by any other item [diverId] can see,
+  /// in service or not, stays there. Nothing is released or re-keyed. A
+  /// cylinder that takes the id relinks the fills stored under it.
+  Future<bool> adoptImportedPassportId({
+    required String equipmentId,
+    required String passportId,
+    String? diverId,
+  }) => _db.transaction(() async {
+    if (await getPassportId(equipmentId) != null) return false;
+    final holders = await _holdersOf(passportId, diverId: diverId);
+    if (holders.any((row) => row.id != equipmentId)) return false;
+    final target = await (_db.select(
+      _db.equipment,
+    )..where((t) => t.id.equals(equipmentId))).getSingleOrNull();
+    if (target == null) return false;
+    final existing = await _equipment.getAttributesForEquipment(equipmentId);
+    await _equipment.saveAttributes(equipmentId, [
+      for (final a in existing)
+        if (a.isCustom || a.key != EquipmentAttrKeys.passportId) a,
+      EquipmentAttribute.curated(
+        equipmentId: equipmentId,
+        key: EquipmentAttrKeys.passportId,
+        valueText: passportId,
+      ),
+    ]);
+    if (target.type == EquipmentType.tank.name) {
+      await _fills.relinkToEquipment(
+        passportId: passportId,
+        equipmentId: equipmentId,
+      );
+    }
+    return true;
+  });
+
   /// The cylinder's passport id, minted on first use. Minting is a pure
   /// function of the equipment id, so every device mints the same one.
   Future<String> ensurePassportId(String equipmentId, {String? diverId}) async {
