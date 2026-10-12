@@ -5614,6 +5614,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'Ultima immersione $span fa';
+  }
+
+  @override
   String get dashboard_gauges_lastDiveToday => 'Immersione oggi';
 
   @override
@@ -14212,6 +14217,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String pdf_surfaceIntervalShort(String minutes) {
     return 'IS: ${minutes}min';
+  }
+
+  @override
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'IS: $interval';
   }
 
   @override
@@ -27517,6 +27527,11 @@ class AppLocalizationsIt extends AppLocalizations {
       one: 'La tua ultima immersione risale a 1 giorno fa',
     );
     return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'La tua ultima immersione risale a $span fa';
   }
 
   @override
@@ -44445,6 +44460,26 @@ class AppLocalizationsIt extends AppLocalizations {
       one: 'tra ${count}g',
     );
     return '$_temp0';
+  }
+
+  @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '${days}g ${hours}h';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '${years}a ${days}g';
   }
 
   @override

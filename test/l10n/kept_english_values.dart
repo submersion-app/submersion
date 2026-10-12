@@ -46,6 +46,8 @@ const Map<String, String> keptEnglishValues = {
   'certifications_edit_group_tdiOpenCircuit@nl': _sameWord,
   'certifications_list_count@fr': _sameWord,
   'checklists_applySheet_itemCount@nl': _dutchItem,
+  'common_elapsed_daysHours@es': _units,
+  'common_elapsed_daysHours@pt': _units,
   'currencyRule_ssi_skills_update_name': _course,
   'dashboard_checklists_preDiveLabel@nl': _loanword,
   'dataQuality_carries_tags@de': _sameWord,

@@ -5532,6 +5532,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'Last dive $span ago';
+  }
+
+  @override
   String get dashboard_gauges_lastDiveToday => 'Dove today';
 
   @override
@@ -14006,6 +14011,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String pdf_surfaceIntervalShort(String minutes) {
     return 'SI: ${minutes}min';
+  }
+
+  @override
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'SI: $interval';
   }
 
   @override
@@ -27035,6 +27045,11 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'Your last dive was 1 day ago',
     );
     return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'Your last dive was $span ago';
   }
 
   @override
@@ -43778,6 +43793,26 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'in ${count}d',
     );
     return '$_temp0';
+  }
+
+  @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '${days}d ${hours}h';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '${years}y ${days}d';
   }
 
   @override

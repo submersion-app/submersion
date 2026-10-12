@@ -5499,6 +5499,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'צלילה אחרונה לפני $span';
+  }
+
+  @override
   String get dashboard_gauges_lastDiveToday => 'צללת היום';
 
   @override
@@ -13920,6 +13925,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String pdf_surfaceIntervalShort(String minutes) {
     return 'מרווח: $minutes דק\'';
+  }
+
+  @override
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'מרווח: $interval';
   }
 
   @override
@@ -26811,6 +26821,11 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'הצלילה האחרונה שלך הייתה לפני יום אחד',
     );
     return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'הצלילה האחרונה שלך הייתה לפני $span';
   }
 
   @override
@@ -43461,6 +43476,26 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'בעוד יום',
     );
     return '$_temp0';
+  }
+
+  @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes דק\'';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '$hours שע\' $minutes דק\'';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '$days ימ\' $hours שע\'';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '$years שנ\' $days ימ\'';
   }
 
   @override

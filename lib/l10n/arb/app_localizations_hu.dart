@@ -5600,6 +5600,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'Utolsó merülés $span ezelőtt';
+  }
+
+  @override
   String get dashboard_gauges_lastDiveToday => 'Ma merültél';
 
   @override
@@ -14174,6 +14179,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String pdf_surfaceIntervalShort(String minutes) {
     return 'Felsz.: $minutes p';
+  }
+
+  @override
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'Felsz.: $interval';
   }
 
   @override
@@ -27374,6 +27384,11 @@ class AppLocalizationsHu extends AppLocalizations {
       one: 'Az utolsó merülése 1 napja volt',
     );
     return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'Az utolsó merülése $span ezelőtt volt';
   }
 
   @override
@@ -44197,6 +44212,26 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '$count nap múlva',
     );
     return '$_temp0';
+  }
+
+  @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes p';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '$hoursó ${minutes}p';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '${days}n $hoursó';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '$yearsé ${days}n';
   }
 
   @override

@@ -5585,6 +5585,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'Laatste duik $span geleden';
+  }
+
+  @override
   String get dashboard_gauges_lastDiveToday => 'Vandaag gedoken';
 
   @override
@@ -14121,6 +14126,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String pdf_surfaceIntervalShort(String minutes) {
     return 'OI: ${minutes}min';
+  }
+
+  @override
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'OI: $interval';
   }
 
   @override
@@ -27309,6 +27319,11 @@ class AppLocalizationsNl extends AppLocalizations {
       one: 'Uw laatste duik was 1 dag geleden',
     );
     return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'Uw laatste duik was $span geleden';
   }
 
   @override
@@ -44144,6 +44159,26 @@ class AppLocalizationsNl extends AppLocalizations {
       one: 'over ${count}d',
     );
     return '$_temp0';
+  }
+
+  @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '${hours}u ${minutes}m';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '${days}d ${hours}u';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '${years}j ${days}d';
   }
 
   @override

@@ -8856,6 +8856,12 @@ abstract class AppLocalizations {
   /// **'Last dive {days}d ago'**
   String dashboard_gauges_lastDiveDays(int days);
 
+  /// Dashboard chip when the last dive was a year or more ago; span is a formatted elapsed time such as 1y 35d
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive {span} ago'**
+  String dashboard_gauges_lastDiveSpan(String span);
+
   /// No description provided for @dashboard_gauges_lastDiveToday.
   ///
   /// In en, this message translates to:
@@ -23148,6 +23154,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SI: {minutes}min'**
   String pdf_surfaceIntervalShort(String minutes);
+
+  /// Short surface interval line in the NAUI logbook; interval is a formatted elapsed time
+  ///
+  /// In en, this message translates to:
+  /// **'SI: {interval}'**
+  String pdf_surfaceIntervalSpan(String interval);
 
   /// No description provided for @pdf_diveDataHeading.
   ///
@@ -44379,6 +44391,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Your last dive was 1 day ago} other{Your last dive was {count} days ago}}'**
   String insights_observations_diveGap(int count);
+
+  /// Observation when the last dive was a year or more ago; span is a formatted elapsed time such as 1y 35d
+  ///
+  /// In en, this message translates to:
+  /// **'Your last dive was {span} ago'**
+  String insights_observations_diveGapSpan(String span);
 
   /// One site holds a large share of recent dives
   ///
@@ -71110,6 +71128,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{in {count}d} other{in {count}d}}'**
   String common_relativeTime_inDays(int count);
+
+  /// An elapsed time under an hour, such as a short surface interval
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min'**
+  String common_elapsed_minutes(int minutes);
+
+  /// An elapsed time from one hour up to a day
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m'**
+  String common_elapsed_hoursMinutes(int hours, int minutes);
+
+  /// An elapsed time from one day up to a year, minutes left out
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h'**
+  String common_elapsed_daysHours(int days, int hours);
+
+  /// An elapsed time of a year or more (365-day years), hours left out
+  ///
+  /// In en, this message translates to:
+  /// **'{years}y {days}d'**
+  String common_elapsed_yearsDays(int years, int days);
 
   /// Relative future time in whole hours (abbreviated)
   ///

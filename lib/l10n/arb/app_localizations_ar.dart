@@ -5701,6 +5701,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dashboard_gauges_lastDiveSpan(String span) {
+    return 'آخر غطسة منذ $span';
+  }
+
+  @override
   String get dashboard_gauges_lastDiveToday => 'غطست اليوم';
 
   @override
@@ -14380,6 +14385,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String pdf_surfaceIntervalShort(String minutes) {
     return 'فترة السطح: $minutes د';
+  }
+
+  @override
+  String pdf_surfaceIntervalSpan(String interval) {
+    return 'فترة السطح: $interval';
   }
 
   @override
@@ -27686,6 +27696,11 @@ class AppLocalizationsAr extends AppLocalizations {
       zero: 'كانت آخر غوصة لك اليوم',
     );
     return '$_temp0';
+  }
+
+  @override
+  String insights_observations_diveGapSpan(String span) {
+    return 'كانت آخر غوصة لك قبل $span';
   }
 
   @override
@@ -44956,6 +44971,26 @@ class AppLocalizationsAr extends AppLocalizations {
       zero: 'خلال $count يوم',
     );
     return '$_temp0';
+  }
+
+  @override
+  String common_elapsed_minutes(int minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String common_elapsed_hoursMinutes(int hours, int minutes) {
+    return '$hours س $minutes د';
+  }
+
+  @override
+  String common_elapsed_daysHours(int days, int hours) {
+    return '$days ي $hours س';
+  }
+
+  @override
+  String common_elapsed_yearsDays(int years, int days) {
+    return '$years سنة $days ي';
   }
 
   @override
