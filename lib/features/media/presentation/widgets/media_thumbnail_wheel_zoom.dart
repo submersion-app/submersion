@@ -60,7 +60,7 @@ class _MediaThumbnailWheelZoomState
       if (ref.read(mediaThumbnailScaleProvider).step == before) return;
       final box = context.findRenderObject();
       if (box is! RenderBox) return;
-      _anchor.capture(event.position, event.viewId, box);
+      _anchor.capture(event.position, box);
       // Only for the rebuild this step causes: a step that changes nothing
       // on screen must not leave an anchor for the slider to trip over.
       WidgetsBinding.instance.addPostFrameCallback((_) => _anchor.clear());

@@ -103,64 +103,77 @@ class MediaThumbnailZoomAnchorHolder {
   /// Records the thumbnail at [position] inside [boundary]. Over a gap, a
   /// header or the space after the last photo, it is the thumbnail
   /// immediately above instead; with none above either, nothing is held.
-  void capture(Offset position, int viewId, RenderBox boundary) {
+  ///
+  /// One walk of the thumbnails laid out under [boundary], rather than hit
+  /// testing the view at points up the pane: those cost a whole-tree hit
+  /// test each, and over empty space ran to hundreds per wheel click.
+  void capture(Offset position, RenderBox boundary) {
     _pending = null;
-    // Just more than a gap, so no thumbnail can be stepped over.
-    const stride = kMediaThumbnailGap + 1;
     final top = boundary.localToGlobal(Offset.zero).dy;
+    final tiles = <(RenderMetaData, Rect)>[];
+    void visit(RenderObject node) {
+      if (node is RenderMetaData && node.metaData is MediaThumbnailSlot) {
+        if (node.hasSize) {
+          tiles.add((node, node.localToGlobal(Offset.zero) & node.size));
+        }
+        return;
+      }
+      // Skips what is laid out but not shown, such as offstage children
+      // and a lazy list's kept-alive rows.
+      node.visitChildrenForSemantics(visit);
+    }
+
+    boundary.visitChildrenForSemantics(visit);
+    // Just more than a gap, so a column beside the cursor is reached.
+    const stride = kMediaThumbnailGap + 1;
     // Straight up first. Between two columns there is nothing straight up,
     // so then from one side of the gap, and from the other.
     for (final dx in const [0.0, -stride, stride]) {
-      for (var y = position.dy; y >= top; y -= stride) {
-        final found = _anchorAt(
-          Offset(position.dx + dx, y),
-          viewId,
-          boundary,
-          cursorY: position.dy,
-        );
-        if (found != null) {
-          _pending = found;
-          return;
+      final x = position.dx + dx;
+      RenderMetaData? nearest;
+      var nearestTop = double.negativeInfinity;
+      for (final (tile, rect) in tiles) {
+        // In this column, starting at or above the cursor, and showing
+        // some of itself below the top of the pane.
+        if (x < rect.left || x >= rect.right) continue;
+        if (rect.top > position.dy || rect.bottom <= top) continue;
+        if (rect.top > nearestTop) {
+          nearest = tile;
+          nearestTop = rect.top;
         }
+      }
+      if (nearest != null) {
+        _pending = _anchorFor(nearest, boundary, cursorY: position.dy);
+        return;
       }
     }
   }
 
-  MediaThumbnailZoomAnchor? _anchorAt(
-    Offset probe,
-    int viewId,
+  MediaThumbnailZoomAnchor _anchorFor(
+    RenderMetaData target,
     RenderBox boundary, {
     required double cursorY,
   }) {
-    final result = HitTestResult();
-    WidgetsBinding.instance.hitTestInView(result, probe, viewId);
-    for (final entry in result.path) {
-      final target = entry.target;
-      if (target is! RenderMetaData) continue;
-      final slot = target.metaData;
-      if (slot is! MediaThumbnailSlot) continue;
-      // The outermost lazy list or grid inside the library: the scroll
-      // view's own, above any grid nested in one of its rows.
-      RenderSliverMultiBoxAdaptor? rows;
-      for (
-        RenderObject? node = target.parent;
-        node != null && node != boundary;
-        node = node.parent
-      ) {
-        if (node is RenderSliverMultiBoxAdaptor) rows = node;
-      }
-      final leading = rows?.firstChild?.parentData;
-      return MediaThumbnailZoomAnchor(
-        slot: slot,
-        cursorY: cursorY,
-        tileTop: target.localToGlobal(Offset.zero).dy,
-        tileExtent: target.size.height,
-        leadingRow: leading is SliverMultiBoxAdaptorParentData
-            ? leading.index ?? 0
-            : 0,
-      );
+    // The outermost lazy list or grid inside the library: the scroll
+    // view's own, above any grid nested in one of its rows.
+    RenderSliverMultiBoxAdaptor? rows;
+    for (
+      RenderObject? node = target.parent;
+      node != null && node != boundary;
+      node = node.parent
+    ) {
+      if (node is RenderSliverMultiBoxAdaptor) rows = node;
     }
-    return null;
+    final leading = rows?.firstChild?.parentData;
+    return MediaThumbnailZoomAnchor(
+      slot: target.metaData as MediaThumbnailSlot,
+      cursorY: cursorY,
+      tileTop: target.localToGlobal(Offset.zero).dy,
+      tileExtent: target.size.height,
+      leadingRow: leading is SliverMultiBoxAdaptorParentData
+          ? leading.index ?? 0
+          : 0,
+    );
   }
 
   /// The pending anchor, handed over once.
