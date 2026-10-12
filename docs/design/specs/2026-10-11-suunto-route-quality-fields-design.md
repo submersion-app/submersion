@@ -65,10 +65,12 @@ undocumented extras there without another schema rung.
 walks and returns them as `SuuntoDiveRoute.sourceMetadata`
 (`Map<String, Object?>?`, unmodifiable):
 
-- The first sample carrying a key wins.
-- `DiveRouteQuality` is kept only when it is a number.
+- The first well-formed value of each key wins.
+- `DiveRouteQuality` is kept only when it is a finite number.
 - `QualityFeatures` is kept only when it is a list whose every element is a
-  number. Its length is not enforced (12 so far).
+  finite number. Its length is not enforced (12 so far).
+- Non-finite numbers count as malformed: JSON has no form for them, so they
+  could not be stored.
 - A missing or malformed key is left out. When neither is present the map is
   null.
 - When the parser returns no route, nothing is stored.
