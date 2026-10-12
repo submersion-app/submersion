@@ -5,6 +5,8 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/cylinder_config_item_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_role_option.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
@@ -118,6 +120,31 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(current.tankRole, TankRole.bailout);
+  });
+
+  testWidgets('the role field and every role option carry the role glyph', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(item: seed(role: TankRole.sidemountLeft)));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(TankRole.sidemountLeft.icon), findsOneWidget);
+
+    await tester.tap(find.text('Sidemount Left'));
+    await tester.pumpAndSettle();
+
+    for (final role in TankRole.values) {
+      expect(
+        find.descendant(
+          of: find.byType(DropdownMenuItem<TankRole>),
+          matching: find.byWidgetPredicate(
+            (w) => w is TankRoleOption && w.role == role,
+          ),
+        ),
+        findsWidgets,
+        reason: role.name,
+      );
+    }
   });
 
   testWidgets('editing O2 and He reports the parsed fractions', (tester) async {

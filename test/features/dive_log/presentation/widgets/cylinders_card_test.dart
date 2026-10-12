@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
-import 'package:submersion/core/icons/mdi_icons.dart';
+import 'package:submersion/core/icons/submersion_icons.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/cylinder_sac.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -343,7 +343,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final iconTop = tester.getTopLeft(find.byIcon(MdiIcons.divingScubaTank));
+      final iconTop = tester.getTopLeft(
+        find.byIcon(SubmersionIcons.tankBackGas),
+      );
       final nameTop = tester.getTopLeft(find.text('Tank 1 (EAN32)'));
       expect((iconTop.dy - nameTop.dy).abs(), lessThan(8));
     });

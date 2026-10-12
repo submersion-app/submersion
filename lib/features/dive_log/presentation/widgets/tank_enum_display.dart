@@ -1,9 +1,12 @@
+import 'package:flutter/widgets.dart';
+
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/icons/submersion_icons.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Localized labels for the tank / breathing-apparatus enums shown on screen
 /// (cylinder configs, the dive editor's tank rows, the SCR panel, the dive-mode
-/// selector).
+/// selector), plus the role icon for [TankRole].
 ///
 /// The `displayName` / `shortName` fields on each enum stay hardcoded English
 /// on purpose: they feed data interchange (CSV/Excel export, the PDF templates,
@@ -24,6 +27,21 @@ extension TankRoleDisplay on TankRole {
     TankRole.pony => l10n.enum_tankRole_pony,
     TankRole.diluent => l10n.enum_tankRole_diluent,
     TankRole.oxygenSupply => l10n.enum_tankRole_oxygenSupply,
+  };
+
+  /// The glyph for how this cylinder is carried (issue #2901). Roles carried
+  /// the same way share one: stage, deco and bailout are all slung, and a
+  /// rebreather's diluent and oxygen supply are both onboard cylinders, so
+  /// the label beside the icon tells those apart.
+  IconData get icon => switch (this) {
+    TankRole.backGas => SubmersionIcons.tankBackGas,
+    TankRole.sidemountLeft => SubmersionIcons.tankSidemountLeft,
+    TankRole.sidemountRight => SubmersionIcons.tankSidemountRight,
+    TankRole.stage ||
+    TankRole.deco ||
+    TankRole.bailout => SubmersionIcons.tankSlung,
+    TankRole.pony => SubmersionIcons.tankPony,
+    TankRole.diluent || TankRole.oxygenSupply => SubmersionIcons.tankRebreather,
   };
 }
 

@@ -8,7 +8,7 @@ import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_co
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_role_option.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
@@ -133,7 +133,7 @@ class _CylinderConfigItemEditorState
                     for (final role in TankRole.values)
                       DropdownMenuItem(
                         value: role,
-                        child: Text(role.localizedName(l10n)),
+                        child: TankRoleOption(role: role),
                       ),
                   ],
                   onChanged: (role) {
