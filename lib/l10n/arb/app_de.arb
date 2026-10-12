@@ -714,6 +714,7 @@
   "backup_cloud_enabled_subtitle": "Sicherungen in den Cloud-Speicher hochladen",
   "backup_delete_dialog_cancel": "Abbrechen",
   "backup_delete_dialog_content": "Diese Sicherung wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+  "backup_delete_dialog_content_otherDevice": "Diese Sicherung liegt nur in Ihrem Cloud-Speicher, und nichts zeigt, dass dieses Gerät sie erstellt hat. Es könnte die einzige Kopie eines anderen Geräts sein oder eine, die dieses Gerät vor einer Neuinstallation erstellt hat. Das Löschen kann nicht rückgängig gemacht werden.",
   "backup_delete_dialog_delete": "Löschen",
   "backup_delete_dialog_title": "Sicherung Löschen",
   "backup_export_bottomSheet_title": "Sicherung exportieren",

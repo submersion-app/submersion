@@ -689,6 +689,7 @@
   "backup_cloud_enabled_subtitle": "Subir copias al almacenamiento en la nube",
   "backup_delete_dialog_cancel": "Cancelar",
   "backup_delete_dialog_content": "Esta copia de seguridad se eliminará permanentemente. Esta acción no se puede deshacer.",
+  "backup_delete_dialog_content_otherDevice": "Esta copia de seguridad solo está en tu almacenamiento en la nube y nada indica que la haya creado este dispositivo. Puede ser la única copia de otro dispositivo, o una que este dispositivo creó antes de una reinstalación. Eliminarla no se puede deshacer.",
   "backup_delete_dialog_delete": "Eliminar",
   "backup_delete_dialog_title": "Eliminar Copia",
   "backup_export_bottomSheet_title": "Exportar Copia de Seguridad",

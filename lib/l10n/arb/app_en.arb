@@ -1539,6 +1539,7 @@
   "backup_cloud_enabled_subtitle": "Upload backups to cloud storage",
   "backup_delete_dialog_cancel": "Cancel",
   "backup_delete_dialog_content": "This backup will be permanently deleted. This cannot be undone.",
+  "backup_delete_dialog_content_otherDevice": "This backup is only in your cloud storage, and nothing shows this device made it. It may be another device's only copy, or one this device made before a reinstall. Deleting it cannot be undone.",
   "backup_delete_dialog_delete": "Delete",
   "backup_delete_dialog_title": "Delete Backup",
   "backup_export_bottomSheet_title": "Export Backup",

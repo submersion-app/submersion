@@ -1166,6 +1166,30 @@ class BackupService {
     await _preferences.addRecord(record.copyWith(pinned: true));
   }
 
+  /// Whether deleting [record] may destroy another device's only copy.
+  ///
+  /// True for a cloud-only backup whose name does not prove this device wrote
+  /// it: the backup folder is shared by every device on the account, and after
+  /// a reinstall the diver's own earlier backups carry the old install's
+  /// device tag. Deletion stays allowed (on Google Drive the folder is hidden,
+  /// so the app is the only way to remove them), but the confirmation says so.
+  /// An unreadable device id counts as not proven.
+  Future<bool> mayBeAnotherDevicesCopy(BackupRecord record) async {
+    if (record.localPath != null || record.cloudFileId == null) return false;
+    String deviceId;
+    try {
+      deviceId = await _syncRepository.getDeviceId();
+    } catch (e) {
+      _log.warning('Device id unavailable for backup ownership: $e');
+      return true;
+    }
+    return classifyBackupFile(
+          filename: record.filename,
+          thisDeviceId: deviceId,
+        ) !=
+        BackupOwnership.thisDevice;
+  }
+
   Future<void> _setPinned(String id, bool pinned) async {
     final history = _preferences.getHistory();
     BackupRecord? match;

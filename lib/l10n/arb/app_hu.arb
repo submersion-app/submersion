@@ -689,6 +689,7 @@
   "backup_cloud_enabled_subtitle": "Mentések feltöltése a felhőtárhelyre",
   "backup_delete_dialog_cancel": "Mégse",
   "backup_delete_dialog_content": "Ez a biztonsági mentés véglegesen törlésre kerül. Ez a művelet nem vonható vissza.",
+  "backup_delete_dialog_content_otherDevice": "Ez a biztonsági mentés csak a felhőtárhelyen található, és semmi sem utal arra, hogy ez az eszköz készítette. Lehet egy másik eszköz egyetlen példánya, vagy egy olyan mentés, amelyet ez az eszköz egy újratelepítés előtt készített. A törlés nem vonható vissza.",
   "backup_delete_dialog_delete": "Törlés",
   "backup_delete_dialog_title": "Mentés Törlése",
   "backup_export_bottomSheet_title": "Mentés exportálása",

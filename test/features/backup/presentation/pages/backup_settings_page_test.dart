@@ -9,6 +9,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_note_stamp.dart';
@@ -321,6 +322,43 @@ void main() {
       expect(adopted.id, 'cloud:x');
       expect(adopted.cloudFileId, 'x');
       expect(adopted.pinned, isTrue);
+    });
+
+    testWidgets('deleting a cloud-only row warns it may be another '
+        'device\'s copy', (tester) async {
+      await backupPrefs.setHistory(const []);
+      final cloudOnly = BackupRecord(
+        id: 'cloud:x',
+        filename: 'submersion_backup_2026-03-14_093015.db',
+        timestamp: _kNow,
+        sizeBytes: 2048,
+        location: BackupLocation.cloud,
+        cloudFileId: 'x',
+      );
+      final service = BackupService(
+        dbAdapter: _FakeBackupDatabaseAdapter(),
+        preferences: backupPrefs,
+        cloudProvider: null,
+        syncRepository: _FixedDeviceIdSyncRepository('this-device'),
+      );
+
+      tester.view.physicalSize = const Size(1200, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await tester.pumpWidget(buildApp(service, history: () => [cloudOnly]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete').last);
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining("another device's only copy"), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('pin failure shows SnackBar with user-facing message', (
@@ -967,4 +1005,13 @@ class _ThrowingPinBackupService extends BackupService {
   @override
   Future<void> unpinBackup(String id) async =>
       throw StateError('simulated unpin failure');
+}
+
+class _FixedDeviceIdSyncRepository extends SyncRepository {
+  _FixedDeviceIdSyncRepository(this.deviceId);
+
+  final String deviceId;
+
+  @override
+  Future<String> getDeviceId() async => deviceId;
 }

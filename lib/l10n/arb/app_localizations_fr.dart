@@ -2491,6 +2491,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette sauvegarde sera supprimée définitivement. Cette action est irréversible.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Cette sauvegarde se trouve uniquement dans votre stockage cloud, et rien n\'indique que cet appareil l\'a créée. Il peut s\'agir de la seule copie d\'un autre appareil, ou d\'une copie créée par cet appareil avant une réinstallation. La suppression est irréversible.';
+
+  @override
   String get backup_delete_dialog_delete => 'Supprimer';
 
   @override

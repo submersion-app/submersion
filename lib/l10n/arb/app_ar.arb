@@ -689,6 +689,7 @@
   "backup_cloud_enabled_subtitle": "رفع النسخ الاحتياطية إلى التخزين السحابي",
   "backup_delete_dialog_cancel": "إلغاء",
   "backup_delete_dialog_content": "سيتم حذف هذه النسخة الاحتياطية نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+  "backup_delete_dialog_content_otherDevice": "هذه النسخة الاحتياطية موجودة في التخزين السحابي فقط، ولا يوجد ما يثبت أن هذا الجهاز أنشأها. قد تكون النسخة الوحيدة لجهاز آخر، أو نسخة أنشأها هذا الجهاز قبل إعادة التثبيت. لا يمكن التراجع عن الحذف.",
   "backup_delete_dialog_delete": "حذف",
   "backup_delete_dialog_title": "حذف النسخة الاحتياطية",
   "backup_export_bottomSheet_title": "تصدير النسخة الاحتياطية",

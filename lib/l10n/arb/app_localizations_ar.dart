@@ -2540,6 +2540,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم حذف هذه النسخة الاحتياطية نهائياً. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'هذه النسخة الاحتياطية موجودة في التخزين السحابي فقط، ولا يوجد ما يثبت أن هذا الجهاز أنشأها. قد تكون النسخة الوحيدة لجهاز آخر، أو نسخة أنشأها هذا الجهاز قبل إعادة التثبيت. لا يمكن التراجع عن الحذف.';
+
+  @override
   String get backup_delete_dialog_delete => 'حذف';
 
   @override

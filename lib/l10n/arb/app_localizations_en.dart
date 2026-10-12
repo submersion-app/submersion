@@ -2458,6 +2458,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This backup will be permanently deleted. This cannot be undone.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'This backup is only in your cloud storage, and nothing shows this device made it. It may be another device\'s only copy, or one this device made before a reinstall. Deleting it cannot be undone.';
+
+  @override
   String get backup_delete_dialog_delete => 'Delete';
 
   @override

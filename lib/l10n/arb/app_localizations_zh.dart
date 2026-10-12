@@ -2368,6 +2368,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_delete_dialog_content => '此备份将被永久删除。此操作无法撤消。';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      '此备份仅存在于您的云存储中，且没有任何迹象表明是本设备创建的。它可能是另一台设备的唯一副本，也可能是本设备在重新安装前创建的。删除后无法撤消。';
+
+  @override
   String get backup_delete_dialog_delete => '删除';
 
   @override

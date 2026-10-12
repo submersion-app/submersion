@@ -2486,6 +2486,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo backup verrà eliminato permanentemente. Questa azione non può essere annullata.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Questo backup si trova solo nel tuo archivio cloud e nulla indica che sia stato creato da questo dispositivo. Potrebbe essere l\'unica copia di un altro dispositivo, o una creata da questo dispositivo prima di una reinstallazione. L\'eliminazione non può essere annullata.';
+
+  @override
   String get backup_delete_dialog_delete => 'Elimina';
 
   @override

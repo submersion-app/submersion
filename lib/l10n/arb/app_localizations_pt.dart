@@ -2482,6 +2482,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este backup será excluído permanentemente. Esta ação não pode ser desfeita.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Este backup está apenas no seu armazenamento na nuvem, e nada indica que este dispositivo o criou. Pode ser a única cópia de outro dispositivo, ou uma que este dispositivo criou antes de uma reinstalação. A exclusão não pode ser desfeita.';
+
+  @override
   String get backup_delete_dialog_delete => 'Excluir';
 
   @override

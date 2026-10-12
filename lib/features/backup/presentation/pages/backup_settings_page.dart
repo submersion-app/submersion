@@ -500,19 +500,34 @@ class BackupSettingsPage extends ConsumerWidget {
           }
         }
       case 'delete':
-        final confirmed = await _showDeleteConfirmation(context);
+        // A cloud-only row may be another device's only copy (issue #3214).
+        final mayBeShared = await ref
+            .read(backupServiceProvider)
+            .mayBeAnotherDevicesCopy(record);
+        if (!context.mounted) return;
+        final confirmed = await _showDeleteConfirmation(
+          context,
+          mayBeAnotherDevicesCopy: mayBeShared,
+        );
         if (confirmed) {
           ref.read(backupOperationProvider.notifier).deleteBackup(record);
         }
     }
   }
 
-  Future<bool> _showDeleteConfirmation(BuildContext context) async {
+  Future<bool> _showDeleteConfirmation(
+    BuildContext context, {
+    bool mayBeAnotherDevicesCopy = false,
+  }) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(context.l10n.backup_delete_dialog_title),
-        content: Text(context.l10n.backup_delete_dialog_content),
+        content: Text(
+          mayBeAnotherDevicesCopy
+              ? context.l10n.backup_delete_dialog_content_otherDevice
+              : context.l10n.backup_delete_dialog_content,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

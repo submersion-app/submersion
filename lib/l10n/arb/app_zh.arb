@@ -776,6 +776,7 @@
   "backup_cloud_enabled_subtitle": "将备份上传至云存储",
   "backup_delete_dialog_cancel": "取消",
   "backup_delete_dialog_content": "此备份将被永久删除。此操作无法撤消。",
+  "backup_delete_dialog_content_otherDevice": "此备份仅存在于您的云存储中，且没有任何迹象表明是本设备创建的。它可能是另一台设备的唯一副本，也可能是本设备在重新安装前创建的。删除后无法撤消。",
   "backup_delete_dialog_delete": "删除",
   "backup_delete_dialog_title": "删除备份",
   "backup_export_bottomSheet_title": "导出备份",

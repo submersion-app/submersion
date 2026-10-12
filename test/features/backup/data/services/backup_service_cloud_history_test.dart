@@ -3,7 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
@@ -121,4 +123,99 @@ void main() {
       expect(preferences.getHistory(), isEmpty);
     });
   });
+
+  group('mayBeAnotherDevicesCopy', () {
+    const thisDevice = 'this-device';
+
+    BackupService withDevice(String deviceId) => BackupService(
+      dbAdapter: UnusedBackupDatabaseAdapter(),
+      preferences: preferences,
+      cloudProvider: cloud,
+      syncRepository: _FixedDeviceIdSyncRepository(deviceId),
+    );
+
+    BackupRecord cloudOnly(String filename) => BackupRecord(
+      id: 'cloud:$filename',
+      filename: filename,
+      timestamp: DateTime(2026, 3, 14),
+      sizeBytes: 10,
+      location: BackupLocation.cloud,
+      cloudFileId: filename,
+    );
+
+    test('a cloud-only backup another device wrote may be its copy', () async {
+      final name = buildBackupFilename(
+        timestamp: '2026-03-14_093015',
+        deviceId: 'old-install',
+      );
+      expect(
+        await withDevice(thisDevice).mayBeAnotherDevicesCopy(cloudOnly(name)),
+        isTrue,
+      );
+    });
+
+    test('an unattributed cloud-only backup may be another copy', () async {
+      expect(
+        await withDevice(
+          thisDevice,
+        ).mayBeAnotherDevicesCopy(cloudOnly(_cloudName)),
+        isTrue,
+      );
+    });
+
+    test('a cloud-only backup this device wrote is not', () async {
+      final name = buildBackupFilename(
+        timestamp: '2026-03-14_093015',
+        deviceId: thisDevice,
+      );
+      expect(
+        await withDevice(thisDevice).mayBeAnotherDevicesCopy(cloudOnly(name)),
+        isFalse,
+      );
+    });
+
+    test('a backup with a local copy is this device\'s own', () async {
+      final record = BackupRecord(
+        id: 'local',
+        filename: _cloudName,
+        timestamp: DateTime(2026, 3, 14),
+        sizeBytes: 10,
+        location: BackupLocation.both,
+        localPath: '/backups/$_cloudName',
+        cloudFileId: 'x',
+      );
+      expect(
+        await withDevice(thisDevice).mayBeAnotherDevicesCopy(record),
+        isFalse,
+      );
+    });
+
+    test('an unreadable device id errs on the side of warning', () async {
+      final name = buildBackupFilename(
+        timestamp: '2026-03-14_093015',
+        deviceId: thisDevice,
+      );
+      final service = BackupService(
+        dbAdapter: UnusedBackupDatabaseAdapter(),
+        preferences: preferences,
+        cloudProvider: cloud,
+        syncRepository: _ThrowingDeviceIdSyncRepository(),
+      );
+      expect(await service.mayBeAnotherDevicesCopy(cloudOnly(name)), isTrue);
+    });
+  });
+}
+
+class _FixedDeviceIdSyncRepository extends SyncRepository {
+  _FixedDeviceIdSyncRepository(this.deviceId);
+
+  final String deviceId;
+
+  @override
+  Future<String> getDeviceId() async => deviceId;
+}
+
+class _ThrowingDeviceIdSyncRepository extends SyncRepository {
+  @override
+  Future<String> getDeviceId() async => throw StateError('no database');
 }

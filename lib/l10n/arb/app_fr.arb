@@ -689,6 +689,7 @@
   "backup_cloud_enabled_subtitle": "Téléverser les sauvegardes vers le cloud",
   "backup_delete_dialog_cancel": "Annuler",
   "backup_delete_dialog_content": "Cette sauvegarde sera supprimée définitivement. Cette action est irréversible.",
+  "backup_delete_dialog_content_otherDevice": "Cette sauvegarde se trouve uniquement dans votre stockage cloud, et rien n'indique que cet appareil l'a créée. Il peut s'agir de la seule copie d'un autre appareil, ou d'une copie créée par cet appareil avant une réinstallation. La suppression est irréversible.",
   "backup_delete_dialog_delete": "Supprimer",
   "backup_delete_dialog_title": "Supprimer la Sauvegarde",
   "backup_export_bottomSheet_title": "Exporter la sauvegarde",

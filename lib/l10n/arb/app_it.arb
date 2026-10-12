@@ -689,6 +689,7 @@
   "backup_cloud_enabled_subtitle": "Carica i backup nell'archivio cloud",
   "backup_delete_dialog_cancel": "Annulla",
   "backup_delete_dialog_content": "Questo backup verrà eliminato permanentemente. Questa azione non può essere annullata.",
+  "backup_delete_dialog_content_otherDevice": "Questo backup si trova solo nel tuo archivio cloud e nulla indica che sia stato creato da questo dispositivo. Potrebbe essere l'unica copia di un altro dispositivo, o una creata da questo dispositivo prima di una reinstallazione. L'eliminazione non può essere annullata.",
   "backup_delete_dialog_delete": "Elimina",
   "backup_delete_dialog_title": "Elimina Backup",
   "backup_export_bottomSheet_title": "Esporta backup",

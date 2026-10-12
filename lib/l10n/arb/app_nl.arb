@@ -689,6 +689,7 @@
   "backup_cloud_enabled_subtitle": "Back-ups uploaden naar cloudopslag",
   "backup_delete_dialog_cancel": "Annuleren",
   "backup_delete_dialog_content": "Deze back-up wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.",
+  "backup_delete_dialog_content_otherDevice": "Deze back-up staat alleen in je cloudopslag en niets wijst erop dat dit apparaat hem heeft gemaakt. Het kan de enige kopie van een ander apparaat zijn, of een kopie die dit apparaat vóór een herinstallatie heeft gemaakt. Verwijderen kan niet ongedaan worden gemaakt.",
   "backup_delete_dialog_delete": "Verwijderen",
   "backup_delete_dialog_title": "Back-up Verwijderen",
   "backup_export_bottomSheet_title": "Back-up exporteren",

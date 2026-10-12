@@ -2450,6 +2450,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'גיבוי זה יימחק לצמיתות. לא ניתן לבטל פעולה זו.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'גיבוי זה נמצא רק באחסון הענן שלך, ושום דבר לא מראה שמכשיר זה יצר אותו. ייתכן שזה העותק היחיד של מכשיר אחר, או גיבוי שמכשיר זה יצר לפני התקנה מחדש. לא ניתן לבטל את המחיקה.';
+
+  @override
   String get backup_delete_dialog_delete => 'מחיקה';
 
   @override

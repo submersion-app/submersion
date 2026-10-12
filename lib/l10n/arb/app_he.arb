@@ -689,6 +689,7 @@
   "backup_cloud_enabled_subtitle": "העלה גיבויים לאחסון ענן",
   "backup_delete_dialog_cancel": "ביטול",
   "backup_delete_dialog_content": "גיבוי זה יימחק לצמיתות. לא ניתן לבטל פעולה זו.",
+  "backup_delete_dialog_content_otherDevice": "גיבוי זה נמצא רק באחסון הענן שלך, ושום דבר לא מראה שמכשיר זה יצר אותו. ייתכן שזה העותק היחיד של מכשיר אחר, או גיבוי שמכשיר זה יצר לפני התקנה מחדש. לא ניתן לבטל את המחיקה.",
   "backup_delete_dialog_delete": "מחיקה",
   "backup_delete_dialog_title": "מחיקת גיבוי",
   "backup_export_bottomSheet_title": "ייצוא גיבוי",
