@@ -29871,6 +29871,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_photos_viewAll => 'Ver Todas';
 
   @override
+  String get trips_picker_alreadyPacked => 'Já preparado';
+
+  @override
   String get trips_picker_clearTooltip => 'Limpar seleção';
 
   @override
@@ -46315,6 +46318,15 @@ class AppLocalizationsPt extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, de $startDate a $endDate, selecionada';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, de $startDate a $endDate, já preparado';
   }
 
   @override

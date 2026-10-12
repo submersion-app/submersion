@@ -29720,6 +29720,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_photos_viewAll => 'Összes megtekintése';
 
   @override
+  String get trips_picker_alreadyPacked => 'Már bepakolva';
+
+  @override
   String get trips_picker_clearTooltip => 'Kiválasztás törlése';
 
   @override
@@ -46053,6 +46056,15 @@ class AppLocalizationsHu extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, $startDate és $endDate között, kiválasztva';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, $startDate és $endDate között, már bepakolva';
   }
 
   @override

@@ -28204,6 +28204,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_photos_viewAll => '查看全部';
 
   @override
+  String get trips_picker_alreadyPacked => '已打包';
+
+  @override
   String get trips_picker_clearTooltip => '清除选择';
 
   @override
@@ -43530,6 +43533,15 @@ class AppLocalizationsZh extends AppLocalizations {
     Object endDate,
   ) {
     return '$name，$startDate 至 $endDate，已选择';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name，$startDate 至 $endDate，已打包';
   }
 
   @override

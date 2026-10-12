@@ -29660,6 +29660,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_photos_viewAll => 'Alles bekijken';
 
   @override
+  String get trips_picker_alreadyPacked => 'Al ingepakt';
+
+  @override
   String get trips_picker_clearTooltip => 'Selectie wissen';
 
   @override
@@ -46010,6 +46013,15 @@ class AppLocalizationsNl extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, $startDate tot $endDate, geselecteerd';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, $startDate tot $endDate, al ingepakt';
   }
 
   @override
