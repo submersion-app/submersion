@@ -47,8 +47,8 @@ Made during brainstorming on 2026-10-12.
 
 ### 5.1 Column
 
-`dive_tanks.passport_id TEXT NULL`, rung 284 (re-checked against main when the
-plan is written). No foreign key: a rental's passport id has no `equipment`
+`dive_tanks.passport_id TEXT NULL`, rung 285 (284 went to #3012 on main;
+282 is held by open PRs #3133 and #3306). No foreign key: a rental's passport id has no `equipment`
 row, and an owned cylinder's id is an attribute value, not a key. No backfill.
 
 Index, asserted in the migration helper and in `performance_indexes.dart`:
@@ -60,7 +60,7 @@ CREATE INDEX IF NOT EXISTS idx_dive_tanks_passport_id
 
 The migration follows the ladder convention: the column in
 `lib/core/database/tables/dive_tables.dart`, an idempotent add-column helper
-in `lib/core/database/migrations/`, `if (from < 284)` in `onUpgrade`, the
+in `lib/core/database/migrations/`, `if (from < 285)` in `onUpgrade`, the
 `currentSchemaVersion` constant and the `migrationVersions` list. Nothing goes
 into `database.dart` beyond the version constant and the ladder call.
 
@@ -121,7 +121,8 @@ choice sets the passport id together with the spec:
 | "My cylinders" pick, or a cylinder chosen in the preset dropdown | the cylinder's `passport_id` attribute, or cleared when it has none |
 | A preset | cleared |
 | The None preset | cleared |
-| A trip cylinder slot, or None slot | cleared |
+| A trip cylinder slot | cleared |
+| The None slot | kept: it unlinks the slot, it is not a cylinder choice (decided at plan time, 2026-10-12) |
 | Volume, working pressure, material, mix or pressures typed by hand | kept |
 
 A scan or pick that loses the `_specChoice` race changes nothing, passport id
@@ -181,7 +182,7 @@ variant. Generated l10n files are committed.
 
 ## 9. Testing
 
-- Migration: a v283 database upgrades to 284 with the column and index; a
+- Migration: a v284 database upgrades to 285 with the column and index; a
   fresh database has both.
 - Repository round trips: create, update, bulk replace then undo, and a
   sequential merge all keep `passport_id`.
