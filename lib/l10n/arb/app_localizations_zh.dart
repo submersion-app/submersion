@@ -2368,6 +2368,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_delete_dialog_content => '此备份将被永久删除。此操作无法撤消。';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      '此备份仅存在于您的云存储中，且没有任何迹象表明是本设备创建的。它可能是另一台设备的唯一副本，也可能是本设备在重新安装前创建的。删除后无法撤消。';
+
+  @override
   String get backup_delete_dialog_delete => '删除';
 
   @override
@@ -7521,6 +7525,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_equipmentPicker_removeToAdd => '移除项目以添加新项目';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit => '显示已退役和已售出的装备';
+
+  @override
   String get diveLog_equipmentPicker_spareHint => '将物品状态设为活跃即可添加到潜水';
 
   @override
@@ -9548,6 +9555,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_regulatorNone => '无';
 
   @override
+  String get diveLog_tank_regulatorShowLeftKit => '显示已退役和已售出的调节器';
+
+  @override
   String get diveLog_tank_tripCylinderLabel => '行程气瓶';
 
   @override
@@ -9660,9 +9670,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';
-
-  @override
-  String get diveLog_sources_row_metric => '指标';
 
   @override
   String get diveLog_sources_row_maxDepth => '最大深度';
@@ -11022,6 +11029,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_group_noCountry => '无国家';
 
   @override
+  String get diveSites_group_noBodyOfWater => '无水域';
+
+  @override
   String diveSites_group_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11041,7 +11051,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_list_groupBy_location => '国家和地区';
 
   @override
+  String get diveSites_list_groupBy_locationAndWater => '国家和水域';
+
+  @override
   String get diveSites_list_groupBy_none => '无';
+
+  @override
+  String get diveSites_list_groupBy_water => '水域';
 
   @override
   String diveSites_list_tile_diveCount(int count) {
@@ -13930,7 +13946,7 @@ class AppLocalizationsZh extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '已用 $used 次，剩余 $remaining/$total 次潜水';
+    return '已用 $used/$total 次潜水，剩余 $remaining 次';
   }
 
   @override
@@ -14053,7 +14069,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '已用 $used 小时，剩余 $remaining/$total 小时';
+    return '已用 $used/$total 小时，剩余 $remaining 小时';
   }
 
   @override
@@ -14062,7 +14078,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '海水小时数已用 $used，剩余 $remaining / $total';
+    return '海水小时已用 $used/$total，剩余 $remaining';
   }
 
   @override
@@ -14071,7 +14087,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '冷水潜水已用 $used 次，剩余 $remaining / $total 次';
+    return '冷水潜水已用 $used/$total 次，剩余 $remaining 次';
   }
 
   @override
@@ -14080,7 +14096,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '高氧小时数已用 $used，剩余 $remaining / $total';
+    return '高氧小时已用 $used/$total，剩余 $remaining';
   }
 
   @override
@@ -14089,7 +14105,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '深潜已用 $used 次，剩余 $remaining / $total 次';
+    return '深潜已用 $used/$total 次，剩余 $remaining 次';
   }
 
   @override
@@ -14098,7 +14114,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '电池循环已用 $used 次，剩余 $remaining / $total 次';
+    return '电池循环已用 $used/$total 次，剩余 $remaining 次';
   }
 
   @override
@@ -14484,6 +14500,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_thicknessDesignationHint => '例如：5, 5/4, 7/5/3';
+
+  @override
+  String get equipment_edit_focalLengthHint => '例如 60 或 15-45';
 
   @override
   String get equipment_edit_webLinkHint => '例如 shop.example.com/product';
@@ -19121,12 +19140,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_tide_description => '潮汐周期图和时间';
 
   @override
-  String get diveDetailSection_reefHealth_name => '水况';
-
-  @override
-  String get diveDetailSection_reefHealth_description => '潜水日期的卫星水况';
-
-  @override
   String get diveDetailSection_surfaceGps_name => '位置';
 
   @override
@@ -19572,6 +19585,59 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_subsection_defaultVisibleMetrics => '默认可见指标';
 
   @override
+  String get settings_appearance_metricColors => '指标颜色';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault => '默认颜色';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已自定义 $count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => '全部重置';
+
+  @override
+  String get settings_metricColors_resetAllTitle => '重置指标颜色？';
+
+  @override
+  String get settings_metricColors_resetAllBody => '每个指标都将恢复默认颜色。';
+
+  @override
+  String get settings_metricColors_reset => '重置';
+
+  @override
+  String get settings_metricColors_default => '默认';
+
+  @override
+  String get settings_metricColors_auto => '自动';
+
+  @override
+  String get settings_metricColors_autoTemperature => '自动：跟随主题';
+
+  @override
+  String get settings_metricColors_autoPressure => '自动：每种气体有各自的颜色';
+
+  @override
+  String get settings_metricColors_pressureCustom => '用于单气瓶潜水';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return '$metric颜色';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return '与$metric互换';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics => '标准指标';
 
   @override
@@ -19643,6 +19709,107 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_navCustomization_saveError => '无法保存导航布局。请重试。';
+
+  @override
+  String get navShortcut_noFly => '禁飞时间';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => '记录';
+
+  @override
+  String get navShortcut_sitesMap => '潜水点地图';
+
+  @override
+  String get navShortcut_diveActivityMap => '潜水活动地图';
+
+  @override
+  String get navShortcut_diveCentersMap => '潜水中心地图';
+
+  @override
+  String get navShortcut_diverProfile => '潜水员档案';
+
+  @override
+  String get navShortcut_cloudSync => '云同步';
+
+  @override
+  String get navShortcut_offlineMaps => '离线地图';
+
+  @override
+  String get navShortcut_short_deco => '减压';
+
+  @override
+  String get navShortcut_short_gasCalculators => '气体计算';
+
+  @override
+  String get navShortcut_short_weighting => '配重';
+
+  @override
+  String get navShortcut_short_surfaceInterval => '水面间隔';
+
+  @override
+  String get navShortcut_short_blender => '混气';
+
+  @override
+  String get navShortcut_short_airUse => '耗气';
+
+  @override
+  String get navShortcut_short_patterns => '规律';
+
+  @override
+  String get navShortcut_short_profiles => '剖面';
+
+  @override
+  String get navShortcut_short_diveMap => '潜水地图';
+
+  @override
+  String get navShortcut_short_centersMap => '中心地图';
+
+  @override
+  String get navShortcut_short_gearSets => '装备组';
+
+  @override
+  String get navShortcut_short_certWallet => '证书夹';
+
+  @override
+  String get navShortcut_short_emergency => '紧急';
+
+  @override
+  String get navShortcut_short_backup => '备份';
+
+  @override
+  String get navShortcut_short_speciesStats => '物种统计';
+
+  @override
+  String get navShortcut_short_gearStats => '装备统计';
+
+  @override
+  String get settings_navCustomization_addShortcut => '添加快捷方式';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => '新建快捷方式';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => '搜索页面';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches => '没有匹配的页面';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded => '已在此布局中';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return '移除$destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => '视图';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools => '设置和工具';
 
   @override
   String get settings_backToSettings_tooltip => '返回设置';
@@ -21704,6 +21871,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => '关联条目';
 
   @override
+  String get settings_conflict_field_sourceMetadata => '来源附加数据';
+
+  @override
   String get settings_conflict_field_sourceRef => '源文件或设备';
 
   @override
@@ -21883,6 +22053,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_trendGapCollapseMonths => '在趋势图中折叠间隔';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return '剖面颜色：$metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays => '行程前保养提醒天数';
@@ -25126,6 +25301,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_focus_metric_bottomTime => '水底时间';
 
   @override
+  String get insights_focus_metric_runtime => '运行时间';
+
+  @override
   String get insights_focus_metric_weight => '配重';
 
   @override
@@ -25636,6 +25814,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => '潜水时间趋势';
+
+  @override
+  String get insights_progression_runtime_error => '加载运行时间趋势失败';
+
+  @override
+  String get insights_progression_runtime_subtitle => '范围内的每次潜水';
+
+  @override
+  String get insights_progression_runtime_title => '运行时间趋势';
 
   @override
   String get insights_progression_cumulative_error => '加载累计数据失败';
@@ -34097,6 +34284,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';
 
   @override
+  String get equipment_edit_invalidFocalLength => '请输入 60 或 15-45';
+
+  @override
   String get equipment_edit_invalidWebLink => '请输入网址，例如 shop.example.com';
 
   @override
@@ -34137,7 +34327,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_noFlyHeader => '潜水后飞行';
 
   @override
-  String get safetySettings_cnsOtuHeader => '当前CNS/OTU负荷';
+  String get safetySettings_cnsOtuHeader => '当前潜水负荷';
 
   @override
   String get safetySettings_noFlyPreset_standard => '标准(12/18/24 小时)';
@@ -34207,6 +34397,20 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       '没有深度剖面，无法计算其 CNS% 和 OTU。下方合计不包含此次潜水。';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => '关于 CNS 和 OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      '潜水后 CNS%（氧气钟）以 90 分钟的半衰期衰减——大约一天后基本降回 0。\n\n每日 OTU 每晚午夜重置。每周 OTU 是过去 7 天的滚动总和：较早的潜水一旦超出该时间窗口，就会自动从计算中剔除。';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => '关于组织饱和度';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      '你的身体有 16 个组织舱室，以不同速度吸收和释放氮气（在三元气体或循环呼吸器潜水中，还有氦气）。快速组织饱和与脱饱和都很快；慢速组织两者都需要更长时间。\n\n使用氦气潜水后，同一舱室中的氮气和氦气可能会短暂地朝相反方向变化：氦气仍在释放的同时，同一舱室可能同时在吸收少量氮气，直到两种气体都与你呼吸的空气达到平衡。这就是为什么一个舱室可能短暂显示\"Ongassing\"，即使其总负荷仍在下降。';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -34564,7 +34768,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetyHub_incidentsLink => '未遂事件日志';
 
   @override
-  String get safetyHub_incidentsLink_subtitle => '私密、非惩罚性的事件记录';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条记录',
+      one: '$count 条记录',
+      zero: '暂无',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => '记录未遂事件';
@@ -43487,6 +43700,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps_regionDownload_downloadButton => '下载';
 
   @override
+  String get maps_regionDownload_presetOverview => '概览';
+
+  @override
+  String get maps_regionDownload_presetDetail => '详细';
+
+  @override
+  String get maps_regionDownload_presetFull => '完整';
+
+  @override
+  String get maps_regionDownload_tooManyTiles =>
+      '超过 100,000 个瓦片：请缩小区域或降低最大缩放级别。';
+
+  @override
+  String get maps_regionDownload_socks5Unsupported =>
+      '区域下载无法使用 SOCKS5 代理：请在网络设置中切换到 HTTP 代理或“不使用代理”。';
+
+  @override
   String get diveLog_map_title => '潜水活动';
 
   @override
@@ -46337,6 +46567,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return '较新的数据库，回退时保留 - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return '在云存储中 ($size)';
   }
 
   @override

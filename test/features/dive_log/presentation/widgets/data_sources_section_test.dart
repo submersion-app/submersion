@@ -1659,10 +1659,24 @@ void main() {
 
         final grid = find.byKey(DataSourcesSection.comparisonGridKey);
         // No friendly name and no model: the serial identifies the column,
-        // not the generic "Unknown" label.
+        // not the generic "Unknown" label. It shows twice in the grid: the
+        // column header, and the Serial row beneath it.
+        final serial = find.descendant(
+          of: grid,
+          matching: find.text('SN-ONLY-42'),
+        );
+        expect(serial, findsNWidgets(2));
+        expect(find.text('Unknown Computer'), findsNothing);
+        // The first match is the header, above the first metric row.
         expect(
-          find.descendant(of: grid, matching: find.text('SN-ONLY-42')),
-          findsOneWidget,
+          tester.getRect(serial.first).bottom,
+          lessThanOrEqualTo(
+            tester
+                .getRect(
+                  find.descendant(of: grid, matching: find.text('Max Depth')),
+                )
+                .top,
+          ),
         );
       },
     );

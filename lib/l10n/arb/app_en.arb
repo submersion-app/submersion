@@ -1539,6 +1539,7 @@
   "backup_cloud_enabled_subtitle": "Upload backups to cloud storage",
   "backup_delete_dialog_cancel": "Cancel",
   "backup_delete_dialog_content": "This backup will be permanently deleted. This cannot be undone.",
+  "backup_delete_dialog_content_otherDevice": "This backup is only in your cloud storage, and nothing shows this device made it. It may be another device's only copy, or one this device made before a reinstall. Deleting it cannot be undone.",
   "backup_delete_dialog_delete": "Delete",
   "backup_delete_dialog_title": "Delete Backup",
   "backup_export_bottomSheet_title": "Export Backup",
@@ -4674,6 +4675,7 @@
   "diveLog_equipmentPicker_errorLoading": "Error loading equipment: {error}",
   "diveLog_equipmentPicker_noEquipment": "No equipment yet",
   "diveLog_equipmentPicker_removeToAdd": "Remove items to add different ones",
+  "diveLog_equipmentPicker_showLeftKit": "Show retired and sold gear",
   "diveLog_equipmentPicker_spareHint": "Set an item's status to Active to add it to a dive",
   "diveLog_equipmentPicker_title": "Add Equipment",
   "diveLog_equipmentSetPicker_createHint": "Create sets in Equipment > Sets",
@@ -5617,6 +5619,7 @@
   "diveLog_tank_ownCylinderTitle": "My cylinders",
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
+  "diveLog_tank_regulatorShowLeftKit": "Show retired and sold regulators",
   "diveLog_tank_tripCylinderLabel": "Trip cylinder",
   "diveLog_tank_tripCylinderNone": "None",
   "diveLog_tank_tripCylinderMissing": "No longer on this trip",
@@ -5655,7 +5658,6 @@
   "diveLog_tooltip_switchDelay": "Delay",
   "diveLog_tooltip_extraDeco": "Extra deco",
   "diveLog_tooltip_gtr": "GTR",
-  "diveLog_sources_row_metric": "Metric",
   "diveLog_sources_row_maxDepth": "Max Depth",
   "diveLog_sources_row_avgDepth": "Avg Depth",
   "diveLog_sources_row_duration": "Duration",
@@ -6781,6 +6783,7 @@
   "diveSites_list_selection_mergeTooltip": "Merge Selected",
   "diveSites_list_sort_title": "Sort Sites",
   "diveSites_group_noCountry": "No country",
+  "diveSites_group_noBodyOfWater": "No body of water",
   "diveSites_group_siteCount": "{count, plural, =1{1 site} other{{count} sites}}",
   "@diveSites_group_siteCount": {
     "placeholders": {
@@ -6792,7 +6795,9 @@
   "diveSites_picker_nearby": "Nearby",
   "diveSites_list_groupBy": "Group by",
   "diveSites_list_groupBy_location": "Country & region",
+  "diveSites_list_groupBy_locationAndWater": "Country & body of water",
   "diveSites_list_groupBy_none": "None",
+  "diveSites_list_groupBy_water": "Body of water",
   "diveSites_list_tile_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "diveSites_list_tile_semantics": "Dive site: {name}",
   "diveSites_list_tooltip_filterSites": "Filter Sites",
@@ -8569,7 +8574,7 @@
       }
     }
   },
-  "equipment_serviceClocks_divesUsedAndLeft": "{used} dives, {remaining} of {total} dives left",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} of {total} dives, {remaining} left",
   "@equipment_serviceClocks_divesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8663,7 +8668,7 @@
   "cylinderConfigs_fieldMaterial": "Material",
   "cylinderConfigs_sectionTitle": "Configurations",
   "equipment_serviceClocks_hoursSource": "Counted from logged dive time",
-  "equipment_serviceClocks_hoursUsedAndLeft": "{used} hours, {remaining} of {total} hours left",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} of {total} hours, {remaining} left",
   "@equipment_serviceClocks_hoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8677,7 +8682,7 @@
       }
     }
   },
-  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} salt-water hours, {remaining} of {total} salt-water hours left",
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} of {total} salt-water hours, {remaining} left",
   "@equipment_serviceClocks_saltHoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8691,7 +8696,7 @@
       }
     }
   },
-  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} cold dives, {remaining} of {total} cold dives left",
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} of {total} cold dives, {remaining} left",
   "@equipment_serviceClocks_coldDivesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8705,7 +8710,7 @@
       }
     }
   },
-  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} high-O2 hours, {remaining} of {total} high-O2 hours left",
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} of {total} high-O2 hours, {remaining} left",
   "@equipment_serviceClocks_o2HoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8719,7 +8724,7 @@
       }
     }
   },
-  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} deep dives, {remaining} of {total} deep dives left",
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} of {total} deep dives, {remaining} left",
   "@equipment_serviceClocks_deepCyclesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8733,7 +8738,7 @@
       }
     }
   },
-  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} battery cycles, {remaining} of {total} battery cycles left",
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} of {total} battery cycles, {remaining} left",
   "@equipment_serviceClocks_cyclesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -8988,6 +8993,7 @@
   "equipment_edit_parentLabel": "Installed in",
   "equipment_edit_parentNone": "Not installed in anything",
   "equipment_edit_thicknessDesignationHint": "e.g., 5, 5/4, 7/5/3",
+  "equipment_edit_focalLengthHint": "e.g., 60 or 15-45",
   "equipment_edit_webLinkHint": "e.g., shop.example.com/product",
   "equipment_edit_typeLabel": "Type *",
   "equipment_edit_useCustomReminders": "Use Custom Reminders",
@@ -12522,7 +12528,7 @@
   },
   "safetyReview_findingGroupSemantics": "{count, plural, =1{1 safety observation} other{{count} safety observations}}",
   "@safetyReview_findingGroupSemantics": {
-    "description": "Semantics label for a clustered chip in the chart safety lane",
+    "description": "Safety review findings count: the semantics label for a clustered chip in the chart safety lane, and the tooltip of the dive list safety badge",
     "placeholders": {
       "count": {
         "type": "int"
@@ -12579,8 +12585,6 @@
   "diveDetailSection_altitude_description": "Altitude value, category, deco requirement",
   "diveDetailSection_tide_name": "Tide",
   "diveDetailSection_tide_description": "Tide cycle graph and timing",
-  "diveDetailSection_reefHealth_name": "Water Conditions",
-  "diveDetailSection_reefHealth_description": "Satellite water conditions on the dive date",
   "diveDetailSection_surfaceGps_name": "Location",
   "diveDetailSection_surfaceGps_description": "Map of the dive site, GPS entry/exit points and surface drift",
   "diveLog_detail_section_surfaceGps": "Surface GPS",
@@ -12785,6 +12789,23 @@
   "settings_appearance_viewerFullscreen_screen": "Full screen",
   "settings_appearance_subsection_decompressionMetrics": "Decompression Metrics",
   "settings_appearance_subsection_defaultVisibleMetrics": "Default Visible Metrics",
+  "settings_appearance_metricColors": "Metric Colors",
+  "settings_appearance_metricColors_subtitleDefault": "Default colors",
+  "settings_appearance_metricColors_subtitleCustomized": "{count, plural, one{{count} customized} other{{count} customized}}",
+  "@settings_appearance_metricColors_subtitleCustomized": {"placeholders": {"count": {"type": "int"}}},
+  "settings_metricColors_resetAll": "Reset all",
+  "settings_metricColors_resetAllTitle": "Reset metric colors?",
+  "settings_metricColors_resetAllBody": "Every metric goes back to its default color.",
+  "settings_metricColors_reset": "Reset",
+  "settings_metricColors_default": "Default",
+  "settings_metricColors_auto": "Auto",
+  "settings_metricColors_autoTemperature": "Auto: follows the theme",
+  "settings_metricColors_autoPressure": "Auto: each gas has its own color",
+  "settings_metricColors_pressureCustom": "Used on single-tank dives",
+  "settings_metricColors_sheetTitle": "{metric} color",
+  "@settings_metricColors_sheetTitle": {"placeholders": {"metric": {"type": "String"}}},
+  "settings_metricColors_swapsWith": "Swaps with {metric}",
+  "@settings_metricColors_swapsWith": {"placeholders": {"metric": {"type": "String"}}},
   "settings_appearance_subsection_standardMetrics": "Standard Metrics",
   "settings_appearance_subsection_gasAnalysisMetrics": "Gas Analysis Metrics",
   "settings_appearance_subsection_gradientFactorMetrics": "Gradient Factor Metrics",
@@ -12869,6 +12890,144 @@
   "settings_navCustomization_saveError": "Could not save navigation layout. Please try again.",
   "@settings_navCustomization_saveError": {
     "description": "SnackBar shown when persisting the nav order fails (e.g., database write error)."
+  },
+  "navShortcut_noFly": "No-fly time",
+  "@navShortcut_noFly": {
+    "description": "Nav shortcut label for the Planning no-fly calculator."
+  },
+  "navShortcut_cnsOtu": "CNS/OTU",
+  "@navShortcut_cnsOtu": {
+    "description": "Nav shortcut label for the Planning CNS/OTU calculator."
+  },
+  "navShortcut_records": "Records",
+  "@navShortcut_records": {
+    "description": "Nav shortcut label for the dive records page."
+  },
+  "navShortcut_sitesMap": "Sites map",
+  "@navShortcut_sitesMap": {
+    "description": "Nav shortcut label for the dive sites map."
+  },
+  "navShortcut_diveActivityMap": "Dive activity map",
+  "@navShortcut_diveActivityMap": {
+    "description": "Nav shortcut label for the map of where dives were logged."
+  },
+  "navShortcut_diveCentersMap": "Dive centers map",
+  "@navShortcut_diveCentersMap": {
+    "description": "Nav shortcut label for the dive centers map."
+  },
+  "navShortcut_diverProfile": "Diver profile",
+  "@navShortcut_diverProfile": {
+    "description": "Nav shortcut label for the diver profile settings page."
+  },
+  "navShortcut_cloudSync": "Cloud sync",
+  "@navShortcut_cloudSync": {
+    "description": "Nav shortcut label for the cloud sync settings page."
+  },
+  "navShortcut_offlineMaps": "Offline maps",
+  "@navShortcut_offlineMaps": {
+    "description": "Nav shortcut label for the offline maps settings page."
+  },
+  "navShortcut_short_deco": "Deco",
+  "@navShortcut_short_deco": {
+    "description": "Short nav bar label for the Deco Calculator shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_gasCalculators": "Gas calcs",
+  "@navShortcut_short_gasCalculators": {
+    "description": "Short nav bar label for the Gas Calculators shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_weighting": "Weighting",
+  "@navShortcut_short_weighting": {
+    "description": "Short nav bar label for the Weight Calculator shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_surfaceInterval": "Surface int.",
+  "@navShortcut_short_surfaceInterval": {
+    "description": "Short nav bar label for the Surface Interval tool shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_blender": "Blender",
+  "@navShortcut_short_blender": {
+    "description": "Short nav bar label for the Trimix blender shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_airUse": "Air use",
+  "@navShortcut_short_airUse": {
+    "description": "Short nav bar label for the Air Consumption insights shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_patterns": "Patterns",
+  "@navShortcut_short_patterns": {
+    "description": "Short nav bar label for the Time Patterns insights shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_profiles": "Profiles",
+  "@navShortcut_short_profiles": {
+    "description": "Short nav bar label for the Profile Analysis insights shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_diveMap": "Dive map",
+  "@navShortcut_short_diveMap": {
+    "description": "Short nav bar label for the dive activity map shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_centersMap": "Centers map",
+  "@navShortcut_short_centersMap": {
+    "description": "Short nav bar label for the dive centers map shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_gearSets": "Gear sets",
+  "@navShortcut_short_gearSets": {
+    "description": "Short nav bar label for the Equipment Sets shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_certWallet": "Cert wallet",
+  "@navShortcut_short_certWallet": {
+    "description": "Short nav bar label for the Certification Wallet shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_emergency": "Emergency",
+  "@navShortcut_short_emergency": {
+    "description": "Short nav bar label for the Emergency card shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_backup": "Backup",
+  "@navShortcut_short_backup": {
+    "description": "Short nav bar label for the Backup & Restore shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_speciesStats": "Species stats",
+  "@navShortcut_short_speciesStats": {
+    "description": "Short nav label for the shortcut to Insights > Species (marine life statistics); distinct from the Species section."
+  },
+  "navShortcut_short_gearStats": "Gear stats",
+  "@navShortcut_short_gearStats": {
+    "description": "Short nav label for the shortcut to Insights > Equipment (gear statistics); distinct from the Equipment section."
+  },
+  "settings_navCustomization_addShortcut": "Add shortcut",
+  "@settings_navCustomization_addShortcut": {
+    "description": "Button on the navigation layout page that opens the picker for adding a deep page to the nav."
+  },
+  "settings_navCustomization_shortcutPickerTitle": "Add a shortcut",
+  "@settings_navCustomization_shortcutPickerTitle": {
+    "description": "Title of the sheet or dialog listing pages that can be added to the nav."
+  },
+  "settings_navCustomization_shortcutSearchHint": "Search pages",
+  "@settings_navCustomization_shortcutSearchHint": {
+    "description": "Hint in the search field of the nav shortcut picker."
+  },
+  "settings_navCustomization_shortcutNoMatches": "No matching pages",
+  "@settings_navCustomization_shortcutNoMatches": {
+    "description": "Shown in the nav shortcut picker when the search matches nothing."
+  },
+  "settings_navCustomization_shortcutAlreadyAdded": "Already in this layout",
+  "@settings_navCustomization_shortcutAlreadyAdded": {
+    "description": "Tooltip on a picker entry that is already in the nav layout being edited."
+  },
+  "settings_navCustomization_removeShortcutLabel": "Remove {destination}",
+  "@settings_navCustomization_removeShortcutLabel": {
+    "description": "Tooltip on the button that removes a shortcut from the nav layout.",
+    "placeholders": {
+      "destination": {
+        "type": "String",
+        "example": "Trimix blender"
+      }
+    }
+  },
+  "settings_navCustomization_group_views": "Views",
+  "@settings_navCustomization_group_views": {
+    "description": "Picker group header for map, wallet and list views inside a section."
+  },
+  "settings_navCustomization_group_settingsAndTools": "Settings and tools",
+  "@settings_navCustomization_group_settingsAndTools": {
+    "description": "Picker group header for settings pages and tools such as the emergency card."
   },
   "settings_backToSettings_tooltip": "Back to settings",
   "settings_cloudSync_appBar_title": "Database Cloud Sync",
@@ -13557,6 +13716,7 @@
   "settings_conflict_field_sourceFileName": "Source file name",
   "settings_conflict_field_sourceFormat": "Source format",
   "settings_conflict_field_sourceItemId": "Linked item",
+  "settings_conflict_field_sourceMetadata": "Extra data from the source",
   "settings_conflict_field_sourceRef": "Source file or device",
   "settings_conflict_field_sourceTankIndex": "Tank number in the source log",
   "settings_conflict_field_sourceType": "Source",
@@ -13620,6 +13780,8 @@
   "settings_conflict_field_tripCylinderEvents_kind": "Event",
   "settings_conflict_field_tripListViewMode": "Trip list view",
   "settings_conflict_field_trendGapCollapseMonths": "Collapse gaps in trend charts",
+  "settings_conflict_field_profileColor": "Profile color: {metric}",
+  "@settings_conflict_field_profileColor": {"placeholders": {"metric": {"type": "String"}}},
   "settings_conflict_field_tripServiceLeadDays": "Service warning days before a trip",
   "settings_conflict_field_trustFraction": "Trusted share of the route",
   "settings_conflict_field_turnPressureFraction": "Turn pressure share",
@@ -15426,6 +15588,7 @@
   "insights_focus_metric_sac": "SAC",
   "insights_focus_metric_maxDepth": "Max depth",
   "insights_focus_metric_bottomTime": "Bottom time",
+  "insights_focus_metric_runtime": "Runtime",
   "insights_focus_metric_weight": "Weight",
   "insights_focus_metric_waterTemp": "Water temp",
   "insights_focus_metric_gasUsed": "Gas used",
@@ -15625,6 +15788,9 @@
   "insights_progression_bottomTime_error": "Failed to load bottom time trend",
   "insights_progression_bottomTime_subtitle": "Every dive in range",
   "insights_progression_bottomTime_title": "Bottom Time Trend",
+  "insights_progression_runtime_error": "Failed to load runtime trend",
+  "insights_progression_runtime_subtitle": "Every dive in range",
+  "insights_progression_runtime_title": "Runtime Trend",
   "insights_progression_cumulative_error": "Failed to load cumulative data",
   "insights_progression_cumulative_subtitle": "Total dives over time",
   "insights_progression_cumulative_title": "Cumulative Dive Count",
@@ -22091,6 +22257,7 @@
   "attr_flagYes": "Yes",
   "attr_flagNo": "No",
   "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
+  "equipment_edit_invalidFocalLength": "Use 60 or 15-45",
   "equipment_edit_invalidWebLink": "Enter a web address, e.g. shop.example.com",
   "insights_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
   "insights_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
@@ -22104,7 +22271,7 @@
   "diveLog_filter_thicknessMin": "Min",
   "diveLog_filter_thicknessMax": "Max",
   "safetySettings_noFlyHeader": "Flying after diving",
-  "safetySettings_cnsOtuHeader": "Current CNS/OTU load",
+  "safetySettings_cnsOtuHeader": "Current dive load",
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Strict (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Guideline intervals after a single no-deco dive, repetitive dives, and deco dives",
@@ -22175,6 +22342,10 @@
   },
   "safetyHub_cnsOtu_noProfile_title": "Last dive has no profile",
   "safetyHub_cnsOtu_noProfile_body": "Its CNS% and OTU can't be calculated without depth samples. The totals below leave it out.",
+  "safetyHub_cnsOtu_about_title": "About CNS and OTU",
+  "safetyHub_cnsOtu_about_body": "Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it's practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.",
+  "safetyHub_tissueLoading_about_title": "About Tissue Loading",
+  "safetyHub_tissueLoading_about_body": "Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you're breathing. That's why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.",
   "safetyHub_noFly_category_single": "After a single no-deco dive: {hours} h guideline",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -22385,7 +22556,14 @@
   "incidentCategory_planning": "Planning",
   "incidentCategory_other": "Other",
   "safetyHub_incidentsLink": "Near-miss log",
-  "safetyHub_incidentsLink_subtitle": "Private, non-punitive incident notes",
+  "safetyHub_incidentsLink_count": "{count, plural, =0{None yet} =1{{count} entry} other{{count} entries}}",
+  "@safetyHub_incidentsLink_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveLog_detail_menu_logNearMiss": "Log near-miss",
   "diveLog_planned_chip": "Planned",
   "diveLog_planned_bannerTitle": "Planned dive",
@@ -26920,6 +27098,11 @@
   "maps_regionDownload_largeWarningSemantics": "Warning: Large download. Consider reducing zoom levels or selecting a smaller region.",
   "maps_regionDownload_largeWarning": "Large download. Consider reducing zoom levels or selecting a smaller region.",
   "maps_regionDownload_downloadButton": "Download",
+  "maps_regionDownload_presetOverview": "Overview",
+  "maps_regionDownload_presetDetail": "Detail",
+  "maps_regionDownload_presetFull": "Full",
+  "maps_regionDownload_tooManyTiles": "Over 100,000 tiles: shrink the area or lower the maximum zoom.",
+  "maps_regionDownload_socks5Unsupported": "Region downloads can't use a SOCKS5 proxy: switch to an HTTP proxy or to No proxy in the network settings.",
   "diveLog_map_title": "Dive Activity",
   "diveLog_map_infoCard_minutes": "{minutes} min",
   "trips_gallery_diveSection_subtitle": "{date} ({count} {photoLabel})",
@@ -29519,6 +29702,14 @@
   "startup_diveLogUnavailable_startNew_confirm": "Start new dive log",
   "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
   "@backup_history_preDowngradeSubtitle": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backup_history_cloudOnlySubtitle": "In cloud storage ({size})",
+  "@backup_history_cloudOnlySubtitle": {
     "placeholders": {
       "size": {
         "type": "String"

@@ -100,6 +100,9 @@ void main() {
         expect(isImportWizardRoute('/transfer/import-wizard'), isTrue);
         expect(isImportWizardRoute('/transfer/import-file/suunto'), isTrue);
         expect(isImportWizardRoute('/transfer'), isFalse);
+        // The wizard opened as a nav shortcut (#2936) owns the screen too.
+        expect(isImportWizardRoute('/shortcut/import-wizard'), isTrue);
+        expect(isImportWizardRoute('/shortcut/gas-blender'), isFalse);
       },
     );
 

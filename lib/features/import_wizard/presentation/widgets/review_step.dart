@@ -291,7 +291,13 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
                     return Row(
                       children: [
                         Expanded(
+                          // Scrollable: a file import can bring seven tabs,
+                          // and fixed tabs gave each a few points on a phone,
+                          // too narrow to read or to see which tab held the
+                          // duplicates keeping Import disabled (#3110).
                           child: TabBar(
+                            isScrollable: true,
+                            tabAlignment: TabAlignment.start,
                             labelPadding: const EdgeInsets.symmetric(
                               horizontal: 12,
                             ),
@@ -309,9 +315,14 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
                               for (final type in widget.types)
                                 Tab(
                                   height: 36,
-                                  text: _tabLabel(
-                                    type,
-                                    widget.bundle.groups[type]!.items.length,
+                                  child: _TabLabel(
+                                    label: _tabLabel(
+                                      type,
+                                      widget.bundle.groups[type]!.items.length,
+                                    ),
+                                    pendingCount: widget.state
+                                        .pendingFor(type)
+                                        .length,
                                   ),
                                 ),
                             ],
@@ -403,6 +414,39 @@ class _MultiTypeLayoutState extends State<_MultiTypeLayout> {
       case ImportEntityType.fills:
         return l10n.diveImport_uddf_fills;
     }
+  }
+}
+
+/// A review tab's label, marked with how many of its duplicates still need a
+/// decision. Any one of them disables Import, and a diver who has decided
+/// every dive otherwise had no way to tell which other tab was holding it
+/// (#3110).
+class _TabLabel extends StatelessWidget {
+  final String label;
+  final int pendingCount;
+
+  const _TabLabel({required this.label, required this.pendingCount});
+
+  @override
+  Widget build(BuildContext context) {
+    if (pendingCount == 0) return Text(label);
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(label),
+        const SizedBox(width: 6),
+        Semantics(
+          label: context.l10n.universalImport_pending_gateHint(pendingCount),
+          excludeSemantics: true,
+          child: Badge.count(
+            count: pendingCount,
+            backgroundColor: colorScheme.tertiary,
+            textColor: colorScheme.onTertiary,
+          ),
+        ),
+      ],
+    );
   }
 }
 

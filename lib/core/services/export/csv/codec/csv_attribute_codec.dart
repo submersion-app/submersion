@@ -6,6 +6,7 @@ import 'package:submersion/core/services/export/csv/codec/csv_list_codec.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_text.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
+import 'package:submersion/features/equipment/domain/constants/focal_length.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
 
@@ -53,8 +54,8 @@ final Map<String, EquipmentAttributeDef> _defByMyUnitsKey = {
 /// Metric mode keeps the historical `key=value` with the stored value. My
 /// units converts a unit-bearing number with the same helpers the detail
 /// page uses and names the unit (`hose_length=22 in`), and writes a date in
-/// the file's date format. Text, choice, flag, thickness and custom
-/// attributes are the same in both modes.
+/// the file's date format. Text, choice, flag, thickness, focal length and
+/// custom attributes are the same in both modes.
 String formatAttributePair(EquipmentAttribute attribute, CsvExportUnits units) {
   final raw = '${attribute.key}=${attribute.valueText ?? attribute.valueNum}';
   if (attribute.isCustom) {
@@ -196,6 +197,17 @@ CsvAttribute? _readCurated(
         isCustom: false,
         valueText: value,
         valueNum: parsePrimaryThickness(value),
+      );
+    case AttributeKind.focalLength:
+      // A bare number is how files written before issue #3050 carry a lens
+      // ("60.0"), so it reads back as the number alone, as it was stored.
+      final figure = double.tryParse(value);
+      if (figure != null && figure.isFinite) return withNumber(figure);
+      return (
+        key: def.key,
+        isCustom: false,
+        valueText: value,
+        valueNum: parseFocalLengthWideEnd(value),
       );
     case AttributeKind.color:
       final code = normalizeEquipmentColor(value);

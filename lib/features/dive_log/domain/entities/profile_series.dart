@@ -20,6 +20,7 @@ class ProfileSeries extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     this.hlc,
+    this.activatedAt,
   });
 
   final String id;
@@ -33,6 +34,10 @@ class ProfileSeries extends Equatable {
   final int createdAt;
   final int updatedAt;
   final String? hlc;
+
+  /// Epoch ms when this series last became the live generation of its
+  /// source, or null when it never was (issue #3189).
+  final int? activatedAt;
 
   /// The samples as the chart and analysis pipeline consume them.
   List<DiveProfilePoint> get points => [
@@ -54,6 +59,8 @@ class ProfileSeries extends Equatable {
     int? updatedAt,
     String? hlc,
     bool clearHlc = false,
+    int? activatedAt,
+    bool clearActivatedAt = false,
   }) {
     return ProfileSeries(
       id: id ?? this.id,
@@ -67,6 +74,7 @@ class ProfileSeries extends Equatable {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       hlc: clearHlc ? null : (hlc ?? this.hlc),
+      activatedAt: clearActivatedAt ? null : (activatedAt ?? this.activatedAt),
     );
   }
 
@@ -83,6 +91,7 @@ class ProfileSeries extends Equatable {
     createdAt,
     updatedAt,
     hlc,
+    activatedAt,
   ];
 }
 

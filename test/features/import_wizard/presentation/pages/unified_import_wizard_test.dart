@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
@@ -364,6 +365,94 @@ void main() {
         expect(spy.cancelCalls, 0);
       },
     );
+  });
+
+  group('UnifiedImportWizard as a nav shortcut (#2936)', () {
+    testWidgets('closing from Transfer still pops back to it', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/transfer',
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => const Text('Dashboard'),
+          ),
+          GoRoute(
+            path: '/transfer',
+            builder: (context, state) => const Scaffold(body: Text('Transfer')),
+            routes: [
+              GoRoute(
+                path: 'import-wizard',
+                builder: (context, state) =>
+                    UnifiedImportWizard(adapter: _FakeAdapter()),
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      router.push('/transfer/import-wizard');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Yes'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Transfer'), findsOneWidget);
+      expect(find.text('Dashboard'), findsNothing);
+    });
+
+    testWidgets('closing with nothing beneath goes to the dashboard', (
+      tester,
+    ) async {
+      // On /shortcut/import-wizard the wizard is the only page on the shell
+      // navigator, so there is nothing to pop.
+      final router = GoRouter(
+        initialLocation: '/shortcut/import-wizard',
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            builder: (context, state) => const Text('Dashboard'),
+          ),
+          GoRoute(
+            path: '/shortcut/import-wizard',
+            builder: (context, state) =>
+                UnifiedImportWizard(adapter: _FakeAdapter()),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      // Leaving mid-wizard asks first.
+      await tester.tap(find.text('Yes'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Dashboard'), findsOneWidget);
+    });
   });
 }
 

@@ -167,6 +167,40 @@ void main() {
     expect(find.textContaining('Due '), findsOneWidget);
   });
 
+  testWidgets(
+    'a clock with a due date and a usage count renders them as separate '
+    'lines, not crowded into one (issue #3267)',
+    (tester) async {
+      await tester.pumpWidget(
+        buildCard(
+          statuses: [
+            ServiceClockStatus(
+              schedule: sched(hydro.id),
+              kind: hydro,
+              anchor: t0,
+              dueDate: DateTime(2027, 1, 1),
+              divesSinceAnchor: 51,
+              divesRemaining: 49,
+              severity: ServiceClockSeverity.ok,
+              now: now,
+            ),
+          ],
+          schedules: [sched('hydro')],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Due '), findsOneWidget);
+      expect(
+        find.text('51 of 100 dives, 49 left'),
+        findsOneWidget,
+        reason:
+            'the usage count must be its own Text widget, not joined with '
+            'the due date into a single crowded line',
+      );
+    },
+  );
+
   testWidgets('due and overdue clocks get the status palette dots', (
     tester,
   ) async {

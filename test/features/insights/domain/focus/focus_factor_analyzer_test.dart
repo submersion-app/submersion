@@ -122,6 +122,7 @@ void main() {
       ids(FocusMetric.bottomTime),
       isNot(contains(FocusFactorId.duration)),
     );
+    expect(ids(FocusMetric.runtime), isNot(contains(FocusFactorId.duration)));
     expect(ids(FocusMetric.weight), isNot(contains(FocusFactorId.weight)));
     expect(
       ids(FocusMetric.waterTemp),

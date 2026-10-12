@@ -22,6 +22,7 @@ void main() {
   }) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
@@ -92,6 +93,84 @@ void main() {
     expect(emitted!.key, 'thickness_mm');
     expect(emitted!.valueText, '5/4');
     expect(emitted!.valueNum, 5.0);
+  });
+
+  group('lens focal length (#3050)', () {
+    const fieldKey = ValueKey('attr-field-focal_length_mm');
+
+    testWidgets('a zoom range emits its text and wide end', (tester) async {
+      EquipmentAttribute? emitted;
+      await pumpSection(
+        tester,
+        type: EquipmentType.lens,
+        values: const {},
+        onChanged: (a) => emitted = a,
+      );
+
+      expect(find.text('Focal length (mm)'), findsOneWidget);
+      await tester.enterText(find.byKey(fieldKey), ' 15-45 ');
+      expect(emitted!.key, 'focal_length_mm');
+      expect(emitted!.valueText, '15-45');
+      expect(emitted!.valueNum, 15.0);
+    });
+
+    testWidgets('a lens saved as a single number seeds the field', (
+      tester,
+    ) async {
+      await pumpSection(
+        tester,
+        type: EquipmentType.lens,
+        values: {
+          'focal_length_mm': EquipmentAttribute.curated(
+            equipmentId: 'e',
+            key: 'focal_length_mm',
+            valueNum: 60,
+          ),
+        },
+        onChanged: (_) {},
+      );
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byKey(fieldKey),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller!
+            .text,
+        '60',
+      );
+    });
+
+    testWidgets('rejects text that is not a figure or a range', (tester) async {
+      EquipmentAttribute? emitted;
+      await pumpSection(
+        tester,
+        type: EquipmentType.lens,
+        values: const {},
+        onChanged: (a) => emitted = a,
+      );
+      await tester.enterText(find.byKey(fieldKey), 'wide');
+      await tester.pump();
+      expect(emitted!.valueText, 'wide');
+      expect(emitted!.valueNum, isNull);
+      expect(find.text(l10n.equipment_edit_invalidFocalLength), findsOneWidget);
+    });
+
+    testWidgets('clearing the field clears the attribute', (tester) async {
+      String? cleared;
+      await pumpSection(
+        tester,
+        type: EquipmentType.lens,
+        values: const {},
+        onChanged: (_) {},
+        onCleared: (k) => cleared = k,
+      );
+      await tester.enterText(find.byKey(fieldKey), '60');
+      await tester.enterText(find.byKey(fieldKey), '');
+      expect(cleared, 'focal_length_mm');
+    });
   });
 
   testWidgets('tank renders no thickness but has valve choices', (
@@ -401,6 +480,7 @@ void main() {
       final formKey = GlobalKey<FormState>();
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(

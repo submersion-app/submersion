@@ -40,12 +40,46 @@ void main() {
       100,
       scrollable: find.byType(Scrollable).first,
     );
-    expect(find.text('Near-miss log'), findsOneWidget);
+    expect(find.text('Species'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('settings-manage-nav-routes')),
       findsNothing,
     );
     // Any wording of a returning tile, old or new, singular or plural.
     expect(find.textContaining('nderwater'), findsNothing);
+  });
+
+  // The near-miss log moved to the Diver Profile hub (issue #3061); Manage
+  // holds catalogs and templates, not the diver's own safety records.
+  testWidgets('Manage has no Near-miss log tile', (tester) async {
+    tester.view.physicalSize = const Size(400, 3000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) =>
+              const SettingsSectionDetailPage(sectionId: 'manage'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: await getBaseOverrides(),
+        locale: const Locale('en'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Scroll to the tiles the removed one sat between, so its slot is built.
+    await tester.scrollUntilVisible(
+      find.text('Species'),
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Pre-Dive Checklists'), findsOneWidget);
+    expect(find.text('Near-miss log'), findsNothing);
   });
 }

@@ -341,12 +341,32 @@ extension RungsFromV231 on AppDatabase {
       await _assertTrendGapCollapseColumn();
     }
     if (from < 281) await reportProgress();
-    // v282: dive_plan_segments.split_at_configured_rate (issue #3264).
+    // v283: dive_profile_series.activated_at (issue #3189). The column and
+    // its one-time backfill; re-asserted in beforeOpen.
+    if (from < 283) {
+      await _assertProfileSeriesActivatedAt();
+    }
+    if (from < 283) await reportProgress();
+    // v284: diver_settings.profile_color_* (issue #3012). Columns only, null
+    // meaning the default colour; re-asserted in beforeOpen. Renumbered from
+    // 282, which PR #3133 holds, after #3296 shipped 283.
+    if (from < 284) {
+      await _assertProfileMetricColorColumns();
+    }
+    if (from < 284) await reportProgress();
+    // v285: nav_tracks.source_metadata (issue #3047). Column only, no
+    // backfill; re-asserted in beforeOpen through _assertNavTracksSchema.
+    if (from < 285) {
+      await _assertNavTrackSourceMetadataColumn();
+    }
+    if (from < 285) await reportProgress();
+    // v286: dive_plan_segments.split_at_configured_rate (issue #3264).
     // Column only, defaulting off; re-asserted in beforeOpen. Renumbered
-    // from 277, which #2613's documents store shipped first.
-    if (from < 282) {
+    // from 277 then 282, as #2613's documents store, #3189, #3012 and
+    // #3047 shipped first in turn.
+    if (from < 286) {
       await _assertSegmentSplitAtRateColumn();
     }
-    if (from < 282) await reportProgress();
+    if (from < 286) await reportProgress();
   }
 }

@@ -59,10 +59,13 @@ class ProfileMarker {
   }
 
   /// Get the color for this marker based on type and tank index
-  Color getColor({List<Color>? tankColors}) {
+  ///
+  /// [maxDepthColor] is the diver's chosen max-depth colour (issue #3012);
+  /// [tankColors] replace the default per-tank palette.
+  Color getColor({List<Color>? tankColors, Color? maxDepthColor}) {
     if (type == ProfileMarkerType.maxDepth) {
       // Pink 900 - distinct from the heart-rate red curve.
-      return const Color(0xFF880E4F);
+      return maxDepthColor ?? const Color(0xFF880E4F);
     }
 
     // Default tank colors

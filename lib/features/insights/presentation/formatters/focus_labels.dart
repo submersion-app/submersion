@@ -7,6 +7,7 @@ String focusMetricLabel(FocusMetric metric, AppLocalizations l10n) =>
       FocusMetric.rmv => l10n.insights_focus_metric_rmv,
       FocusMetric.sac => l10n.insights_focus_metric_sac,
       FocusMetric.maxDepth => l10n.insights_focus_metric_maxDepth,
+      FocusMetric.runtime => l10n.insights_focus_metric_runtime,
       FocusMetric.bottomTime => l10n.insights_focus_metric_bottomTime,
       FocusMetric.weight => l10n.insights_focus_metric_weight,
       FocusMetric.waterTemp => l10n.insights_focus_metric_waterTemp,

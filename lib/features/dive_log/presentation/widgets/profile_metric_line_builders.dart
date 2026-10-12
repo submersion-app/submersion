@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:fl_chart/fl_chart.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show ceilingFillAlpha;
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 
 /// Signature of `_DiveProfileChartState._decimatedCurveIndices`, decimated
 /// sample indices for a numeric curve.
@@ -61,6 +59,7 @@ LineChartBarData buildHeartRateLine(
 
 /// Build SAC (Surface Air Consumption) curve line
 LineChartBarData buildSacLine(
+  Color color,
   MetricBand band,
   double minSac,
   double maxSac,
@@ -70,8 +69,6 @@ LineChartBarData buildSacLine(
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
   SeriesGetsLeadIn seriesGetsLeadIn,
 ) {
-  const sacColor = ProfileMetricColors.sac;
-
   // Build spots for each profile point that has SAC data
   final spots = <FlSpot>[];
   for (final i in decimatedCurveIndices(sacCurve)) {
@@ -92,7 +89,7 @@ LineChartBarData buildSacLine(
     // the curve at the left edge. Dives already starting at t=0 keep
     // their existing smoothing untouched.
     preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: sacColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -118,6 +115,7 @@ double calculateTimeInterval(double maxTime) {
 
 /// Build the ceiling line (decompression ceiling)
 LineChartBarData buildCeilingLine(
+  Color color,
   UnitFormatter units,
   List<double> ceilingCurve,
   List<DiveProfilePoint> profile,
@@ -125,9 +123,6 @@ LineChartBarData buildCeilingLine(
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
   SeriesGetsLeadIn seriesGetsLeadIn,
 ) {
-  // Purple 700 - distinct from the red deco-stop band it sits beside.
-  const ceilingColor = ProfileMetricColors.ceiling;
-
   // Build spots only where ceiling > 0, breaking the curve wherever the
   // obligation clears. fl_chart splits a bar on null spots and gives each
   // section its own fill, so without the break a profile that re-enters deco
@@ -162,7 +157,7 @@ LineChartBarData buildCeilingLine(
     // the curve at the left edge. Dives already starting at t=0 keep
     // their existing smoothing untouched.
     preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: ceilingColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -177,7 +172,7 @@ LineChartBarData buildCeilingLine(
     // defect, and same fix, as the deco stop band in deco_stop_band.dart.
     aboveBarData: BarAreaData(
       show: true,
-      color: ceilingColor.withValues(alpha: ceilingFillAlpha),
+      color: color.withValues(alpha: ceilingFillAlpha),
       cutOffY: 0, // Fill to surface
       applyCutOffY: true,
     ),
@@ -187,14 +182,13 @@ LineChartBarData buildCeilingLine(
 /// Build NDL (No Decompression Limit) line
 /// NDL values are in seconds; shows time remaining before deco obligation
 LineChartBarData buildNdlLine(
+  Color color,
   MetricBand band,
   List<int> ndlCurve,
   List<DiveProfilePoint> profile,
   DecimatedCurveIndices decimatedCurveIndices,
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
 ) {
-  const ndlColor = ProfileMetricColors.ndl;
-
   // Map NDL to chart: max NDL (~60 min) at top, 0 at bottom
   final maxNdlSeconds = ProfileMetricBands.ndl.fixedMax;
 
@@ -225,7 +219,7 @@ LineChartBarData buildNdlLine(
     // Straight segments: a spline across the null-spot breaks would reach
     // for the gap and overshoot.
     isCurved: false,
-    color: ndlColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -238,15 +232,13 @@ LineChartBarData buildNdlLine(
 /// Build MOD (Maximum Operating Depth) line
 /// Shows the MOD limit as a horizontal reference line
 LineChartBarData buildModLine(
+  Color color,
   UnitFormatter units,
   List<double> modCurve,
   List<DiveProfilePoint> profile,
   DecimatedCurveIndices decimatedCurveIndices,
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
 ) {
-  // Amber 600 - distinct from the CNS orange it often overlays.
-  const modColor = ProfileMetricColors.mod;
-
   // MOD is typically constant for a given gas
   final spots = <FlSpot>[];
   for (final i in decimatedCurveIndices(modCurve)) {
@@ -264,7 +256,7 @@ LineChartBarData buildModLine(
     // first sample. Only a gas switch moves it.
     spots: withFlatSurfaceLeadIn(spots),
     isCurved: false,
-    color: modColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -275,6 +267,7 @@ LineChartBarData buildModLine(
 /// Build gas density line (g/L)
 /// High density (>5.7 g/L) increases work of breathing
 LineChartBarData buildDensityLine(
+  Color color,
   MetricBand band,
   List<double> densityCurve,
   double densityMaxScale,
@@ -284,9 +277,6 @@ LineChartBarData buildDensityLine(
   SurfaceValueOf surfaceValueOf,
   SeriesGetsLeadIn seriesGetsLeadIn,
 ) {
-  // Lime 900 (olive) - distinct from the OTU brown.
-  const densityColor = ProfileMetricColors.density;
-
   // Map density to chart: 0 at top, densityMaxScale at bottom.
   final minDensity = ProfileMetricBands.density.min;
   final maxDensity = densityMaxScale;
@@ -316,7 +306,7 @@ LineChartBarData buildDensityLine(
     // the curve at the left edge. Dives already starting at t=0 keep
     // their existing smoothing untouched.
     preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: densityColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -327,6 +317,7 @@ LineChartBarData buildDensityLine(
 /// Build GF% (Gradient Factor percentage) line at current depth
 /// Shows how close tissues are to M-value limit
 LineChartBarData buildGfLine(
+  Color color,
   MetricBand band,
   List<double> gfCurve,
   double gfMaxScale,
@@ -335,8 +326,6 @@ LineChartBarData buildGfLine(
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
   SeriesGetsLeadIn seriesGetsLeadIn,
 ) {
-  const gfColor = ProfileMetricColors.gf;
-
   // Map GF% to chart: 0% at top, gfMaxScale% at bottom.
   final minGf = ProfileMetricBands.gf.min;
   final maxGf = gfMaxScale;
@@ -357,7 +346,7 @@ LineChartBarData buildGfLine(
     // the curve at the left edge. Dives already starting at t=0 keep
     // their existing smoothing untouched.
     preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: gfColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -368,6 +357,7 @@ LineChartBarData buildGfLine(
 /// Build Surface GF% line (what GF would be if surfaced now)
 /// Values >100% indicate deco obligation
 LineChartBarData buildSurfaceGfLine(
+  Color color,
   MetricBand band,
   List<double> surfaceGfCurve,
   double surfaceGfMaxScale,
@@ -376,8 +366,6 @@ LineChartBarData buildSurfaceGfLine(
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
   SeriesGetsLeadIn seriesGetsLeadIn,
 ) {
-  const surfaceGfColor = ProfileMetricColors.surfaceGf;
-
   // Map Surface GF% to chart: 0% at top, surfaceGfMaxScale% at bottom.
   final minGf = ProfileMetricBands.surfaceGf.min;
   final maxGf = surfaceGfMaxScale;
@@ -398,7 +386,7 @@ LineChartBarData buildSurfaceGfLine(
     // the curve at the left edge. Dives already starting at t=0 keep
     // their existing smoothing untouched.
     preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: surfaceGfColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -408,6 +396,7 @@ LineChartBarData buildSurfaceGfLine(
 
 /// Build mean depth line (running average from start)
 LineChartBarData buildMeanDepthLine(
+  Color color,
   UnitFormatter units,
   List<double> meanDepthCurve,
   List<DiveProfilePoint> profile,
@@ -415,8 +404,6 @@ LineChartBarData buildMeanDepthLine(
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
   SeriesGetsLeadIn seriesGetsLeadIn,
 ) {
-  const meanDepthColor = ProfileMetricColors.meanDepth;
-
   final spots = <FlSpot>[];
   for (final i in decimatedCurveIndices(meanDepthCurve)) {
     spots.add(
@@ -436,7 +423,7 @@ LineChartBarData buildMeanDepthLine(
     // the curve at the left edge. Dives already starting at t=0 keep
     // their existing smoothing untouched.
     preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: meanDepthColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -447,6 +434,7 @@ LineChartBarData buildMeanDepthLine(
 /// Build TTS (Time To Surface) line
 /// Shows total time including deco stops to reach surface
 LineChartBarData buildTtsLine(
+  Color color,
   MetricBand band,
   List<int> ttsCurve,
   double ttsMaxScale,
@@ -455,8 +443,6 @@ LineChartBarData buildTtsLine(
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
   SeriesGetsLeadIn seriesGetsLeadIn,
 ) {
-  const ttsColor = ProfileMetricColors.tts;
-
   // Map TTS to chart: 0 at top, ttsMaxScale at bottom.
   final maxTtsSeconds = ttsMaxScale;
 
@@ -477,7 +463,7 @@ LineChartBarData buildTtsLine(
     // the curve at the left edge. Dives already starting at t=0 keep
     // their existing smoothing untouched.
     preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: ttsColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -503,6 +489,7 @@ bool gtrGapBetween(List<int?> curve, int from, int to) {
 /// value, so the line breaks there instead of dropping to zero. No surface
 /// lead-in: GTR is blank on the surface by definition.
 LineChartBarData buildGtrLine(
+  Color color,
   MetricBand band,
   List<int?> gtrCurve,
   List<DiveProfilePoint> profile,
@@ -531,7 +518,7 @@ LineChartBarData buildGtrLine(
     spots: spots,
     isCurved: true,
     curveSmoothness: 0.2,
-    color: ProfileRightAxisMetric.gtr.color!,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -541,6 +528,7 @@ LineChartBarData buildGtrLine(
 
 /// Build cumulative CNS% line
 LineChartBarData buildCnsLine(
+  Color color,
   MetricBand band,
   List<double> cnsCurve,
   double cnsMaxScale,
@@ -549,8 +537,6 @@ LineChartBarData buildCnsLine(
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
   SeriesGetsLeadIn seriesGetsLeadIn,
 ) {
-  const cnsColor = ProfileMetricColors.cns;
-
   final minCns = ProfileMetricBands.cns.min;
   final maxCns = cnsMaxScale;
 
@@ -570,7 +556,7 @@ LineChartBarData buildCnsLine(
     // the curve at the left edge. Dives already starting at t=0 keep
     // their existing smoothing untouched.
     preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: cnsColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
@@ -580,6 +566,7 @@ LineChartBarData buildCnsLine(
 
 /// Build cumulative OTU line
 LineChartBarData buildOtuLine(
+  Color color,
   MetricBand band,
   List<double> otuCurve,
   double otuMaxScale,
@@ -588,8 +575,6 @@ LineChartBarData buildOtuLine(
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
   SeriesGetsLeadIn seriesGetsLeadIn,
 ) {
-  const otuColor = ProfileMetricColors.otu;
-
   final minOtu = ProfileMetricBands.otu.min;
   final maxOtu = otuMaxScale;
 
@@ -609,7 +594,7 @@ LineChartBarData buildOtuLine(
     // the curve at the left edge. Dives already starting at t=0 keep
     // their existing smoothing untouched.
     preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: otuColor,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),

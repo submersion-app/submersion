@@ -72,6 +72,7 @@ List<LineChartBarData> buildMultiTankPressureLines(
   required List<int>? Function(int index) getTankDashPattern,
   required WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
   required SeriesGetsLeadIn seriesGetsLeadIn,
+  Color? singleTankColor,
 }) {
   if (!hasMultiTankPressure) return [];
 
@@ -117,8 +118,11 @@ List<LineChartBarData> buildMultiTankPressureLines(
     // Get tank for color
     final tank = getTankById(tankId);
 
-    // Use gas color or fallback
-    final color = tank != null
+    // A diver's chosen pressure colour applies on a single-tank dive only;
+    // with several tanks the gas colours are what tell them apart (#3012).
+    final color = sortedIds.length == 1 && singleTankColor != null
+        ? singleTankColor
+        : tank != null
         ? GasColors.forGasMix(tank.gasMix)
         : getTankColor(i);
     final dashPattern = getTankDashPattern(i);

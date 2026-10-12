@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,6 +30,23 @@ Dive _dive() => Dive(
   ),
 );
 
+/// A dive whose fixes sit metres apart, so the inline map's camera fit
+/// saturates at its maxZoom of 16: three zoom levels past the zoom 13 the map
+/// mounts at.
+Dive _tightDive() => Dive(
+  id: 'tight',
+  diveNumber: 3,
+  dateTime: DateTime(2026, 5, 6, 18, 54),
+  maxDepth: 12.0,
+  entryLocation: const GeoPoint(12.046730, -68.268700),
+  exitLocation: const GeoPoint(12.046780, -68.268550),
+  site: const DiveSite(
+    id: 'site-2',
+    name: 'Red Beryl',
+    location: GeoPoint(12.046640, -68.268529),
+  ),
+);
+
 /// A dive whose only location is its site's coordinates: no GPS fixes.
 Dive _siteOnlyDive() => Dive(
   id: 'site-only',
@@ -46,6 +66,7 @@ Future<void> _pump(
   Dive? dive,
   bool expanded = true,
   ScrollController? scrollController,
+  Key? sectionKey,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.binding.setSurfaceSize(const Size(600, 1200));
@@ -72,6 +93,7 @@ Future<void> _pump(
             child: Column(
               children: [
                 SurfaceGpsSection(
+                  key: sectionKey,
                   dive: dive ?? _dive(),
                   controller: controller,
                 ),
@@ -262,5 +284,89 @@ void main() {
       expect(page.entry, isNull);
       expect(page.exit, isNull);
     });
+  });
+
+  // Selecting a dive mounts this card more than once (the Tide card arriving
+  // turns the layout into a pair), and a dive seen before is the same. Either
+  // way the second map finds its tiles already in the image cache, so they
+  // load synchronously. With instantaneous tile display flutter_map then
+  // prunes against the camera of its previous build, still at the pre-fit
+  // zoom 13, discards the zoom-16 tiles and never requests them again: the map
+  // stayed blank until a coordinate tap moved the camera (issue #3285).
+  testWidgets('tiles already in the image cache show after the camera fit', (
+    tester,
+  ) async {
+    final imageCache = PaintingBinding.instance.imageCache;
+    addTearDown(() {
+      imageCache
+        ..clear()
+        ..clearLiveImages();
+    });
+
+    // Made before any map mounts: real async work during runAsync would let
+    // flutter_map's tile cache reach the (absent) path_provider plugin.
+    final image = await tester.runAsync(
+      () => createTestImage(width: 256, height: 256),
+    );
+    // The cache holds clones; this handle is the test's own.
+    addTearDown(() => image?.dispose());
+
+    final controller = MapController();
+    await _pump(tester, dive: _tightDive(), controller: controller);
+    expect(controller.camera.zoom, 16.0);
+
+    // Seed the tiles an earlier mount of the card would have left in the
+    // cache: those the fitted zoom-16 camera shows and those of the zoom-13
+    // camera the map mounts at, each with a margin for the pan buffer. The
+    // zoom-13 tiles matter: flutter_map prunes only once every tile it holds
+    // has loaded. The first map goes first, because disposing it evicts its
+    // failed tiles' keys, which are these same URLs.
+    final layer = tester.widget<TileLayer>(find.byType(TileLayer));
+    final pixels = controller.camera.pixelBounds;
+    await tester.pumpWidget(const SizedBox.shrink());
+    imageCache.clear();
+    void seed(int zoom, int minX, int maxX, int minY, int maxY) {
+      for (var x = minX - 2; x <= maxX + 2; x++) {
+        for (var y = minY - 2; y <= maxY + 2; y++) {
+          final coordinates = TileCoordinates(x, y, zoom);
+          // Image keys compare by tile URL, so this provider's key is the one
+          // the remounted layer will look up.
+          final provider = layer.tileProvider.supportsCancelLoading
+              ? layer.tileProvider.getImageWithCancelLoadingSupport(
+                  coordinates,
+                  layer,
+                  Completer<void>().future,
+                )
+              : layer.tileProvider.getImage(coordinates, layer);
+          imageCache.putIfAbsent(
+            provider,
+            () => OneFrameImageStreamCompleter(
+              SynchronousFuture(ImageInfo(image: image!.clone())),
+            ),
+          );
+        }
+      }
+    }
+
+    final (minX, maxX) = (pixels.left ~/ 256, pixels.right ~/ 256);
+    final (minY, maxY) = (pixels.top ~/ 256, pixels.bottom ~/ 256);
+    seed(16, minX, maxX, minY, maxY);
+    // Three zoom levels up, a tile index is an eighth.
+    seed(13, minX >> 3, maxX >> 3, minY >> 3, maxY >> 3);
+
+    await _pump(
+      tester,
+      dive: _tightDive(),
+      sectionKey: const ValueKey('remounted'),
+    );
+
+    final tiles = tester.widgetList<RawImage>(
+      find.descendant(
+        of: find.byType(TileLayer),
+        matching: find.byType(RawImage),
+      ),
+    );
+    expect(tiles, isNotEmpty);
+    expect(tiles.where((t) => t.image == null), isEmpty);
   });
 }

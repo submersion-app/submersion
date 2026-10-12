@@ -27,6 +27,7 @@ ProfileSeries series(
   String? computerId,
   String? sourceId,
   bool isPrimary = true,
+  int? activatedAt,
   required List<ProfileSample> samples,
 }) => ProfileSeries(
   id: id,
@@ -34,6 +35,7 @@ ProfileSeries series(
   computerId: computerId,
   sourceId: sourceId,
   isPrimary: isPrimary,
+  activatedAt: activatedAt,
   summary: ProfileSeriesSummary.of(samples),
   samples: samples,
   codecVersion: 1,
@@ -526,6 +528,32 @@ void main() {
     test('an edit supersedes the computer original it overlaps', () {
       final original = series('z', computerId: 'c1', samples: span);
       final edit = series('a', samples: span);
+      expect(ids(liveSeriesOf([original, edit])), ['a']);
+    });
+
+    test('the most recently activated generation wins (#3189)', () {
+      // A file import's original names no computer either, so only the
+      // activation time tells the edit from it.
+      final original = series('z', activatedAt: 100, samples: span);
+      final edit = series('a', activatedAt: 200, samples: span);
+      expect(ids(liveSeriesOf([original, edit])), ['a']);
+    });
+
+    test('an activated generation outranks one never activated', () {
+      final reparse = series('z', samples: span);
+      final edit = series('a', activatedAt: 200, samples: span);
+      expect(ids(liveSeriesOf([reparse, edit])), ['a']);
+    });
+
+    test('activation outranks the null-computer rule', () {
+      // A downloaded original chosen again from history over its edit.
+      final original = series(
+        'a',
+        computerId: 'c1',
+        activatedAt: 300,
+        samples: span,
+      );
+      final edit = series('z', activatedAt: 200, samples: span);
       expect(ids(liveSeriesOf([original, edit])), ['a']);
     });
 

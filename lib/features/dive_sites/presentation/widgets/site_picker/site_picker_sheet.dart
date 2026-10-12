@@ -187,7 +187,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
   bool _isLocating = false;
 
   /// Countries the diver opened or closed by hand; null until the first
-  /// build with data, which seeds it from [initialExpandedCountries].
+  /// build with data, which seeds it from [initialExpandedGroups].
   Set<String>? _manualExpanded;
 
   /// Countries the diver closed while the current query is active. Cleared
@@ -290,9 +290,9 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
   void _toggleCountry(String key, {required bool searching}) {
     setState(() {
       if (searching) {
-        _searchCollapsed = toggleCountryKey(_searchCollapsed, key);
+        _searchCollapsed = toggleGroupKey(_searchCollapsed, key);
       } else {
-        _manualExpanded = toggleCountryKey(_manualExpanded ?? const {}, key);
+        _manualExpanded = toggleGroupKey(_manualExpanded ?? const {}, key);
       }
     });
   }
@@ -546,16 +546,24 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
       );
     }
 
+    // Always country & region: the picker has no Group by control of its
+    // own, so it never reaches the water-based modes #3270 added for the
+    // Dive Sites list. Nothing stops wiring one in later with the same
+    // groupSitesFor/outerKeyOfMode dispatch SiteListContent uses.
     final groups = groupSitesByLocation(visible, (site) => site);
-    final manual = _manualExpanded ??= initialExpandedCountries(
+    final manual = _manualExpanded ??= initialExpandedGroups(
       searching ? groupSitesByLocation(sites, (site) => site) : groups,
+      outerKeyOf: siteCountryKey,
       selected: sites
           .where((site) => site.id == widget.selectedSiteId)
           .firstOrNull,
     );
-    final expanded = searching
-        ? allCountryKeys(groups).difference(_searchCollapsed)
-        : manual;
+    // Regions never collapse here, unlike on the Dive Sites list (#3270):
+    // the picker has no per-region tap target, so their expansion keys are
+    // unioned in rather than tracked in _manualExpanded/_searchCollapsed.
+    final expanded =
+        (searching ? allGroupKeys(groups).difference(_searchCollapsed) : manual)
+            .union(allSubGroupKeys(groups));
 
     final rows = <Widget Function()>[
       if (widget.onClear != null) () => _buildClearRow(context, colorScheme),
@@ -575,15 +583,23 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
       ],
       for (final row in flattenSiteGroups(groups, expanded: expanded))
         switch (row) {
-          CountryHeaderRow(:final group, :final isExpanded) =>
-            () => SiteCountryHeader(
-              label: countryGroupLabel(context.l10n, group),
+          OuterHeaderRow(:final group, :final isExpanded) =>
+            () => SiteGroupHeader(
+              label: siteOuterGroupLabel(
+                context.l10n.diveSites_group_noCountry,
+                group,
+              ),
               siteCount: group.siteCount,
               isExpanded: isExpanded,
               onTap: () => _toggleCountry(group.key, searching: searching),
             ),
-          RegionHeaderRow(:final label) => () => SiteSectionLabel(
-            label,
+          SubHeaderRow(:final subgroup) => () => SiteSectionLabel(
+            // Region (the picker's only axis) never bundles an unlabeled
+            // subgroup, so the fallback is never actually shown -- going
+            // through siteSubGroupLabel anyway keeps this correct if that
+            // ever changes (#3270), rather than reading subgroup.label
+            // (blank for an ungrouped subgroup) directly.
+            siteSubGroupLabel('', subgroup),
             indent: 56,
           ),
           SiteRow(:final item) => () => SitePickerSiteTile(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -373,6 +375,32 @@ void main() {
       expect(repo.navPrimaryIds, isNull);
     });
 
+    testWidgets('a late failure does not undo a newer saved edit', (
+      tester,
+    ) async {
+      final repo = _FirstWriteFailsLateRepo();
+      await pumpPage(tester, repo: repo);
+
+      // Edit A: Dives down. Its save hangs, then fails.
+      await tester.tap(find.byIcon(Icons.arrow_downward).at(0));
+      await tester.pump();
+      // Edit B: Trips down, from A's order. Its save succeeds.
+      await tester.tap(find.byIcon(Icons.arrow_downward).at(2));
+      await tester.pumpAndSettle();
+      final saved = List<String>.from(repo.navPrimaryIds!);
+
+      repo.gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Could not save navigation layout. Please try again.'),
+        findsOneWidget,
+      );
+      // The screen shows what is saved (B), not the order before A.
+      expect(_firstRowId(tester), saved.first);
+      expect(saved.first, 'sites');
+    });
+
     testWidgets('a failed save rolls the row back and reports it', (
       tester,
     ) async {
@@ -463,6 +491,91 @@ void main() {
         expect(find.byKey(const ValueKey('navScopeSegments')), findsOneWidget);
       });
     });
+
+    group('nav shortcuts (#2936)', () {
+      Future<void> addBlender(WidgetTester tester) async {
+        await tester.tap(find.text('Add shortcut'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), 'blender');
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Trimix blender'));
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('Add shortcut inserts it right after Home', (tester) async {
+        final repo = await pumpPage(tester);
+        await addBlender(tester);
+
+        expect(repo.navPrimaryIds!.first, 'shortcut:gas-blender');
+        expect(
+          find.byKey(const ValueKey('nav-item-shortcut:gas-blender')),
+          findsOneWidget,
+        );
+        // Its parent is its subtitle, as in the More sheet.
+        expect(find.text('Gas Calculators'), findsOneWidget);
+      });
+
+      testWidgets('adding on Phone leaves the Desktop order alone', (
+        tester,
+      ) async {
+        final repo = await pumpPage(tester);
+        await addBlender(tester);
+
+        expect(repo.navRailIds, isNull);
+      });
+
+      testWidgets('adding on Desktop writes the rail order', (tester) async {
+        final repo = await pumpPage(tester, wide: true);
+        await addBlender(tester);
+
+        expect(repo.navRailIds!.first, 'shortcut:gas-blender');
+        expect(repo.navPrimaryIds, isNull);
+      });
+
+      testWidgets('a shortcut row can be removed', (tester) async {
+        final repo = FakeAppSettingsRepository()
+          ..navPrimaryIds = ['shortcut:gas-blender'];
+        await pumpPage(tester, repo: repo);
+        // The row previews the nav, so it names the short nav label.
+        await tester.tap(find.byTooltip('Remove Blender'));
+        await tester.pumpAndSettle();
+
+        expect(repo.navPrimaryIds, isNot(contains('shortcut:gas-blender')));
+        expect(
+          find.byKey(const ValueKey('nav-item-shortcut:gas-blender')),
+          findsNothing,
+        );
+      });
+
+      testWidgets('built-in rows have no remove button', (tester) async {
+        await pumpPage(tester);
+        expect(find.byTooltip('Remove Dives'), findsNothing);
+      });
+
+      testWidgets('a failed add rolls back and reports it', (tester) async {
+        await pumpPage(tester, repo: _WriteFailsRepo());
+        await addBlender(tester);
+
+        expect(
+          find.text('Could not save navigation layout. Please try again.'),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(const ValueKey('nav-item-shortcut:gas-blender')),
+          findsNothing,
+        );
+      });
+
+      testWidgets('Reset clears shortcuts', (tester) async {
+        final repo = FakeAppSettingsRepository()
+          ..navPrimaryIds = ['shortcut:gas-blender'];
+        await pumpPage(tester, repo: repo);
+        await tester.tap(find.text('Reset to defaults'));
+        await tester.pumpAndSettle();
+
+        expect(repo.navPrimaryIds, isNot(contains('shortcut:gas-blender')));
+      });
+    });
   });
 }
 
@@ -493,4 +606,21 @@ class _AlwaysHideLabelsWriteFailsRepo extends FakeAppSettingsRepository {
   @override
   Future<void> setNavAlwaysHideLabels(bool value) async =>
       throw StateError('write failed');
+}
+
+/// Holds the first nav write open until [gate] completes, then fails it;
+/// every later write succeeds.
+class _FirstWriteFailsLateRepo extends FakeAppSettingsRepository {
+  final gate = Completer<void>();
+  int _writes = 0;
+
+  @override
+  Future<void> setNavPrimaryIds(List<String> ids) async {
+    _writes++;
+    if (_writes == 1) {
+      await gate.future;
+      throw StateError('write failed');
+    }
+    navPrimaryIds = List<String>.from(ids);
+  }
 }

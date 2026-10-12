@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/constants/focal_length.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_units.dart';
@@ -127,6 +128,40 @@ class EquipmentAttributeFormSection extends StatelessWidget {
                   valueText: trimmed,
                   valueNum: parsed,
                   clearValueNum: parsed == null,
+                ),
+              );
+            }
+          },
+        );
+
+      // A prime's figure or a zoom's range (issue #3050). Seeded from the
+      // number alone for a lens saved before ranges existed.
+      case AttributeKind.focalLength:
+        return TextFormField(
+          key: fieldKey,
+          initialValue: focalLengthEditText(
+            valueText: current?.valueText,
+            valueNum: current?.valueNum,
+          ),
+          decoration: InputDecoration(
+            labelText: label,
+            hintText: context.l10n.equipment_edit_focalLengthHint,
+          ),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          validator: (text) => isValidFocalLength(text ?? '')
+              ? null
+              : context.l10n.equipment_edit_invalidFocalLength,
+          onChanged: (text) {
+            final trimmed = text.trim();
+            if (trimmed.isEmpty) {
+              onCleared(def.key);
+            } else {
+              final wideEnd = parseFocalLengthWideEnd(trimmed);
+              onChanged(
+                _base(def.key).copyWith(
+                  valueText: trimmed,
+                  valueNum: wideEnd,
+                  clearValueNum: wideEnd == null,
                 ),
               );
             }

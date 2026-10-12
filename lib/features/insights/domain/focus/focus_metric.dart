@@ -10,6 +10,9 @@ enum FocusMetric {
   gasUsed(FocusMetricGroup.gas, lowerIsBetter: true),
   maxDepth(FocusMetricGroup.depthTime),
   avgDepth(FocusMetricGroup.depthTime),
+
+  /// The duration the dive measured, never a bottom time (issue #3059).
+  runtime(FocusMetricGroup.depthTime),
   bottomTime(FocusMetricGroup.depthTime),
   surfaceInterval(FocusMetricGroup.depthTime),
   waterTemp(FocusMetricGroup.conditions),

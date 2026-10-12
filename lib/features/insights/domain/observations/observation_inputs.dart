@@ -16,7 +16,8 @@ class ObservationDive extends Equatable {
   final DateTime date;
   final double? maxDepthM;
 
-  /// Effective runtime (`effectiveRuntimeSecondsSql`), never bottom time.
+  /// Measured runtime (`measuredRuntimeSecondsSql`); bottom time never stands
+  /// in for it (issue #3059), so a dive logged with only one has none.
   final int? runtimeSeconds;
   final double? weightKg;
   final String? siteId;

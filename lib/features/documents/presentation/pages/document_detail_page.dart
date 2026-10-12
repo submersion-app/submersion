@@ -73,14 +73,16 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage> {
     return entry.when(
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),
+      // Embedded, these placeholder bars belong to a detail pane, not a page:
+      // a pushed list underneath must not give them a back arrow (#3292).
       error: (e, _) => Scaffold(
-        appBar: AppBar(),
+        appBar: AppBar(automaticallyImplyLeading: !widget.embedded),
         body: Center(child: Text(l10n.documents_error_load('$e'))),
       ),
       data: (entry) {
         if (entry == null) {
           return Scaffold(
-            appBar: AppBar(),
+            appBar: AppBar(automaticallyImplyLeading: !widget.embedded),
             body: Center(child: Text(l10n.documents_empty)),
           );
         }

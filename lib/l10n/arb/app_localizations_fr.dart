@@ -2491,6 +2491,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette sauvegarde sera supprimée définitivement. Cette action est irréversible.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Cette sauvegarde se trouve uniquement dans votre stockage cloud, et rien n\'indique que cet appareil l\'a créée. Il peut s\'agir de la seule copie d\'un autre appareil, ou d\'une copie créée par cet appareil avant une réinstallation. La suppression est irréversible.';
+
+  @override
   String get backup_delete_dialog_delete => 'Supprimer';
 
   @override
@@ -7934,6 +7938,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Retire des éléments pour en ajouter d\'autres';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Afficher l\'équipement réformé et vendu';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Passe le statut d\'un élément à Actif pour l\'ajouter à une plongée';
 
@@ -10074,6 +10082,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_regulatorNone => 'Aucun';
 
   @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Afficher les détendeurs réformés et vendus';
+
+  @override
   String get diveLog_tank_tripCylinderLabel => 'Bloc du voyage';
 
   @override
@@ -10187,9 +10199,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';
-
-  @override
-  String get diveLog_sources_row_metric => 'Mesure';
 
   @override
   String get diveLog_sources_row_maxDepth => 'Prof. max';
@@ -11616,6 +11625,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_group_noCountry => 'Sans pays';
 
   @override
+  String get diveSites_group_noBodyOfWater => 'Sans plan d\'eau';
+
+  @override
   String diveSites_group_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11636,7 +11648,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_list_groupBy_location => 'Pays et région';
 
   @override
+  String get diveSites_list_groupBy_locationAndWater => 'Pays et plan d\'eau';
+
+  @override
   String get diveSites_list_groupBy_none => 'Aucun';
+
+  @override
+  String get diveSites_list_groupBy_water => 'Plan d\'eau';
 
   @override
   String diveSites_list_tile_diveCount(int count) {
@@ -14612,7 +14630,7 @@ class AppLocalizationsFr extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '$used plongées, $remaining restantes sur $total';
+    return '$used sur $total plongées, $remaining restantes';
   }
 
   @override
@@ -14743,7 +14761,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used heures, $remaining restantes sur $total';
+    return '$used sur $total heures, $remaining restantes';
   }
 
   @override
@@ -14752,7 +14770,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used heures en eau salée, $remaining sur $total restantes';
+    return '$used sur $total heures en eau salée, $remaining restantes';
   }
 
   @override
@@ -14761,7 +14779,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used plongées en eau froide, $remaining sur $total restantes';
+    return '$used sur $total plongées en eau froide, $remaining restantes';
   }
 
   @override
@@ -14770,7 +14788,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used heures à haut O2, $remaining sur $total restantes';
+    return '$used sur $total heures à haut O2, $remaining restantes';
   }
 
   @override
@@ -14779,7 +14797,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used plongées profondes, $remaining sur $total restantes';
+    return '$used sur $total plongées profondes, $remaining restantes';
   }
 
   @override
@@ -14788,7 +14806,7 @@ class AppLocalizationsFr extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used cycles de batterie, $remaining sur $total restants';
+    return '$used sur $total cycles de batterie, $remaining restants';
   }
 
   @override
@@ -15205,6 +15223,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'ex: 5, 5/4, 7/5/3';
+
+  @override
+  String get equipment_edit_focalLengthHint => 'ex. : 60 ou 15-45';
 
   @override
   String get equipment_edit_webLinkHint => 'par ex. shop.example.com/product';
@@ -20144,13 +20165,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Graphique du cycle de marée et horaires';
 
   @override
-  String get diveDetailSection_reefHealth_name => 'Conditions de l\'eau';
-
-  @override
-  String get diveDetailSection_reefHealth_description =>
-      'Conditions de l\'eau par satellite à la date de la plongée';
-
-  @override
   String get diveDetailSection_surfaceGps_name => 'Emplacement';
 
   @override
@@ -20637,6 +20651,65 @@ class AppLocalizationsFr extends AppLocalizations {
       'Métriques visibles par défaut';
 
   @override
+  String get settings_appearance_metricColors => 'Couleurs des métriques';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'Couleurs par défaut';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personnalisées',
+      one: '$count personnalisée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'Tout réinitialiser';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      'Réinitialiser les couleurs des métriques ?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'Chaque métrique reprend sa couleur par défaut.';
+
+  @override
+  String get settings_metricColors_reset => 'Réinitialiser';
+
+  @override
+  String get settings_metricColors_default => 'Par défaut';
+
+  @override
+  String get settings_metricColors_auto => 'Auto';
+
+  @override
+  String get settings_metricColors_autoTemperature => 'Auto : suit le thème';
+
+  @override
+  String get settings_metricColors_autoPressure =>
+      'Auto : chaque gaz a sa propre couleur';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'Utilisée pour les plongées à un seul bloc';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'Couleur de $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'S\'échange avec $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'Métriques standard';
 
@@ -20715,6 +20788,112 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_navCustomization_saveError =>
       'Impossible d\'enregistrer la disposition de la navigation. Veuillez réessayer.';
+
+  @override
+  String get navShortcut_noFly => 'Délai avant vol';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'Records';
+
+  @override
+  String get navShortcut_sitesMap => 'Carte des sites';
+
+  @override
+  String get navShortcut_diveActivityMap => 'Carte de l\'activité de plongée';
+
+  @override
+  String get navShortcut_diveCentersMap => 'Carte des centres de plongée';
+
+  @override
+  String get navShortcut_diverProfile => 'Profil du plongeur';
+
+  @override
+  String get navShortcut_cloudSync => 'Synchronisation cloud';
+
+  @override
+  String get navShortcut_offlineMaps => 'Cartes hors ligne';
+
+  @override
+  String get navShortcut_short_deco => 'Déco';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'Calc. gaz';
+
+  @override
+  String get navShortcut_short_weighting => 'Lestage';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'Interv. surface';
+
+  @override
+  String get navShortcut_short_blender => 'Mélangeur';
+
+  @override
+  String get navShortcut_short_airUse => 'Conso';
+
+  @override
+  String get navShortcut_short_patterns => 'Tendances';
+
+  @override
+  String get navShortcut_short_profiles => 'Profils';
+
+  @override
+  String get navShortcut_short_diveMap => 'Carte plongées';
+
+  @override
+  String get navShortcut_short_centersMap => 'Carte centres';
+
+  @override
+  String get navShortcut_short_gearSets => 'Kits';
+
+  @override
+  String get navShortcut_short_certWallet => 'Portefeuille';
+
+  @override
+  String get navShortcut_short_emergency => 'Urgence';
+
+  @override
+  String get navShortcut_short_backup => 'Sauvegarde';
+
+  @override
+  String get navShortcut_short_speciesStats => 'Stats espèces';
+
+  @override
+  String get navShortcut_short_gearStats => 'Stats équipement';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'Ajouter un raccourci';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle =>
+      'Nouveau raccourci';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint =>
+      'Rechercher des pages';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches =>
+      'Aucune page correspondante';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'Déjà dans cette disposition';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return 'Retirer $destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'Vues';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'Réglages et outils';
 
   @override
   String get settings_backToSettings_tooltip => 'Retour aux réglages';
@@ -23024,6 +23203,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'Élément lié';
 
   @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Données supplémentaires de la source';
+
+  @override
   String get settings_conflict_field_sourceRef => 'Fichier ou appareil source';
 
   @override
@@ -23221,6 +23404,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'Réduire les pauses dans les graphiques de tendance';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'Couleur du profil : $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>
@@ -26691,6 +26879,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'Temps au fond';
 
   @override
+  String get insights_focus_metric_runtime => 'Durée totale';
+
+  @override
   String get insights_focus_metric_weight => 'Lest';
 
   @override
@@ -27235,6 +27426,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get insights_progression_bottomTime_title =>
       'Tendance du temps au fond';
+
+  @override
+  String get insights_progression_runtime_error =>
+      'Échec du chargement de la tendance de durée totale';
+
+  @override
+  String get insights_progression_runtime_subtitle =>
+      'Chaque plongée de la période';
+
+  @override
+  String get insights_progression_runtime_title =>
+      'Tendance de la durée totale';
 
   @override
   String get insights_progression_cumulative_error =>
@@ -36233,6 +36436,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_edit_invalidThickness => 'Utilisez 5, 5/4 ou 7/5/3';
 
   @override
+  String get equipment_edit_invalidFocalLength => 'Utilisez 60 ou 15-45';
+
+  @override
   String get equipment_edit_invalidWebLink =>
       'Saisissez une adresse web, par ex. shop.example.com';
 
@@ -36279,7 +36485,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Voler après la plongée';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Charge CNS/OTU actuelle';
+  String get safetySettings_cnsOtuHeader => 'Charge de plongée actuelle';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
@@ -36353,6 +36559,21 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Sans profil de profondeur, son CNS% et ses OTU ne peuvent pas être calculés. Les totaux ci-dessous l\'excluent.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'À propos du CNS et de l\'OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'Votre CNS% (horloge à oxygène) décroît après la plongée avec une demi-vie de 90 minutes -- il est pratiquement revenu à 0 au bout d\'un jour environ.\n\nL\'OTU quotidien est remis à zéro chaque nuit à minuit. L\'OTU hebdomadaire est un total glissant sur les 7 derniers jours : les plongées plus anciennes sortent automatiquement du calcul dès qu\'elles quittent cette fenêtre.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title =>
+      'À propos de la saturation des tissus';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'Votre corps compte 16 compartiments tissulaires qui absorbent et relâchent l\'azote (et, lors de plongées en trimix ou en recycleur, aussi l\'hélium) à des vitesses différentes. Les tissus rapides se saturent et se désaturent vite ; les tissus lents mettent beaucoup plus longtemps pour les deux.\n\nAprès une plongée à l\'hélium, l\'azote et l\'hélium d\'un même compartiment peuvent brièvement évoluer en sens opposés : pendant que l\'hélium continue de se relâcher, ce même compartiment peut simultanément absorber un peu d\'azote, jusqu\'à ce que les deux gaz atteignent l\'équilibre avec l\'air que vous respirez. C\'est pourquoi un compartiment peut brièvement afficher \"Ongassing\" alors même que sa charge globale continue de baisser.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -36730,8 +36951,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get safetyHub_incidentsLink => 'Journal des presque-accidents';
 
   @override
-  String get safetyHub_incidentsLink_subtitle =>
-      'Notes d\'incidents privées et non punitives';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entrées',
+      one: '$count entrée',
+      zero: 'Aucune pour le moment',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Consigner un presque-accident';
@@ -46364,6 +46593,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get maps_regionDownload_downloadButton => 'Télécharger';
 
   @override
+  String get maps_regionDownload_presetOverview => 'Aperçu';
+
+  @override
+  String get maps_regionDownload_presetDetail => 'Détail';
+
+  @override
+  String get maps_regionDownload_presetFull => 'Complet';
+
+  @override
+  String get maps_regionDownload_tooManyTiles =>
+      'Plus de 100 000 tuiles : réduisez la zone ou baissez le zoom maximal.';
+
+  @override
+  String get maps_regionDownload_socks5Unsupported =>
+      'Les téléchargements de régions ne peuvent pas utiliser de proxy SOCKS5 : passez à un proxy HTTP ou à « Aucun proxy » dans les réglages réseau.';
+
+  @override
   String get diveLog_map_title => 'Activité de plongée';
 
   @override
@@ -49469,6 +49715,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Base plus récente, conservée lors du retour en arrière - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'Dans le stockage cloud ($size)';
   }
 
   @override

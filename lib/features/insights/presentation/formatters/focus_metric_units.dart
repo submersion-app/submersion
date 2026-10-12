@@ -23,6 +23,7 @@ class FocusMetricUnits {
     FocusMetric.maxDepth ||
     FocusMetric.avgDepth ||
     FocusMetric.visibility => units.depthSymbol,
+    FocusMetric.runtime ||
     FocusMetric.bottomTime ||
     FocusMetric.surfaceInterval => l10n.insights_focus_unit_minutes,
     FocusMetric.weight => units.weightSymbol,
@@ -39,6 +40,7 @@ class FocusMetricUnits {
     FocusMetric.maxDepth ||
     FocusMetric.avgDepth ||
     FocusMetric.visibility => units.convertDepth(storage),
+    FocusMetric.runtime ||
     FocusMetric.bottomTime ||
     FocusMetric.surfaceInterval ||
     FocusMetric.cns ||
@@ -56,6 +58,7 @@ class FocusMetricUnits {
     FocusMetric.maxDepth ||
     FocusMetric.avgDepth ||
     FocusMetric.visibility => units.depthToMeters(display),
+    FocusMetric.runtime ||
     FocusMetric.bottomTime ||
     FocusMetric.surfaceInterval ||
     FocusMetric.cns ||
@@ -71,9 +74,8 @@ class FocusMetricUnits {
     FocusMetric.sac => units.formatSac(storage),
     FocusMetric.gasUsed => units.formatVolume(storage),
     FocusMetric.maxDepth || FocusMetric.avgDepth => units.formatDepth(storage),
-    FocusMetric.bottomTime => l10n.surfaceInterval_format_minutes(
-      storage.toStringAsFixed(0),
-    ),
+    FocusMetric.runtime || FocusMetric.bottomTime =>
+      l10n.surfaceInterval_format_minutes(storage.toStringAsFixed(0)),
     FocusMetric.surfaceInterval => _hoursMinutes(storage, l10n),
     FocusMetric.weight => units.formatWeight(storage),
     FocusMetric.waterTemp ||

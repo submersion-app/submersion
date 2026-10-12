@@ -66,7 +66,8 @@ class SensorSummaryScheduler {
   /// (see [_requestMissingSummaries]).
   final Set<String> _summariesRequestedByFindings = {};
 
-  @visibleForTesting
+  /// Completes when the work queued so far has run. A sync waits on it
+  /// (bounded) so its settled pending count includes the findings pass.
   Future<void> get idle => _tail;
 
   /// Refreshes [diveIds] whose row is missing or stale. With [force], it

@@ -128,3 +128,46 @@ extension ProfileSeriesHistoryMigrations on AppDatabase {
     ''');
   }
 }
+
+/// `dive_profile_series.activated_at` (v283, issue #3189).
+extension ProfileSeriesActivatedAtMigrations on AppDatabase {
+  /// Adds `activated_at` and backfills it once, in the same call that adds
+  /// it, so a series a later build leaves null is never re-stamped.
+  ///
+  /// A primary series takes its `updated_at`: both are synced, so every
+  /// device backfills it to the same value. A demoted series the local
+  /// history records as an edit takes its own synced `created_at`, so a
+  /// source swapped away from before this rung still brings its edit back.
+  /// A peer that received that edit by sync has no such history row and
+  /// leaves it null, the pre-v283 ranking.
+  Future<void> _assertProfileSeriesActivatedAt() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('dive_profile_series')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (names.contains('activated_at')) return;
+    await customStatement(
+      'ALTER TABLE dive_profile_series ADD COLUMN activated_at INTEGER',
+    );
+    if (names.containsAll(const ['is_primary', 'updated_at'])) {
+      await customStatement(
+        'UPDATE dive_profile_series SET activated_at = updated_at '
+        'WHERE is_primary = 1',
+      );
+    }
+    // Lower-cased rather than left to LIKE's ASCII case folding, which
+    // PRAGMA case_sensitive_like would switch off: history holds the current
+    // `Edit: <kind>` and the legacy `edit` and `edit:<kind>` spellings.
+    if (names.containsAll(const ['is_primary', 'created_at']) &&
+        await _tableExists('dive_profile_series_history')) {
+      await customStatement(
+        'UPDATE dive_profile_series SET activated_at = created_at '
+        'WHERE is_primary = 0 AND id IN ('
+        'SELECT series_id FROM dive_profile_series_history '
+        "WHERE lower(revision_kind) = 'edit' "
+        "OR lower(revision_kind) LIKE 'edit:%')",
+      );
+    }
+  }
+}

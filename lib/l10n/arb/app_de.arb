@@ -714,6 +714,7 @@
   "backup_cloud_enabled_subtitle": "Sicherungen in den Cloud-Speicher hochladen",
   "backup_delete_dialog_cancel": "Abbrechen",
   "backup_delete_dialog_content": "Diese Sicherung wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+  "backup_delete_dialog_content_otherDevice": "Diese Sicherung liegt nur in Ihrem Cloud-Speicher, und nichts zeigt, dass dieses Gerät sie erstellt hat. Es könnte die einzige Kopie eines anderen Geräts sein oder eine, die dieses Gerät vor einer Neuinstallation erstellt hat. Das Löschen kann nicht rückgängig gemacht werden.",
   "backup_delete_dialog_delete": "Löschen",
   "backup_delete_dialog_title": "Sicherung Löschen",
   "backup_export_bottomSheet_title": "Sicherung exportieren",
@@ -2096,8 +2097,6 @@
   "diveDetailSection_tanks_description": "Flaschenliste, Gasmischungen, Drücke, Flaschen-Verbrauch",
   "diveDetailSection_tanks_name": "Flaschen",
   "diveDetailSection_tide_description": "Gezeitenzyklusdiagramm und Zeiten",
-  "diveDetailSection_reefHealth_name": "Wasserbedingungen",
-  "diveDetailSection_reefHealth_description": "Satellitengestützte Wasserbedingungen am Tauchdatum",
   "diveDetailSection_tide_name": "Gezeiten",
   "diveDetailSection_weights_description": "Gewichtsaufteilung, Gesamtgewicht",
   "diveDetailSection_buoyancy_name": "Auftrieb",
@@ -2575,6 +2574,7 @@
   "diveLog_equipmentPicker_errorLoading": "Fehler beim Laden der Ausrüstung: {error}",
   "diveLog_equipmentPicker_noEquipment": "Noch keine Ausrüstung",
   "diveLog_equipmentPicker_removeToAdd": "Entfernen Sie Gegenstände, um andere hinzuzufügen",
+  "diveLog_equipmentPicker_showLeftKit": "Ausgemusterte und verkaufte Ausrüstung anzeigen",
   "diveLog_equipmentPicker_spareHint": "Setzen Sie den Status eines Gegenstands auf Aktiv, um ihn einem Tauchgang hinzuzufügen",
   "diveLog_equipmentPicker_title": "Ausrüstung hinzufügen",
   "diveLog_equipmentSetPicker_createHint": "Sets unter Ausrüstung > Sets erstellen",
@@ -3092,6 +3092,7 @@
   "diveLog_tank_tooltip_remove": "Flasche entfernen",
   "diveLog_tank_regulatorLabel": "Atemregler",
   "diveLog_tank_regulatorNone": "Keiner",
+  "diveLog_tank_regulatorShowLeftKit": "Ausgemusterte und verkaufte Atemregler anzeigen",
   "diveLog_tank_fromOwnCylinder": "Aus meinen Flaschen übernehmen",
   "diveLog_tank_ownCylinderFailed": "Die Daten der Flasche konnten nicht übernommen werden. Bitte erneut versuchen.",
   "diveLog_tank_ownCylinderHint": "Übernimmt Größe und letzte Füllung der gewählten Flasche und fügt sie der Ausrüstung dieses Tauchgangs hinzu.",
@@ -3134,7 +3135,6 @@
   "diveLog_tooltip_switchDelay": "Verzögerung",
   "diveLog_tooltip_extraDeco": "Zusätzliche Deko",
   "diveLog_tooltip_gtr": "GTR",
-  "diveLog_sources_row_metric": "Messwert",
   "diveLog_sources_row_maxDepth": "Max. Tiefe",
   "diveLog_sources_row_avgDepth": "Ø Tiefe",
   "diveLog_sources_row_duration": "Dauer",
@@ -3517,11 +3517,14 @@
   "diveSites_list_selection_mergeTooltip": "Ausgewählte zusammenführen",
   "diveSites_list_sort_title": "Tauchplätze sortieren",
   "diveSites_group_noCountry": "Kein Land",
+  "diveSites_group_noBodyOfWater": "Kein Gewässer",
   "diveSites_group_siteCount": "{count, plural, =1{1 Tauchplatz} other{{count} Tauchplätze}}",
   "diveSites_picker_nearby": "In der Nähe",
   "diveSites_list_groupBy": "Gruppieren nach",
   "diveSites_list_groupBy_location": "Land und Region",
+  "diveSites_list_groupBy_locationAndWater": "Land und Gewässer",
   "diveSites_list_groupBy_none": "Keine",
+  "diveSites_list_groupBy_water": "Gewässer",
   "diveSites_list_tile_diveCount": "{count, plural, =1{1 Tauchgang} other{{count} Tauchgänge}}",
   "diveSites_list_tile_semantics": "Tauchplatz: {name}",
   "diveSites_list_tooltip_filterSites": "Tauchplätze filtern",
@@ -4245,7 +4248,7 @@
   "equipment_serviceClocks_dueOn": "Fällig am {date}",
   "equipment_serviceClocks_overdueSince": "Überfällig seit {date}",
   "equipment_serviceClocks_countingSince": "Zählt seit {date}",
-  "equipment_serviceClocks_divesUsedAndLeft": "{used} Tauchgänge, {remaining} von {total} Tauchgängen übrig",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} von {total} Tauchgängen, {remaining} übrig",
   "@equipment_serviceClocks_divesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4339,7 +4342,7 @@
   "cylinderConfigs_fieldMaterial": "Material",
   "cylinderConfigs_sectionTitle": "Konfigurationen",
   "equipment_serviceClocks_hoursSource": "Aus der protokollierten Tauchzeit berechnet",
-  "equipment_serviceClocks_hoursUsedAndLeft": "{used} Stunden, {remaining} von {total} Stunden übrig",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} von {total} Stunden, {remaining} übrig",
   "@equipment_serviceClocks_hoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4353,7 +4356,7 @@
       }
     }
   },
-  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} Salzwasserstunden, {remaining} von {total} Salzwasserstunden übrig",
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} von {total} Salzwasserstunden, {remaining} übrig",
   "@equipment_serviceClocks_saltHoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4367,7 +4370,7 @@
       }
     }
   },
-  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} Kaltwassertauchgänge, {remaining} von {total} Kaltwassertauchgängen übrig",
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} von {total} Kaltwassertauchgängen, {remaining} übrig",
   "@equipment_serviceClocks_coldDivesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4381,7 +4384,7 @@
       }
     }
   },
-  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} Stunden mit hohem O2, {remaining} von {total} Stunden mit hohem O2 übrig",
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} von {total} Stunden mit hohem O2, {remaining} übrig",
   "@equipment_serviceClocks_o2HoursUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4395,7 +4398,7 @@
       }
     }
   },
-  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} tiefe Tauchgänge, {remaining} von {total} tiefen Tauchgängen übrig",
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} von {total} tiefen Tauchgängen, {remaining} übrig",
   "@equipment_serviceClocks_deepCyclesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4409,7 +4412,7 @@
       }
     }
   },
-  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} Batteriezyklen, {remaining} von {total} Batteriezyklen übrig",
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} von {total} Batteriezyklen, {remaining} übrig",
   "@equipment_serviceClocks_cyclesUsedAndLeft": {
     "placeholders": {
       "used": {
@@ -4527,6 +4530,7 @@
   "equipment_edit_parentLabel": "Eingebaut in",
   "equipment_edit_parentNone": "Nirgends eingebaut",
   "equipment_edit_thicknessDesignationHint": "z.B. 5, 5/4, 7/5/3",
+  "equipment_edit_focalLengthHint": "z. B. 60 oder 15-45",
   "equipment_edit_webLinkHint": "z.B. shop.example.com/product",
   "equipment_edit_typeLabel": "Typ *",
   "equipment_edit_useCustomReminders": "Eigene Erinnerungen verwenden",
@@ -5899,6 +5903,20 @@
   "settings_appearance_viewerFullscreen_screen": "Vollbild",
   "settings_appearance_subsection_decompressionMetrics": "Dekompressionsmetriken",
   "settings_appearance_subsection_defaultVisibleMetrics": "Standard-sichtbare Metriken",
+  "settings_appearance_metricColors": "Farben der Metriken",
+  "settings_appearance_metricColors_subtitleDefault": "Standardfarben",
+  "settings_appearance_metricColors_subtitleCustomized": "{count, plural, one{{count} angepasst} other{{count} angepasst}}",
+  "settings_metricColors_resetAll": "Alle zurücksetzen",
+  "settings_metricColors_resetAllTitle": "Farben der Metriken zurücksetzen?",
+  "settings_metricColors_resetAllBody": "Jede Metrik erhält wieder ihre Standardfarbe.",
+  "settings_metricColors_reset": "Zurücksetzen",
+  "settings_metricColors_default": "Standard",
+  "settings_metricColors_auto": "Automatisch",
+  "settings_metricColors_autoTemperature": "Automatisch: folgt dem Design",
+  "settings_metricColors_autoPressure": "Automatisch: jedes Gas hat eine eigene Farbe",
+  "settings_metricColors_pressureCustom": "Für Tauchgänge mit einer Flasche",
+  "settings_metricColors_sheetTitle": "Farbe für {metric}",
+  "settings_metricColors_swapsWith": "Tauscht mit {metric}",
   "settings_appearance_subsection_standardMetrics": "Standardmetriken",
   "settings_appearance_subsection_gasAnalysisMetrics": "Gasanalyse-Metriken",
   "settings_appearance_subsection_gradientFactorMetrics": "Gradientenfaktor-Metriken",
@@ -5919,6 +5937,39 @@
   "settings_navCustomization_moveDownLabel": "{destination} nach unten verschieben",
   "settings_navCustomization_subtitlePreview": "{first} · {second} · {third}",
   "settings_navCustomization_saveError": "Navigationslayout konnte nicht gespeichert werden. Bitte versuche es erneut.",
+  "navShortcut_noFly": "Flugverbotszeit",
+  "navShortcut_cnsOtu": "CNS/OTU",
+  "navShortcut_records": "Rekorde",
+  "navShortcut_sitesMap": "Tauchplatzkarte",
+  "navShortcut_diveActivityMap": "Karte der Tauchaktivität",
+  "navShortcut_diveCentersMap": "Tauchbasenkarte",
+  "navShortcut_diverProfile": "Taucherprofil",
+  "navShortcut_cloudSync": "Cloud-Synchronisierung",
+  "navShortcut_offlineMaps": "Offline-Karten",
+  "navShortcut_short_deco": "Deko",
+  "navShortcut_short_gasCalculators": "Gasrechner",
+  "navShortcut_short_weighting": "Blei",
+  "navShortcut_short_surfaceInterval": "Oberfl.-Pause",
+  "navShortcut_short_blender": "Mischer",
+  "navShortcut_short_airUse": "Verbrauch",
+  "navShortcut_short_patterns": "Muster",
+  "navShortcut_short_profiles": "Profile",
+  "navShortcut_short_diveMap": "Tauchkarte",
+  "navShortcut_short_centersMap": "Basenkarte",
+  "navShortcut_short_gearSets": "Sets",
+  "navShortcut_short_certWallet": "Brevets",
+  "navShortcut_short_emergency": "Notfall",
+  "navShortcut_short_backup": "Backup",
+  "navShortcut_short_speciesStats": "Artenstatistik",
+  "navShortcut_short_gearStats": "Ausrüstungsstatistik",
+  "settings_navCustomization_addShortcut": "Verknüpfung hinzufügen",
+  "settings_navCustomization_shortcutPickerTitle": "Neue Verknüpfung",
+  "settings_navCustomization_shortcutSearchHint": "Seiten durchsuchen",
+  "settings_navCustomization_shortcutNoMatches": "Keine passenden Seiten",
+  "settings_navCustomization_shortcutAlreadyAdded": "Bereits in diesem Layout",
+  "settings_navCustomization_removeShortcutLabel": "{destination} entfernen",
+  "settings_navCustomization_group_views": "Ansichten",
+  "settings_navCustomization_group_settingsAndTools": "Einstellungen und Werkzeuge",
   "settings_backToSettings_tooltip": "Zurück zu Einstellungen",
   "settings_cloudSync_appBar_title": "Datenbank-Cloud-Synchronisierung",
   "settings_cloudSync_autoSync": "Automatische Synchronisierung",
@@ -6675,6 +6726,7 @@
   "settings_conflict_field_sourceFileName": "Name der Quelldatei",
   "settings_conflict_field_sourceFormat": "Quellformat",
   "settings_conflict_field_sourceItemId": "Verknüpfter Punkt",
+  "settings_conflict_field_sourceMetadata": "Zusätzliche Daten der Quelle",
   "settings_conflict_field_sourceRef": "Quelldatei oder Gerät",
   "settings_conflict_field_sourceTankIndex": "Flaschennummer im Quell-Logbuch",
   "settings_conflict_field_sourceType": "Quelle",
@@ -6735,6 +6787,7 @@
   "settings_conflict_field_tripCylinderEvents_kind": "Ereignis",
   "settings_conflict_field_tripListViewMode": "Ansicht der Reiseliste",
   "settings_conflict_field_trendGapCollapseMonths": "Lücken in Trenddiagrammen zusammenfassen",
+  "settings_conflict_field_profileColor": "Profilfarbe: {metric}",
   "settings_conflict_field_tripServiceLeadDays": "Wartungswarnung Tage vor einer Reise",
   "settings_conflict_field_trustFraction": "Verlässlicher Anteil der Route",
   "settings_conflict_field_turnPressureFraction": "Anteil des Umkehrdrucks",
@@ -7602,6 +7655,7 @@
   "insights_focus_metric_sac": "Druckverbrauch",
   "insights_focus_metric_maxDepth": "Maximaltiefe",
   "insights_focus_metric_bottomTime": "Grundzeit",
+  "insights_focus_metric_runtime": "Laufzeit",
   "insights_focus_metric_weight": "Blei",
   "insights_focus_metric_waterTemp": "Wassertemperatur",
   "insights_focus_metric_gasUsed": "Gasverbrauch",
@@ -7743,6 +7797,9 @@
   "insights_progression_bottomTime_error": "Grundzeit-Trend konnte nicht geladen werden",
   "insights_progression_bottomTime_subtitle": "Jeder Tauchgang im Zeitraum",
   "insights_progression_bottomTime_title": "Grundzeit-Trend",
+  "insights_progression_runtime_error": "Laufzeit-Trend konnte nicht geladen werden",
+  "insights_progression_runtime_subtitle": "Jeder Tauchgang im Zeitraum",
+  "insights_progression_runtime_title": "Laufzeit-Trend",
   "insights_progression_cumulative_error": "Kumulative Daten konnten nicht geladen werden",
   "insights_progression_cumulative_subtitle": "Gesamtzahl der Tauchgänge im Zeitverlauf",
   "insights_progression_cumulative_title": "Kumulative Tauchganganzahl",
@@ -10462,6 +10519,7 @@
   "attr_flagYes": "Ja",
   "attr_flagNo": "Nein",
   "equipment_edit_invalidThickness": "Format: 5, 5/4 oder 7/5/3",
+  "equipment_edit_invalidFocalLength": "Format: 60 oder 15-45",
   "equipment_edit_invalidWebLink": "Webadresse eingeben, z.B. shop.example.com",
   "insights_progression_divesBySuitThickness_title": "Tauchgänge nach Anzugdicke",
   "insights_progression_divesBySuitThickness_subtitle": "Primäre Anzugdicke über deine Tauchgänge",
@@ -10647,7 +10705,7 @@
     }
   },
   "safetySettings_noFlyHeader": "Fliegen nach dem Tauchen",
-  "safetySettings_cnsOtuHeader": "Aktuelle CNS/OTU-Belastung",
+  "safetySettings_cnsOtuHeader": "Aktuelle Tauch-Restbelastung",
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Streng (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Richtwerte nach einem einzelnen Nullzeit-Tauchgang, Wiederholungstauchgängen und Deko-Tauchgängen",
@@ -10708,6 +10766,10 @@
   "safetyHub_cnsOtu_elapsedDaysHours": "{days}T {hours}h",
   "safetyHub_cnsOtu_noProfile_title": "Letzter Tauchgang ohne Profil",
   "safetyHub_cnsOtu_noProfile_body": "Ohne Tiefenprofil lassen sich CNS% und OTU dafür nicht berechnen. Die Summen unten enthalten ihn nicht.",
+  "safetyHub_cnsOtu_about_title": "Über CNS und OTU",
+  "safetyHub_cnsOtu_about_body": "Der CNS-Wert (Sauerstoff-Uhr) sinkt nach dem Tauchgang mit einer Halbwertszeit von 90 Minuten – nach rund einem Tag ist er praktisch auf 0 zurückgegangen.\n\nDie Tages-OTU wird jede Nacht um Mitternacht zurückgesetzt. Die Wochen-OTU ist eine rollierende Summe der letzten 7 Tage: ältere Tauchgänge fallen automatisch wieder aus der Berechnung heraus, sobald sie ausserhalb dieses Fensters liegen.",
+  "safetyHub_tissueLoading_about_title": "Über die Gewebesättigung",
+  "safetyHub_tissueLoading_about_body": "Ihr Körper hat 16 Gewebekompartimente, die Stickstoff (und bei Trimix- oder Rebreather-Tauchgängen auch Helium) mit unterschiedlichen Geschwindigkeiten aufnehmen und abgeben. Schnelle Gewebe sättigen und entsättigen rasch, langsame Gewebe brauchen dafür deutlich länger.\n\nNach einem Tauchgang mit Helium können sich Stickstoff und Helium in einem Kompartiment kurzzeitig gegenläufig verhalten: Während das Helium noch ausgast, nimmt derselbe Bereich gleichzeitig wieder etwas Stickstoff auf, bis beide Gase das Gleichgewicht mit der Atemluft erreicht haben. Deshalb kann ein Kompartiment vorübergehend \"Ongassing\" anzeigen, auch wenn die Gesamtbelastung insgesamt weiter sinkt.",
   "safetyHub_noFly_category_single": "Nach einem einzelnen Nullzeit-Tauchgang: {hours} h Richtwert",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -10903,7 +10965,7 @@
   "incidentCategory_planning": "Planung",
   "incidentCategory_other": "Sonstiges",
   "safetyHub_incidentsLink": "Beinahe-Unfall-Log",
-  "safetyHub_incidentsLink_subtitle": "Private, nicht wertende Vorfallnotizen",
+  "safetyHub_incidentsLink_count": "{count, plural, =0{Noch keine} =1{{count} Eintrag} other{{count} Einträge}}",
   "diveLog_detail_menu_logNearMiss": "Beinahe-Unfall erfassen",
   "diveLog_planned_chip": "Geplant",
   "diveLog_planned_bannerTitle": "Geplanter Tauchgang",
@@ -13868,6 +13930,11 @@
   "maps_regionDownload_largeWarningSemantics": "Warnung: Großer Download. Reduzieren Sie die Zoomstufen oder wählen Sie eine kleinere Region.",
   "maps_regionDownload_largeWarning": "Großer Download. Reduzieren Sie die Zoomstufen oder wählen Sie eine kleinere Region.",
   "maps_regionDownload_downloadButton": "Herunterladen",
+  "maps_regionDownload_presetOverview": "Übersicht",
+  "maps_regionDownload_presetDetail": "Detail",
+  "maps_regionDownload_presetFull": "Vollständig",
+  "maps_regionDownload_tooManyTiles": "Über 100.000 Kacheln: Verkleinern Sie den Bereich oder senken Sie den maximalen Zoom.",
+  "maps_regionDownload_socks5Unsupported": "Regionsdownloads können keinen SOCKS5-Proxy verwenden: Wechseln Sie in den Netzwerkeinstellungen zu einem HTTP-Proxy oder zu „Kein Proxy“.",
   "diveLog_map_title": "Tauchaktivität",
   "diveLog_map_infoCard_minutes": "{minutes} Min.",
   "trips_gallery_diveSection_subtitle": "{date} ({count} {photoLabel})",
@@ -14784,6 +14851,7 @@
   "startup_diveLogUnavailable_startNew_confirmBody": "In {folder} wird ein leeres Logbuch angelegt. Wenn Ihr altes Logbuch später zurückkommt, etwa wenn eine Synchronisierung abgeschlossen ist, gerät es mit dem neuen in Konflikt.",
   "startup_diveLogUnavailable_startNew_confirm": "Neues Logbuch beginnen",
   "backup_history_preDowngradeSubtitle": "Neuere Datenbank, beim Zurückwechseln behalten - {size}",
+  "backup_history_cloudOnlySubtitle": "Im Cloud-Speicher ({size})",
   "backup_history_manualSubtitle": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size}",
   "backup_history_manualSubtitleAuto": "{diveCount, plural, =1{1 Tauchgang} other{{diveCount} Tauchgänge}}, {siteCount, plural, =1{1 Tauchplatz} other{{siteCount} Tauchplätze}} - {size} (automatisch)",
   "settings_manage_transmitters": "Sender",

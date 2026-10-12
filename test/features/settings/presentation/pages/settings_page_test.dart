@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
@@ -445,6 +447,17 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setTrendGapThreshold(TrendGapThreshold value) async =>
       state = state.copyWith(trendGapThreshold: value);
+  @override
+  Future<void> setProfileMetricColor(
+    ProfileMetric metric,
+    Color? color,
+  ) async => state = state.copyWith(
+    profileMetricColors: state.profileMetricColors.withColor(metric, color),
+  );
+  @override
+  Future<void> resetProfileMetricColors() async => state = state.copyWith(
+    profileMetricColors: ProfileMetricColorOverrides.none,
+  );
   @override
   Future<void> setIcdWarningsEnabled(bool value) async =>
       state = state.copyWith(icdWarningsEnabled: value);

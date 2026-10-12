@@ -3889,6 +3889,12 @@ abstract class AppLocalizations {
   /// **'This backup will be permanently deleted. This cannot be undone.'**
   String get backup_delete_dialog_content;
 
+  /// No description provided for @backup_delete_dialog_content_otherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is only in your cloud storage, and nothing shows this device made it. It may be another device\'s only copy, or one this device made before a reinstall. Deleting it cannot be undone.'**
+  String get backup_delete_dialog_content_otherDevice;
+
   /// No description provided for @backup_delete_dialog_delete.
   ///
   /// In en, this message translates to:
@@ -12523,6 +12529,12 @@ abstract class AppLocalizations {
   /// **'Remove items to add different ones'**
   String get diveLog_equipmentPicker_removeToAdd;
 
+  /// No description provided for @diveLog_equipmentPicker_showLeftKit.
+  ///
+  /// In en, this message translates to:
+  /// **'Show retired and sold gear'**
+  String get diveLog_equipmentPicker_showLeftKit;
+
   /// No description provided for @diveLog_equipmentPicker_spareHint.
   ///
   /// In en, this message translates to:
@@ -16069,6 +16081,12 @@ abstract class AppLocalizations {
   /// **'None'**
   String get diveLog_tank_regulatorNone;
 
+  /// No description provided for @diveLog_tank_regulatorShowLeftKit.
+  ///
+  /// In en, this message translates to:
+  /// **'Show retired and sold regulators'**
+  String get diveLog_tank_regulatorShowLeftKit;
+
   /// No description provided for @diveLog_tank_tripCylinderLabel.
   ///
   /// In en, this message translates to:
@@ -16296,12 +16314,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'GTR'**
   String get diveLog_tooltip_gtr;
-
-  /// No description provided for @diveLog_sources_row_metric.
-  ///
-  /// In en, this message translates to:
-  /// **'Metric'**
-  String get diveLog_sources_row_metric;
 
   /// No description provided for @diveLog_sources_row_maxDepth.
   ///
@@ -18550,6 +18562,12 @@ abstract class AppLocalizations {
   /// **'No country'**
   String get diveSites_group_noCountry;
 
+  /// No description provided for @diveSites_group_noBodyOfWater.
+  ///
+  /// In en, this message translates to:
+  /// **'No body of water'**
+  String get diveSites_group_noBodyOfWater;
+
   /// No description provided for @diveSites_group_siteCount.
   ///
   /// In en, this message translates to:
@@ -18574,11 +18592,23 @@ abstract class AppLocalizations {
   /// **'Country & region'**
   String get diveSites_list_groupBy_location;
 
+  /// No description provided for @diveSites_list_groupBy_locationAndWater.
+  ///
+  /// In en, this message translates to:
+  /// **'Country & body of water'**
+  String get diveSites_list_groupBy_locationAndWater;
+
   /// No description provided for @diveSites_list_groupBy_none.
   ///
   /// In en, this message translates to:
   /// **'None'**
   String get diveSites_list_groupBy_none;
+
+  /// No description provided for @diveSites_list_groupBy_water.
+  ///
+  /// In en, this message translates to:
+  /// **'Body of water'**
+  String get diveSites_list_groupBy_water;
 
   /// No description provided for @diveSites_list_tile_diveCount.
   ///
@@ -23698,7 +23728,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_divesUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} dives, {remaining} of {total} dives left'**
+  /// **'{used} of {total} dives, {remaining} left'**
   String equipment_serviceClocks_divesUsedAndLeft(
     int used,
     int remaining,
@@ -23882,7 +23912,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_hoursUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} hours, {remaining} of {total} hours left'**
+  /// **'{used} of {total} hours, {remaining} left'**
   String equipment_serviceClocks_hoursUsedAndLeft(
     String used,
     String remaining,
@@ -23892,7 +23922,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_saltHoursUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} salt-water hours, {remaining} of {total} salt-water hours left'**
+  /// **'{used} of {total} salt-water hours, {remaining} left'**
   String equipment_serviceClocks_saltHoursUsedAndLeft(
     String used,
     String remaining,
@@ -23902,7 +23932,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_coldDivesUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} cold dives, {remaining} of {total} cold dives left'**
+  /// **'{used} of {total} cold dives, {remaining} left'**
   String equipment_serviceClocks_coldDivesUsedAndLeft(
     String used,
     String remaining,
@@ -23912,7 +23942,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_o2HoursUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} high-O2 hours, {remaining} of {total} high-O2 hours left'**
+  /// **'{used} of {total} high-O2 hours, {remaining} left'**
   String equipment_serviceClocks_o2HoursUsedAndLeft(
     String used,
     String remaining,
@@ -23922,7 +23952,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_deepCyclesUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} deep dives, {remaining} of {total} deep dives left'**
+  /// **'{used} of {total} deep dives, {remaining} left'**
   String equipment_serviceClocks_deepCyclesUsedAndLeft(
     String used,
     String remaining,
@@ -23932,7 +23962,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_serviceClocks_cyclesUsedAndLeft.
   ///
   /// In en, this message translates to:
-  /// **'{used} battery cycles, {remaining} of {total} battery cycles left'**
+  /// **'{used} of {total} battery cycles, {remaining} left'**
   String equipment_serviceClocks_cyclesUsedAndLeft(
     String used,
     String remaining,
@@ -24568,6 +24598,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'e.g., 5, 5/4, 7/5/3'**
   String get equipment_edit_thicknessDesignationHint;
+
+  /// No description provided for @equipment_edit_focalLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., 60 or 15-45'**
+  String get equipment_edit_focalLengthHint;
 
   /// No description provided for @equipment_edit_webLinkHint.
   ///
@@ -31981,7 +32017,7 @@ abstract class AppLocalizations {
   /// **'Clear highlight'**
   String get safetyReview_clearHighlight;
 
-  /// Semantics label for a clustered chip in the chart safety lane
+  /// Safety review findings count: the semantics label for a clustered chip in the chart safety lane, and the tooltip of the dive list safety badge
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 safety observation} other{{count} safety observations}}'**
@@ -32142,18 +32178,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tide cycle graph and timing'**
   String get diveDetailSection_tide_description;
-
-  /// No description provided for @diveDetailSection_reefHealth_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Water Conditions'**
-  String get diveDetailSection_reefHealth_name;
-
-  /// No description provided for @diveDetailSection_reefHealth_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Satellite water conditions on the dive date'**
-  String get diveDetailSection_reefHealth_description;
 
   /// No description provided for @diveDetailSection_surfaceGps_name.
   ///
@@ -32989,6 +33013,90 @@ abstract class AppLocalizations {
   /// **'Default Visible Metrics'**
   String get settings_appearance_subsection_defaultVisibleMetrics;
 
+  /// No description provided for @settings_appearance_metricColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric Colors'**
+  String get settings_appearance_metricColors;
+
+  /// No description provided for @settings_appearance_metricColors_subtitleDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default colors'**
+  String get settings_appearance_metricColors_subtitleDefault;
+
+  /// No description provided for @settings_appearance_metricColors_subtitleCustomized.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} customized} other{{count} customized}}'**
+  String settings_appearance_metricColors_subtitleCustomized(int count);
+
+  /// No description provided for @settings_metricColors_resetAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all'**
+  String get settings_metricColors_resetAll;
+
+  /// No description provided for @settings_metricColors_resetAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset metric colors?'**
+  String get settings_metricColors_resetAllTitle;
+
+  /// No description provided for @settings_metricColors_resetAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every metric goes back to its default color.'**
+  String get settings_metricColors_resetAllBody;
+
+  /// No description provided for @settings_metricColors_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get settings_metricColors_reset;
+
+  /// No description provided for @settings_metricColors_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settings_metricColors_default;
+
+  /// No description provided for @settings_metricColors_auto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get settings_metricColors_auto;
+
+  /// No description provided for @settings_metricColors_autoTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto: follows the theme'**
+  String get settings_metricColors_autoTemperature;
+
+  /// No description provided for @settings_metricColors_autoPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto: each gas has its own color'**
+  String get settings_metricColors_autoPressure;
+
+  /// No description provided for @settings_metricColors_pressureCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Used on single-tank dives'**
+  String get settings_metricColors_pressureCustom;
+
+  /// No description provided for @settings_metricColors_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{metric} color'**
+  String settings_metricColors_sheetTitle(String metric);
+
+  /// No description provided for @settings_metricColors_swapsWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Swaps with {metric}'**
+  String settings_metricColors_swapsWith(String metric);
+
   /// No description provided for @settings_appearance_subsection_standardMetrics.
   ///
   /// In en, this message translates to:
@@ -33112,6 +33220,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not save navigation layout. Please try again.'**
   String get settings_navCustomization_saveError;
+
+  /// Nav shortcut label for the Planning no-fly calculator.
+  ///
+  /// In en, this message translates to:
+  /// **'No-fly time'**
+  String get navShortcut_noFly;
+
+  /// Nav shortcut label for the Planning CNS/OTU calculator.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS/OTU'**
+  String get navShortcut_cnsOtu;
+
+  /// Nav shortcut label for the dive records page.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get navShortcut_records;
+
+  /// Nav shortcut label for the dive sites map.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites map'**
+  String get navShortcut_sitesMap;
+
+  /// Nav shortcut label for the map of where dives were logged.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive activity map'**
+  String get navShortcut_diveActivityMap;
+
+  /// Nav shortcut label for the dive centers map.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive centers map'**
+  String get navShortcut_diveCentersMap;
+
+  /// Nav shortcut label for the diver profile settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver profile'**
+  String get navShortcut_diverProfile;
+
+  /// Nav shortcut label for the cloud sync settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync'**
+  String get navShortcut_cloudSync;
+
+  /// Nav shortcut label for the offline maps settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline maps'**
+  String get navShortcut_offlineMaps;
+
+  /// Short nav bar label for the Deco Calculator shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco'**
+  String get navShortcut_short_deco;
+
+  /// Short nav bar label for the Gas Calculators shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas calcs'**
+  String get navShortcut_short_gasCalculators;
+
+  /// Short nav bar label for the Weight Calculator shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Weighting'**
+  String get navShortcut_short_weighting;
+
+  /// Short nav bar label for the Surface Interval tool shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface int.'**
+  String get navShortcut_short_surfaceInterval;
+
+  /// Short nav bar label for the Trimix blender shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Blender'**
+  String get navShortcut_short_blender;
+
+  /// Short nav bar label for the Air Consumption insights shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Air use'**
+  String get navShortcut_short_airUse;
+
+  /// Short nav bar label for the Time Patterns insights shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Patterns'**
+  String get navShortcut_short_patterns;
+
+  /// Short nav bar label for the Profile Analysis insights shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Profiles'**
+  String get navShortcut_short_profiles;
+
+  /// Short nav bar label for the dive activity map shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive map'**
+  String get navShortcut_short_diveMap;
+
+  /// Short nav bar label for the dive centers map shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Centers map'**
+  String get navShortcut_short_centersMap;
+
+  /// Short nav bar label for the Equipment Sets shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear sets'**
+  String get navShortcut_short_gearSets;
+
+  /// Short nav bar label for the Certification Wallet shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Cert wallet'**
+  String get navShortcut_short_certWallet;
+
+  /// Short nav bar label for the Emergency card shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get navShortcut_short_emergency;
+
+  /// Short nav bar label for the Backup & Restore shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get navShortcut_short_backup;
+
+  /// Short nav label for the shortcut to Insights > Species (marine life statistics); distinct from the Species section.
+  ///
+  /// In en, this message translates to:
+  /// **'Species stats'**
+  String get navShortcut_short_speciesStats;
+
+  /// Short nav label for the shortcut to Insights > Equipment (gear statistics); distinct from the Equipment section.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear stats'**
+  String get navShortcut_short_gearStats;
+
+  /// Button on the navigation layout page that opens the picker for adding a deep page to the nav.
+  ///
+  /// In en, this message translates to:
+  /// **'Add shortcut'**
+  String get settings_navCustomization_addShortcut;
+
+  /// Title of the sheet or dialog listing pages that can be added to the nav.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a shortcut'**
+  String get settings_navCustomization_shortcutPickerTitle;
+
+  /// Hint in the search field of the nav shortcut picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Search pages'**
+  String get settings_navCustomization_shortcutSearchHint;
+
+  /// Shown in the nav shortcut picker when the search matches nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching pages'**
+  String get settings_navCustomization_shortcutNoMatches;
+
+  /// Tooltip on a picker entry that is already in the nav layout being edited.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in this layout'**
+  String get settings_navCustomization_shortcutAlreadyAdded;
+
+  /// Tooltip on the button that removes a shortcut from the nav layout.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {destination}'**
+  String settings_navCustomization_removeShortcutLabel(String destination);
+
+  /// Picker group header for map, wallet and list views inside a section.
+  ///
+  /// In en, this message translates to:
+  /// **'Views'**
+  String get settings_navCustomization_group_views;
+
+  /// Picker group header for settings pages and tools such as the emergency card.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings and tools'**
+  String get settings_navCustomization_group_settingsAndTools;
 
   /// No description provided for @settings_backToSettings_tooltip.
   ///
@@ -36858,6 +37164,12 @@ abstract class AppLocalizations {
   /// **'Linked item'**
   String get settings_conflict_field_sourceItemId;
 
+  /// No description provided for @settings_conflict_field_sourceMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra data from the source'**
+  String get settings_conflict_field_sourceMetadata;
+
   /// No description provided for @settings_conflict_field_sourceRef.
   ///
   /// In en, this message translates to:
@@ -37217,6 +37529,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Collapse gaps in trend charts'**
   String get settings_conflict_field_trendGapCollapseMonths;
+
+  /// No description provided for @settings_conflict_field_profileColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile color: {metric}'**
+  String settings_conflict_field_profileColor(String metric);
 
   /// No description provided for @settings_conflict_field_tripServiceLeadDays.
   ///
@@ -43016,6 +43334,12 @@ abstract class AppLocalizations {
   /// **'Bottom time'**
   String get insights_focus_metric_bottomTime;
 
+  /// No description provided for @insights_focus_metric_runtime.
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get insights_focus_metric_runtime;
+
   /// No description provided for @insights_focus_metric_weight.
   ///
   /// In en, this message translates to:
@@ -43904,6 +44228,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Bottom Time Trend'**
   String get insights_progression_bottomTime_title;
+
+  /// No description provided for @insights_progression_runtime_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load runtime trend'**
+  String get insights_progression_runtime_error;
+
+  /// No description provided for @insights_progression_runtime_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every dive in range'**
+  String get insights_progression_runtime_subtitle;
+
+  /// No description provided for @insights_progression_runtime_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime Trend'**
+  String get insights_progression_runtime_title;
 
   /// No description provided for @insights_progression_cumulative_error.
   ///
@@ -57295,6 +57637,12 @@ abstract class AppLocalizations {
   /// **'Use 5, 5/4 or 7/5/3'**
   String get equipment_edit_invalidThickness;
 
+  /// No description provided for @equipment_edit_invalidFocalLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 60 or 15-45'**
+  String get equipment_edit_invalidFocalLength;
+
   /// No description provided for @equipment_edit_invalidWebLink.
   ///
   /// In en, this message translates to:
@@ -57376,7 +57724,7 @@ abstract class AppLocalizations {
   /// No description provided for @safetySettings_cnsOtuHeader.
   ///
   /// In en, this message translates to:
-  /// **'Current CNS/OTU load'**
+  /// **'Current dive load'**
   String get safetySettings_cnsOtuHeader;
 
   /// No description provided for @safetySettings_noFlyPreset_standard.
@@ -57486,6 +57834,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.'**
   String get safetyHub_cnsOtu_noProfile_body;
+
+  /// No description provided for @safetyHub_cnsOtu_about_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About CNS and OTU'**
+  String get safetyHub_cnsOtu_about_title;
+
+  /// No description provided for @safetyHub_cnsOtu_about_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it\'s practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.'**
+  String get safetyHub_cnsOtu_about_body;
+
+  /// No description provided for @safetyHub_tissueLoading_about_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About Tissue Loading'**
+  String get safetyHub_tissueLoading_about_title;
+
+  /// No description provided for @safetyHub_tissueLoading_about_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you\'re breathing. That\'s why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.'**
+  String get safetyHub_tissueLoading_about_body;
 
   /// No description provided for @safetyHub_noFly_category_single.
   ///
@@ -58111,11 +58483,11 @@ abstract class AppLocalizations {
   /// **'Near-miss log'**
   String get safetyHub_incidentsLink;
 
-  /// No description provided for @safetyHub_incidentsLink_subtitle.
+  /// No description provided for @safetyHub_incidentsLink_count.
   ///
   /// In en, this message translates to:
-  /// **'Private, non-punitive incident notes'**
-  String get safetyHub_incidentsLink_subtitle;
+  /// **'{count, plural, =0{None yet} =1{{count} entry} other{{count} entries}}'**
+  String safetyHub_incidentsLink_count(int count);
 
   /// No description provided for @diveLog_detail_menu_logNearMiss.
   ///
@@ -73597,6 +73969,36 @@ abstract class AppLocalizations {
   /// **'Download'**
   String get maps_regionDownload_downloadButton;
 
+  /// No description provided for @maps_regionDownload_presetOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get maps_regionDownload_presetOverview;
+
+  /// No description provided for @maps_regionDownload_presetDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Detail'**
+  String get maps_regionDownload_presetDetail;
+
+  /// No description provided for @maps_regionDownload_presetFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get maps_regionDownload_presetFull;
+
+  /// No description provided for @maps_regionDownload_tooManyTiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Over 100,000 tiles: shrink the area or lower the maximum zoom.'**
+  String get maps_regionDownload_tooManyTiles;
+
+  /// No description provided for @maps_regionDownload_socks5Unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Region downloads can\'t use a SOCKS5 proxy: switch to an HTTP proxy or to No proxy in the network settings.'**
+  String get maps_regionDownload_socks5Unsupported;
+
   /// No description provided for @diveLog_map_title.
   ///
   /// In en, this message translates to:
@@ -78316,6 +78718,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Newer database, kept when going back - {size}'**
   String backup_history_preDowngradeSubtitle(String size);
+
+  /// No description provided for @backup_history_cloudOnlySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'In cloud storage ({size})'**
+  String backup_history_cloudOnlySubtitle(String size);
 
   /// No description provided for @backup_history_manualSubtitle.
   ///

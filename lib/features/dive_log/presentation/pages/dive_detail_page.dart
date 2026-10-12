@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
@@ -26,7 +27,6 @@ import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_with_figure.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
-import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
@@ -43,6 +43,7 @@ import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dia
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/legacy_buddy_text_section.dart';
@@ -114,6 +115,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
     show TooltipPresentation;
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/environment_water_conditions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_properties_menu.dart';
@@ -148,8 +150,9 @@ import 'package:submersion/features/signatures/presentation/widgets/signature_ca
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
 import 'package:submersion/features/tags/presentation/tag_dives_navigation.dart';
 import 'package:submersion/features/tides/domain/entities/tide_record.dart';
+import 'package:submersion/features/reef/domain/entities/reef_health.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
-import 'package:submersion/features/reef/presentation/widgets/water_conditions_card.dart';
+import 'package:submersion/features/reef/presentation/widgets/water_conditions_lines.dart';
 import 'package:submersion/features/tides/presentation/providers/tide_providers.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_cycle_graph.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -277,7 +280,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   void _navigateToDive(String neighborId) {
     ref.read(highlightedDiveIdProvider.notifier).state = neighborId;
     if (widget.embedded) {
-      context.go('/dives?selected=$neighborId');
+      context.goInPlace('/dives?selected=$neighborId');
     } else {
       context.replace('/dives/$neighborId');
     }
@@ -313,25 +316,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       );
     }
 
-    // On desktop, redirect standalone detail pages to master-detail view.
-    // Skip in table mode -- table view has no master-detail split to redirect into.
-    // Skip when this page was PUSHED (trip/buddy/site drill-through, "Open
-    // Full Page"): the redirect uses go(), which would wipe the stack and
-    // lose the browse context and back button (#764). Only redirect
-    // root-level details (deep links, tab navigation).
-    if (!widget.embedded &&
-        !_hasRedirected &&
-        !(GoRouter.maybeOf(context)?.canPop() ?? false) &&
-        ResponsiveBreakpoints.isMasterDetail(context)) {
-      final viewMode = ref.read(diveListViewModeProvider);
-      if (viewMode != ListViewMode.table) {
-        _hasRedirected = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            context.go('/dives?selected=$diveId');
-          }
-        });
-      }
+    // Desktop redirect: a root visit (deep link, sidebar) moves into the
+    // master-detail split. A pushed page, opened from a dive's details
+    // say, stays put: the redirect's go() would erase the page under it
+    // and its back arrow (#764, #3292).
+    if (!_hasRedirected &&
+        shouldRedirectToMasterDetail(
+          context,
+          embedded: widget.embedded,
+          viewMode: ref.read(diveListViewModeProvider),
+        )) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/dives?selected=$diveId');
+        }
+      });
     }
 
     // A finding dismissed elsewhere (section button, another device via sync,
@@ -356,18 +356,30 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       data: (dive) {
         if (dive == null) {
           return Scaffold(
-            appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
+            // Embedded in a split view, these placeholder bars are not pages:
+            // a pushed list underneath must not give them a back arrow of
+            // their own (#3292).
+            appBar: AppBar(
+              automaticallyImplyLeading: !widget.embedded,
+              title: Text(context.l10n.diveLog_detail_appBar),
+            ),
             body: Center(child: Text(context.l10n.diveLog_detail_notFound)),
           );
         }
         return _wrapWithDiveShortcuts(dive, _buildContent(context, ref, dive));
       },
       loading: () => Scaffold(
-        appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
+        appBar: AppBar(
+          automaticallyImplyLeading: !widget.embedded,
+          title: Text(context.l10n.diveLog_detail_appBar),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (error, stack) => Scaffold(
-        appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
+        appBar: AppBar(
+          automaticallyImplyLeading: !widget.embedded,
+          title: Text(context.l10n.diveLog_detail_appBar),
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -478,8 +490,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         ];
       },
       DiveDetailSectionId.environment: (_) {
-        if (!_hasEnvironmentData(dive)) return [];
-        return [_buildEnvironmentSection(context, dive, units)];
+        if (!_hasEnvironmentData(ref, dive)) return [];
+        return [_buildEnvironmentSection(context, ref, dive, units)];
       },
       DiveDetailSectionId.altitude: (_) {
         if (dive.altitude == null || dive.altitude! <= 0) {
@@ -498,9 +510,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       },
       DiveDetailSectionId.tide: (topGap) {
         return [_buildTideSection(context, ref, dive, topGap: topGap)];
-      },
-      DiveDetailSectionId.reefHealth: (topGap) {
-        return [_buildReefHealthSection(context, ref, dive, topGap: topGap)];
       },
       DiveDetailSectionId.surfaceGps: (_) {
         if (!_hasLocationMap(dive)) return [];
@@ -899,7 +908,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   /// Sections that decide whether they render from data that arrives after
-  /// build -- a tide model, a reef-health lookup, sightings, safety findings.
+  /// build -- a tide model, sightings, safety findings.
   ///
   /// Their builders always return a widget, so [_buildOrderedSections] cannot
   /// tell an empty one from a full one and must not put a gap above it; the
@@ -908,7 +917,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   static const _selfSpacingSections = {
     DiveDetailSectionId.safetyReview,
     DiveDetailSectionId.tide,
-    DiveDetailSectionId.reefHealth,
     DiveDetailSectionId.sightings,
   };
 
@@ -1004,10 +1012,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         );
 
       case DiveDetailSectionId.details:
-        if (!_hasEnvironmentData(dive)) return null;
+        if (!_hasEnvironmentData(ref, dive)) return null;
         return _PairCards(
           _detailsCard(context, dive, units, computerReadingsAsync, settings),
-          _buildEnvironmentSection(context, dive, units),
+          _buildEnvironmentSection(context, ref, dive, units),
         );
 
       case DiveDetailSectionId.surfaceGps:
@@ -1504,7 +1512,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 onPressed: () {
                   final state = GoRouterState.of(context);
                   final currentPath = state.uri.path;
-                  context.go('$currentPath?selected=$diveId&mode=edit');
+                  context.goInPlace('$currentPath?selected=$diveId&mode=edit');
                 },
               ),
               // More options
@@ -1785,14 +1793,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           : () {
               if (widget.embedded &&
                   ResponsiveBreakpoints.isMasterDetail(context)) {
-                final router = GoRouter.of(context);
                 final state = GoRouterState.of(context);
                 final currentPath = state.uri.path;
                 final params = Map<String, String>.from(
                   state.uri.queryParameters,
                 );
                 params['site'] = site.id;
-                router.go(
+                context.goInPlace(
                   Uri(path: currentPath, queryParameters: params).toString(),
                 );
               } else {
@@ -2056,6 +2063,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 profile: chartProfile,
                 units: units,
                 tanks: dive.tanks,
+                isRebreather: dive.isRebreather,
               ),
             ],
           ],
@@ -3364,7 +3372,14 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     );
   }
 
-  bool _hasEnvironmentData(Dive dive) {
+  /// Whether the Environment card has anything to show: a logged weather or
+  /// dive-conditions field, or satellite water conditions for the dive date.
+  bool _hasEnvironmentData(WidgetRef ref, Dive dive) {
+    return _hasLoggedEnvironmentData(dive) ||
+        _satelliteWaterConditions(ref, dive) != null;
+  }
+
+  bool _hasLoggedEnvironmentData(Dive dive) {
     return trimmedOrNull(dive.surfaceConditions) != null ||
         dive.airTemp != null ||
         dive.surfacePressure != null ||
@@ -3390,16 +3405,56 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     (e) => e.type == EquipmentType.wetsuit || e.type == EquipmentType.drysuit,
   );
 
-  /// Calculate profile markers for max depth and pressure thresholds
-  /// Markers to overlay on the profile chart.
+  /// Satellite water conditions on the date of this dive, or null when there
+  /// are none to show.
   ///
-  /// [profile] must be the series the chart is actually drawing (the active
-  /// source's points), not `dive.profile`. The analysis these markers are
-  /// positioned from is the active source's, so indexing it into the merged
-  /// series would place the max-depth flag at another computer's reading
-  /// (#1167).
+  /// Historical NOAA readings are immutable, so the lookup is fetched once and
+  /// cached permanently. Null without site coordinates, and for freshwater
+  /// dives, whose water NOAA's ocean grid cannot see; the dive's own water
+  /// type wins over its site's, as everywhere else. Null too while the
+  /// lookup loads, fails, comes back empty or has no reading to show: a line
+  /// saying so would be noise in a card about the dive's conditions, and
+  /// would be the only line in an Environment card for a dive with nothing
+  /// logged.
+  ///
+  /// [reefPossible] is false only once habitat has ruled a reef out; while it
+  /// resolves the coral lines stay, the conservative default.
+  ({ReefHealth health, bool reefPossible})? _satelliteWaterConditions(
+    WidgetRef ref,
+    Dive dive,
+  ) {
+    final site = dive.site;
+    if (site == null || !site.hasCoordinates) return null;
+    if (dive.effectiveWaterType == WaterType.fresh) return null;
+    final part = ref
+        .watch(
+          reefHealthForDiveProvider(
+            ReefHealthRequest(
+              location: site.location!,
+              date: dive.effectiveEntryTime,
+            ),
+          ),
+        )
+        .valueOrNull;
+    if (part == null || !part.hasValue) return null;
+    final health = part.value!;
+    final reefPossible = reefPossibleFor(
+      ref.watch(reefHabitatProvider(site.location!)).valueOrNull,
+    );
+    if (!hasWaterConditionsReadings(health, reefPossible: reefPossible)) {
+      return null;
+    }
+    return (health: health, reefPossible: reefPossible);
+  }
+
+  /// The Environment card: what the diver logged about the weather and the
+  /// dive conditions, then the satellite water conditions on the dive date.
+  ///
+  /// Each subsection shows only when it has something to say, so callers gate
+  /// the card as a whole on [_hasEnvironmentData].
   Widget _buildEnvironmentSection(
     BuildContext context,
+    WidgetRef ref,
     Dive dive,
     UnitFormatter units,
   ) {
@@ -3420,6 +3475,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         dive.swellHeight != null ||
         dive.effectiveEntryMethod != null ||
         dive.exitMethod != null;
+
+    final satellite = _satelliteWaterConditions(ref, dive);
 
     return Card(
       child: Padding(
@@ -3575,6 +3632,19 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   dive.exitMethod!.localizedName(context.l10n),
                 ),
             ],
+            if ((hasWeather || hasDiveConditions) && satellite != null) ...[
+              const SizedBox(height: 16),
+              const Divider(),
+            ],
+            if (satellite != null)
+              EnvironmentWaterConditions(
+                lines: buildWaterConditionsLines(
+                  l10n: context.l10n,
+                  units: units,
+                  health: satellite.health,
+                  reefPossible: satellite.reefPossible,
+                ),
+              ),
           ],
         ),
       ),
@@ -3774,51 +3844,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           ],
         ),
       ),
-    );
-  }
-
-  /// Satellite water conditions on the date of this dive.
-  ///
-  /// Historical NOAA readings are immutable, so this is fetched once and
-  /// cached permanently. Hidden when the dive has no site coordinates, and
-  /// for freshwater sites, whose water NOAA's ocean grid cannot see — a
-  /// permanent coverage explanation on every quarry dive would be noise.
-  Widget _buildReefHealthSection(
-    BuildContext context,
-    WidgetRef ref,
-    Dive dive, {
-    required double topGap,
-  }) {
-    final site = dive.site;
-    if (site?.hasCoordinates != true) return const SizedBox.shrink();
-    if (site!.waterType == WaterType.fresh) return const SizedBox.shrink();
-
-    final location = site.location!;
-    final healthAsync = ref.watch(
-      reefHealthForDiveProvider(
-        ReefHealthRequest(location: location, date: dive.effectiveEntryTime),
-      ),
-    );
-    final habitatAsync = ref.watch(reefHabitatProvider(location));
-
-    return healthAsync.when(
-      data: (part) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(height: topGap),
-          Card(
-            child: WaterConditionsCard(
-              health: part,
-              // Null while still resolving: the card then keeps the stress
-              // lines, the conservative default.
-              habitat: habitatAsync.valueOrNull,
-              waterType: site.waterType,
-            ),
-          ),
-        ],
-      ),
-      loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
     );
   }
 

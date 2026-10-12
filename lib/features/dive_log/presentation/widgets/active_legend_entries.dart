@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
@@ -25,8 +27,8 @@ class ActiveLegendEntry {
 ///
 /// Mirrors the catalog in `ChartOptionsDialog`: an entry appears when the
 /// dive has the data ([config]) and the user has the metric switched on
-/// ([state]). Colours come from [ProfileMetricColors] so the dash beside each
-/// label matches both the chart line and the dialog swatch.
+/// ([state]). Colours come from the diver's [palette] (issue #3012) so the
+/// dash beside each label matches both the chart line and the dialog swatch.
 ///
 /// Depth always leads the list, since it is the trace the chart is built
 /// around. On a multi-source dive (see [ProfileLegendConfig.overlays]) every
@@ -38,11 +40,18 @@ List<ActiveLegendEntry> activeLegendEntries(
   BuildContext context, {
   required ProfileLegendConfig config,
   required ProfileLegendState state,
+  required ProfileMetricPalette palette,
 }) {
   final l10n = context.l10n;
   final colorScheme = Theme.of(context).colorScheme;
   final entries = <ActiveLegendEntry>[];
   final multiSource = config.overlays.isNotEmpty;
+  // A chosen pressure colour draws a single-tank dive's line and threshold
+  // markers; several tanks keep their gas colours.
+  final singleTankColor = palette.pressureLineColor(
+    pressureSeries: config.tankPressures?.length ?? 0,
+    tankCount: config.tanks?.length ?? 0,
+  );
 
   /// A metric drawn only for the active source.
   void add(bool present, bool active, String label, Color color) {
@@ -91,7 +100,7 @@ List<ActiveLegendEntry> activeLegendEntries(
     true,
     true,
     l10n.diveLog_legend_label_depth,
-    ProfileMetricColors.depth,
+    palette.colorOf(ProfileMetric.depth),
   );
 
   // Overlays
@@ -100,13 +109,13 @@ List<ActiveLegendEntry> activeLegendEntries(
     config.hasTemperatureData,
     state.showTemperature,
     l10n.diveLog_legend_label_temp,
-    colorScheme.tertiary,
+    palette.colorOf(ProfileMetric.temperature),
   );
   add(
     config.hasPressureData && !config.hasMultiTankPressure,
     state.showPressure,
     l10n.diveLog_legend_label_pressure,
-    ProfileMetricColors.pressure,
+    palette.colorOf(ProfileMetric.pressure),
   );
   add(
     config.hasEvents,
@@ -127,13 +136,13 @@ List<ActiveLegendEntry> activeLegendEntries(
     config.hasHeartRateData,
     state.showHeartRate,
     l10n.diveLog_legend_label_heartRate,
-    ProfileMetricColors.heartRate,
+    palette.colorOf(ProfileMetric.heartRate),
   );
   add(
     config.hasSacCurve,
     state.showSac,
     l10n.diveLog_legend_label_sacRate,
-    ProfileMetricColors.sac,
+    palette.colorOf(ProfileMetric.sac),
   );
   add(
     config.hasAscentRates,
@@ -153,13 +162,13 @@ List<ActiveLegendEntry> activeLegendEntries(
     config.hasMaxDepthMarker,
     state.showMaxDepthMarker,
     l10n.diveLog_legend_label_maxDepth,
-    ProfileMetricColors.maxDepth,
+    palette.colorOf(ProfileMetric.maxDepth),
   );
   add(
     config.hasPressureMarkers,
     state.showPressureMarkers,
     l10n.diveLog_legend_label_pressureThresholds,
-    ProfileMetricColors.pressureMarkers,
+    singleTankColor ?? ProfileMetricColors.pressureMarkers,
   );
   add(
     config.hasGasSwitches,
@@ -198,7 +207,10 @@ List<ActiveLegendEntry> activeLegendEntries(
         config.estimatedTankIds.contains(tankId)
             ? '$baseLabel ${l10n.diveLog_pressure_estimatedSuffix}'
             : baseLabel,
-        tank != null ? GasColors.forGasMix(tank.gasMix) : tankFallbackColor(i),
+        singleTankColor ??
+            (tank != null
+                ? GasColors.forGasMix(tank.gasMix)
+                : tankFallbackColor(i)),
       );
     }
   }
@@ -216,42 +228,42 @@ List<ActiveLegendEntry> activeLegendEntries(
     config.hasCeilingCurve,
     state.showCeiling,
     l10n.diveLog_legend_label_ceiling,
-    ProfileMetricColors.ceiling,
+    palette.colorOf(ProfileMetric.ceiling),
   );
   addPerSource(
     LegendMetric.ndl,
     config.hasNdlData,
     state.showNdl,
     l10n.diveLog_legend_label_ndl,
-    ProfileMetricColors.ndl,
+    palette.colorOf(ProfileMetric.ndl),
   );
   addPerSource(
     LegendMetric.tts,
     config.hasTtsData,
     state.showTts,
     l10n.diveLog_legend_label_tts,
-    ProfileMetricColors.tts,
+    palette.colorOf(ProfileMetric.tts),
   );
   addPerSource(
     LegendMetric.gtr,
     config.hasGtrData,
     state.showGtr,
     l10n.diveLog_legend_label_gtr,
-    ProfileMetricColors.gtr,
+    palette.colorOf(ProfileMetric.gtr),
   );
   addPerSource(
     LegendMetric.cns,
     config.hasCnsData,
     state.showCns,
     l10n.diveLog_legend_label_cns,
-    ProfileMetricColors.cns,
+    palette.colorOf(ProfileMetric.cns),
   );
   addPerSource(
     LegendMetric.otu,
     config.hasOtuData,
     state.showOtu,
     l10n.diveLog_legend_label_otu,
-    ProfileMetricColors.otu,
+    palette.colorOf(ProfileMetric.otu),
   );
 
   // Gas analysis
@@ -260,21 +272,21 @@ List<ActiveLegendEntry> activeLegendEntries(
     config.hasPpO2Data,
     state.showPpO2,
     l10n.diveLog_legend_label_ppO2,
-    ProfileMetricColors.ppO2,
+    palette.colorOf(ProfileMetric.ppO2),
   );
   addPerSource(
     LegendMetric.ppN2,
     config.hasPpN2Data,
     state.showPpN2,
     l10n.diveLog_legend_label_ppN2,
-    ProfileMetricColors.ppN2,
+    palette.colorOf(ProfileMetric.ppN2),
   );
   addPerSource(
     LegendMetric.ppHe,
     config.hasPpHeData,
     state.showPpHe,
     l10n.diveLog_legend_label_ppHe,
-    ProfileMetricColors.ppHe,
+    palette.colorOf(ProfileMetric.ppHe),
   );
   add(
     config.hasO2CellData,
@@ -287,14 +299,14 @@ List<ActiveLegendEntry> activeLegendEntries(
     config.hasModData,
     state.showMod,
     l10n.diveLog_legend_label_mod,
-    ProfileMetricColors.mod,
+    palette.colorOf(ProfileMetric.mod),
   );
   addPerSource(
     LegendMetric.density,
     config.hasDensityData,
     state.showDensity,
     l10n.diveLog_legend_label_gasDensity,
-    ProfileMetricColors.density,
+    palette.colorOf(ProfileMetric.density),
   );
 
   // Other
@@ -303,21 +315,21 @@ List<ActiveLegendEntry> activeLegendEntries(
     config.hasGfData,
     state.showGf,
     l10n.diveLog_legend_label_gfPercent,
-    ProfileMetricColors.gf,
+    palette.colorOf(ProfileMetric.gf),
   );
   addPerSource(
     LegendMetric.surfaceGf,
     config.hasSurfaceGfData,
     state.showSurfaceGf,
     l10n.diveLog_legend_label_surfaceGf,
-    ProfileMetricColors.surfaceGf,
+    palette.colorOf(ProfileMetric.surfaceGf),
   );
   addPerSource(
     LegendMetric.meanDepth,
     config.hasMeanDepthData,
     state.showMeanDepth,
     l10n.diveLog_legend_label_meanDepth,
-    ProfileMetricColors.meanDepth,
+    palette.colorOf(ProfileMetric.meanDepth),
   );
 
   return entries;

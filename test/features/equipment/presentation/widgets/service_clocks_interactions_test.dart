@@ -253,8 +253,8 @@ void main() {
     });
 
     // The card now renders the usage triggers alongside the date trigger.
-    expect(find.textContaining('of 50 dives left'), findsOneWidget);
-    expect(find.textContaining('of 2.5 hours left'), findsOneWidget);
+    expect(find.textContaining('of 50 dives,'), findsOneWidget);
+    expect(find.textContaining('of 2.5 hours,'), findsOneWidget);
   });
 
   testWidgets('saving without touching the baseline keeps its set time', (

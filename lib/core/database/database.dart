@@ -262,7 +262,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 282;
+  static const int currentSchemaVersion = 286;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1214,10 +1214,23 @@ class AppDatabase extends _$AppDatabase {
     // defaulted column, so the floor stays at 280. Renumbered from 278, 279
     // and 280, which #3226, #3106 and #2361 shipped first.
     281,
-    // v282: dive_plan_segments.split_at_configured_rate (issue #3264).
+    // v283: dive_profile_series.activated_at (issue #3189), backfilled from
+    // the primary flags and the local revision history. Additive nullable
+    // column, so the floor stays at 280. 282 is held by PR #3133.
+    283,
+    // v284: diver_settings.profile_color_* (issue #3012). Additive nullable
+    // columns, so the floor stays at 280. Renumbered from 282, which PR #3133
+    // holds, after #3296 shipped 283.
+    284,
+    // v285: nav_tracks.source_metadata (issue #3047). Additive nullable
+    // column, so the floor stays at 280. Renumbered from 282, which PR
+    // #3133 holds; 283 and 284 shipped first.
+    285,
+    // v286: dive_plan_segments.split_at_configured_rate (issue #3264).
     // Additive defaulted column, so the floor stays at 280. Renumbered from
-    // 277, which #2613's documents store shipped first.
-    282,
+    // 277 then 282, as #2613's documents store, #3189, #3012 and #3047
+    // shipped first in turn.
+    286,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -232,6 +232,7 @@ class DiveUncombineService {
               computerId: s.computerId,
               sourceId: s.sourceId,
               isPrimary: s.isPrimary,
+              activatedAt: Value(s.activatedAt),
               samples: trimmed,
               now: now,
             );
@@ -540,6 +541,7 @@ class DiveUncombineService {
         computerId: s.computerId,
         sourceId: newSourceIdByOld[s.sourceId],
         isPrimary: s.isPrimary,
+        activatedAt: Value(s.activatedAt),
         samples: samples,
         now: now,
       );

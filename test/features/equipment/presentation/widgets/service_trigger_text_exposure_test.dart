@@ -41,7 +41,7 @@ void main() {
         ExposureUnit.coldDives: ClockUsage(interval: 50, since: 12),
       },
     );
-    expect(text, '12 cold dives, 38 of 50 cold dives left');
+    expect(text, '12 of 50 cold dives, 38 left');
   });
 
   testWidgets('hour units render one decimal and clamp at zero', (
@@ -53,7 +53,7 @@ void main() {
         ExposureUnit.saltHours: ClockUsage(interval: 200, since: 210.25),
       },
     );
-    expect(text, '210.3 salt-water hours, 0.0 of 200.0 salt-water hours left');
+    expect(text, '210.3 of 200.0 salt-water hours, 0.0 left');
   });
 
   testWidgets('legacy dives and map units join in unit order', (tester) async {
@@ -64,9 +64,6 @@ void main() {
         ExposureUnit.dives: ClockUsage(interval: 100, since: 40),
       },
     );
-    expect(
-      text,
-      '40 dives, 60 of 100 dives left · 5 deep dives, 15 of 20 deep dives left',
-    );
+    expect(text, '40 of 100 dives, 60 left · 5 of 20 deep dives, 15 left');
   });
 }

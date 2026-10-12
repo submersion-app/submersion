@@ -155,6 +155,55 @@ void main() {
     },
   );
 
+  test('an edit made on A stays live on B through a primary swap '
+      '(#3189)', () async {
+    dbB = await setUpTestDatabase();
+    dbA = await setUpTestDatabase();
+    switchTo(dbA);
+    await seedFkPrereqs(dbA);
+    await seedBareDive(dbA, 'd1');
+    // Two file-imported sources: neither names a computer, so only the
+    // activation time tells src-a's edit from its original.
+    for (final (id, isPrimary) in [('src-a', true), ('src-b', false)]) {
+      await dbA
+          .into(dbA.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: Value(id),
+              diveId: const Value('d1'),
+              isPrimary: Value(isPrimary),
+              importedAt: Value(DateTime.utc(2026)),
+              createdAt: Value(DateTime.utc(2026)),
+            ),
+          );
+      await ProfileSeriesRepository().insertSeries(
+        // Above any v4 UUID, so the pre-#3189 id tie-break picks it.
+        id: 'zz-original-$id',
+        diveId: 'd1',
+        sourceId: id,
+        isPrimary: isPrimary,
+        samples: const [
+          ProfileSample(timestamp: 0, depth: 0),
+          ProfileSample(timestamp: 60, depth: 20),
+        ],
+      );
+    }
+    await DiveRepository().saveEditedProfile('d1', const [
+      domain.DiveProfilePoint(timestamp: 0, depth: 0),
+      domain.DiveProfilePoint(timestamp: 60, depth: 28),
+    ]);
+    expect((await buildService().performSync()).isSuccess, isTrue);
+
+    switchTo(dbB!);
+    await seedFkPrereqs(dbB!);
+    expect((await buildService().performSync()).isSuccess, isTrue);
+    final repo = DiveRepository();
+    await repo.setPrimaryDataSource(diveId: 'd1', computerReadingId: 'src-b');
+    await repo.setPrimaryDataSource(diveId: 'd1', computerReadingId: 'src-a');
+
+    expect((await repo.getDiveProfile('d1')).map((p) => p.depth), [0.0, 28.0]);
+  });
+
   test('a series deleted on A is tombstoned and removed on B', () async {
     dbB = await setUpTestDatabase();
     dbA = await setUpTestDatabase();

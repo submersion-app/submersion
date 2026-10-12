@@ -77,6 +77,31 @@ void main() {
     });
   });
 
+  group('addWindowsTrustAnchors', () {
+    test('adds the bundle and native roots to a context that already trusts '
+        'the platform roots', () {
+      // A download isolate's defaultContext already holds roots, and some of
+      // them duplicate the bundle's; the add must still go through.
+      final added = addWindowsTrustAnchors(
+        SecurityContext(withTrustedRoots: true),
+        readNativeRoots: () => [_firstEmbeddedCertDer()],
+        fallbackBundlePem: embeddedCaBundlePem,
+      );
+
+      expect(added, 2);
+    });
+
+    test('skips what it cannot read and reports nothing added', () {
+      final added = addWindowsTrustAnchors(
+        SecurityContext(withTrustedRoots: false),
+        readNativeRoots: () => throw const _StoreReadFailure(),
+        fallbackBundlePem: '',
+      );
+
+      expect(added, 0);
+    });
+  });
+
   group('windowsTrustAnchorsPem', () {
     test('always includes the public-CA bundle first, even with many native '
         'roots', () {

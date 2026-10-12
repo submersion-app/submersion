@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
@@ -49,7 +48,7 @@ class _FakeTileCache implements TileCacheService {
     required LatLng northEast,
     required int minZoom,
     required int maxZoom,
-    required TileLayer options,
+    required String urlTemplate,
     int parallelThreads = 5,
     bool skipExistingTiles = true,
   }) async {
@@ -178,12 +177,7 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  // Lazy: TileLayer creates an HTTP client, and the body of main() runs while
-  // the file is declared. By then another file in the isolate may have set up
-  // the test binding, whose HTTP layer only works inside a test.
-  late final tileLayer = TileLayer(
-    urlTemplate: 'https://tile.example/{z}/{x}/{y}.png',
-  );
+  const tileUrl = 'https://tile.example/{z}/{x}/{y}.png';
 
   Future<void> downloadOneRegion({int tiles = 40}) async {
     final notifier = container.read(downloadProgressProvider.notifier);
@@ -195,7 +189,7 @@ void main() {
       maxLng: -86,
       minZoom: 8,
       maxZoom: 12,
-      tileLayerOptions: tileLayer,
+      urlTemplate: tileUrl,
     );
     await Future<void>.delayed(Duration.zero);
     cache.progress.add(
@@ -247,7 +241,7 @@ void main() {
         maxLng: -86,
         minZoom: 8,
         maxZoom: 12,
-        tileLayerOptions: tileLayer,
+        urlTemplate: tileUrl,
       );
       await Future<void>.delayed(Duration.zero);
       cache.progress.add(
@@ -284,7 +278,7 @@ void main() {
         maxLng: -86,
         minZoom: 8,
         maxZoom: 12,
-        tileLayerOptions: tileLayer,
+        urlTemplate: tileUrl,
       );
       await Future<void>.delayed(Duration.zero);
       await notifier.cancelDownload();
@@ -322,7 +316,7 @@ void main() {
           maxLng: -86,
           minZoom: 8,
           maxZoom: 12,
-          tileLayerOptions: tileLayer,
+          urlTemplate: tileUrl,
         );
         await Future<void>.delayed(Duration.zero);
 
@@ -371,7 +365,7 @@ void main() {
         maxLng: -86,
         minZoom: 8,
         maxZoom: 12,
-        tileLayerOptions: tileLayer,
+        urlTemplate: tileUrl,
       );
       await Future<void>.delayed(Duration.zero);
       cache.progress.add(
@@ -415,7 +409,7 @@ void main() {
           maxLng: -86,
           minZoom: 8,
           maxZoom: 12,
-          tileLayerOptions: tileLayer,
+          urlTemplate: tileUrl,
         );
         await Future<void>.delayed(Duration.zero);
 
@@ -427,7 +421,7 @@ void main() {
           maxLng: -68,
           minZoom: 8,
           maxZoom: 12,
-          tileLayerOptions: tileLayer,
+          urlTemplate: tileUrl,
         );
         await first;
         await Future<void>.delayed(Duration.zero);
@@ -462,7 +456,7 @@ void main() {
         maxLng: -86,
         minZoom: 8,
         maxZoom: 12,
-        tileLayerOptions: tileLayer,
+        urlTemplate: tileUrl,
       );
 
       expect(await repository.getAllRegions(), isEmpty);
@@ -550,7 +544,7 @@ void main() {
         maxLng: -86,
         minZoom: 8,
         maxZoom: 12,
-        tileLayerOptions: tileLayer,
+        urlTemplate: tileUrl,
       );
       await Future<void>.delayed(Duration.zero);
 
@@ -718,7 +712,7 @@ void main() {
           maxLng: -86,
           minZoom: 8,
           maxZoom: 12,
-          tileLayerOptions: tileLayer,
+          urlTemplate: tileUrl,
         );
 
     test('leaves the download that replaced it on screen', () async {

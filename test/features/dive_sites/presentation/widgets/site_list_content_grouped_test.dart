@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
@@ -25,8 +26,15 @@ SiteWithDiveCount _site(
   String name, {
   String? country,
   String? region,
+  String? bodyOfWater,
 }) => SiteWithDiveCount(
-  site: DiveSite(id: id, name: name, country: country, region: region),
+  site: DiveSite(
+    id: id,
+    name: name,
+    country: country,
+    region: region,
+    bodyOfWater: bodyOfWater,
+  ),
   diveCount: 0,
 );
 
@@ -36,9 +44,9 @@ final _sites = [
   _site('xx1', 'Mystery Lake'),
 ];
 
-/// A country header by its label; a site row can repeat the same word in its
+/// A group header by its label; a site row can repeat the same word in its
 /// location line.
-Finder _header(String label) => find.widgetWithText(SiteCountryHeader, label);
+Finder _header(String label) => find.widgetWithText(SiteGroupHeader, label);
 
 String _key(String country) =>
     siteCountryKey(DiveSite(id: 'x', name: 'x', country: country));
@@ -83,9 +91,7 @@ Future<void> _pumpGrouped(
         highlightedSiteIdProvider.overrideWith((ref) => highlightedId),
         siteGroupByProvider.overrideWith((ref) => groupBy),
         if (storedExpansion != null)
-          siteListExpandedCountriesProvider.overrideWith(
-            (ref) => storedExpansion,
-          ),
+          siteListExpandedGroupsProvider.overrideWith((ref) => storedExpansion),
       ],
       child: SiteListContent(showAppBar: showAppBar, selectedId: selectedId),
     ),
@@ -106,6 +112,10 @@ void main() {
     await tester.tap(_header('Australia'));
     await tester.pumpAndSettle();
     expect(find.text('Queensland'), findsOneWidget);
+    expect(find.byType(SiteListTile), findsNothing);
+
+    await tester.tap(_header('Queensland'));
+    await tester.pumpAndSettle();
     expect(find.byType(SiteListTile), findsOneWidget);
     expect(find.text('Cod Hole'), findsOneWidget);
   });
@@ -134,14 +144,14 @@ void main() {
       tester.element(find.byType(SiteListContent)),
     );
     expect(
-      container.read(siteListExpandedCountriesProvider),
+      container.read(siteListExpandedGroupsProvider),
       contains(_key('Egypt')),
     );
 
     await tester.tap(_header('Egypt'));
     await tester.pumpAndSettle();
     expect(
-      container.read(siteListExpandedCountriesProvider),
+      container.read(siteListExpandedGroupsProvider),
       isNot(contains(_key('Egypt'))),
     );
     expect(find.byType(SiteListTile), findsNothing);
@@ -190,6 +200,10 @@ void main() {
     await tester.tap(find.byIcon(Icons.sort));
     await tester.pumpAndSettle();
     expect(find.text('Group by'), findsOneWidget);
+    expect(find.text('None'), findsOneWidget);
+    expect(find.text('Country & region'), findsOneWidget);
+    expect(find.text('Body of water'), findsOneWidget);
+    expect(find.text('Country & body of water'), findsOneWidget);
 
     await tester.tap(find.text('Country & region'));
     await tester.pumpAndSettle();
@@ -247,8 +261,157 @@ void main() {
       tester.element(find.byType(SiteListContent)),
     );
     expect(
-      container.read(siteListExpandedCountriesProvider),
+      container.read(siteListExpandedGroupsProvider),
       contains(_key('Egypt')),
     );
   });
+
+  testWidgets('grouped by water shows body-of-water headers, no countries', (
+    tester,
+  ) async {
+    await _pumpGrouped(
+      tester,
+      groupBy: SiteGroupBy.water,
+      sites: [
+        _site('a', 'Ras Mohammed', country: 'Egypt', bodyOfWater: 'Red Sea'),
+        _site('b', 'Elphinstone', country: 'Egypt', bodyOfWater: 'Red Sea'),
+        _site('c', 'Blue Hole', country: 'Belize'),
+      ],
+    );
+    expect(find.text('Red Sea'), findsOneWidget);
+    expect(find.text('No body of water'), findsOneWidget);
+    expect(find.text('Egypt'), findsNothing);
+
+    await tester.tap(_header('Red Sea'));
+    await tester.pumpAndSettle();
+    expect(find.text('Ras Mohammed'), findsOneWidget);
+    expect(find.text('Elphinstone'), findsOneWidget);
+  });
+
+  testWidgets(
+    'grouped by country and water nests a collapsible water header under '
+    'each country, bundling sites with no water into their own subgroup',
+    (tester) async {
+      await _pumpGrouped(
+        tester,
+        groupBy: SiteGroupBy.locationAndWater,
+        sites: [
+          _site('a', 'Ras Mohammed', country: 'Egypt', bodyOfWater: 'Red Sea'),
+          _site('b', 'Elphinstone', country: 'Egypt'),
+          _site('c', 'Blue Hole', country: 'Belize'),
+        ],
+      );
+      expect(find.text('Egypt'), findsOneWidget);
+      expect(find.text('Belize'), findsOneWidget);
+      expect(find.text('Red Sea'), findsNothing);
+
+      await tester.tap(_header('Egypt'));
+      await tester.pumpAndSettle();
+      // Water headers appear, collapsed, nothing beneath them yet.
+      expect(find.text('Red Sea'), findsOneWidget);
+      expect(find.text('No body of water'), findsOneWidget);
+      expect(find.text('Ras Mohammed'), findsNothing);
+      expect(find.text('Elphinstone'), findsNothing);
+
+      await tester.tap(_header('Red Sea'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ras Mohammed'), findsOneWidget);
+      expect(find.text('Elphinstone'), findsNothing);
+
+      await tester.tap(_header('No body of water'));
+      await tester.pumpAndSettle();
+      expect(find.text('Elphinstone'), findsOneWidget);
+    },
+  );
+
+  // Regression: a selected site with no body of water sits in the bundled
+  // "No body of water" subgroup, which must open too, not just its country.
+  testWidgets(
+    'selecting a site with no body of water opens its bundled subgroup too',
+    (tester) async {
+      await _pumpGrouped(
+        tester,
+        groupBy: SiteGroupBy.locationAndWater,
+        selectedId: 'b',
+        storedExpansion: const {},
+        sites: [
+          _site('a', 'Ras Mohammed', country: 'Egypt', bodyOfWater: 'Red Sea'),
+          _site('b', 'Elphinstone', country: 'Egypt'),
+        ],
+      );
+      expect(find.text('Elphinstone'), findsWidgets);
+    },
+  );
+
+  testWidgets('switching grouping mode drops the old expansion', (
+    tester,
+  ) async {
+    await _pumpGrouped(tester);
+    await tester.tap(_header('Egypt'));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SiteListContent)),
+    );
+    expect(
+      container.read(siteListExpandedGroupsProvider),
+      contains(_key('Egypt')),
+    );
+
+    container.read(siteGroupByProvider.notifier).state = SiteGroupBy.water;
+    await tester.pumpAndSettle();
+    expect(container.read(siteListExpandedGroupsProvider), isNull);
+  });
+
+  testWidgets(
+    'a region stays collapsed under its open country until tapped, then '
+    'collapses again on a second tap',
+    (tester) async {
+      await _pumpGrouped(
+        tester,
+        // A second country, so Australia isn't the only group -- the only
+        // group auto-opens, which would make the tap below close it again.
+        sites: [
+          _site('q1', 'Cod Hole', country: 'Australia', region: 'Queensland'),
+          _site(
+            'q2',
+            'Osprey Reef',
+            country: 'Australia',
+            region: 'Queensland',
+          ),
+          _site('w1', 'Navy Pier', country: 'Australia', region: 'Western'),
+          _site('eg1', 'Blue Hole', country: 'Egypt'),
+        ],
+      );
+      await tester.tap(_header('Australia'));
+      await tester.pumpAndSettle();
+      // Both region headers appear, but neither's sites are shown yet.
+      expect(find.text('Queensland'), findsOneWidget);
+      expect(find.text('Western'), findsOneWidget);
+      expect(find.text('Cod Hole'), findsNothing);
+      expect(find.text('Osprey Reef'), findsNothing);
+      expect(find.text('Navy Pier'), findsNothing);
+
+      await tester.tap(_header('Queensland'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cod Hole'), findsOneWidget);
+      expect(find.text('Osprey Reef'), findsOneWidget);
+      // The other region is untouched.
+      expect(find.text('Navy Pier'), findsNothing);
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SiteListContent)),
+      );
+      expect(
+        container.read(siteListExpandedGroupsProvider),
+        contains(
+          subGroupExpansionKey(_key('Australia'), textSortKey('Queensland')),
+        ),
+      );
+
+      // Tapping again collapses it.
+      await tester.tap(_header('Queensland'));
+      await tester.pumpAndSettle();
+      expect(find.text('Cod Hole'), findsNothing);
+    },
+  );
 }

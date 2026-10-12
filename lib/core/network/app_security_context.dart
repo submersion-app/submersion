@@ -61,6 +61,27 @@ SecurityContext? buildWindowsSecurityContext({
   required List<Uint8List> Function() readNativeRoots,
   required String fallbackBundlePem,
 }) {
+  final context = SecurityContext(withTrustedRoots: false);
+  final trusted = addWindowsTrustAnchors(
+    context,
+    readNativeRoots: readNativeRoots,
+    fallbackBundlePem: fallbackBundlePem,
+  );
+  return trusted > 0 ? context : null;
+}
+
+/// Adds the Windows trust anchors, [fallbackBundlePem] and the roots
+/// [readNativeRoots] returns, to [context], and returns how many were added.
+///
+/// Works on a context that already holds roots, such as an isolate's
+/// [SecurityContext.defaultContext]: a root it already trusts is accepted
+/// again, not rejected.
+@visibleForTesting
+int addWindowsTrustAnchors(
+  SecurityContext context, {
+  required List<Uint8List> Function() readNativeRoots,
+  required String fallbackBundlePem,
+}) {
   List<Uint8List> nativeRoots;
   try {
     nativeRoots = readNativeRoots();
@@ -68,7 +89,6 @@ SecurityContext? buildWindowsSecurityContext({
     nativeRoots = const [];
   }
 
-  final context = SecurityContext(withTrustedRoots: false);
   var trusted = 0;
   for (final pem in windowsTrustAnchorsPem(
     nativeRoots: nativeRoots,
@@ -78,12 +98,30 @@ SecurityContext? buildWindowsSecurityContext({
       context.setTrustedCertificatesBytes(utf8.encode(pem));
       trusted++;
     } catch (_) {
-      // Skip a malformed, duplicate, or otherwise unusable anchor rather than
-      // abandoning the whole set.
+      // Skip a malformed or otherwise unusable anchor rather than abandoning
+      // the whole set.
     }
   }
+  return trusted;
+}
 
-  return trusted > 0 ? context : null;
+/// Gives this isolate's [SecurityContext.defaultContext] the trust that
+/// [appSecurityContext] gives the app's own clients. A no-op off Windows.
+///
+/// For an isolate whose HttpClients were built without the app's overrides
+/// (FMTC's download threads, #3269): a client with no context of its own
+/// reads the default context when it connects, so trust added here still
+/// reaches it.
+void trustAppRootsInDefaultContext() {
+  if (!Platform.isWindows) return;
+  // Windows-only, like the native read in appSecurityContext.
+  // coverage:ignore-start
+  addWindowsTrustAnchors(
+    SecurityContext.defaultContext,
+    readNativeRoots: readWindowsRootCertificates,
+    fallbackBundlePem: embeddedCaBundlePem,
+  );
+  // coverage:ignore-end
 }
 
 /// The ordered PEM trust anchors to install for Windows TLS: the full

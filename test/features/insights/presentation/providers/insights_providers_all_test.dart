@@ -58,6 +58,7 @@ void main() {
     expect(await container.read(diveTypeDistributionProvider.future), isEmpty);
     expect(await container.read(depthProgressionTrendProvider.future), isEmpty);
     expect(await container.read(bottomTimeTrendProvider.future), isEmpty);
+    expect(await container.read(runtimeTrendProvider.future), isEmpty);
     expect(await container.read(divesPerYearProvider.future), isEmpty);
     expect(await container.read(cumulativeDiveCountProvider.future), isEmpty);
     expect(

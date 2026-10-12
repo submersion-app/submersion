@@ -122,8 +122,14 @@ void main() {
     await tapChip(tester, 'Wreck');
 
     expect(find.text('DIVES_LIST_PAGE'), findsOneWidget);
-    expect(router.routeInformationProvider.value.uri.path, '/dives');
     expect(filterAt(tester).tagIds, ['tag-wreck']);
+
+    // The list is pushed over the dive, so Back returns to it (#3292).
+    expect(router.canPop(), isTrue);
+    router.pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(DiveDetailPage), findsOneWidget);
   });
 
   testWidgets('the tag filter replaces the filter the diver had before', (

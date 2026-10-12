@@ -2,9 +2,13 @@ import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_times.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -157,6 +161,7 @@ void main() {
               ? null
               : ProfileAnalysis.empty().copyWith(o2Exposure: exposure);
         }),
+        diveProvider.overrideWith((ref, diveId) async => null),
       ],
     );
     addTearDown(container.dispose);
@@ -296,5 +301,129 @@ void main() {
     expect(snapshot.hasProfile, isFalse);
     expect(snapshot.exposure, isNull);
     expect(snapshot.weeklyOtu, 80.0);
+  });
+
+  group('endOfDiveCompartments', () {
+    ProviderContainer containerForAnalysis(
+      _StubDiveRepository repo,
+      ProfileAnalysis? analysis, {
+      Dive? dive,
+    }) {
+      final diverNotifier = MockCurrentDiverIdNotifier();
+      diverNotifier.setCurrentDiver('diver-1');
+      final container = ProviderContainer(
+        overrides: [
+          diveRepositoryProvider.overrideWithValue(repo),
+          currentDiverIdProvider.overrideWith((ref) => diverNotifier),
+          profileAnalysisProvider.overrideWith((ref, diveId) async {
+            return diveId == repo.lastDive?.id ? analysis : null;
+          }),
+          diveProvider.overrideWith(
+            (ref, diveId) async => diveId == dive?.id ? dive : null,
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      return container;
+    }
+
+    test('taken from the last dive\'s own end-of-dive deco status', () async {
+      final lastDive = DiveTimes(
+        id: 'dive-1',
+        dateTime: today.subtract(const Duration(hours: 2)),
+      );
+      final repo = _StubDiveRepository(lastDive, weekDives: [lastDive]);
+
+      final algorithm = BuhlmannAlgorithm();
+      final midDiveStatus = algorithm.getDecoStatus(currentDepth: 30);
+      algorithm.calculateSegment(
+        depthMeters: 30,
+        durationSeconds: 10 * 60,
+        fN2: airN2Fraction,
+        fHe: 0.0,
+      );
+      // A later, more loaded status than the dive's first sample, so the
+      // test actually distinguishes "the last one" from "any one".
+      final endOfDiveStatus = algorithm.getDecoStatus(currentDepth: 30);
+      final analysis = ProfileAnalysis.empty().copyWith(
+        o2Exposure: const O2Exposure(cnsEnd: 10.0),
+        decoStatuses: [midDiveStatus, endOfDiveStatus],
+      );
+      final container = containerForAnalysis(repo, analysis);
+
+      final snapshot = await snapshotOf(container);
+      expect(snapshot, isNotNull);
+      expect(snapshot!.endOfDiveCompartments, endOfDiveStatus.compartments);
+      expect(snapshot.endOfDiveCompartments, isNot(midDiveStatus.compartments));
+    });
+
+    test(
+      'null when the last dive\'s analysis has no deco statuses (gauge mode, '
+      'or a rebreather dive with gas segments withheld)',
+      () async {
+        final lastDive = DiveTimes(
+          id: 'dive-1',
+          dateTime: today.subtract(const Duration(hours: 2)),
+        );
+        final repo = _StubDiveRepository(lastDive, weekDives: [lastDive]);
+        // A real exposure (not zero/null), but no deco statuses -- exactly
+        // the gauge-mode/withheld-rebreather shape in
+        // ProfileAnalysisService.
+        final analysis = ProfileAnalysis.empty().copyWith(
+          o2Exposure: const O2Exposure(cnsEnd: 10.0, otu: 5.0),
+        );
+        final container = containerForAnalysis(repo, analysis);
+
+        final snapshot = await snapshotOf(container);
+        expect(snapshot, isNotNull);
+        expect(snapshot!.exposure, isNotNull);
+        expect(snapshot.endOfDiveCompartments, isNull);
+      },
+    );
+
+    test('null when the last dive has no analysis at all', () async {
+      final lastDive = DiveTimes(
+        id: 'dive-1',
+        dateTime: today.subtract(const Duration(hours: 2)),
+      );
+      final repo = _StubDiveRepository(lastDive, weekDives: [lastDive]);
+      final container = containerForAnalysis(repo, null);
+
+      final snapshot = await snapshotOf(container);
+      expect(snapshot, isNotNull);
+      expect(snapshot!.exposure, isNull);
+      expect(snapshot.endOfDiveCompartments, isNull);
+    });
+
+    test('surface environment comes from the last dive\'s site conditions, '
+        'and falls back to the standard surface without a dive row', () async {
+      final lastDive = DiveTimes(
+        id: 'dive-1',
+        dateTime: today.subtract(const Duration(hours: 2)),
+      );
+      final repo = _StubDiveRepository(lastDive, weekDives: [lastDive]);
+      final analysis = ProfileAnalysis.empty().copyWith(
+        o2Exposure: const O2Exposure(cnsEnd: 10.0),
+      );
+
+      final altitudeDive = Dive(
+        id: 'dive-1',
+        dateTime: lastDive.dateTime,
+        altitude: 2000,
+      );
+      final atAltitude = await snapshotOf(
+        containerForAnalysis(repo, analysis, dive: altitudeDive),
+      );
+      expect(
+        atAltitude!.surfaceEnvironment,
+        DiveEnvironment.forConditions(altitudeMeters: 2000),
+      );
+      expect(atAltitude.surfaceEnvironment.surfacePressureBar, lessThan(0.9));
+
+      final withoutDive = await snapshotOf(
+        containerForAnalysis(repo, analysis),
+      );
+      expect(withoutDive!.surfaceEnvironment, DiveEnvironment.standard);
+    });
   });
 }

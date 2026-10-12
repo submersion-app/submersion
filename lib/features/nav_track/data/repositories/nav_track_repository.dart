@@ -15,6 +15,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track.dart'
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_source_metadata_codec.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 
 /// Persistence for measured underwater routes (spec
@@ -108,6 +109,8 @@ class NavTrackRepository {
   /// source file carries its own origin fix (a Suunto `DiveRouteOrigin`,
   /// issue #1445), is stored as-is and skips both fallbacks: the route's
   /// east/north are relative to that fix, not to the site or entry.
+  ///
+  /// [sourceMetadata] is stored as-is (issue #3047).
   Future<String> insertImportedRoute({
     required List<NavTrackPoint> points,
     required domain.NavTrackSource source,
@@ -120,6 +123,7 @@ class NavTrackRepository {
     String? diverId,
     double? anchorLatitude,
     double? anchorLongitude,
+    Map<String, Object?>? sourceMetadata,
   }) async {
     try {
       if (points.length < 2) {
@@ -193,6 +197,9 @@ class NavTrackRepository {
               durationSeconds: Value(stats.durationSeconds),
               anchorLatitude: Value(anchor?.latitude),
               anchorLongitude: Value(anchor?.longitude),
+              sourceMetadata: Value(
+                encodeNavTrackSourceMetadata(sourceMetadata),
+              ),
               points: encodeNavTrackPoints(points),
               createdAt: now,
               updatedAt: now,
@@ -886,6 +893,7 @@ class NavTrackRepository {
       endLongitude: row.endLongitude,
       trustFraction: row.trustFraction,
       headingOffsetDeg: row.headingOffsetDeg,
+      sourceMetadata: decodeNavTrackSourceMetadata(row.sourceMetadata),
       points: includePoints
           ? _decodePointsOrNull(row.id, row.points) ?? const []
           : const [],

@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dr
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_dropdown_label.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
@@ -133,6 +134,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// The regulator breathed from this cylinder (v202). Null until the diver
   /// picks one or a preset prefills it from the last pairing.
   String? _regulatorEquipmentId;
+
+  /// Whether the regulator dropdown also lists retired and sold regulators,
+  /// which the diver asks for with its last item (#3210).
+  bool _showLeftKitRegulators = false;
+
+  /// The value of that last item. Not a regulator: choosing it changes the
+  /// list, not the tank.
+  static const _showLeftKitValue = '__show-left-kit-regulators__';
 
   /// The last O2/He value each field actually parsed to, tracked separately
   /// from [widget.tank]: `_notifyChange` fires on every keystroke, so a
@@ -573,7 +582,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         ),
         // The bridge from the diver's gear to this tank (issue #2599): only
         // offered where the host records the cylinder as dive gear too.
-        if (widget.onOwnCylinderUsed != null && _ownCylinders().isNotEmpty)
+        // Retired and sold cylinders count too: the picker offers them on
+        // request, for a dive that used one (#3210).
+        if (widget.onOwnCylinderUsed != null &&
+            (_ownCylinders().isNotEmpty || _leftKitCylinders().isNotEmpty))
           IconButton(
             key: const Key('tank-from-own-cylinder'),
             icon: const Icon(Icons.inventory_2_outlined),
@@ -750,33 +762,70 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                   e.id == _regulatorEquipmentId,
             )
             .toList();
-    final known = regs.any((r) => r.id == _regulatorEquipmentId);
+    final leftKit =
+        (ref.watch(leftKitEquipmentProvider).value ?? const <EquipmentItem>[])
+            .where((e) => e.type == EquipmentType.regulator)
+            .toList();
+    // Retired and sold regulators only on request (#3210), except the one
+    // this tank already uses, so a dive breathing from a regulator since
+    // retired never reads "None".
+    final options = [
+      ...regs,
+      for (final r in leftKit)
+        if (_showLeftKitRegulators || r.id == _regulatorEquipmentId) r,
+    ];
+    final offerShowLeftKit = options.length < regs.length + leftKit.length;
+    final known = options.any((r) => r.id == _regulatorEquipmentId);
     // Labelled as one list, so regulators sharing a name show their ID and,
     // if that is not enough, the next detail that differs (#1549, #3191).
-    final labels = equipmentRowLabelsOf(context, ref, regs);
-    return DropdownButtonFormField<String?>(
-      key: const Key('tank-regulator-picker'),
-      initialValue: known ? _regulatorEquipmentId : null,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: context.l10n.diveLog_tank_regulatorLabel,
-        isDense: true,
-      ),
-      items: [
-        DropdownMenuItem<String?>(
-          value: null,
-          child: Text(context.l10n.diveLog_tank_regulatorNone),
+    final labels = equipmentRowLabelsOf(context, ref, options);
+    // Keyed on the show choice: the field holds its value internally, and
+    // choosing the show item would otherwise leave it on that item's value.
+    // A fresh field starts again from the tank's regulator.
+    return KeyedSubtree(
+      key: ValueKey(_showLeftKitRegulators),
+      child: DropdownButtonFormField<String?>(
+        key: const Key('tank-regulator-picker'),
+        initialValue: known ? _regulatorEquipmentId : null,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: context.l10n.diveLog_tank_regulatorLabel,
+          isDense: true,
         ),
-        for (final r in regs)
+        items: [
           DropdownMenuItem<String?>(
-            value: r.id,
-            child: EquipmentDropdownLabel(item: r, label: labels[r.id]),
+            value: null,
+            child: Text(context.l10n.diveLog_tank_regulatorNone),
           ),
-      ],
-      onChanged: (value) {
-        setState(() => _regulatorEquipmentId = value);
-        _notifyChange();
-      },
+          for (final r in options)
+            DropdownMenuItem<String?>(
+              value: r.id,
+              child: EquipmentDropdownLabel(
+                item: r,
+                label: labels[r.id],
+                note: r.hasLeftKit
+                    ? r.effectiveStatus.localizedName(context.l10n)
+                    : null,
+              ),
+            ),
+          if (offerShowLeftKit)
+            DropdownMenuItem<String?>(
+              value: _showLeftKitValue,
+              child: Text(
+                context.l10n.diveLog_tank_regulatorShowLeftKit,
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              ),
+            ),
+        ],
+        onChanged: (value) {
+          if (value == _showLeftKitValue) {
+            setState(() => _showLeftKitRegulators = true);
+            return;
+          }
+          setState(() => _regulatorEquipmentId = value);
+          _notifyChange();
+        },
+      ),
     );
   }
 
@@ -1145,6 +1194,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
   List<EquipmentItem> _ownCylinders() => ownCylinders(
     ref.watch(activeEquipmentProvider).value ?? const <EquipmentItem>[],
+  );
+
+  List<EquipmentItem> _leftKitCylinders() => ownCylinders(
+    ref.watch(leftKitEquipmentProvider).value ?? const <EquipmentItem>[],
   );
 
   Future<void> _pickOwnCylinder() async {

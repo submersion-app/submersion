@@ -204,7 +204,6 @@ The reusable lists and rules Submersion offers throughout the app:
 | **Setup assistant** | Revisit the first-run choices for units, appearance and backup |
 | **Trip Checklist Templates** | Reusable to-do lists for trip planning |
 | **Pre-Dive Checklists** | Buddy checks, CCR build lists, gear packing |
-| **Near-miss log** | Private, non-punitive incident notes; see [Safety](safety.md#near-miss-log) |
 | **Species** | The species catalog; see [Marine Life & Photos](marine-life-and-photos.md) |
 | **Tags** | Manage, merge and delete tags |
 | **Saved Queries** | Rename, reorder and delete saved dive searches |

@@ -47,19 +47,26 @@ String profileSpanSecondsSql(String alias) =>
     'NULLIF((SELECT MAX(s.end_timestamp) - MIN(s.start_timestamp) '
     'FROM dive_profile_series s WHERE s.dive_id = $alias.id), 0)';
 
-/// The whole `Dive.effectiveRuntime` chain as one scalar expression, in
-/// seconds, NULL only for a dive that carries no duration in any form.
+/// The first three steps of the chain: a duration the dive actually
+/// measured, in seconds, or NULL. Bottom time is left out because it is
+/// derived from a depth threshold, so Insights' runtime (issue #3059) never
+/// reports one as a runtime.
 ///
 /// `COALESCE` short-circuits in SQLite, so the correlated profile subquery is
 /// only executed for the dives that actually reach that step. A dive with an
 /// explicit `runtime` never touches `dive_profile_series`, which is what keeps this
 /// usable in aggregates that scan the whole dive table.
-String effectiveRuntimeSecondsSql(String alias) =>
+String measuredRuntimeSecondsSql(String alias) =>
     'COALESCE('
     '$alias.runtime, '
     '${timestampRuntimeSecondsSql(alias)}, '
-    '${profileSpanSecondsSql(alias)}, '
-    '$alias.bottom_time)';
+    '${profileSpanSecondsSql(alias)})';
+
+/// The whole `Dive.effectiveRuntime` chain as one scalar expression, in
+/// seconds, NULL only for a dive that carries no duration in any form: the
+/// [measuredRuntimeSecondsSql] steps, then `bottom_time`.
+String effectiveRuntimeSecondsSql(String alias) =>
+    'COALESCE(${measuredRuntimeSecondsSql(alias)}, $alias.bottom_time)';
 
 /// The alias the previous dive takes inside [diveSurfaceIntervalSecondsSql],
 /// exposed so a caller's `previousScope` can name it.

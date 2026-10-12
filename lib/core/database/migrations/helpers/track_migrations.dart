@@ -20,6 +20,7 @@ extension TrackMigrations on AppDatabase {
     // A table this creates already has diver_id; this adds its index, and
     // the column to a pre-v252 table, whichever backstop runs first.
     await _assertNavTrackDiverIdColumn();
+    await _assertNavTrackSourceMetadataColumn();
   }
 
   /// v252: nav_tracks.diver_id, the route's owner, and its index.
@@ -35,6 +36,14 @@ extension TrackMigrations on AppDatabase {
     await customStatement('''
       CREATE INDEX IF NOT EXISTS idx_nav_tracks_diver ON nav_tracks(diver_id)
     ''');
+  }
+
+  /// v285: nav_tracks.source_metadata (issue #3047). Idempotent; called
+  /// from the v285 onUpgrade step and from [_assertNavTracksSchema], which
+  /// the beforeOpen backstop runs on every open.
+  Future<void> _assertNavTrackSourceMetadataColumn() async {
+    if (!await _tableExists('nav_tracks')) return;
+    await _addColumnIfMissing('nav_tracks', 'source_metadata', 'TEXT');
   }
 
   /// v252 backfill: a linked route takes its dive's diver. An unlinked

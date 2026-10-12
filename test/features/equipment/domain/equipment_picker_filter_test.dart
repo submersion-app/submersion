@@ -133,4 +133,27 @@ void main() {
       EquipmentPickerFilter.none,
     );
   });
+
+  test('a legacy row retired by isActive alone filters as Retired (#3210)', () {
+    // It reads Retired once the left-kit switch shows it, so the Retired
+    // filter must find it, and the Active filter must not.
+    const legacy = EquipmentItem(
+      id: 'legacy',
+      name: 'Old Reg',
+      type: EquipmentType.regulator,
+      isActive: false,
+    );
+    expect(
+      const EquipmentPickerFilter(
+        status: EquipmentStatus.retired,
+      ).apply(const [legacy]),
+      [legacy],
+    );
+    expect(
+      const EquipmentPickerFilter(
+        status: EquipmentStatus.active,
+      ).apply(const [legacy]),
+      isEmpty,
+    );
+  });
 }

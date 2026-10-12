@@ -2450,6 +2450,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'גיבוי זה יימחק לצמיתות. לא ניתן לבטל פעולה זו.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'גיבוי זה נמצא רק באחסון הענן שלך, ושום דבר לא מראה שמכשיר זה יצר אותו. ייתכן שזה העותק היחיד של מכשיר אחר, או גיבוי שמכשיר זה יצר לפני התקנה מחדש. לא ניתן לבטל את המחיקה.';
+
+  @override
   String get backup_delete_dialog_delete => 'מחיקה';
 
   @override
@@ -7745,6 +7749,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_equipmentPicker_removeToAdd => 'הסר פריטים להוספת אחרים';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'הצג ציוד שהוצא משימוש ושנמכר';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'שנה את סטטוס הפריט לפעיל כדי להוסיף אותו לצלילה';
 
@@ -9813,6 +9821,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_regulatorNone => 'ללא';
 
   @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'הצג וסתים שהוצאו משימוש ושנמכרו';
+
+  @override
   String get diveLog_tank_tripCylinderLabel => 'מכל הטיול';
 
   @override
@@ -9926,9 +9938,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tooltip_gtr => 'GTR';
-
-  @override
-  String get diveLog_sources_row_metric => 'מדד';
 
   @override
   String get diveLog_sources_row_maxDepth => 'עומק מקסימלי';
@@ -11320,6 +11329,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_group_noCountry => 'ללא מדינה';
 
   @override
+  String get diveSites_group_noBodyOfWater => 'ללא גוף מים';
+
+  @override
   String diveSites_group_siteCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11340,7 +11352,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_list_groupBy_location => 'מדינה ואזור';
 
   @override
+  String get diveSites_list_groupBy_locationAndWater => 'מדינה וגוף מים';
+
+  @override
   String get diveSites_list_groupBy_none => 'ללא';
+
+  @override
+  String get diveSites_list_groupBy_water => 'גוף מים';
 
   @override
   String diveSites_list_tile_diveCount(int count) {
@@ -14274,7 +14292,7 @@ class AppLocalizationsHe extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '$used צלילות, נותרו $remaining מתוך $total';
+    return '$used מתוך $total צלילות, נותרו $remaining';
   }
 
   @override
@@ -14402,7 +14420,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used שעות, נותרו $remaining מתוך $total';
+    return '$used מתוך $total שעות, נותרו $remaining';
   }
 
   @override
@@ -14411,7 +14429,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used שעות במים מלוחים, נותרו $remaining מתוך $total';
+    return '$used מתוך $total שעות במים מלוחים, נותרו $remaining';
   }
 
   @override
@@ -14420,7 +14438,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used צלילות במים קרים, נותרו $remaining מתוך $total';
+    return '$used מתוך $total צלילות במים קרים, נותרו $remaining';
   }
 
   @override
@@ -14429,7 +14447,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used שעות בחמצן גבוה, נותרו $remaining מתוך $total';
+    return '$used מתוך $total שעות בחמצן גבוה, נותרו $remaining';
   }
 
   @override
@@ -14438,7 +14456,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used צלילות עמוקות, נותרו $remaining מתוך $total';
+    return '$used מתוך $total צלילות עמוקות, נותרו $remaining';
   }
 
   @override
@@ -14447,7 +14465,7 @@ class AppLocalizationsHe extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used מחזורי סוללה, נותרו $remaining מתוך $total';
+    return '$used מתוך $total מחזורי סוללה, נותרו $remaining';
   }
 
   @override
@@ -14852,6 +14870,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_edit_thicknessDesignationHint => 'למשל, 5, 5/4, 7/5/3';
+
+  @override
+  String get equipment_edit_focalLengthHint => 'לדוגמה 60 או 15-45';
 
   @override
   String get equipment_edit_webLinkHint => 'למשל shop.example.com/product';
@@ -19639,13 +19660,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveDetailSection_tide_description => 'גרף מחזור גאות ושפל וזמן';
 
   @override
-  String get diveDetailSection_reefHealth_name => 'תנאי המים';
-
-  @override
-  String get diveDetailSection_reefHealth_description =>
-      'תנאי מים לווייניים בתאריך הצלילה';
-
-  @override
   String get diveDetailSection_surfaceGps_name => 'מיקום';
 
   @override
@@ -20120,6 +20134,63 @@ class AppLocalizationsHe extends AppLocalizations {
       'מדדים גלויים כברירת מחדל';
 
   @override
+  String get settings_appearance_metricColors => 'צבעי מדדים';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'צבעי ברירת מחדל';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מותאמים',
+      one: '$count מותאם',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'איפוס הכול';
+
+  @override
+  String get settings_metricColors_resetAllTitle => 'לאפס את צבעי המדדים?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'כל מדד יחזור לצבע ברירת המחדל שלו.';
+
+  @override
+  String get settings_metricColors_reset => 'איפוס';
+
+  @override
+  String get settings_metricColors_default => 'ברירת מחדל';
+
+  @override
+  String get settings_metricColors_auto => 'אוטומטי';
+
+  @override
+  String get settings_metricColors_autoTemperature => 'אוטומטי: לפי ערכת הנושא';
+
+  @override
+  String get settings_metricColors_autoPressure => 'אוטומטי: לכל גז צבע משלו';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'בשימוש בצלילות עם מכל אחד';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'הצבע של $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'מתחלף עם $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'מדדים סטנדרטיים';
 
@@ -20197,6 +20268,108 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_navCustomization_saveError =>
       'לא ניתן לשמור את פריסת הניווט. נסה שוב.';
+
+  @override
+  String get navShortcut_noFly => 'זמן איסור טיסה';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'שיאים';
+
+  @override
+  String get navShortcut_sitesMap => 'מפת אתרים';
+
+  @override
+  String get navShortcut_diveActivityMap => 'מפת פעילות צלילה';
+
+  @override
+  String get navShortcut_diveCentersMap => 'מפת מועדוני צלילה';
+
+  @override
+  String get navShortcut_diverProfile => 'פרופיל צולל';
+
+  @override
+  String get navShortcut_cloudSync => 'סנכרון ענן';
+
+  @override
+  String get navShortcut_offlineMaps => 'מפות לא מקוונות';
+
+  @override
+  String get navShortcut_short_deco => 'דקו';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'מחשבוני גז';
+
+  @override
+  String get navShortcut_short_weighting => 'משקולות';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'מרווח שטח';
+
+  @override
+  String get navShortcut_short_blender => 'מערבל';
+
+  @override
+  String get navShortcut_short_airUse => 'צריכה';
+
+  @override
+  String get navShortcut_short_patterns => 'דפוסים';
+
+  @override
+  String get navShortcut_short_profiles => 'פרופילים';
+
+  @override
+  String get navShortcut_short_diveMap => 'מפת צלילות';
+
+  @override
+  String get navShortcut_short_centersMap => 'מפת מועדונים';
+
+  @override
+  String get navShortcut_short_gearSets => 'ערכות';
+
+  @override
+  String get navShortcut_short_certWallet => 'ארנק';
+
+  @override
+  String get navShortcut_short_emergency => 'חירום';
+
+  @override
+  String get navShortcut_short_backup => 'גיבוי';
+
+  @override
+  String get navShortcut_short_speciesStats => 'סטטיסטיקת מינים';
+
+  @override
+  String get navShortcut_short_gearStats => 'סטטיסטיקת ציוד';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'הוסף קיצור דרך';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => 'קיצור דרך חדש';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'חיפוש דפים';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches => 'אין דפים תואמים';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'כבר נמצא בפריסה זו';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return 'הסר את $destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'תצוגות';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools => 'הגדרות וכלים';
 
   @override
   String get settings_backToSettings_tooltip => 'חזרה להגדרות';
@@ -22376,6 +22549,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_sourceItemId => 'פריט מקושר';
 
   @override
+  String get settings_conflict_field_sourceMetadata => 'נתונים נוספים מהמקור';
+
+  @override
   String get settings_conflict_field_sourceRef => 'קובץ או מכשיר המקור';
 
   @override
@@ -22562,6 +22738,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'כיווץ פערים בתרשימי מגמה';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'צבע פרופיל: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>
@@ -25925,6 +26106,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_focus_metric_bottomTime => 'זמן תחתית';
 
   @override
+  String get insights_focus_metric_runtime => 'זמן ריצה';
+
+  @override
   String get insights_focus_metric_weight => 'משקולות';
 
   @override
@@ -26452,6 +26636,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_progression_bottomTime_title => 'מגמת זמן תחתית';
+
+  @override
+  String get insights_progression_runtime_error => 'שגיאה בטעינת מגמת זמן ריצה';
+
+  @override
+  String get insights_progression_runtime_subtitle => 'כל צלילה בטווח';
+
+  @override
+  String get insights_progression_runtime_title => 'מגמת זמן ריצה';
 
   @override
   String get insights_progression_cumulative_error =>
@@ -35249,6 +35442,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_edit_invalidThickness => 'השתמשו ב-5, 5/4 או 7/5/3';
 
   @override
+  String get equipment_edit_invalidFocalLength => 'השתמשו ב-60 או 15-45';
+
+  @override
   String get equipment_edit_invalidWebLink =>
       'הזן כתובת אינטרנט, למשל shop.example.com';
 
@@ -35293,7 +35489,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'טיסה אחרי צלילה';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'עומס CNS/OTU נוכחי';
+  String get safetySettings_cnsOtuHeader => 'עומס הצלילה הנוכחי';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'רגיל (12/18/24 ש\')';
@@ -35365,6 +35561,20 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'ללא פרופיל עומק לא ניתן לחשב את ה-CNS% וה-OTU שלה. הסיכומים שלהלן אינם כוללים אותה.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'אודות CNS ו-OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'אחוז ה-CNS שלך (שעון החמצן) דועך לאחר הצלילה עם מחצית חיים של 90 דקות -- הוא חוזר כמעט לגמרי ל-0 אחרי כיום אחד בערך.\n\nה-OTU היומי מתאפס בכל לילה בחצות. ה-OTU השבועי הוא סכום מתגלגל של 7 הימים האחרונים: צלילות ישנות יותר נופלות אוטומטית מהחישוב ברגע שהן יוצאות מחלון הזמן הזה.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'אודות רוויית הרקמות';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'לגוף שלך יש 16 תאי רקמה הסופגים ומשחררים חנקן (ובצלילות טרימיקס או רה-ברית\'ר, גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות לוקחות הרבה יותר זמן לשני התהליכים.\n\nלאחר צלילה עם הליום, חנקן והליום באותו תא רקמה יכולים לנוע לרגע בכיוונים מנוגדים: בעוד ההליום עדיין משתחרר, אותו תא עשוי לספוג במקביל מעט חנקן, עד ששני הגזים מגיעים לשיווי משקל עם האוויר שאתה נושם. זו הסיבה שתא רקמה עשוי להציג לרגע \"Ongassing\" גם כאשר העומס הכולל שלו ממשיך לרדת.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -35733,8 +35943,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetyHub_incidentsLink => 'יומן כמעט-תאונות';
 
   @override
-  String get safetyHub_incidentsLink_subtitle =>
-      'הערות אירועים פרטיות ולא ענישתיות';
+  String safetyHub_incidentsLink_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count רשומות',
+      one: 'רשומה אחת',
+      zero: 'אין עדיין',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'רישום כמעט-תאונה';
@@ -45305,6 +45523,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_regionDownload_downloadButton => 'הורדה';
 
   @override
+  String get maps_regionDownload_presetOverview => 'סקירה';
+
+  @override
+  String get maps_regionDownload_presetDetail => 'פירוט';
+
+  @override
+  String get maps_regionDownload_presetFull => 'מלא';
+
+  @override
+  String get maps_regionDownload_tooManyTiles =>
+      'יותר מ-100,000 אריחים: הקטן את האזור או הנמך את הזום המרבי.';
+
+  @override
+  String get maps_regionDownload_socks5Unsupported =>
+      'הורדות אזורים אינן יכולות להשתמש בפרוקסי SOCKS5: עבור לפרוקסי HTTP או ל\"ללא פרוקסי\" בהגדרות הרשת.';
+
+  @override
   String get diveLog_map_title => 'פעילות צלילה';
 
   @override
@@ -48325,6 +48560,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'מסד נתונים חדש יותר, נשמר בעת החזרה - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'באחסון בענן ($size)';
   }
 
   @override

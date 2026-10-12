@@ -82,6 +82,18 @@ void main() {
         .addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
   }
 
+  testWidgets('with nothing beneath it the planner shows no back arrow', (
+    tester,
+  ) async {
+    // Opened as a nav shortcut (#2936) the planner is the only page, and a
+    // back arrow there would do nothing.
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(harness());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BackButton), findsNothing);
+  });
+
   testWidgets('phone layout shows chart, readouts, tab deck, no chip rows', (
     tester,
   ) async {

@@ -28,6 +28,18 @@ double? consumptionVolume(DiveTank tank, List<DiveTank> tanks) {
   return null;
 }
 
+/// The cylinder a SAC in bar is expressed in: on a multi-tank dive the
+/// back gas, else the first cylinder; the only cylinder on a single-tank
+/// dive whatever its role. Null when there are no cylinders.
+DiveTank? sacReferenceTankOf(List<DiveTank> tanks) {
+  if (tanks.isEmpty) return null;
+  if (tanks.length == 1) return tanks.first;
+  return tanks.firstWhere(
+    (t) => t.role == TankRole.backGas,
+    orElse: () => tanks.first,
+  );
+}
+
 /// The pressure drop of [reference] plus that of every other breathed
 /// cylinder of [tanks], each converted into bar of [reference] by volume
 /// (`drop * V / Vref`). When either size is unknown, a cylinder of a
@@ -38,12 +50,16 @@ double? consumptionVolume(DiveTank tank, List<DiveTank> tanks) {
 /// With [referenceOnly] (a rebreather dive, where diluent and oxygen
 /// drops are not breathing gas in one unit) only [reference] counts.
 /// Null when [reference] has no positive drop.
+///
+/// [dropOf] reads a cylinder's drop, its start minus end pressure by
+/// default; a part of the dive passes the drop over that part (#2928).
 double? referencePressureDrop({
   required DiveTank reference,
   required List<DiveTank> tanks,
   bool referenceOnly = false,
+  double? Function(DiveTank tank) dropOf = _drop,
 }) {
-  final referenceDrop = _drop(reference);
+  final referenceDrop = dropOf(reference);
   if (referenceDrop == null) return null;
   if (referenceOnly) return referenceDrop;
 
@@ -51,7 +67,7 @@ double? referencePressureDrop({
   var total = referenceDrop;
   for (final tank in tanks) {
     if (identical(tank, reference)) continue;
-    final drop = _drop(tank);
+    final drop = dropOf(tank);
     if (drop == null) continue;
     final volume = consumptionVolume(tank, tanks);
     if (volume != null && referenceVolume != null) {
