@@ -1,3 +1,26 @@
+/// The depths at which an ascent leg from [fromDepth] to [toDepth] (an
+/// ascent: [fromDepth] deeper than [toDepth]) should be broken into its
+/// own gas, each boundary one of [ascentPlan]'s own switch depths between
+/// them, in travel order (deep to shallow) -- so a leg spanning more than
+/// one carried gas's MOD uses every gas actually eligible across it,
+/// instead of only the one valid at [fromDepth] (#3225).
+///
+/// A leg with nothing eligible strictly between its ends gets exactly its
+/// two endpoints back, unsplit: `[fromDepth, toDepth]`. A normal
+/// inter-stop leg is always this unsplit case -- [AscentGasPlan]'s own
+/// switches always land exactly at a stop by construction -- so this only
+/// ever does real work on a leg spanning more than the usual 3 m between
+/// two deco stops, chiefly the bottom-to-first-stop leg.
+List<double> travelLegBoundaries(
+  AscentGasPlan ascentPlan, {
+  required double fromDepth,
+  required double toDepth,
+}) => [
+  fromDepth,
+  ...ascentPlan.switchDepthsBetween(fromDepth, toDepth),
+  toDepth,
+];
+
 /// Inert gas fractions to breathe at a given simulated ascent depth.
 class AscentGas {
   const AscentGas({required this.fN2, required this.fHe});

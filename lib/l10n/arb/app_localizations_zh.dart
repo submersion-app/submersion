@@ -9816,10 +9816,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_field_bailoutGas => '备用气体';
+  String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
-  String get divePlanner_field_bailoutGasHint => '开放式循环气体，用于循环系统故障时';
+  String get divePlanner_field_diluentGasHint => '未勾选的气瓶是 bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -9921,6 +9921,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_gasOptions_problemSolvingMinutes => '问题处理时间';
 
   @override
+  String get divePlanner_gasOptions_gasSwitchStopSeconds => '换气停留';
+
+  @override
   String get divePlanner_gasOptions_ppO2Bottom => '水底 ppO₂';
 
   @override
@@ -9934,6 +9937,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => '气瓶';
+
+  @override
+  String get divePlanner_label_loopGases => 'Loop';
+
+  @override
+  String get divePlanner_label_bailoutGases => 'Bailout';
+
+  @override
+  String get divePlanner_label_noBailout => '尚无 bailout 气瓶';
 
   @override
   String get divePlanner_savedTanks_title => '已保存气瓶';
@@ -18400,6 +18412,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_bailout_insufficient => '逃生气体不足以应对最坏情况';
 
   @override
+  String get plannerCanvas_bailout_schedule => '基于最坏情况的计划';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return '需要 $liters';
   }
@@ -18581,9 +18596,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_tab_setup => '设置';
 
   @override
-  String get plannerCanvas_o2Narcotic => '将氧气视为麻醉性';
-
-  @override
   String get plannerCanvas_rates_ascent => '上升速率';
 
   @override
@@ -18646,6 +18658,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chartMode_bailout => 'Bailout';
+
+  @override
+  String get plannerCanvas_chartMode_ccr => 'CCR';
+
+  @override
+  String plannerCanvas_scrub_tts(String minutes) {
+    return 'TTS $minutes′';
+  }
+
+  @override
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
@@ -18687,6 +18710,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => '时长';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => '全部可用';
@@ -22175,6 +22204,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_species_category => '类别';
+
+  @override
+  String get settings_conflict_field_splitAtConfiguredRate => '按设定速率拆分';
 
   @override
   String get settings_conflict_field_startDateTime => '计划开始时间';
@@ -31013,6 +31045,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get divePlanner_segmentEditor_duration => '时长 (分钟)';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRate => '使用设定速率';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRateHint => '以设定速率移动，剩余时间作为停留时间';
 
   @override
   String get divePlanner_segmentEditor_editTitle => '编辑段落';

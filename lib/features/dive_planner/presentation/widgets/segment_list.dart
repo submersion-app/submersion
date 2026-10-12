@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_editor.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
+import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -26,6 +34,31 @@ class SegmentList extends ConsumerWidget {
     // the authoring order (stateFromDivePlan sorts, and the notifier keeps
     // `order` in step with the list), which is what SegmentChain chains.
     final legs = const SegmentChain().resolve(planState.segments);
+
+    // The configured gas-switch stop time (#3263) inserts a flat stop leg
+    // of its own wherever the dive switches diluent, and
+    // PlanEngine.compute/buildCanvasSeries add it before computing the RT
+    // this list's subtitle claims to match -- so this list must add it too,
+    // or its own RT silently falls behind the computed schedule it promises
+    // to agree with (confirmed: a 5-minute configured gas-switch time never
+    // showed up here at all). A second, separately-resolved chain supplies
+    // just the adjusted runtimeSeconds, looked up by the original segment's
+    // own id below -- withDiluentSwitchTime's inserted stop leg means this
+    // chain is no longer the same length as [legs] and must not be indexed
+    // the same way. expandRateSplitSegments (#3264) is left out here on
+    // purpose: it can ALSO add a leg of its own, which [legs] above must
+    // never see -- this list shows exactly one row per authored segment,
+    // the diver's own typed duration, since edit/delete/reorder key off
+    // that same one-row-per-segment correspondence to [planState.segments].
+    final resolvedPlan = const TankRoleResolver().apply(
+      divePlanFromState(planState),
+    );
+    final adjustedLegs = const SegmentChain().resolve(
+      withDiluentSwitchTime(resolvedPlan.segments, resolvedPlan),
+    );
+    int runtimeSecondsFor(String segmentId) => adjustedLegs
+        .firstWhere((l) => l.segment.id == segmentId)
+        .runtimeSeconds;
 
     return Card(
       child: Padding(
@@ -76,6 +109,7 @@ class SegmentList extends ConsumerWidget {
                   return _SegmentTile(
                     key: ValueKey(segment.id),
                     leg: leg,
+                    runtimeSeconds: runtimeSecondsFor(segment.id),
                     // A gas switch is not a segment: it is this leg
                     // breathing a different tank than the one before it.
                     switchedGas:
@@ -106,17 +140,36 @@ class SegmentList extends ConsumerWidget {
         ? 0.0
         : planState.segments.last.targetDepth;
 
+    final tanks = _breathableTanks(planState);
     showDialog(
       context: context,
       builder: (context) => SegmentEditor(
         startDepth: startDepth,
-        availableTanks: planState.tanks,
+        availableTanks: tanks,
+        tankLocked: _tankLocked(planState, tanks),
         onSave: (segment) {
           ref.read(divePlanNotifierProvider.notifier).addSegment(segment);
         },
       ),
     );
   }
+
+  /// The tanks a segment may breathe: on a CCR plan the diluents only --
+  /// bailout is never planned on, and the oxygen slot is never breathed as
+  /// such -- every tank otherwise (#3220). Falls back to the whole list
+  /// should a CCR plan somehow hold no diluent, so the editor always has
+  /// something to open on.
+  static List<DiveTank> _breathableTanks(DivePlanState planState) {
+    if (planState.mode != PlanMode.ccr) return planState.tanks;
+    final diluents = planState.tanks
+        .where((t) => t.role == TankRole.diluent)
+        .toList();
+    return diluents.isEmpty ? planState.tanks : diluents;
+  }
+
+  /// With exactly one diluent on a CCR plan there is nothing to choose.
+  static bool _tankLocked(DivePlanState planState, List<DiveTank> tanks) =>
+      planState.mode == PlanMode.ccr && tanks.length == 1;
 
   void _showEditSegmentDialog(
     BuildContext context,
@@ -131,12 +184,14 @@ class SegmentList extends ConsumerWidget {
         ? planState.segments[index - 1].targetDepth
         : 0.0;
 
+    final tanks = _breathableTanks(planState);
     showDialog(
       context: context,
       builder: (context) => SegmentEditor(
         segment: segment,
         startDepth: startDepth,
-        availableTanks: planState.tanks,
+        availableTanks: tanks,
+        tankLocked: _tankLocked(planState, tanks),
         onSave: (updated) {
           ref
               .read(divePlanNotifierProvider.notifier)
@@ -156,6 +211,13 @@ class SegmentList extends ConsumerWidget {
 
 class _SegmentTile extends StatelessWidget {
   final ResolvedLeg leg;
+
+  /// Elapsed dive time at the end of this leg, same convention as
+  /// [ResolvedLeg.runtimeSeconds] -- but taken from a second chain that
+  /// also carries the configured gas-switch stop time (#3263), so this
+  /// matches the computed deco schedule's RT column even when [leg]'s own
+  /// runtimeSeconds, resolved from the plain authored segments, does not.
+  final int runtimeSeconds;
   final bool switchedGas;
   final UnitFormatter units;
   final int index;
@@ -167,6 +229,7 @@ class _SegmentTile extends StatelessWidget {
   const _SegmentTile({
     super.key,
     required this.leg,
+    required this.runtimeSeconds,
     required this.switchedGas,
     required this.units,
     required this.index,
@@ -252,7 +315,7 @@ class _SegmentTile extends StatelessWidget {
   /// the durations up in their head. Ceiled to whole minutes to match the
   /// computed deco schedule's RT column.
   String _formatSubtitle(AppLocalizations l10n) {
-    final runtime = (leg.runtimeSeconds / 60).ceil();
+    final runtime = (runtimeSeconds / 60).ceil();
     final rt = '${l10n.plannerCanvas_table_runtime} $runtime\u2032';
     final gas = switchedGas
         ? l10n.divePlanner_segmentList_gasSwitch(segment.gasMix.name)

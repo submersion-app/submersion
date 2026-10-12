@@ -10245,11 +10245,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_field_bailoutGas => 'Bailout-gas';
+  String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
-  String get divePlanner_field_bailoutGasHint =>
-      'Open-circuit gas meegenomen bij falen van het circuit';
+  String get divePlanner_field_diluentGasHint =>
+      'Niet-aangevinkte flessen zijn bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10352,6 +10352,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Tijd voor probleemoplossing';
 
   @override
+  String get divePlanner_gasOptions_gasSwitchStopSeconds =>
+      'Stop bij gaswissel';
+
+  @override
   String get divePlanner_gasOptions_ppO2Bottom => 'Bodem-ppO₂';
 
   @override
@@ -10366,6 +10370,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => 'Flessen';
+
+  @override
+  String get divePlanner_label_loopGases => 'Loop';
+
+  @override
+  String get divePlanner_label_bailoutGases => 'Bailout';
+
+  @override
+  String get divePlanner_label_noBailout => 'Nog geen bailout-fles';
 
   @override
   String get divePlanner_savedTanks_title => 'Opgeslagen flessen';
@@ -19198,6 +19211,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Bailoutgas onvoldoende voor het slechtste geval';
 
   @override
+  String get plannerCanvas_bailout_schedule => 'Plan vanaf het ergste geval';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return 'Nodig $liters';
   }
@@ -19386,9 +19402,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_tab_setup => 'Instellingen';
 
   @override
-  String get plannerCanvas_o2Narcotic => 'O₂ als narcotisch behandelen';
-
-  @override
   String get plannerCanvas_rates_ascent => 'Stijgsnelheid';
 
   @override
@@ -19453,6 +19466,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chartMode_bailout => 'Bailout';
+
+  @override
+  String get plannerCanvas_chartMode_ccr => 'CCR';
+
+  @override
+  String plannerCanvas_scrub_tts(String minutes) {
+    return 'TTS $minutes′';
+  }
+
+  @override
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
@@ -19494,6 +19518,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => 'Duur';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => 'Alles bruikbaar';
@@ -23315,6 +23345,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_species_category => 'Categorie';
+
+  @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'Splitsen bij de geconfigureerde snelheid';
 
   @override
   String get settings_conflict_field_startDateTime => 'Geplande start';
@@ -32660,6 +32694,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get divePlanner_segmentEditor_duration => 'Duur (min)';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRate =>
+      'Geconfigureerde snelheid gebruiken';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRateHint =>
+      'Reizen met de geconfigureerde snelheid, de rest van de duur als hangtijd';
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'Segment bewerken';

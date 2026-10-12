@@ -186,6 +186,16 @@ class DivePlanSegments extends Table {
   /// Per-segment dive-mode override enum name ('oc'|'ccr'|'scr'|'pscr'); null =
   /// the plan's mode. Models mid-plan bailout (v120).
   TextColumn get diveModeOverride => text().nullable()();
+
+  /// Whether the profile chart and the deco computation split this segment
+  /// into travel (at the plan's configured descent/ascent rate) followed by
+  /// a hold at the target depth for whatever duration remains, instead of
+  /// stretching the whole entered duration linearly across the depth change
+  /// (v290, issue #3264). The segment itself is unchanged either way -- one
+  /// row in the list, one authored duration; this only changes how that
+  /// duration is read.
+  BoolColumn get splitAtConfiguredRate =>
+      boolean().withDefault(const Constant(false))();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();

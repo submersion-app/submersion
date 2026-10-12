@@ -38,6 +38,7 @@ void main() {
     reservePressure: 60.0,
     altitude: 300.0,
     surfaceInterval: const Duration(hours: 1),
+    gasSwitchStopSeconds: 90,
     createdAt: DateTime(2026, 7, 1),
     updatedAt: DateTime(2026, 7, 5),
   );
@@ -49,6 +50,7 @@ void main() {
     expect(plan.gfLow, 45);
     expect(plan.altitude, 300.0);
     expect(plan.surfaceInterval, const Duration(hours: 1));
+    expect(plan.gasSwitchStopSeconds, 90);
 
     final restored = stateFromDivePlan(plan);
     expect(restored.name, state().name);
@@ -56,6 +58,7 @@ void main() {
     expect(restored.gfHigh, state().gfHigh);
     expect(restored.segments, state().segments);
     expect(restored.tanks, state().tanks);
+    expect(restored.gasSwitchStopSeconds, 90);
     expect(restored.isDirty, isFalse);
   });
 

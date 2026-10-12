@@ -10292,11 +10292,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_field_bailoutGas => 'Bailout gáz';
+  String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
-  String get divePlanner_field_bailoutGasHint =>
-      'Nyitott rendszerű gáz a kör meghibásodása esetére';
+  String get divePlanner_field_diluentGasHint =>
+      'A nem jelölt palackok bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10399,6 +10399,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Problémamegoldási idő';
 
   @override
+  String get divePlanner_gasOptions_gasSwitchStopSeconds =>
+      'Gázváltási megállás';
+
+  @override
   String get divePlanner_gasOptions_ppO2Bottom => 'Fenék-ppO₂';
 
   @override
@@ -10413,6 +10417,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => 'Palackok';
+
+  @override
+  String get divePlanner_label_loopGases => 'Loop';
+
+  @override
+  String get divePlanner_label_bailoutGases => 'Bailout';
+
+  @override
+  String get divePlanner_label_noBailout => 'Még nincs bailout palack';
 
   @override
   String get divePlanner_savedTanks_title => 'Mentett palackok';
@@ -19257,6 +19270,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'A bailout gáz nem elegendő a legrosszabb esethez';
 
   @override
+  String get plannerCanvas_bailout_schedule => 'Terv a legrosszabb esetből';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return 'Szükséges $liters';
   }
@@ -19445,9 +19461,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_tab_setup => 'Beállítás';
 
   @override
-  String get plannerCanvas_o2Narcotic => 'O₂ kezelése kábítóként';
-
-  @override
   String get plannerCanvas_rates_ascent => 'Emelkedési ütem';
 
   @override
@@ -19512,6 +19525,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chartMode_bailout => 'Bailout';
+
+  @override
+  String get plannerCanvas_chartMode_ccr => 'CCR';
+
+  @override
+  String plannerCanvas_scrub_tts(String minutes) {
+    return 'TTS $minutes′';
+  }
+
+  @override
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
@@ -19553,6 +19577,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => 'Időtartam';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => 'Minden felhasználható';
@@ -23365,6 +23395,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_species_category => 'Kategória';
+
+  @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'Felosztás a beállított sebességgel';
 
   @override
   String get settings_conflict_field_startDateTime => 'Tervezett kezdés';
@@ -32724,6 +32758,14 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get divePlanner_segmentEditor_duration => 'Időtartam (min)';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRate =>
+      'Beállított sebesség használata';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRateHint =>
+      'Utazás a beállított sebességgel, a fennmaradó idő tartózkodási időként';
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'Szegmens szerkesztése';

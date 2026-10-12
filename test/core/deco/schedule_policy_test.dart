@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
+import 'package:submersion/core/deco/ascent/ccr_loop_ascent_gas.dart';
 import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 
 /// Loads a deco-obligated dive: air, 45 m for 25 min.
@@ -209,6 +211,41 @@ void main() {
     // The first stop at or above 6 m (the O2 switch) lasts >= 120 s.
     final switchStop = stops.firstWhere((s) => s.depthMeters <= 6.0);
     expect(switchStop.durationSeconds, greaterThanOrEqualTo(120));
+  });
+
+  test('a CCR loop with a single diluent the whole ascent is never floored '
+      'by the gas-switch stop time (#3225)', () {
+    // CcrLoopAscentGas.gasForDepth returns a continuously pAlv-normalized
+    // fraction for the tissue simulation -- it drifts with every depth
+    // change even though the diver breathes the same diluent throughout, so
+    // naively comparing it stop-to-stop would floor nearly every stop.
+    final withoutFloor = _loadedAlgo().calculateDecoSchedule(
+      currentDepth: 45,
+      ascentGas: CcrLoopAscentGas(
+        environment: DiveEnvironment.standard,
+        setpointLow: 1.3,
+        setpointHigh: 1.3,
+        switchDepth: 0.0,
+        diluentFO2: 0.18,
+        diluentFHe: 0.45,
+      ),
+    );
+    final withFloor = _loadedAlgo().calculateDecoSchedule(
+      currentDepth: 45,
+      ascentGas: CcrLoopAscentGas(
+        environment: DiveEnvironment.standard,
+        setpointLow: 1.3,
+        setpointHigh: 1.3,
+        switchDepth: 0.0,
+        diluentFO2: 0.18,
+        diluentFHe: 0.45,
+      ),
+      policy: const SchedulePolicy(gasSwitchStopSeconds: 600),
+    );
+    expect(
+      withFloor.map((s) => s.durationSeconds),
+      withoutFloor.map((s) => s.durationSeconds),
+    );
   });
 
   test('air breaks lengthen O2 stops and are annotated', () {

@@ -10310,11 +10310,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_field_bailoutGas => 'Gás de emergência';
+  String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
-  String get divePlanner_field_bailoutGasHint =>
-      'Gás de circuito aberto levado em caso de falha do circuito';
+  String get divePlanner_field_diluentGasHint =>
+      'Cilindros não marcados são bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10417,6 +10417,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Tempo de resolução do problema';
 
   @override
+  String get divePlanner_gasOptions_gasSwitchStopSeconds =>
+      'Parada para troca de gás';
+
+  @override
   String get divePlanner_gasOptions_ppO2Bottom => 'ppO₂ de fundo';
 
   @override
@@ -10431,6 +10435,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => 'Cilindros';
+
+  @override
+  String get divePlanner_label_loopGases => 'Loop';
+
+  @override
+  String get divePlanner_label_bailoutGases => 'Bailout';
+
+  @override
+  String get divePlanner_label_noBailout => 'Ainda sem cilindro de bailout';
 
   @override
   String get divePlanner_savedTanks_title => 'Cilindros guardados';
@@ -19323,6 +19336,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Gás de bailout insuficiente para o pior caso';
 
   @override
+  String get plannerCanvas_bailout_schedule => 'Plano a partir do pior caso';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return 'Necessário $liters';
   }
@@ -19514,9 +19530,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get plannerCanvas_tab_setup => 'Configuração';
 
   @override
-  String get plannerCanvas_o2Narcotic => 'Tratar o O₂ como narcótico';
-
-  @override
   String get plannerCanvas_rates_ascent => 'Taxa de subida';
 
   @override
@@ -19581,6 +19594,17 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chartMode_bailout => 'Bailout';
+
+  @override
+  String get plannerCanvas_chartMode_ccr => 'CCR';
+
+  @override
+  String plannerCanvas_scrub_tts(String minutes) {
+    return 'TTS $minutes′';
+  }
+
+  @override
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
@@ -19622,6 +19646,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => 'Duração';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => 'Tudo utilizável';
@@ -23466,6 +23496,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_species_category => 'Categoria';
+
+  @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'Dividir na taxa configurada';
 
   @override
   String get settings_conflict_field_startDateTime => 'Início previsto';
@@ -32889,6 +32923,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get divePlanner_segmentEditor_duration => 'Duração (min)';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRate => 'Usar a taxa configurada';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRateHint =>
+      'Viaja à taxa configurada, o resto da duração como tempo de permanência';
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'Editar Segmento';

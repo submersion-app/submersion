@@ -72,6 +72,8 @@ extension BeforeOpenBackstops on AppDatabase {
     await _assertProfileMetricColorColumns();
     // v286 backstop: diver_settings.equipment_default_statuses.
     await _assertEquipmentDefaultStatusesColumn();
+    // v290 backstop: dive_plan_segments.split_at_configured_rate.
+    await _assertSegmentSplitAtRateColumn();
 
     // v210 backstop: the dive_tanks equipment link sets null on delete.
     // First, while foreign keys are still off: the rebuild it may do

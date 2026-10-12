@@ -10089,11 +10089,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_field_bailoutGas => 'גז חילוץ';
+  String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
-  String get divePlanner_field_bailoutGasHint =>
-      'גז מעגל פתוח הנישא למקרה של תקלה במעגל';
+  String get divePlanner_field_diluentGasHint => 'מיכלים שלא סומנו הם bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10195,6 +10194,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_gasOptions_problemSolvingMinutes => 'זמן לפתרון תקלה';
 
   @override
+  String get divePlanner_gasOptions_gasSwitchStopSeconds => 'עצירת החלפת גז';
+
+  @override
   String get divePlanner_gasOptions_ppO2Bottom => 'ppO₂ בקרקעית';
 
   @override
@@ -10209,6 +10211,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => 'מיכלים';
+
+  @override
+  String get divePlanner_label_loopGases => 'Loop';
+
+  @override
+  String get divePlanner_label_bailoutGases => 'Bailout';
+
+  @override
+  String get divePlanner_label_noBailout => 'עדיין אין מיכל bailout';
 
   @override
   String get divePlanner_savedTanks_title => 'מכלים שמורים';
@@ -18897,6 +18908,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'גז חילוץ אינו מספיק למקרה הגרוע ביותר';
 
   @override
+  String get plannerCanvas_bailout_schedule => 'לוח זמנים מהמקרה הגרוע ביותר';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return 'נדרש $liters';
   }
@@ -19084,9 +19098,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_tab_setup => 'הגדרה';
 
   @override
-  String get plannerCanvas_o2Narcotic => 'התייחס לחמצן כמשכר';
-
-  @override
   String get plannerCanvas_rates_ascent => 'קצב עלייה';
 
   @override
@@ -19150,6 +19161,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chartMode_bailout => 'Bailout';
+
+  @override
+  String get plannerCanvas_chartMode_ccr => 'CCR';
+
+  @override
+  String plannerCanvas_scrub_tts(String minutes) {
+    return 'TTS $minutes′';
+  }
+
+  @override
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
@@ -19191,6 +19213,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => 'משך';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => 'הכול שמיש';
@@ -22876,6 +22904,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_species_category => 'קטגוריה';
+
+  @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'פיצול בקצב המוגדר';
 
   @override
   String get settings_conflict_field_startDateTime => 'התחלה מתוכננת';
@@ -32082,6 +32114,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get divePlanner_segmentEditor_duration => 'משך (min)';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRate => 'השתמש בקצב המוגדר';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRateHint =>
+      'נסיעה בקצב המוגדר, שאר משך הזמן כזמן שהייה';
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'עריכת קטע';

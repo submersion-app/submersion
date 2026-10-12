@@ -34,7 +34,7 @@ ChartSourceOverlay buildPlannedOverlay(
   PlanEngineConfig config = const PlanEngineConfig(),
 }) {
   final outcome = PlanEngine(config: config).compute(plan);
-  final series = buildCanvasSeries(segments: plan.segments, outcome: outcome);
+  final series = buildCanvasSeries(plan: plan, outcome: outcome);
 
   return ChartSourceOverlay(
     sourceId: 'plan:${plan.id}',

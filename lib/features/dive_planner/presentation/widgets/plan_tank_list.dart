@@ -10,6 +10,7 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_saved_tanks_bar.dart';
@@ -78,27 +79,112 @@ class PlanTankList extends ConsumerWidget {
             // diver's saved cylinders, each a tap away from joining the plan.
             const PlanSavedTanksBar(),
 
-            // Tank chips
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: planState.tanks.map((tank) {
-                return _TankChip(
-                  tank: tank,
-                  role: roles[tank.id] ?? tank.role,
-                  units: units,
-                  onEdit: () => _showEditTankDialog(context, ref, tank, units),
-                  onDelete: planState.tanks.length > 1
-                      ? () => ref
-                            .read(divePlanNotifierProvider.notifier)
-                            .removeTank(tank.id)
-                      : null,
-                );
-              }).toList(),
-            ),
+            // A CCR plan groups its two mandatory loop slots -- the
+            // diluent(s) and the oxygen supply -- apart from the open-circuit
+            // bailout cylinders, which is what every other cylinder is
+            // (#3220). Neither slot is ever bailout gas; a diver who wants
+            // oxygen on bailout adds a separate cylinder below.
+            if (planState.mode == PlanMode.ccr) ...[
+              _groupHeading(theme, context.l10n.divePlanner_label_loopGases),
+              _chips(
+                context,
+                ref,
+                units,
+                planState,
+                roles,
+                _loopTanks(planState),
+              ),
+              const SizedBox(height: 12),
+              _groupHeading(theme, context.l10n.divePlanner_label_bailoutGases),
+              if (_bailoutTanks(planState).isEmpty)
+                Text(
+                  context.l10n.divePlanner_label_noBailout,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
+                )
+              else
+                _chips(
+                  context,
+                  ref,
+                  units,
+                  planState,
+                  roles,
+                  _bailoutTanks(planState),
+                ),
+            ] else
+              _chips(context, ref, units, planState, roles, planState.tanks),
           ],
         ),
       ),
+    );
+  }
+
+  /// Diluent(s) first, then the oxygen slot.
+  static List<DiveTank> _loopTanks(DivePlanState s) => [
+    ...s.tanks.where((t) => t.role == TankRole.diluent),
+    ...s.tanks.where((t) => t.role == TankRole.oxygenSupply),
+  ];
+
+  static List<DiveTank> _bailoutTanks(DivePlanState s) => s.tanks
+      .where(
+        (t) => t.role != TankRole.diluent && t.role != TankRole.oxygenSupply,
+      )
+      .toList();
+
+  /// Whether the chip offers a delete: never the last cylinder, and on a CCR
+  /// plan never the oxygen slot or the last diluent (#3220).
+  static bool _canDelete(DivePlanState s, DiveTank tank) {
+    if (s.tanks.length <= 1) return false;
+    if (s.mode != PlanMode.ccr) return true;
+    if (tank.role == TankRole.oxygenSupply) return false;
+    if (tank.role == TankRole.diluent) {
+      return s.tanks.where((t) => t.role == TankRole.diluent).length > 1;
+    }
+    return true;
+  }
+
+  Widget _groupHeading(ThemeData theme, String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Text(
+      text,
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: theme.colorScheme.outline,
+        letterSpacing: 0.8,
+      ),
+    ),
+  );
+
+  Widget _chips(
+    BuildContext context,
+    WidgetRef ref,
+    UnitFormatter units,
+    DivePlanState planState,
+    Map<String, TankRole> roles,
+    List<DiveTank> tanks,
+  ) {
+    final isCcr = planState.mode == PlanMode.ccr;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: tanks.map((tank) {
+        final isLoopSlot =
+            isCcr &&
+            (tank.role == TankRole.diluent ||
+                tank.role == TankRole.oxygenSupply);
+        return _TankChip(
+          tank: tank,
+          role: roles[tank.id] ?? tank.role,
+          units: units,
+          roleBadge: isLoopSlot ? tank.role.localizedName(context.l10n) : null,
+          onEdit: () => _showEditTankDialog(context, ref, tank, units),
+          onDelete: _canDelete(planState, tank)
+              ? () => ref
+                    .read(divePlanNotifierProvider.notifier)
+                    .removeTank(tank.id)
+              : null,
+        );
+      }).toList(),
     );
   }
 
@@ -127,12 +213,20 @@ class PlanTankList extends ConsumerWidget {
     DiveTank tank,
     UnitFormatter units,
   ) {
+    final planState = ref.read(divePlanNotifierProvider);
+    final isCcr = planState.mode == PlanMode.ccr;
     showDialog(
       context: context,
       builder: (context) => _TankEditDialog(
         tank: tank,
         units: units,
-        mode: ref.read(divePlanNotifierProvider).mode,
+        mode: planState.mode,
+        lockedOxygenSlot: isCcr && tank.role == TankRole.oxygenSupply,
+        isOnlyDiluent:
+            isCcr &&
+            tank.role == TankRole.diluent &&
+            planState.tanks.where((t) => t.role == TankRole.diluent).length ==
+                1,
         bestMix: ref.read(planBestMixProvider),
         resolveRole: _roleResolverFor(ref),
         onSave: (updated) {
@@ -171,12 +265,18 @@ class _TankChip extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback? onDelete;
 
+  /// The loop role printed ahead of the pressure line on a CCR plan's
+  /// diluent and oxygen chips, so a named cylinder still says which slot it
+  /// fills (#3220). Null on every other chip.
+  final String? roleBadge;
+
   const _TankChip({
     required this.tank,
     required this.role,
     required this.units,
     required this.onEdit,
     this.onDelete,
+    this.roleBadge,
   });
 
   @override
@@ -190,6 +290,8 @@ class _TankChip extends StatelessWidget {
     // titled by its gas.
     final gas = tank.name == null ? null : tank.gasMix.name;
     final details = [?gas, units.formatPressure(tank.startPressure), tankSize];
+    // The screen-reader label already names the role, so the loop-slot badge
+    // is added to the visible line only.
     final tankLabel = [
       tank.name ?? tank.gasMix.name,
       roleName,
@@ -214,7 +316,10 @@ class _TankChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(tank.name ?? tank.gasMix.name),
-            Text(details.join(' • '), style: theme.textTheme.bodySmall),
+            Text(
+              [?roleBadge, ...details].join(' • '),
+              style: theme.textTheme.bodySmall,
+            ),
           ],
         ),
         onPressed: onEdit,
@@ -230,13 +335,23 @@ class _TankEditDialog extends StatefulWidget {
   final UnitFormatter units;
 
   /// The plan's breathing mode. Only a loop plan can carry bailout gas, so
-  /// the bailout flag is offered there and nowhere else.
+  /// the diluent flag is offered there and nowhere else.
   final PlanMode mode;
 
+  /// Editing a CCR plan's oxygen slot: the mix is fixed at 100 % and the
+  /// role at oxygen supply, so neither field nor the diluent tile is shown
+  /// (#3220). Name, size and pressure stay editable.
+  final bool lockedOxygenSlot;
+
+  /// Editing a CCR plan's only diluent: the tile shows ticked and cannot be
+  /// unticked, since the plan always keeps at least one (#3220).
+  final bool isOnlyDiluent;
+
   /// The plan's best mixes at its deepest point, offered as a one-tap fill
-  /// of the O2/He fields: [bestMix.diluent] on a CCR plan unless the
-  /// cylinder is ticked as bailout, [bestMix.bottom] otherwise. Null hides
-  /// the offer (a plan with no depth).
+  /// of the O2/He fields: [bestMix.diluent] on a CCR plan if the cylinder
+  /// would resolve to the diluent, [bestMix.bottom] otherwise. Null hides
+  /// the offer (a plan with no depth). Never offered on the oxygen slot,
+  /// whose fields are not even shown (#3220).
   final ({double depthMeters, GasMix bottom, GasMix? diluent})? bestMix;
 
   /// The role the plan would give this cylinder as currently filled in (see
@@ -249,6 +364,8 @@ class _TankEditDialog extends StatefulWidget {
     this.tank,
     required this.units,
     required this.mode,
+    this.lockedOxygenSlot = false,
+    this.isOnlyDiluent = false,
     this.bestMix,
     required this.resolveRole,
     required this.onSave,
@@ -270,7 +387,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   /// so its provisional role is resolved under the id it will be saved with.
   late final String _tankId = widget.tank?.id ?? _uuid.v4();
   bool _isTravelGas = false;
-  bool _isBailout = false;
+  bool _isDiluent = false;
 
   /// The volume field's seeded text, so [_save] can tell an untouched field
   /// from an edited one and keep the stored litres exactly (issue #2027).
@@ -310,11 +427,10 @@ class _TankEditDialogState extends State<_TankEditDialog> {
       text: formatDecimalForInput(widget.tank?.gasMix.he ?? 0),
     );
     _isTravelGas = widget.tank?.isTravelGas ?? false;
-    // `role` is no longer a field the diver fills in. The only value that
-    // still carries intent is `bailout`, which TankRoleResolver honours as an
-    // override because a 100% cylinder on a loop plan could equally be the
-    // oxygen supply or a bailout bottle.
-    _isBailout = widget.tank?.role == TankRole.bailout;
+    // `role` is no longer a field the diver fills in, except on a loop plan:
+    // diluent is the one explicit choice there, which TankRoleResolver
+    // honours and never re-derives from anything else (#3135).
+    _isDiluent = widget.tank?.role == TankRole.diluent;
   }
 
   @override
@@ -380,85 +496,93 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _o2Controller,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.divePlanner_field_o2Percent,
-                      ),
-                      keyboardType: TextInputType.number,
-                      // The best-mix offer depends on the mix (#3093).
-                      onChanged: (_) => setState(() {}),
-                      validator: (value) => _validateGasPercent(
-                        value,
-                        _otherPercent(_heController),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _heController,
-                      decoration: InputDecoration(
-                        labelText: context.l10n.divePlanner_field_hePercent,
-                      ),
-                      keyboardType: TextInputType.number,
-                      onChanged: (_) => setState(() {}),
-                      validator: (value) => _validateGasPercent(
-                        value,
-                        _otherPercent(_o2Controller),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if ((widget.bestMix, _offeredMix) case (
-                final bestMix?,
-                final mix?,
-              ))
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: TextButton.icon(
-                    icon: const Icon(Icons.auto_fix_high, size: 18),
-                    label: Text(
-                      context.l10n.divePlanner_action_fillBestMix(
-                        widget.units.formatDepth(
-                          bestMix.depthMeters,
-                          decimals: 0,
+              if (!widget.lockedOxygenSlot) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _o2Controller,
+                        decoration: InputDecoration(
+                          labelText: context.l10n.divePlanner_field_o2Percent,
                         ),
-                        mix.name,
+                        keyboardType: TextInputType.number,
+                        // The best-mix offer depends on the mix (#3093).
+                        onChanged: (_) => setState(() {}),
+                        validator: (value) => _validateGasPercent(
+                          value,
+                          _otherPercent(_heController),
+                        ),
                       ),
                     ),
-                    onPressed: () => _fillGas(mix),
-                  ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _heController,
+                        decoration: InputDecoration(
+                          labelText: context.l10n.divePlanner_field_hePercent,
+                        ),
+                        keyboardType: TextInputType.number,
+                        onChanged: (_) => setState(() {}),
+                        validator: (value) => _validateGasPercent(
+                          value,
+                          _otherPercent(_o2Controller),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              const SizedBox(height: 8),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                value: _isTravelGas,
-                title: Text(context.l10n.divePlanner_field_travelGas),
-                onChanged: (value) {
-                  setState(() => _isTravelGas = value ?? false);
-                },
-              ),
-              if (widget.mode != PlanMode.oc)
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  value: _isBailout,
-                  title: Text(context.l10n.divePlanner_field_bailoutGas),
-                  subtitle: Text(
-                    context.l10n.divePlanner_field_bailoutGasHint,
-                    style: Theme.of(context).textTheme.bodySmall,
+                if ((widget.bestMix, _offeredMix) case (
+                  final bestMix?,
+                  final mix?,
+                ))
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.auto_fix_high, size: 18),
+                      label: Text(
+                        context.l10n.divePlanner_action_fillBestMix(
+                          widget.units.formatDepth(
+                            bestMix.depthMeters,
+                            decimals: 0,
+                          ),
+                          mix.name,
+                        ),
+                      ),
+                      onPressed: () => _fillGas(mix),
+                    ),
                   ),
-                  onChanged: (value) {
-                    setState(() => _isBailout = value ?? false);
-                  },
-                ),
+                const SizedBox(height: 8),
+                // CCR has no travel-gas concept: TankRoleResolver's loop branch
+                // never consults isTravelGas, so the option is meaningless
+                // there and only confuses a diluent/bailout choice (#3131).
+                if (widget.mode != PlanMode.ccr)
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: _isTravelGas,
+                    title: Text(context.l10n.divePlanner_field_travelGas),
+                    onChanged: (value) {
+                      setState(() => _isTravelGas = value ?? false);
+                    },
+                  ),
+                if (widget.mode != PlanMode.oc)
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: _isDiluent,
+                    title: Text(context.l10n.divePlanner_field_diluentGas),
+                    subtitle: Text(
+                      context.l10n.divePlanner_field_diluentGasHint,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    onChanged: widget.isOnlyDiluent
+                        ? null
+                        : (value) {
+                            setState(() => _isDiluent = value ?? false);
+                          },
+                  ),
+              ],
             ],
           ),
         ),
@@ -477,12 +601,11 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   }
 
   /// The best mix offered for this cylinder, by the role the plan would give
-  /// it as currently filled in. A CCR diluent (a cylinder the segments
-  /// breathe) gets the diluent mix. The oxygen supply (unbreathed pure O2,
-  /// including one being typed into a new cylinder) gets nothing, since any
-  /// mix would overwrite its O2. Everything else, a ticked or derived bailout
-  /// or any open-circuit cylinder, is breathed open circuit and gets the
-  /// bottom mix.
+  /// it as currently filled in. The explicit diluent tile (#3220) gets the
+  /// diluent mix; the locked oxygen slot never reaches here, since its
+  /// fields -- and this button -- are not shown at all. Everything else,
+  /// ticked or not, resolves through [TankRoleResolver] like any other
+  /// cylinder and gets the bottom mix.
   GasMix? get _offeredMix {
     final bestMix = widget.bestMix;
     if (bestMix == null) return null;
@@ -492,7 +615,14 @@ class _TankEditDialogState extends State<_TankEditDialog> {
         o2: _otherPercent(_o2Controller) ?? 21,
         he: _otherPercent(_heController) ?? 0,
       ),
-      role: _isBailout ? TankRole.bailout : TankRole.backGas,
+      // Mirrors _save()'s own role construction exactly, so the offer is
+      // computed against the same provisional role the save would actually
+      // produce.
+      role: widget.lockedOxygenSlot
+          ? TankRole.oxygenSupply
+          : _isDiluent
+          ? TankRole.diluent
+          : TankRole.backGas,
       isTravelGas: _isTravelGas,
     );
     return switch (widget.resolveRole(provisional)) {
@@ -581,13 +711,20 @@ class _TankEditDialogState extends State<_TankEditDialog> {
       regulatorEquipmentId: original?.regulatorEquipmentId,
       equipmentId: original?.equipmentId,
       decoSwitchDepth: original?.decoSwitchDepth,
-      gasMix: GasMix(
-        o2: _validated(_o2Controller, blank: 21)!,
-        he: _validated(_heController, blank: 0)!,
-      ),
-      // Everything except an explicit bailout is derived by
-      // TankRoleResolver; backGas is the neutral "derive me" placeholder.
-      role: _isBailout ? TankRole.bailout : TankRole.backGas,
+      gasMix: widget.lockedOxygenSlot
+          ? const GasMix(o2: 100)
+          : GasMix(
+              o2: _validated(_o2Controller, blank: 21)!,
+              he: _validated(_heController, blank: 0)!,
+            ),
+      // Everything except an explicit loop slot (CCR: diluent or the oxygen
+      // supply) is derived by TankRoleResolver; backGas is the neutral
+      // "derive me" placeholder.
+      role: widget.lockedOxygenSlot
+          ? TankRole.oxygenSupply
+          : _isDiluent
+          ? TankRole.diluent
+          : TankRole.backGas,
       order: widget.tank?.order ?? 0,
       isTravelGas: _isTravelGas,
     );

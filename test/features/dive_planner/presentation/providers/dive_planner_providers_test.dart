@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/data/services/plan_calculator_service.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
@@ -240,6 +241,268 @@ void main() {
       final state = container.read(divePlanNotifierProvider);
       expect(state.setpointLow, 0.6);
       expect(state.setpointHigh, 1.2);
+    });
+
+    group('CCR loop slots (#3220)', () {
+      ProviderContainer ccrContainer() {
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+        container
+            .read(divePlanNotifierProvider.notifier)
+            .updateMode(domain.PlanMode.ccr);
+        return container;
+      }
+
+      DiveTank bailout(String id, {double o2 = 50}) => DiveTank(
+        id: id,
+        volume: 11.1,
+        startPressure: 200,
+        gasMix: GasMix(o2: o2),
+        role: TankRole.backGas,
+      );
+
+      PlanSegment hold(String tankId, GasMix mix) => PlanSegment.hold(
+        id: 'seg-$tankId',
+        depth: 30,
+        durationMinutes: 20,
+        tankId: tankId,
+        gasMix: mix,
+        order: 0,
+      );
+
+      test('entering CCR makes the plan\'s cylinder the diluent and adds an '
+          'oxygen placeholder', () {
+        final state = ccrContainer().read(divePlanNotifierProvider);
+        expect(state.tanks, hasLength(2));
+        expect(state.tanks.first.role, TankRole.diluent);
+        final o2 = state.tanks.last;
+        expect(o2.role, TankRole.oxygenSupply);
+        expect(o2.gasMix.o2, 100);
+        expect(o2.volume, 3.0);
+        expect(o2.startPressure, 200);
+      });
+
+      test('a further pure-O2 cylinder stays bailout; the slot is not '
+          'duplicated', () {
+        final container = ccrContainer();
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        notifier.addTank(bailout('bo-o2', o2: 100));
+        notifier.updateMode(domain.PlanMode.scr);
+        notifier.updateMode(domain.PlanMode.ccr);
+        final state = container.read(divePlanNotifierProvider);
+        expect(
+          state.tanks.where((t) => t.role == TankRole.oxygenSupply),
+          hasLength(1),
+        );
+        expect(
+          state.tanks.firstWhere((t) => t.id == 'bo-o2').role,
+          TankRole.backGas,
+        );
+      });
+
+      test('the oxygen slot and the last diluent cannot be removed', () {
+        final container = ccrContainer();
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        notifier.addTank(bailout('bo'));
+        final before = container.read(divePlanNotifierProvider).tanks;
+        final o2 = before.firstWhere((t) => t.role == TankRole.oxygenSupply);
+        final dil = before.firstWhere((t) => t.role == TankRole.diluent);
+
+        notifier.removeTank(o2.id);
+        notifier.removeTank(dil.id);
+        expect(container.read(divePlanNotifierProvider).tanks, before);
+
+        // A bailout cylinder still goes.
+        notifier.removeTank('bo');
+        expect(container.read(divePlanNotifierProvider).tanks, hasLength(2));
+      });
+
+      test('a second diluent can be removed; its segments move to the '
+          'remaining one', () {
+        final container = ccrContainer();
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        const deep = GasMix(o2: 10, he: 70);
+        notifier.addTank(
+          const DiveTank(
+            id: 'deep',
+            volume: 11.1,
+            startPressure: 200,
+            gasMix: deep,
+            role: TankRole.diluent,
+          ),
+        );
+        notifier.addSegment(hold('deep', deep));
+        notifier.removeTank('deep');
+        final state = container.read(divePlanNotifierProvider);
+        final remaining = state.tanks.firstWhere(
+          (t) => t.role == TankRole.diluent,
+        );
+        expect(state.segments.single.tankId, remaining.id);
+        expect(state.segments.single.gasMix, remaining.gasMix);
+      });
+
+      test('the oxygen slot keeps its role and 100 % through an edit; the '
+          'only diluent keeps its role', () {
+        final container = ccrContainer();
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        final tanks = container.read(divePlanNotifierProvider).tanks;
+        final o2 = tanks.firstWhere((t) => t.role == TankRole.oxygenSupply);
+        final dil = tanks.firstWhere((t) => t.role == TankRole.diluent);
+
+        notifier.updateTank(
+          o2.id,
+          o2.copyWith(role: TankRole.backGas, gasMix: const GasMix(o2: 50)),
+        );
+        notifier.updateTank(dil.id, dil.copyWith(role: TankRole.backGas));
+
+        final after = container.read(divePlanNotifierProvider).tanks;
+        final o2After = after.firstWhere((t) => t.id == o2.id);
+        expect(o2After.role, TankRole.oxygenSupply);
+        expect(o2After.gasMix.o2, 100);
+        expect(after.firstWhere((t) => t.id == dil.id).role, TankRole.diluent);
+      });
+
+      test('a segment on a CCR plan always breathes a diluent', () {
+        final container = ccrContainer();
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        notifier.addTank(bailout('bo'));
+        notifier.addSegment(hold('bo', const GasMix(o2: 50)));
+        final state = container.read(divePlanNotifierProvider);
+        final dil = state.tanks.firstWhere((t) => t.role == TankRole.diluent);
+        expect(state.segments.single.tankId, dil.id);
+        expect(state.segments.single.gasMix, dil.gasMix);
+      });
+
+      test('entering CCR on a plan whose only pure-O2 cylinder is already '
+          'breathed by a segment (an ordinary OC/SCR O2 deco bottle) '
+          'remaps that segment onto the diluent instead of leaving it on '
+          'the cylinder CcrLoopSlots just claimed for oxygen', () {
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        final primary = container.read(divePlanNotifierProvider).tanks.first;
+        const o2 = DiveTank(
+          id: 'o2-deco',
+          volume: 11.1,
+          startPressure: 207,
+          gasMix: GasMix(o2: 100),
+          role: TankRole.deco,
+        );
+        notifier.addTank(o2);
+        notifier.addSegment(hold(primary.id, primary.gasMix));
+        notifier.addSegment(hold('o2-deco', const GasMix(o2: 100)));
+
+        notifier.updateMode(domain.PlanMode.ccr);
+
+        final state = container.read(divePlanNotifierProvider);
+        final slot = state.tanks.firstWhere((t) => t.id == 'o2-deco');
+        expect(slot.role, TankRole.oxygenSupply);
+        final dil = state.tanks.firstWhere((t) => t.role == TankRole.diluent);
+        // Neither segment may still reference the oxygen slot.
+        for (final segment in state.segments) {
+          expect(segment.tankId, isNot('o2-deco'));
+          expect(segment.tankId, dil.id);
+          expect(segment.gasMix, dil.gasMix);
+        }
+      });
+
+      test('loading a CCR plan with a segment stuck on the oxygen slot '
+          '(saved before this remap existed) is repaired on load', () {
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        final saved = container
+            .read(divePlanNotifierProvider)
+            .copyWith(
+              mode: domain.PlanMode.ccr,
+              tanks: const [
+                DiveTank(
+                  id: 'dil',
+                  volume: 3,
+                  startPressure: 200,
+                  gasMix: GasMix(o2: 18, he: 45),
+                  role: TankRole.diluent,
+                ),
+                DiveTank(
+                  id: 'o2',
+                  volume: 3,
+                  startPressure: 200,
+                  gasMix: GasMix(o2: 100),
+                  role: TankRole.oxygenSupply,
+                ),
+              ],
+              segments: [hold('o2', const GasMix(o2: 100))],
+              isDirty: false,
+            );
+        notifier.loadPlan(saved);
+        final state = container.read(divePlanNotifierProvider);
+        expect(state.segments.single.tankId, 'dil');
+        expect(state.segments.single.gasMix, const GasMix(o2: 18, he: 45));
+      });
+
+      test('a quick plan on a CCR plan starts on the diluent, not the first '
+          'cylinder', () {
+        final container = ccrContainer();
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        // Reorder so a bailout sits first: the quick plan must still pick
+        // the diluent.
+        final dil = container
+            .read(divePlanNotifierProvider)
+            .tanks
+            .firstWhere((t) => t.role == TankRole.diluent);
+        notifier.removeTank(dil.id); // refused: last diluent
+        notifier.addTank(bailout('bo'));
+        notifier.addSimplePlan(maxDepth: 30, bottomTimeMinutes: 20);
+        final state = container.read(divePlanNotifierProvider);
+        for (final segment in state.segments) {
+          expect(segment.tankId, dil.id);
+        }
+      });
+
+      test('loading a CCR plan saved without an oxygen slot fills it '
+          'without marking the plan dirty', () {
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          ],
+        );
+        addTearDown(container.dispose);
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        final saved = container
+            .read(divePlanNotifierProvider)
+            .copyWith(
+              mode: domain.PlanMode.ccr,
+              tanks: [
+                const DiveTank(
+                  id: 'dil',
+                  volume: 3,
+                  startPressure: 200,
+                  gasMix: GasMix(o2: 18, he: 45),
+                  role: TankRole.diluent,
+                ),
+              ],
+              isDirty: false,
+            );
+        notifier.loadPlan(saved);
+        final state = container.read(divePlanNotifierProvider);
+        expect(state.isDirty, isFalse);
+        expect(state.tanks.map((t) => t.role), [
+          TankRole.diluent,
+          TankRole.oxygenSupply,
+        ]);
+      });
     });
 
     test('switching to CCR keeps setpoints the diver already set', () {

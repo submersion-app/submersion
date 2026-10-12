@@ -37,8 +37,9 @@ void main() {
     );
   });
 
-  test('the schema version is 289', () {
-    expect(AppDatabase.currentSchemaVersion, 289);
-    expect(AppDatabase.migrationVersions.last, 289);
+  test('rung 289 is on the ladder', () {
+    // Later rungs follow it; only its presence is this feature's concern.
+    expect(AppDatabase.migrationVersions, contains(289));
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(289));
   });
 }

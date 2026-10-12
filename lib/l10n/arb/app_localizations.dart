@@ -16549,17 +16549,17 @@ abstract class AppLocalizations {
   /// **'Not entered — assuming {value} {unit}'**
   String divePlanner_info_reserveDefault(Object unit, Object value);
 
-  /// No description provided for @divePlanner_field_bailoutGas.
+  /// No description provided for @divePlanner_field_diluentGas.
   ///
   /// In en, this message translates to:
-  /// **'Bailout gas'**
-  String get divePlanner_field_bailoutGas;
+  /// **'Diluent'**
+  String get divePlanner_field_diluentGas;
 
-  /// No description provided for @divePlanner_field_bailoutGasHint.
+  /// No description provided for @divePlanner_field_diluentGasHint.
   ///
   /// In en, this message translates to:
-  /// **'Open-circuit gas carried in case the loop fails'**
-  String get divePlanner_field_bailoutGasHint;
+  /// **'Unticked cylinders are bailout'**
+  String get divePlanner_field_diluentGasHint;
 
   /// No description provided for @divePlanner_field_hePercent.
   ///
@@ -16747,6 +16747,12 @@ abstract class AppLocalizations {
   /// **'Problem solving time'**
   String get divePlanner_gasOptions_problemSolvingMinutes;
 
+  /// Minimum stop time enforced at every gas switch, main plan and bailout alike; 0 means no floor
+  ///
+  /// In en, this message translates to:
+  /// **'Gas switch stop'**
+  String get divePlanner_gasOptions_gasSwitchStopSeconds;
+
   /// No description provided for @divePlanner_gasOptions_ppO2Bottom.
   ///
   /// In en, this message translates to:
@@ -16776,6 +16782,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tanks'**
   String get divePlanner_label_tanks;
+
+  /// Heading over a CCR plan's diluent and oxygen cylinders in the planner's tank list
+  ///
+  /// In en, this message translates to:
+  /// **'Loop'**
+  String get divePlanner_label_loopGases;
+
+  /// Heading over a CCR plan's open-circuit bailout cylinders in the planner's tank list
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout'**
+  String get divePlanner_label_bailoutGases;
+
+  /// Shown under the Bailout heading of a CCR plan's tank list while no bailout cylinder has been added
+  ///
+  /// In en, this message translates to:
+  /// **'No bailout cylinder yet'**
+  String get divePlanner_label_noBailout;
 
   /// No description provided for @divePlanner_savedTanks_title.
   ///
@@ -30925,6 +30949,12 @@ abstract class AppLocalizations {
   /// **'Bailout gas insufficient for the worst case'**
   String get plannerCanvas_bailout_insufficient;
 
+  /// No description provided for @plannerCanvas_bailout_schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule from the worst case'**
+  String get plannerCanvas_bailout_schedule;
+
   /// No description provided for @plannerCanvas_bailout_required.
   ///
   /// In en, this message translates to:
@@ -31201,12 +31231,6 @@ abstract class AppLocalizations {
   /// **'Setup'**
   String get plannerCanvas_tab_setup;
 
-  /// No description provided for @plannerCanvas_o2Narcotic.
-  ///
-  /// In en, this message translates to:
-  /// **'Treat O₂ as narcotic'**
-  String get plannerCanvas_o2Narcotic;
-
   /// No description provided for @plannerCanvas_rates_ascent.
   ///
   /// In en, this message translates to:
@@ -31315,6 +31339,24 @@ abstract class AppLocalizations {
   /// **'BO {minutes}′'**
   String plannerCanvas_scrub_bailout(String minutes);
 
+  /// No description provided for @plannerCanvas_chartMode_bailout.
+  ///
+  /// In en, this message translates to:
+  /// **'Bailout'**
+  String get plannerCanvas_chartMode_bailout;
+
+  /// No description provided for @plannerCanvas_chartMode_ccr.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR'**
+  String get plannerCanvas_chartMode_ccr;
+
+  /// No description provided for @plannerCanvas_scrub_tts.
+  ///
+  /// In en, this message translates to:
+  /// **'TTS {minutes}′'**
+  String plannerCanvas_scrub_tts(String minutes);
+
   /// No description provided for @plannerCanvas_scrub_readout.
   ///
   /// In en, this message translates to:
@@ -31392,6 +31434,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Duration'**
   String get plannerCanvas_table_duration;
+
+  /// No description provided for @plannerCanvas_table_ppO2.
+  ///
+  /// In en, this message translates to:
+  /// **'PO2'**
+  String get plannerCanvas_table_ppO2;
+
+  /// No description provided for @plannerCanvas_table_end.
+  ///
+  /// In en, this message translates to:
+  /// **'END'**
+  String get plannerCanvas_table_end;
 
   /// No description provided for @plannerCanvas_turnRule_allUsable.
   ///
@@ -37655,6 +37709,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Category'**
   String get settings_conflict_field_species_category;
+
+  /// No description provided for @settings_conflict_field_splitAtConfiguredRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Split at the configured rate'**
+  String get settings_conflict_field_splitAtConfiguredRate;
 
   /// No description provided for @settings_conflict_field_startDateTime.
   ///
@@ -51984,6 +52044,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Duration (min)'**
   String get divePlanner_segmentEditor_duration;
+
+  /// Checkbox in the segment editor: split this leg into travel at the configured descent/ascent rate plus a hold at the target depth for the remainder of the entered duration
+  ///
+  /// In en, this message translates to:
+  /// **'Use configured rate'**
+  String get divePlanner_segmentEditor_splitAtRate;
+
+  /// No description provided for @divePlanner_segmentEditor_splitAtRateHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel at the configured rate, the rest of the duration as hold time'**
+  String get divePlanner_segmentEditor_splitAtRateHint;
 
   /// No description provided for @divePlanner_segmentEditor_editTitle.
   ///

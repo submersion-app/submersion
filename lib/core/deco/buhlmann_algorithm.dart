@@ -465,11 +465,22 @@ class BuhlmannAlgorithm {
     var clockDepth = currentDepth;
     var clockPhase = AscentPhase.toFirstStop;
 
+    // A CCR loop's own gas bookkeeping (CcrLoopAscentGas.gasForDepth) is a
+    // continuously pAlv-normalized fraction for the tissue simulation, not
+    // the diluent the diver actually breathes -- that fraction drifts with
+    // every depth change even on a single diluent the whole ascent, which
+    // made [switched] fire at nearly every stop and floor every one of them
+    // to [SchedulePolicy.gasSwitchStopSeconds] as if the diver had genuinely
+    // switched cylinders there (#3225). Real gas switches -- an OC plan's
+    // ascent, and a bailout schedule's own OptimalOcAscentGas -- are
+    // unaffected: only a loop's own drift is excluded.
+    final isCcrLoop = plan is CcrLoopAscentGas;
     AscentGas previousGas = plan.gasForDepth(currentDepth);
     while (currentStopDepth > 0) {
       final stopGas = plan.gasForDepth(currentStopDepth);
       final switched =
-          stopGas.fN2 != previousGas.fN2 || stopGas.fHe != previousGas.fHe;
+          !isCcrLoop &&
+          (stopGas.fN2 != previousGas.fN2 || stopGas.fHe != previousGas.fHe);
 
       int stopTime = _calculateStopTime(currentStopDepth, plan, p, clockPhase);
       if (switched && p.gasSwitchStopSeconds > 0) {

@@ -390,5 +390,13 @@ extension RungsFromV231 on AppDatabase {
       await _assertSharedLibrarySchema();
     }
     if (from < 289) await reportProgress();
+    // v290: dive_plan_segments.split_at_configured_rate (issue #3264).
+    // Column only, defaulting off; re-asserted in beforeOpen. Renumbered
+    // from 277, 282 then 286, as earlier rungs shipped or were claimed
+    // first.
+    if (from < 290) {
+      await _assertSegmentSplitAtRateColumn();
+    }
+    if (from < 290) await reportProgress();
   }
 }

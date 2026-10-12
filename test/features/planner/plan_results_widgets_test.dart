@@ -128,6 +128,55 @@ void main() {
     );
   });
 
+  testWidgets(
+    'gas row shows a negative end reading and a two-colour bar when usage '
+    'exceeds the cylinder\'s own capacity (#3190)',
+    (tester) async {
+      await tester.pumpWidget(
+        _outcomeHarness(
+          _noDecoOutcome(
+            tankUsages: const [
+              PlanTankUsage(
+                tankId: 'back',
+                litersUsed: 2500,
+                totalLiters: 2000,
+                startPressure: 200,
+                remainingPressure: -50,
+                percentUsed: 125,
+                reserveViolation: true,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('end: -500L/-50bar'), findsOneWidget);
+      // Two colour segments (covered share + shortfall), not the ordinary
+      // single-colour LinearProgressIndicator. Scoped to opaque boxes: the
+      // initial route's own page-transition scrim is a transparent
+      // ColoredBox that `find.byType` would otherwise also pick up.
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      final barBoxes = find.byWidgetPredicate(
+        (w) => w is ColoredBox && w.color.a > 0,
+      );
+      expect(barBoxes, findsNWidgets(2));
+      // Both segments must actually occupy the bar's 4 px height: a Row
+      // hands childless ColoredBoxes loose cross-axis constraints, under
+      // which they collapse to 0 px tall and render nothing.
+      final segmentSizes = tester
+          .widgetList<ColoredBox>(barBoxes)
+          .map((w) => tester.getSize(find.byWidget(w)))
+          .toList();
+      for (final size in segmentSizes) {
+        expect(size.height, 4.0);
+        expect(size.width, greaterThan(0.0));
+      }
+      // 2000 of 2500 L covered: the blue share is four times the red one.
+      expect(segmentSizes[0].width / segmentSizes[1].width, closeTo(4.0, 0.05));
+    },
+  );
+
   testWidgets('runtime table says no deco above the rows when there are '
       'lines but no stops', (tester) async {
     await tester.pumpWidget(_outcomeHarness(_noDecoOutcome()));
@@ -148,6 +197,90 @@ void main() {
     expect(find.text('3′'), findsOneWidget);
     expect(find.text('27′'), findsOneWidget);
     expect(find.textContaining('(+'), findsNothing);
+  });
+
+  testWidgets(
+    'the gas column repeats the active gas on every line, not just the '
+    'switch',
+    (tester) async {
+      const outcome = PlanOutcome(
+        runtimeSeconds: 420,
+        maxDepth: 18,
+        ndlAtBottom: 600,
+        ttsAtBottom: 120,
+        stops: [],
+        schedule: [
+          PlanScheduleRow(
+            kind: PlanScheduleRowKind.descent,
+            depthMeters: 18,
+            durationSeconds: 240,
+            runtimeSeconds: 240,
+            gasFO2: 0.32,
+            gasFHe: 0,
+            gasSwitch: true,
+          ),
+          PlanScheduleRow(
+            kind: PlanScheduleRowKind.level,
+            depthMeters: 18,
+            durationSeconds: 180,
+            runtimeSeconds: 420,
+            gasFO2: 0.32,
+            gasFHe: 0,
+            gasSwitch: false,
+          ),
+        ],
+        segmentOutcomes: [],
+        tankUsages: [],
+        cnsEnd: 5,
+        otuTotal: 10,
+        issues: [],
+        endTissue: BuhlmannState(compartments: []),
+        tissueTimeline: [],
+        ceilingTrace: [],
+      );
+      await tester.pumpWidget(_outcomeHarness(outcome));
+      await tester.pumpAndSettle();
+
+      expect(find.text('EAN32'), findsNWidgets(2));
+    },
+  );
+
+  testWidgets('the table shows a PO2 and an END column', (tester) async {
+    const outcome = PlanOutcome(
+      runtimeSeconds: 240,
+      maxDepth: 18,
+      ndlAtBottom: 600,
+      ttsAtBottom: 120,
+      stops: [],
+      schedule: [
+        PlanScheduleRow(
+          kind: PlanScheduleRowKind.descent,
+          depthMeters: 18,
+          durationSeconds: 240,
+          runtimeSeconds: 240,
+          gasFO2: 0.32,
+          gasFHe: 0,
+          gasSwitch: true,
+          ppO2: 1.26,
+          endMeters: 12,
+        ),
+      ],
+      segmentOutcomes: [],
+      tankUsages: [],
+      cnsEnd: 5,
+      otuTotal: 10,
+      issues: [],
+      endTissue: BuhlmannState(compartments: []),
+      tissueTimeline: [],
+      ceilingTrace: [],
+    );
+    await tester.pumpWidget(_outcomeHarness(outcome));
+    await tester.pumpAndSettle();
+
+    expect(find.text('PO2'), findsOneWidget);
+    expect(find.text('END'), findsOneWidget);
+    expect(find.text('1.26'), findsOneWidget);
+    expect(find.text('12m'), findsOneWidget);
   });
 
   testWidgets('a line with an air break shows the break minutes after its '
@@ -184,13 +317,18 @@ void main() {
     expect(find.text('Depth'), findsWidgets);
     expect(find.text('Duration'), findsWidgets);
     // The table reads like a slate: the authored descent and bottom, then
-    // a travel leg and a stop per computed stop, marked by direction.
+    // a travel leg to the first stop and a line per computed stop, marked
+    // by direction (later stops fold their travel time in, #3138).
     expect(find.text('↘'), findsOneWidget);
     expect(find.text('→'), findsOneWidget);
     expect(find.text('↗'), findsWidgets);
     expect(find.text('−'), findsWidgets);
-    // Gas section rendered a per-tank consumption bar.
-    expect(find.byType(LinearProgressIndicator), findsWidgets);
+    // Gas section rendered a per-tank consumption row. A 45 m/25-minute
+    // bottom time on a single AL80 of air runs up a deco obligation that
+    // exceeds the cylinder's own capacity, so this renders the over-budget
+    // two-colour bar (#3190) rather than the ordinary LinearProgressIndicator
+    // -- "used:" covers both.
+    expect(find.textContaining('used:'), findsWidgets);
     // Air at 45 m trips the critical gas-density issue (issues sit below
     // the contingency tables — scroll the unique section header into the
     // lazy viewport, then nudge so the issue rows build).

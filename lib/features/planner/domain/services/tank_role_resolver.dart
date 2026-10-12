@@ -4,8 +4,8 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 
-/// Derives each cylinder's [TankRole] from the gas it carries and the
-/// segments that breathe it.
+/// Derives each cylinder's [TankRole] from the gas it carries and, on open
+/// circuit, the segments that breathe it.
 ///
 /// A plan's cylinders are described by name, size, start pressure and mix. The
 /// role used to be a ninth thing the diver declared, and it could disagree
@@ -13,21 +13,29 @@ import 'package:submersion/features/planner/domain/services/segment_chain.dart';
 /// Deco bottle leaner than the bottom mix. The plan already says which tank
 /// every segment breathes and what each mix's MOD is, so the role follows.
 ///
-/// The single exception is a CCR bailout cylinder. On a loop plan a 100% O2
-/// cylinder is either the oxygen supply or a bailout/deco bottle, and the
-/// numbers cannot tell those apart - calling a bailout bottle the O2 supply
-/// would quietly drop it out of the bailout calculation. So `bailout` stays an
-/// explicit choice: on a loop plan a stored role of [TankRole.bailout] is
-/// honoured as the diver's override and never re-derived.
+/// A loop plan (CCR/SCR/PSCR) works the other way around: a stored
+/// [TankRole.diluent] is honoured as the diver's own explicit choice rather
+/// than inferred from which segment breathes it -- a diluent bottle the
+/// diver forgot to assign to a segment used to silently become bailout with
+/// no indication why (issue #3135).
 ///
-/// Only on a loop plan. Open circuit has no such ambiguity, and the tank
-/// editor does not even offer the flag there, so a stored bailout role on an
-/// OC plan is left over from somewhere else and is re-derived like any
-/// other.
+/// CCR carries this further (#3220): it keeps the loop gases as two
+/// explicit slots, so a stored [TankRole.oxygenSupply] is honoured the same
+/// way, and nothing is derived from the gas mix at all -- a second 100 %
+/// cylinder stays open-circuit bailout, the oxygen slot is whichever
+/// cylinder the plan (CcrLoopSlots) actually holds under that role. SCR and
+/// PSCR have no such slots -- a 100 % cylinder on those modes is still
+/// taken for the oxygen supply by its mix alone, as it always was; #3220
+/// only changed CCR's rule, not theirs.
+///
+/// Open circuit has no such ambiguity, and the tank editor does not even
+/// offer the diluent flag there, so a stored diluent role on an OC plan is
+/// left over from somewhere else and is re-derived like any other.
 ///
 /// Nothing here is persisted. Callers apply it to their own copy of the plan
-/// so the stored role remains the diver's raw input (bailout or nothing),
-/// which keeps a derived role from later being mistaken for an override.
+/// so the stored role remains the diver's raw input (diluent or nothing on a
+/// loop plan), which keeps a derived role from later being mistaken for an
+/// override.
 class TankRoleResolver {
   const TankRoleResolver();
 
@@ -48,18 +56,18 @@ class TankRoleResolver {
   /// The derived role of every cylinder, by tank id.
   Map<String, TankRole> rolesFor(domain.DivePlan plan) {
     final bottomTankId = _bottomTankId(plan);
-    final breathed = plan.segments.map((s) => s.tankId).toSet();
     final bottomO2 = _tankById(plan, bottomTankId)?.gasMix.o2 ?? 21.0;
     final isLoop = plan.mode != domain.PlanMode.oc;
+    final isCcr = plan.mode == domain.PlanMode.ccr;
 
     return {
       for (final tank in plan.tanks)
         tank.id: _roleFor(
           tank,
           isLoop: isLoop,
+          isCcr: isCcr,
           bottomTankId: bottomTankId,
           bottomO2: bottomO2,
-          breathed: breathed,
         ),
     };
   }
@@ -67,28 +75,36 @@ class TankRoleResolver {
   TankRole _roleFor(
     DiveTank tank, {
     required bool isLoop,
+    required bool isCcr,
     required String? bottomTankId,
     required double bottomO2,
-    required Set<String> breathed,
   }) {
     if (isLoop) {
-      // The diver's only explicit choice, and honoured only here: on a loop
-      // plan a 100% cylinder is either the oxygen supply or a bailout bottle
-      // and the numbers cannot tell them apart. An open-circuit plan has no
-      // such ambiguity, so a stored bailout role there is stale input - a
-      // cylinder carried over from a loop plan, or picked from a saved
-      // configuration - and is re-derived like any other. Honouring it would
-      // hide the bottle from the lost-gas contingency, which only looks at
-      // deco, stage and travel gas.
-      if (tank.role == TankRole.bailout) return TankRole.bailout;
+      // The loop slots are the diver's explicit choice, honoured only here:
+      // an open-circuit plan has no such slots, so a stored loop role there
+      // is stale input and is re-derived like any other.
+      if (tank.role == TankRole.diluent) return TankRole.diluent;
 
-      // Pure O2 that nothing breathes directly is the oxygen supply; the gas
-      // the segments actually breathe is the diluent; anything else carried
-      // on a loop dive is open-circuit bailout.
-      if (tank.gasMix.o2 >= 99.5 && !breathed.contains(tank.id)) {
-        return TankRole.oxygenSupply;
+      if (isCcr) {
+        // The oxygen slot is CCR-only (#3220): a stored oxygenSupply role
+        // from a plan that was once CCR must not stick once it switches to
+        // SCR/PSCR, which have no such slot and judge a cylinder by its mix
+        // alone below -- honouring it unconditionally here let a non-pure
+        // tank stay misclassified as oxygen supply on those modes (caught
+        // by a Copilot review).
+        if (tank.role == TankRole.oxygenSupply) return TankRole.oxygenSupply;
+        // Everything else carried on a CCR dive is open-circuit bailout --
+        // a second pure-O2 cylinder too: the oxygen slot is the one the
+        // plan holds under that role, never derived from the mix (#3220).
+        return TankRole.bailout;
       }
-      if (breathed.contains(tank.id)) return TankRole.diluent;
+
+      // SCR/PSCR have no oxygen slot (#3220 did not touch them): a pure-O2
+      // cylinder is still the oxygen supply by its mix alone, same as
+      // before. The diver has no reason to tick bailout on it either.
+      if (tank.gasMix.o2 >= 99.5) return TankRole.oxygenSupply;
+
+      // Everything else carried on a loop dive is open-circuit bailout.
       return TankRole.bailout;
     }
 

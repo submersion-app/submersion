@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -7,6 +8,8 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_editor.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_app.dart';
@@ -101,6 +104,107 @@ void main() {
       expect(editor.startDepth, 0.0);
       expect(find.textContaining('Descent 0m → 30m'), findsOneWidget);
     });
+  });
+
+  group('CCR segments breathe diluent only (#3220)', () {
+    const bailout = DiveTank(
+      id: 'bo',
+      name: 'Bailout 50',
+      gasMix: GasMix(o2: 50),
+      order: 2,
+    );
+    const deep = DiveTank(
+      id: 'deep',
+      name: 'Deep dil',
+      gasMix: GasMix(o2: 10, he: 70),
+      role: TankRole.diluent,
+      order: 3,
+    );
+
+    testWidgets('with one diluent the editor offers no picker and names '
+        'it', (tester) async {
+      await tester.pumpWidget(harness());
+      final container = containerOf(tester);
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateMode(PlanMode.ccr);
+      notifier.addTank(bailout);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Add Segment'));
+      await tester.pumpAndSettle();
+
+      final editor = tester.widget<SegmentEditor>(find.byType(SegmentEditor));
+      expect(editor.tankLocked, isTrue);
+      final diluent = container
+          .read(divePlanNotifierProvider)
+          .tanks
+          .firstWhere((t) => t.role == TankRole.diluent);
+      expect(editor.availableTanks.map((t) => t.id), [diluent.id]);
+      expect(find.byType(DropdownButton<String>), findsNothing);
+    });
+
+    testWidgets('with two diluents the picker offers exactly those', (
+      tester,
+    ) async {
+      await tester.pumpWidget(harness());
+      final container = containerOf(tester);
+      final notifier = container.read(divePlanNotifierProvider.notifier);
+      notifier.updateMode(PlanMode.ccr);
+      notifier.addTank(bailout);
+      notifier.addTank(deep);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Add Segment'));
+      await tester.pumpAndSettle();
+
+      final editor = tester.widget<SegmentEditor>(find.byType(SegmentEditor));
+      expect(editor.tankLocked, isFalse);
+      expect(
+        editor.availableTanks.map((t) => t.role),
+        everyElement(TankRole.diluent),
+      );
+      expect(editor.availableTanks, hasLength(2));
+    });
+  });
+
+  group('RT includes the configured gas-switch stop time (#3263)', () {
+    testWidgets(
+      'the switching leg\'s RT is pushed out by the configured stop time, '
+      'matching the computed schedule instead of just the authored '
+      'durations',
+      (tester) async {
+        await tester.pumpWidget(harness());
+        final container = containerOf(tester);
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        notifier.updateMode(PlanMode.ccr);
+        const deep = DiveTank(
+          id: 'deep',
+          name: 'Deep dil',
+          gasMix: GasMix(o2: 10, he: 70),
+          role: TankRole.diluent,
+          order: 1,
+        );
+        notifier.addTank(deep);
+        notifier.updateGasOptions(gasSwitchStopSeconds: 300);
+
+        final shallowDiluent = container
+            .read(divePlanNotifierProvider)
+            .tanks
+            .firstWhere((t) => t.id != deep.id);
+        addSegment(container, id: 's1', depth: 60, minutes: 5);
+        addSegment(container, id: 's2', depth: 100, minutes: 10, tank: deep);
+        // Confirm the fixture actually switches diluent, same as the
+        // screenshot that reported this (two different tanks, both CCR
+        // diluent-eligible).
+        expect(shallowDiluent.id, isNot(deep.id));
+        await tester.pumpAndSettle();
+
+        // Without the fix this read '15′' -- the two authored durations
+        // (5 + 10 min) with the 5-minute configured gas-switch stop time
+        // silently dropped, instead of 20'.
+        expect(subtitleAt(tester, 1), contains('RT 20′'));
+      },
+    );
   });
 
   group('subtitle', () {

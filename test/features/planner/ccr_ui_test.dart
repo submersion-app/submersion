@@ -121,6 +121,62 @@ void main() {
     expect(find.textContaining('Required'), findsOneWidget);
     // Required/available volumes respect the diver's volume unit (default L).
     expect(find.textContaining(RegExp(r'Required \d+ L')), findsOneWidget);
+    // The bailout tank carries no normal-loop consumption to chart in the
+    // per-tank gas list -- it belongs in the bailout section instead (#3137
+    // follow-up). The two loop slots -- the diluent and the oxygen supply
+    // entering CCR added -- each get a "used: ..." row there (#3220), plus
+    // one more for the single bailout cylinder's own per-cylinder row in
+    // the bailout section, read the same way as the main list.
+    expect(find.textContaining('used:'), findsNWidgets(3));
+  });
+
+  testWidgets('the oxygen slot is loop consumption, listed in the main gas '
+      'list next to the diluent (#3220)', (tester) async {
+    tester.view.physicalSize = const Size(500, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides(),
+        child: SizedBox(
+          width: 500,
+          height: 700,
+          child: PlanResultsSheet(controller: ScrollController()),
+        ),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanResultsSheet)),
+    );
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    notifier.addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    notifier.updateMode(domain.PlanMode.ccr);
+    notifier.addTank(
+      const DiveTank(
+        id: 'bo',
+        volume: 11.1,
+        startPressure: 207,
+        gasMix: GasMix(o2: 50),
+        role: TankRole.bailout,
+      ),
+    );
+    final o2 = container
+        .read(divePlanNotifierProvider)
+        .tanks
+        .firstWhere((t) => t.role == TankRole.oxygenSupply);
+    notifier.updateTank(o2.id, o2.copyWith(name: 'Onboard O2'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Onboard O2'), findsOneWidget);
+    final gasList = find.ancestor(
+      of: find.text('Onboard O2'),
+      matching: find.byType(ListView),
+    );
+    expect(gasList, findsOneWidget);
+    // Diluent + oxygen supply in the main list, plus the single bailout
+    // cylinder's own per-cylinder row in the bailout section.
+    expect(find.textContaining('used:'), findsNWidgets(3));
   });
 
   testWidgets('CCR settings edit all setpoints; switch depth accepts 0', (
@@ -158,5 +214,42 @@ void main() {
     await tester.enterText(fields.at(0), '0');
     await tester.pumpAndSettle();
     expect(container.read(divePlanNotifierProvider).setpointLow, 0.8);
+  });
+
+  testWidgets('CCR settings fields stay in a row when there is room, and stack '
+      'vertically when there is not (#3130)', (tester) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides(),
+        child: const SizedBox(width: 500, child: CcrSettingsSection()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final wideFields = find.byType(TextFormField);
+    expect(wideFields, findsNWidgets(3));
+    // Side by side: all three share the same top edge.
+    final wideTops = [
+      for (var i = 0; i < 3; i++) tester.getTopLeft(wideFields.at(i)).dy,
+    ];
+    expect(wideTops[1], wideTops[0]);
+    expect(wideTops[2], wideTops[0]);
+
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides(),
+        child: const SizedBox(width: 300, child: CcrSettingsSection()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final narrowFields = find.byType(TextFormField);
+    expect(narrowFields, findsNWidgets(3));
+    // Stacked: each field starts strictly below the one before it, so
+    // every label keeps the field's full width instead of being
+    // ellipsis-truncated.
+    final narrowTops = [
+      for (var i = 0; i < 3; i++) tester.getTopLeft(narrowFields.at(i)).dy,
+    ];
+    expect(narrowTops[1], greaterThan(narrowTops[0]));
+    expect(narrowTops[2], greaterThan(narrowTops[1]));
   });
 }

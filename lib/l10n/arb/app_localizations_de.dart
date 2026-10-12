@@ -654,7 +654,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerMission_environment_openWater => 'Freiwasser';
 
   @override
-  String get plannerMission_environment_overhead => 'Overhead';
+  String get plannerMission_environment_overhead => 'Überkopfumgebung';
 
   @override
   String get plannerMission_factor_battery => 'Akkureserve';
@@ -10310,11 +10310,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_field_bailoutGas => 'Bailout-Gas';
+  String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
-  String get divePlanner_field_bailoutGasHint =>
-      'Offenes Gas, mitgeführt für den Fall eines Kreislaufausfalls';
+  String get divePlanner_field_diluentGasHint =>
+      'Nicht markierte Flaschen sind Bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10348,10 +10348,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_label_airBreaks => 'Luftpausen';
 
   @override
-  String get divePlanner_label_airBreaksBreak => 'Pause (min)';
+  String get divePlanner_label_airBreaksBreak => 'Pause (Min.)';
 
   @override
-  String get divePlanner_label_airBreaksOnO2 => 'Auf O2 (min)';
+  String get divePlanner_label_airBreaksOnO2 => 'Auf O2 (Min.)';
 
   @override
   String get divePlanner_label_altitude => 'Höhe:';
@@ -10417,6 +10417,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Zeit zur Problemlösung';
 
   @override
+  String get divePlanner_gasOptions_gasSwitchStopSeconds =>
+      'Stopp beim Gaswechsel';
+
+  @override
   String get divePlanner_gasOptions_ppO2Bottom => 'Grund-ppO₂';
 
   @override
@@ -10431,6 +10435,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => 'Flaschen';
+
+  @override
+  String get divePlanner_label_loopGases => 'Kreislauf';
+
+  @override
+  String get divePlanner_label_bailoutGases => 'Bailout';
+
+  @override
+  String get divePlanner_label_noBailout => 'Noch keine Bailout-Flasche';
 
   @override
   String get divePlanner_savedTanks_title => 'Gespeicherte Flaschen';
@@ -19259,7 +19272,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get nav_planning => 'Planung';
 
   @override
-  String get nav_planningSubtitle => 'Tauchplaner, Rechner';
+  String get nav_planningSubtitle => 'Tauchplan, Rechner';
 
   @override
   String get nav_settings => 'Einstellungen';
@@ -19302,6 +19315,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get plannerCanvas_bailout_insufficient =>
       'Bailout-Gas reicht für den schlimmsten Fall nicht aus';
+
+  @override
+  String get plannerCanvas_bailout_schedule => 'Plan ab dem schlimmsten Fall';
 
   @override
   String plannerCanvas_bailout_required(String liters) {
@@ -19492,9 +19508,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_tab_setup => 'Einrichtung';
 
   @override
-  String get plannerCanvas_o2Narcotic => 'O₂ als narkotisch behandeln';
-
-  @override
   String get plannerCanvas_rates_ascent => 'Aufstiegsrate';
 
   @override
@@ -19559,6 +19572,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chartMode_bailout => 'Bailout';
+
+  @override
+  String get plannerCanvas_chartMode_ccr => 'CCR';
+
+  @override
+  String plannerCanvas_scrub_tts(String minutes) {
+    return 'TTS $minutes′';
+  }
+
+  @override
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
@@ -19602,6 +19626,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_table_duration => 'Dauer';
 
   @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
+
+  @override
   String get plannerCanvas_turnRule_allUsable => 'Alles nutzbar';
 
   @override
@@ -19631,7 +19661,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Mehrstufige Tauchpläne erstellen';
 
   @override
-  String get planning_card_divePlanner_title => 'Tauchplaner';
+  String get planning_card_divePlanner_title => 'Tauchplan';
 
   @override
   String get planning_card_gasCalculators_subtitle =>
@@ -23430,6 +23460,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_species_category => 'Kategorie';
+
+  @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'Mit konfigurierter Rate aufteilen';
 
   @override
   String get settings_conflict_field_startDateTime => 'Geplanter Beginn';
@@ -32832,6 +32866,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get divePlanner_segmentEditor_duration => 'Dauer (min)';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRate =>
+      'Konfigurierte Rate verwenden';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRateHint =>
+      'Reise mit der konfigurierten Rate, der Rest der Dauer als Haltezeit';
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'Segment bearbeiten';

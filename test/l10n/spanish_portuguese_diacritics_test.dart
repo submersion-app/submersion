@@ -59,7 +59,6 @@ void main() {
       'fallo': _Homograph(
         'the noun fallo, and the past tense falló',
         keys: {
-          'divePlanner_field_bailoutGasHint',
           'equipmentObservation_tag_switchFault',
           'equipmentObservation_tag_screenFault',
           'equipmentObservation_tag_connectionFault',

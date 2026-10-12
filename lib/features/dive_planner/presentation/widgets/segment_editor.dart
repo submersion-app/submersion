@@ -31,8 +31,14 @@ class SegmentEditor extends ConsumerStatefulWidget {
   /// so the only way to change it is to change the segment before this one.
   final double startDepth;
 
-  /// Available tanks for gas selection.
+  /// Available tanks for gas selection. On a CCR plan the caller passes the
+  /// diluents only: a segment never breathes bailout (#3220).
   final List<DiveTank> availableTanks;
+
+  /// The segment can only breathe the one tank in [availableTanks] -- a CCR
+  /// plan with a single diluent -- so the picker is replaced by that tank's
+  /// name, and the segment is saved on it (#3220).
+  final bool tankLocked;
 
   /// Callback when segment is saved.
   final ValueChanged<PlanSegment> onSave;
@@ -42,6 +48,7 @@ class SegmentEditor extends ConsumerStatefulWidget {
     this.segment,
     this.startDepth = 0,
     required this.availableTanks,
+    this.tankLocked = false,
     required this.onSave,
   });
 
@@ -54,6 +61,14 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
   late TextEditingController _durationController;
   late String _selectedTankId;
   bool _unitsInitialized = false;
+
+  /// Whether the chart and the deco computation should read this segment as
+  /// travel (at the plan's configured descent/ascent rate) followed by a
+  /// hold at the target depth for whatever time remains of the duration
+  /// entered below, instead of stretching the whole duration linearly
+  /// across the depth change (#3264). The segment itself is unaffected --
+  /// one entry in the list, the same authored duration either way.
+  late bool _splitAtConfiguredRate;
 
   @override
   void initState() {
@@ -75,7 +90,16 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
         segment != null ? (segment.durationSeconds ~/ 60).toDouble() : 20,
       ),
     );
-    _selectedTankId = segment?.tankId ?? widget.availableTanks.first.id;
+    // A segment authored on a tank the editor no longer offers (a CCR plan's
+    // bailout, say, from before the segment's tank stopped being diluent)
+    // opens on the first offered tank rather than on a value the picker
+    // cannot show.
+    final current = segment?.tankId;
+    _selectedTankId =
+        current != null && widget.availableTanks.any((t) => t.id == current)
+        ? current
+        : widget.availableTanks.first.id;
+    _splitAtConfiguredRate = segment?.splitAtConfiguredRate ?? false;
   }
 
   final _formKey = GlobalKey<FormState>();
@@ -160,32 +184,64 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
                 ),
                 onChanged: (_) => setState(() {}),
               ),
+
+              // Only meaningful when this segment actually changes depth --
+              // a level leg has no travel portion for a rate to govern.
+              if (units.depthToMeters(_summaryValue(_depthController)) !=
+                  widget.startDepth)
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: _splitAtConfiguredRate,
+                  title: Text(
+                    context.l10n.divePlanner_segmentEditor_splitAtRate,
+                  ),
+                  subtitle: Text(
+                    context.l10n.divePlanner_segmentEditor_splitAtRateHint,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  onChanged: (value) {
+                    setState(() => _splitAtConfiguredRate = value ?? false);
+                  },
+                ),
               const SizedBox(height: 16),
 
-              // Tank selection
-              InputDecorator(
-                decoration: InputDecoration(
-                  labelText: context.l10n.divePlanner_segmentEditor_tankGas,
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedTankId,
-                    isExpanded: true,
-                    isDense: true,
-                    items: widget.availableTanks.map((tank) {
-                      return DropdownMenuItem(
-                        value: tank.id,
-                        child: Text(tank.name ?? tank.gasMix.name),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _selectedTankId = value);
-                      }
-                    },
+              // Tank selection -- or, with one tank the segment can
+              // breathe, just that tank's name.
+              if (widget.tankLocked)
+                InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: context.l10n.divePlanner_segmentEditor_tankGas,
+                  ),
+                  child: Text(
+                    widget.availableTanks.first.name ??
+                        widget.availableTanks.first.gasMix.name,
+                  ),
+                )
+              else
+                InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: context.l10n.divePlanner_segmentEditor_tankGas,
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _selectedTankId,
+                      isExpanded: true,
+                      isDense: true,
+                      items: widget.availableTanks.map((tank) {
+                        return DropdownMenuItem(
+                          value: tank.id,
+                          child: Text(tank.name ?? tank.gasMix.name),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _selectedTankId = value);
+                        }
+                      },
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
@@ -293,6 +349,7 @@ class _SegmentEditorState extends ConsumerState<SegmentEditor> {
       // dive-mode override on every edit round-trip.
       setpointBar: existing?.setpointBar,
       diveModeOverride: existing?.diveModeOverride,
+      splitAtConfiguredRate: _splitAtConfiguredRate,
       order: existing?.order ?? 0,
     );
 

@@ -175,12 +175,14 @@ class PlanTankUsage extends Equatable {
     return used;
   }
 
-  /// Surface liters left at the end of the plan.
+  /// Surface liters left at the end of the plan. Negative when [litersUsed]
+  /// exceeds [totalLiters] -- the cylinder is asked for more than it holds,
+  /// and the shortfall is exactly as informative as the surplus a diver
+  /// reads on an ordinary line (#3190).
   double? get remainingLiters {
     final total = totalLiters;
     if (total == null) return null;
-    final left = total - litersUsed;
-    return left < 0 ? 0.0 : left;
+    return total - litersUsed;
   }
 
   @override
@@ -237,6 +239,17 @@ class PlanScheduleRow extends Equatable {
   final bool gasSwitch;
   final int airBreakSeconds;
 
+  /// Partial pressure of O2 actually inspired on this line, bar. For a loop
+  /// mode (CCR/SCR/PSCR) this is the loop's real inspired ppO2 -- the
+  /// setpoint for CCR -- not ambient x the carried gas's own O2 fraction,
+  /// which on a loop is a different (usually lower) number.
+  final double ppO2;
+
+  /// Equivalent Narcotic Depth at this line's depth, metres, from [gasFO2]/
+  /// [gasFHe] via [GasMix.end] -- the same calculation and convention the
+  /// endExceeded plan issue already uses.
+  final double endMeters;
+
   const PlanScheduleRow({
     required this.kind,
     required this.depthMeters,
@@ -247,6 +260,8 @@ class PlanScheduleRow extends Equatable {
     this.tankId,
     this.gasSwitch = false,
     this.airBreakSeconds = 0,
+    this.ppO2 = 0.0,
+    this.endMeters = 0.0,
   });
 
   /// Elapsed dive time when this line BEGINS, in seconds.
@@ -263,6 +278,8 @@ class PlanScheduleRow extends Equatable {
     tankId,
     gasSwitch,
     airBreakSeconds,
+    ppO2,
+    endMeters,
   ];
 }
 

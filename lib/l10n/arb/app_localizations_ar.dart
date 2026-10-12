@@ -10438,11 +10438,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_field_bailoutGas => 'غاز الطوارئ';
+  String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
-  String get divePlanner_field_bailoutGasHint =>
-      'غاز الدائرة المفتوحة المحمول في حال تعطل الدائرة';
+  String get divePlanner_field_diluentGasHint =>
+      'الأسطوانات غير المحددة هي bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -10544,6 +10544,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_gasOptions_problemSolvingMinutes => 'زمن حل المشكلة';
 
   @override
+  String get divePlanner_gasOptions_gasSwitchStopSeconds => 'توقف تبديل الغاز';
+
+  @override
   String get divePlanner_gasOptions_ppO2Bottom => 'ppO₂ القاع';
 
   @override
@@ -10558,6 +10561,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get divePlanner_label_tanks => 'الأسطوانات';
+
+  @override
+  String get divePlanner_label_loopGases => 'Loop';
+
+  @override
+  String get divePlanner_label_bailoutGases => 'Bailout';
+
+  @override
+  String get divePlanner_label_noBailout => 'لا توجد أسطوانة bailout بعد';
 
   @override
   String get divePlanner_savedTanks_title => 'الأسطوانات المحفوظة';
@@ -19583,6 +19595,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'غاز الإنقاذ غير كافٍ لأسوأ حالة';
 
   @override
+  String get plannerCanvas_bailout_schedule => 'الجدول من أسوأ حالة';
+
+  @override
   String plannerCanvas_bailout_required(String liters) {
     return 'المطلوب $liters';
   }
@@ -19773,9 +19788,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_tab_setup => 'الإعداد';
 
   @override
-  String get plannerCanvas_o2Narcotic => 'اعتبار الأكسجين مخدرًا';
-
-  @override
   String get plannerCanvas_rates_ascent => 'معدل الصعود';
 
   @override
@@ -19840,6 +19852,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get plannerCanvas_chartMode_bailout => 'Bailout';
+
+  @override
+  String get plannerCanvas_chartMode_ccr => 'CCR';
+
+  @override
+  String plannerCanvas_scrub_tts(String minutes) {
+    return 'TTS $minutes′';
+  }
+
+  @override
   String plannerCanvas_scrub_readout(String minutes, String depth) {
     return 'RT $minutes′ · $depth';
   }
@@ -19881,6 +19904,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_table_duration => 'المدة';
+
+  @override
+  String get plannerCanvas_table_ppO2 => 'PO2';
+
+  @override
+  String get plannerCanvas_table_end => 'END';
 
   @override
   String get plannerCanvas_turnRule_allUsable => 'كل القابل للاستخدام';
@@ -23662,6 +23691,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_species_category => 'الفئة';
+
+  @override
+  String get settings_conflict_field_splitAtConfiguredRate =>
+      'التقسيم بالمعدل المُهيأ';
 
   @override
   String get settings_conflict_field_startDateTime => 'البداية المخططة';
@@ -33328,6 +33361,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get divePlanner_segmentEditor_duration => 'المدة (min)';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRate => 'استخدام المعدل المُهيأ';
+
+  @override
+  String get divePlanner_segmentEditor_splitAtRateHint =>
+      'الانتقال بالمعدل المُهيأ، وبقية المدة كوقت ثبات';
 
   @override
   String get divePlanner_segmentEditor_editTitle => 'تعديل المقطع';

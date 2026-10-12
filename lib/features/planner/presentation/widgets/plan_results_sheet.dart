@@ -2,14 +2,19 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
+    show PlanMode;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
+import 'package:submersion/features/planner/domain/services/dive_plan_state_mapper.dart';
 import 'package:submersion/features/planner/domain/services/schedule_lines.dart';
+import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_results_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
@@ -143,6 +148,20 @@ class PlanResultsSheet extends ConsumerWidget {
     }
 
     final bailout = ref.watch(planBailoutProvider);
+    final resolvedRoles = const TankRoleResolver().rolesFor(
+      divePlanFromState(state),
+    );
+    // On a loop plan this list is what the loop consumes: the diluent(s)
+    // and the oxygen supply, the plan's two mandatory slots (#3220). The
+    // bailout cylinders carry no loop consumption and live in the bailout
+    // section's own picture instead (#3137 follow-up). Open circuit has no
+    // such distinction, so every tank it resolves to still shows.
+    final loopTankUsages = outcome.tankUsages.where((u) {
+      final role = resolvedRoles[u.tankId];
+      return state.mode == PlanMode.oc ||
+          role == TankRole.diluent ||
+          role == TankRole.oxygenSupply;
+    });
 
     return ListView(
       controller: controller,
@@ -155,7 +174,7 @@ class PlanResultsSheet extends ConsumerWidget {
         _RuntimeTable(outcome: outcome, units: units),
         const SizedBox(height: 20),
         PlanSectionHeader(context.l10n.divePlanner_label_gasConsumption),
-        for (final usage in outcome.tankUsages)
+        for (final usage in loopTankUsages)
           _GasRow(usage: usage, label: tankLabel(usage.tankId), units: units),
         if (ref.watch(
           divePlanNotifierProvider.select((s) => s.mission != null),
@@ -372,8 +391,9 @@ class _RuntimeTable extends ConsumerWidget {
     final glyphStyle = theme.textTheme.bodyMedium?.copyWith(
       color: theme.colorScheme.outline,
     );
-    // A diver scans the gas column for the switches, so only those print,
-    // and print so they stand out.
+    // The gas column repeats on every line (not just the switch) so a diver
+    // reading a single row never has to scroll up to see what they are
+    // breathing; a switch still stands out via switchStyle below.
     final switchStyle = theme.textTheme.bodyMedium?.copyWith(
       color: theme.colorScheme.primary,
       fontWeight: FontWeight.w600,
@@ -403,6 +423,8 @@ class _RuntimeTable extends ConsumerWidget {
             cell(l10n.plannerCanvas_table_duration, style: headerStyle),
             cell(l10n.plannerCanvas_table_runtime, style: headerStyle),
             cell(l10n.plannerCanvas_table_gas, style: headerStyle, flex: 2),
+            cell(l10n.plannerCanvas_table_ppO2, style: headerStyle),
+            cell(l10n.plannerCanvas_table_end, style: headerStyle),
           ],
         ),
         const Divider(height: 12),
@@ -455,15 +477,12 @@ class _RuntimeTable extends ConsumerWidget {
               child: Icon(Icons.push_pin, size: 14),
             ),
           cell(
-            line.row.gasSwitch
-                ? GasMix(
-                    o2: line.row.gasFO2 * 100,
-                    he: line.row.gasFHe * 100,
-                  ).name
-                : '',
-            style: switchStyle,
+            GasMix(o2: line.row.gasFO2 * 100, he: line.row.gasFHe * 100).name,
+            style: line.row.gasSwitch ? switchStyle : null,
             flex: 2,
           ),
+          cell(line.row.ppO2.toStringAsFixed(2)),
+          cell(units.formatDepth(line.row.endMeters, decimals: 0)),
         ],
       ),
     );
@@ -671,18 +690,61 @@ class _GasRow extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: (usage.percentUsed / 100).clamp(0.0, 1.0),
-              minHeight: 4,
-              color: usage.reserveViolation
-                  ? theme.colorScheme.error
-                  : theme.colorScheme.primary,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-            ),
-          ),
+          _bar(theme),
         ],
+      ),
+    );
+  }
+
+  /// A cylinder that holds enough gas gets the ordinary single-colour bar.
+  /// One that does not gets a bar spanning the full NEED instead of the
+  /// cylinder's own capacity: blue for the share the cylinder actually
+  /// covers, red for the share still missing -- the shortfall is exactly as
+  /// visible as the surplus a diver reads on an ordinary line (#3190).
+  Widget _bar(ThemeData theme) {
+    final total = usage.totalLiters;
+    final overBudget = total != null && usage.litersUsed > total;
+    if (!overBudget) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(3),
+        child: LinearProgressIndicator(
+          value: (usage.percentUsed / 100).clamp(0.0, 1.0),
+          minHeight: 4,
+          color: usage.reserveViolation
+              ? theme.colorScheme.error
+              : theme.colorScheme.primary,
+          backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        ),
+      );
+    }
+    final coveredPermille = ((total / usage.litersUsed) * 1000).round().clamp(
+      1,
+      999,
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(3),
+      child: SizedBox(
+        width: double.infinity,
+        height: 4,
+        child: Row(
+          // A childless ColoredBox takes the smallest size its constraints
+          // allow, and a Row only hands its children LOOSE cross-axis
+          // constraints by default -- so without stretch each segment was
+          // laid out 0 px tall and the whole bar vanished (a diver saw both
+          // over-capacity cylinders print their negative readings with no
+          // bar underneath at all).
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: coveredPermille,
+              child: ColoredBox(color: theme.colorScheme.primary),
+            ),
+            Expanded(
+              flex: 1000 - coveredPermille,
+              child: ColoredBox(color: theme.colorScheme.error),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -788,6 +850,104 @@ class _BailoutSection extends StatelessWidget {
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+        if (outcome.bailoutTankUsages.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          for (final usage in outcome.bailoutTankUsages)
+            _GasRow(
+              usage: usage,
+              label: () {
+                final tank = outcome.bailoutTanks
+                    .where((t) => t.id == usage.tankId)
+                    .firstOrNull;
+                return tank == null ? '--' : (tank.name ?? tank.gasMix.name);
+              }(),
+              units: units,
+            ),
+        ],
+        if (outcome.worstCaseRows.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            context.l10n.plannerCanvas_bailout_schedule,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
+          ),
+          const SizedBox(height: 4),
+          _BailoutScheduleTable(rows: outcome.worstCaseRows, units: units),
+        ],
+      ],
+    );
+  }
+}
+
+/// The worst-case bailout point's schedule: depth/duration/RT/gas, read the
+/// same way as the main decompression table (#3137).
+class _BailoutScheduleTable extends StatelessWidget {
+  const _BailoutScheduleTable({required this.rows, required this.units});
+
+  final List<PlanScheduleRow> rows;
+  final UnitFormatter units;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+    final lines = scheduleLines(rows);
+    final headerStyle = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.outline,
+    );
+    final switchStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.primary,
+      fontWeight: FontWeight.w600,
+    );
+
+    Widget cell(String text, {TextStyle? style, int flex = 1}) => Expanded(
+      flex: flex,
+      child: Text(text, style: style ?? theme.textTheme.bodySmall),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const SizedBox(width: 16),
+            cell(l10n.plannerCanvas_table_depth, style: headerStyle),
+            cell(l10n.plannerCanvas_table_duration, style: headerStyle),
+            cell(l10n.plannerCanvas_table_runtime, style: headerStyle),
+            cell(l10n.plannerCanvas_table_gas, style: headerStyle, flex: 2),
+            cell(l10n.plannerCanvas_table_ppO2, style: headerStyle),
+            cell(l10n.plannerCanvas_table_end, style: headerStyle),
+          ],
+        ),
+        for (final line in lines)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 16,
+                  child: Text(
+                    scheduleRowGlyph(line.row.kind),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+                cell(units.formatDepth(line.row.depthMeters, decimals: 0)),
+                cell('${line.durationMinutes}′'),
+                cell('${line.runtimeMinutes}′'),
+                cell(
+                  GasMix(
+                    o2: line.row.gasFO2 * 100,
+                    he: line.row.gasFHe * 100,
+                  ).name,
+                  style: line.row.gasSwitch ? switchStyle : null,
+                  flex: 2,
+                ),
+                cell(line.row.ppO2.toStringAsFixed(2)),
+                cell(units.formatDepth(line.row.endMeters, decimals: 0)),
               ],
             ),
           ),

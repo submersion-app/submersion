@@ -133,6 +133,24 @@ extension DivePlanMigrations on AppDatabase {
     }
   }
 
+  /// Idempotent DDL for the v290 dive_plan_segments rate-split flag (issue
+  /// #3264). Additive, defaulting off: an existing segment keeps reading as
+  /// the single linear leg it always has.
+  Future<void> _assertSegmentSplitAtRateColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('dive_plan_segments')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('split_at_configured_rate')) {
+      await customStatement(
+        'ALTER TABLE dive_plan_segments ADD COLUMN '
+        'split_at_configured_rate INTEGER NOT NULL DEFAULT 0 '
+        'CHECK (split_at_configured_rate IN (0, 1))',
+      );
+    }
+  }
+
   /// Idempotent creation of the v244 DPV mission tables (issue #2086).
   /// Called from the v244 rung and the beforeOpen backstop.
   ///

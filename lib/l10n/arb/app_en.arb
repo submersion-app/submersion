@@ -6291,8 +6291,8 @@
   "divePlanner_error_reserveExceedsTank": "Exceeds tank pressure",
   "divePlanner_error_reserveMustBePositive": "Must be greater than 0",
   "divePlanner_info_reserveDefault": "Not entered — assuming {value} {unit}",
-  "divePlanner_field_bailoutGas": "Bailout gas",
-  "divePlanner_field_bailoutGasHint": "Open-circuit gas carried in case the loop fails",
+  "divePlanner_field_diluentGas": "Diluent",
+  "divePlanner_field_diluentGasHint": "Unticked cylinders are bailout",
   "divePlanner_field_hePercent": "He %",
   "divePlanner_field_name": "Name",
   "divePlanner_field_o2Percent": "O₂ %",
@@ -6338,11 +6338,27 @@
   "divePlanner_gasOptions_sacDeco": "Deco RMV",
   "divePlanner_gasOptions_sacFactor": "RMV factor",
   "divePlanner_gasOptions_problemSolvingMinutes": "Problem solving time",
+  "divePlanner_gasOptions_gasSwitchStopSeconds": "Gas switch stop",
+  "@divePlanner_gasOptions_gasSwitchStopSeconds": {
+    "description": "Minimum stop time enforced at every gas switch, main plan and bailout alike; 0 means no floor"
+  },
   "divePlanner_gasOptions_ppO2Bottom": "Bottom ppO₂",
   "divePlanner_gasOptions_ppO2Deco": "Deco ppO₂",
   "divePlanner_gasOptions_bestMixEnd": "Best mix END",
   "divePlanner_gasOptions_o2Narcotic": "Treat O₂ as narcotic for this plan",
   "divePlanner_label_tanks": "Tanks",
+  "divePlanner_label_loopGases": "Loop",
+  "@divePlanner_label_loopGases": {
+    "description": "Heading over a CCR plan's diluent and oxygen cylinders in the planner's tank list"
+  },
+  "divePlanner_label_bailoutGases": "Bailout",
+  "@divePlanner_label_bailoutGases": {
+    "description": "Heading over a CCR plan's open-circuit bailout cylinders in the planner's tank list"
+  },
+  "divePlanner_label_noBailout": "No bailout cylinder yet",
+  "@divePlanner_label_noBailout": {
+    "description": "Shown under the Bailout heading of a CCR plan's tank list while no bailout cylinder has been added"
+  },
   "divePlanner_savedTanks_title": "Saved tanks",
   "divePlanner_savedTanks_save": "Save a tank",
   "divePlanner_savedTanks_saveTitle": "Save tank as",
@@ -12060,6 +12076,7 @@
     }
   },
   "plannerCanvas_bailout_insufficient": "Bailout gas insufficient for the worst case",
+  "plannerCanvas_bailout_schedule": "Schedule from the worst case",
   "plannerCanvas_bailout_required": "Required {liters}",
   "@plannerCanvas_bailout_required": {
     "placeholders": {
@@ -12244,7 +12261,6 @@
   "plannerCanvas_pane_collapse": "Collapse panel",
   "plannerCanvas_pane_expand": "Expand panel",
   "plannerCanvas_tab_setup": "Setup",
-  "plannerCanvas_o2Narcotic": "Treat O₂ as narcotic",
   "plannerCanvas_rates_ascent": "Ascent rate",
   "plannerCanvas_rates_intermediateAscent": "Intermediate stop ascent rate",
   "plannerCanvas_rates_lastStop": "Last stop",
@@ -12291,6 +12307,16 @@
       }
     }
   },
+  "plannerCanvas_chartMode_bailout": "Bailout",
+  "plannerCanvas_chartMode_ccr": "CCR",
+  "plannerCanvas_scrub_tts": "TTS {minutes}′",
+  "@plannerCanvas_scrub_tts": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
   "plannerCanvas_scrub_readout": "RT {minutes}′ · {depth}",
   "@plannerCanvas_scrub_readout": {
     "placeholders": {
@@ -12321,6 +12347,8 @@
   "plannerCanvas_table_gas": "Gas",
   "plannerCanvas_table_runtime": "RT",
   "plannerCanvas_table_duration": "Duration",
+  "plannerCanvas_table_ppO2": "PO2",
+  "plannerCanvas_table_end": "END",
   "plannerCanvas_turnRule_allUsable": "All usable",
   "plannerCanvas_turnRule_custom": "Custom",
   "plannerCanvas_turnRule_halves": "Halves",
@@ -13836,6 +13864,7 @@
   "settings_conflict_field_sourceValueNumber": "Reference reading",
   "settings_conflict_field_spec": "Connection map",
   "settings_conflict_field_species_category": "Category",
+  "settings_conflict_field_splitAtConfiguredRate": "Split at the configured rate",
   "settings_conflict_field_startDateTime": "Planned start",
   "settings_conflict_field_startDepth": "Start depth",
   "settings_conflict_field_startTime": "Start time",
@@ -19846,6 +19875,11 @@
     }
   },
   "divePlanner_segmentEditor_duration": "Duration (min)",
+  "divePlanner_segmentEditor_splitAtRate": "Use configured rate",
+  "@divePlanner_segmentEditor_splitAtRate": {
+    "description": "Checkbox in the segment editor: split this leg into travel at the configured descent/ascent rate plus a hold at the target depth for the remainder of the entered duration"
+  },
+  "divePlanner_segmentEditor_splitAtRateHint": "Travel at the configured rate, the rest of the duration as hold time",
   "divePlanner_segmentEditor_editTitle": "Edit Segment",
   "divePlanner_segmentEditor_tankGas": "Tank / Gas",
   "divePlanner_segmentList_addSegment": "Add Segment",

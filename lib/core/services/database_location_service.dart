@@ -141,7 +141,24 @@ class DatabaseLocationService {
   }
 
   /// Get the database file path based on current configuration
+  ///
+  /// A `SUBMERSION_DB_PATH` environment variable, when set, short-circuits
+  /// this entirely and skips SharedPreferences. SharedPreferences on
+  /// desktop is one file per Windows user account, shared by every running
+  /// instance of the app regardless of which build or working copy launched
+  /// it -- running two development builds side by side (one worktree per
+  /// branch) means the one that happens to start second silently inherits
+  /// whatever custom folder the first one configured, and if its schema is
+  /// newer it auto-migrates the first one's database out from under it. No
+  /// real install ever sets this variable, so production behaviour is
+  /// unchanged; it exists purely so each worktree's dev run can point at a
+  /// folder nothing else touches.
   Future<String> getDatabasePath() async {
+    final override = Platform.environment['SUBMERSION_DB_PATH'];
+    if (override != null && override.isNotEmpty) {
+      return override;
+    }
+
     final config = await getStorageConfig();
 
     if (config.mode == StorageLocationMode.customFolder &&
