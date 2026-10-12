@@ -6663,6 +6663,49 @@ class DiveRepository {
     }
   }
 
+  /// Each dive's course ids, representative first (#2515).
+  Future<Map<String, List<String>>> courseIdsForDives(List<String> diveIds) =>
+      _courseLinks.courseIdsForDives(diveIds);
+
+  /// {courseId: how many of [diveIds] are in it}, for the bulk editor.
+  Future<Map<String, int>> courseCountsForDives(List<String> diveIds) =>
+      _courseLinks.courseCountsForDives(diveIds);
+
+  /// Add [courseIds] to each dive's courses. No notify/txn.
+  Future<void> bulkAddCourses(
+    List<String> diveIds,
+    List<String> courseIds,
+  ) async {
+    if (diveIds.isEmpty || courseIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _courseLinks.addCourses(diveIds, courseIds, now: now);
+    await _bumpDives(diveIds, now);
+  }
+
+  /// Remove [courseIds] from each dive's courses. No notify/txn.
+  Future<void> bulkRemoveCourses(
+    List<String> diveIds,
+    List<String> courseIds,
+  ) async {
+    if (diveIds.isEmpty || courseIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await _courseLinks.removeCourses(diveIds, courseIds, now: now);
+    await _bumpDives(diveIds, now);
+  }
+
+  /// Make each dive's courses exactly [courseIds]. No notify/txn.
+  Future<void> bulkReplaceCourses(
+    List<String> diveIds,
+    List<String> courseIds,
+  ) async {
+    if (diveIds.isEmpty) return;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final diveId in diveIds) {
+      await _courseLinks.writeCourseSet(diveId, courseIds, now: now);
+    }
+    await _bumpDives(diveIds, now);
+  }
+
   /// Replace each dive's dive-type membership with exactly [typeIds] (coerced
   /// to a single recreational type if empty). No notify/txn.
   Future<void> bulkReplaceDiveTypes(

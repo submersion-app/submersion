@@ -304,4 +304,49 @@ void main() {
       throwsA(isA<StateError>()),
     );
   });
+
+  test(
+    "a planned dive's courses survive a fill and its undo (#2515)",
+    () async {
+      for (final (id, start) in [('c1', 1), ('c2', 2)]) {
+        await db
+            .into(db.courses)
+            .insert(
+              CoursesCompanion(
+                id: Value(id),
+                diverId: Value(eric),
+                name: Value(id),
+                agency: const Value('tdi'),
+                startDate: Value(start),
+                createdAt: const Value(0),
+                updatedAt: const Value(0),
+              ),
+            );
+      }
+      final planned = await dives.createPlannedDive(
+        Dive(
+          id: '',
+          diverId: eric,
+          dateTime: DateTime(2026, 6, 1, 9),
+          courseIds: const ['c1', 'c2'],
+        ),
+      );
+      Future<Set<String>> junction() async => {
+        for (final r in await (db.select(
+          db.diveCourses,
+        )..where((t) => t.diveId.equals(planned.id))).get())
+          r.courseId,
+      };
+
+      final outcome = await service.fill(
+        plannedDiveId: planned.id,
+        dive: download(),
+        computerId: computerId,
+      );
+      expect(await junction(), {'c1', 'c2'});
+
+      await service.undo(outcome);
+      expect(await junction(), {'c1', 'c2'});
+    },
+  );
 }
