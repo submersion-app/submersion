@@ -54,8 +54,6 @@ class WebDavMediaObjectStore implements MediaObjectStore {
     }
   }
 
-  bool get _chunks => _client.config.chunkedUploadsRoot != null;
-
   @override
   Future<StoreObjectInfo?> head(String key) => _guard(() async {
     final entry = await _client.stat(_path(key));
@@ -115,7 +113,6 @@ class WebDavMediaObjectStore implements MediaObjectStore {
 
   @override
   Future<void> abandonResume(String key, String? resumeStateJson) async {
-    if (!_chunks) return;
     await ChunkedUpload(_client).abandon(resumeStateJson);
   }
 
@@ -154,7 +151,6 @@ class WebDavMediaObjectStore implements MediaObjectStore {
 
   @override
   Future<int> reapStaleUploadSessions({required DateTime olderThan}) async {
-    if (!_chunks) return 0;
     return _guard(() => ChunkedUpload(_client).reapStale(olderThan));
   }
 }

@@ -135,6 +135,25 @@ void main() {
     expect(client.chunkingUnsupported, isTrue);
   });
 
+  // The address shape alone turns chunking on, so any refusal of the
+  // uploads collection short of an auth failure must fall back.
+  test(
+    'any client-side refusal of the uploads collection falls back',
+    () async {
+      for (final status in [400, 403, 404, 405, 409, 415, 501]) {
+        server.chunkingEnabled = false;
+        server.chunkingRefusedStatus = status;
+        client.chunkingUnsupported = false;
+        expect(
+          await uploader().upload('Submersion/video.mp4', source),
+          isFalse,
+          reason: '$status',
+        );
+        expect(client.chunkingUnsupported, isTrue, reason: '$status');
+      }
+    },
+  );
+
   test(
     'a MOVE whose reply was lost counts as done when the file is complete',
     () async {

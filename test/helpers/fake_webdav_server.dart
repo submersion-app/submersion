@@ -49,6 +49,10 @@ class FakeWebDavServer {
   /// False makes MKCOL under `/remote.php/dav/uploads` answer 501.
   bool chunkingEnabled = true;
 
+  /// The status MKCOL under `/remote.php/dav/uploads` answers while
+  /// [chunkingEnabled] is false.
+  int chunkingRefusedStatus = 501;
+
   /// The next chunk-assembly MOVE applies, then fails in transit.
   bool moveFailsAfterApplying = false;
 
@@ -219,7 +223,7 @@ class FakeWebDavServer {
 
   http.Response _mkcol(String path) {
     if (!chunkingEnabled && path.startsWith('/remote.php/dav/uploads/')) {
-      return http.Response('', 501);
+      return http.Response('', chunkingRefusedStatus);
     }
     if (collections.contains(path) || files.containsKey(path)) {
       return http.Response('', 405);

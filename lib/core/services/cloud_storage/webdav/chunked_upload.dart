@@ -114,7 +114,10 @@ class ChunkedUpload {
 
   static String chunkName(int n) => n.toString().padLeft(5, '0');
 
-  Uri get _uploads => _client.config.chunkedUploadsRoot!;
+  /// Derived once: the config is immutable, and every chunk addresses it.
+  late final Uri? _uploadsRoot = _client.config.chunkedUploadsRoot;
+
+  Uri get _uploads => _uploadsRoot!;
 
   Uri _under(Uri base, List<String> extra) => base.replace(
     pathSegments: [...base.pathSegments.where((s) => s.isNotEmpty), ...extra],
@@ -175,7 +178,9 @@ class ChunkedUpload {
         'MKCOL',
         _under(_uploads, [fresh.transferId, '']),
         headers: {'destination': dest},
-        accept: const {404, 405, 501},
+        // The address shape alone turns chunking on, so any refusal of the
+        // uploads collection short of an auth failure means a single PUT.
+        accept: const {400, 403, 404, 405, 409, 415, 501},
       );
       await response.stream.drain<void>();
       if (response.statusCode != 201) {
@@ -239,7 +244,7 @@ class ChunkedUpload {
   /// Best effort; never throws on malformed state.
   Future<void> abandon(String? resumeStateJson) async {
     final state = ChunkedUploadState.tryParse(resumeStateJson);
-    if (state == null || _client.config.chunkedUploadsRoot == null) return;
+    if (state == null || _uploadsRoot == null) return;
     try {
       final response = await _client.request(
         'DELETE',
@@ -255,7 +260,7 @@ class ChunkedUpload {
   /// Deletes this app's upload directories last touched before
   /// [olderThan]; returns how many.
   Future<int> reapStale(DateTime olderThan) async {
-    if (_client.config.chunkedUploadsRoot == null) return 0;
+    if (_uploadsRoot == null) return 0;
     final List<DavResource> listing;
     try {
       listing = await _client.propfindRaw(_under(_uploads, ['']), 1);
