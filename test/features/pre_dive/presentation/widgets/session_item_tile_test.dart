@@ -788,8 +788,8 @@ void main() {
       );
 
       // The clock's name is its own bulleted line, separate from the
-      // trigger line(s) underneath it -- not joined into one string with
-      // the usage count, which is what read as a single crowded block.
+      // trigger line(s) underneath it. Joining it into one string with the
+      // usage count is what read as a single crowded block.
       expect(find.text('• Hydrostatic test'), findsOneWidget);
       expect(find.text('• O2 sensor'), findsOneWidget);
       expect(find.text('48 of 100 dives, 52 left'), findsOneWidget);

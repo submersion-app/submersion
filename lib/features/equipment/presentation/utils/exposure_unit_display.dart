@@ -15,7 +15,7 @@ extension ExposureUnitDisplay on ExposureUnit {
     ExposureUnit.cycles => l10n.equipment_scheduleDialog_intervalCycles,
   };
 
-  /// The "N used, N of M units left" clock line. [days] has no usage line.
+  /// The "N of M units, K left" clock line. [days] has no usage line.
   String usedAndLeftText(
     AppLocalizations l10n, {
     required String used,

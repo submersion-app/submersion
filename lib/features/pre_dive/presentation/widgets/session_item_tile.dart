@@ -112,10 +112,24 @@ class SessionItemTile extends ConsumerWidget {
     ];
   }
 
+  /// Text colour for a service entry's header and trigger lines.
+  /// serviceSeverityDotColor returns surfaceContainerHighest for an OK entry,
+  /// which suits a small dot meant to stay quiet but is near-invisible as
+  /// full-line text on a light theme. Ordinary body text reads fine for
+  /// "everything's fine".
+  Color _serviceEntryColor(
+    BuildContext context,
+    ThemeData theme,
+    ServiceClockSeverity severity,
+  ) => severity == ServiceClockSeverity.ok
+      ? theme.colorScheme.onSurfaceVariant
+      : serviceSeverityDotColor(context, severity);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final (serviceEntries, serviceAsOf) = _serviceEntries(ref);
     final hasOverdue = serviceEntries.any(
       (entry) => entry.severity == ServiceClockSeverity.overdue,
@@ -246,19 +260,13 @@ class SessionItemTile extends ConsumerWidget {
               '• ${entry.kindName}',
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                // serviceSeverityDotColor returns surfaceContainerHighest for
-                // an OK entry -- right for a small dot meant to stay quiet,
-                // but near-invisible as full-line text on a light theme.
-                // Ordinary body text reads fine for "everything's fine".
-                color: entry.severity == ServiceClockSeverity.ok
-                    ? theme.colorScheme.onSurfaceVariant
-                    : serviceSeverityDotColor(context, entry.severity),
+                color: _serviceEntryColor(context, theme, entry.severity),
               ),
             ),
           ),
           for (final line in formatServiceTriggerLines(
             context,
-            units: UnitFormatter(ref.watch(settingsProvider)),
+            units: units,
             now: serviceAsOf,
             dueDate: entry.dueDate,
             divesSinceAnchor: entry.divesSinceAnchor,
@@ -272,9 +280,7 @@ class SessionItemTile extends ConsumerWidget {
               child: Text(
                 line,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: entry.severity == ServiceClockSeverity.ok
-                      ? theme.colorScheme.onSurfaceVariant
-                      : serviceSeverityDotColor(context, entry.severity),
+                  color: _serviceEntryColor(context, theme, entry.severity),
                 ),
               ),
             ),
@@ -304,9 +310,7 @@ class SessionItemTile extends ConsumerWidget {
       // text-bearing there eats into the item title (issue #935).
       if (item.completedAt != null)
         Text(
-          UnitFormatter(
-            ref.watch(settingsProvider),
-          ).formatTime(item.completedAt),
+          units.formatTime(item.completedAt),
           style: theme.textTheme.bodySmall,
         ),
     ];

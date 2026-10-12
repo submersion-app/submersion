@@ -119,4 +119,64 @@ void main() {
     );
     expect(text, contains(' · '));
   });
+
+  group('formatServiceTriggerLines', () {
+    Future<List<String>> lines(
+      WidgetTester tester, {
+      DateTime? dueDate,
+      int? divesSinceAnchor,
+      int? divesRemaining,
+      double? hoursSinceAnchor,
+      double? hoursRemaining,
+    }) async {
+      late List<String> result;
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Builder(
+            builder: (context) {
+              result = formatServiceTriggerLines(
+                context,
+                units: const UnitFormatter(AppSettings()),
+                now: DateTime(2026, 1, 1),
+                dueDate: dueDate,
+                divesSinceAnchor: divesSinceAnchor,
+                divesRemaining: divesRemaining,
+                hoursSinceAnchor: hoursSinceAnchor,
+                hoursRemaining: hoursRemaining,
+              );
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      return result;
+    }
+
+    testWidgets('returns one unjoined entry per trigger, date first', (
+      tester,
+    ) async {
+      final result = await lines(
+        tester,
+        dueDate: DateTime(2026, 7, 16),
+        divesSinceAnchor: 10,
+        divesRemaining: 5,
+        hoursSinceAnchor: 2.0,
+        hoursRemaining: 8.0,
+      );
+      expect(result, hasLength(3));
+      expect(result[0], startsWith('Due '));
+      expect(result[1], '10 of 15 dives, 5 left');
+      expect(result[2], '2.0 of 10.0 hours, 8.0 left');
+      expect(result.any((line) => line.contains(' · ')), isFalse);
+    });
+
+    testWidgets('returns an empty list for a clock with no trigger', (
+      tester,
+    ) async {
+      expect(await lines(tester), isEmpty);
+    });
+  });
 }

@@ -6,11 +6,11 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/presentation/utils/exposure_unit_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Formats the "Due {date}" / "Overdue since {date}" / "N of M dives left" /
-/// "N of M hours left" trigger line for one service clock, joining whichever
-/// triggers are configured with a middle dot. Shared by the cylinder
-/// passport card and the status indicator (both one-line contexts), so they
-/// read the exact same wording.
+/// Formats the "Due {date}" / "Overdue since {date}" / "N of M dives, K left"
+/// / "N of M hours, K left" trigger line for one service clock, joining
+/// whichever triggers are configured with a middle dot. Used by the cylinder
+/// passport card and the status indicator, so they read the exact same
+/// wording as the equipment and checklist views.
 ///
 /// [formatServiceTriggerLines] returns the same triggers unjoined, for a
 /// caller that lays them out as separate lines instead.
@@ -153,7 +153,7 @@ String formatServiceTriggerShort(
 
   final usage = status.usageByUnit[pick]!;
   // A spent clock is overdue, not negatively remaining; the same clamp
-  // formatServiceTriggerText applies to its own usage lines.
+  // formatServiceTriggerLines applies to its own usage lines.
   final remaining = usage.remaining < 0 ? 0.0 : usage.remaining;
   return pick.shortRemainingText(l10n, remaining);
 }
