@@ -126,6 +126,9 @@ class _CylinderConfigItemEditorState
               Expanded(
                 child: DropdownButtonFormField<TankRole>(
                   initialValue: item.tankRole,
+                  // Lets a long role name ellipsize beside its glyph instead
+                  // of overflowing a narrow field.
+                  isExpanded: true,
                   decoration: InputDecoration(
                     labelText: l10n.cylinderConfigs_role,
                   ),
