@@ -170,6 +170,26 @@ void main() {
     },
   );
 
+  test('abandoning a chunked upload removes its upload directory', () async {
+    const dir = '/remote.php/dav/uploads/alice/submersion-t1';
+    server = FakeWebDavServer(
+      seedCollections: const [
+        '/remote.php/dav/files/alice',
+        '/remote.php/dav/uploads/alice',
+        dir,
+      ],
+    );
+    store = build(serverUrl: 'https://dav.test/remote.php/dav/files/alice');
+    const state = ChunkedUploadState(
+      transferId: 'submersion-t1',
+      chunkSize: ChunkedUpload.chunkBytes,
+      total: ChunkedUpload.chunkBytes + 1,
+      dest: 'https://dav.test/remote.php/dav/files/alice/x.mp4',
+    );
+    await store.abandonResume('k', state.toJsonString());
+    expect(server.collections, isNot(contains(dir)));
+  });
+
   test('stores without chunked uploads have no sessions to reap', () async {
     expect(
       await store.reapStaleUploadSessions(olderThan: DateTime.utc(2030)),

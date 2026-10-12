@@ -227,6 +227,29 @@ void main() {
     expect(server.captured, isEmpty);
   });
 
+  testWidgets('a missing, malformed or credentialed address is refused', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await fillValidForm(tester);
+    const messages = {
+      '': 'Required',
+      'dav.test/dav': 'Enter an address starting with https:// or http://',
+      'https://alice:secret@dav.test/dav':
+          'Put the username and password in their own fields, not in the address',
+    };
+    for (final MapEntry(key: address, value: message) in messages.entries) {
+      await tester.enterText(
+        find.byKey(const Key('webdav-server-url')),
+        address,
+      );
+      await tester.tap(find.byKey(const Key('webdav-test')));
+      await tester.pumpAndSettle();
+      expect(find.text(message), findsOneWidget, reason: address);
+    }
+    expect(server.captured, isEmpty);
+  });
+
   testWidgets('Test connection probes the server and reports success', (
     tester,
   ) async {
