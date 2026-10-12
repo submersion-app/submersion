@@ -178,6 +178,40 @@ void main() {
       expect(find.byIcon(Icons.close), findsNothing);
     });
 
+    testWidgets('filter and sort share the title row with Cancel and Add', (
+      tester,
+    ) async {
+      await _open(tester);
+
+      final title = tester.getRect(find.text('Add Equipment'));
+      final filter = tester.getRect(find.byIcon(Icons.filter_list));
+      final sort = tester.getRect(find.byIcon(Icons.sort));
+      final cancel = tester.getRect(find.widgetWithText(TextButton, 'Cancel'));
+      for (final icon in [filter, sort]) {
+        expect(icon.center.dy, moreOrLessEquals(title.center.dy, epsilon: 1));
+        expect(icon.left, greaterThanOrEqualTo(title.right));
+        expect(icon.right, lessThanOrEqualTo(cancel.left));
+      }
+    });
+
+    testWidgets('on a phone too narrow for one row, filter and sort drop '
+        'below Cancel and Add rather than cutting the title short', (
+      tester,
+    ) async {
+      await _open(tester, size: const Size(360, 800));
+
+      final add = tester.getRect(find.byType(FilledButton));
+      final cancel = tester.getRect(find.widgetWithText(TextButton, 'Cancel'));
+      final title = tester.getRect(find.text('Add Equipment'));
+      expect(cancel.center.dy, moreOrLessEquals(add.center.dy, epsilon: 1));
+      expect(title.right, lessThanOrEqualTo(cancel.left));
+      for (final icon in [Icons.filter_list, Icons.sort]) {
+        final rect = tester.getRect(find.byIcon(icon));
+        expect(rect.top, greaterThanOrEqualTo(add.bottom));
+      }
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('a tick survives the item being filtered out of view', (
       tester,
     ) async {

@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_pic
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/max_width_fraction.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/picker_header_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/shared_gear_note_line.dart';
 
 /// Equipment picker bottom sheet.
@@ -263,57 +264,55 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
       ),
     ];
 
+    final title = Text(
+      widget.title ?? context.l10n.diveLog_equipmentPicker_title,
+      style: Theme.of(context).textTheme.titleLarge,
+      // Cancel and Add leave the title less room than the close icon does,
+      // so it wraps before it is cut short.
+      maxLines: _multiSelect ? 2 : 1,
+      overflow: TextOverflow.ellipsis,
+    );
+
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Flexible with an ellipsis: three icon buttons take a fixed
-              // ~144dp, and an inflexible title overflowed a 320dp phone by
-              // 362px in French, whose title is 23 characters.
-              Flexible(
-                child: Text(
-                  widget.title ?? context.l10n.diveLog_equipmentPicker_title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                  // Two text buttons leave the title less room than three
-                  // icons did, so it wraps before it is cut short.
-                  maxLines: _multiSelect ? 2 : 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (_multiSelect)
-                _ConfirmButtons(
-                  count: _picked.length,
-                  onConfirm: () =>
-                      widget.onEquipmentConfirmed!(_picked.values.toList()),
+          child: _multiSelect
+              // Filter and sort share the title row when the title fits
+              // beside them, and drop below Cancel and Add when it does not.
+              ? PickerHeaderLayout(
+                  title: title,
+                  listControls: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: listControls,
+                  ),
+                  actions: _ConfirmButtons(
+                    count: _picked.length,
+                    onConfirm: () =>
+                        widget.onEquipmentConfirmed!(_picked.values.toList()),
+                  ),
                 )
-              else
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    ...listControls,
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      tooltip: context.l10n.common_action_close,
-                      onPressed: () => Navigator.of(context).pop(),
+                    // Flexible with an ellipsis: three icon buttons take a
+                    // fixed ~144dp, and an inflexible title overflowed a 320dp
+                    // phone by 362px in French, whose title is 23 characters.
+                    Flexible(child: title),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ...listControls,
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          tooltip: context.l10n.common_action_close,
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-            ],
-          ),
         ),
-        // Cancel and Add take the header, so filter and sort get their own
-        // row rather than squeezing the title off a 320dp phone.
-        if (_multiSelect)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: listControls,
-            ),
-          ),
         if (widget.hint case final hint?)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -550,29 +549,24 @@ class _ConfirmButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Never wider than the sheet's padded width: a long translation at a
-    // large text size shrinks the pair rather than overflowing the header.
-    final maxWidth = MediaQuery.sizeOf(context).width - 32;
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: maxWidth),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(context.l10n.common_action_cancel),
-            ),
-            const SizedBox(width: 8),
-            FilledButton(
-              onPressed: count == 0 ? null : onConfirm,
-              child: Text(
-                context.l10n.equipment_components_pickerConfirm(count),
-              ),
-            ),
-          ],
-        ),
+    // The header never offers more than its own width, so a long
+    // translation at a large text size shrinks the pair rather than
+    // overflowing it.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.l10n.common_action_cancel),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: count == 0 ? null : onConfirm,
+            child: Text(context.l10n.equipment_components_pickerConfirm(count)),
+          ),
+        ],
       ),
     );
   }
