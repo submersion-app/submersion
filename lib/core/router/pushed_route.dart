@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -10,20 +11,50 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 bool isPushedRoute(BuildContext context) =>
     ModalRoute.of(context)?.canPop ?? false;
 
+/// Whether the page holding [context] was put on the stack by a push, as
+/// opposed to built from a URL by go().
+///
+/// Stricter than [isPushedRoute]: go('/equipment/e1') builds the equipment
+/// list under the item (the detail route is the list's child), so the item
+/// can pop without having been pushed. A pushed page's state carries its
+/// imperative match's own page key, which a later replace() keeps.
+bool isImperativelyPushed(BuildContext context) {
+  final router = GoRouter.maybeOf(context);
+  if (router == null) return false;
+  return _hasImperativeMatch(
+    router.routerDelegate.currentConfiguration.matches,
+    GoRouterState.of(context).pageKey,
+  );
+}
+
+bool _hasImperativeMatch(List<RouteMatchBase> matches, ValueKey<String> key) {
+  for (final match in matches) {
+    if (match is ImperativeRouteMatch) {
+      if (match.pageKey == key) return true;
+      if (_hasImperativeMatch(match.matches.matches, key)) return true;
+    } else if (match is ShellRouteMatch) {
+      if (_hasImperativeMatch(match.matches, key)) return true;
+    }
+  }
+  return false;
+}
+
 /// Whether a standalone detail page should move itself into its section's
 /// master-detail split (`/<section>?selected=<id>`).
 ///
-/// Only a root page does: a deep link or a sidebar visit. A page pushed from
-/// somewhere else (a dive's linked gear, a buddy's shared dive) stays put, or
-/// the redirect's `go` would erase the page it came from and its back arrow
-/// with it (#764, #3292). Embedded pages, phone widths and table mode (which
-/// has no split to move into) never redirect.
+/// A page reached by URL does: a deep link, or an item opened at phone width
+/// before the window was widened. A page pushed from somewhere else (a dive's
+/// linked gear, a buddy's shared dive) stays put, or the redirect's `go` would
+/// erase the page it came from and its back arrow with it (#764, #3292).
+/// Embedded pages, phone widths, table mode (which has no split to move into)
+/// and pages outside a router never redirect.
 bool shouldRedirectToMasterDetail(
   BuildContext context, {
   required bool embedded,
   required ListViewMode viewMode,
 }) =>
     !embedded &&
-    !isPushedRoute(context) &&
+    GoRouter.maybeOf(context) != null &&
+    !isImperativelyPushed(context) &&
     ResponsiveBreakpoints.isMasterDetail(context) &&
     viewMode != ListViewMode.table;

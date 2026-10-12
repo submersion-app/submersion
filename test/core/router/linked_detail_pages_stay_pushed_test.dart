@@ -97,19 +97,23 @@ void main() {
           path: '/root',
           builder: (_, _) => const Scaffold(body: Text('ROOT')),
         ),
-        GoRoute(
-          path: '/item',
-          builder: (_, state) {
-            locations.add(state.uri.toString());
-            return c.page(id);
-          },
-        ),
+        // Shaped like the app: the detail route is a child of its list, so
+        // a go() to it builds the list underneath as well.
         GoRoute(
           path: c.section,
           builder: (_, state) {
             locations.add(state.uri.toString());
             return const Scaffold(body: Text('SECTION'));
           },
+          routes: [
+            GoRoute(
+              path: ':id',
+              builder: (_, state) {
+                locations.add(state.uri.toString());
+                return c.page(state.pathParameters['id']!);
+              },
+            ),
+          ],
         ),
       ],
     );
@@ -154,12 +158,12 @@ void main() {
 
       // push() completes only when the pushed route is popped; hold the
       // future and await it after the pop so it is never left dangling.
-      final pushed = router.push('/item');
+      final pushed = router.push('${c.section}/$id');
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
 
       expect(
-        locations.where((l) => l.startsWith(c.section)),
+        locations.where((l) => l.startsWith('${c.section}?selected=')),
         isEmpty,
         reason:
             'a pushed ${c.name} page must not redirect into its section '
@@ -174,11 +178,16 @@ void main() {
       expect(find.text('ROOT'), findsOneWidget);
     });
 
-    testWidgets('${c.name}: root visit at desktop width still redirects', (
+    testWidgets('${c.name}: a go() to its URL at desktop width redirects', (
       tester,
     ) async {
       final locations = <String>[];
-      await pumpCase(tester, c, initial: '/item', locations: locations);
+      await pumpCase(
+        tester,
+        c,
+        initial: '${c.section}/$id',
+        locations: locations,
+      );
 
       expect(locations.last, '${c.section}?selected=$id');
     });

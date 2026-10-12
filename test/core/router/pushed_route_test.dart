@@ -114,5 +114,99 @@ void main() {
     testWidgets('table mode does not redirect', (tester) async {
       expect(await decide(tester, mode: ListViewMode.table), isFalse);
     });
+
+    group('with the detail route nested under its list, as in the app', () {
+      // go('/list/item') builds the list AND the item, so the item can pop;
+      // that is not a push, and it still redirects into the split.
+      Future<bool?> decideNested(
+        WidgetTester tester, {
+        required bool pushed,
+      }) async {
+        bool? result;
+        final router = GoRouter(
+          initialLocation: pushed ? '/root' : '/list/item',
+          routes: [
+            GoRoute(path: '/root', builder: (_, _) => const Text('ROOT')),
+            GoRoute(
+              path: '/list',
+              builder: (_, _) => const Text('LIST'),
+              routes: [
+                GoRoute(
+                  path: 'item',
+                  builder: (_, _) => Builder(
+                    builder: (context) {
+                      result = shouldRedirectToMasterDetail(
+                        context,
+                        embedded: false,
+                        viewMode: ListViewMode.detailed,
+                      );
+                      return const Text('ITEM');
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(size: desktop),
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        await tester.pumpAndSettle();
+        if (pushed) {
+          router.push('/list/item');
+          await tester.pumpAndSettle();
+        }
+        return result;
+      }
+
+      testWidgets('a go() to the detail URL redirects', (tester) async {
+        expect(await decideNested(tester, pushed: false), isTrue);
+      });
+
+      testWidgets('a push of the detail URL does not redirect', (tester) async {
+        expect(await decideNested(tester, pushed: true), isFalse);
+      });
+
+      testWidgets('a pushed page still does not redirect after a replace', (
+        tester,
+      ) async {
+        bool? result;
+        final router = GoRouter(
+          initialLocation: '/root',
+          routes: [
+            GoRoute(path: '/root', builder: (_, _) => const Text('ROOT')),
+            GoRoute(
+              path: '/item',
+              builder: (_, _) => Builder(
+                builder: (context) {
+                  result = shouldRedirectToMasterDetail(
+                    context,
+                    embedded: false,
+                    viewMode: ListViewMode.detailed,
+                  );
+                  return const Text('ITEM');
+                },
+              ),
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(size: desktop),
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        router.push('/item');
+        await tester.pumpAndSettle();
+        router.replace('/item?selected=x');
+        await tester.pumpAndSettle();
+        expect(result, isFalse);
+      });
+    });
   });
 }

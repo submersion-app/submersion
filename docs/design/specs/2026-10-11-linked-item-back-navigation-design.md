@@ -73,8 +73,11 @@ A helper in `lib/core/router/` decides whether a detail page redirects to its
 section's master-detail split. It redirects only when all of these hold:
 
 - the page is not embedded,
-- the page was not pushed: nothing is under it on the stack, read page-locally
-  as `ModalRoute.of(context)?.canPop`,
+- the page was not pushed: it is not the page of a go_router imperative
+  match (`isImperativelyPushed`). Page-local `canPop` is not enough here,
+  because every detail route is a child of its list: `go('/equipment/e1')`
+  builds the list under the item, so the item can pop without having been
+  pushed,
 - the layout is master-detail width,
 - the section is not in table mode (the caller passes its view mode).
 
@@ -83,11 +86,11 @@ Used by all seven detail pages that redirect today:
 | Page | Change |
 | --- | --- |
 | Equipment, buddy, trip, dive center, certification | Gains the "not pushed" check (the fix) |
-| Site, dive | Moves from its hand-rolled guard to the helper; no behaviour change |
+| Site, dive | Moves from its hand-rolled guard to the helper. Reached by URL, these now snap into the split too; their old `canPop` guards never fired with the list underneath |
 
 A pushed page then stays a standalone page with a title bar and back arrow,
-as Site already does. A deep link or sidebar visit, with nothing underneath,
-still redirects.
+as Site already does. A page reached by URL (a deep link, or an item opened
+at phone width before the window was widened) still redirects.
 
 ### 2. `goInPlace`: URL changes that keep the stack
 
