@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
@@ -205,18 +206,36 @@ void main() {
       expect(find.text('Best mix for 60m: ${diluent.name}'), findsOneWidget);
     });
 
-    testWidgets('ticking Bailout gas switches the diluent to the bottom mix', (
-      tester,
-    ) async {
+    testWidgets('unticking Diluent switches the breathed tank to the bottom '
+        'mix', (tester) async {
       final container = await pumpCcr(tester);
+      final notifier = container.read(divePlanNotifierProvider.notifier);
       final bottom = mixFor(
         container,
         container.read(settingsProvider).ppO2MaxWorking,
       );
       final breathed = container.read(divePlanNotifierProvider).tanks.first;
+      // The Diluent tile is disabled while its cylinder is the plan's only
+      // one (nothing left to fall back on), so a second diluent cylinder is
+      // added first, same as a diver carrying a spare would.
+      notifier.addTank(
+        const DiveTank(
+          id: 'second-diluent',
+          name: 'Second diluent',
+          volume: 12,
+          startPressure: 200,
+          gasMix: GasMix(o2: 21, he: 35),
+          role: TankRole.diluent,
+        ),
+      );
+      await tester.pumpAndSettle();
 
       await editTank(tester, breathed.name ?? breathed.gasMix.name);
-      await tester.tap(find.text('Bailout gas'));
+      // The explicit Diluent tile (#3220) replaced the old "Bailout gas"
+      // checkbox: unticking it, rather than ticking a bailout flag, is what
+      // now drops the cylinder out of the diluent slot and onto the bottom
+      // mix like any other open-circuit bailout gas.
+      await tester.tap(find.text('Diluent'));
       await tester.pumpAndSettle();
 
       expect(find.text('Best mix for 60m: ${bottom.name}'), findsOneWidget);
@@ -235,47 +254,55 @@ void main() {
       expect(find.text('Best mix for 60m: ${bottom.name}'), findsOneWidget);
     });
 
-    testWidgets('typing 100% O2 into a new cylinder hides the offer, since it '
-        'will be the oxygen supply', (tester) async {
-      await pumpCcr(tester);
-      await openAddTank(tester);
-      final o2Field = find.widgetWithText(TextFormField, 'O₂ %');
+    testWidgets(
+      'typing 100% O2 into a new cylinder does not claim the oxygen slot '
+      'on a CCR plan (#3220 is slot-based, not mix-based)',
+      (tester) async {
+        await pumpCcr(tester);
+        await openAddTank(tester);
+        final o2Field = find.widgetWithText(TextFormField, 'O₂ %');
 
-      await tester.enterText(o2Field, '100');
-      await tester.pumpAndSettle();
-      expect(bestMixButton(), findsNothing);
+        // CCR already holds both loop slots once in CCR mode (#3220): a new
+        // third cylinder stays open-circuit bailout no matter its mix, so
+        // typing 100% here does not make it the oxygen supply and the offer
+        // (now the bottom mix, since the cylinder is bailout) keeps showing.
+        await tester.enterText(o2Field, '100');
+        await tester.pumpAndSettle();
+        expect(bestMixButton(), findsOneWidget);
 
-      // Ticked as bailout, a 100% bottle is open-circuit gas again.
-      await tester.tap(find.text('Bailout gas'));
-      await tester.pumpAndSettle();
-      expect(bestMixButton(), findsOneWidget);
+        // Ticking Diluent offers the diluent mix instead, same as any other
+        // cylinder claiming that slot.
+        await tester.tap(find.text('Diluent'));
+        await tester.pumpAndSettle();
+        expect(bestMixButton(), findsOneWidget);
+      },
+    );
 
-      await tester.tap(find.text('Bailout gas'));
-      await tester.enterText(o2Field, '21');
-      await tester.pumpAndSettle();
-      expect(bestMixButton(), findsOneWidget);
-    });
+    testWidgets(
+      'filling a 100% O2 offer on a new cylinder does not make it the '
+      'oxygen supply (#3220 is slot-based, not mix-based)',
+      (tester) async {
+        final container = await pumpList(tester);
+        final notifier = container.read(divePlanNotifierProvider.notifier);
+        // At 3 m the bottom ceiling allows pure O2, so the offer fills 100%.
+        notifier.addSimplePlan(maxDepth: 3, bottomTimeMinutes: 20);
+        notifier.updateMode(PlanMode.ccr);
+        await tester.pumpAndSettle();
+        await openAddTank(tester);
 
-    testWidgets('a fill that makes the cylinder the oxygen supply hides the '
-        'offer', (tester) async {
-      final container = await pumpList(tester);
-      final notifier = container.read(divePlanNotifierProvider.notifier);
-      // At 3 m the bottom ceiling allows pure O2, so the offer fills 100%.
-      notifier.addSimplePlan(maxDepth: 3, bottomTimeMinutes: 20);
-      notifier.updateMode(PlanMode.ccr);
-      await tester.pumpAndSettle();
-      await openAddTank(tester);
+        await tester.tap(bestMixButton());
+        await tester.pumpAndSettle();
 
-      await tester.tap(bestMixButton());
-      await tester.pumpAndSettle();
-
-      expect(
-        find.widgetWithText(TextFormField, '100'),
-        findsOneWidget,
-        reason: 'the fill should have written 100% O2',
-      );
-      expect(bestMixButton(), findsNothing);
-    });
+        expect(
+          find.widgetWithText(TextFormField, '100'),
+          findsOneWidget,
+          reason: 'the fill should have written 100% O2',
+        );
+        // Still open-circuit bailout, not the oxygen slot: the offer (now
+        // matching the field) stays visible rather than being hidden.
+        expect(bestMixButton(), findsOneWidget);
+      },
+    );
 
     testWidgets('the oxygen supply is never offered a mix to overwrite it', (
       tester,
@@ -290,6 +317,10 @@ void main() {
               volume: 3,
               startPressure: 200,
               gasMix: GasMix(o2: 100),
+              // The locked oxygen slot (#3220) is explicit, not inferred
+              // from the mix -- set here the way CcrLoopSlots would set
+              // it on the real slot cylinder.
+              role: TankRole.oxygenSupply,
             ),
           );
       await tester.pumpAndSettle();
