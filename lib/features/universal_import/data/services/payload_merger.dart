@@ -287,6 +287,12 @@ class PayloadMerger {
       }
     }
 
+    // A course names its certifications by uddfId, namespaced per file like
+    // the certifications themselves (#2515).
+    if (type == ImportEntityType.courses) {
+      _rewriteCourseCertRefs(item, (ref) => '$fileId:$ref');
+    }
+
     if (type == ImportEntityType.dives) {
       final site = item['site'];
       if (site is Map<String, dynamic>) {
@@ -599,6 +605,25 @@ class PayloadMerger {
     }
   }
 
+  /// Rewrites a course's `certificationRef` and `certificationRefs` through
+  /// [rewrite] (#2515).
+  static void _rewriteCourseCertRefs(
+    Map<String, dynamic> course,
+    String Function(String ref) rewrite,
+  ) {
+    final ref = course['certificationRef'];
+    if (ref is String && ref.isNotEmpty) {
+      course['certificationRef'] = rewrite(ref);
+    }
+    final refs = course['certificationRefs'];
+    if (refs is List) {
+      course['certificationRefs'] = [
+        for (final r in refs)
+          if (r is String && r.isNotEmpty) rewrite(r) else r,
+      ];
+    }
+  }
+
   void _rewriteAliases(
     Map<ImportEntityType, List<Map<String, dynamic>>> entities,
     Map<String, String> aliases,
@@ -606,6 +631,10 @@ class PayloadMerger {
     if (aliases.isEmpty) return;
 
     String resolve(String id) => aliases[id] ?? id;
+
+    for (final course in entities[ImportEntityType.courses] ?? const []) {
+      _rewriteCourseCertRefs(course, resolve);
+    }
 
     for (final dive in entities[ImportEntityType.dives] ?? const []) {
       final site = dive['site'];

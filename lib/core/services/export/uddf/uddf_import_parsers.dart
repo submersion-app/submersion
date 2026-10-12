@@ -810,16 +810,22 @@ class UddfImportParsers {
     course['location'] = getElementText(courseElement, 'location');
     course['notes'] = getElementText(courseElement, 'notes') ?? '';
 
-    // Parse link refs for certification and instructor buddy
+    // Parse link refs for the earned certifications (one link each since
+    // #2515) and the instructor buddy
+    final certRefs = <String>[];
     for (final linkElement in courseElement.findElements('link')) {
       final ref = linkElement.getAttribute('ref');
       if (ref != null) {
         if (ref.startsWith('cert_')) {
-          course['certificationRef'] = ref;
+          certRefs.add(ref);
         } else if (ref.startsWith('buddy_')) {
           course['instructorRef'] = ref;
         }
       }
+    }
+    if (certRefs.isNotEmpty) {
+      course['certificationRefs'] = certRefs;
+      course['certificationRef'] = certRefs.first;
     }
 
     return course;

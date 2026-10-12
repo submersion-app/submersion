@@ -1329,6 +1329,7 @@ class UddfFullImportService {
 
       // Extract link references for trip, dive center, and buddies
       final buddyRefs = <String>[];
+      final courseRefs = <String>[];
       final unmatchedBuddyNames = <String>[];
       for (final linkElement in beforeElement.findElements('link')) {
         final ref = linkElement.getAttribute('ref');
@@ -1338,12 +1339,18 @@ class UddfFullImportService {
           } else if (ref.startsWith('center_')) {
             diveData['diveCenterRef'] = ref;
           } else if (ref.startsWith('course_')) {
-            diveData['courseRef'] = ref;
+            // A dive can be in several courses (#2515).
+            courseRefs.add(ref);
           } else if (ref.startsWith('buddy_') || buddies.containsKey(ref)) {
             // Handle both our format (buddy_xxx) and other formats (e.g., Subsurface idp...)
             buddyRefs.add(ref);
           }
         }
+      }
+
+      if (courseRefs.isNotEmpty) {
+        diveData['courseRefs'] = courseRefs;
+        diveData['courseRef'] = courseRefs.first;
       }
 
       // Subsurface points a dive at its trip with <tripmembership>, and its

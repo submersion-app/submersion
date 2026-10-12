@@ -222,6 +222,61 @@ void main() {
       expect([for (final r in rules) (r as Map)['id']], ['r1', 'shared', 'r2']);
     });
 
+    test('namespaces a course certification refs per file (#2515)', () {
+      // Each file's course links its own cert_c1; neither may reach the
+      // other file's certification.
+      ImportPayload withCourse(String name) => ImportPayload(
+        entities: {
+          ImportEntityType.certifications: [
+            {'uddfId': 'cert_c1', 'name': 'Card $name'},
+          ],
+          ImportEntityType.courses: [
+            {
+              'uddfId': 'course_1',
+              'name': name,
+              'certificationRef': 'cert_c1',
+              'certificationRefs': ['cert_c1'],
+            },
+          ],
+          ImportEntityType.dives: [
+            {
+              'dateTime': DateTime(2026, 1, 1, 9),
+              'courseRef': 'course_1',
+              'courseRefs': ['course_1', 'course_2'],
+            },
+          ],
+        },
+      );
+
+      final merged = merger.merge([
+        FilePayload(
+          fileId: 'f0',
+          fileName: 'a.uddf',
+          payload: withCourse('AN'),
+        ),
+        FilePayload(
+          fileId: 'f1',
+          fileName: 'b.uddf',
+          payload: withCourse('DP'),
+        ),
+      ]);
+
+      final courses = merged.entitiesOf(ImportEntityType.courses);
+      expect(
+        [for (final c in courses) c['certificationRefs']],
+        [
+          ['f0:cert_c1'],
+          ['f1:cert_c1'],
+        ],
+      );
+      expect(
+        [for (final c in courses) c['certificationRef']],
+        ['f0:cert_c1', 'f1:cert_c1'],
+      );
+      final dives = merged.entitiesOf(ImportEntityType.dives);
+      expect(dives.first['courseRefs'], ['f0:course_1', 'f0:course_2']);
+    });
+
     test('rewrites the person in each exact buddy role (issue #1737)', () {
       final a = payloadWith(
         buddies: [

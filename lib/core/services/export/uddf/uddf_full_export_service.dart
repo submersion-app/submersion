@@ -460,10 +460,13 @@ class UddfFullExportService {
     // agencies and levels (issue #690).
     List<Certification>? certifications,
     CertificationCatalog? certificationCatalog,
+    // A backup's courses and their links (issue #2515).
+    List<Course>? courses,
     UddfExportOptions options = const UddfExportOptions(),
   }) => _generateAllDataXml(
     dives: dives,
     certifications: certifications,
+    courses: courses,
     certificationCatalog: certificationCatalog,
     sites: sites,
     tags: tags,

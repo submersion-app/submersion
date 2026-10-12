@@ -290,12 +290,9 @@ class UddfExportBuilders {
               builder.element('isplanned', nest: 'true');
             }
             buildDiverRole(builder, dive);
-            // Course association
-            if (dive.courseId != null) {
-              builder.element(
-                'link',
-                attributes: {'ref': 'course_${dive.courseId}'},
-              );
+            // Course associations, one link per course (#2515)
+            for (final courseId in dive.courseIds) {
+              builder.element('link', attributes: {'ref': 'course_$courseId'});
             }
             if (dive.effectiveEntryMethod != null) {
               builder.element(
@@ -1530,13 +1527,14 @@ class UddfExportBuilders {
                         if (course.notes.isNotEmpty) {
                           builder.element('notes', nest: course.notes);
                         }
-                        // Link to certification earned
-                        if (course.certificationId != null) {
+                        // Links to the certifications earned, read from the
+                        // certification side (#2515)
+                        for (final cert in [
+                          ...?certifications,
+                        ].where((c) => c.courseId == course.id)) {
                           builder.element(
                             'link',
-                            attributes: {
-                              'ref': 'cert_${course.certificationId}',
-                            },
+                            attributes: {'ref': 'cert_${cert.id}'},
                           );
                         }
                         // Link to instructor buddy record

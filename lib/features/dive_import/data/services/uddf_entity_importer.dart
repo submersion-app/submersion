@@ -751,6 +751,7 @@ class UddfEntityImporter {
             diverId,
             courseIdMapping,
             buddyIdMapping,
+            certIdMapping,
             now,
             onProgress,
             certResolver,
@@ -2157,6 +2158,7 @@ class UddfEntityImporter {
     String diverId,
     Map<String, String> idMapping,
     Map<String, String> buddyIdMapping,
+    Map<String, String> certIdMapping,
     DateTime now,
     ImportProgressCallback? onProgress,
     CertificationImportResolver certResolver,
@@ -2203,6 +2205,20 @@ class UddfEntityImporter {
 
       await repository.createCourse(course);
       if (uddfId != null) idMapping[uddfId] = newId;
+
+      // The certifications this course earned (#2515). Certifications are
+      // imported before courses, so certIdMapping is complete here; a file
+      // from before #2515 carries only certificationRef.
+      final certIds = [
+        for (final ref in _refList(
+          courseData['certificationRefs'],
+          courseData['certificationRef'],
+        ))
+          ?certIdMapping[ref],
+      ];
+      if (certIds.isNotEmpty) {
+        await repository.setCourseCertifications(newId, certIds);
+      }
       count++;
       onProgress?.call(ImportPhase.courses, count, selected.length);
     }
@@ -2676,10 +2692,15 @@ class UddfEntityImporter {
         }
       }
 
-      // Link to imported course
-      String? linkedCourseId;
-      final courseRef = diveData['courseRef'] as String?;
-      if (courseRef != null) linkedCourseId = courseIdMapping[courseRef];
+      // Link to every imported course (#2515); older files carry one
+      // courseRef.
+      final linkedCourseIds = [
+        for (final ref in _refList(
+          diveData['courseRefs'],
+          diveData['courseRef'],
+        ))
+          ?courseIdMapping[ref],
+      ];
 
       // Link to imported equipment
       final linkedEquipment = await _resolveEquipmentRefs(
@@ -2913,7 +2934,7 @@ class UddfEntityImporter {
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,
-        courseIds: [?linkedCourseId],
+        courseIds: linkedCourseIds,
         setpointLow: asDoubleOrNull(diveData['setpointLow']),
         setpointHigh: asDoubleOrNull(diveData['setpointHigh']),
         setpointDeco: asDoubleOrNull(diveData['setpointDeco']),
@@ -3850,3 +3871,12 @@ class _DiveImportResult {
     this.diveIdBySourceUuid = const {},
   ]);
 }
+
+/// The refs in [list] (a parsed list of strings), else [single] alone: a file
+/// written before #2515 carries one ref where newer files carry a list.
+List<String> _refList(Object? list, Object? single) => [
+  if (list is List)
+    ...list.whereType<String>()
+  else if (single is String)
+    single,
+];
