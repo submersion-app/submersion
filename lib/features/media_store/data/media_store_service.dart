@@ -19,8 +19,6 @@ import 'package:submersion/core/services/cloud_storage/s3/s3_api_client.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
-import 'package:submersion/core/services/cloud_storage/webdav_storage_provider.dart';
 import 'package:submersion/core/services/media_store/dropbox_media_object_store.dart';
 import 'package:submersion/core/services/media_store/google_drive_media_object_store.dart';
 import 'package:submersion/core/services/media_store/icloud_media_object_store.dart';
@@ -231,56 +229,42 @@ class MediaStoreService {
     }
   }
 
-  /// Validates [config] and resolves the Nextcloud user id, mapping WebDAV
-  /// failures to media errors (an untrusted certificate stays the cause, so
-  /// the form can offer to trust it).
-  Future<WebDavConfig> _resolveWebDav(WebDavConfig config) async {
+  /// Rejects an incomplete [config] before anything touches the network.
+  void _validateWebDav(WebDavConfig config) {
     final error = config.validate();
     if (error != null) {
       throw MediaStoreException(error, kind: MediaStoreErrorKind.fatal);
-    }
-    try {
-      return await resolveNextcloudUserId(config, _webdavClientFactory);
-    } on WebDavException catch (e) {
-      throw MediaStoreException(
-        e.message,
-        kind: mediaStoreKindFor(e.code),
-        cause: e,
-      );
     }
   }
 
   /// Live write, read-back and delete probe against unsaved [config].
   Future<WebDavConfig> testWebDav(WebDavConfig config) async {
-    final resolved = await _resolveWebDav(config);
-    final client = _webdavClientFactory(resolved);
+    _validateWebDav(config);
+    final client = _webdavClientFactory(config);
     try {
       await _probeStore(WebDavMediaObjectStore(client: client));
     } finally {
       client.close();
     }
-    return resolved;
+    return config;
   }
 
   /// Adopts or creates the store marker in the folder, then records the
   /// account (deterministic id from the endpoint), its credentials, the
   /// attach state and the synced store descriptor.
   Future<MediaStoreConnectResult> connectWebDav(WebDavConfig config) async {
-    final resolved = await _resolveWebDav(config);
-    final client = _webdavClientFactory(resolved);
+    _validateWebDav(config);
+    final client = _webdavClientFactory(config);
     try {
       final ensured = await _ensureMarker(
         WebDavMediaObjectStore(client: client),
       );
       final account = await _accounts.ensure(
         kind: AccountKind.webdav,
-        naturalKey: webdavNaturalKey(resolved),
-        label: resolved.displayLabel,
+        naturalKey: webdavNaturalKey(config),
+        label: config.displayLabel,
       );
-      await _accountCredentials.write(
-        account.id,
-        jsonEncode(resolved.toJson()),
-      );
+      await _accountCredentials.write(account.id, jsonEncode(config.toJson()));
       await _attachState.setAttached(
         ensured.marker.storeId,
         providerType: CloudProviderType.webdav,
@@ -289,7 +273,7 @@ class MediaStoreService {
       await _storesRepository.upsertActive(
         storeId: ensured.marker.storeId,
         providerType: CloudProviderType.webdav.name,
-        displayHint: resolved.displayLabel,
+        displayHint: config.displayLabel,
       );
       return MediaStoreConnectResult(
         storeId: ensured.marker.storeId,

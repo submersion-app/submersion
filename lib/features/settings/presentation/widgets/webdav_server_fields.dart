@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_tls.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/features/settings/presentation/widgets/webdav_trust_certificate_dialog.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Form state shared by the sync settings page and the media form.
@@ -18,15 +16,11 @@ class WebDavFormController extends ChangeNotifier {
         ..addListener(notifyListeners)
         ..addListener(_markEdited);
     }
-    // The resolved Nextcloud id belongs to one login on one server; a new
-    // one must be resolved again, never inherited.
-    serverUrl.addListener(_dropResolvedUserId);
-    username.addListener(_dropResolvedUserId);
   }
 
   bool _loading = false;
 
-  /// True once the user changed a field or the server type, so a late load
+  /// True once the user changed a field, so a late load
   /// of the saved config must not replace their input.
   bool get userEdited => _userEdited;
   bool _userEdited = false;
@@ -35,26 +29,13 @@ class WebDavFormController extends ChangeNotifier {
     if (!_loading) _userEdited = true;
   }
 
-  void _dropResolvedUserId() {
-    if (!_loading) nextcloudUserId = null;
-  }
-
   final serverUrl = TextEditingController();
   final username = TextEditingController();
   final password = TextEditingController();
   final TextEditingController folder;
 
-  WebDavPreset preset = WebDavPreset.nextcloud;
   String? pinnedCertSha256;
-  String? nextcloudUserId;
   bool passwordVisible = false;
-
-  void setPreset(WebDavPreset value) {
-    preset = value;
-    nextcloudUserId = null;
-    _userEdited = true;
-    notifyListeners();
-  }
 
   void togglePasswordVisible() {
     passwordVisible = !passwordVisible;
@@ -73,14 +54,12 @@ class WebDavFormController extends ChangeNotifier {
 
   void load(WebDavConfig config) {
     _loading = true;
-    preset = config.preset;
     serverUrl.text = config.serverUrl;
     username.text = config.username;
     password.text = config.password;
     folder.text = config.folder;
     _loading = false;
     pinnedCertSha256 = config.pinnedCertSha256;
-    nextcloudUserId = config.nextcloudUserId;
     notifyListeners();
   }
 
@@ -92,26 +71,14 @@ class WebDavFormController extends ChangeNotifier {
   }
 
   WebDavConfig build() => WebDavConfig(
-    preset: preset,
-    serverUrl: preset.needsServerUrl ? serverUrl.text : '',
+    serverUrl: serverUrl.text,
     username: username.text,
     password: password.text,
     folder: folder.text,
-    nextcloudUserId: nextcloudUserId,
     pinnedCertSha256: pinnedCertSha256,
   );
 
-  /// The resolved DAV root for display, or null while the URL is unusable.
-  String? get davRootPreview {
-    if (preset.needsServerUrl &&
-        Uri.tryParse(serverUrl.text.trim())?.host.isEmpty != false) {
-      return null;
-    }
-    return build().davRoot.toString();
-  }
-
   bool get isInsecure =>
-      preset.needsServerUrl &&
       serverUrl.text.trim().toLowerCase().startsWith('http://');
 
   @override
@@ -147,21 +114,7 @@ Future<T> runWithCertificateTrust<T>(
   }
 }
 
-String presetLabel(AppLocalizations l10n, WebDavPreset preset) =>
-    switch (preset) {
-      WebDavPreset.nextcloud => l10n.settings_webdavConfig_preset_nextcloud,
-      WebDavPreset.owncloud => l10n.settings_webdavConfig_preset_owncloud,
-      WebDavPreset.synology => l10n.settings_webdavConfig_preset_synology,
-      WebDavPreset.koofr => l10n.settings_webdavConfig_preset_koofr,
-      WebDavPreset.pcloudUs => l10n.settings_webdavConfig_preset_pcloudUs,
-      WebDavPreset.pcloudEu => l10n.settings_webdavConfig_preset_pcloudEu,
-      WebDavPreset.fastmail => l10n.settings_webdavConfig_preset_fastmail,
-      WebDavPreset.yandex => l10n.settings_webdavConfig_preset_yandex,
-      WebDavPreset.other => l10n.settings_webdavConfig_preset_other,
-    };
-
-/// Server type, address, login, folder, DAV root preview, http warning and
-/// trusted-certificate row. Lives inside the caller's [Form].
+/// WebDAV address, login, folder, http warning and trusted-certificate row. Lives inside the caller's [Form].
 class WebDavServerFields extends StatelessWidget {
   const WebDavServerFields({
     super.key,
@@ -181,8 +134,6 @@ class WebDavServerFields extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
-        final preset = controller.preset;
-        final root = controller.davRootPreview;
         final pin = controller.pinnedCertSha256;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -207,61 +158,36 @@ class WebDavServerFields extends StatelessWidget {
                   ),
                 ),
               ),
-            DropdownButtonFormField<WebDavPreset>(
-              key: _k('preset'),
-              initialValue: preset,
+            TextFormField(
+              key: _k('server-url'),
+              controller: controller.serverUrl,
+              keyboardType: TextInputType.url,
+              autocorrect: false,
               decoration: InputDecoration(
-                labelText: l10n.settings_webdavConfig_field_preset_label,
+                labelText: l10n.settings_webdavConfig_field_serverUrl_label,
+                hintText: l10n.settings_webdavConfig_field_serverUrl_hintDav,
+                helperText: l10n.settings_webdavConfig_field_serverUrl_helper,
+                helperMaxLines: 3,
               ),
-              items: [
-                for (final p in WebDavPreset.values)
-                  DropdownMenuItem(value: p, child: Text(presetLabel(l10n, p))),
-              ],
-              onChanged: (value) {
-                if (value != null) controller.setPreset(value);
+              validator: (value) {
+                final trimmed = (value ?? '').trim();
+                if (trimmed.isEmpty) {
+                  return l10n.settings_webdavConfig_validation_required;
+                }
+                final uri = Uri.tryParse(trimmed);
+                final ok =
+                    uri != null &&
+                    (uri.scheme == 'http' || uri.scheme == 'https') &&
+                    uri.host.isNotEmpty;
+                if (!ok) return l10n.settings_webdavConfig_validation_url;
+                if (uri.hasQuery || uri.hasFragment) {
+                  return l10n.settings_webdavConfig_validation_urlQuery;
+                }
+                return uri.userInfo.isEmpty
+                    ? null
+                    : l10n.settings_webdavConfig_validation_urlCredentials;
               },
             ),
-            if (preset.needsServerUrl) ...[
-              const SizedBox(height: 12),
-              TextFormField(
-                key: _k('server-url'),
-                controller: controller.serverUrl,
-                keyboardType: TextInputType.url,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  labelText: l10n.settings_webdavConfig_field_serverUrl_label,
-                  hintText: switch (preset) {
-                    WebDavPreset.synology =>
-                      l10n.settings_webdavConfig_field_serverUrl_hintSynology,
-                    WebDavPreset.other =>
-                      l10n.settings_webdavConfig_field_serverUrl_hintDav,
-                    _ => l10n.settings_webdavConfig_field_serverUrl_hintHost,
-                  },
-                  helperText: preset == WebDavPreset.synology
-                      ? l10n.settings_webdavConfig_synology_helper
-                      : null,
-                  helperMaxLines: 3,
-                ),
-                validator: (value) {
-                  final trimmed = (value ?? '').trim();
-                  if (trimmed.isEmpty) {
-                    return l10n.settings_webdavConfig_validation_required;
-                  }
-                  final uri = Uri.tryParse(trimmed);
-                  final ok =
-                      uri != null &&
-                      (uri.scheme == 'http' || uri.scheme == 'https') &&
-                      uri.host.isNotEmpty;
-                  if (!ok) return l10n.settings_webdavConfig_validation_url;
-                  if (uri.hasQuery || uri.hasFragment) {
-                    return l10n.settings_webdavConfig_validation_urlQuery;
-                  }
-                  return uri.userInfo.isEmpty
-                      ? null
-                      : l10n.settings_webdavConfig_validation_urlCredentials;
-                },
-              ),
-            ],
             const SizedBox(height: 12),
             TextFormField(
               key: _k('username'),
@@ -284,9 +210,8 @@ class WebDavServerFields extends StatelessWidget {
               enableSuggestions: false,
               decoration: InputDecoration(
                 labelText: l10n.settings_webdavConfig_field_password_label,
-                helperText: preset.recommendsAppPassword
-                    ? l10n.settings_webdavConfig_field_password_appPasswordHelper
-                    : null,
+                helperText:
+                    l10n.settings_webdavConfig_field_password_appPasswordHelper,
                 suffixIcon: IconButton(
                   icon: Icon(
                     controller.passwordVisible
@@ -324,16 +249,6 @@ class WebDavServerFields extends StatelessWidget {
                 return null;
               },
             ),
-            if (root != null)
-              ListTile(
-                key: _k('dav-root'),
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  l10n.settings_webdavConfig_davRoot_label,
-                  style: theme.textTheme.labelMedium,
-                ),
-                subtitle: SelectableText(root),
-              ),
             if (pin != null)
               ListTile(
                 key: _k('pin-row'),

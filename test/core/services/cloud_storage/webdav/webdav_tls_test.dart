@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_tls.dart';
 
 void main() {
@@ -21,7 +20,6 @@ void main() {
     endValidity: DateTime.utc(2027),
   );
   WebDavConfig config({String? pinned}) => WebDavConfig(
-    preset: WebDavPreset.synology,
     serverUrl: 'https://nas.local:5006',
     username: 'u',
     password: 'p',

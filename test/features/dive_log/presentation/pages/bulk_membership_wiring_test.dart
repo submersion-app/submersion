@@ -573,6 +573,50 @@ void main() {
       expect(find.byType(EquipmentSetPickerSheet), findsOneWidget);
     });
 
+    // Issue #2175: the picker is multi-select, so several items go on in one
+    // pass, and Cancel leaves the list as it was.
+    testWidgets('equipment add takes several items in one pass', (
+      tester,
+    ) async {
+      await EquipmentRepository().createEquipment(
+        const EquipmentItem(
+          id: 'e8',
+          name: 'Frameless',
+          type: EquipmentType.mask,
+        ),
+      );
+      await EquipmentRepository().createEquipment(
+        const EquipmentItem(id: 'e9', name: 'Jets', type: EquipmentType.fins),
+      );
+      await seedDive('d1');
+      await seedDive('d2');
+      await pump(tester, ['d1', 'd2']);
+
+      Finder inEditor(String name) => find.descendant(
+        of: editorFor('Equipment'),
+        matching: find.text(name),
+      );
+
+      await tapAdd(tester, 'Equipment');
+      await tester.tap(find.text('Frameless'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byType(EquipmentPickerSheet), findsNothing);
+      expect(inEditor('Frameless'), findsNothing);
+
+      await tapAdd(tester, 'Equipment');
+      await tester.tap(find.text('Frameless'));
+      await tester.tap(find.text('Jets'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Add 2'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(EquipmentPickerSheet), findsNothing);
+      expect(inEditor('Frameless'), findsOneWidget);
+      expect(inEditor('Jets'), findsOneWidget);
+    });
+
     // Issue #1754 (found in #1720): clearing the old gear and then applying a
     // set must keep every set item, including the ones already on the dives.
     testWidgets('use-set keeps set items the diver had unchecked', (

@@ -7,6 +7,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_sort_provider.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_toolbar.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -247,6 +248,116 @@ void main() {
       container.read(mediaLibraryViewModeProvider),
       MediaLibraryViewMode.map,
     );
+  });
+
+  group('thumbnail size slider (issue #3297)', () {
+    final slider = find.byKey(const ValueKey('thumbnail_size_slider'));
+
+    testWidgets('sits just left of the view-mode buttons', (tester) async {
+      await pump(tester);
+
+      final sliderRect = tester.getRect(slider);
+      final modes = tester.getRect(
+        find.byType(SegmentedButton<MediaLibraryViewMode>),
+      );
+      expect(sliderRect.right, lessThanOrEqualTo(modes.left));
+      expect(modes.left - sliderRect.right, lessThan(16));
+      // Nothing else sits between them: every icon button is to its left.
+      for (final button in tester.widgetList(find.byType(IconButton))) {
+        expect(
+          tester.getRect(find.byWidget(button)).right,
+          lessThanOrEqualTo(sliderRect.left),
+        );
+      }
+    });
+
+    testWidgets('has seven stops and opens on the middle one', (tester) async {
+      await pump(tester);
+
+      final widget = tester.widget<Slider>(slider);
+      expect(widget.min, 0);
+      expect(widget.max, 6);
+      expect(widget.divisions, 6);
+      expect(widget.value, 3);
+    });
+
+    testWidgets('names itself to screen readers once, not twice', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await pump(tester);
+
+      final node = tester.getSemantics(slider);
+      expect(node.label, 'Thumbnail size');
+      // A tooltip with the same text would be read out after the label.
+      expect(node.tooltip, isEmpty);
+      // Before the test ends, which addTearDown would be too late for.
+      handle.dispose();
+    });
+
+    testWidgets('dragging it to the end picks the largest size', (
+      tester,
+    ) async {
+      await pump(tester);
+
+      await tester.tapAt(
+        tester.getRect(slider).centerRight - const Offset(2, 0),
+      );
+      await tester.pumpAndSettle();
+
+      expect(container.read(mediaThumbnailScaleProvider).step, 6);
+      expect(tester.widget<Slider>(slider).value, 6);
+    });
+
+    testWidgets('is offered in every thumbnail view but not on the map', (
+      tester,
+    ) async {
+      await pump(tester);
+      final notifier = container.read(mediaLibraryViewModeProvider.notifier);
+
+      for (final mode in [
+        MediaLibraryViewMode.grid,
+        MediaLibraryViewMode.byDive,
+        MediaLibraryViewMode.timeline,
+      ]) {
+        await notifier.setMode(mode);
+        await tester.pumpAndSettle();
+        expect(slider, findsOneWidget, reason: mode.name);
+      }
+
+      await notifier.setMode(MediaLibraryViewMode.map);
+      await tester.pumpAndSettle();
+      expect(slider, findsNothing);
+    });
+
+    testWidgets('is left out of a row too narrow to hold it', (tester) async {
+      tester.view.physicalSize = const Size(344, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(slider, findsNothing);
+    });
+
+    testWidgets('fits the narrowest row that shows it', (tester) async {
+      tester.view.physicalSize = const Size(
+        kMediaToolbarThumbnailSliderMinWidth,
+        640,
+      );
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(host());
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(slider, findsOneWidget);
+      expect(
+        find.byType(SegmentedButton<MediaLibraryViewMode>),
+        findsOneWidget,
+      );
+    });
   });
 
   testWidgets('the select control is hidden in map mode', (tester) async {

@@ -4464,9 +4464,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       .value ??
                   const {},
             ),
-            onEquipmentSelected: (equipment) {
+            // Multi-select, so a full kit goes on in one pass (#2175).
+            onEquipmentConfirmed: (items) {
               Navigator.of(context).pop();
-              _addGear([equipment]);
+              _addGear(items);
             },
           ),
         ),
@@ -4613,18 +4614,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           selectedEquipmentIds: _equipmentMembers.map((e) => e.id).toSet(),
           hideSpare: true,
           offerLeftKit: true,
-          onEquipmentSelected: (equipment) {
+          onEquipmentConfirmed: (items) {
             setState(() {
-              if (!_equipmentMembers.any((e) => e.id == equipment.id)) {
-                _equipmentMembers = [
-                  ..._equipmentMembers,
-                  BulkMembershipItem(
-                    id: equipment.id,
-                    label: equipment.name,
-                    icon: equipmentTypeIcon(equipment.type),
-                  ),
-                ];
-              }
+              final existing = _equipmentMembers.map((e) => e.id).toSet();
+              _equipmentMembers = [
+                ..._equipmentMembers,
+                for (final item in items)
+                  if (!existing.contains(item.id))
+                    BulkMembershipItem(
+                      id: item.id,
+                      label: item.name,
+                      icon: equipmentTypeIcon(item.type),
+                    ),
+              ];
             });
             Navigator.of(context).pop();
           },

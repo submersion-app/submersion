@@ -7,7 +7,6 @@ import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_credentials_store.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -116,7 +115,6 @@ void main() {
       final keychain = InMemoryKeychain();
       final legacy = WebDavCredentialsStore(storage: keychain);
       final config = WebDavConfig(
-        preset: WebDavPreset.other,
         serverUrl: 'https://dav.test/dav',
         username: 'alice',
         password: 'secret',
@@ -145,7 +143,6 @@ void main() {
     () async {
       final legacy = WebDavCredentialsStore(storage: keychain);
       final first = WebDavConfig(
-        preset: WebDavPreset.other,
         serverUrl: 'https://dav.test/dav',
         username: 'alice',
         password: 'secret',

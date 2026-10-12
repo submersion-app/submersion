@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_tls.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
@@ -17,7 +16,14 @@ import '../../../../helpers/mock_providers.dart';
 
 class _FakeService extends Fake implements MediaStoreService {
   final connected = <WebDavConfig>[];
+  final tested = <WebDavConfig>[];
   bool untrustedOnce = false;
+
+  @override
+  Future<WebDavConfig> testWebDav(WebDavConfig config) async {
+    tested.add(config);
+    return config;
+  }
 
   @override
   Future<MediaStoreConnectResult> connectWebDav(WebDavConfig config) async {
@@ -47,7 +53,6 @@ class _FakeService extends Fake implements MediaStoreService {
 void main() {
   late _FakeService service;
   final sync = WebDavConfig(
-    preset: WebDavPreset.synology,
     serverUrl: 'https://nas.local:5006',
     username: 'alice',
     password: 'secret',
@@ -89,6 +94,19 @@ void main() {
     expect(sent.serverUrl, sync.serverUrl);
     expect(sent.pinnedCertSha256, sync.pinnedCertSha256);
     expect(sent.folder, kDefaultWebDavMediaFolder);
+  });
+
+  testWidgets('Test connection probes the form config and reports success', (
+    tester,
+  ) async {
+    await pump(tester, syncConfig: sync);
+    await tester.tap(find.byKey(const Key('webdav-media-use-sync')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('webdav-media-test')));
+    await tester.pumpAndSettle();
+    expect(service.tested.single.serverUrl, sync.serverUrl);
+    expect(service.connected, isEmpty);
+    expect(find.text('Connection successful'), findsOneWidget);
   });
 
   testWidgets('no sync config, no prefill button', (tester) async {

@@ -11,13 +11,11 @@ import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_config.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
-import 'package:submersion/core/services/cloud_storage/webdav/webdav_preset.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_tls.dart';
 
 import '../../../../helpers/fake_webdav_server.dart';
 
 WebDavConfig _config({String password = 'secret'}) => WebDavConfig(
-  preset: WebDavPreset.other,
   serverUrl: 'https://dav.test/dav',
   username: 'alice',
   password: password,
@@ -146,11 +144,7 @@ void main() {
       throwsA(
         isA<WebDavException>()
             .having((e) => e.code, 'code', WebDavErrorCode.notFound)
-            .having(
-              (e) => e.message,
-              'message',
-              contains('server type and URL'),
-            ),
+            .having((e) => e.message, 'message', contains('Check the address')),
       ),
     );
   });
@@ -345,25 +339,6 @@ void main() {
       expect(failing.sends, 1);
     },
   );
-
-  test('resolves the Nextcloud user id from current-user-principal', () async {
-    final nc = FakeWebDavServer(
-      username: 'alice@example.com',
-      seedCollections: const ['/remote.php/dav/files/alice'],
-    )..principalUserId = 'alice';
-    final ncClient = WebDavClient(
-      WebDavConfig(
-        preset: WebDavPreset.nextcloud,
-        serverUrl: 'https://dav.test',
-        username: 'alice@example.com',
-        password: 'secret',
-      ),
-      httpClient: nc.client,
-      backoff: (_) => Duration.zero,
-    );
-    addTearDown(ncClient.close);
-    expect(await ncClient.resolveNextcloudUserId(), 'alice');
-  });
 
   test(
     'putFile reads the file only as fast as the transport takes it',

@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_multistatus.dart';
 
-const _nextcloudStyle = '''<?xml version="1.0"?>
+const _vendorNamespaced = '''<?xml version="1.0"?>
 <d:multistatus xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">
  <d:response>
   <d:href>/remote.php/dav/files/alice/Submersion%20Media/</d:href>
@@ -37,7 +37,7 @@ const _defaultNamespaceAbsoluteHrefs = '''<?xml version="1.0"?>
 
 void main() {
   test('prefixed namespace, percent-encoded paths, partial 404 propstat', () {
-    final items = parseMultistatus(_nextcloudStyle);
+    final items = parseMultistatus(_vendorNamespaced);
     expect(items, hasLength(2));
     expect(items[0].pathSegments.last, 'Submersion Media');
     expect(items[0].isCollection, isTrue);
@@ -59,17 +59,5 @@ void main() {
   test('a non-multistatus body is a FormatException', () {
     expect(() => parseMultistatus('<html>login</html>'), throwsFormatException);
     expect(() => parseMultistatus('not xml'), throwsFormatException);
-  });
-
-  test('current-user-principal yields the last path segment', () {
-    const body = '''<d:multistatus xmlns:d="DAV:"><d:response>
-      <d:href>/remote.php/dav/</d:href><d:propstat><d:prop>
-      <d:current-user-principal><d:href>/remote.php/dav/principals/users/alice/</d:href></d:current-user-principal>
-      </d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response></d:multistatus>''';
-    expect(parseCurrentUserPrincipalId(body), 'alice');
-    expect(
-      parseCurrentUserPrincipalId('<d:multistatus xmlns:d="DAV:"/>'),
-      isNull,
-    );
   });
 }

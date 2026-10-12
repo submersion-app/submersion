@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_sort_provider.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -26,7 +27,19 @@ const VisualDensity _kSegmentDensity = VisualDensity(horizontal: -4);
 /// metrics change.
 const double kMediaToolbarFourSegmentMinWidth = 320;
 
-/// The library's control row: filter, sort, select, and view mode.
+/// Width of the thumbnail size slider: seven stops about 16dp apart once
+/// the slider's own 24dp of padding at each end is taken off.
+const double _kThumbnailSliderWidth = 140;
+
+/// Narrowest row that also holds the thumbnail size slider (issue #3297):
+/// the four-segment budget above plus the slider. Below it the slider is
+/// left out rather than collapsing the view modes to make room, so phones
+/// in portrait keep the default size.
+const double kMediaToolbarThumbnailSliderMinWidth =
+    kMediaToolbarFourSegmentMinWidth + _kThumbnailSliderWidth;
+
+/// The library's control row: filter, sort, select, thumbnail size, and
+/// view mode.
 ///
 /// Every control is fixed-width, which is the point. The chip row this
 /// replaced was an Expanded horizontal scroller that claimed all free width
@@ -131,6 +144,10 @@ class MediaLibraryToolbar extends ConsumerWidget {
                 onPressed: selection.enterExplicit,
               ),
             const Spacer(),
+            // The map has no thumbnail grid to size.
+            if (mode != MediaLibraryViewMode.map &&
+                constraints.maxWidth >= kMediaToolbarThumbnailSliderMinWidth)
+              const _ThumbnailSizeSlider(),
             if (compactModes)
               _ViewModeMenuButton(
                 current: mode,
@@ -156,6 +173,38 @@ class MediaLibraryToolbar extends ConsumerWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Seven stops from the smallest thumbnails to two across (issue #3297).
+class _ThumbnailSizeSlider extends ConsumerWidget {
+  const _ThumbnailSizeSlider();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final step = ref.watch(mediaThumbnailScaleProvider.select((s) => s.step));
+    return Tooltip(
+      message: l10n.media_library_thumbnailSize,
+      // The Semantics label below already names the slider; announcing the
+      // tooltip too would read it twice.
+      excludeFromSemantics: true,
+      child: SizedBox(
+        width: _kThumbnailSliderWidth,
+        child: Semantics(
+          label: l10n.media_library_thumbnailSize,
+          child: Slider(
+            key: const ValueKey('thumbnail_size_slider'),
+            value: step.toDouble(),
+            max: kMediaThumbnailSteps - 1,
+            divisions: kMediaThumbnailSteps - 1,
+            onChanged: (value) => ref
+                .read(mediaThumbnailScaleProvider.notifier)
+                .setStep(value.round()),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -82,7 +82,7 @@ class WebDavException extends CloudStorageException {
       ),
       404 when isRoot => (
         WebDavErrorCode.notFound,
-        'No WebDAV folder at this address. Check the server type and URL.',
+        'No WebDAV folder at this address. Check the address.',
       ),
       404 => (WebDavErrorCode.notFound, 'Not found on the WebDAV server.'),
       >= 300 && < 400 => (
