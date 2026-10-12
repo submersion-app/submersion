@@ -1,0 +1,107 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_service.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
+
+import '../../../../helpers/fake_cloud_storage_provider.dart';
+import '../../../../helpers/test_database.dart';
+
+void main() {
+  tearDown(SyncCoordinator.reset);
+
+  test(
+    'syncAll syncs each connected library of the profile and records results',
+    () async {
+      await setUpTestDatabase();
+      addTearDown(tearDownTestDatabase);
+      await DiverRepository().createDiver(
+        Diver(
+          id: 'd1',
+          name: 'Ann',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+      );
+      final store = SharedLibraryStore();
+      await store.upsertLibrary(
+        const SharedLibrary(
+          id: 'L',
+          name: 'Club',
+          connectedAccountId: 'acc',
+          prefix: 'club',
+        ),
+      );
+      await store.upsertMembership(
+        const SharedLibraryMembership(
+          id: 'ms',
+          diverId: 'd1',
+          libraryId: 'L',
+          memberId: 'm',
+          displayName: 'Ann',
+          libraryName: 'Club',
+          backendKind: 's3',
+        ),
+      );
+      // A membership the device has not connected: skipped, not failed.
+      await store.upsertMembership(
+        const SharedLibraryMembership(
+          id: 'ms2',
+          diverId: 'd1',
+          libraryId: 'X',
+          memberId: 'm',
+          displayName: 'Ann',
+          libraryName: 'Other',
+          backendKind: 's3',
+        ),
+      );
+      final cloud = FakeCloudStorageProvider();
+      await SharedLibraryTransport(
+        cloud,
+        prefix: 'club',
+      ).writeManifest({'id': 'L', 'name': 'Club', 'formatVersion': 1});
+      final container = ProviderContainer(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+          sharedLibraryTransportFactoryProvider.overrideWithValue(
+            (lib) async => SharedLibraryTransport(cloud, prefix: lib.prefix),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(sharedLibrarySyncProvider.notifier).syncAll();
+
+      final state = container.read(sharedLibrarySyncProvider);
+      expect(state.syncing, isFalse);
+      expect(state.lastResults.keys, ['L']);
+      expect(state.lastResults['L']!.status, SharedLibrarySyncStatus.success);
+      expect((await store.getLibrary('L'))!.lastSyncAt, isNotNull);
+    },
+  );
+
+  test('syncOne reports notConnected for an unknown library', () async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        sharedLibraryTransportFactoryProvider.overrideWithValue(
+          (lib) async => throw StateError('no account'),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final r = await container
+        .read(sharedLibrarySyncProvider.notifier)
+        .syncOne('nope');
+    expect(r.status, SharedLibrarySyncStatus.notConnected);
+  });
+}

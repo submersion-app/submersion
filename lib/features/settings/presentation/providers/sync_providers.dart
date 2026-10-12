@@ -62,6 +62,7 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/settings/presentation/providers/webdav_providers.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
 /// Sync repository provider
 final syncRepositoryProvider = Provider<SyncRepository>((ref) {
@@ -1372,7 +1373,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
       var runAuto = auto;
       var followUpAllowed = true;
       while (true) {
-        final succeeded = await _runSyncOnce(auto: runAuto);
+        // One merge into the database at a time, shared with the club
+        // library sync (issue #2567).
+        final succeeded = await SyncCoordinator.run(
+          () => _runSyncOnce(auto: runAuto),
+        );
         if (!mounted) return;
         final queued = _queuedSyncAuto;
         _queuedSyncAuto = null;

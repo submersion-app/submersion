@@ -1,10 +1,18 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/providers/ref_invalidate_on_change.dart';
 
 import 'package:submersion/core/services/accounts/account_kind.dart';
+import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
+import 'package:submersion/core/services/shared_library/shared_library_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
+import 'package:submersion/core/services/shared_library/shared_site_publisher.dart';
+import 'package:submersion/core/services/shared_library/site_detacher.dart';
+import 'package:submersion/core/services/shared_library/suggestion_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 /// The device-local store for club libraries (issue #2567).
@@ -113,9 +121,81 @@ final _siteStateTickProvider = StreamProvider<void>((ref) async* {
 final eligibleLibraryAccountsProvider = FutureProvider<List<ConnectedAccount>>((
   ref,
 ) async {
-  final all = await ref.watch(connectedAccountsRepositoryProvider).getAll();
+  final accounts = ref.watch(connectedAccountsRepositoryProvider);
+  ref.invalidateSelfWhen(accounts.watchAccountsChanges());
+  final all = await accounts.getAll();
   return [
     for (final a in all)
       if (a.kind == AccountKind.s3 || a.kind == AccountKind.webdav) a,
   ];
 });
+
+/// Builds the folder transport for a connected account and prefix from
+/// the account registry (S3 and WebDAV adapters build a provider per
+/// account, so two libraries on one device keep separate credentials).
+final sharedLibraryAccountTransportProvider = Provider<LibraryTransportFactory>(
+  (ref) {
+    final registry = ref.watch(accountProviderRegistryProvider);
+    return ({required account, required prefix}) async {
+      final capable = registry.capabilityFor<SyncCapable>(account.kind);
+      if (capable == null) {
+        throw StateError('${account.kind.name} accounts cannot back a library');
+      }
+      return SharedLibraryTransport(
+        capable.syncProvider(account),
+        prefix: prefix,
+      );
+    };
+  },
+);
+
+/// The transport for a connected library, by its stored account id.
+// no-tick: a factory function, not data; it reads the account at call time.
+final sharedLibraryTransportFactoryProvider =
+    Provider<Future<SharedLibraryTransport> Function(SharedLibrary)>((ref) {
+      final accounts = ref.watch(connectedAccountsRepositoryProvider);
+      final byAccount = ref.watch(sharedLibraryAccountTransportProvider);
+      return (library) async {
+        final account = await accounts.getById(library.connectedAccountId);
+        if (account == null) {
+          throw StateError(
+            'The account for ${library.name} is no longer on this device',
+          );
+        }
+        return byAccount(account: account, prefix: library.prefix);
+      };
+    });
+
+final sharedLibraryServiceProvider = Provider<SharedLibraryService>(
+  (ref) => SharedLibraryService(
+    store: ref.watch(sharedLibraryStoreProvider),
+    transportFor: ref.watch(sharedLibraryTransportFactoryProvider),
+    remover: ({required siteId, required ownerDiverId}) async {
+      await SiteDetacher(
+        store: ref.read(sharedLibraryStoreProvider),
+      ).detachOrRemove(siteId: siteId, ownerDiverId: ownerDiverId);
+    },
+  ),
+);
+
+// no-tick: a service object; its account lookup runs at action time.
+final sharedLibraryMembershipServiceProvider =
+    Provider<SharedLibraryMembershipService>(
+      (ref) => SharedLibraryMembershipService(
+        store: ref.watch(sharedLibraryStoreProvider),
+        transportFor: ref.watch(sharedLibraryAccountTransportProvider),
+        accountById: (id) =>
+            ref.read(connectedAccountsRepositoryProvider).getById(id),
+      ),
+    );
+
+final suggestionServiceProvider = Provider<SuggestionService>(
+  (ref) => SuggestionService(
+    store: ref.watch(sharedLibraryStoreProvider),
+    transportFor: ref.watch(sharedLibraryTransportFactoryProvider),
+  ),
+);
+
+final sharedSitePublisherProvider = Provider<SharedSitePublisher>(
+  (ref) => SharedSitePublisher(store: ref.watch(sharedLibraryStoreProvider)),
+);

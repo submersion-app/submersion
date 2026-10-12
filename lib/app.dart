@@ -47,6 +47,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 
 const Locale _defaultFallbackLocale = Locale('en');
 const Set<String> _invalidSystemLocaleLanguageCodes = {'c', 'posix'};
@@ -262,12 +263,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     }
     if (!mounted) return;
     ref.read(syncStateProvider.notifier).performSync(auto: true);
+    ref.read(sharedLibrarySyncProvider.notifier).syncAll(auto: true);
   }
 
   void _maybeSyncOnResume() {
     final settings = ref.read(syncBehaviorProvider);
     if (!settings.autoSyncEnabled || !settings.syncOnResume) return;
     ref.read(syncStateProvider.notifier).performSync(auto: true);
+    ref.read(sharedLibrarySyncProvider.notifier).syncAll(auto: true);
   }
 
   void _onSyncStateChanged(SyncState? prev, SyncState next) {
