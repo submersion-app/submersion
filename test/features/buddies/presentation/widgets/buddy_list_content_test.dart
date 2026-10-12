@@ -23,6 +23,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/shared/selection/select_items_menu_entries.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_query_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
@@ -116,6 +117,10 @@ Future<List<Override>> _buildOverrides({
 
 /// Mutable source for the contract test's filter step, so the visible
 /// list can be narrowed mid-test the way a real filter would.
+/// Moved to make the buddies source reload while holding its previous
+/// value, the way a dependency change does in the app.
+final _buddyReloadProvider = StateProvider<int>((ref) => 0);
+
 final _visibleBuddiesProvider = StateProvider<List<BuddyWithDiveCount>>(
   (ref) => const [],
 );
@@ -244,6 +249,73 @@ void main() {
 
   // The desktop pane's own header (showAppBar: false) carries a second
   // overflow menu, with the same "Select items" entry at its top.
+  group('a reload holding its previous value', () {
+    for (final mode in [ListViewMode.detailed, ListViewMode.table]) {
+      testWidgets('keeps the checks (${mode.name})', (tester) async {
+        final controller = SelectionController();
+        addTearDown(controller.dispose);
+        final all = [
+          _makeBuddy(id: 'b1', name: 'Alice'),
+          _makeBuddy(id: 'b2', name: 'Bob'),
+        ];
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              // A source that reloads from a moved dependency while it still
+              // holds the previous rows.
+              allBuddiesWithDiveCountProvider.overrideWith((ref) {
+                ref.watch(_buddyReloadProvider);
+                return Future.delayed(
+                  const Duration(milliseconds: 50),
+                  () => all,
+                );
+              }),
+              buddyListNotifierProvider.overrideWith(
+                (ref) => _MockBuddyListNotifier(),
+              ),
+              buddyListViewModeProvider.overrideWith((ref) => mode),
+              diveRoleMapProvider.overrideWith(
+                (ref) async => <String, DiveRole>{},
+              ),
+              buddyTableConfigProvider.overrideWith(
+                (ref) => _TestBuddyTableConfigNotifier(_testConfig),
+              ),
+              highlightedBuddyIdProvider.overrideWith((ref) => null),
+            ],
+            locale: const Locale('en'),
+            child: BuddyListContent(
+              showAppBar: true,
+              selectionController: controller,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        controller.enterExplicit();
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+        await tester.pumpAndSettle();
+        expect(find.text('2 selected'), findsOneWidget);
+
+        ProviderScope.containerOf(
+          tester.element(find.byType(BuddyListContent)),
+        ).read(_buddyReloadProvider.notifier).state++;
+        // Two frames inside the reload: one builds, the next runs the prune.
+        await tester.pump();
+        await tester.pump();
+        expect(find.text('2 selected'), findsOneWidget);
+        await tester.pumpAndSettle();
+        expect(find.text('2 selected'), findsOneWidget);
+      });
+    }
+  });
+
   group('compact bar "Select items"', () {
     testWidgets('is first in the menu and enters selection', (tester) async {
       final all = <BuddyWithDiveCount>[
