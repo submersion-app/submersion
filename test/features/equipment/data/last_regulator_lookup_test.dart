@@ -58,4 +58,56 @@ void main() {
     expect(await repo.getLastRegulatorForPreset('hp100'), 'reg-c');
     expect(await repo.getLastRegulatorForPreset('lp85'), isNull);
   });
+
+  test('skips a regulator that has since left the kit (#3210)', () async {
+    // Prefilling a new tank with gear retired or sold would put it back in
+    // use; the newest pairing still in the kit wins instead.
+    Future<void> reg(
+      String id, {
+      String status = 'active',
+      bool active = true,
+    }) => db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: id,
+            name: id,
+            type: 'regulator',
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(status: Value(status), isActive: Value(active)),
+        );
+    Future<void> dive(String id, int ms, String r) async {
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: id,
+              diveDateTime: ms,
+              createdAt: ms,
+              updatedAt: ms,
+            ),
+          );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(id: 't-$id', diveId: id).copyWith(
+              presetName: const Value('al80'),
+              regulatorEquipmentId: Value(r),
+            ),
+          );
+    }
+
+    await reg('kept');
+    await reg('retired', status: 'retired', active: false);
+    await reg('sold', status: 'sold', active: false);
+    await reg('legacy', active: false);
+    await dive('a', 1000, 'kept');
+    await dive('b', 2000, 'retired');
+    await dive('c', 3000, 'sold');
+    await dive('d', 4000, 'legacy');
+
+    final repo = EquipmentRepository();
+    expect(await repo.getLastRegulatorForPreset('al80'), 'kept');
+  });
 }

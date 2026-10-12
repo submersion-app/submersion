@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -267,5 +268,86 @@ void main() {
 
       _expectCamera(tester, lat: -20.0, lng: 98.0, zoom: 12.0);
     });
+  });
+
+  group('leaving the map returns to the list that opened it (#3292)', () {
+    /// A dive list pushed over another page (a site's dives, say), with the
+    /// activity map pushed on top of it, as its map icon does on phones.
+    Future<GoRouter> pumpPushed(WidgetTester tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(600, 900);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      final router = GoRouter(
+        initialLocation: '/root',
+        routes: [
+          GoRoute(
+            path: '/root',
+            builder: (_, _) => const Scaffold(body: Text('ROOT')),
+          ),
+          GoRoute(
+            path: '/dives',
+            builder: (_, _) => const Scaffold(body: Text('PUSHED LIST')),
+            routes: [
+              GoRoute(
+                path: 'activity',
+                builder: (_, _) => const DiveActivityMapPage(),
+              ),
+            ],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      final dives = [_diveAt(_reefA)];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...await getBaseOverrides(),
+            sitesWithCountsProvider.overrideWith(
+              (ref) async => [
+                const SiteWithDiveCount(site: _reefA, diveCount: 1),
+              ],
+            ),
+            sortedFilteredDivesProvider.overrideWithValue(
+              AsyncValue.data(dives),
+            ),
+            paginatedDiveListProvider.overrideWith(
+              (ref) => _FixedPaginatedNotifier(
+                dives.map(DiveSummary.fromDive).toList(),
+              ),
+            ),
+            diveActivityHeatMapProvider.overrideWithValue(
+              const AsyncValue<List<HeatMapPoint>>.data(<HeatMapPoint>[]),
+            ),
+          ],
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      router.push('/dives');
+      await tester.pump();
+      router.push('/dives/activity');
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      return router;
+    }
+
+    for (final control in ['Back', 'List View']) {
+      testWidgets('$control keeps the page under the list', (tester) async {
+        final router = await pumpPushed(tester);
+
+        await tester.tap(find.byTooltip(control));
+        await tester.pump();
+        await tester.pump(const Duration(seconds: 1));
+
+        expect(find.text('PUSHED LIST'), findsOneWidget);
+        expect(router.canPop(), isTrue, reason: '$control must not go()');
+      });
+    }
   });
 }

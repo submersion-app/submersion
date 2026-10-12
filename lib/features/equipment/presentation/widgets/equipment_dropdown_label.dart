@@ -15,11 +15,20 @@ class EquipmentDropdownLabel extends StatelessWidget {
   final EquipmentItem item;
   final EquipmentRowLabel? label;
 
-  const EquipmentDropdownLabel({super.key, required this.item, this.label});
+  /// Leads the details, such as the status of gear that has left the kit
+  /// (#3210): what most needs saying about the option goes first.
+  final String? note;
+
+  const EquipmentDropdownLabel({
+    super.key,
+    required this.item,
+    this.label,
+    this.note,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final details = _detailsOf(item, label);
+    final details = [?note, ?_detailsOf(item, label)].join(' · ');
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -33,7 +42,7 @@ class EquipmentDropdownLabel extends StatelessWidget {
             TextSpan(
               text: item.name,
               children: [
-                if (details != null)
+                if (details.isNotEmpty)
                   TextSpan(
                     text: ' · $details',
                     style: TextStyle(

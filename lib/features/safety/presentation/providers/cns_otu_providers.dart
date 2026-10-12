@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
@@ -47,9 +48,10 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
   if (lastDive == null) return null;
 
   // Independent lookups, run concurrently rather than one after the other.
-  final (analysis, totals) = await (
+  final (analysis, totals, dive) = await (
     ref.watch(profileAnalysisProvider(lastDive.id).future),
     _currentOtuTotals(ref, repository, diverId, now, nextMidnight),
+    ref.watch(diveProvider(lastDive.id).future),
   ).wait;
 
   return CnsOtuSnapshot(
@@ -61,6 +63,19 @@ final cnsOtuSnapshotProvider = FutureProvider<CnsOtuSnapshot?>((ref) async {
     dailyOtu: totals.daily,
     weeklyOtu: totals.weekly,
     computedAt: now,
+    // Independent of exposure: null for a gauge-mode or gas-segment-less
+    // rebreather dive even when exposure is known (see CnsOtuSnapshot's doc).
+    endOfDiveCompartments: analysis?.decoStatuses.lastOrNull?.compartments,
+    // The same site conditions profileAnalysisProvider computed those
+    // compartments in, so the live projection off-gasses toward the dive's
+    // own surface rather than a 1.0 bar sea-level one.
+    surfaceEnvironment: dive == null
+        ? DiveEnvironment.standard
+        : DiveEnvironment.forConditions(
+            altitudeMeters: dive.altitude,
+            waterType: dive.effectiveWaterType,
+            surfacePressureBar: dive.surfacePressure,
+          ),
   );
 });
 

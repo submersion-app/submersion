@@ -5,6 +5,8 @@ import 'package:submersion/core/presentation/widgets/chart_zoom_controls.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_legend_entries.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_options_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_legend_config.dart';
 
@@ -55,6 +57,12 @@ class DiveProfileLegend extends ConsumerWidget {
       context,
       config: config,
       state: legendState,
+      palette: ProfileMetricPalette(
+        overrides: ref.watch(
+          settingsProvider.select((s) => s.profileMetricColors),
+        ),
+        temperatureAuto: Theme.of(context).colorScheme.tertiary,
+      ),
     );
 
     return Padding(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -289,7 +290,7 @@ class TableModeLayout extends ConsumerWidget {
     final uri = router.state.uri;
     if (uri.queryParameters.containsKey('mode')) return;
     if (uri.queryParameters['selected'] == id) return;
-    router.go(
+    context.goInPlace(
       uri
           .replace(queryParameters: {...uri.queryParameters, 'selected': id})
           .toString(),

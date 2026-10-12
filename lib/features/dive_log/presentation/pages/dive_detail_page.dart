@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
@@ -26,7 +27,6 @@ import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_with_figure.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
-import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
@@ -43,6 +43,7 @@ import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dia
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/legacy_buddy_text_section.dart';
@@ -279,7 +280,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   void _navigateToDive(String neighborId) {
     ref.read(highlightedDiveIdProvider.notifier).state = neighborId;
     if (widget.embedded) {
-      context.go('/dives?selected=$neighborId');
+      context.goInPlace('/dives?selected=$neighborId');
     } else {
       context.replace('/dives/$neighborId');
     }
@@ -315,25 +316,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       );
     }
 
-    // On desktop, redirect standalone detail pages to master-detail view.
-    // Skip in table mode -- table view has no master-detail split to redirect into.
-    // Skip when this page was PUSHED (trip/buddy/site drill-through, "Open
-    // Full Page"): the redirect uses go(), which would wipe the stack and
-    // lose the browse context and back button (#764). Only redirect
-    // root-level details (deep links, tab navigation).
-    if (!widget.embedded &&
-        !_hasRedirected &&
-        !(GoRouter.maybeOf(context)?.canPop() ?? false) &&
-        ResponsiveBreakpoints.isMasterDetail(context)) {
-      final viewMode = ref.read(diveListViewModeProvider);
-      if (viewMode != ListViewMode.table) {
-        _hasRedirected = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            context.go('/dives?selected=$diveId');
-          }
-        });
-      }
+    // Desktop redirect: a root visit (deep link, sidebar) moves into the
+    // master-detail split. A pushed page, opened from a dive's details
+    // say, stays put: the redirect's go() would erase the page under it
+    // and its back arrow (#764, #3292).
+    if (!_hasRedirected &&
+        shouldRedirectToMasterDetail(
+          context,
+          embedded: widget.embedded,
+          viewMode: ref.read(diveListViewModeProvider),
+        )) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/dives?selected=$diveId');
+        }
+      });
     }
 
     // A finding dismissed elsewhere (section button, another device via sync,
@@ -358,18 +356,30 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       data: (dive) {
         if (dive == null) {
           return Scaffold(
-            appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
+            // Embedded in a split view, these placeholder bars are not pages:
+            // a pushed list underneath must not give them a back arrow of
+            // their own (#3292).
+            appBar: AppBar(
+              automaticallyImplyLeading: !widget.embedded,
+              title: Text(context.l10n.diveLog_detail_appBar),
+            ),
             body: Center(child: Text(context.l10n.diveLog_detail_notFound)),
           );
         }
         return _wrapWithDiveShortcuts(dive, _buildContent(context, ref, dive));
       },
       loading: () => Scaffold(
-        appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
+        appBar: AppBar(
+          automaticallyImplyLeading: !widget.embedded,
+          title: Text(context.l10n.diveLog_detail_appBar),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (error, stack) => Scaffold(
-        appBar: AppBar(title: Text(context.l10n.diveLog_detail_appBar)),
+        appBar: AppBar(
+          automaticallyImplyLeading: !widget.embedded,
+          title: Text(context.l10n.diveLog_detail_appBar),
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1502,7 +1512,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 onPressed: () {
                   final state = GoRouterState.of(context);
                   final currentPath = state.uri.path;
-                  context.go('$currentPath?selected=$diveId&mode=edit');
+                  context.goInPlace('$currentPath?selected=$diveId&mode=edit');
                 },
               ),
               // More options
@@ -1783,14 +1793,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
           : () {
               if (widget.embedded &&
                   ResponsiveBreakpoints.isMasterDetail(context)) {
-                final router = GoRouter.of(context);
                 final state = GoRouterState.of(context);
                 final currentPath = state.uri.path;
                 final params = Map<String, String>.from(
                   state.uri.queryParameters,
                 );
                 params['site'] = site.id;
-                router.go(
+                context.goInPlace(
                   Uri(path: currentPath, queryParameters: params).toString(),
                 );
               } else {

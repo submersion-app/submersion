@@ -1,3 +1,5 @@
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -388,6 +390,17 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setTrendGapThreshold(TrendGapThreshold value) async =>
       state = state.copyWith(trendGapThreshold: value);
+  @override
+  Future<void> setProfileMetricColor(
+    ProfileMetric metric,
+    Color? color,
+  ) async => state = state.copyWith(
+    profileMetricColors: state.profileMetricColors.withColor(metric, color),
+  );
+  @override
+  Future<void> resetProfileMetricColors() async => state = state.copyWith(
+    profileMetricColors: ProfileMetricColorOverrides.none,
+  );
   @override
   Future<void> setIcdWarningsEnabled(bool value) async =>
       state = state.copyWith(icdWarningsEnabled: value);

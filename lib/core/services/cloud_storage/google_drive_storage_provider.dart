@@ -434,16 +434,23 @@ class GoogleDriveStorageProvider
     try {
       return await _run(() async {
         final targetFolder = folderId ?? await getOrCreateSyncFolder();
+        final folders = _folderDuplicates[targetFolder] ?? [targetFolder];
 
-        var query = "'$targetFolder' in parents and trashed = false";
-        if (namePattern != null) {
-          query += " and name contains '$namePattern'";
+        final files = <drive.File>[];
+        for (var i = 0; i < folders.length; i += _parentsPerQuery) {
+          final batch = folders.skip(i).take(_parentsPerQuery);
+          final parents = batch.map((id) => "'$id' in parents").join(' or ');
+          var query = '($parents) and trashed = false';
+          if (namePattern != null) {
+            query += " and name contains '$namePattern'";
+          }
+          files.addAll(
+            await _listAllFiles(
+              query: query,
+              fileFields: 'files(id,name,modifiedTime,size)',
+            ),
+          );
         }
-
-        final files = await _listAllFiles(
-          query: query,
-          fileFields: 'files(id,name,modifiedTime,size)',
-        );
 
         return files
             .where((f) => f.id != null && f.name != null)
@@ -492,21 +499,34 @@ class GoogleDriveStorageProvider
     }
   }
 
+  /// Returns the existing folder of that name when there is one, as every
+  /// other provider does; only a missing folder is created.
+  ///
+  /// Drive allows any number of same-named folders, and this used to create
+  /// one on every call, so each cloud backup went into a folder of its own.
+  /// The oldest is reused from now on, and [listFiles] on it also reads its
+  /// duplicates, so backups filed by earlier builds stay visible (issue
+  /// #3214).
   @override
   Future<String> createFolder(
     String folderName, {
     String? parentFolderId,
   }) async {
+    final parent = parentFolderId ?? 'appDataFolder';
     try {
       return await _run(() async {
-        final folderMetadata = drive.File()
-          ..name = folderName
-          ..mimeType = 'application/vnd.google-apps.folder'
-          ..parents = [parentFolderId ?? 'appDataFolder'];
-
-        final folder = await _requireApi.files.create(folderMetadata);
-        _log.info('Created folder: $folderName (${folder.id})');
-        return folder.id!;
+        final existing = await _listAllFiles(
+          query:
+              "name = '$folderName' "
+              "and mimeType = '$_folderMimeType' "
+              "and '$parent' in parents "
+              "and trashed = false",
+          fileFields: 'files(id,createdTime)',
+        );
+        final ids = _oldestFirst(existing);
+        if (ids.isEmpty) return _createFolderNow(folderName, parent);
+        _folderDuplicates[ids.first] = ids;
+        return ids.first;
       });
     } on CloudStorageException {
       rethrow;
@@ -518,6 +538,40 @@ class GoogleDriveStorageProvider
       );
       throw _mapDriveError('Create folder', e, stackTrace);
     }
+  }
+
+  static const _folderMimeType = 'application/vnd.google-apps.folder';
+
+  /// Every same-named sibling of a folder [createFolder] resolved, keyed by
+  /// the id it returned (oldest first, that id included).
+  final Map<String, List<String>> _folderDuplicates = {};
+
+  /// Parent clauses per listing query. Drive caps the query length, and a
+  /// daily schedule leaves one duplicate folder per backup ever made.
+  static const _parentsPerQuery = 50;
+
+  static List<String> _oldestFirst(List<drive.File> folders) {
+    final sorted = [
+      for (final f in folders)
+        if (f.id != null) f,
+    ];
+    final epoch = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    sorted.sort((a, b) {
+      final byAge = (a.createdTime ?? epoch).compareTo(b.createdTime ?? epoch);
+      return byAge != 0 ? byAge : a.id!.compareTo(b.id!);
+    });
+    return [for (final f in sorted) f.id!];
+  }
+
+  Future<String> _createFolderNow(String folderName, String parent) async {
+    final folderMetadata = drive.File()
+      ..name = folderName
+      ..mimeType = _folderMimeType
+      ..parents = [parent];
+
+    final folder = await _requireApi.files.create(folderMetadata);
+    _log.info('Created folder: $folderName (${folder.id})');
+    return folder.id!;
   }
 
   @override
@@ -547,10 +601,10 @@ class GoogleDriveStorageProvider
           return _syncFolderId!;
         }
 
-        // Create new sync folder
-        _syncFolderId = await createFolder(
+        // Create new sync folder (the lookup above already found none)
+        _syncFolderId = await _createFolderNow(
           CloudStorageProviderMixin.syncFolderName,
-          parentFolderId: 'appDataFolder',
+          'appDataFolder',
         );
         return _syncFolderId!;
       });

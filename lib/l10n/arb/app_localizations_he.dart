@@ -2450,6 +2450,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'גיבוי זה יימחק לצמיתות. לא ניתן לבטל פעולה זו.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'גיבוי זה נמצא רק באחסון הענן שלך, ושום דבר לא מראה שמכשיר זה יצר אותו. ייתכן שזה העותק היחיד של מכשיר אחר, או גיבוי שמכשיר זה יצר לפני התקנה מחדש. לא ניתן לבטל את המחיקה.';
+
+  @override
   String get backup_delete_dialog_delete => 'מחיקה';
 
   @override
@@ -7745,6 +7749,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_equipmentPicker_removeToAdd => 'הסר פריטים להוספת אחרים';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'הצג ציוד שהוצא משימוש ושנמכר';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'שנה את סטטוס הפריט לפעיל כדי להוסיף אותו לצלילה';
 
@@ -9811,6 +9819,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'ללא';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'הצג וסתים שהוצאו משימוש ושנמכרו';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'מכל הטיול';
@@ -20093,6 +20105,63 @@ class AppLocalizationsHe extends AppLocalizations {
       'מדדים גלויים כברירת מחדל';
 
   @override
+  String get settings_appearance_metricColors => 'צבעי מדדים';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'צבעי ברירת מחדל';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מותאמים',
+      one: '$count מותאם',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'איפוס הכול';
+
+  @override
+  String get settings_metricColors_resetAllTitle => 'לאפס את צבעי המדדים?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'כל מדד יחזור לצבע ברירת המחדל שלו.';
+
+  @override
+  String get settings_metricColors_reset => 'איפוס';
+
+  @override
+  String get settings_metricColors_default => 'ברירת מחדל';
+
+  @override
+  String get settings_metricColors_auto => 'אוטומטי';
+
+  @override
+  String get settings_metricColors_autoTemperature => 'אוטומטי: לפי ערכת הנושא';
+
+  @override
+  String get settings_metricColors_autoPressure => 'אוטומטי: לכל גז צבע משלו';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'בשימוש בצלילות עם מכל אחד';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'הצבע של $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'מתחלף עם $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'מדדים סטנדרטיים';
 
@@ -22531,6 +22600,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'כיווץ פערים בתרשימי מגמה';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'צבע פרופיל: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>
@@ -35270,7 +35344,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'טיסה אחרי צלילה';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'עומס CNS/OTU נוכחי';
+  String get safetySettings_cnsOtuHeader => 'עומס הצלילה הנוכחי';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'רגיל (12/18/24 ש\')';
@@ -35342,6 +35416,20 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'ללא פרופיל עומק לא ניתן לחשב את ה-CNS% וה-OTU שלה. הסיכומים שלהלן אינם כוללים אותה.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'אודות CNS ו-OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'אחוז ה-CNS שלך (שעון החמצן) דועך לאחר הצלילה עם מחצית חיים של 90 דקות -- הוא חוזר כמעט לגמרי ל-0 אחרי כיום אחד בערך.\n\nה-OTU היומי מתאפס בכל לילה בחצות. ה-OTU השבועי הוא סכום מתגלגל של 7 הימים האחרונים: צלילות ישנות יותר נופלות אוטומטית מהחישוב ברגע שהן יוצאות מחלון הזמן הזה.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'אודות רוויית הרקמות';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'לגוף שלך יש 16 תאי רקמה הסופגים ומשחררים חנקן (ובצלילות טרימיקס או רה-ברית\'ר, גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות לוקחות הרבה יותר זמן לשני התהליכים.\n\nלאחר צלילה עם הליום, חנקן והליום באותו תא רקמה יכולים לנוע לרגע בכיוונים מנוגדים: בעוד ההליום עדיין משתחרר, אותו תא עשוי לספוג במקביל מעט חנקן, עד ששני הגזים מגיעים לשיווי משקל עם האוויר שאתה נושם. זו הסיבה שתא רקמה עשוי להציג לרגע \"Ongassing\" גם כאשר העומס הכולל שלו ממשיך לרדת.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -48327,6 +48415,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'מסד נתונים חדש יותר, נשמר בעת החזרה - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'באחסון בענן ($size)';
   }
 
   @override

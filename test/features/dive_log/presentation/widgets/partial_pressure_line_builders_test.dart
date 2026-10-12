@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/partial_pressure_line_builders.dart';
@@ -32,6 +33,7 @@ void main() {
     test('$name is drawn straight between samples, so a switch cannot '
         'overshoot', () {
       final line = build(
+        const Color(0xFFE040FB),
         band,
         stepCurve,
         2.0,
@@ -41,6 +43,8 @@ void main() {
         surfaceValue,
       );
       expect(line.isCurved, isFalse);
+      // Drawn in the colour it is handed (the diver's choice, issue #3012).
+      expect(line.color, const Color(0xFFE040FB));
       expect(line.spots, hasLength(stepCurve.length));
     });
   }

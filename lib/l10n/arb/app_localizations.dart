@@ -3889,6 +3889,12 @@ abstract class AppLocalizations {
   /// **'This backup will be permanently deleted. This cannot be undone.'**
   String get backup_delete_dialog_content;
 
+  /// No description provided for @backup_delete_dialog_content_otherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is only in your cloud storage, and nothing shows this device made it. It may be another device\'s only copy, or one this device made before a reinstall. Deleting it cannot be undone.'**
+  String get backup_delete_dialog_content_otherDevice;
+
   /// No description provided for @backup_delete_dialog_delete.
   ///
   /// In en, this message translates to:
@@ -12523,6 +12529,12 @@ abstract class AppLocalizations {
   /// **'Remove items to add different ones'**
   String get diveLog_equipmentPicker_removeToAdd;
 
+  /// No description provided for @diveLog_equipmentPicker_showLeftKit.
+  ///
+  /// In en, this message translates to:
+  /// **'Show retired and sold gear'**
+  String get diveLog_equipmentPicker_showLeftKit;
+
   /// No description provided for @diveLog_equipmentPicker_spareHint.
   ///
   /// In en, this message translates to:
@@ -16068,6 +16080,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get diveLog_tank_regulatorNone;
+
+  /// No description provided for @diveLog_tank_regulatorShowLeftKit.
+  ///
+  /// In en, this message translates to:
+  /// **'Show retired and sold regulators'**
+  String get diveLog_tank_regulatorShowLeftKit;
 
   /// No description provided for @diveLog_tank_tripCylinderLabel.
   ///
@@ -32941,6 +32959,90 @@ abstract class AppLocalizations {
   /// **'Default Visible Metrics'**
   String get settings_appearance_subsection_defaultVisibleMetrics;
 
+  /// No description provided for @settings_appearance_metricColors.
+  ///
+  /// In en, this message translates to:
+  /// **'Metric Colors'**
+  String get settings_appearance_metricColors;
+
+  /// No description provided for @settings_appearance_metricColors_subtitleDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default colors'**
+  String get settings_appearance_metricColors_subtitleDefault;
+
+  /// No description provided for @settings_appearance_metricColors_subtitleCustomized.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} customized} other{{count} customized}}'**
+  String settings_appearance_metricColors_subtitleCustomized(int count);
+
+  /// No description provided for @settings_metricColors_resetAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all'**
+  String get settings_metricColors_resetAll;
+
+  /// No description provided for @settings_metricColors_resetAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset metric colors?'**
+  String get settings_metricColors_resetAllTitle;
+
+  /// No description provided for @settings_metricColors_resetAllBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Every metric goes back to its default color.'**
+  String get settings_metricColors_resetAllBody;
+
+  /// No description provided for @settings_metricColors_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get settings_metricColors_reset;
+
+  /// No description provided for @settings_metricColors_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settings_metricColors_default;
+
+  /// No description provided for @settings_metricColors_auto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get settings_metricColors_auto;
+
+  /// No description provided for @settings_metricColors_autoTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto: follows the theme'**
+  String get settings_metricColors_autoTemperature;
+
+  /// No description provided for @settings_metricColors_autoPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto: each gas has its own color'**
+  String get settings_metricColors_autoPressure;
+
+  /// No description provided for @settings_metricColors_pressureCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Used on single-tank dives'**
+  String get settings_metricColors_pressureCustom;
+
+  /// No description provided for @settings_metricColors_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{metric} color'**
+  String settings_metricColors_sheetTitle(String metric);
+
+  /// No description provided for @settings_metricColors_swapsWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Swaps with {metric}'**
+  String settings_metricColors_swapsWith(String metric);
+
   /// No description provided for @settings_appearance_subsection_standardMetrics.
   ///
   /// In en, this message translates to:
@@ -37163,6 +37265,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Collapse gaps in trend charts'**
   String get settings_conflict_field_trendGapCollapseMonths;
+
+  /// No description provided for @settings_conflict_field_profileColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile color: {metric}'**
+  String settings_conflict_field_profileColor(String metric);
 
   /// No description provided for @settings_conflict_field_tripServiceLeadDays.
   ///
@@ -57340,7 +57448,7 @@ abstract class AppLocalizations {
   /// No description provided for @safetySettings_cnsOtuHeader.
   ///
   /// In en, this message translates to:
-  /// **'Current CNS/OTU load'**
+  /// **'Current dive load'**
   String get safetySettings_cnsOtuHeader;
 
   /// No description provided for @safetySettings_noFlyPreset_standard.
@@ -57450,6 +57558,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.'**
   String get safetyHub_cnsOtu_noProfile_body;
+
+  /// No description provided for @safetyHub_cnsOtu_about_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About CNS and OTU'**
+  String get safetyHub_cnsOtu_about_title;
+
+  /// No description provided for @safetyHub_cnsOtu_about_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it\'s practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.'**
+  String get safetyHub_cnsOtu_about_body;
+
+  /// No description provided for @safetyHub_tissueLoading_about_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About Tissue Loading'**
+  String get safetyHub_tissueLoading_about_title;
+
+  /// No description provided for @safetyHub_tissueLoading_about_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you\'re breathing. That\'s why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.'**
+  String get safetyHub_tissueLoading_about_body;
 
   /// No description provided for @safetyHub_noFly_category_single.
   ///
@@ -78310,6 +78442,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Newer database, kept when going back - {size}'**
   String backup_history_preDowngradeSubtitle(String size);
+
+  /// No description provided for @backup_history_cloudOnlySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'In cloud storage ({size})'**
+  String backup_history_cloudOnlySubtitle(String size);
 
   /// No description provided for @backup_history_manualSubtitle.
   ///

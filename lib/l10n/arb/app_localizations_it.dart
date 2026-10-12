@@ -2486,6 +2486,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo backup verrà eliminato permanentemente. Questa azione non può essere annullata.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Questo backup si trova solo nel tuo archivio cloud e nulla indica che sia stato creato da questo dispositivo. Potrebbe essere l\'unica copia di un altro dispositivo, o una creata da questo dispositivo prima di una reinstallazione. L\'eliminazione non può essere annullata.';
+
+  @override
   String get backup_delete_dialog_delete => 'Elimina';
 
   @override
@@ -7914,6 +7918,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rimuovi elementi per aggiungerne altri';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Mostra attrezzatura dismessa e venduta';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Imposta lo stato di un elemento su Attivo per aggiungerlo a un\'immersione';
 
@@ -10037,6 +10045,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nessuno';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Mostra erogatori dismessi e venduti';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Bombola del viaggio';
@@ -20550,6 +20562,66 @@ class AppLocalizationsIt extends AppLocalizations {
       'Metriche visibili predefinite';
 
   @override
+  String get settings_appearance_metricColors => 'Colori delle metriche';
+
+  @override
+  String get settings_appearance_metricColors_subtitleDefault =>
+      'Colori predefiniti';
+
+  @override
+  String settings_appearance_metricColors_subtitleCustomized(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personalizzati',
+      one: '$count personalizzato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_metricColors_resetAll => 'Ripristina tutto';
+
+  @override
+  String get settings_metricColors_resetAllTitle =>
+      'Ripristinare i colori delle metriche?';
+
+  @override
+  String get settings_metricColors_resetAllBody =>
+      'Ogni metrica torna al suo colore predefinito.';
+
+  @override
+  String get settings_metricColors_reset => 'Ripristina';
+
+  @override
+  String get settings_metricColors_default => 'Predefinito';
+
+  @override
+  String get settings_metricColors_auto => 'Automatico';
+
+  @override
+  String get settings_metricColors_autoTemperature =>
+      'Automatico: segue il tema';
+
+  @override
+  String get settings_metricColors_autoPressure =>
+      'Automatico: ogni gas ha il suo colore';
+
+  @override
+  String get settings_metricColors_pressureCustom =>
+      'Usato nelle immersioni con una sola bombola';
+
+  @override
+  String settings_metricColors_sheetTitle(String metric) {
+    return 'Colore di $metric';
+  }
+
+  @override
+  String settings_metricColors_swapsWith(String metric) {
+    return 'Si scambia con $metric';
+  }
+
+  @override
   String get settings_appearance_subsection_standardMetrics =>
       'Metriche standard';
 
@@ -23136,6 +23208,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_trendGapCollapseMonths =>
       'Comprimi le pause nei grafici di tendenza';
+
+  @override
+  String settings_conflict_field_profileColor(String metric) {
+    return 'Colore del profilo: $metric';
+  }
 
   @override
   String get settings_conflict_field_tripServiceLeadDays =>
@@ -36154,7 +36231,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Volare dopo l\'immersione';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Carico attuale di CNS/OTU';
+  String get safetySettings_cnsOtuHeader => 'Carico di immersione attuale';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
@@ -36229,6 +36306,21 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Senza profilo di profondità non è possibile calcolarne CNS% e OTU. I totali qui sotto la escludono.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'Informazioni su CNS e OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'Il tuo CNS% (orologio dell\'ossigeno) decade dopo l\'immersione con un\'emivita di 90 minuti -- torna praticamente a 0 dopo circa un giorno.\n\nL\'OTU giornaliero si azzera ogni notte a mezzanotte. L\'OTU settimanale è un totale mobile degli ultimi 7 giorni: le immersioni più vecchie escono automaticamente dal calcolo non appena restano fuori da questa finestra.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title =>
+      'Informazioni sul carico tissutale';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'Il tuo corpo ha 16 compartimenti tissutali che assorbono e rilasciano azoto (e, nelle immersioni in trimix o con ricircolatore, anche elio) a velocità diverse. I tessuti veloci si saturano e desaturano rapidamente; quelli lenti impiegano molto più tempo per entrambi i processi.\n\nDopo un\'immersione con elio, azoto ed elio in uno stesso compartimento possono muoversi brevemente in direzioni opposte: mentre l\'elio sta ancora uscendo, lo stesso compartimento può contemporaneamente assorbire un po\' di azoto, finché entrambi i gas non raggiungono l\'equilibrio con l\'aria che respiri. Per questo un compartimento può mostrare brevemente \"Ongassing\" anche mentre il suo carico complessivo continua a scendere.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -49357,6 +49449,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Database più recente, conservato tornando indietro - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'Nell\'archivio cloud ($size)';
   }
 
   @override

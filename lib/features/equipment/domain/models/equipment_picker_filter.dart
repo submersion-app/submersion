@@ -20,8 +20,11 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 /// picker never loads, and "needs service" is not how a diver picks the gear
 /// they actually dived.
 ///
-/// [EquipmentStatus.retired] is absent from the picker by construction
-/// (`getActiveEquipment` excludes it, per #636), so it is never offered.
+/// [EquipmentStatus.retired] and [EquipmentStatus.sold] reach the picker
+/// only through its left-kit switch (#3210); `getActiveEquipment` excludes
+/// them (#636). The status axis matches [EquipmentItem.effectiveStatus], the
+/// status the picker labels, so a legacy row retired by is_active alone is
+/// found under Retired.
 /// [EquipmentStatus.spare] is absent too wherever the caller sets
 /// `EquipmentPickerSheet.hideSpare` (#1803).
 @immutable
@@ -44,7 +47,7 @@ class EquipmentPickerFilter {
     if (!hasActiveFilters) return equipment;
     return [
       for (final item in equipment)
-        if ((status == null || item.status == status) &&
+        if ((status == null || item.effectiveStatus == status) &&
             (type == null || item.type == type))
           item,
     ];

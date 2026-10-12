@@ -138,6 +138,10 @@ enum ProfileRightAxisMetric {
 
   final String displayName;
   final String shortName;
+
+  /// The colour shipped for this metric. The chart reads only ascent rate's
+  /// and O2 cells' from here; every other metric's colour is the diver's
+  /// choice, resolved through `ProfileMetricPalette` (issue #3012).
   final Color? color;
   final String? unitSuffix;
   final ProfileMetricCategory category;
@@ -160,11 +164,6 @@ enum ProfileRightAxisMetric {
     ndl,
     ppO2,
   ];
-
-  /// Get the effective color, using theme color for temperature
-  Color getColor(ColorScheme colorScheme) {
-    return color ?? colorScheme.tertiary;
-  }
 }
 
 /// Categories for grouping metrics in the UI

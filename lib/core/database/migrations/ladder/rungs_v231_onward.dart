@@ -347,5 +347,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertProfileSeriesActivatedAt();
     }
     if (from < 283) await reportProgress();
+    // v284: diver_settings.profile_color_* (issue #3012). Columns only, null
+    // meaning the default colour; re-asserted in beforeOpen. Renumbered from
+    // 282, which PR #3133 holds, after #3296 shipped 283.
+    if (from < 284) {
+      await _assertProfileMetricColorColumns();
+    }
+    if (from < 284) await reportProgress();
   }
 }

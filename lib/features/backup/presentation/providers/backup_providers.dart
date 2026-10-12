@@ -11,6 +11,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_encryption_key_store.dart';
 import 'package:submersion/features/backup/data/services/backup_encryption_service.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/data/services/cloud_backup_history.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/core/services/sync/crypto/sync_encryption_service.dart'
     show WrongPassphraseException;
@@ -723,10 +724,26 @@ final backupOperationProvider =
 // History
 // =============================================================================
 
-/// Backup history sorted newest-first
-final backupHistoryProvider = FutureProvider<List<BackupRecord>>((ref) async {
+/// Backup history sorted newest-first, plus the backups in the connected
+/// cloud folder that the local history has no record of (issue #3214: after a
+/// fresh install the local history is empty, the cloud copies are not).
+///
+/// Auto-disposed so every visit to the backup page lists the cloud folder
+/// afresh. Signing in changes no provider state this could watch (Cloud Sync
+/// selects the provider before authenticating, and a re-sign-in to the same
+/// provider selects nothing), so a cached signed-out listing would otherwise
+/// hide the cloud backups until something else invalidated it.
+final backupHistoryProvider = FutureProvider.autoDispose<List<BackupRecord>>((
+  ref,
+) async {
   final service = ref.watch(backupServiceProvider);
-  return service.getValidatedBackupHistory();
+  // Started first so the listing overlaps the local read. Not joined with a
+  // record `.wait`, which would wrap a history failure in ParallelWaitError
+  // and hide the real message; getCloudBackups never throws, so leaving it
+  // unawaited on that path cannot surface an unhandled error.
+  final cloudFiles = service.getCloudBackups();
+  final history = await service.getValidatedBackupHistory();
+  return mergeCloudBackups(history, await cloudFiles);
 });
 
 // =============================================================================
