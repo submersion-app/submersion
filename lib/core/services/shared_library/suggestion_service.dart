@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
@@ -55,6 +56,17 @@ class SuggestionService {
     );
     if (membership == null) {
       throw StateError('profile $diverId is not a member of $libraryId');
+    }
+    // An editor or owner edits the site; a suggestion is a reader's way in.
+    final library = await _store.getLibrary(libraryId);
+    final role = library == null
+        ? SharedLibraryRole.reader
+        : effectiveRole(
+            listed: library.roles.roleOf(membership.memberId),
+            readOnlyDetected: library.readOnlyDetected,
+          );
+    if (!canSuggestOnLibrarySite(role)) {
+      throw StateError('only a reader suggests changes in $libraryId');
     }
     final fields = <String, Object?>{
       for (final f in LibraryEditStamper.changedFields(stored, proposed))

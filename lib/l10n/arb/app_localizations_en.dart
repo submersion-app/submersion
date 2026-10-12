@@ -20727,6 +20727,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The last owner cannot be demoted.';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave =>
+      'Make another member an owner before you leave.';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return 'In $name';
   }

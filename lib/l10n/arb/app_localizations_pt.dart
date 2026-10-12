@@ -21043,6 +21043,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'O último proprietário não pode ser despromovido.';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave =>
+      'Torne outro membro proprietário antes de sair.';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return 'Em $name';
   }

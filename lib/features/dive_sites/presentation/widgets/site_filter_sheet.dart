@@ -394,8 +394,18 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
   /// Personal sites or one club library (issue #2567). Hidden while no
   /// library is connected, since every site is personal then.
   Widget _buildLibrarySection() {
-    final libraries =
-        ref.watch(sharedLibrariesProvider).valueOrNull ?? const [];
+    // The active profile's libraries only: another profile's club would
+    // filter to nothing, as its sites are not visible here.
+    final mine = {
+      for (final m
+          in ref.watch(currentMembershipsProvider).valueOrNull ?? const [])
+        m.libraryId,
+    };
+    final libraries = [
+      for (final l
+          in ref.watch(sharedLibrariesProvider).valueOrNull ?? const [])
+        if (mine.contains(l.id)) l,
+    ];
     if (libraries.isEmpty) return const SizedBox.shrink();
     // Its own bottom padding, like the tag section, so an absent section
     // leaves no gap.

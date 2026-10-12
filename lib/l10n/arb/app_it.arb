@@ -5801,6 +5801,7 @@
   "sharedLibrary_library_rename_label": "Nome visualizzato",
   "sharedLibrary_members_setRole": "Cambia ruolo",
   "sharedLibrary_members_lastOwner": "L'ultimo proprietario non può essere retrocesso.",
+  "sharedLibrary_library_lastOwnerLeave": "Rendi proprietario un altro membro prima di uscire.",
   "sharedLibrary_site_badgeTooltip": "In {name}",
   "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
   "sharedLibrary_site_lastEdited": "Ultima modifica di {name}, {when}",

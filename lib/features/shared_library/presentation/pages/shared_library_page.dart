@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -286,9 +287,17 @@ class SharedLibraryPage extends ConsumerWidget {
     if (confirmed != true) return;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return;
-    await ref
-        .read(sharedLibraryMembershipServiceProvider)
-        .leave(libraryId: library.id, diverId: diverId);
+    try {
+      await ref
+          .read(sharedLibraryMembershipServiceProvider)
+          .leave(libraryId: library.id, diverId: diverId);
+    } on LastOwnerLeaveError {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.sharedLibrary_library_lastOwnerLeave)),
+      );
+      return;
+    }
     ref.invalidate(currentMembershipsProvider);
     ref.invalidate(sitesProvider);
     if (context.mounted) context.pop();

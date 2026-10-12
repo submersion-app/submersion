@@ -21309,6 +21309,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن تخفيض رتبة المالك الأخير.';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave =>
+      'اجعل عضوًا آخر مالكًا قبل المغادرة.';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return 'في $name';
   }

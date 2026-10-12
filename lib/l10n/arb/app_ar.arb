@@ -5901,6 +5901,7 @@
   "sharedLibrary_library_rename_label": "الاسم المعروض",
   "sharedLibrary_members_setRole": "تغيير الدور",
   "sharedLibrary_members_lastOwner": "لا يمكن تخفيض رتبة المالك الأخير.",
+  "sharedLibrary_library_lastOwnerLeave": "اجعل عضوًا آخر مالكًا قبل المغادرة.",
   "sharedLibrary_site_badgeTooltip": "في {name}",
   "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
   "sharedLibrary_site_lastEdited": "آخر تعديل بواسطة {name}، {when}",

@@ -13083,6 +13083,7 @@
   "sharedLibrary_library_rename_label": "Display name",
   "sharedLibrary_members_setRole": "Change role",
   "sharedLibrary_members_lastOwner": "The last owner cannot be demoted.",
+  "sharedLibrary_library_lastOwnerLeave": "Make another member an owner before you leave.",
   "sharedLibrary_site_badgeTooltip": "In {name}",
   "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
   "sharedLibrary_site_lastEdited": "Last edited by {name}, {when}",

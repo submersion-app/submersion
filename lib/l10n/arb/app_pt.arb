@@ -5901,6 +5901,7 @@
   "sharedLibrary_library_rename_label": "Nome a apresentar",
   "sharedLibrary_members_setRole": "Alterar função",
   "sharedLibrary_members_lastOwner": "O último proprietário não pode ser despromovido.",
+  "sharedLibrary_library_lastOwnerLeave": "Torne outro membro proprietário antes de sair.",
   "sharedLibrary_site_badgeTooltip": "Em {name}",
   "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
   "sharedLibrary_site_lastEdited": "Última edição por {name}, {when}",

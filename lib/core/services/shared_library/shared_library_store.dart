@@ -202,8 +202,17 @@ class SharedLibraryStore {
     return rows.map(_libraryFromRow).toList();
   }
 
+  /// Drops the library and everything this device held for it. Site states
+  /// and suggestions have no foreign key to cascade, and a stale pending
+  /// tombstone among them would delete the site for everyone on a rejoin.
   Future<void> deleteLibrary(String id) async {
     await _db.transaction(() async {
+      await (_db.delete(
+        _db.sharedSiteStates,
+      )..where((t) => t.libraryId.equals(id))).go();
+      await (_db.delete(
+        _db.sharedSiteSuggestions,
+      )..where((t) => t.libraryId.equals(id))).go();
       await (_db.delete(
         _db.sharedLibraryMembers,
       )..where((t) => t.libraryId.equals(id))).go();

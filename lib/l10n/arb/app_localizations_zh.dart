@@ -19997,6 +19997,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_members_lastOwner => '无法降级最后一位所有者。';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave => '离开前，请先将另一位成员设为所有者。';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return '位于$name';
   }

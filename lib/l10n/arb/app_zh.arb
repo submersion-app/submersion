@@ -6053,6 +6053,7 @@
   "sharedLibrary_library_rename_label": "显示名称",
   "sharedLibrary_members_setRole": "更改角色",
   "sharedLibrary_members_lastOwner": "无法降级最后一位所有者。",
+  "sharedLibrary_library_lastOwnerLeave": "离开前，请先将另一位成员设为所有者。",
   "sharedLibrary_site_badgeTooltip": "位于{name}",
   "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
   "sharedLibrary_site_lastEdited": "最后由 {name} 编辑于 {when}",

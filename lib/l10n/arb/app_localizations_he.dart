@@ -20570,6 +20570,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'אי אפשר להוריד בדרגה את הבעלים האחרון.';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave =>
+      'יש להגדיר חבר אחר כבעלים לפני היציאה.';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return 'ב$name';
   }

@@ -21102,6 +21102,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le dernier propriétaire ne peut pas être rétrogradé.';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave =>
+      'Nommez un autre membre propriétaire avant de partir.';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return 'Dans $name';
   }

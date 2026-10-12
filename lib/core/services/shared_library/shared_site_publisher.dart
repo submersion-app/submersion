@@ -22,6 +22,22 @@ class SharedSitePublisher {
   final SiteDetacher _detacher;
   AppDatabase get _db => DatabaseService.instance.database;
 
+  /// The member id of a profile that may delete or undelete in
+  /// [libraryId]: an editor or owner whose credentials can write.
+  Future<String> _editorMemberId(String diverId, String libraryId) async {
+    final memberId = await _memberId(diverId, libraryId);
+    final library = await _store.getLibrary(libraryId);
+    if (library == null) throw StateError('$libraryId is not connected here');
+    final role = effectiveRole(
+      listed: library.roles.roleOf(memberId),
+      readOnlyDetected: library.readOnlyDetected,
+    );
+    if (!canDeleteLibrarySite(role)) {
+      throw StateError('a reader cannot delete in $libraryId');
+    }
+    return memberId;
+  }
+
   Future<String> _memberId(String diverId, String libraryId) async {
     final membership = await _store.membership(
       diverId: diverId,
@@ -98,7 +114,7 @@ class SharedSitePublisher {
     )..where((t) => t.id.equals(siteId))).getSingleOrNull();
     final libraryId = row?.sharedLibraryId;
     if (libraryId == null) throw StateError('site $siteId is not in a library');
-    final memberId = await _memberId(diverId, libraryId);
+    final memberId = await _editorMemberId(diverId, libraryId);
     final existing =
         await _store.getSiteState(siteId) ??
         SharedSiteState(siteId: siteId, libraryId: libraryId);
@@ -130,7 +146,7 @@ class SharedSitePublisher {
     if (existing == null) {
       throw StateError('site $siteId has no library state to undelete');
     }
-    final memberId = await _memberId(diverId, existing.libraryId);
+    final memberId = await _editorMemberId(diverId, existing.libraryId);
     final stamp = _stamp(existing, memberId);
     await _store.putSiteState(
       existing.copyWith(

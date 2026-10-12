@@ -143,4 +143,19 @@ void main() {
     final after = (await SharedLibraryStore().getSiteState('s'))!;
     expect(after.clocks, before.clocks);
   });
+
+  test('a save from the edit page keeps the site in its library', () async {
+    // The page builds the site without the library id and names the active
+    // profile as owner; neither column may reach the row.
+    await SiteRepository().updateSite(
+      const DiveSite(id: 's', name: 'Renamed', diverId: 'd1'),
+      actingDiverId: 'd1',
+    );
+    final row = (await SiteRepository().getSiteById('s'))!;
+    expect(row.name, 'Renamed');
+    expect(row.sharedLibraryId, 'L');
+    expect(row.diverId, isNull);
+    final state = (await SharedLibraryStore().getSiteState('s'))!;
+    expect(state.clocks.keys, contains('name'));
+  });
 }

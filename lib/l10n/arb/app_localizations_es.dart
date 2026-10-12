@@ -21045,6 +21045,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se puede degradar al último propietario.';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave =>
+      'Haz propietario a otro miembro antes de salir.';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return 'En $name';
   }

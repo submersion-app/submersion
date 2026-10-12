@@ -5901,6 +5901,7 @@
   "sharedLibrary_library_rename_label": "Weergavenaam",
   "sharedLibrary_members_setRole": "Rol wijzigen",
   "sharedLibrary_members_lastOwner": "De laatste eigenaar kan niet worden gedegradeerd.",
+  "sharedLibrary_library_lastOwnerLeave": "Maak een ander lid eigenaar voordat je vertrekt.",
   "sharedLibrary_site_badgeTooltip": "In {name}",
   "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
   "sharedLibrary_site_lastEdited": "Laatst bewerkt door {name}, {when}",

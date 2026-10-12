@@ -21041,6 +21041,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'L\'ultimo proprietario non può essere retrocesso.';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave =>
+      'Rendi proprietario un altro membro prima di uscire.';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return 'In $name';
   }

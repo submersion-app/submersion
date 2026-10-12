@@ -29,6 +29,7 @@ void main() {
         name: 'Club',
         connectedAccountId: 'acc',
         prefix: 'club',
+        roles: SharedLibraryRoles(editors: {'m1'}),
       ),
     );
     await SharedLibraryStore().upsertMembership(
@@ -185,4 +186,34 @@ void main() {
       );
     },
   );
+
+  test('a reader may neither delete from the library nor undelete', () async {
+    await SharedLibraryStore().upsertMembership(
+      const SharedLibraryMembership(
+        id: 'ms2',
+        diverId: 'd2',
+        libraryId: 'L',
+        memberId: 'm2',
+        displayName: 'Bob',
+        libraryName: 'Club',
+        backendKind: 's3',
+      ),
+    );
+    await SiteRepository().createSite(
+      const DiveSite(id: 'c', name: 'Club', sharedLibraryId: 'L'),
+    );
+    await SharedLibraryStore().putSiteState(
+      const SharedSiteState(siteId: 'c', libraryId: 'L'),
+    );
+    await expectLater(
+      SharedSitePublisher().deleteFromLibrary(siteId: 'c', diverId: 'd2'),
+      throwsStateError,
+    );
+    await expectLater(
+      SharedSitePublisher().undelete(siteId: 'c', diverId: 'd2'),
+      throwsStateError,
+    );
+    expect(await SiteRepository().getSiteById('c'), isNotNull);
+    expect((await SharedLibraryStore().getSiteState('c'))!.dirty, isFalse);
+  });
 }

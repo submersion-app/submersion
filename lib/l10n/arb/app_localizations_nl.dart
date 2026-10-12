@@ -20907,6 +20907,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'De laatste eigenaar kan niet worden gedegradeerd.';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave =>
+      'Maak een ander lid eigenaar voordat je vertrekt.';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return 'In $name';
   }

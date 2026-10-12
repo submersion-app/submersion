@@ -20971,6 +20971,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az utolsó tulajdonos nem fokozható le.';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave =>
+      'Kilépés előtt tegyél meg egy másik tagot tulajdonosnak.';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return 'Itt: $name';
   }

@@ -221,4 +221,17 @@ void main() {
     expect(await t.listSuggestions(), isEmpty);
     expect(await SharedLibraryStore().suggestions('L'), isEmpty);
   });
+
+  test('only a reader proposes; an owner edits instead', () async {
+    await expectLater(
+      service.propose(
+        proposed: (await SiteRepository().getSiteById(
+          's',
+        ))!.copyWith(hazards: 'owner idea'),
+        diverId: 'owner',
+      ),
+      throwsStateError,
+    );
+    expect(await SharedLibraryStore().suggestions('L'), isEmpty);
+  });
 }

@@ -113,6 +113,9 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
     if (diverId == null || !mounted) return;
     final memberships = await _store.membershipsForDiver(diverId);
     final connected = {for (final l in await _store.getLibraries()) l.id};
+    // Read now: a queued run may start after this notifier is disposed,
+    // when its Ref may no longer be used.
+    final service = _service;
     final results = Map<String, SharedLibrarySyncResult>.from(
       state.lastResults,
     );
@@ -120,7 +123,7 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
       if (!connected.contains(m.libraryId) || !mounted) continue;
       state = state.copyWith(syncing: true, syncingLibraryId: m.libraryId);
       final result = await SyncCoordinator.run(
-        () => _service.sync(m.libraryId, diverId: diverId),
+        () => service.sync(m.libraryId, diverId: diverId),
       );
       results[m.libraryId] = result;
       if (!result.isHealthy) {
@@ -144,10 +147,11 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
         status: SharedLibrarySyncStatus.notConnected,
       );
     }
+    final service = _service;
     state = state.copyWith(syncing: true, syncingLibraryId: libraryId);
     try {
       final result = await SyncCoordinator.run(
-        () => _service.sync(libraryId, diverId: diverId),
+        () => service.sync(libraryId, diverId: diverId),
       );
       if (mounted) {
         state = state.copyWith(

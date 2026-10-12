@@ -146,4 +146,47 @@ void main() {
       reason: 'a library site is deleted through its role-gated action',
     );
   });
+
+  testWidgets('a reader reaching the plain edit route still only suggests', (
+    tester,
+  ) async {
+    // A deep link to /sites/s/edit without ?suggest=1.
+    await pump(tester, suggest: false);
+    expect(find.text('Send'), findsOneWidget);
+    expect(find.text('Edit Site'), findsNothing);
+
+    await tester.scrollUntilVisible(
+      find.text('Access & safety').first,
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Access & safety').first);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Hazards').first,
+      100,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.enterText(_rowField('Hazards'), 'from a reader');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Send'));
+    await tester.pumpAndSettle();
+
+    expect((await SiteRepository().getSiteById('s'))!.hazards, 'old');
+    expect((await SharedLibraryStore().suggestions('L')).single.fields, {
+      'hazards': 'from a reader',
+    });
+  });
+
+  testWidgets('an editor reaching the edit route edits the site', (
+    tester,
+  ) async {
+    await SharedLibraryStore().setLibraryStatus(
+      'L',
+      roles: const SharedLibraryRoles(editors: {'r'}),
+    );
+    await pump(tester, suggest: false);
+    expect(find.text('Edit Site'), findsWidgets);
+    expect(find.text('Send'), findsNothing);
+  });
 }

@@ -38,6 +38,13 @@ typedef LibraryTransportFactory =
 
 /// Connecting, creating, joining and leaving club libraries, member
 /// display names and owner role changes (issue #2567).
+/// Leaving would leave the library without an owner while other members
+/// remain: one of them must be made owner first.
+class LastOwnerLeaveError extends StateError {
+  LastOwnerLeaveError(String libraryId)
+    : super('the only owner of $libraryId cannot leave its members');
+}
+
 class SharedLibraryMembershipService {
   SharedLibraryMembershipService({
     required SharedLibraryStore store,
@@ -263,6 +270,20 @@ class SharedLibraryMembershipService {
       libraryId: libraryId,
     );
     final library = await _store.getLibrary(libraryId);
+    if (membership != null && library != null) {
+      // As setRole keeps an owner, so does leave: nobody else could manage
+      // roles or review suggestions afterwards.
+      final roles = library.roles;
+      final others = [
+        for (final m in await _store.getMembers(libraryId))
+          if (m.memberId != membership.memberId) m,
+      ];
+      if (others.isNotEmpty &&
+          roles.owners.length == 1 &&
+          roles.owners.contains(membership.memberId)) {
+        throw LastOwnerLeaveError(libraryId);
+      }
+    }
     if (membership != null) {
       await _store.deleteMembership(membership.id);
       if (library != null) {

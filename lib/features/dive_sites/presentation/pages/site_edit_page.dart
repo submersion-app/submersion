@@ -1193,7 +1193,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             shareLocked: _mayShare() != true,
             shareLockedReason: _shareLockedReason(),
           ),
-          if (widget.suggest) ...[
+          if (_suggestModeShown()) ...[
             const SizedBox(height: 16),
             TextFormField(
               key: const Key('suggestion-note'),
@@ -1210,14 +1210,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     );
 
     return EditFormScaffold(
-      title: widget.suggest
+      title: _suggestModeShown()
           ? context.l10n.sharedLibrary_suggest_title
           : widget.isEditing
           ? context.l10n.diveSites_edit_appBar_editSite
           : widget.isMerging
           ? context.l10n.diveSites_edit_appBar_mergeSites
           : context.l10n.diveSites_edit_appBar_newSite,
-      saveLabel: widget.suggest
+      saveLabel: _suggestModeShown()
           ? context.l10n.sharedLibrary_suggest_send
           : null,
       embedded: widget.embedded,
@@ -1225,7 +1225,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       hasUnsavedChanges: _hasChanges,
       onSave: _saveSite,
       onCancel: widget.embedded ? _handleCancel : null,
-      headerIcon: widget.suggest
+      headerIcon: _suggestModeShown()
           ? Icons.rate_review_outlined
           : widget.isEditing
           ? Icons.edit
@@ -1820,6 +1820,29 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         NumberInvalid() => null, // unreachable: validate() ran first
       };
 
+  /// Suggestion mode: asked for, or forced on a club library site this
+  /// profile may not edit, so a deep link to the plain edit route cannot
+  /// write the site (issue #2567). Plain editing while the role loads; the
+  /// save decides again with the settled role.
+  bool _suggestModeShown() {
+    if (widget.suggest) return true;
+    final id = _originalSite?.sharedLibraryId;
+    if (id == null) return false;
+    final role = ref.watch(libraryRoleProvider(id)).valueOrNull;
+    final connected = ref.watch(libraryConnectedHereProvider(id)).valueOrNull;
+    if (role == null || connected == null) return false;
+    return !(connected && canEditLibrarySite(role));
+  }
+
+  Future<bool> _suggestModeAtSave() async {
+    if (widget.suggest) return true;
+    final id = _originalSite?.sharedLibraryId;
+    if (id == null) return false;
+    final role = await ref.read(libraryRoleProvider(id).future);
+    final connected = await ref.read(libraryConnectedHereProvider(id).future);
+    return !(connected && canEditLibrarySite(role));
+  }
+
   /// A reader's save on a club library site (issue #2567): the changed
   /// fields and the note become a suggestion; the site is untouched.
   Future<void> _sendSuggestion(
@@ -2001,7 +2024,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
             )
           : null;
 
-      if (widget.suggest) {
+      if (await _suggestModeAtSave()) {
         await _sendSuggestion(site, classificationChanged);
         return;
       }

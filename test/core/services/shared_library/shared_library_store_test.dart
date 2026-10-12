@@ -155,4 +155,61 @@ void main() {
     await store.deleteSuggestion('g1');
     expect(await store.suggestions('L'), isEmpty);
   });
+
+  test('deleting a library drops its site states and suggestions', () async {
+    await store.upsertLibrary(
+      const SharedLibrary(
+        id: 'L',
+        name: 'Club',
+        connectedAccountId: 'a',
+        prefix: 'p',
+      ),
+    );
+    await store.putSiteState(
+      const SharedSiteState(
+        siteId: 'gone',
+        libraryId: 'L',
+        deleted: true,
+        dirty: true,
+      ),
+    );
+    await store.putSuggestion(
+      SharedSiteSuggestion(
+        id: 'g',
+        libraryId: 'L',
+        siteId: 'gone',
+        memberId: 'm',
+        memberName: 'M',
+        createdAt: DateTime.utc(2026),
+        direction: SharedSiteSuggestion.incoming,
+      ),
+    );
+    await store.deleteLibrary('L');
+    expect(
+      await store.getSiteState('gone'),
+      isNull,
+      reason: 'a stale pending tombstone would delete the site on rejoin',
+    );
+    expect(await store.suggestions('L'), isEmpty);
+  });
+
+  test('a membership write stamps its clock for the personal sync', () async {
+    await store.upsertMembership(
+      const SharedLibraryMembership(
+        id: 'ms',
+        diverId: 'd1',
+        libraryId: 'L',
+        memberId: 'm',
+        displayName: 'Ann',
+        libraryName: 'Club',
+        backendKind: 's3',
+      ),
+    );
+    final rows = await DatabaseService.instance.database
+        .customSelect(
+          "SELECT hlc FROM shared_library_memberships WHERE id = 'ms'",
+        )
+        .get();
+    expect(rows.single.read<String?>('hlc'), isNotNull);
+  });
 }

@@ -232,7 +232,7 @@ void main() {
     await SiteRepository().createSite(
       DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: lib.id),
     );
-    await service.leave(libraryId: lib.id, diverId: 'd1');
+    await service.leave(libraryId: lib.id, diverId: 'd2');
     expect(await SharedLibraryStore().getLibrary(lib.id), isNotNull);
     expect(
       await SharedLibraryStore().membershipsForLibrary(lib.id),
@@ -330,4 +330,29 @@ void main() {
       expect(roles.roleOf('dan'), SharedLibraryRole.editor);
     },
   );
+
+  test('the only owner cannot leave while other members remain', () async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'club',
+      name: 'Club',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    await _diver('d2');
+    await service.join(
+      account: account,
+      prefix: 'club',
+      diverId: 'd2',
+      displayName: 'Bob',
+    );
+    await expectLater(
+      service.leave(libraryId: lib.id, diverId: 'd1'),
+      throwsA(isA<LastOwnerLeaveError>()),
+    );
+    expect(
+      await SharedLibraryStore().membership(diverId: 'd1', libraryId: lib.id),
+      isNotNull,
+    );
+  });
 }

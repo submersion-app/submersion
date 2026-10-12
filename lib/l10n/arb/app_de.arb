@@ -6018,6 +6018,7 @@
   "sharedLibrary_library_rename_label": "Anzeigename",
   "sharedLibrary_members_setRole": "Rolle ändern",
   "sharedLibrary_members_lastOwner": "Der letzte Eigentümer kann nicht herabgestuft werden.",
+  "sharedLibrary_library_lastOwnerLeave": "Ernenne vor dem Verlassen ein anderes Mitglied zum Eigentümer.",
   "sharedLibrary_site_badgeTooltip": "In {name}",
   "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
   "sharedLibrary_site_lastEdited": "Zuletzt bearbeitet von {name}, {when}",

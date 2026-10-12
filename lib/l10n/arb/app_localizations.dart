@@ -33689,6 +33689,12 @@ abstract class AppLocalizations {
   /// **'The last owner cannot be demoted.'**
   String get sharedLibrary_members_lastOwner;
 
+  /// No description provided for @sharedLibrary_library_lastOwnerLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Make another member an owner before you leave.'**
+  String get sharedLibrary_library_lastOwnerLeave;
+
   /// No description provided for @sharedLibrary_site_badgeTooltip.
   ///
   /// In en, this message translates to:

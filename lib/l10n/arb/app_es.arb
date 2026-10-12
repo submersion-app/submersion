@@ -5901,6 +5901,7 @@
   "sharedLibrary_library_rename_label": "Nombre visible",
   "sharedLibrary_members_setRole": "Cambiar rol",
   "sharedLibrary_members_lastOwner": "No se puede degradar al último propietario.",
+  "sharedLibrary_library_lastOwnerLeave": "Haz propietario a otro miembro antes de salir.",
   "sharedLibrary_site_badgeTooltip": "En {name}",
   "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
   "sharedLibrary_site_lastEdited": "Última edición de {name}, {when}",

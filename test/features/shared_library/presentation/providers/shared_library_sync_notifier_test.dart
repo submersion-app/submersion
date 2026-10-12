@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -103,5 +105,32 @@ void main() {
         .read(sharedLibrarySyncProvider.notifier)
         .syncOne('nope');
     expect(r.status, SharedLibrarySyncStatus.notConnected);
+  });
+
+  test('a sync queued behind another merge survives the notifier '
+      'being disposed', () async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final gate = Completer<void>();
+    final blocker = SyncCoordinator.run(() => gate.future);
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        sharedLibraryTransportFactoryProvider.overrideWithValue(
+          (lib) async => throw StateError('no account'),
+        ),
+      ],
+    );
+    final pending = container
+        .read(sharedLibrarySyncProvider.notifier)
+        .syncOne('nope');
+    for (var i = 0; i < 5; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    expect(SyncCoordinator.busy, isTrue);
+    container.dispose();
+    gate.complete();
+    await blocker;
+    await expectLater(pending, completes);
   });
 }

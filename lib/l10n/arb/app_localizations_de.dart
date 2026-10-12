@@ -21018,6 +21018,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der letzte Eigentümer kann nicht herabgestuft werden.';
 
   @override
+  String get sharedLibrary_library_lastOwnerLeave =>
+      'Ernenne vor dem Verlassen ein anderes Mitglied zum Eigentümer.';
+
+  @override
   String sharedLibrary_site_badgeTooltip(String name) {
     return 'In $name';
   }

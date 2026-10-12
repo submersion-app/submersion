@@ -5801,6 +5801,7 @@
   "sharedLibrary_library_rename_label": "Megjelenített név",
   "sharedLibrary_members_setRole": "Szerep módosítása",
   "sharedLibrary_members_lastOwner": "Az utolsó tulajdonos nem fokozható le.",
+  "sharedLibrary_library_lastOwnerLeave": "Kilépés előtt tegyél meg egy másik tagot tulajdonosnak.",
   "sharedLibrary_site_badgeTooltip": "Itt: {name}",
   "@sharedLibrary_site_badgeTooltip": {"placeholders": {"name": {"type": "String"}}},
   "sharedLibrary_site_lastEdited": "Utoljára szerkesztette: {name}, {when}",
