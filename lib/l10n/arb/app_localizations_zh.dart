@@ -19735,6 +19735,107 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_navCustomization_saveError => '无法保存导航布局。请重试。';
 
   @override
+  String get navShortcut_noFly => '禁飞时间';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => '记录';
+
+  @override
+  String get navShortcut_sitesMap => '潜水点地图';
+
+  @override
+  String get navShortcut_diveActivityMap => '潜水活动地图';
+
+  @override
+  String get navShortcut_diveCentersMap => '潜水中心地图';
+
+  @override
+  String get navShortcut_diverProfile => '潜水员档案';
+
+  @override
+  String get navShortcut_cloudSync => '云同步';
+
+  @override
+  String get navShortcut_offlineMaps => '离线地图';
+
+  @override
+  String get navShortcut_short_deco => '减压';
+
+  @override
+  String get navShortcut_short_gasCalculators => '气体计算';
+
+  @override
+  String get navShortcut_short_weighting => '配重';
+
+  @override
+  String get navShortcut_short_surfaceInterval => '水面间隔';
+
+  @override
+  String get navShortcut_short_blender => '混气';
+
+  @override
+  String get navShortcut_short_airUse => '耗气';
+
+  @override
+  String get navShortcut_short_patterns => '规律';
+
+  @override
+  String get navShortcut_short_profiles => '剖面';
+
+  @override
+  String get navShortcut_short_diveMap => '潜水地图';
+
+  @override
+  String get navShortcut_short_centersMap => '中心地图';
+
+  @override
+  String get navShortcut_short_gearSets => '装备组';
+
+  @override
+  String get navShortcut_short_certWallet => '证书夹';
+
+  @override
+  String get navShortcut_short_emergency => '紧急';
+
+  @override
+  String get navShortcut_short_backup => '备份';
+
+  @override
+  String get navShortcut_short_speciesStats => '物种统计';
+
+  @override
+  String get navShortcut_short_gearStats => '装备统计';
+
+  @override
+  String get settings_navCustomization_addShortcut => '添加快捷方式';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => '新建快捷方式';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => '搜索页面';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches => '没有匹配的页面';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded => '已在此布局中';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return '移除$destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => '视图';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools => '设置和工具';
+
+  @override
   String get settings_backToSettings_tooltip => '返回设置';
 
   @override
@@ -28336,6 +28437,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => '查看全部';
+
+  @override
+  String get trips_picker_alreadyPacked => '已打包';
 
   @override
   String get trips_picker_clearTooltip => '清除选择';
@@ -43678,6 +43782,15 @@ class AppLocalizationsZh extends AppLocalizations {
     Object endDate,
   ) {
     return '$name，$startDate 至 $endDate，已选择';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name，$startDate 至 $endDate，已打包';
   }
 
   @override

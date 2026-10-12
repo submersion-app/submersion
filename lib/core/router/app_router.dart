@@ -5,6 +5,7 @@ import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/nav_shortcut_pages.dart';
 
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
@@ -209,7 +210,7 @@ import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.
 import 'package:submersion/features/planner/presentation/pages/plan_canvas_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_compare_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
-import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
+import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
 import 'package:submersion/features/certification_agencies/presentation/pages/certification_agencies_page.dart';
@@ -275,6 +276,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               child: const DashboardPage(),
             ),
           ),
+
+          // Nav shortcuts: deep pages promoted to the main nav (#2936).
+          navShortcutRoute(),
 
           // Planning hub and tools, gated behind the safety disclaimer
           // (issue #3120). A plain GoRoute only wraps its own exact-match
@@ -1146,8 +1150,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'import-wizard',
                 name: 'universalImport',
-                builder: (context, state) =>
-                    const _UniversalImportWizardRoute(),
+                builder: (context, state) => const UniversalImportWizardRoute(),
               ),
               GoRoute(
                 path: 'import-cloud/suunto',
@@ -2131,16 +2134,6 @@ class _DiveComputerDownloadWizardRouteState
         ),
       ),
     );
-  }
-}
-
-/// Wrapper that creates a [UniversalAdapter] with Ref from Riverpod.
-class _UniversalImportWizardRoute extends ConsumerWidget {
-  const _UniversalImportWizardRoute();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return UnifiedImportWizard(adapter: UniversalAdapter(ref: ref));
   }
 }
 

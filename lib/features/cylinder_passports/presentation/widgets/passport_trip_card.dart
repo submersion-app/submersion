@@ -29,9 +29,49 @@ class PassportTripCard extends ConsumerStatefulWidget {
 class _PassportTripCardState extends ConsumerState<PassportTripCard> {
   bool _expanded = false;
 
+  /// Set while [_assign] is running, so a second tap opens no second picker.
+  bool _assigning = false;
+
   Future<void> _assign() async {
+    if (_assigning) return;
+    _assigning = true;
+    try {
+      await _assignOnce();
+    } finally {
+      _assigning = false;
+    }
+  }
+
+  Future<void> _assignOnce() async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+    // Packing for one of these again would change nothing, so the picker
+    // marks them and will not pick them (issue #2654); a slot-only trip stays
+    // pickable, since picking it packs the cylinder too. The list is awaited
+    // so one still loading does not leave every trip unmarked.
+    final Set<String> packedTripIds;
+    try {
+      final trips = await ref.read(
+        equipmentTripsProvider(widget.equipmentId).future,
+      );
+      packedTripIds = {
+        for (final p in trips)
+          if (p.packed) p.trip.id,
+      };
+    } catch (e, stackTrace) {
+      // An unknown list is not an empty one: a picker that marked nothing
+      // would let a packed trip be picked to no effect, so stay closed.
+      _log.error(
+        'Failed to load packed trips',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.passport_trip_failed)),
+      );
+      return;
+    }
+    if (!mounted) return;
     final picked = await showModalBottomSheet<Object>(
       context: context,
       isScrollControlled: true,
@@ -43,6 +83,7 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
         builder: (_, scrollController) => TripPickerSheet(
           scrollController: scrollController,
           selectedTrip: null,
+          packedTripIds: packedTripIds,
           onTripSelected: (trip) => Navigator.of(sheetContext).pop(trip),
           onCreateNewTrip: () => Navigator.of(sheetContext).pop(_newTrip),
         ),

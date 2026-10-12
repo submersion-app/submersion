@@ -20691,6 +20691,110 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült menteni a navigáció elrendezését. Próbálja újra.';
 
   @override
+  String get navShortcut_noFly => 'Repülési tilalom ideje';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'Rekordok';
+
+  @override
+  String get navShortcut_sitesMap => 'Merülőhelyek térképe';
+
+  @override
+  String get navShortcut_diveActivityMap => 'Merülési aktivitás térképe';
+
+  @override
+  String get navShortcut_diveCentersMap => 'Merülőcentrumok térképe';
+
+  @override
+  String get navShortcut_diverProfile => 'Merülő profil';
+
+  @override
+  String get navShortcut_cloudSync => 'Felhő szinkronizálás';
+
+  @override
+  String get navShortcut_offlineMaps => 'Offline térképek';
+
+  @override
+  String get navShortcut_short_deco => 'Dekó';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'Gázkalk.';
+
+  @override
+  String get navShortcut_short_weighting => 'Súlyozás';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'Felszíni idő';
+
+  @override
+  String get navShortcut_short_blender => 'Keverő';
+
+  @override
+  String get navShortcut_short_airUse => 'Fogyasztás';
+
+  @override
+  String get navShortcut_short_patterns => 'Minták';
+
+  @override
+  String get navShortcut_short_profiles => 'Profilok';
+
+  @override
+  String get navShortcut_short_diveMap => 'Merülési térkép';
+
+  @override
+  String get navShortcut_short_centersMap => 'Centrum térkép';
+
+  @override
+  String get navShortcut_short_gearSets => 'Szettek';
+
+  @override
+  String get navShortcut_short_certWallet => 'Tárca';
+
+  @override
+  String get navShortcut_short_emergency => 'Vészhelyzet';
+
+  @override
+  String get navShortcut_short_backup => 'Mentés';
+
+  @override
+  String get navShortcut_short_speciesStats => 'Fajstatisztika';
+
+  @override
+  String get navShortcut_short_gearStats => 'Felszerelés-statisztika';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'Parancsikon hozzáadása';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => 'Új parancsikon';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'Oldalak keresése';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches =>
+      'Nincs egyező oldal';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'Már szerepel ebben az elrendezésben';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return '$destination eltávolítása';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'Nézetek';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'Beállítások és eszközök';
+
+  @override
   String get settings_backToSettings_tooltip => 'Vissza a beállításokhoz';
 
   @override
@@ -29865,6 +29969,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Összes megtekintése';
+
+  @override
+  String get trips_picker_alreadyPacked => 'Már bepakolva';
 
   @override
   String get trips_picker_clearTooltip => 'Kiválasztás törlése';
@@ -46214,6 +46321,15 @@ class AppLocalizationsHu extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, $startDate és $endDate között, kiválasztva';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, $startDate és $endDate között, már bepakolva';
   }
 
   @override

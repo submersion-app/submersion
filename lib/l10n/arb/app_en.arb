@@ -12903,6 +12903,144 @@
   "@settings_navCustomization_saveError": {
     "description": "SnackBar shown when persisting the nav order fails (e.g., database write error)."
   },
+  "navShortcut_noFly": "No-fly time",
+  "@navShortcut_noFly": {
+    "description": "Nav shortcut label for the Planning no-fly calculator."
+  },
+  "navShortcut_cnsOtu": "CNS/OTU",
+  "@navShortcut_cnsOtu": {
+    "description": "Nav shortcut label for the Planning CNS/OTU calculator."
+  },
+  "navShortcut_records": "Records",
+  "@navShortcut_records": {
+    "description": "Nav shortcut label for the dive records page."
+  },
+  "navShortcut_sitesMap": "Sites map",
+  "@navShortcut_sitesMap": {
+    "description": "Nav shortcut label for the dive sites map."
+  },
+  "navShortcut_diveActivityMap": "Dive activity map",
+  "@navShortcut_diveActivityMap": {
+    "description": "Nav shortcut label for the map of where dives were logged."
+  },
+  "navShortcut_diveCentersMap": "Dive centers map",
+  "@navShortcut_diveCentersMap": {
+    "description": "Nav shortcut label for the dive centers map."
+  },
+  "navShortcut_diverProfile": "Diver profile",
+  "@navShortcut_diverProfile": {
+    "description": "Nav shortcut label for the diver profile settings page."
+  },
+  "navShortcut_cloudSync": "Cloud sync",
+  "@navShortcut_cloudSync": {
+    "description": "Nav shortcut label for the cloud sync settings page."
+  },
+  "navShortcut_offlineMaps": "Offline maps",
+  "@navShortcut_offlineMaps": {
+    "description": "Nav shortcut label for the offline maps settings page."
+  },
+  "navShortcut_short_deco": "Deco",
+  "@navShortcut_short_deco": {
+    "description": "Short nav bar label for the Deco Calculator shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_gasCalculators": "Gas calcs",
+  "@navShortcut_short_gasCalculators": {
+    "description": "Short nav bar label for the Gas Calculators shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_weighting": "Weighting",
+  "@navShortcut_short_weighting": {
+    "description": "Short nav bar label for the Weight Calculator shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_surfaceInterval": "Surface int.",
+  "@navShortcut_short_surfaceInterval": {
+    "description": "Short nav bar label for the Surface Interval tool shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_blender": "Blender",
+  "@navShortcut_short_blender": {
+    "description": "Short nav bar label for the Trimix blender shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_airUse": "Air use",
+  "@navShortcut_short_airUse": {
+    "description": "Short nav bar label for the Air Consumption insights shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_patterns": "Patterns",
+  "@navShortcut_short_patterns": {
+    "description": "Short nav bar label for the Time Patterns insights shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_profiles": "Profiles",
+  "@navShortcut_short_profiles": {
+    "description": "Short nav bar label for the Profile Analysis insights shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_diveMap": "Dive map",
+  "@navShortcut_short_diveMap": {
+    "description": "Short nav bar label for the dive activity map shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_centersMap": "Centers map",
+  "@navShortcut_short_centersMap": {
+    "description": "Short nav bar label for the dive centers map shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_gearSets": "Gear sets",
+  "@navShortcut_short_gearSets": {
+    "description": "Short nav bar label for the Equipment Sets shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_certWallet": "Cert wallet",
+  "@navShortcut_short_certWallet": {
+    "description": "Short nav bar label for the Certification Wallet shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_emergency": "Emergency",
+  "@navShortcut_short_emergency": {
+    "description": "Short nav bar label for the Emergency card shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_backup": "Backup",
+  "@navShortcut_short_backup": {
+    "description": "Short nav bar label for the Backup & Restore shortcut; must fit one bottom-bar slot."
+  },
+  "navShortcut_short_speciesStats": "Species stats",
+  "@navShortcut_short_speciesStats": {
+    "description": "Short nav label for the shortcut to Insights > Species (marine life statistics); distinct from the Species section."
+  },
+  "navShortcut_short_gearStats": "Gear stats",
+  "@navShortcut_short_gearStats": {
+    "description": "Short nav label for the shortcut to Insights > Equipment (gear statistics); distinct from the Equipment section."
+  },
+  "settings_navCustomization_addShortcut": "Add shortcut",
+  "@settings_navCustomization_addShortcut": {
+    "description": "Button on the navigation layout page that opens the picker for adding a deep page to the nav."
+  },
+  "settings_navCustomization_shortcutPickerTitle": "Add a shortcut",
+  "@settings_navCustomization_shortcutPickerTitle": {
+    "description": "Title of the sheet or dialog listing pages that can be added to the nav."
+  },
+  "settings_navCustomization_shortcutSearchHint": "Search pages",
+  "@settings_navCustomization_shortcutSearchHint": {
+    "description": "Hint in the search field of the nav shortcut picker."
+  },
+  "settings_navCustomization_shortcutNoMatches": "No matching pages",
+  "@settings_navCustomization_shortcutNoMatches": {
+    "description": "Shown in the nav shortcut picker when the search matches nothing."
+  },
+  "settings_navCustomization_shortcutAlreadyAdded": "Already in this layout",
+  "@settings_navCustomization_shortcutAlreadyAdded": {
+    "description": "Tooltip on a picker entry that is already in the nav layout being edited."
+  },
+  "settings_navCustomization_removeShortcutLabel": "Remove {destination}",
+  "@settings_navCustomization_removeShortcutLabel": {
+    "description": "Tooltip on the button that removes a shortcut from the nav layout.",
+    "placeholders": {
+      "destination": {
+        "type": "String",
+        "example": "Trimix blender"
+      }
+    }
+  },
+  "settings_navCustomization_group_views": "Views",
+  "@settings_navCustomization_group_views": {
+    "description": "Picker group header for map, wallet and list views inside a section."
+  },
+  "settings_navCustomization_group_settingsAndTools": "Settings and tools",
+  "@settings_navCustomization_group_settingsAndTools": {
+    "description": "Picker group header for settings pages and tools such as the emergency card."
+  },
   "settings_backToSettings_tooltip": "Back to settings",
   "settings_cloudSync_appBar_title": "Database Cloud Sync",
   "settings_cloudSync_autoSync": "Auto Sync",
@@ -17406,6 +17544,7 @@
   "trips_photos_sectionTitle": "Photos",
   "trips_photos_tooltip_scan": "Scan device gallery",
   "trips_photos_viewAll": "View All",
+  "trips_picker_alreadyPacked": "Already packed",
   "trips_picker_clearTooltip": "Clear selection",
   "trips_picker_empty_createButton": "Create Trip",
   "trips_picker_empty_title": "No trips yet",
@@ -26981,6 +27120,7 @@
   "trips_picker_suggestedSemantics": "Suggested trip: {name}. Tap to use",
   "trips_picker_tileSemantics": "{name}, {startDate} to {endDate}",
   "trips_picker_tileSemanticsSelected": "{name}, {startDate} to {endDate}, selected",
+  "trips_picker_tileSemanticsPacked": "{name}, {startDate} to {endDate}, already packed",
   "divePlanner_quickPlan_subtitle": "Create a simple rectangular dive profile",
   "divePlanner_quickPlan_depthLabel": "Depth:",
   "divePlanner_quickPlan_depthSemantics": "Depth: {depth}",
@@ -27209,6 +27349,19 @@
     }
   },
   "@trips_picker_tileSemanticsSelected": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "startDate": {
+        "type": "Object"
+      },
+      "endDate": {
+        "type": "Object"
+      }
+    }
+  },
+  "@trips_picker_tileSemanticsPacked": {
     "placeholders": {
       "name": {
         "type": "Object"

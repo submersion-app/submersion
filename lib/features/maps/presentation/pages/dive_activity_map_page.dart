@@ -93,7 +93,11 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
     return MapListScaffold(
       sectionKey: 'dives',
       title: context.l10n.diveLog_map_title,
-      onBackPressed: () => _backToList(context),
+      // Opened as a nav shortcut (#2936) the map is the only page and is a
+      // top-level destination, so it has no arrow back into /dives.
+      onBackPressed: Navigator.of(context).canPop()
+          ? () => _backToList(context)
+          : null,
       listPane: DiveListContent(
         showAppBar: false,
         isMapMode: true,

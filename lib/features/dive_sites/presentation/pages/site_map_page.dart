@@ -138,7 +138,11 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
     return MapListScaffold(
       sectionKey: 'sites',
       title: context.l10n.diveSites_map_appBar_title,
-      onBackPressed: () => context.go('/sites'),
+      // Opened as a nav shortcut (#2936) the map is the only page and is a
+      // top-level destination, so it has no arrow back into /sites.
+      onBackPressed: Navigator.of(context).canPop()
+          ? () => context.go('/sites')
+          : null,
       listPane: SiteListContent(
         showAppBar: false,
         isMapMode: true,

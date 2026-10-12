@@ -33221,6 +33221,204 @@ abstract class AppLocalizations {
   /// **'Could not save navigation layout. Please try again.'**
   String get settings_navCustomization_saveError;
 
+  /// Nav shortcut label for the Planning no-fly calculator.
+  ///
+  /// In en, this message translates to:
+  /// **'No-fly time'**
+  String get navShortcut_noFly;
+
+  /// Nav shortcut label for the Planning CNS/OTU calculator.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS/OTU'**
+  String get navShortcut_cnsOtu;
+
+  /// Nav shortcut label for the dive records page.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get navShortcut_records;
+
+  /// Nav shortcut label for the dive sites map.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites map'**
+  String get navShortcut_sitesMap;
+
+  /// Nav shortcut label for the map of where dives were logged.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive activity map'**
+  String get navShortcut_diveActivityMap;
+
+  /// Nav shortcut label for the dive centers map.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive centers map'**
+  String get navShortcut_diveCentersMap;
+
+  /// Nav shortcut label for the diver profile settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver profile'**
+  String get navShortcut_diverProfile;
+
+  /// Nav shortcut label for the cloud sync settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync'**
+  String get navShortcut_cloudSync;
+
+  /// Nav shortcut label for the offline maps settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline maps'**
+  String get navShortcut_offlineMaps;
+
+  /// Short nav bar label for the Deco Calculator shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco'**
+  String get navShortcut_short_deco;
+
+  /// Short nav bar label for the Gas Calculators shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas calcs'**
+  String get navShortcut_short_gasCalculators;
+
+  /// Short nav bar label for the Weight Calculator shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Weighting'**
+  String get navShortcut_short_weighting;
+
+  /// Short nav bar label for the Surface Interval tool shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface int.'**
+  String get navShortcut_short_surfaceInterval;
+
+  /// Short nav bar label for the Trimix blender shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Blender'**
+  String get navShortcut_short_blender;
+
+  /// Short nav bar label for the Air Consumption insights shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Air use'**
+  String get navShortcut_short_airUse;
+
+  /// Short nav bar label for the Time Patterns insights shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Patterns'**
+  String get navShortcut_short_patterns;
+
+  /// Short nav bar label for the Profile Analysis insights shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Profiles'**
+  String get navShortcut_short_profiles;
+
+  /// Short nav bar label for the dive activity map shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive map'**
+  String get navShortcut_short_diveMap;
+
+  /// Short nav bar label for the dive centers map shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Centers map'**
+  String get navShortcut_short_centersMap;
+
+  /// Short nav bar label for the Equipment Sets shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear sets'**
+  String get navShortcut_short_gearSets;
+
+  /// Short nav bar label for the Certification Wallet shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Cert wallet'**
+  String get navShortcut_short_certWallet;
+
+  /// Short nav bar label for the Emergency card shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get navShortcut_short_emergency;
+
+  /// Short nav bar label for the Backup & Restore shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get navShortcut_short_backup;
+
+  /// Short nav label for the shortcut to Insights > Species (marine life statistics); distinct from the Species section.
+  ///
+  /// In en, this message translates to:
+  /// **'Species stats'**
+  String get navShortcut_short_speciesStats;
+
+  /// Short nav label for the shortcut to Insights > Equipment (gear statistics); distinct from the Equipment section.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear stats'**
+  String get navShortcut_short_gearStats;
+
+  /// Button on the navigation layout page that opens the picker for adding a deep page to the nav.
+  ///
+  /// In en, this message translates to:
+  /// **'Add shortcut'**
+  String get settings_navCustomization_addShortcut;
+
+  /// Title of the sheet or dialog listing pages that can be added to the nav.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a shortcut'**
+  String get settings_navCustomization_shortcutPickerTitle;
+
+  /// Hint in the search field of the nav shortcut picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Search pages'**
+  String get settings_navCustomization_shortcutSearchHint;
+
+  /// Shown in the nav shortcut picker when the search matches nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching pages'**
+  String get settings_navCustomization_shortcutNoMatches;
+
+  /// Tooltip on a picker entry that is already in the nav layout being edited.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in this layout'**
+  String get settings_navCustomization_shortcutAlreadyAdded;
+
+  /// Tooltip on the button that removes a shortcut from the nav layout.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {destination}'**
+  String settings_navCustomization_removeShortcutLabel(String destination);
+
+  /// Picker group header for map, wallet and list views inside a section.
+  ///
+  /// In en, this message translates to:
+  /// **'Views'**
+  String get settings_navCustomization_group_views;
+
+  /// Picker group header for settings pages and tools such as the emergency card.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings and tools'**
+  String get settings_navCustomization_group_settingsAndTools;
+
   /// No description provided for @settings_backToSettings_tooltip.
   ///
   /// In en, this message translates to:
@@ -47729,6 +47927,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View All'**
   String get trips_photos_viewAll;
+
+  /// No description provided for @trips_picker_alreadyPacked.
+  ///
+  /// In en, this message translates to:
+  /// **'Already packed'**
+  String get trips_picker_alreadyPacked;
 
   /// No description provided for @trips_picker_clearTooltip.
   ///
@@ -73850,6 +74054,16 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}, {startDate} to {endDate}, selected'**
   String trips_picker_tileSemanticsSelected(
+    Object name,
+    Object startDate,
+    Object endDate,
+  );
+
+  /// No description provided for @trips_picker_tileSemanticsPacked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {startDate} to {endDate}, already packed'**
+  String trips_picker_tileSemanticsPacked(
     Object name,
     Object startDate,
     Object endDate,

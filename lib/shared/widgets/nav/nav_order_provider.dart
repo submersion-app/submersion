@@ -5,6 +5,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_id_aliases.dart';
+import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
 import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 
 /// Canonical list of every nav destination, including the `more` sentinel.
@@ -44,6 +45,7 @@ final navPhoneOrderNotifierProvider =
         read: repository.getNavPrimaryIdsRaw,
         write: repository.setNavPrimaryIds,
         movableIds: ref.watch(movableNavIdsProvider),
+        shortcutOrderIds: kNavShortcutOrderIds,
       );
     });
 
@@ -59,6 +61,7 @@ final navRailOrderNotifierProvider =
         read: repository.getNavRailIdsRaw,
         write: repository.setNavRailIds,
         movableIds: ref.watch(movableNavIdsProvider),
+        shortcutOrderIds: kNavShortcutOrderIds,
       );
     });
 
@@ -83,7 +86,7 @@ final navPrimaryDestinationsProvider =
       final middle = ref
           .watch(navPhoneOrderProvider)
           .take(slotCount)
-          .map((id) => byId[id])
+          .map((id) => resolveNavDestination(id, byId))
           .whereType<NavDestination>()
           .toList(growable: false);
       return [byId['dashboard']!, ...middle, byId['more']!];
@@ -99,7 +102,7 @@ final navOverflowDestinationsProvider =
       return ref
           .watch(navPhoneOrderProvider)
           .skip(slotCount)
-          .map((id) => byId[id])
+          .map((id) => resolveNavDestination(id, byId))
           .whereType<NavDestination>()
           .toList(growable: false);
     });
@@ -112,7 +115,7 @@ final navRailDestinationsProvider = Provider<List<NavDestination>>((ref) {
   final byId = _destinationsById(ref);
   final rest = ref
       .watch(navRailOrderProvider)
-      .map((id) => byId[id])
+      .map((id) => resolveNavDestination(id, byId))
       .whereType<NavDestination>()
       .toList(growable: false);
   return [byId['dashboard']!, ...rest];
@@ -132,6 +135,7 @@ class NavOrderNotifier extends StateNotifier<List<String>> {
     required this.read,
     required this.write,
     required this.movableIds,
+    this.shortcutOrderIds = const [],
   }) : super(normalizeNavOrder(stored: const [], movableIds: movableIds)) {
     _load();
   }
@@ -148,6 +152,10 @@ class NavOrderNotifier extends StateNotifier<List<String>> {
 
   final List<String> movableIds;
 
+  /// Every nav shortcut this build knows (#2936). A stored shortcut outside
+  /// this list is dropped on load.
+  final List<String> shortcutOrderIds;
+
   Future<void> _load() async {
     List<String>? raw;
     try {
@@ -163,6 +171,7 @@ class NavOrderNotifier extends StateNotifier<List<String>> {
     final normalized = normalizeNavOrder(
       stored: raw ?? const [],
       movableIds: movableIds,
+      shortcutOrderIds: shortcutOrderIds,
     );
     if (mounted) state = normalized;
   }
@@ -175,11 +184,15 @@ class NavOrderNotifier extends StateNotifier<List<String>> {
   ///
   /// Rethrows a write failure so the caller can roll its optimistic UI back.
   Future<void> setOrder(List<String> ids) async {
-    final normalized = normalizeNavOrder(stored: ids, movableIds: movableIds);
+    final normalized = normalizeNavOrder(
+      stored: ids,
+      movableIds: movableIds,
+      shortcutOrderIds: shortcutOrderIds,
+    );
     await write(withLegacyNavIds(normalized));
     if (mounted) state = normalized;
   }
 
-  /// Restores the canonical order.
+  /// Restores the canonical order, which carries no shortcuts.
   Future<void> resetToDefaults() => setOrder(movableIds);
 }

@@ -20737,6 +20737,112 @@ class AppLocalizationsDe extends AppLocalizations {
       'Navigationslayout konnte nicht gespeichert werden. Bitte versuche es erneut.';
 
   @override
+  String get navShortcut_noFly => 'Flugverbotszeit';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'Rekorde';
+
+  @override
+  String get navShortcut_sitesMap => 'Tauchplatzkarte';
+
+  @override
+  String get navShortcut_diveActivityMap => 'Karte der Tauchaktivität';
+
+  @override
+  String get navShortcut_diveCentersMap => 'Tauchbasenkarte';
+
+  @override
+  String get navShortcut_diverProfile => 'Taucherprofil';
+
+  @override
+  String get navShortcut_cloudSync => 'Cloud-Synchronisierung';
+
+  @override
+  String get navShortcut_offlineMaps => 'Offline-Karten';
+
+  @override
+  String get navShortcut_short_deco => 'Deko';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'Gasrechner';
+
+  @override
+  String get navShortcut_short_weighting => 'Blei';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'Oberfl.-Pause';
+
+  @override
+  String get navShortcut_short_blender => 'Mischer';
+
+  @override
+  String get navShortcut_short_airUse => 'Verbrauch';
+
+  @override
+  String get navShortcut_short_patterns => 'Muster';
+
+  @override
+  String get navShortcut_short_profiles => 'Profile';
+
+  @override
+  String get navShortcut_short_diveMap => 'Tauchkarte';
+
+  @override
+  String get navShortcut_short_centersMap => 'Basenkarte';
+
+  @override
+  String get navShortcut_short_gearSets => 'Sets';
+
+  @override
+  String get navShortcut_short_certWallet => 'Brevets';
+
+  @override
+  String get navShortcut_short_emergency => 'Notfall';
+
+  @override
+  String get navShortcut_short_backup => 'Backup';
+
+  @override
+  String get navShortcut_short_speciesStats => 'Artenstatistik';
+
+  @override
+  String get navShortcut_short_gearStats => 'Ausrüstungsstatistik';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'Verknüpfung hinzufügen';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle =>
+      'Neue Verknüpfung';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint =>
+      'Seiten durchsuchen';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches =>
+      'Keine passenden Seiten';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'Bereits in diesem Layout';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return '$destination entfernen';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'Ansichten';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'Einstellungen und Werkzeuge';
+
+  @override
   String get settings_backToSettings_tooltip => 'Zurück zu Einstellungen';
 
   @override
@@ -29954,6 +30060,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Alle anzeigen';
+
+  @override
+  String get trips_picker_alreadyPacked => 'Bereits gepackt';
 
   @override
   String get trips_picker_clearTooltip => 'Auswahl löschen';
@@ -46370,6 +46479,15 @@ class AppLocalizationsDe extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, $startDate bis $endDate, ausgewählt';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, $startDate bis $endDate, bereits gepackt';
   }
 
   @override

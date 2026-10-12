@@ -10,6 +10,8 @@
 /// walk one step up the location hierarchy instead of exiting.
 library;
 
+import 'package:submersion/core/router/shortcut_locations.dart';
+
 /// The app's root location. System back exits the app from here.
 const String kRootLocation = '/dashboard';
 
@@ -26,8 +28,10 @@ const List<String> _drillDownParams = ['mode', 'selected'];
 ///
 /// Resolution order:
 /// 1. Unwind a master-detail query parameter, if present.
-/// 2. Drop the last path segment, for genuinely nested routes.
-/// 3. Fall back to the dashboard from any top-level tab.
+/// 2. Send a nav shortcut (`/shortcut/<id>`) to the dashboard: it is a
+///    top-level destination, and its id is not a level to walk up to.
+/// 3. Drop the last path segment, for genuinely nested routes.
+/// 4. Fall back to the dashboard from any top-level tab.
 String? resolveUpLocation(Uri uri) {
   for (final param in _drillDownParams) {
     if (uri.queryParameters.containsKey(param)) {
@@ -36,6 +40,8 @@ String? resolveUpLocation(Uri uri) {
       return _formatLocation(uri.path, remaining);
     }
   }
+
+  if (uri.path.startsWith('$kShortcutLocationPrefix/')) return kRootLocation;
 
   final segments = uri.pathSegments
       .where((segment) => segment.isNotEmpty)

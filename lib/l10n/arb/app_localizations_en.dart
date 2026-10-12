@@ -20454,6 +20454,109 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not save navigation layout. Please try again.';
 
   @override
+  String get navShortcut_noFly => 'No-fly time';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'Records';
+
+  @override
+  String get navShortcut_sitesMap => 'Sites map';
+
+  @override
+  String get navShortcut_diveActivityMap => 'Dive activity map';
+
+  @override
+  String get navShortcut_diveCentersMap => 'Dive centers map';
+
+  @override
+  String get navShortcut_diverProfile => 'Diver profile';
+
+  @override
+  String get navShortcut_cloudSync => 'Cloud sync';
+
+  @override
+  String get navShortcut_offlineMaps => 'Offline maps';
+
+  @override
+  String get navShortcut_short_deco => 'Deco';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'Gas calcs';
+
+  @override
+  String get navShortcut_short_weighting => 'Weighting';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'Surface int.';
+
+  @override
+  String get navShortcut_short_blender => 'Blender';
+
+  @override
+  String get navShortcut_short_airUse => 'Air use';
+
+  @override
+  String get navShortcut_short_patterns => 'Patterns';
+
+  @override
+  String get navShortcut_short_profiles => 'Profiles';
+
+  @override
+  String get navShortcut_short_diveMap => 'Dive map';
+
+  @override
+  String get navShortcut_short_centersMap => 'Centers map';
+
+  @override
+  String get navShortcut_short_gearSets => 'Gear sets';
+
+  @override
+  String get navShortcut_short_certWallet => 'Cert wallet';
+
+  @override
+  String get navShortcut_short_emergency => 'Emergency';
+
+  @override
+  String get navShortcut_short_backup => 'Backup';
+
+  @override
+  String get navShortcut_short_speciesStats => 'Species stats';
+
+  @override
+  String get navShortcut_short_gearStats => 'Gear stats';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'Add shortcut';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => 'Add a shortcut';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'Search pages';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches => 'No matching pages';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'Already in this layout';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return 'Remove $destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'Views';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'Settings and tools';
+
+  @override
   String get settings_backToSettings_tooltip => 'Back to settings';
 
   @override
@@ -29508,6 +29611,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'View All';
+
+  @override
+  String get trips_picker_alreadyPacked => 'Already packed';
 
   @override
   String get trips_picker_clearTooltip => 'Clear selection';
@@ -45770,6 +45876,15 @@ class AppLocalizationsEn extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, $startDate to $endDate, selected';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, $startDate to $endDate, already packed';
   }
 
   @override

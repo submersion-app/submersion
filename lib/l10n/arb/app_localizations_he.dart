@@ -20299,6 +20299,108 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לשמור את פריסת הניווט. נסה שוב.';
 
   @override
+  String get navShortcut_noFly => 'זמן איסור טיסה';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'שיאים';
+
+  @override
+  String get navShortcut_sitesMap => 'מפת אתרים';
+
+  @override
+  String get navShortcut_diveActivityMap => 'מפת פעילות צלילה';
+
+  @override
+  String get navShortcut_diveCentersMap => 'מפת מועדוני צלילה';
+
+  @override
+  String get navShortcut_diverProfile => 'פרופיל צולל';
+
+  @override
+  String get navShortcut_cloudSync => 'סנכרון ענן';
+
+  @override
+  String get navShortcut_offlineMaps => 'מפות לא מקוונות';
+
+  @override
+  String get navShortcut_short_deco => 'דקו';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'מחשבוני גז';
+
+  @override
+  String get navShortcut_short_weighting => 'משקולות';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'מרווח שטח';
+
+  @override
+  String get navShortcut_short_blender => 'מערבל';
+
+  @override
+  String get navShortcut_short_airUse => 'צריכה';
+
+  @override
+  String get navShortcut_short_patterns => 'דפוסים';
+
+  @override
+  String get navShortcut_short_profiles => 'פרופילים';
+
+  @override
+  String get navShortcut_short_diveMap => 'מפת צלילות';
+
+  @override
+  String get navShortcut_short_centersMap => 'מפת מועדונים';
+
+  @override
+  String get navShortcut_short_gearSets => 'ערכות';
+
+  @override
+  String get navShortcut_short_certWallet => 'ארנק';
+
+  @override
+  String get navShortcut_short_emergency => 'חירום';
+
+  @override
+  String get navShortcut_short_backup => 'גיבוי';
+
+  @override
+  String get navShortcut_short_speciesStats => 'סטטיסטיקת מינים';
+
+  @override
+  String get navShortcut_short_gearStats => 'סטטיסטיקת ציוד';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'הוסף קיצור דרך';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => 'קיצור דרך חדש';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'חיפוש דפים';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches => 'אין דפים תואמים';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'כבר נמצא בפריסה זו';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return 'הסר את $destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'תצוגות';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools => 'הגדרות וכלים';
+
+  @override
   String get settings_backToSettings_tooltip => 'חזרה להגדרות';
 
   @override
@@ -29267,6 +29369,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'הצג הכל';
+
+  @override
+  String get trips_picker_alreadyPacked => 'כבר נארז';
 
   @override
   String get trips_picker_clearTooltip => 'נקה בחירה';
@@ -45509,6 +45614,15 @@ class AppLocalizationsHe extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, מ-$startDate עד $endDate, נבחר';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, מ-$startDate עד $endDate, כבר נארז';
   }
 
   @override

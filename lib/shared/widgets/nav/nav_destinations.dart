@@ -6,6 +6,11 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/nav/nav_id_aliases.dart';
 import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 
+/// Fraction of the screen height a phone nav sheet (the More sheet, the Add
+/// shortcut picker) may fill. The remainder is scrim the user can tap to
+/// dismiss the sheet.
+const double kNavSheetMaxHeightFraction = 0.85;
+
 /// Canonical metadata for a single bottom-nav / nav-rail destination.
 ///
 /// The `more` sentinel has [isPinned] `true` and [route] empty — it represents
@@ -19,7 +24,10 @@ class NavDestination {
     required this.label,
     this.subtitle,
     this.isPinned = false,
-  });
+    this.extraMatchPaths = const [],
+    this.selection,
+    String? accent,
+  }) : _accent = accent;
 
   /// Stable kebab-case identifier used for persistence.
   final String id;
@@ -38,6 +46,40 @@ class NavDestination {
 
   /// When `true`, this destination cannot be moved between primary and overflow.
   final bool isPinned;
+
+  /// Further locations this destination owns besides [route], each matched
+  /// as a segment-aware path prefix. A nav shortcut lists its page's
+  /// canonical path here, so it stays selected when the diver reaches that
+  /// page by hand rather than through the shortcut.
+  final List<String> extraMatchPaths;
+
+  /// A desktop master-detail selection that shows this destination's page,
+  /// such as `/planning?tool=deco-calculator`.
+  final NavSelectionMatch? selection;
+
+  final String? _accent;
+
+  /// The id whose feature accent colors this destination's icon. A nav
+  /// shortcut borrows the accent of the section its page belongs to.
+  String get accentId => _accent ?? id;
+}
+
+/// A location shape that selects one item inside a master-detail page: the
+/// page's [path] with [queryKey] set to [queryValue].
+///
+/// `/planning?tool=deco-calculator` is the Deco calculator in the Planning
+/// detail pane, so a Deco shortcut owns that location even though its path
+/// is Planning's.
+class NavSelectionMatch {
+  const NavSelectionMatch({
+    required this.path,
+    required this.queryKey,
+    required this.queryValue,
+  });
+
+  final String path;
+  final String queryKey;
+  final String queryValue;
 }
 
 /// The complete, ordered list of nav destinations in default wide-screen order.
@@ -210,6 +252,10 @@ final List<String> kDefaultPrimaryIds = List.unmodifiable(
 ///   the build still knows.
 /// - Unknown and pinned ids are dropped; a duplicate keeps its first position.
 /// - Everything else is appended in [movableIds] (canonical) order.
+/// - Entries in [shortcutOrderIds] (nav shortcuts, #2936) keep their stored
+///   position. A shortcut this build does not know is dropped, and a missing
+///   one is never appended: shortcuts are the diver's additions, not part of
+///   the guaranteed set.
 ///
 /// Values written before the order was widened held only the three phone
 /// bottom-bar slots. Those normalize to the front, so an upgrading user keeps
@@ -219,9 +265,14 @@ final List<String> kDefaultPrimaryIds = List.unmodifiable(
 List<String> normalizeNavOrder({
   required List<String> stored,
   required List<String> movableIds,
+  Iterable<String> shortcutOrderIds = const [],
 }) {
   final result = <String>[];
   for (final storedId in stored) {
+    if (shortcutOrderIds.contains(storedId)) {
+      if (!result.contains(storedId)) result.add(storedId);
+      continue;
+    }
     final id = movableIds.contains(storedId)
         ? storedId
         : kRenamedNavIds[storedId] ?? storedId;

@@ -63,7 +63,11 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
     return MapListScaffold(
       sectionKey: 'dive-centers',
       title: context.l10n.diveCenters_title,
-      onBackPressed: () => context.go('/dive-centers'),
+      // Opened as a nav shortcut (#2936) the map is the only page and is a
+      // top-level destination, so it has no arrow back into /dive-centers.
+      onBackPressed: Navigator.of(context).canPop()
+          ? () => context.go('/dive-centers')
+          : null,
       listPane: DiveCenterListContent(
         showAppBar: false,
         isMapMode: true,

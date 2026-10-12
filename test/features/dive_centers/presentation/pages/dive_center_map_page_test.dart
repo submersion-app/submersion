@@ -178,6 +178,9 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.byType(FlutterMap), findsWidgets);
+    // Pumped as the only page, as on a nav shortcut (#2936): no back arrow
+    // to a section the diver never came from.
+    expect(find.byIcon(Icons.arrow_back), findsNothing);
   });
 
   group('camera moves', () {
