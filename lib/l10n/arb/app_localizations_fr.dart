@@ -22676,6 +22676,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Partagé';
 
   @override
+  String get settings_conflict_field_sharedLibrary => 'Bibliothèque de club';
+
+  @override
+  String get settings_conflict_field_sharedLibraryMember =>
+      'Identifiant de membre';
+
+  @override
+  String get settings_conflict_field_sharedLibraryDisplayName => 'Nom affiché';
+
+  @override
+  String get settings_conflict_field_sharedLibraryName =>
+      'Nom de la bibliothèque';
+
+  @override
+  String get settings_conflict_field_sharedLibraryBackend => 'Type de stockage';
+
+  @override
+  String get settings_conflict_field_sharedLibraryLocation =>
+      'Emplacement de la bibliothèque';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Gaz de transit';
 
   @override

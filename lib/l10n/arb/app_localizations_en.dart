@@ -22240,6 +22240,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Shared';
 
   @override
+  String get settings_conflict_field_sharedLibrary => 'Club library';
+
+  @override
+  String get settings_conflict_field_sharedLibraryMember => 'Member id';
+
+  @override
+  String get settings_conflict_field_sharedLibraryDisplayName => 'Display name';
+
+  @override
+  String get settings_conflict_field_sharedLibraryName => 'Library name';
+
+  @override
+  String get settings_conflict_field_sharedLibraryBackend => 'Storage type';
+
+  @override
+  String get settings_conflict_field_sharedLibraryLocation =>
+      'Library location';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Travel gas';
 
   @override

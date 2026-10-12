@@ -36174,6 +36174,42 @@ abstract class AppLocalizations {
   /// **'Shared'**
   String get settings_conflict_field_isShared;
 
+  /// No description provided for @settings_conflict_field_sharedLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Club library'**
+  String get settings_conflict_field_sharedLibrary;
+
+  /// No description provided for @settings_conflict_field_sharedLibraryMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Member id'**
+  String get settings_conflict_field_sharedLibraryMember;
+
+  /// No description provided for @settings_conflict_field_sharedLibraryDisplayName.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get settings_conflict_field_sharedLibraryDisplayName;
+
+  /// No description provided for @settings_conflict_field_sharedLibraryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Library name'**
+  String get settings_conflict_field_sharedLibraryName;
+
+  /// No description provided for @settings_conflict_field_sharedLibraryBackend.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage type'**
+  String get settings_conflict_field_sharedLibraryBackend;
+
+  /// No description provided for @settings_conflict_field_sharedLibraryLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Library location'**
+  String get settings_conflict_field_sharedLibraryLocation;
+
   /// No description provided for @settings_conflict_field_isTravelGas.
   ///
   /// In en, this message translates to:

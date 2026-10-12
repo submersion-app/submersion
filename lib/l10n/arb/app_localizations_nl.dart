@@ -22461,6 +22461,26 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Gedeeld';
 
   @override
+  String get settings_conflict_field_sharedLibrary => 'Clubbibliotheek';
+
+  @override
+  String get settings_conflict_field_sharedLibraryMember => 'Lid-id';
+
+  @override
+  String get settings_conflict_field_sharedLibraryDisplayName => 'Weergavenaam';
+
+  @override
+  String get settings_conflict_field_sharedLibraryName =>
+      'Naam van de bibliotheek';
+
+  @override
+  String get settings_conflict_field_sharedLibraryBackend => 'Opslagtype';
+
+  @override
+  String get settings_conflict_field_sharedLibraryLocation =>
+      'Locatie van de bibliotheek';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Travelgas';
 
   @override

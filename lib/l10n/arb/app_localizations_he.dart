@@ -22053,6 +22053,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_isShared => 'משותף';
 
   @override
+  String get settings_conflict_field_sharedLibrary => 'ספריית מועדון';
+
+  @override
+  String get settings_conflict_field_sharedLibraryMember => 'מזהה חבר';
+
+  @override
+  String get settings_conflict_field_sharedLibraryDisplayName => 'שם תצוגה';
+
+  @override
+  String get settings_conflict_field_sharedLibraryName => 'שם הספרייה';
+
+  @override
+  String get settings_conflict_field_sharedLibraryBackend => 'סוג אחסון';
+
+  @override
+  String get settings_conflict_field_sharedLibraryLocation => 'מיקום הספרייה';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'גז מעבר';
 
   @override

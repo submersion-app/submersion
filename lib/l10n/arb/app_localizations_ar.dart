@@ -22824,6 +22824,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_isShared => 'مشترك';
 
   @override
+  String get settings_conflict_field_sharedLibrary => 'مكتبة النادي';
+
+  @override
+  String get settings_conflict_field_sharedLibraryMember => 'معرّف العضو';
+
+  @override
+  String get settings_conflict_field_sharedLibraryDisplayName =>
+      'الاسم المعروض';
+
+  @override
+  String get settings_conflict_field_sharedLibraryName => 'اسم المكتبة';
+
+  @override
+  String get settings_conflict_field_sharedLibraryBackend => 'نوع التخزين';
+
+  @override
+  String get settings_conflict_field_sharedLibraryLocation => 'موقع المكتبة';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'غاز العبور';
 
   @override

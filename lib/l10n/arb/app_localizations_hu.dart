@@ -22519,6 +22519,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_isShared => 'Megosztva';
 
   @override
+  String get settings_conflict_field_sharedLibrary => 'Klubkönyvtár';
+
+  @override
+  String get settings_conflict_field_sharedLibraryMember => 'Tagazonosító';
+
+  @override
+  String get settings_conflict_field_sharedLibraryDisplayName =>
+      'Megjelenített név';
+
+  @override
+  String get settings_conflict_field_sharedLibraryName => 'Könyvtár neve';
+
+  @override
+  String get settings_conflict_field_sharedLibraryBackend => 'Tárhely típusa';
+
+  @override
+  String get settings_conflict_field_sharedLibraryLocation => 'Könyvtár helye';
+
+  @override
   String get settings_conflict_field_isTravelGas => 'Utazógáz';
 
   @override

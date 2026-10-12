@@ -21400,6 +21400,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_isShared => '已共享';
 
   @override
+  String get settings_conflict_field_sharedLibrary => '俱乐部库';
+
+  @override
+  String get settings_conflict_field_sharedLibraryMember => '成员 ID';
+
+  @override
+  String get settings_conflict_field_sharedLibraryDisplayName => '显示名称';
+
+  @override
+  String get settings_conflict_field_sharedLibraryName => '库名称';
+
+  @override
+  String get settings_conflict_field_sharedLibraryBackend => '存储类型';
+
+  @override
+  String get settings_conflict_field_sharedLibraryLocation => '库位置';
+
+  @override
   String get settings_conflict_field_isTravelGas => '过渡气';
 
   @override
