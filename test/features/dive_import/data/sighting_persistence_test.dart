@@ -133,6 +133,24 @@ void main() {
       expect(await repository.getAllSpecies(), hasLength(1));
     });
 
+    test('a spec with only a scientific name names the species by it, '
+        'not by its ref', () async {
+      final diveId = await importDive({
+        'dateTime': DateTime.utc(2024, 6, 1, 9, 30),
+        'sightings': [
+          {
+            'speciesRef': 'species_3f2a9c1e-77b0-4c5e-9d2a-1b6e0f4c8a21',
+            'speciesScientificName': 'Palaemon serratus',
+          },
+        ],
+      });
+
+      final sighting = (await SpeciesRepository().getSightingsForDive(
+        diveId,
+      )).single;
+      expect(sighting.speciesName, 'Palaemon serratus');
+    });
+
     test('a UDDF file with a species section imports in one pass', () async {
       const doc = '''<uddf version="3.2.1">
   <profiledata>

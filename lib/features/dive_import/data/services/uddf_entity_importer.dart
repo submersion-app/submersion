@@ -86,6 +86,7 @@ import 'package:submersion/features/trips/data/repositories/trip_repository.dart
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_for_dive_date.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/data/services/imported_species_resolver.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -3500,24 +3501,22 @@ class UddfEntityImporter {
       // number where a name belongs would otherwise throw out of this loop
       // and take the whole import with it, which is the opposite of the
       // best-effort contract above.
-      // A source may name the species outright, or only reference it, in
-      // which case the ref carries the name.
-      final named = entry['speciesName'] is String
-          ? (entry['speciesName'] as String).trim()
-          : null;
-      final ref = entry['speciesRef'] is String
-          ? (entry['speciesRef'] as String).trim()
-          : null;
-      final commonName = named != null && named.isNotEmpty
-          ? named
-          : (ref == null || ref.isEmpty ? null : _speciesNameFromRef(ref));
+      // A source may name the species outright, or only reference it. The
+      // scientific name beats the ref as a fallback: a Submersion ref is
+      // `species_<uuid>`, which makes a poor name.
+      final scientific = trimmedOrNull(text(entry['speciesScientificName']));
+      final ref = trimmedOrNull(text(entry['speciesRef']));
+      final commonName =
+          trimmedOrNull(text(entry['speciesName'])) ??
+          scientific ??
+          (ref == null ? null : _speciesNameFromRef(ref));
       if (commonName == null || commonName.isEmpty) continue;
 
       try {
         final category = entry['speciesCategory'];
         final species = await resolver.resolve(
           commonName: commonName,
-          scientificName: text(entry['speciesScientificName']),
+          scientificName: scientific,
           category: category is SpeciesCategory ? category : null,
           taxonomyClass: text(entry['speciesTaxonomyClass']),
           description: text(entry['speciesDescription']),
