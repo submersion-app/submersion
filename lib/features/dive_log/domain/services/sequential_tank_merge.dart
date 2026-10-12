@@ -179,6 +179,7 @@ DiveTank _fold(DiveTank earlier, DiveTank later) => earlier.copyWith(
   regulatorEquipmentId:
       earlier.regulatorEquipmentId ?? later.regulatorEquipmentId,
   tripCylinderId: earlier.tripCylinderId ?? later.tripCylinderId,
+  passportId: earlier.passportId ?? later.passportId,
   equipmentId: earlier.equipmentId ?? later.equipmentId,
   decoSwitchDepth: earlier.decoSwitchDepth ?? later.decoSwitchDepth,
   // The folded pressure drop spans both halves, so the time breathed is

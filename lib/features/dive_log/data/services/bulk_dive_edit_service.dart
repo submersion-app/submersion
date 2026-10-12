@@ -394,6 +394,8 @@ class BulkDiveEditService {
         sourceId: r.sourceId,
         regulatorEquipmentId: r.regulatorEquipmentId,
         tripCylinderId: r.tripCylinderId,
+        // The tagged cylinder (#2650), restore-only like the slot.
+        passportId: r.passportId,
         sourceTankIndex: r.sourceTankIndex,
         // The cylinder link the registry recorded; bulkReplaceTanks writes
         // it only when told this is a restore.
