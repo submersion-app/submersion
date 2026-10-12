@@ -18982,6 +18982,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_library_filter_apply => 'Toepassen';
 
   @override
+  String get media_library_thumbnailSize => 'Miniatuurgrootte';
+
+  @override
   String get media_library_sort_title => 'Media sorteren';
 
   @override

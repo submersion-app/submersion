@@ -116,6 +116,59 @@ void main() {
     );
   });
 
+  // Issue #3297: the toolbar's slider sizes the thumbnails, and a resize
+  // scales them instead of changing how many are across.
+  testWidgets('the size slider sets how many thumbnails go across, and a '
+      'resize keeps that number', (tester) async {
+    int tilesInFirstRow() {
+      final tiles = find.byType(MediaLibraryTile);
+      final top = tester.getTopLeft(tiles.first).dy;
+      return tiles
+          .evaluate()
+          .where((e) => tester.getTopLeft(find.byWidget(e.widget)).dy == top)
+          .length;
+    }
+
+    Future<void> resizeTo(double width) async {
+      tester.view.physicalSize = Size(width, 900);
+      await tester.pumpAndSettle();
+    }
+
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final notifier = _SeededLibraryNotifier(
+      MediaLibraryState(entries: [for (var i = 0; i < 40; i++) entry('m$i')]),
+    );
+    await tester.pumpWidget(host(notifier));
+    await tester.pumpAndSettle();
+
+    // The middle of seven steps at 1200.
+    expect(tilesInFirstRow(), 6);
+    await resizeTo(900);
+    expect(tilesInFirstRow(), 6);
+    // (900 - 8 padding - 5 x 4 gaps) / 6: scaled down from 192 at 1200.
+    expect(
+      tester.getSize(find.byType(MediaLibraryTile).first).width,
+      moreOrLessEquals(145.33, epsilon: 0.01),
+    );
+
+    final slider = find.byKey(const ValueKey('thumbnail_size_slider'));
+    await tester.tapAt(tester.getRect(slider).centerRight - const Offset(2, 0));
+    await tester.pumpAndSettle();
+
+    // The largest: half the pane each.
+    expect(tilesInFirstRow(), 2);
+    await resizeTo(1200);
+    expect(tilesInFirstRow(), 2);
+
+    // The same size carries into the grouped views.
+    await tester.tap(find.byIcon(Icons.calendar_month));
+    await tester.pumpAndSettle();
+    expect(find.byType(MediaLibraryGroupedList), findsOneWidget);
+    expect(tilesInFirstRow(), 2);
+  });
+
   testWidgets('shows localized empty state when no entries', (tester) async {
     final notifier = _SeededLibraryNotifier(const MediaLibraryState());
     await tester.pumpWidget(host(notifier));

@@ -5338,6 +5338,7 @@
   "media_library_filter_any": "Qualsiasi",
   "media_library_filter_title": "Filtra media",
   "media_library_filter_apply": "Applica",
+  "media_library_thumbnailSize": "Dimensione delle miniature",
   "media_library_sort_title": "Ordina media",
   "media_smartAlbum_load": "Carica album",
   "media_library_unlinkedHeader": "Non collegati",

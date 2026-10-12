@@ -18193,6 +18193,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_library_filter_apply => '应用';
 
   @override
+  String get media_library_thumbnailSize => '缩略图大小';
+
+  @override
   String get media_library_sort_title => '排序媒体';
 
   @override

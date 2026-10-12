@@ -11792,6 +11792,10 @@
   "@media_library_filter_apply": {
     "description": "Button that applies the drafted media filter"
   },
+  "media_library_thumbnailSize": "Thumbnail size",
+  "@media_library_thumbnailSize": {
+    "description": "Tooltip and screen-reader label of the media library slider that makes thumbnails smaller or larger"
+  },
   "media_library_sort_title": "Sort media",
   "@media_library_sort_title": {
     "description": "Title of the media library sort sheet, and the sort button's tooltip"

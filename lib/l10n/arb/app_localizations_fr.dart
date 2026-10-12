@@ -19160,6 +19160,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_library_filter_apply => 'Appliquer';
 
   @override
+  String get media_library_thumbnailSize => 'Taille des vignettes';
+
+  @override
   String get media_library_sort_title => 'Trier les médias';
 
   @override

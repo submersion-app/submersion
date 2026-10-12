@@ -19106,6 +19106,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_library_filter_apply => 'Applica';
 
   @override
+  String get media_library_thumbnailSize => 'Dimensione delle miniature';
+
+  @override
   String get media_library_sort_title => 'Ordina media';
 
   @override

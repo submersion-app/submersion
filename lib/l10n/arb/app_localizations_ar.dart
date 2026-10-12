@@ -19347,6 +19347,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_library_filter_apply => 'تطبيق';
 
   @override
+  String get media_library_thumbnailSize => 'حجم الصور المصغّرة';
+
+  @override
   String get media_library_sort_title => 'فرز الوسائط';
 
   @override

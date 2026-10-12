@@ -30619,6 +30619,12 @@ abstract class AppLocalizations {
   /// **'Apply'**
   String get media_library_filter_apply;
 
+  /// Tooltip and screen-reader label of the media library slider that makes thumbnails smaller or larger
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnail size'**
+  String get media_library_thumbnailSize;
+
   /// Title of the media library sort sheet, and the sort button's tooltip
   ///
   /// In en, this message translates to:

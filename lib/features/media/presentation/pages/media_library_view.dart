@@ -12,6 +12,7 @@ import 'package:submersion/features/media/presentation/widgets/media_map_content
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_missing_banner.dart';
+import 'package:submersion/features/media/presentation/widgets/media_thumbnail_columns_builder.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -161,33 +162,40 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
 
     final checkedIds = selection.checkedIds;
 
-    return switch (mode) {
-      MediaLibraryViewMode.grid => MediaLibraryGrid(
-        entries: state.entries,
-        hasMore: state.hasMore,
-        onLoadMore: loadMore,
-        onTileTap: (entry, index) => handleTap(entry),
-        selectedIds: checkedIds,
-        isSelectionMode: selection.isActive,
-      ),
-      MediaLibraryViewMode.byDive => MediaLibraryGroupedList(
-        groups: groupByDive(state.entries),
-        hasMore: state.hasMore,
-        onLoadMore: loadMore,
-        onTileTap: handleTap,
-        selectedIds: checkedIds,
-        isSelectionMode: selection.isActive,
-      ),
-      MediaLibraryViewMode.timeline => MediaLibraryGroupedList(
-        groups: groupByTimeline(state.entries),
-        hasMore: state.hasMore,
-        onLoadMore: loadMore,
-        onTileTap: handleTap,
-        selectedIds: checkedIds,
-        isSelectionMode: selection.isActive,
-      ),
-      // Returned above, before the grid's paged-state guards.
-      MediaLibraryViewMode.map => const MediaMapContent(),
-    };
+    // One size for all three thumbnail views, from the toolbar's slider
+    // (issue #3297).
+    return MediaThumbnailColumnsBuilder(
+      builder: (context, columns) => switch (mode) {
+        MediaLibraryViewMode.grid => MediaLibraryGrid(
+          entries: state.entries,
+          hasMore: state.hasMore,
+          onLoadMore: loadMore,
+          onTileTap: (entry, index) => handleTap(entry),
+          columns: columns,
+          selectedIds: checkedIds,
+          isSelectionMode: selection.isActive,
+        ),
+        MediaLibraryViewMode.byDive => MediaLibraryGroupedList(
+          groups: groupByDive(state.entries),
+          hasMore: state.hasMore,
+          onLoadMore: loadMore,
+          onTileTap: handleTap,
+          columns: columns,
+          selectedIds: checkedIds,
+          isSelectionMode: selection.isActive,
+        ),
+        MediaLibraryViewMode.timeline => MediaLibraryGroupedList(
+          groups: groupByTimeline(state.entries),
+          hasMore: state.hasMore,
+          onLoadMore: loadMore,
+          onTileTap: handleTap,
+          columns: columns,
+          selectedIds: checkedIds,
+          isSelectionMode: selection.isActive,
+        ),
+        // Returned above, before the grid's paged-state guards.
+        MediaLibraryViewMode.map => const MediaMapContent(),
+      },
+    );
   }
 }

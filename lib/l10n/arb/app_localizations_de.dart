@@ -19089,6 +19089,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_library_filter_apply => 'Übernehmen';
 
   @override
+  String get media_library_thumbnailSize => 'Vorschaubildgröße';
+
+  @override
   String get media_library_sort_title => 'Medien sortieren';
 
   @override

@@ -5438,6 +5438,7 @@
   "media_library_filter_any": "أي",
   "media_library_filter_title": "تصفية الوسائط",
   "media_library_filter_apply": "تطبيق",
+  "media_library_thumbnailSize": "حجم الصور المصغّرة",
   "media_library_sort_title": "فرز الوسائط",
   "media_smartAlbum_load": "تحميل الألبوم",
   "media_library_unlinkedHeader": "غير مرتبطة",

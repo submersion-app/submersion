@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -19,6 +20,7 @@ class MediaLibraryGroupedList extends ConsumerWidget {
     required this.hasMore,
     required this.onLoadMore,
     required this.onTileTap,
+    required this.columns,
     this.selectedIds = const {},
     this.isSelectionMode = false,
   });
@@ -27,6 +29,9 @@ class MediaLibraryGroupedList extends ConsumerWidget {
   final bool hasMore;
   final VoidCallback onLoadMore;
   final void Function(MediaLibraryEntry entry) onTileTap;
+
+  /// How many thumbnails go across, from the size slider (issue #3297).
+  final int columns;
 
   /// Ids rendered with the selection overlay.
   final Set<String> selectedIds;
@@ -66,7 +71,16 @@ class MediaLibraryGroupedList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final units = UnitFormatter(ref.watch(settingsProvider));
+    return LayoutBuilder(
+      builder: (context, constraints) => _buildList(
+        context,
+        units,
+        mediaThumbnailDecodeTarget(constraints.maxWidth, columns),
+      ),
+    );
+  }
 
+  Widget _buildList(BuildContext context, UnitFormatter units, Size target) {
     final rows = <Widget>[];
     DateTime? lastMonth;
     for (final group in groups) {
@@ -139,8 +153,8 @@ class MediaLibraryGroupedList extends ConsumerWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 140,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
             mainAxisSpacing: 4,
             crossAxisSpacing: 4,
           ),
@@ -151,6 +165,7 @@ class MediaLibraryGroupedList extends ConsumerWidget {
               entry: entry,
               selected: selectedIds.contains(entry.item.id),
               isSelectionMode: isSelectionMode,
+              targetSize: target,
               onTap: () => onTileTap(entry),
             );
           },

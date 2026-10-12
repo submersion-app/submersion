@@ -5589,6 +5589,7 @@
   "media_library_filter_any": "任意",
   "media_library_filter_title": "筛选媒体",
   "media_library_filter_apply": "应用",
+  "media_library_thumbnailSize": "缩略图大小",
   "media_library_sort_title": "排序媒体",
   "media_smartAlbum_load": "加载相册",
   "media_library_unlinkedHeader": "未关联",

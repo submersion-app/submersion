@@ -5555,6 +5555,7 @@
   "media_library_filter_any": "Beliebig",
   "media_library_filter_title": "Medien filtern",
   "media_library_filter_apply": "Übernehmen",
+  "media_library_thumbnailSize": "Vorschaubildgröße",
   "media_library_sort_title": "Medien sortieren",
   "media_smartAlbum_load": "Album laden",
   "media_library_unlinkedHeader": "Nicht verknüpft",

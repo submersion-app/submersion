@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_status_badge.dart';
@@ -15,11 +16,17 @@ class MediaLibraryTile extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.isSelectionMode = false,
+    this.targetSize = const Size(200, 200),
   });
 
   final MediaLibraryEntry entry;
   final bool selected;
   final VoidCallback onTap;
+
+  /// The size the thumbnail is resolved and decoded at. Larger tiles ask
+  /// for more (issue #3297), so a half-pane thumbnail is not a 200px image
+  /// stretched.
+  final Size targetSize;
 
   /// Whether the surface is in multi-select. Unselected tiles dim, which is
   /// what makes an explicitly entered mode legible before anything is
@@ -73,7 +80,7 @@ class MediaLibraryTile extends StatelessWidget {
           MediaItemView(
             item: entry.item,
             thumbnail: true,
-            targetSize: const Size(200, 200),
+            targetSize: targetSize,
             fit: BoxFit.cover,
           ),
           if (isSelectionMode && !selected)
@@ -113,6 +120,7 @@ class MediaLibraryGrid extends StatelessWidget {
     required this.hasMore,
     required this.onLoadMore,
     required this.onTileTap,
+    required this.columns,
     this.selectedIds = const {},
     this.isSelectionMode = false,
   });
@@ -121,6 +129,9 @@ class MediaLibraryGrid extends StatelessWidget {
   final bool hasMore;
   final VoidCallback onLoadMore;
   final void Function(MediaLibraryEntry entry, int index) onTileTap;
+
+  /// How many thumbnails go across, from the size slider (issue #3297).
+  final int columns;
 
   /// Ids rendered with the selection overlay.
   final Set<String> selectedIds;
@@ -142,21 +153,30 @@ class MediaLibraryGrid extends StatelessWidget {
         }
         return false;
       },
-      child: GridView.builder(
-        padding: const EdgeInsets.all(4),
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 140,
-          mainAxisSpacing: 4,
-          crossAxisSpacing: 4,
-        ),
-        itemCount: entries.length,
-        itemBuilder: (context, index) {
-          final entry = entries[index];
-          return MediaLibraryTile(
-            entry: entry,
-            selected: selectedIds.contains(entry.item.id),
-            isSelectionMode: isSelectionMode,
-            onTap: () => onTileTap(entry, index),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final targetSize = mediaThumbnailDecodeTarget(
+            constraints.maxWidth,
+            columns,
+          );
+          return GridView.builder(
+            padding: const EdgeInsets.all(4),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: columns,
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 4,
+            ),
+            itemCount: entries.length,
+            itemBuilder: (context, index) {
+              final entry = entries[index];
+              return MediaLibraryTile(
+                entry: entry,
+                selected: selectedIds.contains(entry.item.id),
+                isSelectionMode: isSelectionMode,
+                targetSize: targetSize,
+                onTap: () => onTileTap(entry, index),
+              );
+            },
           );
         },
       ),

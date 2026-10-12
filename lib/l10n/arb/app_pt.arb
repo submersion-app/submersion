@@ -5438,6 +5438,7 @@
   "media_library_filter_any": "Qualquer",
   "media_library_filter_title": "Filtrar mídia",
   "media_library_filter_apply": "Aplicar",
+  "media_library_thumbnailSize": "Tamanho das miniaturas",
   "media_library_sort_title": "Ordenar mídia",
   "media_smartAlbum_load": "Carregar álbum",
   "media_library_unlinkedHeader": "Sem vínculo",

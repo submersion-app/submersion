@@ -19039,6 +19039,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_library_filter_apply => 'Alkalmaz';
 
   @override
+  String get media_library_thumbnailSize => 'Bélyegképek mérete';
+
+  @override
   String get media_library_sort_title => 'Média rendezése';
 
   @override
