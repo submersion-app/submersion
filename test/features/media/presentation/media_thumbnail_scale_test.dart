@@ -19,10 +19,33 @@ void main() {
     });
 
     test('the smallest step is as many as fit at 64 or more', () {
-      // 1200 / 18 is 66.7; a nineteenth column would drop tiles to 63.2.
-      expect(mediaThumbnailColumnsForStep(0, 1200), 18);
-      expect(mediaThumbnailColumnsForStep(0, 800), 12);
+      // The grouped list's 16 of padding and the 4 between tiles come off
+      // first: 17 across 1200 is (1184 - 16 x 4) / 17 = 65.9 each, and an
+      // eighteenth column would drop them to 62.0.
+      expect(mediaThumbnailColumnsForStep(0, 1200), 17);
+      expect(mediaThumbnailColumnsForStep(0, 800), 11);
       expect(mediaThumbnailColumnsForStep(0, 352), 5);
+    });
+
+    test('no step draws a tile under 64 once gaps and padding are '
+        'taken off', () {
+      // From the narrowest pane that holds two 64px tiles at all.
+      for (var width = 148.0; width <= 3000; width += 7) {
+        for (var step = 0; step < kMediaThumbnailSteps; step++) {
+          final columns = mediaThumbnailColumnsForStep(step, width);
+          // The grouped list, whose 8 a side is the widest padding.
+          final tile =
+              (width -
+                  kMediaThumbnailMaxInset -
+                  (columns - 1) * kMediaThumbnailGap) /
+              columns;
+          expect(
+            tile,
+            greaterThanOrEqualTo(kMediaThumbnailMinExtent),
+            reason: 'step $step at $width: $columns across',
+          );
+        }
+      }
     });
 
     test('a desktop pane gets seven different sizes, smallest first', () {
@@ -30,7 +53,7 @@ void main() {
         for (var step = 0; step < kMediaThumbnailSteps; step++)
           mediaThumbnailColumnsForStep(step, 1200),
       ];
-      expect(columns, [18, 13, 9, 6, 4, 3, 2]);
+      expect(columns, [17, 13, 9, 6, 4, 3, 2]);
     });
 
     test('a pane too narrow for two 64px tiles still shows two', () {

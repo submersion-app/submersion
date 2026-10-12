@@ -187,6 +187,9 @@ class _ThumbnailSizeSlider extends ConsumerWidget {
     final step = ref.watch(mediaThumbnailScaleProvider.select((s) => s.step));
     return Tooltip(
       message: l10n.media_library_thumbnailSize,
+      // The Semantics label below already names the slider; announcing the
+      // tooltip too would read it twice.
+      excludeFromSemantics: true,
       child: SizedBox(
         width: _kThumbnailSliderWidth,
         child: Semantics(

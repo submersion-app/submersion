@@ -281,6 +281,20 @@ void main() {
       expect(widget.value, 3);
     });
 
+    testWidgets('names itself to screen readers once, not twice', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await pump(tester);
+
+      final node = tester.getSemantics(slider);
+      expect(node.label, 'Thumbnail size');
+      // A tooltip with the same text would be read out after the label.
+      expect(node.tooltip, isEmpty);
+      // Before the test ends, which addTearDown would be too late for.
+      handle.dispose();
+    });
+
     testWidgets('dragging it to the end picks the largest size', (
       tester,
     ) async {

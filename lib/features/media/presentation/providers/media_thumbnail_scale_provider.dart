@@ -10,21 +10,32 @@ const int kMediaThumbnailSteps = 7;
 /// No step draws a thumbnail smaller than this, in logical pixels.
 const double kMediaThumbnailMinExtent = 64;
 
+/// Gap between thumbnails, across and down, in every library grid.
+const double kMediaThumbnailGap = 4;
+
+/// The widest horizontal padding a library grid puts around its thumbnails,
+/// both sides together. The grouped list pads each side by half of it; the
+/// flat grid pads by less.
+const double kMediaThumbnailMaxInset = 16;
+
 /// The largest step: two across, each thumbnail half the pane.
 const int kMediaThumbnailMinColumns = 2;
 
 /// The most columns [paneWidth] holds with thumbnails at
-/// [kMediaThumbnailMinExtent] or more.
+/// [kMediaThumbnailMinExtent] or more, once the padding and the gaps
+/// between them are taken off: n columns need n tiles and n - 1 gaps.
 int mediaThumbnailMaxColumns(double paneWidth) => math.max(
   kMediaThumbnailMinColumns,
-  (paneWidth / kMediaThumbnailMinExtent).floor(),
+  ((paneWidth - kMediaThumbnailMaxInset + kMediaThumbnailGap) /
+          (kMediaThumbnailMinExtent + kMediaThumbnailGap))
+      .floor(),
 );
 
 /// How many thumbnails [step] puts across a pane [paneWidth] wide.
 ///
 /// The steps run from [kMediaThumbnailMinExtent] to half the pane in equal
 /// ratios, not equal pixel amounts, so each one looks like the same change:
-/// 18, 13, 9, 6, 4, 3 and 2 across at 1200. A pane narrower than about 512
+/// 17, 13, 9, 6, 4, 3 and 2 across at 1200. A pane narrower than about 556
 /// has fewer than seven whole column counts in that range, so neighbouring
 /// steps can share one there.
 int mediaThumbnailColumnsForStep(int step, double paneWidth) {

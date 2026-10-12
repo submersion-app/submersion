@@ -3,8 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-/// Gap between thumbnails, across and down, in every library grid.
-const double kMediaThumbnailGap = 4;
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 
 /// Where a thumbnail sits in its view, attached to it with [MetaData] so a
 /// hit test at the cursor can tell which one it found.

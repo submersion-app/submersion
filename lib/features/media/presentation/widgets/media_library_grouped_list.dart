@@ -210,7 +210,9 @@ class _MediaLibraryGroupedListState
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(
+            horizontal: kMediaThumbnailMaxInset / 2,
+          ),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
             mainAxisSpacing: kMediaThumbnailGap,
