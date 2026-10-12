@@ -311,9 +311,10 @@ void main() {
     presetName: 'al80',
   );
 
-  testWidgets('a tag with no details changes nothing and says so', (
-    tester,
-  ) async {
+  // The tag still says which cylinder this is (issue #2650), so the tank
+  // takes its passport id and keeps everything else.
+  testWidgets('a tag with no details names the cylinder, keeps the spec and '
+      'says so', (tester) async {
     DiveTank? changed;
     final l10n = await pump(
       tester,
@@ -322,8 +323,54 @@ void main() {
       tank: al80Tank,
     );
     await scan(tester);
-    expect(changed, isNull);
+    expect(changed!.passportId, stranger);
+    expect(changed!.presetName, 'al80');
+    expect(changed!.volume, 11.1);
+    expect(changed!.material, TankMaterial.aluminum);
     expect(find.text(l10n.passport_foreign_noDetails), findsOneWidget);
+  });
+
+  group('passport id (#2650)', () {
+    testWidgets('a foreign scan stamps the tag id', (tester) async {
+      DiveTank? changed;
+      await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$stranger&v=10',
+        onChanged: (t) => changed = t,
+      );
+      await scan(tester);
+      expect(changed!.passportId, stranger);
+    });
+
+    testWidgets('an own scan stamps the tag id', (tester) async {
+      DiveTank? changed;
+      await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$own',
+        onChanged: (t) => changed = t,
+        onOwnCylinderUsed: (_) async {},
+      );
+      await scan(tester);
+      expect(changed!.passportId, own);
+    });
+
+    testWidgets('a hand edit keeps the id', (tester) async {
+      DiveTank? changed;
+      await pump(
+        tester,
+        scanned: null,
+        onChanged: (t) => changed = t,
+        tank: al80Tank.copyWith(passportId: 'p-1'),
+      );
+      final o2Field = find.ancestor(
+        of: find.text('O2'),
+        matching: find.byType(TextFormField),
+      );
+      await tester.enterText(o2Field, '32');
+      await tester.pumpAndSettle();
+      expect(changed!.gasMix.o2, 32);
+      expect(changed!.passportId, 'p-1');
+    });
   });
 
   testWidgets('a tag without volume or pressure keeps the preset', (
