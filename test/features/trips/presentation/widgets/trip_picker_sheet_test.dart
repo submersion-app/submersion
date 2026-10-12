@@ -115,17 +115,22 @@ void main() {
 
     testWidgets('a packed trip reads as already packed', (tester) async {
       final handle = tester.ensureSemantics();
-      final (l10n, _) = await pump(tester, packedTripIds: {'a'});
-      expect(
-        // The tile's own text follows the label in the merged node.
-        find.bySemanticsLabel(
-          RegExp(
-            '^${RegExp.escape(l10n.trips_picker_tileSemanticsPacked('Trip a', 'Nov 1, 2026', 'Nov 7, 2026'))}',
+      // Disposed in finally: a leaked handle fails the test on its own and
+      // buries a real mismatch.
+      try {
+        final (l10n, _) = await pump(tester, packedTripIds: {'a'});
+        expect(
+          // The tile's own text follows the label in the merged node.
+          find.bySemanticsLabel(
+            RegExp(
+              '^${RegExp.escape(l10n.trips_picker_tileSemanticsPacked('Trip a', 'Nov 1, 2026', 'Nov 7, 2026'))}',
+            ),
           ),
-        ),
-        findsOneWidget,
-      );
-      handle.dispose();
+          findsOneWidget,
+        );
+      } finally {
+        handle.dispose();
+      }
     });
 
     testWidgets('with no packed trips given, nothing is marked', (

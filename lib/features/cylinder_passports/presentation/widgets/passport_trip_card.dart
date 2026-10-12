@@ -35,12 +35,26 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
     // Packing for one of these again would change nothing, so the picker
     // marks them and will not pick them (issue #2654). A slot-only trip stays
     // pickable: picking it packs the cylinder too.
-    final packedTripIds = {
-      for (final p
-          in ref.read(equipmentTripsProvider(widget.equipmentId)).value ??
-              const <PackedTrip>[])
-        if (p.packed) p.trip.id,
-    };
+    // Awaited, so a list still loading does not leave every trip unmarked.
+    Set<String> packedTripIds;
+    try {
+      final trips = await ref.read(
+        equipmentTripsProvider(widget.equipmentId).future,
+      );
+      packedTripIds = {
+        for (final p in trips)
+          if (p.packed) p.trip.id,
+      };
+    } catch (e, stackTrace) {
+      // The card shows no trips then either; the picker just marks none.
+      _log.error(
+        'Failed to load packed trips',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      packedTripIds = const {};
+    }
+    if (!mounted) return;
     final picked = await showModalBottomSheet<Object>(
       context: context,
       isScrollControlled: true,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -133,6 +135,39 @@ void main() {
     await tester.tap(find.descendant(of: sheet, matching: find.text('Trip b')));
     await tester.pumpAndSettle();
     expect(fake.packed.map((p) => p.$1), ['b']);
+  });
+
+  testWidgets('Pack for a trip tapped while the packed trips still load '
+      'marks them once they arrive', (tester) async {
+    final loading = Completer<List<PackedTrip>>();
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          equipmentTripsProvider('tank').overrideWith((ref) => loading.future),
+          allTripsProvider.overrideWith((ref) async => [trip('a')]),
+          tripEquipmentRepositoryProvider.overrideWithValue(_FakePacks()),
+        ],
+        child: const SingleChildScrollView(
+          child: PassportTripCard(equipmentId: 'tank'),
+        ),
+      ),
+    );
+    await tester.pump();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportTripCard)),
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pump();
+    loading.complete([packed('a')]);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TripPickerSheet>(find.byType(TripPickerSheet))
+          .packedTripIds,
+      {'a'},
+    );
   });
 
   testWidgets('New trip packs for the trip it creates', (tester) async {
