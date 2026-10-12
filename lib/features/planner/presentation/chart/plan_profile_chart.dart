@@ -240,11 +240,6 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
 
   @override
   Widget build(BuildContext context) {
-    // Must run on every build, unconditionally, before the chart's own
-    // early returns below -- a stale Bailout selection from a previous
-    // plan must never silently reappear once a different CCR plan with
-    // bailout loads (#3130 follow-up, caught by a Copilot review).
-    resetChartDisplayModeOnPlanChange(ref);
     final series = ref.watch(planCanvasSeriesProvider);
     final ghost = ref.watch(contingencyGhostSeriesProvider);
     final sourceDive = ref.watch(sourceDiveOverlaySeriesProvider);

@@ -175,27 +175,18 @@ enum ChartDisplayMode { ccr, bailout }
 
 /// Which picture the chart draws: the live CCR plan, or -- toggled by the
 /// chart's Bailout/CCR button -- the worst-case bailout picture (CCR up to
-/// the worst-case instant, then the OC ascent it was sized from). Nothing
-/// resets this by itself (it is a bare legacy `StateProvider`); callers that
-/// render the chart must reset it via [resetChartDisplayModeOnPlanChange]
-/// whenever the plan itself changes, or a different CCR plan that again
-/// carries bailout reopens on a stale Bailout selection the diver never
-/// chose for it (caught by a Copilot review).
-final chartDisplayModeProvider = StateProvider<ChartDisplayMode>(
-  (_) => ChartDisplayMode.ccr,
-);
-
-/// Resets [chartDisplayModeProvider] to [ChartDisplayMode.ccr] whenever the
-/// plan identity or mode changes. Call once from a widget that is always
-/// mounted while the chart can be shown (the canvas page), via
-/// `ref.listen` in `build` -- a plain `Ref.listen` call, not a provider
-/// listening to itself, which Riverpod's legacy `StateProvider` cannot do
-/// from within its own create callback.
-void resetChartDisplayModeOnPlanChange(WidgetRef ref) {
-  ref.listen(divePlanNotifierProvider.select((s) => (s.id, s.mode)), (_, _) {
-    ref.read(chartDisplayModeProvider.notifier).state = ChartDisplayMode.ccr;
-  });
-}
+/// the worst-case instant, then the OC ascent it was sized from).
+///
+/// The selection belongs to the plan it was made on: watching the plan's id
+/// and mode rebuilds this provider, back to [ChartDisplayMode.ccr], whenever
+/// either changes. That holds with no chart mounted too, so a diver who
+/// leaves the canvas, opens another CCR plan with bailout and comes back
+/// never lands on a Bailout view they did not choose for it. Ordinary edits
+/// to the same plan keep the selection.
+final chartDisplayModeProvider = StateProvider<ChartDisplayMode>((ref) {
+  ref.watch(divePlanNotifierProvider.select((s) => (s.id, s.mode)));
+  return ChartDisplayMode.ccr;
+});
 
 /// Chart series for the current plan: user segments plus the computed
 /// ascent tail (travel legs + stops), ceiling approximation, and markers --
