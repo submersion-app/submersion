@@ -518,6 +518,30 @@ void main() {
       expect(find.text('Hose · S/N B2'), findsOneWidget);
     });
 
+    testWidgets('parts already told apart by their roles get no tie-break', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build([
+          part(
+            'c1',
+            gear('z1', 'HOG Zenith', EquipmentType.secondStage, serial: 'A1'),
+            role: 'Primary',
+          ),
+          part(
+            'c2',
+            gear('z2', 'HOG Zenith', EquipmentType.secondStage, serial: 'B2'),
+            role: 'Octopus',
+            order: 1,
+          ),
+        ], _FakeComponentRepository()),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Primary'), findsOneWidget);
+      expect(find.text('Octopus'), findsOneWidget);
+      expect(find.textContaining('S/N'), findsNothing);
+    });
+
     testWidgets('a departed part keeps its badge beside the label', (
       tester,
     ) async {
@@ -545,6 +569,43 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Hose · ID H1'), findsOneWidget);
       expect(find.text('Retired'), findsOneWidget);
+    });
+
+    testWidgets('parents already told apart by their rigs get no tie-break', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build(
+          const [],
+          _FakeComponentRepository(),
+          partOf: [
+            parentEntry(
+              gear(
+                'ra1',
+                'Regulator Assembly',
+                EquipmentType.regulator,
+                serial: 'R1',
+              ),
+              role: 'Second Stage',
+              rigs: ['Backmount rig'],
+            ),
+            parentEntry(
+              gear(
+                'ra2',
+                'Regulator Assembly',
+                EquipmentType.regulator,
+                serial: 'R2',
+              ),
+              role: 'Second Stage',
+              rigs: ['Sidemount rig'],
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Second Stage, in Backmount rig'), findsOneWidget);
+      expect(find.text('Second Stage, in Sidemount rig'), findsOneWidget);
+      expect(find.textContaining('S/N'), findsNothing);
     });
 
     testWidgets('a parent assembly shows its identifier too', (tester) async {

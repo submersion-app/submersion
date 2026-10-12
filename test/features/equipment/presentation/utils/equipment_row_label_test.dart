@@ -155,6 +155,23 @@ void main() {
     expect(labels['b']!.subtitle, 'Palantic Drop-Bottom');
   });
 
+  test('text a row shows beside the label counts toward a collision', () {
+    final labels = buildEquipmentRowLabels(
+      [
+        _pouch('a', serial: 'X1'),
+        _pouch('b', serial: 'X2'),
+        _pouch('c', serial: 'X3'),
+      ],
+      _strings,
+      // a and b sit in different roles, so they already read differently;
+      // c shares b's role and still needs its serial.
+      shownWith: (e) => e.id == 'a' ? 'Left' : 'Right',
+    );
+    expect(labels['a']!.subtitle, 'Palantic Drop-Bottom');
+    expect(labels['b']!.subtitle, 'Palantic Drop-Bottom · S/N X2');
+    expect(labels['c']!.subtitle, 'Palantic Drop-Bottom · S/N X3');
+  });
+
   test('the input list is not mutated', () {
     final rows = List<EquipmentItem>.unmodifiable([
       _pouch('a', serial: 'X1'),

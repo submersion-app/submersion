@@ -17,6 +17,7 @@ import 'package:submersion/features/equipment/presentation/widgets/assembly_hist
 import 'package:submersion/features/equipment/presentation/widgets/component_picker_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_role_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/part_of_section.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Components card on the equipment detail page (issue #1487): the parts
@@ -160,9 +161,15 @@ class ComponentsCard extends ConsumerWidget {
                 }
                 // Every part labelled as one list, so two identical parts
                 // gain the detail that tells them apart (#2791, #1549).
+                // The role is on the row too, so parts it already tells
+                // apart gain no tie-break.
+                final roles = {
+                  for (final part in parts)
+                    part.componentEquipmentId: _roleText(part, l10n),
+                };
                 final labels = equipmentRowLabelsOf(context, ref, [
                   for (final part in parts) ?part.component,
-                ]);
+                ], shownWith: (item) => roles[item.id] ?? '');
                 return _ComponentsList(
                   parts: parts,
                   detailsFor: (part) =>
@@ -189,6 +196,13 @@ class ComponentsCard extends ConsumerWidget {
     );
   }
 }
+
+/// What a part's row says it does: its role in the assembly, or its type
+/// when it has none.
+String _roleText(EquipmentComponent part, AppLocalizations l10n) =>
+    part.role.isNotEmpty
+    ? part.role
+    : (part.component?.type ?? EquipmentType.other).localizedName(l10n);
 
 /// The reorderable rows. Holds its own copy of the order so a dragged row
 /// lands where it was dropped at once; the provider's debounced refresh
@@ -291,10 +305,7 @@ class _PartTile extends StatelessWidget {
     final name = item?.name ?? part.componentEquipmentId;
     final type = item?.type ?? EquipmentType.other;
     final departed = item == null ? null : departedStatusOf(item);
-    final subtitle = [
-      part.role.isNotEmpty ? part.role : type.localizedName(l10n),
-      ...details,
-    ].join(' · ');
+    final subtitle = [_roleText(part, l10n), ...details].join(' · ');
 
     return ListTile(
       contentPadding: EdgeInsets.zero,

@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_depar
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A small caption that splits the Components card into its "Part of" and
@@ -45,9 +46,16 @@ class PartOfSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // The parents labelled as one list, so two identical assemblies are
     // told apart by their identifiers (#2791).
+    // The role and rig line is on the row too, so parents it already tells
+    // apart gain no tie-break.
+    final l10n = context.l10n;
+    final roleLines = {
+      for (final entry in entries)
+        entry.edge.parentEquipmentId: _roleLine(entry, l10n),
+    };
     final labels = equipmentRowLabelsOf(context, ref, [
       for (final entry in entries) ?entry.edge.parent,
-    ]);
+    ], shownWith: (item) => roleLines[item.id] ?? '');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -61,6 +69,21 @@ class PartOfSection extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// The role this item plays in the parent (the parent's type when it has
+/// none), with the rigs above that parent when there are any.
+String _roleLine(PartOfEntry entry, AppLocalizations l10n) {
+  final edge = entry.edge;
+  final role = edge.role.isNotEmpty
+      ? edge.role
+      : (edge.parent?.type ?? EquipmentType.other).localizedName(l10n);
+  return entry.rootNames.isEmpty
+      ? role
+      : l10n.equipment_components_partOfSubtitle(
+          entry.rootNames.join(', '),
+          role,
+        );
 }
 
 class _ParentTile extends StatelessWidget {
@@ -78,17 +101,7 @@ class _ParentTile extends StatelessWidget {
     final parent = edge.parent;
     final type = parent?.type ?? EquipmentType.other;
     final departed = parent == null ? null : departedStatusOf(parent);
-    final role = edge.role.isNotEmpty ? edge.role : type.localizedName(l10n);
-    final subtitle = [
-      if (entry.rootNames.isEmpty)
-        role
-      else
-        l10n.equipment_components_partOfSubtitle(
-          entry.rootNames.join(', '),
-          role,
-        ),
-      ...details,
-    ].join(' · ');
+    final subtitle = [_roleLine(entry, l10n), ...details].join(' · ');
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
