@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/pushed_route.dart';
+
 /// Navigation helper for jumping to a detail page from a section the user
 /// expects to be returned to.
 ///
@@ -36,6 +38,19 @@ extension SectionNavigation on BuildContext {
       if (_leafLocation(matches.last) == location) return;
       if (!router.canPop()) return;
       router.pop();
+    }
+  }
+
+  /// Change this page's own URL (selection, mode, view) without discarding
+  /// the pages under it.
+  ///
+  /// On a pushed page this replaces the top page, keeping its page key and
+  /// widget state; on a root page it is a plain `go`, as before (#3292).
+  void goInPlace(String location) {
+    if (isPushedRoute(this)) {
+      GoRouter.of(this).replace<void>(location);
+    } else {
+      GoRouter.of(this).go(location);
     }
   }
 }
