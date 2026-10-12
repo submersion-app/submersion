@@ -171,17 +171,31 @@ class PlanCanvasSeries {
   }
 }
 
-/// Which picture the chart draws: the live CCR plan, or -- toggled by the
-/// chart's Bailout/CCR button -- the worst-case bailout picture (CCR up to
-/// the worst-case instant, then the OC ascent it was sized from). Reset to
-/// [ChartDisplayMode.ccr] whenever the plan stops being CCR or carries no
-/// bailout, so a stale toggle never strands the chart on a picture its own
-/// button can no longer show.
 enum ChartDisplayMode { ccr, bailout }
 
+/// Which picture the chart draws: the live CCR plan, or -- toggled by the
+/// chart's Bailout/CCR button -- the worst-case bailout picture (CCR up to
+/// the worst-case instant, then the OC ascent it was sized from). Nothing
+/// resets this by itself (it is a bare legacy `StateProvider`); callers that
+/// render the chart must reset it via [resetChartDisplayModeOnPlanChange]
+/// whenever the plan itself changes, or a different CCR plan that again
+/// carries bailout reopens on a stale Bailout selection the diver never
+/// chose for it (caught by a Copilot review).
 final chartDisplayModeProvider = StateProvider<ChartDisplayMode>(
   (_) => ChartDisplayMode.ccr,
 );
+
+/// Resets [chartDisplayModeProvider] to [ChartDisplayMode.ccr] whenever the
+/// plan identity or mode changes. Call once from a widget that is always
+/// mounted while the chart can be shown (the canvas page), via
+/// `ref.listen` in `build` -- a plain `Ref.listen` call, not a provider
+/// listening to itself, which Riverpod's legacy `StateProvider` cannot do
+/// from within its own create callback.
+void resetChartDisplayModeOnPlanChange(WidgetRef ref) {
+  ref.listen(divePlanNotifierProvider.select((s) => (s.id, s.mode)), (_, _) {
+    ref.read(chartDisplayModeProvider.notifier).state = ChartDisplayMode.ccr;
+  });
+}
 
 /// Chart series for the current plan: user segments plus the computed
 /// ascent tail (travel legs + stops), ceiling approximation, and markers --

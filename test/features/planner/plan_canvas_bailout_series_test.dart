@@ -4,14 +4,16 @@ import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 
-const _schedule = DecoSchedule(stops: [], ttsSeconds: 0);
-
 BailoutPoint _worstCase({int ttsSeconds = 0}) => BailoutPoint(
   runtimeSeconds: 600,
   depthMeters: 40,
   ttsSeconds: ttsSeconds,
   litersRequired: 1000,
-  schedule: _schedule,
+  // schedule.ttsSeconds must match the point's own ttsSeconds: that is
+  // where BailoutSolver actually derives it from (`ttsSeconds:
+  // schedule.ttsSeconds`), and buildBailoutCanvasSeries reads it off the
+  // schedule, not off the point.
+  schedule: DecoSchedule(stops: const [], ttsSeconds: ttsSeconds),
 );
 
 void main() {
