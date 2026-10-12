@@ -21,6 +21,11 @@ void main() {
     expect(encodeNavTrackSourceMetadata(const {}), isNull);
   });
 
+  test('a map JSON cannot hold encodes to null instead of throwing', () {
+    expect(encodeNavTrackSourceMetadata({'q': double.nan}), isNull);
+    expect(encodeNavTrackSourceMetadata({'q': Object()}), isNull);
+  });
+
   test('null decodes to null', () {
     expect(decodeNavTrackSourceMetadata(null), isNull);
   });

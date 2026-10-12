@@ -4,10 +4,16 @@ import 'dart:convert';
 // route's source exported about the recording, kept exactly as the export
 // carried them under its own key names. Nothing interprets them yet.
 
-/// The column value for [metadata]: null when there is nothing to keep.
+/// The column value for [metadata]: null when there is nothing to keep, or
+/// when JSON cannot hold it (NaN, Infinity, a non-JSON object). Never
+/// throws: metadata must not cost the route it describes.
 String? encodeNavTrackSourceMetadata(Map<String, Object?>? metadata) {
   if (metadata == null || metadata.isEmpty) return null;
-  return jsonEncode(metadata);
+  try {
+    return jsonEncode(metadata);
+  } on JsonUnsupportedObjectError {
+    return null;
+  }
 }
 
 /// The stored [json] as an unmodifiable map, or null when the column is
