@@ -4232,9 +4232,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get certifications_list_tooltip_walletView => 'عرض المحفظة';
 
   @override
-  String get certifications_picker_clearTooltip => 'مسح اختيار الشهادة';
-
-  @override
   String get certifications_picker_empty_addButton => 'إضافة شهادة';
 
   @override
@@ -4253,12 +4250,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get certifications_picker_newCert => 'شهادة جديدة';
-
-  @override
-  String get certifications_picker_noSelection => 'لم يتم اختيار شهادة';
-
-  @override
-  String get certifications_picker_sheetTitle => 'الربط بشهادة';
 
   @override
   String get certifications_picker_selectTitle => 'اختيار الشهادات';
@@ -5276,9 +5267,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get courses_detail_certificationNotFound => 'الاعتماد غير موجود';
-
-  @override
   String get courses_detail_noTrainingDives =>
       'لا توجد غطسات تدريبية مربوطة بعد';
 
@@ -5324,9 +5312,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get courses_error_loadingCertification => 'خطأ في تحميل الاعتماد';
-
-  @override
   String get courses_error_loadingDives => 'خطأ في تحميل الغطسات';
 
   @override
@@ -5340,10 +5325,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_field_instructorNumber => 'رقم المدرب';
-
-  @override
-  String get courses_field_linkCertificationHint =>
-      'ربط الاعتماد المكتسب من هذه الدورة';
 
   @override
   String get courses_field_linkCertificationsHint =>
@@ -5396,9 +5377,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get courses_picker_active => 'نشط';
 
   @override
-  String get courses_picker_clearSelection => 'مسح التحديد';
-
-  @override
   String get courses_picker_createCourse => 'إنشاء دورة';
 
   @override
@@ -5411,12 +5389,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_picker_noCourses => 'لا توجد دورات بعد';
-
-  @override
-  String get courses_picker_noneSelected => 'لم يتم اختيار دورة';
-
-  @override
-  String get courses_picker_selectTitle => 'اختيار دورة تدريبية';
 
   @override
   String get courses_picker_selectCoursesTitle => 'اختيار الدورات التدريبية';
@@ -5463,9 +5435,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_section_details => 'تفاصيل الدورة';
-
-  @override
-  String get courses_section_earnedCertification => 'الاعتماد المكتسب';
 
   @override
   String get courses_section_earnedCertifications => 'الاعتمادات المكتسبة';
@@ -7706,9 +7675,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_row_addSite => 'إضافة موقع';
 
   @override
-  String get diveLog_edit_row_course => 'الدورة';
-
-  @override
   String get diveLog_edit_row_diveCenter => 'مركز الغوص';
 
   @override
@@ -7813,9 +7779,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_tags => 'الوسوم';
-
-  @override
-  String get diveLog_edit_section_trainingCourse => 'دورة التدريب';
 
   @override
   String get diveLog_edit_section_trainingCourses => 'الدورات التدريبية';
@@ -7942,9 +7905,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_tooltip_removeWeight => 'إزالة';
-
-  @override
-  String get diveLog_edit_trainingCourseHint => 'ربط هذه الغوصة بدورة تدريبية';
 
   @override
   String get diveLog_edit_trainingCoursesHint =>

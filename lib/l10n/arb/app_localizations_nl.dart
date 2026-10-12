@@ -4142,10 +4142,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get certifications_list_tooltip_walletView => 'Portemonneeweergave';
 
   @override
-  String get certifications_picker_clearTooltip =>
-      'Certificeringselectie wissen';
-
-  @override
   String get certifications_picker_empty_addButton => 'Certificering toevoegen';
 
   @override
@@ -4165,13 +4161,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get certifications_picker_newCert => 'Nieuw cert.';
-
-  @override
-  String get certifications_picker_noSelection =>
-      'Geen certificering geselecteerd';
-
-  @override
-  String get certifications_picker_sheetTitle => 'Koppelen aan certificering';
 
   @override
   String get certifications_picker_selectTitle => 'Selecteer certificeringen';
@@ -5167,10 +5156,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get courses_detail_certificationNotFound =>
-      'Certificering niet gevonden';
-
-  @override
   String get courses_detail_noTrainingDives =>
       'Nog geen trainingsduiken gekoppeld';
 
@@ -5217,10 +5202,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get courses_error_loadingCertification =>
-      'Fout bij laden certificering';
-
-  @override
   String get courses_error_loadingDives => 'Fout bij laden duiken';
 
   @override
@@ -5234,10 +5215,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_field_instructorNumber => 'Instructeurnummer';
-
-  @override
-  String get courses_field_linkCertificationHint =>
-      'Koppel een certificering verdiend bij deze cursus';
 
   @override
   String get courses_field_linkCertificationsHint =>
@@ -5290,9 +5267,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_picker_active => 'Actief';
 
   @override
-  String get courses_picker_clearSelection => 'Selectie wissen';
-
-  @override
   String get courses_picker_createCourse => 'Cursus aanmaken';
 
   @override
@@ -5305,12 +5279,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_picker_noCourses => 'Nog geen cursussen';
-
-  @override
-  String get courses_picker_noneSelected => 'Geen cursus geselecteerd';
-
-  @override
-  String get courses_picker_selectTitle => 'Selecteer trainingscursus';
 
   @override
   String get courses_picker_selectCoursesTitle =>
@@ -5359,9 +5327,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get courses_section_details => 'Cursusdetails';
-
-  @override
-  String get courses_section_earnedCertification => 'Behaalde certificering';
 
   @override
   String get courses_section_earnedCertifications => 'Behaalde certificeringen';
@@ -7557,9 +7522,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_row_addSite => 'Duikstek toevoegen';
 
   @override
-  String get diveLog_edit_row_course => 'Cursus';
-
-  @override
   String get diveLog_edit_row_diveCenter => 'Duikcentrum';
 
   @override
@@ -7663,9 +7625,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_section_tags => 'Tags';
-
-  @override
-  String get diveLog_edit_section_trainingCourse => 'Trainingscursus';
 
   @override
   String get diveLog_edit_section_trainingCourses => 'Trainingscursussen';
@@ -7784,10 +7743,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_edit_tooltip_removeWeight => 'Verwijderen';
-
-  @override
-  String get diveLog_edit_trainingCourseHint =>
-      'Koppel deze duik aan een trainingscursus';
 
   @override
   String get diveLog_edit_trainingCoursesHint =>
