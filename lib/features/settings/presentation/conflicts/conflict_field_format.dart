@@ -147,8 +147,9 @@ DateTime? _wallClock(Object value) {
 String _trim(double value) =>
     formatFixedForDisplay(value, value == value.roundToDouble() ? 0 : 1);
 
-/// A stored count of seconds as the shared elapsed time ("45 min", "1h 5m",
-/// "2d 2h").
+/// A stored count of seconds as the exact elapsed time ("45 min", "1h 5m",
+/// "2d 2h 0m"): past a day the other screens drop a unit, which here would
+/// make two differing versions read the same.
 ///
 /// Anything under a minute keeps its seconds instead of collapsing to
 /// "0 min": two versions differing only in a sub-minute value would otherwise
@@ -157,5 +158,5 @@ String _trim(double value) =>
 /// reading as zero.
 String formatConflictSeconds(int seconds, AppLocalizations l10n) {
   if (seconds < 60) return '${seconds}s';
-  return formatElapsed(l10n, Duration(seconds: seconds));
+  return formatElapsedExact(l10n, Duration(seconds: seconds));
 }

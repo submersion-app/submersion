@@ -13324,6 +13324,8 @@
   "common_elapsed_hoursMinutes": "{hours}ó {minutes}p",
   "common_elapsed_daysHours": "{days}n {hours}ó",
   "common_elapsed_yearsDays": "{years}é {days}n",
+  "common_elapsed_daysHoursMinutes": "{days}n {hours}ó {minutes}p",
+  "common_elapsed_yearsDaysHours": "{years}é {days}n {hours}ó",
   "common_relativeTime_inHours": "{count, plural, one{{count} óra múlva} other{{count} óra múlva}}",
   "common_relativeTime_inLessThanMinute": "<1 perc múlva",
   "common_relativeTime_inMinutes": "{count, plural, one{{count} perc múlva} other{{count} perc múlva}}",

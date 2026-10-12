@@ -114,7 +114,7 @@ Localized, via `formatElapsed`:
 | Dive detail "Surface Interval" row (two inline copies) | `dive_detail_page.dart` |
 | Dive edit read-only surface-interval row | `dive_edit_page.dart` `_surfaceIntervalRow` |
 | Combine-dives gap and merged durations | `combine_dives_dialog.dart` `_formatDuration` |
-| Sync-conflict dialog duration fields | `conflict_field_format.dart` `formatConflictSeconds`, which gains an `l10n` parameter; the under-a-minute seconds branch and the negative path stay |
+| Sync-conflict dialog duration fields | `conflict_field_format.dart` `formatConflictSeconds`, which gains an `l10n` parameter; the under-a-minute seconds branch and the negative path stay. Past a day it uses `formatElapsedExact` (`6d 13h 42m`, `1y 35d 5h`) so two differing versions never read the same (decided in review, with two more keys: `common_elapsed_daysHoursMinutes`, `common_elapsed_yearsDaysHours`) |
 | Detailed PDF surface interval | `pdf_template_detailed.dart` `_duration` |
 | NAUI PDF per-dive SI (today raw minutes) | `pdf_template_naui.dart`, via `pdf_surfaceIntervalSpan` |
 | Photo review "{gap} after/before the nearest dive" | `file_review_card.dart` |

@@ -44359,6 +44359,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes) {
+    return '${days}T ${hours}h $minutes min';
+  }
+
+  @override
+  String common_elapsed_yearsDaysHours(int years, int days, int hours) {
+    return '${years}J ${days}T ${hours}h';
+  }
+
+  @override
   String common_relativeTime_inHours(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

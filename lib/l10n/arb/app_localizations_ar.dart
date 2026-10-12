@@ -44971,6 +44971,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes) {
+    return '$days ي $hours س $minutes د';
+  }
+
+  @override
+  String common_elapsed_yearsDaysHours(int years, int days, int hours) {
+    return '$years سنة $days ي $hours س';
+  }
+
+  @override
   String common_relativeTime_inHours(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

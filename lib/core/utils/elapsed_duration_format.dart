@@ -68,6 +68,30 @@ String formatElapsed(AppLocalizations l10n, Duration elapsed) {
   };
 }
 
+/// [formatElapsed] with the unit it drops added back past a day: "6d 13h 42m"
+/// and "1y 35d 5h".
+///
+/// For the sync conflict dialog, where two versions that differ only inside
+/// the dropped unit must not read the same.
+String formatElapsedExact(AppLocalizations l10n, Duration elapsed) {
+  final span = splitElapsed(elapsed);
+  final total = elapsed.isNegative ? 0 : elapsed.inMinutes;
+  return switch (span.tier) {
+    ElapsedTier.minutes ||
+    ElapsedTier.hoursMinutes => formatElapsed(l10n, elapsed),
+    ElapsedTier.daysHours => l10n.common_elapsed_daysHoursMinutes(
+      span.major,
+      span.minor,
+      total % _minutesPerHour,
+    ),
+    ElapsedTier.yearsDays => l10n.common_elapsed_yearsDaysHours(
+      span.major,
+      span.minor,
+      (total % _minutesPerDay) ~/ _minutesPerHour,
+    ),
+  };
+}
+
 /// The same tiers as [formatElapsed] with fixed English letters ("45min",
 /// "1h 5m", "6d 13h", "1y 35d").
 ///

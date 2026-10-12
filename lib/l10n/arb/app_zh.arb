@@ -13324,6 +13324,8 @@
   "common_elapsed_hoursMinutes": "{hours}小时{minutes}分钟",
   "common_elapsed_daysHours": "{days}天{hours}小时",
   "common_elapsed_yearsDays": "{years}年{days}天",
+  "common_elapsed_daysHoursMinutes": "{days}天{hours}小时{minutes}分钟",
+  "common_elapsed_yearsDaysHours": "{years}年{days}天{hours}小时",
   "common_relativeTime_inHours": "{count, plural, other{{count}小时后}}",
   "common_relativeTime_inLessThanMinute": "<1分钟后",
   "common_relativeTime_inMinutes": "{count, plural, other{{count}分钟后}}",

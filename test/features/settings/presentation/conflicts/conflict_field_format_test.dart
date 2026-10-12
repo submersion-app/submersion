@@ -71,8 +71,14 @@ void main() {
     });
 
     test('renders a long duration in days, then years', () {
-      expect(fmt(metric, FieldKind.durationMinutes, 3000), '2d 2h');
-      expect(fmt(metric, FieldKind.durationMinutes, 576000), '1y 35d');
+      expect(fmt(metric, FieldKind.durationMinutes, 3000), '2d 2h 0m');
+      expect(fmt(metric, FieldKind.durationMinutes, 576000), '1y 35d 0h');
+    });
+
+    test('two long durations that differ by minutes still look different', () {
+      // Elsewhere both read "6d 13h"; this dialog exists to tell them apart.
+      expect(fmt(metric, FieldKind.durationMinutes, 9430), '6d 13h 10m');
+      expect(fmt(metric, FieldKind.durationMinutes, 9462), '6d 13h 42m');
     });
 
     test('keeps a sub-minute duration distinguishable', () {

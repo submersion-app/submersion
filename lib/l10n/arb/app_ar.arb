@@ -13324,6 +13324,8 @@
   "common_elapsed_hoursMinutes": "{hours} س {minutes} د",
   "common_elapsed_daysHours": "{days} ي {hours} س",
   "common_elapsed_yearsDays": "{years} سنة {days} ي",
+  "common_elapsed_daysHoursMinutes": "{days} ي {hours} س {minutes} د",
+  "common_elapsed_yearsDaysHours": "{years} سنة {days} ي {hours} س",
   "common_relativeTime_inHours": "{count, plural, zero{خلال {count} ساعة} one{خلال ساعة} two{خلال ساعتين} few{خلال {count} ساعات} many{خلال {count} ساعة} other{خلال {count} ساعة}}",
   "common_relativeTime_inLessThanMinute": "خلال أقل من دقيقة",
   "common_relativeTime_inMinutes": "{count, plural, zero{خلال {count} دقيقة} one{خلال دقيقة} two{خلال دقيقتين} few{خلال {count} دقائق} many{خلال {count} دقيقة} other{خلال {count} دقيقة}}",

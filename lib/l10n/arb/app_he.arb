@@ -13324,6 +13324,8 @@
   "common_elapsed_hoursMinutes": "{hours} שע' {minutes} דק'",
   "common_elapsed_daysHours": "{days} ימ' {hours} שע'",
   "common_elapsed_yearsDays": "{years} שנ' {days} ימ'",
+  "common_elapsed_daysHoursMinutes": "{days} ימ' {hours} שע' {minutes} דק'",
+  "common_elapsed_yearsDaysHours": "{years} שנ' {days} ימ' {hours} שע'",
   "common_relativeTime_inHours": "{count, plural, one{בעוד שעה} two{בעוד שעתיים} many{בעוד {count} שעות} other{בעוד {count} שעות}}",
   "common_relativeTime_inLessThanMinute": "בעוד פחות מדקה",
   "common_relativeTime_inMinutes": "{count, plural, one{בעוד דקה} two{בעוד שתי דקות} many{בעוד {count} דקות} other{בעוד {count} דקות}}",

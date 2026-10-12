@@ -126,6 +126,39 @@ void main() {
     });
   });
 
+  group('formatElapsedExact', () {
+    test('matches the two-unit form under a day', () {
+      expect(formatElapsedExact(en, const Duration(minutes: 42)), '42 min');
+      expect(
+        formatElapsedExact(en, const Duration(hours: 5, minutes: 12)),
+        '5h 12m',
+      );
+    });
+
+    test('adds back the unit the two-unit form drops past a day', () {
+      expect(
+        formatElapsedExact(en, const Duration(hours: 157, minutes: 10)),
+        '6d 13h 10m',
+      );
+      expect(
+        formatElapsedExact(en, const Duration(hours: 157, minutes: 42)),
+        '6d 13h 42m',
+      );
+      expect(
+        formatElapsedExact(en, const Duration(days: 400, hours: 5)),
+        '1y 35d 5h',
+      );
+      expect(
+        formatElapsedExact(de, const Duration(hours: 157, minutes: 42)),
+        '6T 13h 42 min',
+      );
+      expect(
+        formatElapsedExact(zh, const Duration(days: 400, hours: 5)),
+        '1年35天5小时',
+      );
+    });
+  });
+
   group('formatElapsedEnglish', () {
     test('renders each tier with fixed English letters', () {
       expect(formatElapsedEnglish(const Duration(minutes: 45)), '45min');

@@ -71126,6 +71126,18 @@ abstract class AppLocalizations {
   /// **'{years}y {days}d'**
   String common_elapsed_yearsDays(int years, int days);
 
+  /// An exact elapsed time from one day up to a year, for the sync conflict dialog where two values must stay distinguishable
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d {hours}h {minutes}m'**
+  String common_elapsed_daysHoursMinutes(int days, int hours, int minutes);
+
+  /// An exact elapsed time of a year or more (365-day years), for the sync conflict dialog
+  ///
+  /// In en, this message translates to:
+  /// **'{years}y {days}d {hours}h'**
+  String common_elapsed_yearsDaysHours(int years, int days, int hours);
+
   /// Relative future time in whole hours (abbreviated)
   ///
   /// In en, this message translates to:

@@ -13324,6 +13324,8 @@
   "common_elapsed_hoursMinutes": "{hours}u {minutes}m",
   "common_elapsed_daysHours": "{days}d {hours}u",
   "common_elapsed_yearsDays": "{years}j {days}d",
+  "common_elapsed_daysHoursMinutes": "{days}d {hours}u {minutes}m",
+  "common_elapsed_yearsDaysHours": "{years}j {days}d {hours}u",
   "common_relativeTime_inHours": "{count, plural, one{over {count}u} other{over {count}u}}",
   "common_relativeTime_inLessThanMinute": "over <1m",
   "common_relativeTime_inMinutes": "{count, plural, one{over {count}m} other{over {count}m}}",
