@@ -29,7 +29,7 @@ course earning two certifications, or two courses sharing the same dives.
 | Storage for a course's certifications | `certifications.course_id` is the source of truth; `courses.certification_id` stays as a denormalized representative. No new table. |
 | Dive editor | Chip field plus a multi-select course sheet with checkboxes. |
 | Course editor | Chip field plus a multi-select certification sheet. A certification linked to another course shows "Linked to: <course>", and ticking it moves the certification on save. |
-| Bulk edit | Add / Remove / Replace, the dive-types collection pattern. |
+| Bulk edit | The tri-state membership list dive types, tags and buddies use: each course shows all, some or none of the selected dives; tick adds to all, untick removes from all. |
 | Scope | Both capabilities ship in one PR. |
 
 ## Existing state
@@ -168,7 +168,7 @@ is registered:
   `courseId` is in: mirror does not copy courses (they belong to one diver), and
   a download filling a planned dive keeps the planned dive's courses, so the fill
   must leave its junction rows in place.
-- **Bulk edit:** a course collection entry with Add / Remove / Replace modes.
+- **Bulk edit:** a courses membership editor producing add and remove operations.
 
 ## 3. Screens
 
@@ -180,8 +180,8 @@ is registered:
 - **Dive detail, Signatures card:** the instructor signature stays one per dive.
   Its header course chip becomes a wrapping row of chips, one per course, each
   tappable.
-- **Bulk edit:** the Course field joins the collection entries with the Add /
-  Remove / Replace selector and the multi-select sheet.
+- **Bulk edit:** the single Course field becomes a courses membership list
+  (all / some / none per course), with the multi-select sheet to add courses.
 - **Course editor:** "Earned Certification" becomes "Earned Certifications", a
   chip field opening a multi-select certification sheet. A certification linked
   to another course shows "Linked to: <course>" beneath its name; ticking it
