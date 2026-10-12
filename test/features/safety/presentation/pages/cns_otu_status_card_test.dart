@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/deco/buhlmann_algorithm.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -26,7 +29,25 @@ void main() {
     name: 'Blue Hole',
   );
 
-  Future<void> pumpCard(WidgetTester tester, CnsOtuSnapshot? snapshot) async {
+  // 30m for 40 minutes on air: loaded well above surface equilibrium, so
+  // TissueLiveService.hasResidualLoad reads true for a while after.
+  List<TissueCompartment> loadedCompartments() {
+    final algorithm = BuhlmannAlgorithm();
+    algorithm.calculateSegment(
+      depthMeters: 30,
+      durationSeconds: 40 * 60,
+      fN2: airN2Fraction,
+      fHe: 0.0,
+    );
+    return algorithm.compartments;
+  }
+
+  Future<void> pumpCard(
+    WidgetTester tester,
+    CnsOtuSnapshot? snapshot, {
+    double gfLow = 0.30,
+    double gfHigh = 0.70,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -41,7 +62,17 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: CnsOtuStatusCard(snapshot: snapshot, units: units),
+            // Scrollable, same as CnsOtuPage's real ListView: the card can
+            // now render an O2ToxicityCard, a tissue loading card and two
+            // About cards, taller than the fixed test viewport.
+            body: SingleChildScrollView(
+              child: CnsOtuStatusCard(
+                snapshot: snapshot,
+                units: units,
+                gfLow: gfLow,
+                gfHigh: gfHigh,
+              ),
+            ),
           ),
         ),
       ),
@@ -57,6 +88,7 @@ void main() {
     double dailyOtu = 0.0,
     double weeklyOtu = 0.0,
     DateTime? computedAt,
+    List<TissueCompartment>? endOfDiveCompartments,
   }) => CnsOtuSnapshot(
     lastDiveId: 'dive-1',
     lastDiveEnd: lastDiveEnd,
@@ -64,6 +96,7 @@ void main() {
     dailyOtu: dailyOtu,
     weeklyOtu: weeklyOtu,
     computedAt: computedAt ?? NoFlyService.wallClockNowUtc(),
+    endOfDiveCompartments: endOfDiveCompartments,
   );
 
   testWidgets('shows no active load without a snapshot', (tester) async {
@@ -275,5 +308,94 @@ void main() {
 
     expect(find.text('No active load'), findsNothing);
     expect(find.textContaining('Oxygen Toxicity'), findsOneWidget);
+  });
+
+  group('tissue loading', () {
+    testWidgets('renders the tissue card for a recent, loaded dive', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        snapshotOf(
+          lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
+            const Duration(minutes: 30),
+          ),
+          exposure: const O2Exposure(cnsEnd: 40.0, otu: 20.0),
+          weeklyOtu: 50.0,
+          endOfDiveCompartments: loadedCompartments(),
+        ),
+      );
+
+      expect(find.text('Tissue Loading'), findsOneWidget);
+    });
+
+    testWidgets(
+      'a tissue load alone counts as active even once CNS/OTU have cleared',
+      (tester) async {
+        // Long enough that CNS and daily OTU have both decayed under their
+        // epsilon, short enough that the loaded compartments have not yet
+        // off-gassed down to hasResidualLoad's own epsilon. Without the
+        // hasActiveLoad fix this used to read as "No active load".
+        final lastDiveEnd = NoFlyService.wallClockNowUtc().subtract(
+          const Duration(hours: 20),
+        );
+        await pumpCard(
+          tester,
+          snapshotOf(
+            lastDiveEnd: lastDiveEnd,
+            exposure: const O2Exposure(cnsEnd: 40.0),
+            weeklyOtu: 0.0,
+            endOfDiveCompartments: loadedCompartments(),
+          ),
+        );
+
+        expect(find.text('No active load'), findsNothing);
+        expect(find.text('Tissue Loading'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'no tissue card without end-of-dive compartments (e.g. gauge mode, '
+      'withheld rebreather)',
+      (tester) async {
+        final lastDiveEnd = NoFlyService.wallClockNowUtc().subtract(
+          const Duration(minutes: 30),
+        );
+        await pumpCard(
+          tester,
+          snapshotOf(
+            lastDiveEnd: lastDiveEnd,
+            exposure: const O2Exposure(cnsEnd: 40.0, otu: 20.0),
+            weeklyOtu: 50.0,
+          ),
+        );
+
+        expect(find.text('Tissue Loading'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'no tissue card once the loaded compartments have off-gassed back to '
+      'surface equilibrium',
+      (tester) async {
+        await pumpCard(
+          tester,
+          snapshotOf(
+            // Four days: every compartment is at surface equilibrium, but
+            // weeklyOtu keeps the card itself in its active state so the
+            // absence of the tissue section is what is actually being
+            // checked, not the whole card falling to "clear".
+            lastDiveEnd: NoFlyService.wallClockNowUtc().subtract(
+              const Duration(days: 4),
+            ),
+            exposure: const O2Exposure(),
+            weeklyOtu: 50.0,
+            endOfDiveCompartments: loadedCompartments(),
+          ),
+        );
+
+        expect(find.text('Tissue Loading'), findsNothing);
+      },
+    );
   });
 }

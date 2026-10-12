@@ -114,6 +114,22 @@ void main() {
       expect(container.read(diveSearchBarOpenProvider), isTrue);
     });
 
+    testWidgets('on a dive list pushed over another page the search '
+        'shortcut stays on it', (tester) async {
+      // A site's "View all dives" pushes the list over the site (#3292). The
+      // router's reported location is still the site's, but the list is on
+      // top; a go('/dives') would erase it and the way back.
+      final router = await pumpShortcutHost(tester, initialLocation: '/sites');
+      router.push('/dives');
+      await tester.pumpAndSettle();
+
+      await pressControl(tester, LogicalKeyboardKey.keyF);
+
+      expect(router.routerDelegate.canPop(), isTrue);
+      expect(find.text('Dive list'), findsOneWidget);
+      expect(container.read(diveSearchBarOpenProvider), isTrue);
+    });
+
     testWidgets('tab shortcuts still replace rather than stack', (
       tester,
     ) async {

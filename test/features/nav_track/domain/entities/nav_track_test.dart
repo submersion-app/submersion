@@ -266,4 +266,27 @@ void main() {
       expect(a, isNot(b));
     });
   });
+
+  group('sourceMetadata (#3047)', () {
+    const metadata = {'DiveRouteQuality': 1};
+
+    test('copyWith keeps it unless replaced', () {
+      final track = _track().copyWith(sourceMetadata: metadata);
+      expect(track.copyWith(name: 'x').sourceMetadata, metadata);
+      expect(
+        track
+            .copyWith(sourceMetadata: const {'DiveRouteQuality': 0})
+            .sourceMetadata,
+        {'DiveRouteQuality': 0},
+      );
+    });
+
+    test('takes part in equality', () {
+      expect(_track().copyWith(sourceMetadata: metadata), isNot(_track()));
+      expect(
+        _track().copyWith(sourceMetadata: metadata),
+        _track().copyWith(sourceMetadata: const {'DiveRouteQuality': 1}),
+      );
+    });
+  });
 }

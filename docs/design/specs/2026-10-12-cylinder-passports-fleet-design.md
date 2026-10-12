@@ -47,9 +47,10 @@ Made during brainstorming on 2026-10-12.
 
 ### 5.1 Column
 
-`dive_tanks.passport_id TEXT NULL`, rung 285 (284 went to #3012 on main;
-282 is held by open PRs #3133 and #3306). No foreign key: a rental's passport id has no `equipment`
-row, and an owned cylinder's id is an attribute value, not a key. No backfill.
+`dive_tanks.passport_id TEXT NULL`, rung 286 (284 went to #3012 and 285 to
+#3306 on main; 282 is held by open PR #3133). No foreign key: a rental's
+passport id has no `equipment` row, and an owned cylinder's id is an
+attribute value, not a key. No backfill.
 
 Index, asserted in the migration helper and in `performance_indexes.dart`:
 
@@ -60,7 +61,7 @@ CREATE INDEX IF NOT EXISTS idx_dive_tanks_passport_id
 
 The migration follows the ladder convention: the column in
 `lib/core/database/tables/dive_tables.dart`, an idempotent add-column helper
-in `lib/core/database/migrations/`, `if (from < 285)` in `onUpgrade`, the
+in `lib/core/database/migrations/`, `if (from < 286)` in `onUpgrade`, the
 `currentSchemaVersion` constant and the `migrationVersions` list. Nothing goes
 into `database.dart` beyond the version constant and the ladder call.
 
@@ -182,7 +183,7 @@ variant. Generated l10n files are committed.
 
 ## 9. Testing
 
-- Migration: a v284 database upgrades to 285 with the column and index; a
+- Migration: a v285 database upgrades to 286 with the column and index; a
   fresh database has both.
 - Repository round trips: create, update, bulk replace then undo, and a
   sequential merge all keep `passport_id`.

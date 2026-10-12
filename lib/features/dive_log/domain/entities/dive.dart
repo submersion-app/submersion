@@ -1231,7 +1231,7 @@ class DiveTank extends Equatable {
   /// it when the dive moves.
   final String? tripCylinderId;
 
-  /// The passport id of the tagged cylinder this tank was filled from (v285,
+  /// The passport id of the tagged cylinder this tank was filled from (v286,
   /// issue #2650): set by a scan or a pick of a cylinder that has one,
   /// cleared by a preset or a trip slot. An identity, not a link, so a
   /// rental with no gear row still counts its uses. User-authored like

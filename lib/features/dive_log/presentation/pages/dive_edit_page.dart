@@ -237,6 +237,11 @@ class DiveEditPage extends ConsumerStatefulWidget {
   /// exclusive with [diveId]). Mirrors `SiteEditPage.mergeSiteIds`.
   final List<String>? bulkDiveIds;
 
+  /// Bulk edit only: leave by popping back to the list that opened the form,
+  /// rather than going to /dives. Set when that list was itself pushed over
+  /// another page, whose back arrow a go() would erase (#3292).
+  final bool bulkPopOnSave;
+
   /// When true, renders without Scaffold wrapper for use in master-detail layout.
   final bool embedded;
 
@@ -262,6 +267,7 @@ class DiveEditPage extends ConsumerStatefulWidget {
     super.key,
     this.diveId,
     this.bulkDiveIds,
+    this.bulkPopOnSave = false,
     this.embedded = false,
     this.onSaved,
     this.onCancel,
@@ -2555,6 +2561,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final messenger = ScaffoldMessenger.of(context);
       if (widget.embedded) {
         widget.onSaved?.call(ids.first);
+      } else if (widget.bulkPopOnSave) {
+        context.pop();
       } else {
         context.go('/dives');
       }
@@ -4431,6 +4439,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             scrollController: scrollController,
             selectedEquipmentIds: _selectedEquipment.map((e) => e.id).toSet(),
             hideSpare: true,
+            // A dive logged after the fact may have used gear since retired
+            // or sold (#3210).
+            offerLeftKit: true,
             overlapNote: _sharedGearNotes(
               ref
                       .watch(
@@ -4579,6 +4590,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           scrollController: scrollController,
           selectedEquipmentIds: _equipmentMembers.map((e) => e.id).toSet(),
           hideSpare: true,
+          offerLeftKit: true,
           onEquipmentSelected: (equipment) {
             setState(() {
               if (!_equipmentMembers.any((e) => e.id == equipment.id)) {

@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/section_navigation.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
@@ -126,6 +128,11 @@ class DiveListContent extends ConsumerStatefulWidget {
   /// Whether to show the app bar. Set to false when used inside MasterDetailScaffold.
   final bool showAppBar;
 
+  /// Whether the compact header (shown when [showAppBar] is false) leads with
+  /// a back arrow. Set by a dive list pushed over the page that opened it
+  /// (#3292); a page that merely embeds the list owns its own way back.
+  final bool showBackButton;
+
   /// Optional floating action button to display when showAppBar is true.
   final Widget? floatingActionButton;
 
@@ -158,6 +165,7 @@ class DiveListContent extends ConsumerStatefulWidget {
     this.onItemSelected,
     this.selectedId,
     this.showAppBar = true,
+    this.showBackButton = false,
     this.floatingActionButton,
     this.onItemTapForMap,
     this.isMapMode = false,
@@ -1026,7 +1034,15 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   Future<BulkActionOutcome> _openBulkEdit() async {
     final ids = _selectedIds.toList();
     if (ids.isEmpty) return BulkActionOutcome.cancelled;
-    await context.pushNamed('bulkEditDives', extra: ids);
+    // A list pushed over another page (a site's dives, say) has the form
+    // come back to it on save; a go('/dives') would erase that page (#3292).
+    await context.pushNamed(
+      'bulkEditDives',
+      queryParameters: isPushedRoute(context)
+          ? const {'return': 'pop'}
+          : const {},
+      extra: ids,
+    );
     return BulkActionOutcome.completed;
   }
 
@@ -1411,7 +1427,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
           child: Row(
             children: [
-              const SizedBox(width: 8),
+              // A list pushed over the page that opened it (a site's dives,
+              // say) leads with the way back to that page (#3292).
+              if (widget.showBackButton)
+                const BackButton()
+              else
+                const SizedBox(width: 8),
               // Expanded, and no Spacer: the title must be the row's only
               // flexible child (see trip_list_content for the detail). This
               // bar was already right-aligned with a bare title plus Spacer,
@@ -2246,7 +2267,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                 onLogManually: () {
                   if (ResponsiveBreakpoints.isMasterDetail(context)) {
                     final routerState = GoRouterState.of(context);
-                    context.go('${routerState.uri.path}?mode=new');
+                    context.goInPlace('${routerState.uri.path}?mode=new');
                   } else {
                     context.push('/dives/new');
                   }

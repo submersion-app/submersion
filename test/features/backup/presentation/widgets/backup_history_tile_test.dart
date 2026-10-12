@@ -209,6 +209,33 @@ void main() {
       expect(find.textContaining('0 dives, 0 sites'), findsOneWidget);
     });
 
+    testWidgets('a cloud backup found without a record shows only its size', (
+      tester,
+    ) async {
+      // Listed from the cloud folder after a fresh install (issue #3214): the
+      // counts lived only in the lost record, so "0 dives" would be a lie.
+      await tester.pumpWidget(
+        _wrap(
+          BackupHistoryTile(
+            record: BackupRecord(
+              id: 'cloud:x',
+              filename: 'submersion_backup_2026-03-14_093015.db',
+              timestamp: DateTime(2026, 3, 14, 9, 30),
+              sizeBytes: 2048,
+              location: BackupLocation.cloud,
+              cloudFileId: 'x',
+            ),
+            leadingIcon: Icons.cloud,
+            onPinToggle: () {},
+            onRestore: () {},
+            onDelete: () {},
+          ),
+        ),
+      );
+      expect(find.text('In cloud storage (2.0 KB)'), findsOneWidget);
+      expect(find.textContaining('dives'), findsNothing);
+    });
+
     testWidgets('preDowngrade record names itself as the kept newer database', (
       tester,
     ) async {

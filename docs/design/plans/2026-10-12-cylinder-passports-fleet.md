@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema rung: 285. `currentSchemaVersion = 285`; 282 is held by open PRs #3133 and #3306, 284 is on main (#3012). Re-check main before pushing.
+- Schema rung: 286 (renumbered from 285 at merge time, after #3306 shipped 285). `currentSchemaVersion = 286`; 282 is held by open PR #3133. Re-check main before pushing.
 - `passport_id` is user-authored identity: downloads, re-parse and re-import never write it; `dive_tanks.equipment_id` stays the transmitter registry's.
 - No backfill of existing rows; the floor (`minimumCompatibleSchemaVersion`) does not move.
 - Nothing new goes into `database.dart` beyond the version constant and the `migrationVersions` entry. Helpers live in `lib/core/database/migrations/helpers/`, rungs in `lib/core/database/migrations/ladder/rungs_v231_onward.dart`, the every-open backstop in `before_open_child_columns.dart`.

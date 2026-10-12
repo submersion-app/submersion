@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_form_scope.dart';
@@ -226,8 +228,11 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
   }
 
   /// Navigate to view mode for an item
+  ///
+  /// URL changes here go through [SectionNavigation.goInPlace]: a pushed list
+  /// (a site's dives, say) replaces its own URL and keeps the page it was
+  /// opened from, where go() would erase it and the back arrow (#3292).
   void _onItemSelected(String? itemId) {
-    final router = GoRouter.of(context);
     final state = GoRouterState.of(context);
     final currentPath = state.uri.path;
 
@@ -237,16 +242,16 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
       if (itemId != null) {
         if (_isMapView) {
           // Preserve map view when selecting from map
-          router.go('$currentPath?$key=$itemId&view=map');
+          context.goInPlace('$currentPath?$key=$itemId&view=map');
         } else {
-          router.go('$currentPath?$key=$itemId');
+          context.goInPlace('$currentPath?$key=$itemId');
         }
       } else {
         // Clear selection, but preserve map view state
         if (_isMapView) {
-          router.go('$currentPath?view=map');
+          context.goInPlace('$currentPath?view=map');
         } else {
-          router.go(currentPath);
+          context.goInPlace(currentPath);
         }
       }
     } else {
@@ -255,40 +260,47 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
         final route =
             widget.mobileDetailRoute?.call(itemId) ??
             '/${widget.sectionId}/$itemId';
-        router.go(route);
+        _openFullPage(route);
       }
+    }
+  }
+
+  /// Opens [route] as a page of its own: on top of a pushed list, so Back
+  /// returns to it, otherwise with go() as before.
+  void _openFullPage(String route) {
+    final router = GoRouter.of(context);
+    if (isImperativelyPushed(context)) {
+      router.push(route);
+    } else {
+      router.go(route);
     }
   }
 
   /// Navigate to create mode
   void _onCreate() {
-    final router = GoRouter.of(context);
     final state = GoRouterState.of(context);
     final currentPath = state.uri.path;
 
     if (ResponsiveBreakpoints.isMasterDetail(context) &&
         widget.createBuilder != null) {
       // Desktop with create builder: Use query params
-      router.go('$currentPath?mode=new');
+      context.goInPlace('$currentPath?mode=new');
     } else {
       // Mobile or no create builder: Navigate to full page
-      final route = widget.mobileCreateRoute ?? '/${widget.sectionId}/new';
-      router.go(route);
+      _openFullPage(widget.mobileCreateRoute ?? '/${widget.sectionId}/new');
     }
   }
 
   /// Handle save from edit/create mode - go back to view mode
   void _onSaved(String savedId) {
-    final router = GoRouter.of(context);
     final state = GoRouterState.of(context);
     final currentPath = state.uri.path;
     final key = widget.queryParamKey;
-    router.go('$currentPath?$key=$savedId');
+    context.goInPlace('$currentPath?$key=$savedId');
   }
 
   /// Handle cancel from edit/create mode - go back to previous state
   void _onCancel() {
-    final router = GoRouter.of(context);
     final state = GoRouterState.of(context);
     final currentPath = state.uri.path;
     final selectedId = _selectedId;
@@ -296,10 +308,10 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
     if (selectedId != null) {
       // Was editing - go back to view mode
       final key = widget.queryParamKey;
-      router.go('$currentPath?$key=$selectedId');
+      context.goInPlace('$currentPath?$key=$selectedId');
     } else {
       // Was creating - go back to summary
-      router.go(currentPath);
+      context.goInPlace(currentPath);
     }
   }
 

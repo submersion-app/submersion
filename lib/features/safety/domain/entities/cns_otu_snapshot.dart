@@ -1,4 +1,6 @@
+import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 
 /// Static inputs for the current CNS/OTU readout, captured from the diver's
 /// most recent dive and the OTU totals around it.
@@ -35,6 +37,24 @@ class CnsOtuSnapshot {
   /// When [dailyOtu] and [weeklyOtu] were computed, wall-clock-as-UTC.
   final DateTime computedAt;
 
+  /// The last dive's end-of-dive tissue compartments, for projecting live
+  /// tissue loading the same way [exposure] projects live CNS%.
+  ///
+  /// Independent of [exposure]: a gauge-mode dive has a (zero) [exposure] but
+  /// no compartments (gas is unknown, see `ProfileAnalysisService`'s gauge
+  /// branch), and a rebreather dive with no recorded gas segments has a real
+  /// [exposure] (from its loop ppO2 curve) but withheld tissue loading --
+  /// the same "withheld" case the dive detail screen shows elsewhere. Null
+  /// whenever the last dive's analysis computed no deco statuses at all.
+  final List<TissueCompartment>? endOfDiveCompartments;
+
+  /// The last dive's site conditions, the environment its analysis computed
+  /// [endOfDiveCompartments] in. Live tissue loading off-gasses toward THIS
+  /// surface's equilibrium: at altitude it sits well below the sea-level
+  /// value, so projecting at [DiveEnvironment.standard] would hide real
+  /// residual loading. Assumes the diver is still at that surface.
+  final DiveEnvironment surfaceEnvironment;
+
   const CnsOtuSnapshot({
     required this.lastDiveId,
     required this.lastDiveEnd,
@@ -42,6 +62,8 @@ class CnsOtuSnapshot {
     required this.dailyOtu,
     required this.weeklyOtu,
     required this.computedAt,
+    this.endOfDiveCompartments,
+    this.surfaceEnvironment = DiveEnvironment.standard,
   });
 
   /// Whether the last dive's own CNS% and OTU are known.
@@ -58,6 +80,8 @@ class CnsOtuSnapshot {
     double? dailyOtu,
     double? weeklyOtu,
     DateTime? computedAt,
+    List<TissueCompartment>? endOfDiveCompartments,
+    DiveEnvironment? surfaceEnvironment,
   }) {
     return CnsOtuSnapshot(
       lastDiveId: lastDiveId ?? this.lastDiveId,
@@ -66,6 +90,9 @@ class CnsOtuSnapshot {
       dailyOtu: dailyOtu ?? this.dailyOtu,
       weeklyOtu: weeklyOtu ?? this.weeklyOtu,
       computedAt: computedAt ?? this.computedAt,
+      endOfDiveCompartments:
+          endOfDiveCompartments ?? this.endOfDiveCompartments,
+      surfaceEnvironment: surfaceEnvironment ?? this.surfaceEnvironment,
     );
   }
 }

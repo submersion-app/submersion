@@ -2491,6 +2491,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cette sauvegarde sera supprimée définitivement. Cette action est irréversible.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Cette sauvegarde se trouve uniquement dans votre stockage cloud, et rien n\'indique que cet appareil l\'a créée. Il peut s\'agir de la seule copie d\'un autre appareil, ou d\'une copie créée par cet appareil avant une réinstallation. La suppression est irréversible.';
+
+  @override
   String get backup_delete_dialog_delete => 'Supprimer';
 
   @override
@@ -7934,6 +7938,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Retire des éléments pour en ajouter d\'autres';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Afficher l\'équipement réformé et vendu';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Passe le statut d\'un élément à Actif pour l\'ajouter à une plongée';
 
@@ -10072,6 +10080,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Aucun';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Afficher les détendeurs réformés et vendus';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Bloc du voyage';
@@ -23112,6 +23124,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceItemId => 'Élément lié';
+
+  @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Données supplémentaires de la source';
 
   @override
   String get settings_conflict_field_sourceRef => 'Fichier ou appareil source';
@@ -36381,7 +36397,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Voler après la plongée';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Charge CNS/OTU actuelle';
+  String get safetySettings_cnsOtuHeader => 'Charge de plongée actuelle';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
@@ -36455,6 +36471,21 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Sans profil de profondeur, son CNS% et ses OTU ne peuvent pas être calculés. Les totaux ci-dessous l\'excluent.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'À propos du CNS et de l\'OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'Votre CNS% (horloge à oxygène) décroît après la plongée avec une demi-vie de 90 minutes -- il est pratiquement revenu à 0 au bout d\'un jour environ.\n\nL\'OTU quotidien est remis à zéro chaque nuit à minuit. L\'OTU hebdomadaire est un total glissant sur les 7 derniers jours : les plongées plus anciennes sortent automatiquement du calcul dès qu\'elles quittent cette fenêtre.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title =>
+      'À propos de la saturation des tissus';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'Votre corps compte 16 compartiments tissulaires qui absorbent et relâchent l\'azote (et, lors de plongées en trimix ou en recycleur, aussi l\'hélium) à des vitesses différentes. Les tissus rapides se saturent et se désaturent vite ; les tissus lents mettent beaucoup plus longtemps pour les deux.\n\nAprès une plongée à l\'hélium, l\'azote et l\'hélium d\'un même compartiment peuvent brièvement évoluer en sens opposés : pendant que l\'hélium continue de se relâcher, ce même compartiment peut simultanément absorber un peu d\'azote, jusqu\'à ce que les deux gaz atteignent l\'équilibre avec l\'air que vous respirez. C\'est pourquoi un compartiment peut brièvement afficher \"Ongassing\" alors même que sa charge globale continue de baisser.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -49596,6 +49627,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Base plus récente, conservée lors du retour en arrière - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'Dans le stockage cloud ($size)';
   }
 
   @override

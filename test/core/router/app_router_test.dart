@@ -38,6 +38,10 @@ import 'package:submersion/features/settings/presentation/pages/profile_metric_c
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
+import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 
 /// Finds a [GoRoute] by name in a route tree recursively.
 GoRoute? _findRouteByName(List<RouteBase> routes, String name) {
@@ -1817,6 +1821,81 @@ void main() {
         pageKey: const ValueKey(location),
       );
       expect(route!.builder!(context, state), isA<SiteDetailSectionsPage>());
+    });
+  });
+
+  group('dives route (#3292)', () {
+    testWidgets('hands a pushed list its return snapshot', (tester) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      GoRouterState stateFor(Object? extra) => GoRouterState(
+        router.configuration,
+        uri: Uri.parse('/dives'),
+        matchedLocation: '/dives',
+        fullPath: '/dives',
+        pathParameters: const {},
+        extra: extra,
+        pageKey: const ValueKey('/dives'),
+      );
+      DiveListPage pageFor(Object? extra) {
+        final page = _findRouteByName(
+          router.configuration.routes,
+          'dives',
+        )!.pageBuilder!(capturedContext, stateFor(extra));
+        return (page as NoTransitionPage<void>).child as DiveListPage;
+      }
+
+      const ret = DiveListReturn(
+        filter: DiveFilterState(siteId: 's1'),
+        highlightedDiveId: 'd1',
+      );
+      expect(pageFor(ret).returnTo, same(ret));
+      expect(pageFor(null).returnTo, isNull);
+      expect(pageFor('unrelated').returnTo, isNull);
+    });
+  });
+
+  group('bulk edit route (#3292)', () {
+    testWidgets('return=pop tells the form to pop on save', (tester) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      BulkDiveEditPage pageAt(String location) {
+        final state = GoRouterState(
+          router.configuration,
+          uri: Uri.parse(location),
+          matchedLocation: Uri.parse(location).path,
+          fullPath: '/dives/bulk-edit',
+          pathParameters: const {},
+          extra: const ['d1'],
+          pageKey: ValueKey(location),
+        );
+        return _findRouteByName(
+              router.configuration.routes,
+              'bulkEditDives',
+            )!.builder!(capturedContext, state)
+            as BulkDiveEditPage;
+      }
+
+      expect(pageAt('/dives/bulk-edit?return=pop').popOnSave, isTrue);
+      expect(pageAt('/dives/bulk-edit').popOnSave, isFalse);
     });
   });
 }

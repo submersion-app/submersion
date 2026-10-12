@@ -201,18 +201,31 @@ class O2ToxicityCard extends StatelessWidget {
               _shownCns.toStringAsFixed(0),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(6),
               child: LinearProgressIndicator(
                 value: (_shownCns / 100).clamp(0.0, 1.0),
-                minHeight: 8,
+                minHeight: 12,
                 backgroundColor: colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(getProgressColor()),
               ),
             ),
           ),
           const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Wrap, not Row: the live-readout wording ("Vor letztem Tauchgang:
+          // 0%" / "Letzter Tauchgang: +43.0%") runs noticeably longer than
+          // the dive-detail wording this row also serves ("Start: 0%" /
+          // "+43.0% bei diesem Tauchgang"), and both sides can be long at
+          // once. A fixed-width split (Expanded/Flexible + ellipsis) made
+          // both sides cut off mid-word on a narrow card. spaceBetween keeps
+          // the wide-screen layout (label left, delta far right) when both
+          // fit on one line; when the row is too narrow for that, each Text
+          // becomes its own single-child run and renders in full,
+          // left-aligned, on its own line -- WrapAlignment only spaces
+          // multiple children apart within a run, so a lone child has
+          // nothing to space against.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            runSpacing: 2,
             children: [
               Text(
                 _isLive
@@ -304,14 +317,17 @@ class O2ToxicityCard extends StatelessWidget {
         value.toStringAsFixed(0),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+          Expanded(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
+          const SizedBox(width: 8),
           Text(
             '${value.toStringAsFixed(0)} OTU',
             style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),

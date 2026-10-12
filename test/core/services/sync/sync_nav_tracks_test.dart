@@ -94,6 +94,48 @@ void main() {
     expect(row.read<String?>('diver_id'), 'me');
   });
 
+  test('a route\'s source metadata (v285) travels with it', () async {
+    const metadata = {
+      'DiveRouteQuality': 0,
+      'QualityFeatures': [16, 0.1],
+    };
+    final id = await repo.insertImportedRoute(
+      points: samplePoints(),
+      source: NavTrackSource.suuntoRoute,
+      sourceRef: 'suunto:NS-1:x',
+      sourceMetadata: metadata,
+    );
+
+    final fetched = (await serializer.fetchRecord('navTracks', id))!;
+    expect(fetched['sourceMetadata'], isA<String>());
+
+    await serializer.deleteRecord('navTracks', id);
+    await serializer.upsertRecord('navTracks', fetched);
+
+    expect((await repo.getById(id))!.sourceMetadata, metadata);
+  });
+
+  test('a row from a peer that predates source metadata keeps the local '
+      'value', () async {
+    const metadata = {'DiveRouteQuality': 0};
+    final id = await repo.insertImportedRoute(
+      points: samplePoints(),
+      source: NavTrackSource.suuntoRoute,
+      sourceRef: 'suunto:NS-1:x',
+      sourceMetadata: metadata,
+    );
+    final fetched = (await serializer.fetchRecord('navTracks', id))!;
+    // A peer below v285 omits the column it does not have.
+    final fromOlderPeer = {...fetched, 'name': 'Renamed'}
+      ..remove('sourceMetadata');
+
+    await serializer.upsertRecord('navTracks', fromOlderPeer);
+
+    final route = (await repo.getById(id))!;
+    expect(route.name, 'Renamed');
+    expect(route.sourceMetadata, metadata);
+  });
+
   test('a linked route from a peer that predates its owner column takes its '
       'dive\'s diver once the apply is repaired', () async {
     await db.customStatement(

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -48,10 +49,11 @@ class BuddySharedDivesSection extends ConsumerWidget {
                         ? null
                         : () {
                             // Set filter to show only shared dives with this buddy
-                            ref.read(diveFilterProvider.notifier).state =
-                                DiveFilterState(diveIds: ids, buddyId: buddyId);
-                            // Navigate to dive list
-                            context.go('/dives');
+                            openDiveList(
+                              context,
+                              ref,
+                              DiveFilterState(diveIds: ids, buddyId: buddyId),
+                            );
                           },
                     child: Text(
                       context.l10n.buddies_action_viewAll(ids.length),

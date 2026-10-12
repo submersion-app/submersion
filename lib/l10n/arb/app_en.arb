@@ -1539,6 +1539,7 @@
   "backup_cloud_enabled_subtitle": "Upload backups to cloud storage",
   "backup_delete_dialog_cancel": "Cancel",
   "backup_delete_dialog_content": "This backup will be permanently deleted. This cannot be undone.",
+  "backup_delete_dialog_content_otherDevice": "This backup is only in your cloud storage, and nothing shows this device made it. It may be another device's only copy, or one this device made before a reinstall. Deleting it cannot be undone.",
   "backup_delete_dialog_delete": "Delete",
   "backup_delete_dialog_title": "Delete Backup",
   "backup_export_bottomSheet_title": "Export Backup",
@@ -4674,6 +4675,7 @@
   "diveLog_equipmentPicker_errorLoading": "Error loading equipment: {error}",
   "diveLog_equipmentPicker_noEquipment": "No equipment yet",
   "diveLog_equipmentPicker_removeToAdd": "Remove items to add different ones",
+  "diveLog_equipmentPicker_showLeftKit": "Show retired and sold gear",
   "diveLog_equipmentPicker_spareHint": "Set an item's status to Active to add it to a dive",
   "diveLog_equipmentPicker_title": "Add Equipment",
   "diveLog_equipmentSetPicker_createHint": "Create sets in Equipment > Sets",
@@ -5617,6 +5619,7 @@
   "diveLog_tank_ownCylinderTitle": "My cylinders",
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
+  "diveLog_tank_regulatorShowLeftKit": "Show retired and sold regulators",
   "diveLog_tank_tripCylinderLabel": "Trip cylinder",
   "diveLog_tank_tripCylinderNone": "None",
   "diveLog_tank_tripCylinderMissing": "No longer on this trip",
@@ -13587,6 +13590,7 @@
   "settings_conflict_field_sourceFileName": "Source file name",
   "settings_conflict_field_sourceFormat": "Source format",
   "settings_conflict_field_sourceItemId": "Linked item",
+  "settings_conflict_field_sourceMetadata": "Extra data from the source",
   "settings_conflict_field_sourceRef": "Source file or device",
   "settings_conflict_field_sourceTankIndex": "Tank number in the source log",
   "settings_conflict_field_sourceType": "Source",
@@ -22135,7 +22139,7 @@
   "diveLog_filter_thicknessMin": "Min",
   "diveLog_filter_thicknessMax": "Max",
   "safetySettings_noFlyHeader": "Flying after diving",
-  "safetySettings_cnsOtuHeader": "Current CNS/OTU load",
+  "safetySettings_cnsOtuHeader": "Current dive load",
   "safetySettings_noFlyPreset_standard": "Standard (12/18/24 h)",
   "safetySettings_noFlyPreset_strict": "Strict (18/24/48 h)",
   "safetySettings_noFlyPreset_subtitle": "Guideline intervals after a single no-deco dive, repetitive dives, and deco dives",
@@ -22206,6 +22210,10 @@
   },
   "safetyHub_cnsOtu_noProfile_title": "Last dive has no profile",
   "safetyHub_cnsOtu_noProfile_body": "Its CNS% and OTU can't be calculated without depth samples. The totals below leave it out.",
+  "safetyHub_cnsOtu_about_title": "About CNS and OTU",
+  "safetyHub_cnsOtu_about_body": "Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it's practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.",
+  "safetyHub_tissueLoading_about_title": "About Tissue Loading",
+  "safetyHub_tissueLoading_about_body": "Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you're breathing. That's why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.",
   "safetyHub_noFly_category_single": "After a single no-deco dive: {hours} h guideline",
   "@safetyHub_noFly_category_single": {
     "placeholders": {
@@ -29562,6 +29570,14 @@
   "startup_diveLogUnavailable_startNew_confirm": "Start new dive log",
   "backup_history_preDowngradeSubtitle": "Newer database, kept when going back - {size}",
   "@backup_history_preDowngradeSubtitle": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backup_history_cloudOnlySubtitle": "In cloud storage ({size})",
+  "@backup_history_cloudOnlySubtitle": {
     "placeholders": {
       "size": {
         "type": "String"

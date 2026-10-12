@@ -354,12 +354,19 @@ extension RungsFromV231 on AppDatabase {
       await _assertProfileMetricColorColumns();
     }
     if (from < 284) await reportProgress();
-    // v285: dive_tanks.passport_id (issue #2650). Column only, no backfill:
-    // nothing recorded which tag an older tank came from. Re-asserted in
-    // beforeOpen; the index is in performance_indexes.dart.
+    // v285: nav_tracks.source_metadata (issue #3047). Column only, no
+    // backfill; re-asserted in beforeOpen through _assertNavTracksSchema.
     if (from < 285) {
-      await _assertTankPassportIdColumn();
+      await _assertNavTrackSourceMetadataColumn();
     }
     if (from < 285) await reportProgress();
+    // v286: dive_tanks.passport_id (issue #2650). Column only, no backfill:
+    // nothing recorded which tag an older tank came from. Re-asserted in
+    // beforeOpen; the index is in performance_indexes.dart. Renumbered from
+    // 285, which #3306 shipped first.
+    if (from < 286) {
+      await _assertTankPassportIdColumn();
+    }
+    if (from < 286) await reportProgress();
   }
 }

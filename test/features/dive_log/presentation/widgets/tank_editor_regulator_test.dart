@@ -75,10 +75,13 @@ Future<void> _pump(
           (ref) => _PresetListNotifier(builtInPresets),
         ),
         tankPresetsProvider.overrideWith((ref) => Future.value(builtInPresets)),
+        // [equipment] is every row, as the unfiltered query returns it; the
+        // active list narrows it the way the repository's active query does.
         activeEquipmentProvider.overrideWith((ref) async {
           if (ref.watch(_reload) > 0) await Completer<void>().future;
-          return equipment;
+          return equipment.where((e) => e.isFitted).toList();
         }),
+        allEquipmentProvider.overrideWith((ref) async => equipment),
       ].cast(),
       child: MaterialApp(
         locale: const Locale('en'),
@@ -246,6 +249,101 @@ void main() {
         label.indexOf('ID Right'),
         lessThan(label.indexOf('Apeks XTX50 Tungsten')),
       );
+    });
+  });
+
+  group('retired and sold regulators (#3210)', () {
+    const oldReg = EquipmentItem(
+      id: 'reg-old',
+      name: 'Old Mk25',
+      type: EquipmentType.regulator,
+      status: EquipmentStatus.retired,
+      isActive: false,
+    );
+    const soldReg = EquipmentItem(
+      id: 'reg-sold',
+      name: 'Sold Legend',
+      type: EquipmentType.regulator,
+      status: EquipmentStatus.sold,
+      isActive: false,
+    );
+    const showLabel = 'Show retired and sold regulators';
+
+    testWidgets('a tank already using one names it rather than None', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        equipment: const [_apeks, oldReg],
+        tank: const DiveTank(id: 'tank-1', regulatorEquipmentId: 'reg-old'),
+      );
+
+      expect(find.textContaining('Old Mk25', findRichText: true), findsOne);
+      expect(find.text('None'), findsNothing);
+    });
+
+    testWidgets('are offered only once the diver asks for them', (
+      tester,
+    ) async {
+      DiveTank? changed;
+      await _pump(
+        tester,
+        equipment: const [_apeks, oldReg, soldReg],
+        onChanged: (t) => changed = t,
+      );
+
+      await _openRegulatorPicker(tester);
+      expect(find.text('Apeks XTX').hitTestable(), findsOneWidget);
+      expect(find.text('Old Mk25').hitTestable(), findsNothing);
+
+      await tester.tap(find.text(showLabel).hitTestable());
+      await tester.pumpAndSettle();
+      // Asking to see them is not a choice of regulator.
+      expect(changed, isNull);
+      expect(find.text('None'), findsOneWidget);
+
+      await _openRegulatorPicker(tester);
+      expect(find.text(showLabel).hitTestable(), findsNothing);
+      expect(
+        find
+            .textContaining('Old Mk25 · Retired', findRichText: true)
+            .hitTestable(),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find
+            .textContaining('Sold Legend · Sold', findRichText: true)
+            .hitTestable(),
+      );
+      await tester.pumpAndSettle();
+
+      expect(changed?.regulatorEquipmentId, 'reg-sold');
+    });
+
+    testWidgets('asking to see them keeps the tank\'s regulator', (
+      tester,
+    ) async {
+      DiveTank? changed;
+      await _pump(
+        tester,
+        equipment: const [_apeks, oldReg],
+        tank: const DiveTank(id: 'tank-1', regulatorEquipmentId: 'reg-a'),
+        onChanged: (t) => changed = t,
+      );
+
+      await _openRegulatorPicker(tester);
+      await tester.tap(find.text(showLabel).hitTestable());
+      await tester.pumpAndSettle();
+
+      expect(changed, isNull);
+      expect(find.textContaining('Apeks XTX', findRichText: true), findsOne);
+    });
+
+    testWidgets('no show item when there are none', (tester) async {
+      await _pump(tester, equipment: const [_apeks]);
+
+      await _openRegulatorPicker(tester);
+      expect(find.text(showLabel), findsNothing);
     });
   });
 }

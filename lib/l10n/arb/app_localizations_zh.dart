@@ -2368,6 +2368,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_delete_dialog_content => '此备份将被永久删除。此操作无法撤消。';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      '此备份仅存在于您的云存储中，且没有任何迹象表明是本设备创建的。它可能是另一台设备的唯一副本，也可能是本设备在重新安装前创建的。删除后无法撤消。';
+
+  @override
   String get backup_delete_dialog_delete => '删除';
 
   @override
@@ -7521,6 +7525,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_equipmentPicker_removeToAdd => '移除项目以添加新项目';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit => '显示已退役和已售出的装备';
+
+  @override
   String get diveLog_equipmentPicker_spareHint => '将物品状态设为活跃即可添加到潜水';
 
   @override
@@ -9546,6 +9553,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => '无';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit => '显示已退役和已售出的调节器';
 
   @override
   String get diveLog_tank_tripCylinderLabel => '行程气瓶';
@@ -21782,6 +21792,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceItemId => '关联条目';
+
+  @override
+  String get settings_conflict_field_sourceMetadata => '来源附加数据';
 
   @override
   String get settings_conflict_field_sourceRef => '源文件或设备';
@@ -34226,7 +34239,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetySettings_noFlyHeader => '潜水后飞行';
 
   @override
-  String get safetySettings_cnsOtuHeader => '当前CNS/OTU负荷';
+  String get safetySettings_cnsOtuHeader => '当前潜水负荷';
 
   @override
   String get safetySettings_noFlyPreset_standard => '标准(12/18/24 小时)';
@@ -34296,6 +34309,20 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       '没有深度剖面，无法计算其 CNS% 和 OTU。下方合计不包含此次潜水。';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => '关于 CNS 和 OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      '潜水后 CNS%（氧气钟）以 90 分钟的半衰期衰减——大约一天后基本降回 0。\n\n每日 OTU 每晚午夜重置。每周 OTU 是过去 7 天的滚动总和：较早的潜水一旦超出该时间窗口，就会自动从计算中剔除。';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => '关于组织饱和度';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      '你的身体有 16 个组织舱室，以不同速度吸收和释放氮气（在三元气体或循环呼吸器潜水中，还有氦气）。快速组织饱和与脱饱和都很快；慢速组织两者都需要更长时间。\n\n使用氦气潜水后，同一舱室中的氮气和氦气可能会短暂地朝相反方向变化：氦气仍在释放的同时，同一舱室可能同时在吸收少量氮气，直到两种气体都与你呼吸的空气达到平衡。这就是为什么一个舱室可能短暂显示\"Ongassing\"，即使其总负荷仍在下降。';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -46452,6 +46479,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return '较新的数据库，回退时保留 - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return '在云存储中 ($size)';
   }
 
   @override

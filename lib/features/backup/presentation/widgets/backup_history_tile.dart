@@ -41,6 +41,13 @@ class BackupHistoryTile extends ConsumerWidget {
       // carries no dive or site counts to report (issue #1589).
       BackupType.preDowngrade =>
         context.l10n.backup_history_preDowngradeSubtitle(record.formattedSize),
+      // Found in the cloud folder with no record (issue #3214): the counts
+      // lived only in the lost record, so claiming "0 dives" would be wrong.
+      BackupType.manual
+          when record.location == BackupLocation.cloud &&
+              record.diveCount == null &&
+              record.siteCount == null =>
+        context.l10n.backup_history_cloudOnlySubtitle(record.formattedSize),
       // Two messages rather than one plus an appended "(auto)": where the
       // marker belongs in the sentence is the translator's call, not this
       // widget's.

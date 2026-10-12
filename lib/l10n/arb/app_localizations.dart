@@ -3889,6 +3889,12 @@ abstract class AppLocalizations {
   /// **'This backup will be permanently deleted. This cannot be undone.'**
   String get backup_delete_dialog_content;
 
+  /// No description provided for @backup_delete_dialog_content_otherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is only in your cloud storage, and nothing shows this device made it. It may be another device\'s only copy, or one this device made before a reinstall. Deleting it cannot be undone.'**
+  String get backup_delete_dialog_content_otherDevice;
+
   /// No description provided for @backup_delete_dialog_delete.
   ///
   /// In en, this message translates to:
@@ -12523,6 +12529,12 @@ abstract class AppLocalizations {
   /// **'Remove items to add different ones'**
   String get diveLog_equipmentPicker_removeToAdd;
 
+  /// No description provided for @diveLog_equipmentPicker_showLeftKit.
+  ///
+  /// In en, this message translates to:
+  /// **'Show retired and sold gear'**
+  String get diveLog_equipmentPicker_showLeftKit;
+
   /// No description provided for @diveLog_equipmentPicker_spareHint.
   ///
   /// In en, this message translates to:
@@ -16068,6 +16080,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get diveLog_tank_regulatorNone;
+
+  /// No description provided for @diveLog_tank_regulatorShowLeftKit.
+  ///
+  /// In en, this message translates to:
+  /// **'Show retired and sold regulators'**
+  String get diveLog_tank_regulatorShowLeftKit;
 
   /// No description provided for @diveLog_tank_tripCylinderLabel.
   ///
@@ -36948,6 +36966,12 @@ abstract class AppLocalizations {
   /// **'Linked item'**
   String get settings_conflict_field_sourceItemId;
 
+  /// No description provided for @settings_conflict_field_sourceMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra data from the source'**
+  String get settings_conflict_field_sourceMetadata;
+
   /// No description provided for @settings_conflict_field_sourceRef.
   ///
   /// In en, this message translates to:
@@ -57484,7 +57508,7 @@ abstract class AppLocalizations {
   /// No description provided for @safetySettings_cnsOtuHeader.
   ///
   /// In en, this message translates to:
-  /// **'Current CNS/OTU load'**
+  /// **'Current dive load'**
   String get safetySettings_cnsOtuHeader;
 
   /// No description provided for @safetySettings_noFlyPreset_standard.
@@ -57594,6 +57618,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.'**
   String get safetyHub_cnsOtu_noProfile_body;
+
+  /// No description provided for @safetyHub_cnsOtu_about_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About CNS and OTU'**
+  String get safetyHub_cnsOtu_about_title;
+
+  /// No description provided for @safetyHub_cnsOtu_about_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it\'s practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.'**
+  String get safetyHub_cnsOtu_about_body;
+
+  /// No description provided for @safetyHub_tissueLoading_about_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About Tissue Loading'**
+  String get safetyHub_tissueLoading_about_title;
+
+  /// No description provided for @safetyHub_tissueLoading_about_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you\'re breathing. That\'s why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.'**
+  String get safetyHub_tissueLoading_about_body;
 
   /// No description provided for @safetyHub_noFly_category_single.
   ///
@@ -78454,6 +78502,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Newer database, kept when going back - {size}'**
   String backup_history_preDowngradeSubtitle(String size);
+
+  /// No description provided for @backup_history_cloudOnlySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'In cloud storage ({size})'**
+  String backup_history_cloudOnlySubtitle(String size);
 
   /// No description provided for @backup_history_manualSubtitle.
   ///

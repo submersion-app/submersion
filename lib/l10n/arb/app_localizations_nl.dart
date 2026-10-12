@@ -2473,6 +2473,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze back-up wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Deze back-up staat alleen in je cloudopslag en niets wijst erop dat dit apparaat hem heeft gemaakt. Het kan de enige kopie van een ander apparaat zijn, of een kopie die dit apparaat vóór een herinstallatie heeft gemaakt. Verwijderen kan niet ongedaan worden gemaakt.';
+
+  @override
   String get backup_delete_dialog_delete => 'Verwijderen';
 
   @override
@@ -7870,6 +7874,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verwijder items om andere toe te voegen';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Uitrusting die uit gebruik of verkocht is tonen';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Zet de status van een item op Actief om het aan een duik toe te voegen';
 
@@ -9971,6 +9979,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Geen';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Ademautomaten die uit gebruik of verkocht zijn tonen';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Fles van de reis';
@@ -22894,6 +22906,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceItemId => 'Gekoppeld item';
+
+  @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Extra gegevens van de bron';
 
   @override
   String get settings_conflict_field_sourceRef => 'Bronbestand of -apparaat';
@@ -36027,7 +36043,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Vliegen na het duiken';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Huidige CNS/OTU-belasting';
+  String get safetySettings_cnsOtuHeader => 'Huidige duikbelasting';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standaard (12/18/24 u)';
@@ -36100,6 +36116,20 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Zonder diepteprofiel kunnen CNS% en OTU ervan niet worden berekend. De totalen hieronder laten hem buiten beschouwing.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'Over CNS en OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'Je CNS% (zuurstofklok) neemt na de duik af met een halveringstijd van 90 minuten -- na ongeveer een dag is deze vrijwel terug op 0.\n\nDe dagelijkse OTU wordt elke nacht om middernacht gereset. De wekelijkse OTU is een voortschrijdend totaal van de afgelopen 7 dagen: oudere duiken vallen automatisch uit de berekening zodra ze buiten dat venster vallen.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'Over weefselverzadiging';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'Je lichaam heeft 16 weefselcompartimenten die stikstof opnemen en afgeven (en bij trimix- of rebreatherduiken ook helium), elk met een eigen snelheid. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben voor beide veel meer tijd nodig.\n\nNa een duik met helium kunnen stikstof en helium in één compartiment kortstondig in tegengestelde richtingen bewegen: terwijl het helium nog afgeeft, kan datzelfde compartiment tegelijk wat stikstof opnemen, totdat beide gassen in evenwicht zijn met de lucht die je inademt. Daarom kan een compartiment even \"Ongassing\" tonen, terwijl de totale belasting toch blijft dalen.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -49166,6 +49196,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Nieuwere database, bewaard bij het teruggaan - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'In cloudopslag ($size)';
   }
 
   @override

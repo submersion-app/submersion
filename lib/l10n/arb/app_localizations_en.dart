@@ -2458,6 +2458,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This backup will be permanently deleted. This cannot be undone.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'This backup is only in your cloud storage, and nothing shows this device made it. It may be another device\'s only copy, or one this device made before a reinstall. Deleting it cannot be undone.';
+
+  @override
   String get backup_delete_dialog_delete => 'Delete';
 
   @override
@@ -7795,6 +7799,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Remove items to add different ones';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Show retired and sold gear';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Set an item\'s status to Active to add it to a dive';
 
@@ -9875,6 +9883,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'None';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Show retired and sold regulators';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Trip cylinder';
@@ -22655,6 +22667,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceItemId => 'Linked item';
+
+  @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Extra data from the source';
 
   @override
   String get settings_conflict_field_sourceRef => 'Source file or device';
@@ -35674,7 +35690,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Flying after diving';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+  String get safetySettings_cnsOtuHeader => 'Current dive load';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
@@ -35747,6 +35763,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'About CNS and OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it\'s practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'About Tissue Loading';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you\'re breathing. That\'s why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -48711,6 +48741,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Newer database, kept when going back - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'In cloud storage ($size)';
   }
 
   @override

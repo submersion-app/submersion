@@ -127,6 +127,27 @@ final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   return repository.getAllEquipment(diverId: validatedDiverId);
 });
 
+/// Retired and sold gear: what a past dive's pickers add on request, since
+/// a dive logged after the fact may well have used it (#3210). Derived from
+/// [allEquipmentProvider], so it orders and refreshes the same way.
+final leftKitEquipmentProvider = FutureProvider<List<EquipmentItem>>((
+  ref,
+) async {
+  final all = await ref.watch(allEquipmentProvider.future);
+  return [
+    for (final item in all)
+      if (item.hasLeftKit) item,
+  ];
+});
+
+/// Whether the dive gear picker also lists [leftKitEquipmentProvider]'s
+/// gear (#3210). autoDispose for the same reason as
+/// [equipmentPickerFilterProvider]: a choice made for one old dive should
+/// not quietly lengthen the next dive's picker.
+final equipmentPickerShowLeftKitProvider = StateProvider.autoDispose<bool>(
+  (ref) => false,
+);
+
 /// Equipment filter state provider.
 ///
 /// Holds the status and category axes edited in the equipment filter panel.

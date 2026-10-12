@@ -2484,6 +2484,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Diese Sicherung wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Diese Sicherung liegt nur in Ihrem Cloud-Speicher, und nichts zeigt, dass dieses Gerät sie erstellt hat. Es könnte die einzige Kopie eines anderen Geräts sein oder eine, die dieses Gerät vor einer Neuinstallation erstellt hat. Das Löschen kann nicht rückgängig gemacht werden.';
+
+  @override
   String get backup_delete_dialog_delete => 'Löschen';
 
   @override
@@ -7918,6 +7922,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Entfernen Sie Gegenstände, um andere hinzuzufügen';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Ausgemusterte und verkaufte Ausrüstung anzeigen';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Setzen Sie den Status eines Gegenstands auf Aktiv, um ihn einem Tauchgang hinzuzufügen';
 
@@ -10034,6 +10042,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Keiner';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Ausgemusterte und verkaufte Atemregler anzeigen';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Flasche der Reise';
@@ -23007,6 +23019,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceItemId => 'Verknüpfter Punkt';
+
+  @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Zusätzliche Daten der Quelle';
 
   @override
   String get settings_conflict_field_sourceRef => 'Quelldatei oder Gerät';
@@ -36204,7 +36220,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Fliegen nach dem Tauchen';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Aktuelle CNS/OTU-Belastung';
+  String get safetySettings_cnsOtuHeader => 'Aktuelle Tauch-Restbelastung';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
@@ -36278,6 +36294,20 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Ohne Tiefenprofil lassen sich CNS% und OTU dafür nicht berechnen. Die Summen unten enthalten ihn nicht.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'Über CNS und OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'Der CNS-Wert (Sauerstoff-Uhr) sinkt nach dem Tauchgang mit einer Halbwertszeit von 90 Minuten – nach rund einem Tag ist er praktisch auf 0 zurückgegangen.\n\nDie Tages-OTU wird jede Nacht um Mitternacht zurückgesetzt. Die Wochen-OTU ist eine rollierende Summe der letzten 7 Tage: ältere Tauchgänge fallen automatisch wieder aus der Berechnung heraus, sobald sie ausserhalb dieses Fensters liegen.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'Über die Gewebesättigung';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'Ihr Körper hat 16 Gewebekompartimente, die Stickstoff (und bei Trimix- oder Rebreather-Tauchgängen auch Helium) mit unterschiedlichen Geschwindigkeiten aufnehmen und abgeben. Schnelle Gewebe sättigen und entsättigen rasch, langsame Gewebe brauchen dafür deutlich länger.\n\nNach einem Tauchgang mit Helium können sich Stickstoff und Helium in einem Kompartiment kurzzeitig gegenläufig verhalten: Während das Helium noch ausgast, nimmt derselbe Bereich gleichzeitig wieder etwas Stickstoff auf, bis beide Gase das Gleichgewicht mit der Atemluft erreicht haben. Deshalb kann ein Kompartiment vorübergehend \"Ongassing\" anzeigen, auch wenn die Gesamtbelastung insgesamt weiter sinkt.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -49382,6 +49412,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Neuere Datenbank, beim Zurückwechseln behalten - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'Im Cloud-Speicher ($size)';
   }
 
   @override
