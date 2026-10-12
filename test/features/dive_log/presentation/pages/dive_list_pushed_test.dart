@@ -10,6 +10,9 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/providers/table_details_pane_provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/constants/list_view_mode.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -37,6 +40,7 @@ void main() {
     WidgetTester tester, {
     required Size size,
     required String initial,
+    List<dynamic> extraOverrides = const [],
   }) async {
     final overrides = [
       ...await getBaseOverrides(),
@@ -48,6 +52,7 @@ void main() {
         (ref) => PaginatedDiveListNotifier(repository, ref),
       ),
       customTankPresetsProvider.overrideWith((ref) async => []),
+      ...extraOverrides,
     ];
 
     final router = GoRouter(
@@ -151,6 +156,52 @@ void main() {
     expect(find.text('ROOT'), findsOneWidget);
     expect(h.container.read(diveFilterProvider).siteId, 'mine');
     expect(h.container.read(highlightedDiveIdProvider), 'orig');
+  });
+
+  testWidgets('back over a table-mode list keeps its dive selected, not the '
+      'one picked in the pushed list', (tester) async {
+    // The table under the pushed list defers its highlight-to-URL sync while
+    // covered and replays the GLOBAL highlight once uncovered. The restore
+    // must land before that replay, or Back selects the wrong dive.
+    final orig = await repository.createDive(
+      createTestDiveWithBottomTime().copyWith(id: 'orig'),
+    );
+    final picked = await repository.createDive(
+      createTestDiveWithBottomTime().copyWith(id: 'picked'),
+    );
+    final h = await pumpHarness(
+      tester,
+      size: desktop,
+      initial: '/dives?selected=${orig.id}',
+      extraOverrides: [
+        diveListViewModeProvider.overrideWith((ref) => ListViewMode.table),
+        tableDetailsPaneProvider('dives').overrideWith((ref) => true),
+      ],
+    );
+    h.container.read(highlightedDiveIdProvider.notifier).state = orig.id;
+    await settle(tester);
+
+    h.router.push(
+      '/dives',
+      extra: DiveListReturn(
+        filter: h.container.read(diveFilterProvider),
+        highlightedDiveId: orig.id,
+      ),
+    );
+    await settle(tester);
+    h.container.read(highlightedDiveIdProvider.notifier).state = picked.id;
+    h.router.replace('/dives?selected=${picked.id}');
+    await settle(tester);
+
+    await tester.tap(find.byType(BackButton));
+    await settle(tester);
+
+    expect(h.router.canPop(), isFalse);
+    expect(
+      h.router.routerDelegate.currentConfiguration.uri.toString(),
+      '/dives?selected=${orig.id}',
+    );
+    expect(h.container.read(highlightedDiveIdProvider), orig.id);
   });
 
   testWidgets('a pushed page embedding the list gets no back arrow from it', (
