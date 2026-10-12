@@ -1431,6 +1431,9 @@ class SyncNotifier extends StateNotifier<SyncState> {
   /// One sync, run inside [performSync]'s single flight. True when it
   /// completed successfully (with or without conflicts).
   Future<bool> _runSyncOnce({required bool auto}) async {
+    // Entered from the coordinator's queue, so the notifier may have been
+    // disposed while another merge held the gate.
+    if (!mounted) return false;
     var succeeded = false;
     // An auto-sync armed before this run is covered by it: the publish reads
     // every change made so far. Firing afterwards would only repeat it. A run

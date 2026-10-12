@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_page.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 
@@ -48,6 +50,13 @@ Future<Widget> _page(
     ),
     libraryMemberNamesProvider('L').overrideWith((ref) async => {'m': 'Ann'}),
     pendingIncomingSuggestionCountProvider('L').overrideWith((ref) async => 2),
+    sitesProvider.overrideWith(
+      (ref) async => const [
+        DiveSite(id: 'p1', name: 'Reef'),
+        DiveSite(id: 'p2', name: 'Wreck'),
+        DiveSite(id: 'l1', name: 'Club wall', sharedLibraryId: 'L'),
+      ],
+    ),
   ],
   locale: const Locale('en'),
   child: const SharedLibraryPage(libraryId: 'L'),
@@ -85,5 +94,55 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('allow reading only'), findsOneWidget);
     expect(find.textContaining('boom'), findsOneWidget);
+  });
+
+  testWidgets('cancelling the rename dialog keeps the name', (tester) async {
+    await tester.pumpWidget(await _page(SharedLibraryRole.owner));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ann'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('Ann'), findsOneWidget);
+  });
+
+  testWidgets('cancelling the leave dialog stays on the page', (tester) async {
+    await tester.pumpWidget(await _page(SharedLibraryRole.owner));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Leave library'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Club'), findsWidgets);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('Leave library'), findsOneWidget);
+  });
+
+  testWidgets('Add my sites lists only personal sites and enables the button '
+      'once one is ticked', (tester) async {
+    await tester.pumpWidget(await _page(SharedLibraryRole.editor));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add my sites'));
+    await tester.pumpAndSettle();
+    expect(find.text('Reef'), findsOneWidget);
+    expect(find.text('Wreck'), findsOneWidget);
+    expect(find.text('Club wall'), findsNothing);
+    final button = find.widgetWithText(FilledButton, 'Add to club library');
+    expect(tester.widget<FilledButton>(button).onPressed, isNull);
+
+    await tester.tap(find.text('Reef'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilledButton>(button).onPressed, isNotNull);
+    await tester.tap(find.text('Reef'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<FilledButton>(button).onPressed, isNull);
+
+    // Dismiss without confirming: nothing is pushed.
+    await tester.tapAt(const Offset(5, 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Reef'), findsNothing);
+    expect(find.byType(SnackBar), findsNothing);
   });
 }

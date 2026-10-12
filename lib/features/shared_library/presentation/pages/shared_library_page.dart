@@ -9,6 +9,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
+import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One connected club library (issue #2567): status, display name, role,
@@ -160,26 +161,14 @@ class SharedLibraryPage extends ConsumerWidget {
     SharedLibraryMembership membership,
   ) async {
     final l10n = context.l10n;
-    final controller = TextEditingController(text: membership.displayName);
-    final name = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.sharedLibrary_library_rename_label),
-        content: TextField(controller: controller, autofocus: true),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
-            child: Text(MaterialLocalizations.of(ctx).okButtonLabel),
-          ),
-        ],
-      ),
+    final name = await NamePromptDialog.show(
+      context,
+      title: l10n.sharedLibrary_library_rename_label,
+      label: l10n.sharedLibrary_library_rename_label,
+      confirmLabel: MaterialLocalizations.of(context).okButtonLabel,
+      initialValue: membership.displayName,
     );
-    controller.dispose();
-    if (name == null || name.isEmpty || name == membership.displayName) return;
+    if (name == null || name == membership.displayName) return;
     await ref
         .read(sharedLibraryMembershipServiceProvider)
         .rename(

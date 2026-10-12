@@ -32,10 +32,9 @@ class SiteEditHistorySheet extends ConsumerWidget {
     final names =
         ref.watch(libraryMemberNamesProvider(libraryId)).valueOrNull ??
         const <String, String>{};
-    final entries =
-        (state?.clocks.entries.toList() ??
-              const <MapEntry<String, FieldClock>>[])
-          ..sort((a, b) => b.value.hlc.compareTo(a.value.hlc));
+    // Growable: the first frame has no state yet and sort mutates in place.
+    final entries = <MapEntry<String, FieldClock>>[...?state?.clocks.entries]
+      ..sort((a, b) => b.value.hlc.compareTo(a.value.hlc));
     return SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,

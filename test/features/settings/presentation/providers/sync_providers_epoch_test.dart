@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -13,6 +14,7 @@ import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
 import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -51,6 +53,7 @@ void main() {
 
   tearDown(() {
     DatabaseService.instance.resetForTesting();
+    SyncCoordinator.reset();
   });
 
   Future<ProviderContainer> makeContainer({bool cloudConfigured = true}) async {
@@ -406,6 +409,32 @@ void main() {
       expect(LibraryEpochStore(prefs).pendingReplace, isNotNull);
       // ...and launch never drove the notifier into an error/syncing state.
       expect(container.read(syncStateProvider).status, SyncStatus.idle);
+    });
+  });
+
+  group('launch sync behind another merge', () {
+    test('is dropped, not run, once the notifier is disposed', () async {
+      await LibraryEpochStore(prefs).setPendingReplace(marker);
+      // Another merge (a club library sync) holds the coordinator, so the
+      // pending-replace launch sync queues behind it.
+      final gate = Completer<void>();
+      final blocker = SyncCoordinator.run(() => gate.future);
+      final container = await makeContainer();
+      for (var i = 0; i < 5; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      expect(SyncCoordinator.busy, isTrue);
+
+      container.dispose();
+      gate.complete();
+      await blocker;
+      // The queued run starts here against a disposed Ref. An uncaught
+      // "Cannot use the Ref after it has been disposed" fails this test.
+      for (var i = 0; i < 5; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+      }
+      expect(SyncCoordinator.busy, isFalse);
+      expect(LibraryEpochStore(prefs).pendingReplace, isNotNull);
     });
   });
 
