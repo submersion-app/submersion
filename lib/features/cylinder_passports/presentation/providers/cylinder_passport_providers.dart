@@ -27,12 +27,11 @@ final passportUsageRepositoryProvider = Provider<PassportUsageRepository>(
 );
 
 /// The active diver's dives with a tank from the cylinder whose passport id
-/// is the key, newest first (issue #2650).
-final passportUsageProvider =
-    FutureProvider.family<List<PassportUsageDive>, String>((
-      ref,
-      passportId,
-    ) async {
+/// is the key, newest first (issue #2650). Auto-disposed: the key is any tag
+/// the diver scans, so a kept provider per stranger's cylinder would pile up
+/// change subscriptions.
+final passportUsageProvider = FutureProvider.autoDispose
+    .family<List<PassportUsageDive>, String>((ref, passportId) async {
       final repository = ref.watch(passportUsageRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);

@@ -18,7 +18,6 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -30,6 +29,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/computer_mix_n
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -755,10 +755,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final slot = states.where((s) => s.cylinder.id == id).firstOrNull;
     widget.onChanged(
       slot == null
-          // None only unlinks the slot; a slot is a new cylinder, so it
-          // replaces any tagged one (issue #2650).
+          // None only unlinks the slot, keeping any tagged cylinder; a slot
+          // replaces it (issue #2650).
           ? current.copyWith(clearTripCylinderId: true)
-          : tankFromTripCylinder(current.copyWith(clearPassportId: true), slot),
+          : tankFromTripCylinder(current, slot),
     );
   }
 
@@ -1245,9 +1245,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   ) async {
     try {
       final fills = await ref.read(fillsForEquipmentProvider(item.id).future);
-      final passportId = await ref
-          .read(cylinderPassportRepositoryProvider)
-          .getPassportId(item.id);
+      // Already resolved for the fills above.
+      final passportId = await ref.read(passportIdProvider(item.id).future);
       if (!mounted || choice != _specChoice) return;
       await _useOwnCylinder(item, fills, passportId, messenger, l10n);
     } catch (e, stackTrace) {
@@ -1379,9 +1378,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
   /// The diver's own cylinder, scanned or picked, fills the tank with its
   /// spec, newest of [fills] and [passportId] (issue #2650), then goes to
-  /// the host to join the dive's
-  /// gear: a copy, never a link (`DiveTank.equipmentId` belongs to the
-  /// transmitter registry). Throws what the host's gear add throws.
+  /// the host to join the dive's gear: a copy, never a link
+  /// (`DiveTank.equipmentId` belongs to the transmitter registry). Throws
+  /// what the host's gear add throws.
   Future<void> _useOwnCylinder(
     EquipmentItem item,
     List<CylinderFill> fills,
