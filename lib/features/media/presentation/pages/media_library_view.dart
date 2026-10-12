@@ -167,13 +167,14 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     // the mouse wheel with Ctrl held (issue #3297).
     return MediaThumbnailWheelZoom(
       child: MediaThumbnailColumnsBuilder(
-        builder: (context, columns) => switch (mode) {
+        builder: (context, columns, targetSize) => switch (mode) {
           MediaLibraryViewMode.grid => MediaLibraryGrid(
             entries: state.entries,
             hasMore: state.hasMore,
             onLoadMore: loadMore,
             onTileTap: (entry, index) => handleTap(entry),
             columns: columns,
+            targetSize: targetSize,
             selectedIds: checkedIds,
             isSelectionMode: selection.isActive,
           ),
@@ -183,6 +184,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
             onLoadMore: loadMore,
             onTileTap: handleTap,
             columns: columns,
+            targetSize: targetSize,
             selectedIds: checkedIds,
             isSelectionMode: selection.isActive,
           ),
@@ -192,6 +194,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
             onLoadMore: loadMore,
             onTileTap: handleTap,
             columns: columns,
+            targetSize: targetSize,
             selectedIds: checkedIds,
             isSelectionMode: selection.isActive,
           ),

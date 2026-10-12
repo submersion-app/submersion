@@ -5,6 +5,7 @@ import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
@@ -23,6 +24,7 @@ class MediaLibraryGroupedList extends ConsumerStatefulWidget {
     required this.onLoadMore,
     required this.onTileTap,
     required this.columns,
+    this.targetSize = kDefaultThumbnailTarget,
     this.selectedIds = const {},
     this.isSelectionMode = false,
   });
@@ -34,6 +36,10 @@ class MediaLibraryGroupedList extends ConsumerStatefulWidget {
 
   /// How many thumbnails go across, from the size slider (issue #3297).
   final int columns;
+
+  /// The size to decode thumbnails at, from the pane's width and [columns]
+  /// (see [mediaThumbnailDecodeTarget]).
+  final Size targetSize;
 
   /// Ids rendered with the selection overlay.
   final Set<String> selectedIds;
@@ -123,16 +129,7 @@ class _MediaLibraryGroupedListState
   @override
   Widget build(BuildContext context) {
     final units = UnitFormatter(ref.watch(settingsProvider));
-    return LayoutBuilder(
-      builder: (context, constraints) => _buildList(
-        context,
-        units,
-        mediaThumbnailDecodeTarget(constraints.maxWidth, widget.columns),
-      ),
-    );
-  }
-
-  Widget _buildList(BuildContext context, UnitFormatter units, Size target) {
+    final target = widget.targetSize;
     final columns = widget.columns;
     final selectedIds = widget.selectedIds;
     final isSelectionMode = widget.isSelectionMode;

@@ -121,10 +121,12 @@ void main() {
 
   group('MediaThumbnailColumnsBuilder', () {
     late ProviderContainer container;
+    late int builds;
 
     setUp(() {
       container = ProviderContainer();
       addTearDown(container.dispose);
+      builds = 0;
     });
 
     Future<void> pump(WidgetTester tester, double width) async {
@@ -137,7 +139,10 @@ void main() {
           child: Directionality(
             textDirection: TextDirection.ltr,
             child: MediaThumbnailColumnsBuilder(
-              builder: (context, columns) => Text('$columns across'),
+              builder: (context, columns, targetSize) {
+                builds++;
+                return Text('$columns across at ${targetSize.width.toInt()}');
+              },
             ),
           ),
         ),
@@ -147,21 +152,42 @@ void main() {
 
     testWidgets('opens on the middle size', (tester) async {
       await pump(tester, 1200);
-      expect(find.text('6 across'), findsOneWidget);
+      expect(find.textContaining('6 across at'), findsOneWidget);
+    });
+
+    testWidgets('hands over the decode size for the width and count', (
+      tester,
+    ) async {
+      await pump(tester, 1200);
+      // 1200 / 6 is 200 a thumbnail.
+      expect(find.text('6 across at 200'), findsOneWidget);
+
+      container.read(mediaThumbnailScaleProvider.notifier).setStep(6);
+      await tester.pumpAndSettle();
+      // 1200 / 2 is 600, past 400.
+      expect(find.text('2 across at 800'), findsOneWidget);
+    });
+
+    testWidgets('holding the count does not build the gallery again', (
+      tester,
+    ) async {
+      await pump(tester, 1200);
+      expect(container.read(mediaThumbnailScaleProvider).columns, 6);
+      expect(builds, 1);
     });
 
     testWidgets('resizing the window keeps the same number across', (
       tester,
     ) async {
       await pump(tester, 1200);
-      expect(find.text('6 across'), findsOneWidget);
+      expect(find.textContaining('6 across at'), findsOneWidget);
 
       // Unheld, the middle step at 800 would be 5.
       await pump(tester, 800);
-      expect(find.text('6 across'), findsOneWidget);
+      expect(find.textContaining('6 across at'), findsOneWidget);
 
       await pump(tester, 1600);
-      expect(find.text('6 across'), findsOneWidget);
+      expect(find.textContaining('6 across at'), findsOneWidget);
     });
 
     testWidgets('a new step is read at the width it was chosen at, then held', (
@@ -170,10 +196,10 @@ void main() {
       await pump(tester, 1200);
       container.read(mediaThumbnailScaleProvider.notifier).setStep(1);
       await tester.pumpAndSettle();
-      expect(find.text('13 across'), findsOneWidget);
+      expect(find.textContaining('13 across at'), findsOneWidget);
 
       await pump(tester, 1000);
-      expect(find.text('13 across'), findsOneWidget);
+      expect(find.textContaining('13 across at'), findsOneWidget);
     });
 
     testWidgets('the size survives the gallery being closed and reopened', (
@@ -186,7 +212,7 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
       await pump(tester, 1200);
 
-      expect(find.text('2 across'), findsOneWidget);
+      expect(find.textContaining('2 across at'), findsOneWidget);
       expect(container.read(mediaThumbnailScaleProvider).step, 6);
     });
   });

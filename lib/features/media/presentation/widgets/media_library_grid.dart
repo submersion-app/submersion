@@ -125,6 +125,7 @@ class MediaLibraryGrid extends StatefulWidget {
     required this.onLoadMore,
     required this.onTileTap,
     required this.columns,
+    this.targetSize = kDefaultThumbnailTarget,
     this.selectedIds = const {},
     this.isSelectionMode = false,
   });
@@ -136,6 +137,10 @@ class MediaLibraryGrid extends StatefulWidget {
 
   /// How many thumbnails go across, from the size slider (issue #3297).
   final int columns;
+
+  /// The size to decode thumbnails at, from the pane's width and [columns]
+  /// (see [mediaThumbnailDecodeTarget]).
+  final Size targetSize;
 
   /// Ids rendered with the selection overlay.
   final Set<String> selectedIds;
@@ -186,37 +191,29 @@ class _MediaLibraryGridState extends State<MediaLibraryGrid> {
         }
         return false;
       },
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final targetSize = mediaThumbnailDecodeTarget(
-            constraints.maxWidth,
-            widget.columns,
-          );
-          return GridView.builder(
-            // Lets Ctrl + wheel resize instead of scroll (issue #3297).
-            physics: const MediaThumbnailWheelZoomPhysics(),
-            padding: const EdgeInsets.all(4),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: widget.columns,
-              mainAxisSpacing: kMediaThumbnailGap,
-              crossAxisSpacing: kMediaThumbnailGap,
+      child: GridView.builder(
+        // Lets Ctrl + wheel resize instead of scroll (issue #3297).
+        physics: const MediaThumbnailWheelZoomPhysics(),
+        padding: const EdgeInsets.all(4),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: widget.columns,
+          mainAxisSpacing: kMediaThumbnailGap,
+          crossAxisSpacing: kMediaThumbnailGap,
+        ),
+        itemCount: widget.entries.length,
+        itemBuilder: (context, index) {
+          _position = Scrollable.maybeOf(context)?.position;
+          final entry = widget.entries[index];
+          return MetaData(
+            metaData: MediaThumbnailSlot(row: 0, index: index),
+            behavior: HitTestBehavior.opaque,
+            child: MediaLibraryTile(
+              entry: entry,
+              selected: widget.selectedIds.contains(entry.item.id),
+              isSelectionMode: widget.isSelectionMode,
+              targetSize: widget.targetSize,
+              onTap: () => widget.onTileTap(entry, index),
             ),
-            itemCount: widget.entries.length,
-            itemBuilder: (context, index) {
-              _position = Scrollable.maybeOf(context)?.position;
-              final entry = widget.entries[index];
-              return MetaData(
-                metaData: MediaThumbnailSlot(row: 0, index: index),
-                behavior: HitTestBehavior.opaque,
-                child: MediaLibraryTile(
-                  entry: entry,
-                  selected: widget.selectedIds.contains(entry.item.id),
-                  isSelectionMode: widget.isSelectionMode,
-                  targetSize: targetSize,
-                  onTap: () => widget.onTileTap(entry, index),
-                ),
-              );
-            },
           );
         },
       ),
