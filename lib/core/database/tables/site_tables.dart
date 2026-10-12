@@ -51,6 +51,10 @@ class DiveSites extends Table {
   TextColumn get entryMethod => text().nullable()();
   TextColumn get exitMethod => text().nullable()();
   BoolColumn get isShared => boolean().withDefault(const Constant(false))();
+
+  /// The club library this site belongs to (issue #2567); null for a
+  /// personal site. Set rows never enter the personal sync.
+  TextColumn get sharedLibraryId => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

@@ -354,5 +354,11 @@ extension RungsFromV231 on AppDatabase {
       await _assertProfileMetricColorColumns();
     }
     if (from < 284) await reportProgress();
+    // v285: shared dive-site library tables and dive_sites.shared_library_id
+    // (issue #2567). Idempotent; re-asserted in beforeOpen.
+    if (from < 285) {
+      await _assertSharedLibrarySchema();
+    }
+    if (from < 285) await reportProgress();
   }
 }

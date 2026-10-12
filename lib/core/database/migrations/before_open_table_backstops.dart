@@ -70,5 +70,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v279 backstop: dive_computer_connections (parallel-branch
     // version-collision self-heal; idempotent).
     await _assertDiveComputerConnectionSchema();
+
+    // v285 backstop: shared library tables and column (parallel-branch
+    // version-collision self-heal; idempotent).
+    await _assertSharedLibrarySchema();
   }
 }

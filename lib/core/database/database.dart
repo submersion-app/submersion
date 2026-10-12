@@ -25,6 +25,7 @@ import 'package:submersion/core/database/tables/insight_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
 import 'package:submersion/core/database/tables/safety_tables.dart';
 import 'package:submersion/core/database/tables/service_tables.dart';
+import 'package:submersion/core/database/tables/shared_library_tables.dart';
 import 'package:submersion/core/database/tables/site_tables.dart';
 import 'package:submersion/core/database/tables/sync_tables.dart';
 import 'package:submersion/core/database/tables/tag_tables.dart';
@@ -57,6 +58,7 @@ export 'package:submersion/core/database/tables/insight_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
 export 'package:submersion/core/database/tables/safety_tables.dart';
 export 'package:submersion/core/database/tables/service_tables.dart';
+export 'package:submersion/core/database/tables/shared_library_tables.dart';
 export 'package:submersion/core/database/tables/site_tables.dart';
 export 'package:submersion/core/database/tables/sync_tables.dart';
 export 'package:submersion/core/database/tables/tag_tables.dart';
@@ -253,6 +255,12 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Documents store (v277, issue #2613)
     Documents,
     DocumentPages,
+    // Shared dive-site library (v285, issue #2567)
+    SharedLibraries,
+    SharedLibraryMembers,
+    SharedLibraryMemberships,
+    SharedSiteStates,
+    SharedSiteSuggestions,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -262,7 +270,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 284;
+  static const int currentSchemaVersion = 285;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1222,6 +1230,10 @@ class AppDatabase extends _$AppDatabase {
     // columns, so the floor stays at 280. Renumbered from 282, which PR #3133
     // holds, after #3296 shipped 283.
     284,
+    // v285: shared dive-site library tables and dive_sites.shared_library_id
+    // (issue #2567). New tables and a nullable column, so the floor stays
+    // at 280.
+    285,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
