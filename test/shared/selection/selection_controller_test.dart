@@ -27,6 +27,30 @@ Future<AsyncValue<List<String>>> _reloadingFrom(List<String> previous) async {
   return reloading;
 }
 
+/// A refresh that failed while holding its previous value, built the same
+/// way as [_reloadingFrom].
+Future<AsyncValue<List<String>>> _failedHolding(List<String> previous) async {
+  final container = ProviderContainer();
+  addTearDown(container.dispose);
+  final trigger = StateProvider<int>((ref) => 0);
+  var next = Completer<List<String>>();
+  final rows = FutureProvider<List<String>>((ref) {
+    ref.watch(trigger);
+    return next.future;
+  });
+  container.listen(rows, (_, _) {});
+  next.complete(previous);
+  await container.read(rows.future);
+  next = Completer<List<String>>();
+  container.read(trigger.notifier).state++;
+  container.read(rows);
+  next.completeError(StateError('refresh failed'));
+  await pumpEventQueue();
+  final failed = container.read(rows);
+  expect(failed.hasError && failed.hasValue, isTrue);
+  return failed;
+}
+
 void main() {
   group('SelectionState', () {
     const base = SelectionState(
@@ -473,6 +497,13 @@ void main() {
         ids,
       );
       expect(controller.value.checkedIds, isEmpty);
+      expect(controller.rowsSettled.value, isTrue);
+    });
+
+    test('an error holding its previous value prunes to that value', () async {
+      final failed = await _failedHolding(['b']);
+      controller.pruneToSettled(failed, ids);
+      expect(controller.value.checkedIds, {'b'});
       expect(controller.rowsSettled.value, isTrue);
     });
 

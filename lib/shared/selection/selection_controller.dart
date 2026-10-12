@@ -243,8 +243,8 @@ class SelectionController extends ValueNotifier<SelectionState> {
   ) {
     _rowsSettled.value = rows.hasSettled;
     if (!rows.hasSettled) return;
-    final value = rows.value;
-    pruneTo(value == null ? const [] : idsOf(value).toList());
+    final settledRows = rows.value;
+    pruneTo(settledRows == null ? const [] : idsOf(settledRows).toList());
   }
 
   /// Leave selection mode and discard the selection.

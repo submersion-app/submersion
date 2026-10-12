@@ -1155,8 +1155,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     // Drop checked dives that fell out of the filtered, searched or sorted
     // list, so the count always matches what is on screen and a bulk action
-    // can never reach a dive the user cannot see. pruneToSettled is a no-op when
-    // nothing changed, which is what keeps this off a rebuild loop.
+    // can never reach a dive the user cannot see. pruneToSettled is a no-op
+    // when nothing changed, which is what keeps this off a rebuild loop.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _selection.pruneToSettled(
