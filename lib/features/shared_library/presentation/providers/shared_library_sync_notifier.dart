@@ -58,7 +58,15 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
   SharedLibraryStore get _store => _ref.read(sharedLibraryStoreProvider);
 
   void _scheduleAutoSync() {
-    if (!_ref.read(syncBehaviorProvider).autoSyncEnabled) return;
+    final bool enabled;
+    try {
+      enabled = _ref.read(syncBehaviorProvider).autoSyncEnabled;
+    } catch (e) {
+      // Preferences not readable yet: the launch sync covers it.
+      _log.debug('Auto sync skipped, preferences unavailable: $e');
+      return;
+    }
+    if (!enabled) return;
     _debounce?.cancel();
     _debounce = Timer(autoSyncDebounce, () async {
       if (!mounted) return;

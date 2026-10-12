@@ -226,6 +226,7 @@ class SharedLibraryService {
 
       // 4. Push.
       var pushed = 0;
+      var uploadAttempted = false;
       final remoteFiles = {
         for (final f in siteFiles) SharedLibraryTransport.siteIdOf(f): f.id,
       };
@@ -250,6 +251,7 @@ class SharedLibraryService {
           }
         }
         try {
+          uploadAttempted = true;
           final modified = await t.writeSite(doc);
           await _store.putSiteState(
             state.copyWith(
@@ -273,14 +275,19 @@ class SharedLibraryService {
       }
 
       // 6. Status.
+      // The read-only flag records the last upload's verdict; a sync that
+      // uploaded nothing leaves it as it was.
       await _store.setLibraryStatus(
         libraryId,
         lastSyncAt: _now(),
         clearError: true,
-        readOnlyDetected: readOnly,
+        readOnlyDetected: uploadAttempted ? readOnly : null,
       );
+      final effectiveReadOnly = uploadAttempted
+          ? readOnly
+          : library.readOnlyDetected;
       return SharedLibrarySyncResult(
-        status: readOnly
+        status: effectiveReadOnly
             ? SharedLibrarySyncStatus.readOnly
             : SharedLibrarySyncStatus.success,
         pulled: pulled,
@@ -335,45 +342,37 @@ class SharedLibraryService {
     final base =
         state ?? SharedSiteState(siteId: siteId, libraryId: library.id);
 
+    final bool changedLocal;
     if (merged.deleted) {
       if (hasRow) {
         await _remover(siteId: siteId, ownerDiverId: diverId);
       }
-      await _store.putSiteState(
-        base.copyWith(
-          clocks: merged.clocks,
-          deleted: true,
-          dirty: (state?.dirty ?? false) || outcome.needsUpload,
-          remoteModifiedTime: stamp,
-          lastEditorMemberId: newest?.memberId,
-          lastEditedAtMs: newest?.hlc.physicalTime,
-        ),
-      );
-      return hasRow;
-    }
-
-    final fields = hasRow && !(state?.deleted ?? false)
-        ? outcome.remoteWon
-        : merged.fields.keys.toSet();
-    if (fields.isNotEmpty) {
-      await _bridge.apply(
-        merged,
-        libraryId: library.id,
-        vocabularyDiverId: diverId,
-        fields: fields,
-      );
+      changedLocal = hasRow;
+    } else {
+      final fields = hasRow && !(state?.deleted ?? false)
+          ? outcome.remoteWon
+          : merged.fields.keys.toSet();
+      if (fields.isNotEmpty) {
+        await _bridge.apply(
+          merged,
+          libraryId: library.id,
+          vocabularyDiverId: diverId,
+          fields: fields,
+        );
+      }
+      changedLocal = fields.isNotEmpty;
     }
     await _store.putSiteState(
       base.copyWith(
         clocks: merged.clocks,
-        deleted: false,
+        deleted: merged.deleted,
         dirty: (state?.dirty ?? false) || outcome.needsUpload,
         remoteModifiedTime: stamp,
         lastEditorMemberId: newest?.memberId,
         lastEditedAtMs: newest?.hlc.physicalTime,
       ),
     );
-    return fields.isNotEmpty;
+    return changedLocal;
   }
 
   Future<SiteDocument> _documentFor(SharedSiteState state) async {

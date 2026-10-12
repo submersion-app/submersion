@@ -716,6 +716,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     await ref
         .read(sharedSitePublisherProvider)
         .deleteFromLibrary(siteId: site.id, diverId: diverId);
+    ref.invalidate(siteProvider(site.id));
     ref.invalidate(sitesProvider);
     ref.invalidate(sitesWithCountsProvider);
     if (!context.mounted) return;
