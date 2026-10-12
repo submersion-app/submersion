@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_progression_page.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
+import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_control_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -82,6 +84,54 @@ void main() {
       find.byKey(const ValueKey('trend-aggregation-runtime')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a runtime point opens its dive', (tester) async {
+    final pushed = <String>[];
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, _) => const InsightsProgressionPage(embedded: true),
+        ),
+        GoRoute(
+          path: '/dives/:id',
+          builder: (_, state) {
+            pushed.add(state.pathParameters['id']!);
+            return const Text('dive page');
+          },
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          depthProgressionTrendProvider.overrideWith((ref) async => series(20)),
+          runtimeTrendProvider.overrideWith((ref) async => series(20)),
+          bottomTimeTrendProvider.overrideWith((ref) async => series(20)),
+        ].cast(),
+        child: MaterialApp.router(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final runtime = tester.widget<TrendChartSection>(
+      find.ancestor(
+        of: find.text('Runtime Trend'),
+        matching: find.byType(TrendChartSection),
+      ),
+    );
+    runtime.onDiveSelected!('d7');
+    await tester.pumpAndSettle();
+
+    expect(pushed, ['d7']);
   });
 
   testWidgets('both charts start in per-dive mode', (tester) async {
