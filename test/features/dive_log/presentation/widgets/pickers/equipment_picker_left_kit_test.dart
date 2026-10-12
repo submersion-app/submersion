@@ -233,6 +233,26 @@ void main() {
       expect(find.text(_showLabel), findsOneWidget);
     });
 
+    testWidgets('a Retired filter finds a legacy row retired by isActive', (
+      tester,
+    ) async {
+      const legacy = EquipmentItem(
+        id: 'legacy',
+        name: 'Legacy Reg',
+        type: EquipmentType.regulator,
+        isActive: false,
+      );
+      await _pump(
+        tester,
+        all: const [_bcd, legacy],
+        filter: const EquipmentPickerFilter(status: EquipmentStatus.retired),
+      );
+      await _showLeftKit(tester);
+
+      expect(find.text('Legacy Reg'), findsOneWidget);
+      expect(find.text('Retired'), findsOneWidget);
+    });
+
     testWidgets('leaves out gear already on the dive', (tester) async {
       await _pump(tester, all: const [_bcd, _oldReg], selectedIds: {'old-reg'});
 

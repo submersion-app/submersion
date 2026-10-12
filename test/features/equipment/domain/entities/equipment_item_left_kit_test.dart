@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
 
 EquipmentItem _item(EquipmentStatus status, {bool isActive = true}) =>
     EquipmentItem(
@@ -39,6 +40,38 @@ void main() {
 
     test('wishlist gear never joined the kit, so it has not left it', () {
       expect(_item(EquipmentStatus.wanted, isActive: false).hasLeftKit, false);
+    });
+  });
+
+  group('effectiveStatus (#3210)', () {
+    test('a legacy row retired by isActive alone reads Retired', () {
+      expect(
+        _item(EquipmentStatus.active, isActive: false).effectiveStatus,
+        EquipmentStatus.retired,
+      );
+    });
+
+    test('gear in the kit keeps its stored status', () {
+      expect(
+        _item(EquipmentStatus.spare).effectiveStatus,
+        EquipmentStatus.spare,
+      );
+      expect(_item(EquipmentStatus.lost).effectiveStatus, EquipmentStatus.lost);
+    });
+
+    test('agrees with the departed badge wherever that names a status', () {
+      for (final status in EquipmentStatus.values) {
+        for (final isActive in [true, false]) {
+          final item = _item(status, isActive: isActive);
+          final badge = departedStatusOf(item);
+          if (badge == null) continue;
+          expect(
+            item.effectiveStatus,
+            badge,
+            reason: '${status.name}, isActive $isActive',
+          );
+        }
+      }
     });
   });
 }

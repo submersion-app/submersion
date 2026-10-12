@@ -32,7 +32,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dr
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_dropdown_label.dart';
@@ -805,7 +804,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 item: r,
                 label: labels[r.id],
                 note: r.hasLeftKit
-                    ? departedStatusOf(r)?.localizedName(context.l10n)
+                    ? r.effectiveStatus.localizedName(context.l10n)
                     : null,
               ),
             ),

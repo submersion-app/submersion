@@ -10,7 +10,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_a
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
@@ -89,7 +88,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
     final all = [
       if (showTypeLabel) item.type.localizedName(context.l10n),
       // Sold, Lost or Retired, as the equipment badges read it.
-      if (item.hasLeftKit) ?departedStatusOf(item)?.localizedName(context.l10n),
+      if (item.hasLeftKit) item.effectiveStatus.localizedName(context.l10n),
       ...parts,
     ];
     final text = all.isEmpty ? null : Text(all.join(' · '));
@@ -426,7 +425,8 @@ class EquipmentPickerSheet extends ConsumerWidget {
       equipment.where((e) => !selectedEquipmentIds.contains(e.id)),
     ).toList();
     final presentTypes = selectable.map((e) => e.type).toSet();
-    final presentStatuses = selectable.map((e) => e.status).toSet();
+    // The status each row reads, as the filter matches it (#3210).
+    final presentStatuses = selectable.map((e) => e.effectiveStatus).toSet();
 
     final chosen = await showEquipmentPickerFilterSheet(
       context,
