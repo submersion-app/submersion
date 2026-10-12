@@ -41,6 +41,9 @@ payload, so every service record is dropped on a real UDDF import.
   skip one already here or deleted here, link to the importing diver's tank
   holding the passport id.
 - The service-record payload gap is fixed in the same PR (a follow-up).
+- Also in this PR (a follow-up decided 2026-10-12): a service record's
+  service kind, the diver's custom service kinds and each item's service
+  clocks (schedules) travel in the full backup and restore, section 9.
 - The dives-only export and the simple `UddfImportService` are unchanged:
   neither has an `<applicationdata>` gear path.
 
@@ -182,3 +185,120 @@ Each test is written red first.
 - A passport id column on the equipment CSV.
 - Fills in the dives-only UDDF export.
 - Any UI, schema or sync change.
+- Edits a diver made to a built-in service kind's defaults, and the
+  per-diver hidden built-in kinds setting.
+
+## 9. Service kinds and clocks
+
+Found while planning: a UDDF backup drops each service record's
+`serviceKindId`, and carries neither the diver's custom service kinds nor any
+item's service schedules, so a restore brings back no clocks and records that
+satisfy none.
+
+### 9.1 Format
+
+```xml
+<applicationdata>
+  <submersion version="1.0">
+    <servicekinds>
+      <kind id="<kind id>">
+        <name>Burst disc</name>
+        <applicabletypes><type>tank</type></applicabletypes>
+        <intervaldays>365</intervaldays>
+        <intervaldives>100</intervaldives>
+        <intervalhours>50</intervalhours>
+        <exposureinterval unit="saltHours">50</exposureinterval>
+        <defaultcost>25</defaultcost>
+        <defaultcurrency>EUR</defaultcurrency>
+        <defaultcategory>inspection</defaultcategory>
+        <autoattach>true</autoattach>
+      </kind>
+    </servicekinds>
+    <equipment>
+      <item id="equip_<equipment id>">
+        <serviceschedules>
+          <schedule kindref="<kind id>">
+            <intervaldays>1095</intervaldays>
+            <exposureinterval unit="cycles">500</exposureinterval>
+            <defaultcost>40</defaultcost>
+            <defaultcurrency>USD</defaultcurrency>
+            <anchordate>2026-01-10T00:00:00.000Z</anchordate>
+            <anchorsetat>2026-01-11T08:00:00.000Z</anchorsetat>
+            <enabled>true</enabled>
+          </schedule>
+        </serviceschedules>
+      </item>
+    </equipment>
+    <servicerecords>
+      <record id="service_<record id>">
+        <servicekind><kind id></servicekind>
+      </record>
+    </servicerecords>
+  </submersion>
+</applicationdata>
+```
+
+- Kind ids are written as stored, with no prefix: a built-in id
+  (`hydro`, `o2-clean`) and a custom kind's uuid read the same way, so a
+  record or schedule ref never needs to know which it is.
+- Only custom kinds the diver can see are written
+  (`ServiceKindRepository.getAllKinds(diverId:)` minus built-ins). Built-in
+  ids are fixed in every database.
+- Every optional value is omitted when null; `exposureinterval` repeats once
+  per unit present; dates are UTC instants.
+- Schedules nest in their `<item>` because a schedule cannot exist without
+  one (required `equipment_id`, cascade delete), and the item map survives
+  the wizard's flattening.
+
+### 9.2 Export
+
+`List<ServiceKind>? serviceKinds` and
+`Map<String, List<ServiceSchedule>> serviceSchedulesByItem` thread through
+`ExportService`, `UddfFullExportService` and `buildApplicationData` next to
+`fills`. Both export provider paths read the validated diver's custom kinds
+and the schedules of every exported item
+(`getSchedulesForEquipmentIds`). Writers live in a new
+`uddf_service_clock_writers.dart`.
+
+### 9.3 Import
+
+- **Parse.** `<servicekinds>` becomes `UddfImportResult.serviceKinds` (maps);
+  each item's `<serviceschedules>` becomes `itemData['serviceSchedules']`; a
+  record's `<servicekind>` becomes `recordData['serviceKindRef']`.
+- **Wizard.** Kinds ride as payload metadata under
+  `ImportPayload.serviceKindsKey`, like custom site types: the parser sets
+  it, the batch merger folds it by id, and the adapter reads it back onto
+  `UddfImportResult.serviceKinds`. They are definitions, so they get no
+  review group.
+- **Repositories.** `ImportRepositories` gains optional
+  `serviceKindRepository` and `serviceScheduleRepository`, wired in
+  `universalImportRepositories` and asserted in
+  `universal_adapter_repositories_test.dart`. Without them kinds and clocks
+  are skipped and record kinds stay null.
+- **Kinds,** before equipment so auto-attach sees them as the source library
+  did: each file kind maps to the visible kind with the same id, else the
+  visible kind with the same name (case-insensitive), else a new kind owned
+  by the importing diver under a fresh id. A ref then resolves through that
+  mapping, or to itself when a visible kind (a built-in) has that id, or to
+  null.
+- **Clocks,** only for items the import created (never a matched
+  duplicate, the service-record rule): each schedule whose kind resolves
+  replaces the item's unclaimed clock of the same kind (the auto-attached or
+  legacy clock `createEquipment` just made), keeping that clock's id;
+  otherwise a new clock is created. One clock per kind per item.
+- **Records** take `serviceKindId` from the resolved ref, or null.
+
+### 9.4 Testing
+
+- Writer and parser unit tests for kinds, schedules and the record kind:
+  shape, omitted nulls, exposure units, dates.
+- Kind mapping: by id, by name, created fresh, owned by the diver, a ref to
+  a built-in, an unresolvable ref.
+- Clock merge: a restored tank has one `hydro` clock carrying the backup's
+  interval and baseline (the auto-attached clock, updated); a kind the item
+  had no clock for gets one; a matched duplicate's clocks are untouched.
+- The wizard round trip (`importThroughWizard`) restores a custom kind, a
+  clock on it and a record pointing at it, and a second import duplicates
+  none of them.
+- The export provider capture test also asserts the kinds and schedules
+  reach `ExportService`.

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task, inline in this session. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** A full UDDF backup carries every visible cylinder fill and each item's passport id, and a UDDF import restores them with the fills CSV rules, plus the UDDF service records the wizard drops today.
+**Goal:** A full UDDF backup carries every visible cylinder fill and each item's passport id, and a UDDF import restores them with the fills CSV rules, plus the UDDF service records the wizard drops today, their service kinds, the diver's custom kinds and each item's service clocks.
 
 **Architecture:** A new `UddfFillWriters` (writer and parser, SI units) adds a `<cylinderfills>` section to `<applicationdata><submersion>`, and the `<item>` writer gains `<passportid>`. On import the fill maps use the fills CSV parser's keys, so `CsvFillImporter` stores them unchanged. A guarded `adoptImportedPassportId` runs between equipment and fills so a restore links. `UddfImportParser` maps fills and service records into the wizard payload.
 
@@ -1411,7 +1411,826 @@ git commit -m "fix(universal-import): carry UDDF fills and service records into 
 
 ---
 
-### Task 8: Docs, full checks
+### Task 8: Service kinds, clocks and record kinds in the full export
+
+Spec section 9.1 and 9.2.
+
+**Files:**
+- Create: `lib/core/services/export/uddf/uddf_service_clock_writers.dart`
+- Modify: `lib/core/services/export/uddf/uddf_export_builders.dart` (`buildApplicationData`: `serviceKinds`, `serviceSchedulesByItem`; `<serviceschedules>` in `<item>`; `<servicekind>` in `<record>`)
+- Modify: `lib/core/services/export/uddf/uddf_full_export_service.dart`, `lib/core/services/export/export_service.dart` (thread both, beside `fills`)
+- Modify: `lib/features/settings/presentation/providers/export_providers.dart` (both full UDDF paths)
+- Test: `test/core/services/export/uddf/uddf_service_clock_writers_test.dart`; extend `test/features/settings/presentation/providers/export_uddf_fills_test.dart`
+
+**Interfaces:**
+- Produces: `abstract final class UddfServiceClockWriters` with
+  `static void writeKinds(XmlBuilder b, List<ServiceKind> kinds)`,
+  `static void writeSchedules(XmlBuilder b, List<ServiceSchedule> schedules)`,
+  `static List<Map<String, dynamic>> parseKinds(XmlElement submersion)`,
+  `static List<Map<String, dynamic>> parseSchedules(XmlElement item)`.
+  Kind map keys: `id`, `name`, `applicableTypes` (`List<String>`), `defaultIntervalDays` (int), `defaultIntervalDives` (int), `defaultIntervalHours` (double), `exposureIntervals` (`Map<String, double>`), `defaultCost`, `defaultCurrency`, `defaultCategory` (String), `autoAttach` (bool).
+  Schedule map keys: `kindRef`, `intervalDays`, `intervalDives`, `intervalHours`, `exposureIntervals`, `defaultCost`, `defaultCurrency`, `anchorDate` (local DateTime), `anchorSetAt`, `enabled` (bool).
+  Named parameters `serviceKinds:` and `serviceSchedulesByItem:` on `ExportService.exportAllDataToUddf` / `saveAllDataToUddfFile` and `UddfFullExportService.generateAllDataXmlForTest`.
+
+- [ ] **Step 1: Write the failing test**
+
+```dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
+import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:xml/xml.dart';
+
+/// Service kinds, clocks and record kinds in a full UDDF backup (#2651).
+void main() {
+  final kind = ServiceKind(
+    id: 'k-burst',
+    diverId: 'me',
+    name: 'Burst disc',
+    applicableTypes: const [EquipmentType.tank],
+    defaultIntervalDays: 365,
+    defaultIntervalHours: 50.5,
+    exposureIntervals: const {ExposureUnit.saltHours: 50},
+    defaultCost: 25,
+    defaultCurrency: 'EUR',
+    defaultCategory: ServiceCategory.inspection,
+    autoAttach: true,
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+  final clock = ServiceSchedule(
+    id: 'auto-hydro-tank-1',
+    equipmentId: 'tank-1',
+    serviceKindId: 'hydro',
+    intervalDays: 1095,
+    exposureIntervals: const {ExposureUnit.cycles: 500},
+    anchorDate: DateTime(2026, 1, 10),
+    anchorSetAt: DateTime(2026, 1, 11, 8),
+    enabled: false,
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+  const tank = EquipmentItem(
+    id: 'tank-1',
+    name: 'AL80',
+    type: EquipmentType.tank,
+  );
+  final record = ServiceRecord(
+    id: 's1',
+    equipmentId: 'tank-1',
+    serviceCategory: ServiceCategory.inspection,
+    serviceKindId: 'k-burst',
+    serviceDate: DateTime(2026, 5, 1),
+    createdAt: DateTime(2026, 5, 1),
+    updatedAt: DateTime(2026, 5, 1),
+  );
+  final dive = Dive(
+    id: 'dive-1',
+    diveNumber: 1,
+    dateTime: DateTime(2026, 6, 2, 10),
+    bottomTime: const Duration(minutes: 45),
+    maxDepth: 18.0,
+    tanks: const [],
+    profile: const [],
+    gear: const [],
+    notes: '',
+    photoIds: const [],
+    sightings: const [],
+    weights: const [],
+    tags: const [],
+  );
+
+  Future<XmlDocument> backup() async => XmlDocument.parse(
+    await UddfFullExportService().generateAllDataXmlForTest(
+      dives: [dive],
+      equipment: [tank],
+      serviceRecords: [record],
+      serviceKinds: [kind],
+      serviceSchedulesByItem: {
+        'tank-1': [clock],
+      },
+    ),
+  );
+
+  test('kinds, clocks and the record kind round trip through the parser', () async {
+    final doc = await backup();
+    final submersion = doc.findAllElements('submersion').single;
+    final kinds = UddfServiceClockWriters.parseKinds(submersion);
+    expect(kinds.single, {
+      'id': 'k-burst',
+      'name': 'Burst disc',
+      'applicableTypes': ['tank'],
+      'defaultIntervalDays': 365,
+      'defaultIntervalHours': 50.5,
+      'exposureIntervals': {'saltHours': 50.0},
+      'defaultCost': 25.0,
+      'defaultCurrency': 'EUR',
+      'defaultCategory': 'inspection',
+      'autoAttach': true,
+    });
+    final item = doc.findAllElements('item').single;
+    final schedules = UddfServiceClockWriters.parseSchedules(item);
+    expect(schedules.single, {
+      'kindRef': 'hydro',
+      'intervalDays': 1095,
+      'exposureIntervals': {'cycles': 500.0},
+      'anchorDate': DateTime(2026, 1, 10),
+      'anchorSetAt': DateTime(2026, 1, 11, 8),
+      'enabled': false,
+    });
+
+    final result = await UddfFullImportService().importAllDataFromUddf(
+      doc.toXmlString(),
+    );
+    expect(result.serviceKinds.single['id'], 'k-burst');
+    expect(result.equipment.single['serviceSchedules'], hasLength(1));
+    expect(result.serviceRecords.single['serviceKindRef'], 'k-burst');
+  });
+
+  test('no kinds and no clocks write no sections', () async {
+    final xml = await UddfFullExportService().generateAllDataXmlForTest(
+      dives: [dive],
+      equipment: [tank],
+    );
+    expect(xml, isNot(contains('servicekinds')));
+    expect(xml, isNot(contains('serviceschedules')));
+  });
+}
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `flutter test test/core/services/export/uddf/uddf_service_clock_writers_test.dart`
+Expected: FAIL to compile.
+
+- [ ] **Step 3: Write the writers and parsers**
+
+```dart
+import 'package:xml/xml.dart';
+
+import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+
+/// Service kinds and clocks in a full UDDF backup (issue #2651, spec
+/// section 9). Only custom kinds are written: built-in ids are fixed in
+/// every database. A kind id is written as stored, built-in or custom, so a
+/// ref never needs to know which it is. Clocks nest in their item.
+abstract final class UddfServiceClockWriters {
+  static void writeKinds(XmlBuilder builder, List<ServiceKind> kinds) {
+    if (kinds.isEmpty) return;
+    builder.element(
+      'servicekinds',
+      nest: () {
+        for (final kind in kinds) {
+          builder.element(
+            'kind',
+            attributes: {'id': kind.id},
+            nest: () {
+              builder.element('name', nest: kind.name);
+              if (kind.applicableTypes.isNotEmpty) {
+                builder.element(
+                  'applicabletypes',
+                  nest: () {
+                    for (final t in kind.applicableTypes) {
+                      builder.element('type', nest: t.name);
+                    }
+                  },
+                );
+              }
+              _value(builder, 'intervaldays', kind.defaultIntervalDays);
+              _value(builder, 'intervaldives', kind.defaultIntervalDives);
+              _value(builder, 'intervalhours', kind.defaultIntervalHours);
+              _exposure(builder, kind.exposureIntervals);
+              _value(builder, 'defaultcost', kind.defaultCost);
+              _value(builder, 'defaultcurrency', kind.defaultCurrency);
+              _value(builder, 'defaultcategory', kind.defaultCategory?.name);
+              builder.element('autoattach', nest: kind.autoAttach.toString());
+            },
+          );
+        }
+      },
+    );
+  }
+
+  static void writeSchedules(
+    XmlBuilder builder,
+    List<ServiceSchedule> schedules,
+  ) {
+    if (schedules.isEmpty) return;
+    builder.element(
+      'serviceschedules',
+      nest: () {
+        for (final s in schedules) {
+          builder.element(
+            'schedule',
+            attributes: {'kindref': s.serviceKindId},
+            nest: () {
+              _value(builder, 'intervaldays', s.intervalDays);
+              _value(builder, 'intervaldives', s.intervalDives);
+              _value(builder, 'intervalhours', s.intervalHours);
+              _exposure(builder, s.exposureIntervals);
+              _value(builder, 'defaultcost', s.defaultCost);
+              _value(builder, 'defaultcurrency', s.defaultCurrency);
+              _value(
+                builder,
+                'anchordate',
+                s.anchorDate?.toUtc().toIso8601String(),
+              );
+              _value(
+                builder,
+                'anchorsetat',
+                s.anchorSetAt?.toUtc().toIso8601String(),
+              );
+              builder.element('enabled', nest: s.enabled.toString());
+            },
+          );
+        }
+      },
+    );
+  }
+
+  static void _value(XmlBuilder builder, String name, Object? value) {
+    if (value == null) return;
+    final text = value.toString();
+    if (text.isEmpty) return;
+    builder.element(name, nest: text);
+  }
+
+  static void _exposure(XmlBuilder builder, Map<ExposureUnit, double> map) {
+    for (final entry in map.entries) {
+      builder.element(
+        'exposureinterval',
+        attributes: {'unit': entry.key.dbValue},
+        nest: entry.value.toString(),
+      );
+    }
+  }
+
+  static List<Map<String, dynamic>> parseKinds(XmlElement submersion) {
+    final section = submersion.findElements('servicekinds').firstOrNull;
+    if (section == null) return const [];
+    return [
+      for (final e in section.findElements('kind'))
+        if (_parseKind(e) case final kind?) kind,
+    ];
+  }
+
+  static Map<String, dynamic>? _parseKind(XmlElement e) {
+    final id = e.getAttribute('id')?.trim();
+    final name = _text(e, 'name');
+    if (id == null || id.isEmpty || name == null) return null;
+    final types = [
+      for (final t
+          in e
+              .findElements('applicabletypes')
+              .expand((a) => a.findElements('type')))
+        if (t.innerText.trim() case final type when type.isNotEmpty) type,
+    ];
+    return {
+      'id': id,
+      'name': name,
+      if (types.isNotEmpty) 'applicableTypes': types,
+      if (_int(e, 'intervaldays') case final v?) 'defaultIntervalDays': v,
+      if (_int(e, 'intervaldives') case final v?) 'defaultIntervalDives': v,
+      if (_double(e, 'intervalhours') case final v?) 'defaultIntervalHours': v,
+      if (_exposures(e) case final m when m.isNotEmpty) 'exposureIntervals': m,
+      if (_double(e, 'defaultcost') case final v?) 'defaultCost': v,
+      if (_text(e, 'defaultcurrency') case final v?) 'defaultCurrency': v,
+      if (_text(e, 'defaultcategory') case final v?) 'defaultCategory': v,
+      'autoAttach': _text(e, 'autoattach')?.toLowerCase() == 'true',
+    };
+  }
+
+  static List<Map<String, dynamic>> parseSchedules(XmlElement item) {
+    final section = item.findElements('serviceschedules').firstOrNull;
+    if (section == null) return const [];
+    return [
+      for (final e in section.findElements('schedule'))
+        if (e.getAttribute('kindref')?.trim() case final ref?
+            when ref.isNotEmpty)
+          {
+            'kindRef': ref,
+            if (_int(e, 'intervaldays') case final v?) 'intervalDays': v,
+            if (_int(e, 'intervaldives') case final v?) 'intervalDives': v,
+            if (_double(e, 'intervalhours') case final v?) 'intervalHours': v,
+            if (_exposures(e) case final m when m.isNotEmpty)
+              'exposureIntervals': m,
+            if (_double(e, 'defaultcost') case final v?) 'defaultCost': v,
+            if (_text(e, 'defaultcurrency') case final v?)
+              'defaultCurrency': v,
+            if (_date(e, 'anchordate') case final v?) 'anchorDate': v,
+            if (_date(e, 'anchorsetat') case final v?) 'anchorSetAt': v,
+            'enabled': _text(e, 'enabled')?.toLowerCase() != 'false',
+          },
+    ];
+  }
+
+  static Map<String, double> _exposures(XmlElement e) => {
+    for (final x in e.findElements('exposureinterval'))
+      if ((x.getAttribute('unit')?.trim(), double.tryParse(x.innerText.trim()))
+          case (final String unit, final double value)
+          when ExposureUnit.fromDbValue(unit) != null)
+        unit: value,
+  };
+
+  static String? _text(XmlElement e, String name) =>
+      UddfImportParsers.getElementText(e, name);
+  static int? _int(XmlElement e, String name) =>
+      int.tryParse(_text(e, name) ?? '');
+  static double? _double(XmlElement e, String name) =>
+      double.tryParse(_text(e, name) ?? '');
+  static DateTime? _date(XmlElement e, String name) =>
+      DateTime.tryParse(_text(e, name) ?? '')?.toLocal();
+}
+```
+
+- [ ] **Step 4: Wire the builders and the plumbing**
+
+In `buildApplicationData` add `List<ServiceKind>? serviceKinds,` and `Map<String, List<ServiceSchedule>> serviceSchedulesByItem = const {},` after `fills`; add `(serviceKinds?.isNotEmpty ?? false) ||` to `hasData`; write the kinds just before the service records block:
+
+```dart
+            // Custom service kinds (issue #2651), before anything refers
+            // to them.
+            UddfServiceClockWriters.writeKinds(builder, serviceKinds ?? const []);
+```
+
+inside the `<item>` nest, after the `<passportid>` lines:
+
+```dart
+                        // The item's service clocks (issue #2651).
+                        UddfServiceClockWriters.writeSchedules(
+                          builder,
+                          serviceSchedulesByItem[item.id] ?? const [],
+                        );
+```
+
+and in the `<record>` nest after `servicecategory`:
+
+```dart
+                        if (record.serviceKindId case final kind?) {
+                          builder.element('servicekind', nest: kind);
+                        }
+```
+
+Thread `serviceKinds` and `serviceSchedulesByItem` through the same four `UddfFullExportService` signatures and two `ExportService` methods as `fills` in Task 3 (`Map<String, List<ServiceSchedule>> serviceSchedulesByItem = const {}` as the default everywhere).
+
+In `export_providers.dart`, beside `_diverFills`:
+
+```dart
+  /// The validated diver's custom service kinds (issue #2651); built-ins
+  /// are fixed in every database and never exported.
+  Future<List<ServiceKind>> _diverServiceKinds() async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    final kinds = await _ref
+        .read(serviceKindRepositoryProvider)
+        .getAllKinds(diverId: diverId);
+    return [for (final k in kinds) if (!k.isBuiltIn) k];
+  }
+```
+
+and in both full UDDF calls:
+
+```dart
+        serviceKinds: await _diverServiceKinds(),
+        serviceSchedulesByItem: await _ref
+            .read(serviceScheduleRepositoryProvider)
+            .getSchedulesForEquipmentIds([for (final e in equipment) e.id]),
+```
+
+Extend `_CapturingExportService` in `export_uddf_fills_test.dart` to capture `#serviceKinds` and `#serviceSchedulesByItem`, create in `setUp` one custom kind for `me` (`ServiceKindRepository().createKind(...)`), and assert in both tests that `export.serviceKinds` holds only it (no built-ins) and `export.serviceSchedulesByItem` is a map (empty with no equipment).
+
+- [ ] **Step 5: Run the tests**
+
+Run: `flutter test test/core/services/export/uddf/ test/features/settings/presentation/providers/`
+Expected: PASS. (The full parser fields `serviceKinds`, `serviceSchedules` and `serviceKindRef` arrive in Task 9; until then mark the last three `expect`s of the round-trip test as the Task 9 red test by moving that test into Task 9's file if they fail here.)
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add lib/core/services/export/ lib/features/settings/presentation/providers/export_providers.dart test/core/services/export/uddf/uddf_service_clock_writers_test.dart test/features/settings/presentation/providers/export_uddf_fills_test.dart
+git commit -m "feat(equipment): write service kinds, clocks and record kinds in the full UDDF backup"
+```
+
+---
+
+### Task 9: Restore service kinds, clocks and record kinds
+
+Spec section 9.3.
+
+**Files:**
+- Modify: `lib/core/services/export/models/uddf_import_result.dart` (`serviceKinds` field, in `isEmpty`, the count and `copyWith`-style rebuild, following `customSiteTypes`)
+- Modify: `lib/core/services/export/uddf/uddf_full_import_service.dart` (`serviceKinds: UddfServiceClockWriters.parseKinds(submersionElement)`)
+- Modify: `lib/core/services/export/uddf/uddf_import_parsers.dart` (`parseEquipmentItem`: `item['serviceSchedules']`; `parseServiceRecord`: `record['serviceKindRef']`)
+- Modify: `lib/features/universal_import/data/models/import_payload.dart` (`static const serviceKindsKey = 'serviceKinds';`)
+- Modify: `lib/features/universal_import/data/parsers/uddf_import_parser.dart` (metadata)
+- Modify: `lib/features/universal_import/data/services/payload_merger.dart` (fold by id, like `customSiteTypesKey`)
+- Modify: `lib/features/import_wizard/data/adapters/universal_adapter.dart` (`serviceKinds: _metadataRows(payload, ImportPayload.serviceKindsKey)`; `serviceKindRepository`, `serviceScheduleRepository` in `universalImportRepositories`)
+- Modify: `lib/features/dive_import/data/services/uddf_entity_importer.dart` (`ImportRepositories` fields; kinds before equipment; clocks after equipment; record kinds)
+- Create: `lib/features/dive_import/data/services/import_service_clocks.dart`
+- Test: `test/features/dive_import/data/services/import_service_clocks_test.dart`; extend `test/features/import_wizard/data/adapters/universal_adapter_uddf_fills_test.dart`, `test/features/import_wizard/data/adapters/universal_adapter_repositories_test.dart`, `test/features/universal_import/data/services/payload_merger_test.dart`
+
+**Interfaces:**
+- Consumes: Task 8's map keys.
+- Produces:
+  - `class ServiceKindResolver { String? resolve(String? ref); }`
+  - `Future<ServiceKindResolver> importServiceKinds(List<Map<String, dynamic>> kinds, ServiceKindRepository repository, {required String diverId})`
+  - `Future<int> restoreServiceClocks(List<Map<String, dynamic>> items, Set<int> selected, Map<String, String> equipmentIdMapping, Map<String, String> preResolvedEquipmentIds, ServiceScheduleRepository repository, ServiceKindResolver kinds)`
+
+- [ ] **Step 1: Write the failing test**
+
+```dart
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_import/data/services/import_service_clocks.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+
+import '../../../../helpers/test_database.dart';
+
+/// Kinds map by id, then name, then are created; clocks merge by kind with
+/// the clocks createEquipment seeds (issue #2651).
+void main() {
+  late AppDatabase db;
+  final kinds = ServiceKindRepository();
+  final schedules = ServiceScheduleRepository();
+
+  setUp(() async {
+    db = await setUpTestDatabase();
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(id: 'd1', name: 'D', createdAt: t, updatedAt: t),
+        );
+  });
+  tearDown(tearDownTestDatabase);
+
+  test('a kind maps by id, then by name, else is created for the diver', () async {
+    await kinds.createKind(
+      ServiceKind(
+        id: 'k-same-id',
+        diverId: 'd1',
+        name: 'Valve rebuild',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    await kinds.createKind(
+      ServiceKind(
+        id: 'k-local',
+        diverId: 'd1',
+        name: 'Burst Disc',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    final resolver = await importServiceKinds(
+      [
+        {'id': 'k-same-id', 'name': 'Renamed elsewhere'},
+        {'id': 'k-file', 'name': 'burst disc'},
+        {
+          'id': 'k-new',
+          'name': 'Scooter seals',
+          'applicableTypes': ['other'],
+          'defaultIntervalDays': 180,
+          'exposureIntervals': {'cycles': 40.0},
+          'autoAttach': false,
+        },
+      ],
+      kinds,
+      diverId: 'd1',
+    );
+    expect(resolver.resolve('k-same-id'), 'k-same-id');
+    expect(resolver.resolve('k-file'), 'k-local');
+    final created = resolver.resolve('k-new')!;
+    expect(created, isNot('k-new'));
+    final stored = (await kinds.getKindById(created))!;
+    expect(stored.diverId, 'd1');
+    expect(stored.name, 'Scooter seals');
+    expect(stored.defaultIntervalDays, 180);
+    expect(stored.exposureIntervals, {ExposureUnit.cycles: 40.0});
+    expect(resolver.resolve('hydro'), 'hydro');
+    expect(resolver.resolve('nowhere'), isNull);
+    expect(resolver.resolve(null), isNull);
+
+    // The same file again creates nothing more.
+    final before = (await kinds.getAllKinds(diverId: 'd1')).length;
+    await importServiceKinds(
+      [
+        {'id': 'k-new', 'name': 'Scooter seals'},
+      ],
+      kinds,
+      diverId: 'd1',
+    );
+    expect((await kinds.getAllKinds(diverId: 'd1')).length, before);
+  });
+
+  test('a restored clock replaces the seeded clock of its kind, keeps its '
+      'id, and a matched duplicate is left alone', () async {
+    final repo = EquipmentRepository();
+    final created = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'AL80', type: EquipmentType.tank, diverId: 'd1'),
+    );
+    final matched = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Old', type: EquipmentType.tank, diverId: 'd1'),
+    );
+    final seeded = (await schedules.getSchedulesForEquipment(created.id))
+        .where((s) => s.serviceKindId == 'hydro')
+        .single;
+    final matchedBefore = await schedules.getSchedulesForEquipment(matched.id);
+
+    final resolver = await importServiceKinds(const [], kinds, diverId: 'd1');
+    final items = [
+      {
+        'uddfId': 'equip_a',
+        'serviceSchedules': [
+          {
+            'kindRef': 'hydro',
+            'intervalDays': 1095,
+            'anchorDate': DateTime(2026, 1, 10),
+            'enabled': false,
+          },
+          {'kindRef': 'o2-clean', 'intervalDays': 365},
+          {'kindRef': 'nowhere', 'intervalDays': 1},
+        ],
+      },
+      {
+        'uddfId': 'equip_b',
+        'serviceSchedules': [
+          {'kindRef': 'hydro', 'intervalDays': 1},
+        ],
+      },
+    ];
+    final count = await restoreServiceClocks(
+      items,
+      {0, 1},
+      {'equip_a': created.id, 'equip_b': matched.id},
+      {'equip_b': matched.id},
+      schedules,
+      resolver,
+    );
+    expect(count, 2);
+    final after = await schedules.getSchedulesForEquipment(created.id);
+    final hydro = after.where((s) => s.serviceKindId == 'hydro').toList();
+    expect(hydro, hasLength(1));
+    expect(hydro.single.id, seeded.id);
+    expect(hydro.single.intervalDays, 1095);
+    expect(hydro.single.anchorDate, DateTime(2026, 1, 10));
+    expect(hydro.single.enabled, isFalse);
+    expect(
+      after.where((s) => s.serviceKindId == 'o2-clean').single.intervalDays,
+      365,
+    );
+    expect(await schedules.getSchedulesForEquipment(matched.id), matchedBefore);
+  });
+}
+```
+
+(Check `EquipmentItem`'s const constructor and `createEquipment`'s return type before running; `o2-clean` must not be an auto-attach kind for tanks for the "new clock" assertion to mean what it says, so if it is, swap it for a built-in kind that is not, read from `service_tables.dart`.)
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `flutter test test/features/dive_import/data/services/import_service_clocks_test.dart`
+Expected: FAIL to compile.
+
+- [ ] **Step 3: Write `import_service_clocks.dart`**
+
+```dart
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/equipment/data/repositories/service_kind_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+
+const _log = LoggerService('importServiceClocks');
+
+/// Resolves a kind ref from a backup to a kind in this library: through the
+/// file's own kinds as they were mapped, else to itself when a visible kind
+/// (a built-in) has that id, else to nothing.
+class ServiceKindResolver {
+  const ServiceKindResolver(this._mapped, this._localIds);
+
+  final Map<String, String> _mapped;
+  final Set<String> _localIds;
+
+  String? resolve(String? ref) {
+    if (ref == null || ref.isEmpty) return null;
+    return _mapped[ref] ?? (_localIds.contains(ref) ? ref : null);
+  }
+}
+
+/// Imports a backup's custom service kinds for [diverId] (issue #2651):
+/// each maps to the visible kind with its id, else the visible kind with
+/// its name (case-insensitive), else a new kind owned by the diver.
+Future<ServiceKindResolver> importServiceKinds(
+  List<Map<String, dynamic>> kinds,
+  ServiceKindRepository repository, {
+  required String diverId,
+}) async {
+  final visible = await repository.getAllKinds(diverId: diverId);
+  final localIds = {for (final k in visible) k.id};
+  final byName = {for (final k in visible) k.name.toLowerCase(): k.id};
+  final mapped = <String, String>{};
+  final now = DateTime.now();
+  for (final data in kinds) {
+    final id = data['id'] as String?;
+    final name = (data['name'] as String?)?.trim();
+    if (id == null || name == null || name.isEmpty) continue;
+    if (localIds.contains(id)) {
+      mapped[id] = id;
+      continue;
+    }
+    if (byName[name.toLowerCase()] case final existing?) {
+      mapped[id] = existing;
+      continue;
+    }
+    try {
+      final created = await repository.createKind(
+        ServiceKind(
+          id: '',
+          diverId: diverId,
+          name: name,
+          applicableTypes: [
+            for (final t in (data['applicableTypes'] as List?) ?? const [])
+              if (EquipmentType.values.asNameMap()[t] case final type?) type,
+          ],
+          defaultIntervalDays: data['defaultIntervalDays'] as int?,
+          defaultIntervalDives: data['defaultIntervalDives'] as int?,
+          defaultIntervalHours: (data['defaultIntervalHours'] as num?)
+              ?.toDouble(),
+          exposureIntervals: _exposures(data['exposureIntervals']),
+          defaultCost: (data['defaultCost'] as num?)?.toDouble(),
+          defaultCurrency: data['defaultCurrency'] as String?,
+          defaultCategory: ServiceCategory.values.asNameMap()[
+              data['defaultCategory']],
+          autoAttach: data['autoAttach'] as bool? ?? false,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      mapped[id] = created.id;
+      localIds.add(created.id);
+      byName[name.toLowerCase()] = created.id;
+    } catch (e) {
+      _log.warning('Could not import service kind $name: $e');
+    }
+  }
+  return ServiceKindResolver(mapped, localIds);
+}
+
+/// Restores the clocks a backup carries on its items (issue #2651), only
+/// for items this import created: a duplicate matched to an existing row
+/// keeps its own clocks, as it keeps its service records. Each clock
+/// replaces the item's unclaimed clock of the same kind (one
+/// createEquipment just seeded), keeping its id, or is created. Returns how
+/// many clocks were written.
+Future<int> restoreServiceClocks(
+  List<Map<String, dynamic>> items,
+  Set<int> selected,
+  Map<String, String> equipmentIdMapping,
+  Map<String, String> preResolvedEquipmentIds,
+  ServiceScheduleRepository repository,
+  ServiceKindResolver kinds,
+) async {
+  var count = 0;
+  for (final (i, item) in items.indexed) {
+    if (!selected.contains(i)) continue;
+    final uddfId = item['uddfId'] as String?;
+    final rows = item['serviceSchedules'];
+    if (uddfId == null || rows is! List || rows.isEmpty) continue;
+    final equipmentId = equipmentIdMapping[uddfId];
+    if (equipmentId == null ||
+        preResolvedEquipmentIds[uddfId] == equipmentId) {
+      continue;
+    }
+    final unclaimed = [...await repository.getSchedulesForEquipment(equipmentId)];
+    final now = DateTime.now();
+    for (final row in rows.whereType<Map<String, dynamic>>()) {
+      final kindId = kinds.resolve(row['kindRef'] as String?);
+      if (kindId == null) continue;
+      final slot = unclaimed.where((s) => s.serviceKindId == kindId).firstOrNull;
+      if (slot != null) unclaimed.remove(slot);
+      final schedule = ServiceSchedule(
+        id: slot?.id ?? '',
+        equipmentId: equipmentId,
+        serviceKindId: kindId,
+        intervalDays: row['intervalDays'] as int?,
+        intervalDives: row['intervalDives'] as int?,
+        intervalHours: (row['intervalHours'] as num?)?.toDouble(),
+        exposureIntervals: _exposures(row['exposureIntervals']),
+        defaultCost: (row['defaultCost'] as num?)?.toDouble(),
+        defaultCurrency: row['defaultCurrency'] as String?,
+        anchorDate: row['anchorDate'] as DateTime?,
+        anchorSetAt: row['anchorSetAt'] as DateTime?,
+        enabled: row['enabled'] as bool? ?? true,
+        createdAt: slot?.createdAt ?? now,
+        updatedAt: now,
+      );
+      try {
+        if (slot != null) {
+          await repository.updateSchedule(schedule);
+        } else {
+          await repository.createSchedule(schedule);
+        }
+        count++;
+      } catch (e) {
+        _log.warning('Could not restore a $kindId clock on $equipmentId: $e');
+      }
+    }
+  }
+  return count;
+}
+
+Map<ExposureUnit, double> _exposures(Object? raw) => {
+  if (raw is Map)
+    for (final entry in raw.entries)
+      if ((ExposureUnit.fromDbValue('${entry.key}'), entry.value)
+          case (final ExposureUnit unit, final num value))
+        unit: value.toDouble(),
+};
+```
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `flutter test test/features/dive_import/data/services/import_service_clocks_test.dart`
+Expected: PASS.
+
+- [ ] **Step 5: Wire parse, wizard, repositories and importer**
+
+1. `UddfImportResult`: `final List<Map<String, dynamic>> serviceKinds;` (default `const []`), in `isEmpty` and rebuilt everywhere `customSiteTypes` is.
+2. `UddfFullImportService`: `serviceKinds: UddfServiceClockWriters.parseKinds(submersionElement)` (an empty list when there is no `<submersion>`).
+3. `parseEquipmentItem`: `item['serviceSchedules'] = UddfServiceClockWriters.parseSchedules(itemElement);`. `parseServiceRecord`: `record['serviceKindRef'] = getElementText(recordElement, 'servicekind');`.
+4. `ImportPayload.serviceKindsKey`; `UddfImportParser` metadata `if (result.serviceKinds.isNotEmpty) ImportPayload.serviceKindsKey: result.serviceKinds,`; `PayloadMerger` folds it by `id` exactly as `customSiteTypesKey` (a `serviceKinds` map, `putIfAbsent`, written back when non-empty); `UniversalAdapter._payloadToUddfResult` reads `serviceKinds: _metadataRows(payload, ImportPayload.serviceKindsKey)`.
+5. `ImportRepositories`: optional `final ServiceKindRepository? serviceKindRepository;` and `final ServiceScheduleRepository? serviceScheduleRepository;` with a doc comment in the existing style; `universalImportRepositories` passes `ref.read(serviceKindRepositoryProvider)` and `ref.read(serviceScheduleRepositoryProvider)`; `universal_adapter_repositories_test.dart` asserts both are non-null.
+6. `UddfEntityImporter.import`: before the equipment stage
+
+```dart
+    // Custom service kinds (issue #2651) land before equipment, so
+    // auto-attach sees them as the source library did.
+    final kindResolver = !equipmentRan ||
+            repositories.serviceKindRepository == null
+        ? const ServiceKindResolver({}, {})
+        : await importServiceKinds(
+            data.serviceKinds,
+            repositories.serviceKindRepository!,
+            diverId: diverId,
+          );
+```
+
+   (move `final equipmentRan = !stopped();` above it). After the passport adoption pass:
+
+```dart
+    // Each created item's clocks (issue #2651), merged by kind with the
+    // ones createEquipment seeded.
+    if (equipmentRan && repositories.serviceScheduleRepository != null) {
+      await restoreServiceClocks(
+        data.equipment,
+        selections.equipment,
+        equipmentIdMapping,
+        preResolvedEquipmentIds,
+        repositories.serviceScheduleRepository!,
+        kindResolver,
+      );
+    }
+```
+
+   and pass `kindResolver` to `_importServiceRecords`, which sets `serviceKindId: kinds.resolve(recordData['serviceKindRef'] as String?)` on each record.
+7. `payload_merger_test.dart`: a test that two payloads' `serviceKinds` metadata fold by id into one list.
+8. Extend `universal_adapter_uddf_fills_test.dart`'s first test: the backup also carries a custom kind `k-burst` ("Burst disc"), a `hydro` clock on the tank with `intervalDays: 1095`, a `k-burst` clock, and the service record with `serviceKindId: 'k-burst'`; after the first import assert one custom kind named "Burst disc" for the diver, one `hydro` clock with 1095 days on the restored tank, a clock whose kind is that custom kind, and the record's `serviceKindId` equal to that kind's local id; after the second import assert the kind and clock counts are unchanged.
+
+- [ ] **Step 6: Run the tests**
+
+Run: `flutter test test/core/services/export/ test/features/dive_import/ test/features/import_wizard/ test/features/universal_import/ test/features/equipment/ test/architecture/ test/shared/`
+Expected: PASS.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add <each Modify/Create/Test path listed in this task>
+git status --short   # confirm nothing else is staged
+git commit -m "feat(equipment): restore service kinds, clocks and record kinds from a UDDF backup"
+```
+
+---
+
+### Task 10: Docs, full checks
 
 **Files:**
 - Modify: `docs/guide/import-export.md`
@@ -1419,7 +2238,7 @@ git commit -m "fix(universal-import): carry UDDF fills and service records into 
 
 - [ ] **Step 1: Update the guide**
 
-Find the UDDF backup paragraph (`grep -n -i "uddf" docs/guide/import-export.md`) and add, in its style: a full UDDF backup now carries every cylinder fill you can see and each item's tag (passport) id; restoring it brings fills back once, skips any already here or deleted here, and links them to the cylinder holding their tag; an item that already has a tag keeps it.
+Find the UDDF backup paragraph (`grep -n -i "uddf" docs/guide/import-export.md`) and add, in its style: a full UDDF backup now carries every cylinder fill you can see and each item's tag (passport) id; restoring it brings fills back once, skips any already here or deleted here, and links them to the cylinder holding their tag; an item that already has a tag keeps it. It also carries service records with their service type, your custom service types and each item's service clocks, which come back on a restored item (merged with the clocks a new item gets by default).
 
 - [ ] **Step 2: Mark the passports spec**
 
