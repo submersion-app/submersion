@@ -5246,6 +5246,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get courses_error_loadingCertification =>
+      'Erreur lors du chargement de la certification';
+
+  @override
   String get courses_error_loadingDives =>
       'Erreur lors du chargement des plongées';
 

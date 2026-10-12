@@ -3285,6 +3285,7 @@
   "courses_empty_subtitle": "Add your first course to get started",
   "courses_empty_title": "No training courses yet",
   "courses_error_generic": "Error: {error}",
+  "courses_error_loadingCertification": "Error loading certification",
   "courses_error_loadingDives": "Error loading dives",
   "courses_field_courseName": "Course Name",
   "courses_field_courseNameHint": "e.g. Open Water Diver",

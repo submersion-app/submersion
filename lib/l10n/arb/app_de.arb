@@ -1690,6 +1690,7 @@
   "courses_empty_subtitle": "Fügen Sie Ihren ersten Kurs hinzu, um zu beginnen",
   "courses_empty_title": "Noch keine Ausbildungskurse",
   "courses_error_generic": "Fehler: {error}",
+  "courses_error_loadingCertification": "Fehler beim Laden der Zertifizierung",
   "courses_error_loadingDives": "Fehler beim Laden der Tauchgänge",
   "courses_field_courseName": "Kursname",
   "courses_field_courseNameHint": "z.B. Open Water Diver",

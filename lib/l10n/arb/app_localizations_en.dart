@@ -5156,6 +5156,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get courses_error_loadingCertification =>
+      'Error loading certification';
+
+  @override
   String get courses_error_loadingDives => 'Error loading dives';
 
   @override

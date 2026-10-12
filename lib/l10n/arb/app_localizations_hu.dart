@@ -5224,6 +5224,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get courses_error_loadingCertification =>
+      'Hiba a képesítés betöltésekor';
+
+  @override
   String get courses_error_loadingDives => 'Hiba a merülések betöltésekor';
 
   @override

@@ -1752,6 +1752,7 @@
   "courses_empty_subtitle": "添加您的第一个课程以开始使用",
   "courses_empty_title": "暂无训练课程",
   "courses_error_generic": "错误： {error}",
+  "courses_error_loadingCertification": "加载证书时出错",
   "courses_error_loadingDives": "加载潜水记录时出错",
   "courses_field_courseName": "课程名称",
   "courses_field_courseNameHint": "例如：开放水域潜水员",

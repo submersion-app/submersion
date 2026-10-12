@@ -17,8 +17,8 @@ class DiveCourseRows extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final courses =
-        ref.watch(coursesForDiveProvider(diveId)).valueOrNull ??
-        const <Course>[];
+        // The retained value: a reload after a link change keeps the rows.
+        ref.watch(coursesForDiveProvider(diveId)).value ?? const <Course>[];
     if (courses.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -92,8 +92,8 @@ class DiveCourseChips extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final courses =
-        ref.watch(coursesForDiveProvider(diveId)).valueOrNull ??
-        const <Course>[];
+        // The retained value: a reload after a link change keeps the rows.
+        ref.watch(coursesForDiveProvider(diveId)).value ?? const <Course>[];
     if (courses.isEmpty) return const SizedBox.shrink();
     return Wrap(
       alignment: WrapAlignment.end,

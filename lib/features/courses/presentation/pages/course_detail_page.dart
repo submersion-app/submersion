@@ -429,10 +429,15 @@ class CourseDetailPage extends ConsumerWidget {
     WidgetRef ref,
     String courseId,
   ) {
-    final certs =
-        ref.watch(certificationsForCourseProvider(courseId)).value ??
-        const <Certification>[];
-    if (certs.isEmpty) return const SizedBox.shrink();
+    final certsAsync = ref.watch(certificationsForCourseProvider(courseId));
+    // The retained value, so a reload after a link change keeps the rows on
+    // screen; nothing on the very first load, since an empty course shows no
+    // section at all.
+    final certs = certsAsync.value;
+    final failed = certs == null && certsAsync.hasError;
+    if (!failed && (certs == null || certs.isEmpty)) {
+      return const SizedBox.shrink();
+    }
     final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
@@ -449,8 +454,14 @@ class CourseDetailPage extends ConsumerWidget {
                   Icons.card_membership,
                 ),
                 const SizedBox(height: 12),
-                for (final cert in certs)
-                  _buildCertificationRow(context, cert, colorScheme),
+                if (failed)
+                  Text(
+                    context.l10n.courses_error_loadingCertification,
+                    style: TextStyle(color: colorScheme.error),
+                  )
+                else
+                  for (final cert in certs!)
+                    _buildCertificationRow(context, cert, colorScheme),
               ],
             ),
           ),

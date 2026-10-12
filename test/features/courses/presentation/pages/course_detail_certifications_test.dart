@@ -36,7 +36,11 @@ void main() {
   setUp(setUpTestDatabase);
   tearDown(tearDownTestDatabase);
 
-  Future<void> pump(WidgetTester tester, List<Certification> certs) async {
+  Future<void> pump(
+    WidgetTester tester,
+    List<Certification> certs, {
+    Object? error,
+  }) async {
     tester.view.physicalSize = const Size(900, 2000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -69,7 +73,7 @@ void main() {
           suggestedDivesProvider('andp').overrideWith((ref) async => const []),
           certificationsForCourseProvider(
             'andp',
-          ).overrideWith((ref) async => certs),
+          ).overrideWith((ref) async => error == null ? certs : throw error),
         ],
       ),
     );
@@ -103,5 +107,13 @@ void main() {
   ) async {
     await pump(tester, const []);
     expect(find.text('Earned Certifications'), findsNothing);
+  });
+
+  testWidgets('a failed load says so instead of hiding the section', (
+    tester,
+  ) async {
+    await pump(tester, const [], error: StateError('db closed'));
+    expect(find.text('Earned Certifications'), findsOneWidget);
+    expect(find.text('Error loading certification'), findsOneWidget);
   });
 }

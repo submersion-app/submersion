@@ -1665,6 +1665,7 @@
   "courses_empty_subtitle": "Aggiungi il tuo primo corso per iniziare",
   "courses_empty_title": "Nessun corso di addestramento ancora",
   "courses_error_generic": "Errore: {error}",
+  "courses_error_loadingCertification": "Errore durante il caricamento della certificazione",
   "courses_error_loadingDives": "Errore durante il caricamento delle immersioni",
   "courses_field_courseName": "Nome Corso",
   "courses_field_courseNameHint": "es. Open Water Diver",

@@ -1665,6 +1665,7 @@
   "courses_empty_subtitle": "Voeg je eerste cursus toe om te beginnen",
   "courses_empty_title": "Nog geen trainingscursussen",
   "courses_error_generic": "Fout: {error}",
+  "courses_error_loadingCertification": "Fout bij laden certificering",
   "courses_error_loadingDives": "Fout bij laden duiken",
   "courses_field_courseName": "Cursusnaam",
   "courses_field_courseNameHint": "bijv. Open Water Diver",

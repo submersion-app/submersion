@@ -5316,6 +5316,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get courses_error_loadingCertification => 'خطأ في تحميل الاعتماد';
+
+  @override
   String get courses_error_loadingDives => 'خطأ في تحميل الغطسات';
 
   @override

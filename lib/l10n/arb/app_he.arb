@@ -1665,6 +1665,7 @@
   "courses_empty_subtitle": "הוסף את הקורס הראשון שלך כדי להתחיל",
   "courses_empty_title": "עדיין אין קורסי אימון",
   "courses_error_generic": "שגיאה: {error}",
+  "courses_error_loadingCertification": "שגיאה בטעינת הסמכה",
   "courses_error_loadingDives": "שגיאה בטעינת צלילות",
   "courses_field_courseName": "שם הקורס",
   "courses_field_courseNameHint": "לדוגמה: צולל מים פתוחים",

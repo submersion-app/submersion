@@ -1665,6 +1665,7 @@
   "courses_empty_subtitle": "Add hozzá az első tanfolyamod a kezdéshez",
   "courses_empty_title": "Még nincsenek képzési tanfolyamok",
   "courses_error_generic": "Hiba: {error}",
+  "courses_error_loadingCertification": "Hiba a képesítés betöltésekor",
   "courses_error_loadingDives": "Hiba a merülések betöltésekor",
   "courses_field_courseName": "Tanfolyam neve",
   "courses_field_courseNameHint": "pl. Nyíltvízi búvár",

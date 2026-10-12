@@ -5242,6 +5242,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get courses_error_loadingCertification =>
+      'Fehler beim Laden der Zertifizierung';
+
+  @override
   String get courses_error_loadingDives => 'Fehler beim Laden der Tauchgänge';
 
   @override

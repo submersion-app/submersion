@@ -8262,6 +8262,12 @@ abstract class AppLocalizations {
   /// **'Error: {error}'**
   String courses_error_generic(Object error);
 
+  /// No description provided for @courses_error_loadingCertification.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading certification'**
+  String get courses_error_loadingCertification;
+
   /// No description provided for @courses_error_loadingDives.
   ///
   /// In en, this message translates to:

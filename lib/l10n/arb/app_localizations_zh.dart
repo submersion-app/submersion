@@ -4969,6 +4969,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get courses_error_loadingCertification => '加载证书时出错';
+
+  @override
   String get courses_error_loadingDives => '加载潜水记录时出错';
 
   @override
