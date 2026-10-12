@@ -21,6 +21,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 
 /// Bottom sheet for filtering dive sites.
 ///
@@ -40,6 +41,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
   String? _country;
   String? _region;
   SiteDifficulty? _difficulty;
+  String? _libraryId;
   double? _minDepth;
   double? _maxDepth;
   double? _minRating;
@@ -63,6 +65,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     _country = filter.country;
     _region = filter.region;
     _difficulty = filter.difficulty;
+    _libraryId = filter.libraryId;
     _minDepth = filter.minDepth;
     _maxDepth = filter.maxDepth;
     _minRating = filter.minRating;
@@ -162,6 +165,8 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                         const SizedBox(height: 24),
                         _buildSiteTypeSection(),
                         _buildTagSection(),
+                        const SizedBox(height: 24),
+                        _buildLibrarySection(),
                         _buildDepthSection(),
                         const SizedBox(height: 24),
                         _buildRatingSection(),
@@ -387,6 +392,53 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
         NumberInvalid() => previous,
       };
 
+  /// Personal sites or one club library (issue #2567). Hidden while no
+  /// library is connected, since every site is personal then.
+  Widget _buildLibrarySection() {
+    final libraries =
+        ref.watch(sharedLibrariesProvider).valueOrNull ?? const [];
+    if (libraries.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.sharedLibrary_filter_library,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            FilterChip(
+              label: Text(context.l10n.diveSites_filter_difficulty_any),
+              selected: _libraryId == null,
+              onSelected: (selected) {
+                if (selected) setState(() => _libraryId = null);
+              },
+            ),
+            FilterChip(
+              label: Text(context.l10n.sharedLibrary_filter_personal),
+              selected: _libraryId == SiteFilterState.personalLibrary,
+              onSelected: (selected) => setState(
+                () => _libraryId = selected
+                    ? SiteFilterState.personalLibrary
+                    : null,
+              ),
+            ),
+            for (final library in libraries)
+              FilterChip(
+                label: Text(library.name),
+                selected: _libraryId == library.id,
+                onSelected: (selected) =>
+                    setState(() => _libraryId = selected ? library.id : null),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildDepthSection() {
     final depthSymbol = UnitFormatter(ref.watch(settingsProvider)).depthSymbol;
     return Column(
@@ -534,6 +586,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
       _country = null;
       _region = null;
       _difficulty = null;
+      _libraryId = null;
       _minDepth = null;
       _maxDepth = null;
       _minRating = null;
@@ -553,6 +606,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     country: _country,
     region: _region,
     difficulty: _difficulty,
+    libraryId: _libraryId,
     minDepth: _minDepth,
     maxDepth: _maxDepth,
     minRating: _minRating,

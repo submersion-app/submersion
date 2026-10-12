@@ -51453,6 +51453,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_sites_coordinates => 'Coordonnées';
 
   @override
+  String get query_sites_library => 'Bibliothèque';
+
+  @override
   String get query_sites_country => 'Pays';
 
   @override

@@ -459,6 +459,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_sites_city;
     case 'query_sites_coordinates':
       return l10n.query_sites_coordinates;
+    case 'query_sites_library':
+      return l10n.query_sites_library;
     case 'query_sites_country':
       return l10n.query_sites_country;
     case 'query_sites_difficulty':

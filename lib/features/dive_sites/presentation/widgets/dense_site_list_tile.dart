@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_site_badge.dart';
 
 /// Single-row flat tile for the site list (maximum density).
 ///
@@ -16,6 +19,9 @@ class DenseSiteListTile extends StatelessWidget {
   final bool isHighlighted;
   final bool showSharedBadge;
 
+  /// The site, when the row should show a club library badge (issue #2567).
+  final DiveSite? site;
+
   const DenseSiteListTile({
     super.key,
     required this.name,
@@ -26,6 +32,7 @@ class DenseSiteListTile extends StatelessWidget {
     this.isSelected = false,
     this.isHighlighted = false,
     this.showSharedBadge = false,
+    this.site,
   });
 
   @override
@@ -83,6 +90,7 @@ class DenseSiteListTile extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (site != null) LibrarySiteBadge(site: site!),
                 const SizedBox(width: 8),
                 // Location (truncated, ~100px width)
                 if (location != null)

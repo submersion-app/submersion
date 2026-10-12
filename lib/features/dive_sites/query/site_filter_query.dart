@@ -44,6 +44,15 @@ extension SiteFilterQuery on SiteFilterState {
         ),
       );
     }
+    if (libraryId != null) {
+      // Club library membership (issue #2567): a library's id, or the
+      // personal sentinel for sites in no library.
+      parts.add(
+        libraryId == SiteFilterState.personalLibrary
+            ? c('library', QueryOp.isEmpty, null)
+            : c('library', QueryOp.eq, StringValue(libraryId!)),
+      );
+    }
     if (hasDives != null) {
       // The list's dive count: dives neither planned nor excluded from
       // stats (DiveStatsScope), from every diver.

@@ -51384,6 +51384,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get query_sites_coordinates => 'Coordenadas';
 
   @override
+  String get query_sites_library => 'Biblioteca';
+
+  @override
   String get query_sites_country => 'País';
 
   @override

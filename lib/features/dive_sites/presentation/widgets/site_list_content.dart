@@ -49,6 +49,8 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_locatio
 import 'package:submersion/shared/widgets/debounced_search_results.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_list_count_provider.dart';
+import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_picker_dialog.dart';
 
 /// Content widget for the site list, used in master-detail layout.
 final _log = LoggerService.forClass(SiteListContent);
@@ -1258,6 +1260,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
   /// SelectionAppBar, so they are deliberately absent here. Computed once and
   /// shared by both shells so the pane cannot drift from the full-width bar.
   List<BulkAction> _bulkActions(List<SiteWithDiveCount> sites) {
+    final byId = {for (final s in sites) s.site.id: s.site};
     return [
       BulkAction(
         id: 'merge',
@@ -1266,7 +1269,72 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         minCount: 2,
         onInvoke: _startMerge,
       ),
+      // Personal sites into a club library (issue #2567); a library site
+      // already belongs to one.
+      BulkAction(
+        id: 'addToLibrary',
+        icon: Icons.groups_outlined,
+        label: context.l10n.sharedLibrary_bulk_addToLibrary,
+        minCount: 1,
+        isEnabled: (ids) =>
+            ids.every((id) => !(byId[id]?.isLibrarySite ?? true)),
+        onInvoke: _addToLibrary,
+      ),
     ];
+  }
+
+  /// The library group header shows the library's name; the group key and
+  /// label are its id, which the domain grouper does not resolve.
+  String _outerGroupLabel(
+    SiteGroupBy groupBy,
+    String noGroupLabel,
+    SiteOuterGroup<SiteWithDiveCount> group,
+  ) {
+    final label = siteOuterGroupLabel(noGroupLabel, group);
+    if (groupBy != SiteGroupBy.library || group.isUngroupedKey) return label;
+    final libraries = ref.watch(sharedLibrariesProvider).valueOrNull;
+    for (final l in libraries ?? const []) {
+      if (l.id == group.label) return l.name;
+    }
+    return label;
+  }
+
+  Future<BulkActionOutcome> _addToLibrary() async {
+    final selected = await _readSelectedSites(_selectedIds.toList());
+    if (selected == null) return BulkActionOutcome.failed;
+    final personal = [
+      for (final s in selected)
+        if (!s.isLibrarySite) s.id,
+    ];
+    if (personal.isEmpty || !mounted) return BulkActionOutcome.cancelled;
+    final libraryId = await showLibraryPickerDialog(context, ref);
+    if (libraryId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.sharedLibrary_list_empty)),
+        );
+      }
+      return BulkActionOutcome.cancelled;
+    }
+    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null) return BulkActionOutcome.failed;
+    final publisher = ref.read(sharedSitePublisherProvider);
+    for (final id in personal) {
+      await publisher.push(siteId: id, libraryId: libraryId, diverId: diverId);
+    }
+    ref.invalidate(sitesProvider);
+    ref.invalidate(sitesWithCountsProvider);
+    if (!mounted) return BulkActionOutcome.completed;
+    final libraries = await ref.read(sharedLibrariesProvider.future);
+    var name = '';
+    for (final l in libraries) {
+      if (l.id == libraryId) name = l.name;
+    }
+    if (!mounted) return BulkActionOutcome.completed;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.sharedLibrary_site_added(name))),
+    );
+    return BulkActionOutcome.completed;
   }
 
   /// Contextual bar for the master pane, which is too narrow for every icon.
@@ -1403,7 +1471,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
                 KeyboardListItem(
                   navigationKey: _groupNavKey(group.key),
                   child: SiteGroupHeader(
-                    label: siteOuterGroupLabel(noGroupLabel, group),
+                    label: _outerGroupLabel(groupBy, noGroupLabel, group),
                     siteCount: group.siteCount,
                     isExpanded: isExpanded,
                     onTap: () => _toggleGroup(group.key, expanded),
@@ -1478,6 +1546,7 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
       ),
       ListViewMode.dense || ListViewMode.table => DenseSiteListTile(
         name: site.name,
+        site: site,
         location: locationString,
         diveCount: siteData.diveCount,
         isSelectionMode: _isSelectionMode,

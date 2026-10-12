@@ -50542,6 +50542,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_sites_coordinates => 'Coordinates';
 
   @override
+  String get query_sites_library => 'Library';
+
+  @override
   String get query_sites_country => 'Country';
 
   @override

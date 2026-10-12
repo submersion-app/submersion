@@ -24,6 +24,7 @@ import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_extra_fields.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_site_badge.dart';
 
 /// Detailed list card for one dive site.
 ///
@@ -247,6 +248,7 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                               ),
                             ),
                           ],
+                          LibrarySiteBadge(site: widget.entry.site),
                         ],
                       ),
                       if (subtitle != null) ...[

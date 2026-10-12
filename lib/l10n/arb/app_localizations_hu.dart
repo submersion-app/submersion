@@ -51071,6 +51071,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_sites_coordinates => 'Koordináták';
 
   @override
+  String get query_sites_library => 'Könyvtár';
+
+  @override
   String get query_sites_country => 'Ország';
 
   @override

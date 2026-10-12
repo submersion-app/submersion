@@ -12,6 +12,7 @@ extension SiteGroupByDisplay on SiteGroupBy {
     SiteGroupBy.water => l10n.diveSites_list_groupBy_water,
     SiteGroupBy.locationAndWater =>
       l10n.diveSites_list_groupBy_locationAndWater,
+    SiteGroupBy.library => l10n.sharedLibrary_groupBy_library,
   };
 
   /// The label for this mode's ungrouped group: body of water for the
@@ -19,6 +20,7 @@ extension SiteGroupByDisplay on SiteGroupBy {
   /// for [SiteGroupBy.none], which has no groups.
   String noGroupLabel(AppLocalizations l10n) => switch (this) {
     SiteGroupBy.water => l10n.diveSites_group_noBodyOfWater,
+    SiteGroupBy.library => l10n.sharedLibrary_groupBy_personalGroup,
     SiteGroupBy.none ||
     SiteGroupBy.location ||
     SiteGroupBy.locationAndWater => l10n.diveSites_group_noCountry,
@@ -29,6 +31,9 @@ extension SiteGroupByDisplay on SiteGroupBy {
   /// never has an ungrouped subgroup to label.
   String? innerNoGroupLabel(AppLocalizations l10n) => switch (this) {
     SiteGroupBy.locationAndWater => l10n.diveSites_group_noBodyOfWater,
-    SiteGroupBy.none || SiteGroupBy.location || SiteGroupBy.water => null,
+    SiteGroupBy.none ||
+    SiteGroupBy.location ||
+    SiteGroupBy.water ||
+    SiteGroupBy.library => null,
   };
 }

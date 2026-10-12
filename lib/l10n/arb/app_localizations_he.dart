@@ -50269,6 +50269,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_sites_coordinates => 'קואורדינטות';
 
   @override
+  String get query_sites_library => 'ספרייה';
+
+  @override
   String get query_sites_country => 'מדינה';
 
   @override

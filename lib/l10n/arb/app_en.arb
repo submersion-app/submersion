@@ -30619,6 +30619,7 @@
   "query_sites_city": "City",
   "@query_sites_city": {"description": "Field label in the query builder"},
   "query_sites_coordinates": "Coordinates",
+  "query_sites_library": "Library",
   "@query_sites_coordinates": {"description": "Field label in the query builder: whether the site has a position"},
   "query_sites_country": "Country",
   "@query_sites_country": {"description": "Field label in the query builder"},

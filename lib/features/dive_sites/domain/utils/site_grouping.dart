@@ -4,7 +4,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// How the Dive Sites list is grouped (#1080, #3270). Session-only, like the
 /// list's sort. The combined values group by the first-named field, then by
 /// the second, nested inside it.
-enum SiteGroupBy { none, location, water, locationAndWater }
+enum SiteGroupBy { none, location, water, locationAndWater, library }
 
 /// Key of the group holding sites with no value for the field grouped by. A
 /// real key is never empty, because a blank value counts as "none". Shared
@@ -19,6 +19,10 @@ String siteCountryKey(DiveSite site) => _groupKey(site.country);
 /// The group key of [site]'s body of water: trimmed and case/accent folded,
 /// or [noGroupKey] when it is null or blank.
 String siteBodyOfWaterKey(DiveSite site) => _groupKey(site.bodyOfWater);
+
+/// The group key of [site]'s club library (issue #2567): its id, folded
+/// like every other key, or [noGroupKey] for a personal site.
+String siteLibraryKey(DiveSite site) => _groupKey(site.sharedLibraryId);
 
 String _groupKey(String? raw) {
   final value = raw?.trim() ?? '';
@@ -35,6 +39,7 @@ String _groupKey(String? raw) {
 String Function(DiveSite) outerKeyOfMode(SiteGroupBy groupBy) =>
     switch (groupBy) {
       SiteGroupBy.water => siteBodyOfWaterKey,
+      SiteGroupBy.library => siteLibraryKey,
       SiteGroupBy.none ||
       SiteGroupBy.location ||
       SiteGroupBy.locationAndWater => siteCountryKey,
@@ -46,7 +51,7 @@ String Function(DiveSite)? innerKeyOfMode(SiteGroupBy groupBy) =>
     switch (groupBy) {
       SiteGroupBy.location => (site) => _groupKey(site.region),
       SiteGroupBy.locationAndWater => siteBodyOfWaterKey,
-      SiteGroupBy.none || SiteGroupBy.water => null,
+      SiteGroupBy.none || SiteGroupBy.water || SiteGroupBy.library => null,
     };
 
 /// Whether [groupBy]'s inner axis bundles sites with no value into a titled
@@ -252,6 +257,14 @@ List<SiteOuterGroup<T>> groupSitesByLocation<T>(
   (site) => site.region ?? '',
 );
 
+/// Groups [items] by club library, with no further subgrouping (issue
+/// #2567). The group label is the library id; the list maps it to the
+/// library's name, which the domain does not know.
+List<SiteOuterGroup<T>> groupSitesByLibrary<T>(
+  List<T> items,
+  DiveSite Function(T) siteOf,
+) => _groupSites(items, siteOf, (site) => site.sharedLibraryId ?? '', null);
+
 /// Groups [items] by body of water, with no further subgrouping (#3270).
 List<SiteOuterGroup<T>> groupSitesByWater<T>(
   List<T> items,
@@ -283,6 +296,7 @@ List<SiteOuterGroup<T>> groupSitesFor<T>(
   SiteGroupBy.location => groupSitesByLocation(items, siteOf),
   SiteGroupBy.water => groupSitesByWater(items, siteOf),
   SiteGroupBy.locationAndWater => groupSitesByLocationAndWater(items, siteOf),
+  SiteGroupBy.library => groupSitesByLibrary(items, siteOf),
 };
 
 /// The most frequent spelling; a tie keeps the one seen first.

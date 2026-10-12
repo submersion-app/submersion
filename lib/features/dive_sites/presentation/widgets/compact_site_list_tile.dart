@@ -10,6 +10,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_site_badge.dart';
 
 /// Two-line compact card tile for the site list, driven by
 /// [siteCompactCardConfigProvider].
@@ -122,6 +123,7 @@ class CompactSiteListTile extends ConsumerWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          LibrarySiteBadge(site: site),
                           if (site.rating != null) ...[
                             const SizedBox(width: 6),
                             const Icon(

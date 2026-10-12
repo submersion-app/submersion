@@ -81538,6 +81538,12 @@ abstract class AppLocalizations {
   /// **'Coordinates'**
   String get query_sites_coordinates;
 
+  /// No description provided for @query_sites_library.
+  ///
+  /// In en, this message translates to:
+  /// **'Library'**
+  String get query_sites_library;
+
   /// Field label in the query builder
   ///
   /// In en, this message translates to:

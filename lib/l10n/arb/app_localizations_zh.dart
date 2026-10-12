@@ -48229,6 +48229,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_sites_coordinates => '坐标';
 
   @override
+  String get query_sites_library => '库';
+
+  @override
   String get query_sites_country => '国家';
 
   @override

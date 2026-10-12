@@ -15234,6 +15234,7 @@
   "query_siteTypes_name": "Nome",
   "query_sites_city": "Città",
   "query_sites_coordinates": "Coordinate",
+  "query_sites_library": "Libreria",
   "query_sites_country": "Paese",
   "query_sites_difficulty": "Difficoltà",
   "query_sites_diveCount": "Numero di immersioni",

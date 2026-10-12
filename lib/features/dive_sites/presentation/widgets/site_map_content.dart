@@ -510,7 +510,8 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
       ),
       child: Center(
         child: Icon(
-          Icons.scuba_diving,
+          // A club library site wears the group glyph (issue #2567).
+          site.isLibrarySite ? Icons.groups : Icons.scuba_diving,
           size: isSelected ? 24 : 20,
           color: Colors.white,
         ),

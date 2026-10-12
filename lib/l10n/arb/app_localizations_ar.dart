@@ -51989,6 +51989,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_sites_coordinates => 'الإحداثيات';
 
   @override
+  String get query_sites_library => 'المكتبة';
+
+  @override
   String get query_sites_country => 'البلد';
 
   @override
