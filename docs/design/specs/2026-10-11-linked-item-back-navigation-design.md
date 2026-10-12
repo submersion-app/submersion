@@ -97,9 +97,11 @@ at phone width before the window was widened) still redirects.
 An extension method next to `pushOrReturnTo` in
 `lib/core/router/section_navigation.dart`:
 
-- current page was pushed (`ModalRoute.of(context)?.canPop`):
-  `GoRouter.of(context).replace(location)`,
-- otherwise: `go(location)`.
+- current page was pushed (`isImperativelyPushed`, the same rule as the
+  redirect in section 1): `GoRouter.of(context).replace(location)`,
+- otherwise: `go(location)`. That includes a page go() built over its
+  parent (Planning's gas calculators): it can pop, but `replace` would turn
+  it into a push and its URL would stop reflecting the selection.
 
 `replace` keeps the page key, so the page's `State` (scroll position, pane
 width, the restore snapshot below) survives. This generalises the idiom the

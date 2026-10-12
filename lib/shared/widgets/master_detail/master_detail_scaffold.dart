@@ -269,7 +269,7 @@ class _MasterDetailScaffoldState extends ConsumerState<MasterDetailScaffold> {
   /// returns to it, otherwise with go() as before.
   void _openFullPage(String route) {
     final router = GoRouter.of(context);
-    if (isPushedRoute(context)) {
+    if (isImperativelyPushed(context)) {
       router.push(route);
     } else {
       router.go(route);

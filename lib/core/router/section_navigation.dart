@@ -45,9 +45,11 @@ extension SectionNavigation on BuildContext {
   /// the pages under it.
   ///
   /// On a pushed page this replaces the top page, keeping its page key and
-  /// widget state; on a root page it is a plain `go`, as before (#3292).
+  /// widget state (#3292). A page go() built is changed with `go` as before,
+  /// even when its parent sits under it: replace would turn it into a push,
+  /// and its URL would stop reflecting the selection.
   void goInPlace(String location) {
-    if (isPushedRoute(this)) {
+    if (isImperativelyPushed(this)) {
       GoRouter.of(this).replace<void>(location);
     } else {
       GoRouter.of(this).go(location);

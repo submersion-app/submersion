@@ -205,6 +205,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('AT /dives/d1?mode=edit'), findsOneWidget);
+      // A go()-built page keeps its selection in the router's URL; replace
+      // would have turned it into a push the URL no longer reflects.
+      expect(
+        router.routerDelegate.currentConfiguration.uri.toString(),
+        '/dives/d1?mode=edit',
+      );
       expect(router.canPop(), isTrue);
       router.pop();
       await tester.pumpAndSettle();
