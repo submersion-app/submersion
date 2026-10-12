@@ -289,11 +289,18 @@ class _CourseEditPageState extends ConsumerState<CourseEditPage> {
             ),
           ),
           const SizedBox(height: 12),
-          CertificationMultiSelectField(
-            courseId: widget.courseId,
-            selectedCertificationIds: _selectedCertificationIds ?? const [],
-            onChanged: (ids) => setState(() => _selectedCertificationIds = ids),
-          ),
+          // Until an existing course's set loads there is nothing to pick
+          // from: a sheet opened now would start empty, and a save would
+          // unlink every earned certification.
+          if (_isEditing && _selectedCertificationIds == null)
+            const LinearProgressIndicator()
+          else
+            CertificationMultiSelectField(
+              courseId: widget.courseId,
+              selectedCertificationIds: _selectedCertificationIds ?? const [],
+              onChanged: (ids) =>
+                  setState(() => _selectedCertificationIds = ids),
+            ),
           const SizedBox(height: 24),
 
           // Save button

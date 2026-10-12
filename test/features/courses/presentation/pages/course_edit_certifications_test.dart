@@ -1,12 +1,18 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart' hide Diver;
+import 'package:submersion/core/database/database.dart'
+    hide Certification, Diver;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart'
     as domain;
 import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
+import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
+import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/certifications/presentation/widgets/certification_multi_select_field.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -131,5 +137,56 @@ void main() {
 
     expect(await courseOf('k-an'), isNull);
     expect(await courseOf('k-dp'), 'andp');
+  });
+
+  testWidgets('the field stays inert until the course set has loaded', (
+    tester,
+  ) async {
+    // Opening the sheet before the existing set arrives would start it from
+    // nothing, and a save would then unlink every earned certification.
+    await CourseRepository().setCourseCertifications('andp', ['k-an']);
+    final pending = Completer<List<Certification>>();
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides.cast(),
+          certificationsForCourseProvider(
+            'andp',
+          ).overrideWith((ref) => pending.future),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: CourseEditPage(
+              courseId: 'andp',
+              embedded: true,
+              onSavedWithId: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    // Bounded pumps: the loading indicator animates, so nothing settles.
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+
+    expect(find.byType(CertificationMultiSelectField), findsNothing);
+    expect(find.byType(LinearProgressIndicator), findsWidgets);
+
+    final button = find.text('Save Changes');
+    await tester.ensureVisible(button);
+    await tester.tap(button);
+    for (var i = 0; i < 10; i++) {
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(await courseOf('k-an'), 'andp');
   });
 }
