@@ -625,6 +625,7 @@ class SiteRepository {
     List<String> ids, {
     required bool cascadeMedia,
     bool undoable = false,
+    Set<String> skipTombstones = const {},
   }) async {
     final split = cascadeMedia
         ? await _mediaRepository.partitionMediaForSiteDeletion(ids)
@@ -657,11 +658,18 @@ class SiteRepository {
           : const <DocumentSnapshotEntry>[];
       await DocumentRepository().deleteForOwners(DocumentOwnerKind.site, ids);
       await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
-      // One batch for every tombstone, not a transaction per site.
-      await _syncRepository.logDeletions(
-        entityType: 'diveSites',
-        recordIds: ids,
-      );
+      // One batch for every tombstone, not a transaction per site. A club
+      // library site has no personal tombstone (issue #2567).
+      final tombstoned = [
+        for (final id in ids)
+          if (!skipTombstones.contains(id)) id,
+      ];
+      if (tombstoned.isNotEmpty) {
+        await _syncRepository.logDeletions(
+          entityType: 'diveSites',
+          recordIds: tombstoned,
+        );
+      }
       return cleared.copyWith(
         documents: documents,
         hides: hides,
@@ -709,6 +717,7 @@ class SiteRepository {
     String id, {
     bool cascadeMedia = true,
     String? actingDiverId,
+    bool? logTombstones,
   }) async {
     try {
       final ownership = await _siteOwnership([id], actingDiverId);
@@ -720,7 +729,15 @@ class SiteRepository {
       // tombstone for the peers, as deleteTrip does.
       if (ownership.allowed.isEmpty) return true;
       _log.info('Deleting site: $id');
-      await _deleteSiteRows([id], cascadeMedia: cascadeMedia);
+      // A club library site leaves no personal tombstone (issue #2567)
+      // unless the caller says otherwise.
+      final tombstone =
+          logTombstones ?? !((await getSiteById(id))?.isLibrarySite ?? false);
+      await _deleteSiteRows(
+        [id],
+        cascadeMedia: cascadeMedia,
+        skipTombstones: tombstone ? const {} : {id},
+      );
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted site: $id');
       return true;
@@ -813,11 +830,18 @@ class SiteRepository {
       }
       if (allowed.isEmpty) return const SiteLinks();
       _log.info('Bulk deleting ${allowed.length} sites');
+      // Club library sites among them leave no personal tombstone (issue
+      // #2567).
+      final libraryIds = {
+        for (final site in await getSitesByIds(allowed))
+          if (site.isLibrarySite) site.id,
+      };
       // The site list offers Undo (issue #2718).
       final links = await _deleteSiteRows(
         allowed,
         cascadeMedia: cascadeMedia,
         undoable: true,
+        skipTombstones: libraryIds,
       );
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk deleted ${allowed.length} sites');

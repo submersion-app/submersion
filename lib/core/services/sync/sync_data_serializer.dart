@@ -1549,6 +1549,8 @@ class SyncDataSerializer {
       // ---- data object (hashed) ----
       await writeData('{');
       final tables = _baseTables;
+      // Library sites and their children stay out of the base (issue #2567).
+      final librarySites = await librarySiteIds();
       for (var t = 0; t < tables.length; t++) {
         final spec = tables[t];
         if (t > 0) await writeData(',');
@@ -1565,6 +1567,15 @@ class SyncDataSerializer {
         ];
 
         Future<void> emit(Map<String, dynamic> row) async {
+          if (librarySites.isNotEmpty) {
+            if (spec.key == 'diveSites' && row['sharedLibraryId'] != null) {
+              return;
+            }
+            if (librarySiteChildEntities.contains(spec.key) &&
+                librarySites.contains(row['siteId'])) {
+              return;
+            }
+          }
           if (!firstRow) await writeData(',');
           firstRow = false;
           rowCount++;
@@ -2096,7 +2107,10 @@ class SyncDataSerializer {
         if (!present.contains(id)) id,
     ];
     if (missing.isEmpty) return rows;
-    final extra = (await fetchRecords(entityType, missing)).values;
+    var extra = (await fetchRecords(entityType, missing)).values.toList();
+    if (librarySiteChildEntities.contains(entityType)) {
+      extra = await _withoutLibrarySiteRows(entityType, extra);
+    }
     return extra.isEmpty ? rows : [...rows, ...extra];
   }
 
@@ -8448,8 +8462,46 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  /// Child entities of `dive_sites` whose rows follow the site out of the
+  /// personal sync when the site belongs to a club library (issue #2567).
+  static const Set<String> librarySiteChildEntities = {
+    'siteSiteTypes',
+    'siteTags',
+    'siteSpecies',
+    'siteHides',
+    'siteFeatures',
+  };
+
+  /// Ids of sites that belong to a club library (issue #2567): outside the
+  /// personal sync in both directions.
+  Future<Set<String>> librarySiteIds() async {
+    final rows =
+        await (_db.selectOnly(_db.diveSites)
+              ..addColumns([_db.diveSites.id])
+              ..where(_db.diveSites.sharedLibraryId.isNotNull()))
+            .get();
+    return rows.map((r) => r.read(_db.diveSites.id)!).toSet();
+  }
+
+  /// Drops the rows of [entityType] that belong to a library site.
+  Future<List<Map<String, dynamic>>> _withoutLibrarySiteRows(
+    String entityType,
+    List<Map<String, dynamic>> rows,
+  ) async {
+    if (rows.isEmpty) return rows;
+    final guarded = await librarySiteIds();
+    if (guarded.isEmpty) return rows;
+    final key = entityType == 'diveSites' ? 'id' : 'siteId';
+    return [
+      for (final row in rows)
+        if (!guarded.contains(row[key])) row,
+    ];
+  }
+
   Future<List<Map<String, dynamic>>> _exportDiveSites(String? hlcSince) async {
-    final query = _db.select(_db.diveSites);
+    final query = _db.select(_db.diveSites)
+      // Library sites never enter the personal sync (issue #2567).
+      ..where((t) => t.sharedLibraryId.isNull());
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
@@ -8754,7 +8806,10 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    return rows.map((r) => r.toJson()).toList();
+    return _withoutLibrarySiteRows(
+      'siteFeatures',
+      rows.map((r) => r.toJson()).toList(),
+    );
   }
 
   Future<List<Map<String, dynamic>>> _exportServiceRecords(
@@ -9599,9 +9654,13 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     if (hlcSince != null) {
-      final modifiedSites = await (_db.select(
-        _db.diveSites,
-      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final modifiedSites =
+          await (_db.select(_db.diveSites)..where(
+                (t) =>
+                    t.hlc.isBiggerThanValue(hlcSince) &
+                    t.sharedLibraryId.isNull(),
+              ))
+              .get();
       final siteIds = modifiedSites.map((s) => s.id).toSet();
       if (siteIds.isEmpty) return [];
 
@@ -9613,15 +9672,22 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.siteSiteTypes).get();
-    return rows.map((r) => r.toJson()).toList();
+    return _withoutLibrarySiteRows(
+      'siteSiteTypes',
+      rows.map((r) => r.toJson()).toList(),
+    );
   }
 
   /// Site tag links, gated like [_exportSiteSiteTypes].
   Future<List<Map<String, dynamic>>> _exportSiteTags(String? hlcSince) async {
     if (hlcSince != null) {
-      final modifiedSites = await (_db.select(
-        _db.diveSites,
-      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final modifiedSites =
+          await (_db.select(_db.diveSites)..where(
+                (t) =>
+                    t.hlc.isBiggerThanValue(hlcSince) &
+                    t.sharedLibraryId.isNull(),
+              ))
+              .get();
       final siteIds = modifiedSites.map((s) => s.id).toSet();
       if (siteIds.isEmpty) return [];
 
@@ -9633,7 +9699,10 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.siteTags).get();
-    return rows.map((r) => r.toJson()).toList();
+    return _withoutLibrarySiteRows(
+      'siteTags',
+      rows.map((r) => r.toJson()).toList(),
+    );
   }
 
   /// Equipment tag links (v219, issue #1942), gated on the parent item's
@@ -9739,7 +9808,10 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.siteHides).get();
-    return rows.map((r) => r.toJson()).toList();
+    return _withoutLibrarySiteRows(
+      'siteHides',
+      rows.map((r) => r.toJson()).toList(),
+    );
   }
 
   /// Equipment share and ownership events (v234, issue #2046), gated on the
@@ -9804,9 +9876,13 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     if (hlcSince != null) {
-      final modifiedSites = await (_db.select(
-        _db.diveSites,
-      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final modifiedSites =
+          await (_db.select(_db.diveSites)..where(
+                (t) =>
+                    t.hlc.isBiggerThanValue(hlcSince) &
+                    t.sharedLibraryId.isNull(),
+              ))
+              .get();
       final siteIds = modifiedSites.map((s) => s.id).toSet();
       if (siteIds.isEmpty) return [];
 
@@ -9818,7 +9894,10 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.siteSpecies).get();
-    return rows.map((r) => r.toJson()).toList();
+    return _withoutLibrarySiteRows(
+      'siteSpecies',
+      rows.map((r) => r.toJson()).toList(),
+    );
   }
 
   /// Rows of a clockless child table for [parentIds], fetched in chunks so

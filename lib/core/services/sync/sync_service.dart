@@ -2410,6 +2410,8 @@ class SyncService {
     var applied = 0;
     var conflicts = 0;
     var failed = 0;
+    // A library site ignores a personal tombstone (issue #2567).
+    final librarySites = await _serializer.librarySiteIds();
 
     for (final entry in deletions.entries) {
       final entityType = entry.key;
@@ -2439,6 +2441,9 @@ class SyncService {
           // peer's tombstone for one neither deletes this device's value nor
           // raises a conflict, as the merge treats a live copy.
           if (isDeviceLocalRecord(entityType, recordId)) continue;
+          if (entityType == 'diveSites' && librarySites.contains(recordId)) {
+            continue;
+          }
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }
@@ -3148,6 +3153,22 @@ class SyncService {
   }) async {
     if (records.isEmpty) {
       return const _MergeResult(recordsApplied: 0, conflictsFound: 0);
+    }
+    // A row of a club-library site never arrives through the personal sync
+    // (issue #2567): a peer's stale personal copy must not overwrite it.
+    if (entityType == 'diveSites' ||
+        SyncDataSerializer.librarySiteChildEntities.contains(entityType)) {
+      final guarded = await _serializer.librarySiteIds();
+      if (guarded.isNotEmpty) {
+        final key = entityType == 'diveSites' ? 'id' : 'siteId';
+        records = [
+          for (final r in records)
+            if (!guarded.contains(r[key])) r,
+        ];
+        if (records.isEmpty) {
+          return const _MergeResult(recordsApplied: 0, conflictsFound: 0);
+        }
+      }
     }
 
     var applied = 0;
