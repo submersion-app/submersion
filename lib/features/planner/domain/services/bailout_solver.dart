@@ -174,14 +174,21 @@ class BailoutSolver {
       waterType: plan.waterType ?? WaterType.salt,
       salinityPpt: plan.salinityPpt,
     );
+    // Same policy PlanEngine._policyFor builds: a bailout schedule computed
+    // with a plainer policy than the plan it bails out of would size and
+    // print stops the plan's own configured minimums and whole-minute
+    // snapping never agreed to (caught by a Copilot review).
     final policy = SchedulePolicy(
       lastStopDepth: plan.lastStopDepth,
       ascentRate: plan.ascentRate,
       intermediateAscentRate: plan.intermediateAscentRate,
       shallowAscentRate: plan.shallowAscentRate,
       finalAscentRate: plan.finalAscentRate,
+      descentRate: plan.descentRate,
       gasSwitchStopSeconds: plan.gasSwitchStopSeconds,
+      snapStopsToWholeMinutes: true,
       airBreaks: plan.airBreaks,
+      minStopSecondsByDepth: plan.stopMinimums,
     );
     final model = BuhlmannGf(
       gfLow: plan.gfLow / 100.0,

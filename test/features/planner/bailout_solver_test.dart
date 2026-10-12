@@ -28,6 +28,7 @@ domain.DivePlan _plan({
   domain.PlanMode mode = domain.PlanMode.ccr,
   List<DiveTank>? tanks,
   int bottomMinutes = 25,
+  Map<int, int> stopMinimums = const {},
 }) {
   return domain.DivePlan(
     id: 'plan-1',
@@ -36,6 +37,7 @@ domain.DivePlan _plan({
     gfLow: 50,
     gfHigh: 80,
     tanks: tanks ?? [_diluentTank, _bailout()],
+    stopMinimums: stopMinimums,
     segments: [
       PlanSegment.travel(
         id: 'seg-1',
@@ -95,10 +97,14 @@ void main() {
     // total ascent while the tissues are still loading, so allow a sample to
     // give back a little rather than pinning an exactness the model does not
     // promise. The trend is the real claim, and it is asserted below.
+    // Whole-minute stop snapping (brought in line with PlanEngine's own
+    // policy by a Copilot review) rounds a stop duration up to the next
+    // full minute, a slightly bigger single-sample step than the plain
+    // unsnapped grid gave, hence the wider tolerance.
     for (var i = 1; i < bottomPoints.length; i++) {
       expect(
         bottomPoints[i].litersRequired,
-        greaterThanOrEqualTo(bottomPoints[i - 1].litersRequired * 0.98),
+        greaterThanOrEqualTo(bottomPoints[i - 1].litersRequired * 0.97),
         reason: 'sample $i fell more than one grid step below its predecessor',
       );
     }
@@ -323,6 +329,16 @@ void main() {
         overriddenRow.endMeters,
         isNot(closeTo(baselineRow.endMeters, 0.5)),
       );
+    });
+
+    test("the bailout schedule honours the plan's own configured stop "
+        'minimums, same as the main table (a Copilot review caught this: '
+        'the bailout policy omitted them entirely)', () {
+      final withMinimum = solver.solve(_plan(stopMinimums: const {3: 600}))!;
+      final stopAt3m = withMinimum.worstCaseRows.firstWhere(
+        (r) => r.kind == PlanScheduleRowKind.stop && r.depthMeters == 3,
+      );
+      expect(stopAt3m.durationSeconds, greaterThanOrEqualTo(600));
     });
 
     test('END is floored at 0 m on every row, same as the main table', () {
