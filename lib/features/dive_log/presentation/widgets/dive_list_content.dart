@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
@@ -128,6 +127,11 @@ class DiveListContent extends ConsumerStatefulWidget {
   /// Whether to show the app bar. Set to false when used inside MasterDetailScaffold.
   final bool showAppBar;
 
+  /// Whether the compact header (shown when [showAppBar] is false) leads with
+  /// a back arrow. Set by a dive list pushed over the page that opened it
+  /// (#3292); a page that merely embeds the list owns its own way back.
+  final bool showBackButton;
+
   /// Optional floating action button to display when showAppBar is true.
   final Widget? floatingActionButton;
 
@@ -160,6 +164,7 @@ class DiveListContent extends ConsumerStatefulWidget {
     this.onItemSelected,
     this.selectedId,
     this.showAppBar = true,
+    this.showBackButton = false,
     this.floatingActionButton,
     this.onItemTapForMap,
     this.isMapMode = false,
@@ -1415,7 +1420,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             children: [
               // A list pushed over the page that opened it (a site's dives,
               // say) leads with the way back to that page (#3292).
-              if (isPushedRoute(context))
+              if (widget.showBackButton)
                 const BackButton()
               else
                 const SizedBox(width: 8),

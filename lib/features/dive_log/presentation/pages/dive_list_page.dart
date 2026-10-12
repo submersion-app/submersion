@@ -427,6 +427,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
           onItemSelected: onItemSelected,
           selectedId: selectedId,
           showAppBar: false,
+          showBackButton: isPushedRoute(context),
           isMapViewActive: _isMapView,
           onMapViewToggle: _toggleMapView,
         ),

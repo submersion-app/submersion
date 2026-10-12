@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/navigation/open_dive_l
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -55,6 +56,14 @@ void main() {
         GoRoute(
           path: '/root',
           builder: (_, _) => const Scaffold(body: Text('ROOT')),
+        ),
+        // Stands in for the Dive Activity Map: a page that is always pushed
+        // and embeds the list without owning its back arrow.
+        GoRoute(
+          path: '/activity',
+          builder: (_, _) => const Scaffold(
+            body: DiveListContent(showAppBar: false, isMapMode: true),
+          ),
         ),
         GoRoute(
           path: '/dives',
@@ -142,6 +151,20 @@ void main() {
     expect(find.text('ROOT'), findsOneWidget);
     expect(h.container.read(diveFilterProvider).siteId, 'mine');
     expect(h.container.read(highlightedDiveIdProvider), 'orig');
+  });
+
+  testWidgets('a pushed page embedding the list gets no back arrow from it', (
+    tester,
+  ) async {
+    final h = await pumpHarness(tester, size: desktop, initial: '/root');
+    h.router.push('/activity');
+    await settle(tester);
+
+    expect(
+      find.byType(BackButton),
+      findsNothing,
+      reason: 'the embedding page owns its own way back',
+    );
   });
 
   testWidgets('top-level list has no back arrow and restores nothing', (
