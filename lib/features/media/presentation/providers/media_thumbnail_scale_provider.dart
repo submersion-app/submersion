@@ -108,6 +108,13 @@ class MediaThumbnailScaleNotifier extends StateNotifier<MediaThumbnailScale> {
     state = MediaThumbnailScale(step: step.clamp(0, kMediaThumbnailSteps - 1));
   }
 
+  /// Moves [delta] stops along the slider, stopping at either end. At an
+  /// end nothing changes, so the count being held is kept.
+  void stepBy(int delta) {
+    final next = (state.step + delta).clamp(0, kMediaThumbnailSteps - 1);
+    if (next != state.step) setStep(next);
+  }
+
   /// Holds [columns] for the current step. A count already held stays, which
   /// is what keeps it through a resize.
   void hold(int columns) {

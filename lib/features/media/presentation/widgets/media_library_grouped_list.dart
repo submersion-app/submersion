@@ -7,6 +7,7 @@ import 'package:submersion/features/media/domain/entities/media_library_filter.d
 import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -183,6 +184,8 @@ class MediaLibraryGroupedList extends ConsumerWidget {
         return false;
       },
       child: ListView.builder(
+        // Lets Ctrl + wheel resize instead of scroll (issue #3297).
+        physics: const MediaThumbnailWheelZoomPhysics(),
         padding: const EdgeInsets.only(bottom: 8),
         itemCount: rows.length,
         itemBuilder: (context, index) => rows[index],

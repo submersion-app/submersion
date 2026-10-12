@@ -5,6 +5,7 @@ import 'package:submersion/features/media/presentation/providers/media_thumbnail
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_status_badge.dart';
+import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One library thumbnail with the shared selection overlay. Used by both the
@@ -160,6 +161,8 @@ class MediaLibraryGrid extends StatelessWidget {
             columns,
           );
           return GridView.builder(
+            // Lets Ctrl + wheel resize instead of scroll (issue #3297).
+            physics: const MediaThumbnailWheelZoomPhysics(),
             padding: const EdgeInsets.all(4),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: columns,

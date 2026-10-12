@@ -1,4 +1,6 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -12,6 +14,7 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 import 'package:submersion/features/media/presentation/pages/media_library_view.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
@@ -168,6 +171,64 @@ void main() {
     expect(find.byType(MediaLibraryGroupedList), findsOneWidget);
     expect(tilesInFirstRow(), 2);
   });
+
+  // Issue #3297. Enough entries to scroll is the point: a scroll view with
+  // nothing to scroll ignores the wheel, which hid a version of this that
+  // resized only until the content outgrew the pane.
+  testWidgets('Ctrl + wheel resizes a gallery long enough to scroll, in every '
+      'thumbnail view, without scrolling it', (tester) async {
+    tester.view.physicalSize = const Size(1200, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final notifier = _SeededLibraryNotifier(
+      MediaLibraryState(entries: [for (var i = 0; i < 200; i++) entry('m$i')]),
+    );
+    await tester.pumpWidget(host(notifier));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MediaLibraryView)),
+    );
+    int step() => container.read(mediaThumbnailScaleProvider).step;
+
+    Future<void> wheel(double dy) async {
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      // Over a thumbnail, not the gap between two.
+      pointer.hover(tester.getCenter(find.byType(MediaLibraryTile).first));
+      await tester.sendEventToBinding(pointer.scroll(Offset(0, dy)));
+      await tester.pumpAndSettle();
+    }
+
+    for (final icon in [
+      Icons.grid_view,
+      Icons.scuba_diving,
+      Icons.calendar_month,
+    ]) {
+      await tester.tap(find.byIcon(icon));
+      await tester.pumpAndSettle();
+      final position = tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position;
+      expect(position.maxScrollExtent, greaterThan(0), reason: '$icon');
+      // Not always 0: a view swapped in takes over the last one's offset.
+      final before = position.pixels;
+      container.read(mediaThumbnailScaleProvider.notifier).setStep(3);
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await wheel(-100);
+      expect(step(), 4, reason: '$icon');
+      await wheel(100);
+      await wheel(100);
+      expect(step(), 2, reason: '$icon');
+      expect(position.pixels, before, reason: '$icon');
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+
+      // Without Ctrl the wheel scrolls again.
+      await wheel(100);
+      expect(position.pixels, before + 100, reason: '$icon');
+      expect(step(), 2, reason: '$icon');
+    }
+  }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
 
   testWidgets('shows localized empty state when no entries', (tester) async {
     final notifier = _SeededLibraryNotifier(const MediaLibraryState());
