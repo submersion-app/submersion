@@ -2913,7 +2913,7 @@ class UddfEntityImporter {
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,
         excludedFromGasStats: excludedFromGasStats,
-        courseId: linkedCourseId,
+        courseIds: [?linkedCourseId],
         setpointLow: asDoubleOrNull(diveData['setpointLow']),
         setpointHigh: asDoubleOrNull(diveData['setpointHigh']),
         setpointDeco: asDoubleOrNull(diveData['setpointDeco']),

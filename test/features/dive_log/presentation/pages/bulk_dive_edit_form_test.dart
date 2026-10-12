@@ -567,13 +567,13 @@ void main() {
       final d1 = await repository.createDive(
         createTestDiveWithBottomTime().copyWith(
           id: 'course-clear-1',
-          courseId: 'aow',
+          courseIds: ['aow'],
         ),
       );
       final d2 = await repository.createDive(
         createTestDiveWithBottomTime().copyWith(
           id: 'course-clear-2',
-          courseId: 'aow',
+          courseIds: ['aow'],
         ),
       );
       expect((await repository.getDiveById(d1.id))!.courseId, 'aow');
@@ -591,7 +591,7 @@ void main() {
       final d1 = await repository.createDive(
         createTestDiveWithBottomTime().copyWith(
           id: 'course-pick-clear-1',
-          courseId: 'aow',
+          courseIds: ['aow'],
         ),
       );
       await pumpBulkDives(tester, [d1.id], courses: [course]);
@@ -630,7 +630,7 @@ void main() {
       final d1 = await repository.createDive(
         createTestDiveWithBottomTime().copyWith(
           id: 'course-keep-1',
-          courseId: 'aow',
+          courseIds: ['aow'],
         ),
       );
       final d2 = await repository.createDive(

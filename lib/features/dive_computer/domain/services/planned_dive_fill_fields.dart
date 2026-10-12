@@ -70,7 +70,7 @@ const Set<String> kHumanDiveFields = {
   'weights',
   'weightingFeedback',
   'weightingFeedbackKg',
-  'courseId',
+  'courseIds',
   'importSource',
   'importId',
   'customFields',

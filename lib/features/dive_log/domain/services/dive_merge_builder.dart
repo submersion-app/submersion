@@ -262,6 +262,14 @@ class DiveMergeBuilder {
           if (seenTagIds.add(t.id)) t,
     ];
 
+    // Courses: ordered union, the earliest dive's courses first (#2515).
+    final mergedCourseIds = <String>[];
+    for (final d in sorted) {
+      for (final c in d.courseIds) {
+        if (!mergedCourseIds.contains(c)) mergedCourseIds.add(c);
+      }
+    }
+
     // Dive types: ordered union (first dive's representative type stays first).
     final mergedDiveTypeIds = <String>[];
     for (final d in sorted) {
@@ -401,7 +409,7 @@ class DiveMergeBuilder {
       loopO2Avg: _firstNonNull(sorted, (d) => d.loopO2Avg),
       loopVolume: _firstNonNull(sorted, (d) => d.loopVolume),
       scrubber: _firstNonNull(sorted, (d) => d.scrubber),
-      courseId: _firstNonNull(sorted, (d) => d.courseId),
+      courseIds: mergedCourseIds,
       importSource: _firstNonNull(sorted, (d) => d.importSource),
       importId: _firstNonNull(sorted, (d) => d.importId),
       diveTypeIds: mergedDiveTypeIds,

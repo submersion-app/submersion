@@ -6146,7 +6146,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         boatName: trimmedOrNull(_boatNameController.text),
         boatCaptain: trimmedOrNull(_boatCaptainController.text),
         surfaceConditions: trimmedOrNull(_surfaceConditionsController.text),
-        courseId: _selectedCourse?.id,
+        courseIds: [?_selectedCourse?.id],
         tanks: _tanks,
         gear: gearLinksFor(_selectedEquipment, _gearRows),
         // Conditions fields

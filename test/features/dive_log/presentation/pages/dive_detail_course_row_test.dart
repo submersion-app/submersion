@@ -34,7 +34,7 @@ void main() {
     id: 'dive-1',
     diveNumber: 1,
     dateTime: DateTime(2023, 1, 1),
-    courseId: courseId,
+    courseIds: [?courseId],
   );
 
   Future<void> pumpDetail(WidgetTester tester, Dive dive) async {
