@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
@@ -36,6 +37,16 @@ void main() {
   });
 
   group('packed trips (issue #2654)', () {
+    // The tile dates come from intl, which reads the process-wide
+    // Intl.defaultLocale rather than the app's locale. Pin it, and restore it
+    // so no other test file inherits it.
+    late String? previousLocale;
+    setUp(() {
+      previousLocale = Intl.defaultLocale;
+      Intl.defaultLocale = 'en';
+    });
+    tearDown(() => Intl.defaultLocale = previousLocale);
+
     final now = DateTime(2026, 10, 12);
     Trip trip(String id) => Trip(
       id: id,

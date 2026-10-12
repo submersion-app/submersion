@@ -174,6 +174,34 @@ void main() {
     );
   });
 
+  testWidgets('when the packed trips fail to load, the picker stays closed '
+      'and says so', (tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          equipmentTripsProvider('tank').overrideWith(
+            (ref) => Future<List<PackedTrip>>.error(StateError('locked')),
+          ),
+          allTripsProvider.overrideWith((ref) async => [trip('a')]),
+          tripEquipmentRepositoryProvider.overrideWithValue(_FakePacks()),
+        ],
+        child: const SingleChildScrollView(
+          child: PassportTripCard(equipmentId: 'tank'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportTripCard)),
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    expect(find.byType(TripPickerSheet), findsNothing);
+    expect(find.text(l10n.passport_trip_failed), findsOneWidget);
+  });
+
   testWidgets('New trip packs for the trip it creates', (tester) async {
     final fake = _FakePacks();
     final overrides = await getBaseOverrides();
