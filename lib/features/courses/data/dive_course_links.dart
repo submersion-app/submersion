@@ -42,11 +42,20 @@ class DiveCourseLinks {
           r.read<String>('course_id'),
         );
       }
-      final legacy = await (_db.select(
-        _db.dives,
-      )..where((t) => t.id.isIn(chunk) & t.courseId.isNotNull())).get();
-      for (final d in legacy) {
-        map.putIfAbsent(d.id, () => [d.courseId!]);
+      // Only the dives the junction did not resolve, and only two columns.
+      final unresolved = [
+        for (final id in chunk)
+          if (!map.containsKey(id)) id,
+      ];
+      if (unresolved.isEmpty) continue;
+      final d = _db.dives;
+      final legacy =
+          await (_db.selectOnly(d)
+                ..addColumns([d.id, d.courseId])
+                ..where(d.id.isIn(unresolved) & d.courseId.isNotNull()))
+              .get();
+      for (final row in legacy) {
+        map[row.read(d.id)!] = [row.read(d.courseId)!];
       }
     }
     return map;

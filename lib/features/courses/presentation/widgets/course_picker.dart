@@ -57,16 +57,18 @@ class CourseMultiSelectField extends ConsumerWidget {
                 runSpacing: 4,
                 children: [
                   for (final id in selectedCourseIds)
-                    InputChip(
-                      avatar: const Icon(Icons.school, size: 16),
-                      label: Text(nameById[id] ?? ''),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                      onDeleted: () => onChanged([
-                        for (final other in selectedCourseIds)
-                          if (other != id) other,
-                      ]),
-                    ),
+                    // A course not loaded yet gets no blank chip.
+                    if (nameById[id] != null)
+                      InputChip(
+                        avatar: const Icon(Icons.school, size: 16),
+                        label: Text(nameById[id]!),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                        onDeleted: () => onChanged([
+                          for (final other in selectedCourseIds)
+                            if (other != id) other,
+                        ]),
+                      ),
                 ],
               ),
       ),
