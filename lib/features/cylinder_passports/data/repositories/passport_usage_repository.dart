@@ -18,16 +18,17 @@ class PassportUsageRepository {
     required String? diverId,
     String? excludeDiveId,
   }) async {
-    // EXISTS rather than a join, so a dive with two tanks from one tag is
-    // one row without a DISTINCT.
+    // IN rather than a join, so a dive with two tanks from one tag is one
+    // row without a DISTINCT; and rather than a correlated EXISTS, which
+    // scans every dive, so the lookup starts from idx_dive_tanks_passport_id.
     final rows = await _db
         .customSelect(
           'SELECT d.id AS dive_id, d.dive_date_time AS dive_date_time, '
           'd.dive_number AS dive_number, s.name AS site_name '
           'FROM dives d '
           'LEFT JOIN dive_sites s ON s.id = d.site_id '
-          'WHERE EXISTS (SELECT 1 FROM dive_tanks t '
-          'WHERE t.dive_id = d.id AND t.passport_id = ?) '
+          'WHERE d.id IN (SELECT t.dive_id FROM dive_tanks t '
+          'WHERE t.passport_id = ?) '
           '${diverId == null ? '' : 'AND d.diver_id = ? '}'
           '${excludeDiveId == null ? '' : 'AND d.id != ? '}'
           'ORDER BY d.dive_date_time DESC, d.id',
