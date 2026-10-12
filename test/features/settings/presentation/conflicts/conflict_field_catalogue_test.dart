@@ -24,6 +24,22 @@ void main() {
     expect(field.kind, FieldKind.unknown);
   });
 
+  test('a diver\'s prior dive time is a career total, kept in hours', () {
+    expect(
+      conflictFieldFor('divers', 'priorDiveTimeSeconds').kind,
+      FieldKind.totalDurationSeconds,
+    );
+    expect(
+      formatConflictValue(
+        l10n: l10n,
+        units: const UnitFormatter(AppSettings()),
+        field: conflictFieldFor('divers', 'priorDiveTimeSeconds'),
+        value: 1150 * 3600,
+      ),
+      '1150h 0m',
+    );
+  });
+
   test('bookkeeping and foreign keys are covered without an entry', () {
     expect(isConflictFieldCovered('dives', 'hlc'), isTrue);
     expect(isConflictFieldCovered('dives', 'siteId'), isTrue);
