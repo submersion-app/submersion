@@ -333,7 +333,7 @@ void main() {
     expect(find.text('12'), findsOneWidget);
     expect(find.text('13'), findsOneWidget);
     await expandUnchanged(tester);
-    expect(find.text('45min'), findsOneWidget);
+    expect(find.text('45 min'), findsOneWidget);
     expect(find.textContaining('1786556582600'), findsNothing);
     expect(find.textContaining('2700'), findsNothing);
   });

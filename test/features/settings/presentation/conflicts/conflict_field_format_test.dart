@@ -66,8 +66,13 @@ void main() {
     });
 
     test('renders a stored duration as hours and minutes', () {
-      expect(fmt(metric, FieldKind.durationSeconds, 2700), '45min');
+      expect(fmt(metric, FieldKind.durationSeconds, 2700), '45 min');
       expect(fmt(metric, FieldKind.durationSeconds, 4500), '1h 15m');
+    });
+
+    test('renders a long duration in days, then years', () {
+      expect(fmt(metric, FieldKind.durationMinutes, 3000), '2d 2h');
+      expect(fmt(metric, FieldKind.durationMinutes, 576000), '1y 35d');
     });
 
     test('keeps a sub-minute duration distinguishable', () {
