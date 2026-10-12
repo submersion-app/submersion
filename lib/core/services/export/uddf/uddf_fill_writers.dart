@@ -90,11 +90,11 @@ abstract final class UddfFillWriters {
         ? rawId.substring(_idPrefix.length)
         : rawId;
     final passportId = _read(element, 'passportid');
-    // Local, like the fills CSV and the Log fill sheet; a zoneless value
-    // already parses as local wall clock.
-    final filledAt = DateTime.tryParse(
-      _read(element, 'datetime') ?? '',
-    )?.toLocal();
+    // A fill time is a real instant, not a dive's wall clock: local, like
+    // the fills CSV and the Log fill sheet. A zoneless value already parses
+    // as local wall clock.
+    final parsed = DateTime.tryParse(_read(element, 'datetime') ?? '');
+    final filledAt = parsed?.toLocal();
     final o2 = _number(element, 'o2');
     if (id == null ||
         id.isEmpty ||
