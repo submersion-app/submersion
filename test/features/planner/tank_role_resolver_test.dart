@@ -201,6 +201,21 @@ void main() {
       expect(_roles(plan)['dil'], TankRole.bailout);
     });
 
+    test('a stale oxygenSupply role from a plan that was once CCR does not '
+        'stick on SCR/PSCR -- a non-pure tank is judged by its mix, same as '
+        'any other cylinder (#3220 is CCR-only)', () {
+      final plan = _plan(
+        mode: domain.PlanMode.scr,
+        tanks: [
+          _tank('o2', o2: 21, he: 35, role: TankRole.oxygenSupply),
+          _tank('dil', o2: 21, he: 35, role: TankRole.diluent),
+        ],
+        segments: [_seg('s1', 45, 25, 'dil', 0)],
+      );
+
+      expect(_roles(plan)['o2'], TankRole.bailout);
+    });
+
     test('any other open-circuit cylinder carried is bailout', () {
       final plan = _plan(
         mode: domain.PlanMode.pscr,

@@ -84,9 +84,15 @@ class TankRoleResolver {
       // an open-circuit plan has no such slots, so a stored loop role there
       // is stale input and is re-derived like any other.
       if (tank.role == TankRole.diluent) return TankRole.diluent;
-      if (tank.role == TankRole.oxygenSupply) return TankRole.oxygenSupply;
 
       if (isCcr) {
+        // The oxygen slot is CCR-only (#3220): a stored oxygenSupply role
+        // from a plan that was once CCR must not stick once it switches to
+        // SCR/PSCR, which have no such slot and judge a cylinder by its mix
+        // alone below -- honouring it unconditionally here let a non-pure
+        // tank stay misclassified as oxygen supply on those modes (caught
+        // by a Copilot review).
+        if (tank.role == TankRole.oxygenSupply) return TankRole.oxygenSupply;
         // Everything else carried on a CCR dive is open-circuit bailout --
         // a second pure-O2 cylinder too: the oxygen slot is the one the
         // plan holds under that role, never derived from the mix (#3220).
