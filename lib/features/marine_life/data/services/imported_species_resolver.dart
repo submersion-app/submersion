@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 
@@ -25,7 +26,7 @@ class ImportedSpeciesResolver {
     String? description,
   }) async {
     final name = commonName.trim();
-    final scientific = _blankToNull(scientificName);
+    final scientific = trimmedOrNull(scientificName);
 
     if (scientific != null) {
       final match = await _repository.findSpeciesByScientificName(scientific);
@@ -41,20 +42,15 @@ class ImportedSpeciesResolver {
       commonName: name,
       scientificName: scientific,
       category: category ?? SpeciesCategory.other,
-      taxonomyClass: _blankToNull(taxonomyClass),
-      description: _blankToNull(description),
+      taxonomyClass: trimmedOrNull(taxonomyClass),
+      description: trimmedOrNull(description),
     );
   }
 
   /// Two scientific names conflict only when both are present and differ.
   static bool _compatible(String? existing, String? incoming) {
-    final a = _blankToNull(existing)?.toLowerCase();
+    final a = trimmedOrNull(existing)?.toLowerCase();
     final b = incoming?.toLowerCase();
     return a == null || b == null || a == b;
-  }
-
-  static String? _blankToNull(String? value) {
-    final trimmed = value?.trim();
-    return trimmed == null || trimmed.isEmpty ? null : trimmed;
   }
 }

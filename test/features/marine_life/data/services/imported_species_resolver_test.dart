@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/data/services/imported_species_resolver.dart';
 
@@ -83,6 +84,45 @@ void main() {
 
     expect(resolved.id, star.id);
   });
+
+  test('common names differing only in an accented capital match', () async {
+    final sponge = await repository.createSpecies(
+      commonName: 'ÉPONGE',
+      category: SpeciesCategory.invertebrate,
+    );
+
+    final resolved = await resolver.resolve(commonName: 'éponge');
+
+    expect(resolved.id, sponge.id);
+  });
+
+  test(
+    'a scientific name shared by a custom twin resolves to the built-in',
+    () async {
+      final custom = await repository.createSpecies(
+        commonName: 'Pieuvre',
+        scientificName: 'Octopus vulgaris',
+        category: SpeciesCategory.invertebrate,
+      );
+      final builtIn = await repository.createSpecies(
+        commonName: 'Common Octopus',
+        scientificName: 'Octopus vulgaris',
+        category: SpeciesCategory.invertebrate,
+      );
+      await DatabaseService.instance.database.customStatement(
+        'UPDATE species SET is_built_in = 1 WHERE id = ?',
+        [builtIn.id],
+      );
+
+      final resolved = await resolver.resolve(
+        commonName: 'Poulpe',
+        scientificName: 'Octopus vulgaris',
+      );
+
+      expect(resolved.id, builtIn.id);
+      expect(resolved.id, isNot(custom.id));
+    },
+  );
 
   test('a conflicting scientific name creates a new species', () async {
     final cyanea = await repository.createSpecies(

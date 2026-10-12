@@ -448,6 +448,20 @@ void main() {
 
         expect(found.id, created.id);
       });
+
+      test('matches when only an accented letter differs in case', () async {
+        final created = await repository.createSpecies(
+          commonName: 'étoile de mer',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        final found = await repository.getOrCreateSpecies(
+          commonName: 'Étoile de mer',
+          category: SpeciesCategory.invertebrate,
+        );
+
+        expect(found.id, created.id);
+      });
     });
   });
 }

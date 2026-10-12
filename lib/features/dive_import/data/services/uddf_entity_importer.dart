@@ -3492,7 +3492,7 @@ class UddfEntityImporter {
     final raw = diveData['sightings'];
     if (raw is! List || raw.isEmpty) return;
     final resolver = ImportedSpeciesResolver(repository);
-    String? text(Object? value) => value is String ? value.trim() : null;
+    String? text(Object? value) => value is String ? value : null;
 
     for (final entry in raw) {
       if (entry is! Map) continue;
