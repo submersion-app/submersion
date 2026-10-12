@@ -52,6 +52,7 @@ class SuuntoRouteWriter {
         diveId: diveId,
         anchorLatitude: route.originLatitude,
         anchorLongitude: route.originLongitude,
+        sourceMetadata: route.sourceMetadata,
       );
       for (final oldId in previous) {
         await _repository.replace(oldId, withRouteId: id);
