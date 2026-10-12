@@ -308,7 +308,12 @@ class _PartTile extends StatelessWidget {
       title: Text(name),
       subtitle: Row(
         children: [
-          Flexible(child: Text(subtitle, overflow: TextOverflow.ellipsis)),
+          // Wraps rather than truncating: beside four action icons a phone
+          // row has room for little more than the role, and the identifier
+          // after it is the detail that tells identical parts apart.
+          Flexible(
+            child: Text(subtitle, maxLines: 3, overflow: TextOverflow.ellipsis),
+          ),
           if (departed != null) ...[
             const SizedBox(width: 8),
             Text(

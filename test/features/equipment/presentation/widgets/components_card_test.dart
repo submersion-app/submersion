@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -419,6 +420,38 @@ void main() {
       expect(find.text('Second Stage · ID Necklace'), findsOneWidget);
       expect(find.text('Second Stage · ID Primary'), findsOneWidget);
     });
+
+    testWidgets(
+      'the label wraps rather than hiding the identifier on a phone',
+      (tester) async {
+        tester.view.devicePixelRatio = 1.0;
+        // The test font draws every glyph a full em wide, so this width
+        // leaves the label about two lines, as a real phone does.
+        tester.view.physicalSize = const Size(600, 800);
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          build([
+            part(
+              'c1',
+              gear(
+                'z1',
+                'HOG Zenith',
+                EquipmentType.secondStage,
+                identifier: 'Necklace',
+              ),
+              role: 'Second Stage',
+            ),
+          ], _FakeComponentRepository()),
+        );
+        await tester.pumpAndSettle();
+        // find.text matches an ellipsized line too, so ask the paragraph
+        // whether it had to cut the label short.
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.text('Second Stage · ID Necklace'),
+        );
+        expect(paragraph.didExceedMaxLines, isFalse);
+      },
+    );
 
     testWidgets('a part with no role shows its type, then its identifier', (
       tester,
