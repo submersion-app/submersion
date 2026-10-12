@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/track_colorization.dart';
 import 'package:submersion/features/gps_log/domain/track_geometry.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/track_row_labels.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_stat_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -23,11 +24,10 @@ class TrackStatsHeader extends ConsumerWidget {
   final List<GpsTrackPoint> points;
   final int diveCount;
 
+  /// The same compact form as the track's list row ("47min", "2d 2h").
   String _formatDuration(int seconds) {
     if (seconds <= 0) return '--';
-    final duration = Duration(seconds: seconds);
-    if (duration.inHours < 1) return '${duration.inMinutes}min';
-    return '${duration.inHours}h ${duration.inMinutes % 60}m';
+    return formatCompactDuration(Duration(seconds: seconds));
   }
 
   @override
