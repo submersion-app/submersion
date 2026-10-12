@@ -9040,6 +9040,10 @@
   "equipment_figure_trayTitle": "Also carried",
   "equipment_list_emptyState_addFirstButton": "Add Your First Equipment",
   "equipment_list_emptyState_addPrompt": "Add your diving equipment to track usage and service",
+  "equipment_list_emptyState_defaultView_subtitle": "Your default view hides the rest of your gear.",
+  "@equipment_list_emptyState_defaultView_subtitle": {"description": "Empty Equipment list when the diver's default view (Settings > Manage > Default equipment view) hides every item they own"},
+  "equipment_list_emptyState_defaultView_title": "No equipment in your default view",
+  "@equipment_list_emptyState_defaultView_title": {"description": "Heading of the empty Equipment list when the default view hides every item the diver owns"},
   "equipment_list_emptyState_filterText_equipment": "equipment",
   "equipment_list_emptyState_filterText_serviceDue": "equipment needing service",
   "equipment_list_emptyState_filterText_serviceDueSoon": "equipment due for service soon",
@@ -9052,14 +9056,16 @@
   "equipment_list_emptyState_noStatusMatch": "No equipment with this status",
   "equipment_list_emptyState_noTagMatch": "No equipment with these tags",
   "equipment_list_emptyState_noTypeMatch": "No equipment in this category",
+  "equipment_list_emptyState_showAll": "Show All Equipment",
+  "@equipment_list_emptyState_showAll": {"description": "Button on the empty Equipment list that switches the status filter to All Equipment"},
   "equipment_list_emptyState_serviceDueUpToDate": "All your equipment is up to date on service!",
   "equipment_list_emptyState_serviceNoneDueSoon": "Nothing is due for service soon.",
   "equipment_list_emptyState_serviceNoneOverdue": "Nothing is overdue for service.",
   "equipment_list_errorLoading": "Error loading equipment: {error}",
   "equipment_list_filterAll": "All Equipment",
   "@equipment_list_filterAll": {"description": "Status chip that narrows by no status. On the Equipment list it shows every item, retired and sold included; in the dive gear picker, every item the picker offers."},
-  "equipment_list_filterCurrent": "Current Equipment",
-  "@equipment_list_filterCurrent": {"description": "Equipment filter status chip for the default view: every item except retired and sold gear"},
+  "equipment_list_filterCurrent": "Default View",
+  "@equipment_list_filterCurrent": {"description": "Equipment filter status chip for the diver's default view: the statuses chosen in Settings > Manage > Default equipment view (issue #2628)"},
   "equipment_list_filterServiceDue": "Service Due",
   "equipment_list_filterServiceDueSoon": "Due Soon",
   "equipment_list_filterServiceOverdue": "Overdue",
@@ -9083,6 +9089,8 @@
   "equipment_filter_apply": "Apply Filters",
   "equipment_filter_cancel": "Cancel",
   "equipment_filter_section_status": "Status",
+  "equipment_filter_editDefault": "Edit default",
+  "@equipment_filter_editDefault": {"description": "Button beside the Status heading in the equipment filter panel that opens the default equipment view settings"},
   "equipment_filter_section_tags": "Tags",
   "equipment_filter_section_category": "Category",
   "equipment_location_kind_storage": "Storage",
@@ -13444,6 +13452,7 @@
   "settings_conflict_field_entryTime": "Entry time",
   "settings_conflict_field_environment": "Environment",
   "settings_conflict_field_equipmentComponents_role": "Role",
+  "settings_conflict_field_equipmentDefaultStatuses": "Default equipment view",
   "settings_conflict_field_equipmentFindings_severity": "Severity",
   "settings_conflict_field_equipmentListViewMode": "Equipment list view",
   "settings_conflict_field_equipmentObservations_status": "Status",
@@ -14403,6 +14412,12 @@
   "@settings_manage_locations": {"description": "Settings > Manage tile opening the list of places where gear is kept"},
   "settings_manage_locations_subtitle": "Where your gear is kept, serviced or lent",
   "@settings_manage_locations_subtitle": {"description": "Subtitle of the Locations tile in Settings > Manage"},
+  "settings_equipmentDefaultView_intro": "When no filter is set, the Equipment list shows gear with these statuses.",
+  "@settings_equipmentDefaultView_intro": {"description": "Explanation at the top of the Default equipment view settings page (issue #2628)"},
+  "settings_equipmentDefaultView_listSeparator": ", ",
+  "@settings_equipmentDefaultView_listSeparator": {"description": "Joins status names in the default equipment view summary, e.g. 'Active, Spare'"},
+  "settings_equipmentDefaultView_title": "Default equipment view",
+  "@settings_equipmentDefaultView_title": {"description": "Title of the settings page, and its Settings > Manage row, choosing which statuses the Equipment list shows with no filter set"},
   "settings_manage_currencyRules": "Certification currency",
   "@settings_manage_currencyRules": {
     "description": "Settings > Manage tile: the certification currency rule catalog"
@@ -17522,6 +17537,7 @@
   "trips_photos_sectionTitle": "Photos",
   "trips_photos_tooltip_scan": "Scan device gallery",
   "trips_photos_viewAll": "View All",
+  "trips_picker_alreadyPacked": "Already packed",
   "trips_picker_clearTooltip": "Clear selection",
   "trips_picker_empty_createButton": "Create Trip",
   "trips_picker_empty_title": "No trips yet",
@@ -27097,6 +27113,7 @@
   "trips_picker_suggestedSemantics": "Suggested trip: {name}. Tap to use",
   "trips_picker_tileSemantics": "{name}, {startDate} to {endDate}",
   "trips_picker_tileSemanticsSelected": "{name}, {startDate} to {endDate}, selected",
+  "trips_picker_tileSemanticsPacked": "{name}, {startDate} to {endDate}, already packed",
   "divePlanner_quickPlan_subtitle": "Create a simple rectangular dive profile",
   "divePlanner_quickPlan_depthLabel": "Depth:",
   "divePlanner_quickPlan_depthSemantics": "Depth: {depth}",
@@ -27325,6 +27342,19 @@
     }
   },
   "@trips_picker_tileSemanticsSelected": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "startDate": {
+        "type": "Object"
+      },
+      "endDate": {
+        "type": "Object"
+      }
+    }
+  },
+  "@trips_picker_tileSemanticsPacked": {
     "placeholders": {
       "name": {
         "type": "Object"

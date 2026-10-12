@@ -15123,6 +15123,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voeg je duikuitrusting toe om gebruik en service bij te houden';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'Je standaardweergave verbergt de rest van je uitrusting.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'Geen uitrusting in je standaardweergave';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'uitrusting';
 
   @override
@@ -15169,6 +15177,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen uitrusting in deze categorie';
 
   @override
+  String get equipment_list_emptyState_showAll => 'Alle uitrusting tonen';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'Al je uitrusting is up-to-date met service!';
 
@@ -15189,7 +15200,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_list_filterAll => 'Alle uitrusting';
 
   @override
-  String get equipment_list_filterCurrent => 'Huidige uitrusting';
+  String get equipment_list_filterCurrent => 'Standaardweergave';
 
   @override
   String get equipment_list_filterServiceDue => 'Service nodig';
@@ -15228,6 +15239,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Status';
+
+  @override
+  String get equipment_filter_editDefault => 'Standaard bewerken';
 
   @override
   String get equipment_filter_section_tags => 'Tags';
@@ -22069,6 +22083,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'Rol';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'Standaardweergave van de uitrusting';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'Ernst';
 
   @override
@@ -24659,6 +24677,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'Waar je uitrusting ligt, in onderhoud is of is uitgeleend';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'Zonder filter toont de uitrustingslijst uitrusting met deze statussen.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title =>
+      'Standaardweergave van de uitrusting';
 
   @override
   String get settings_manage_currencyRules => 'Geldigheid certificeringen';
@@ -29838,6 +29867,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Alles bekijken';
+
+  @override
+  String get trips_picker_alreadyPacked => 'Al ingepakt';
 
   @override
   String get trips_picker_clearTooltip => 'Selectie wissen';
@@ -46204,6 +46236,15 @@ class AppLocalizationsNl extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, $startDate tot $endDate, geselecteerd';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, $startDate tot $endDate, al ingepakt';
   }
 
   @override

@@ -1228,10 +1228,12 @@ class AppDatabase extends _$AppDatabase {
     // column, so the floor stays at 280. Renumbered from 282, which PR
     // #3133 holds; 283 and 284 shipped first.
     285,
+    // v286: diver_settings.equipment_default_statuses (issue #2628).
+    // Additive nullable column, so the floor stays at 280.
+    286,
     // v287: the dive_courses junction and the certification-side course link
     // (issue #2515). A new table plus meaning-preserving backfills, so the
-    // floor stays at 280. Renumbered from 286, which PR #3316 holds; 284
-    // and 285 shipped first.
+    // floor stays at 280. Renumbered from 286, which #2628 shipped first.
     287,
   ];
 

@@ -360,6 +360,12 @@ extension RungsFromV231 on AppDatabase {
       await _assertNavTrackSourceMetadataColumn();
     }
     if (from < 285) await reportProgress();
+    // v286: diver_settings.equipment_default_statuses (issue #2628). Column
+    // only; re-asserted in beforeOpen.
+    if (from < 286) {
+      await _assertEquipmentDefaultStatusesColumn();
+    }
+    if (from < 286) await reportProgress();
     // v287: the dive_courses junction and the certification-side course link
     // (issue #2515). Schema re-asserted and links re-seeded in beforeOpen;
     // the certification backfill runs here only.

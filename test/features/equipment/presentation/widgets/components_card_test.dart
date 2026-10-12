@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -8,6 +9,8 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
@@ -17,7 +20,10 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 class _FakeComponentRepository extends EquipmentComponentRepository {
   final removed = <String>[];
@@ -141,6 +147,8 @@ void main() {
   }) {
     return ProviderScope(
       overrides: [
+        // Row labels format a purchase-date tie-break in the diver's format.
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         equipmentComponentRepositoryProvider.overrideWithValue(repo),
         equipmentRepositoryProvider.overrideWithValue(
           equipment ?? _FakeEquipmentRepository(),
@@ -352,6 +360,288 @@ void main() {
       expect(find.textContaining('Something went wrong'), findsOneWidget);
       expect(find.text('DGX first stage'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('row labels (#2791)', () {
+    /// An item that may carry an identifier, brand and model, or a serial.
+    EquipmentItem gear(
+      String id,
+      String name,
+      EquipmentType type, {
+      String? identifier,
+      String? brand,
+      String? model,
+      String? serial,
+    }) => EquipmentItem(
+      id: id,
+      name: name,
+      type: type,
+      brand: brand,
+      model: model,
+      serialNumber: serial,
+      attributes: [
+        if (identifier != null)
+          EquipmentAttribute.curated(
+            equipmentId: id,
+            key: EquipmentAttrKeys.identifier,
+            valueText: identifier,
+          ),
+      ],
+    );
+
+    testWidgets('a part shows its identifier after its role', (tester) async {
+      await tester.pumpWidget(
+        build([
+          part(
+            'c1',
+            gear(
+              'z1',
+              'HOG Zenith',
+              EquipmentType.secondStage,
+              identifier: 'Necklace',
+            ),
+            role: 'Second Stage',
+          ),
+          part(
+            'c2',
+            gear(
+              'z2',
+              'HOG Zenith',
+              EquipmentType.secondStage,
+              identifier: 'Primary',
+            ),
+            role: 'Second Stage',
+            order: 1,
+          ),
+        ], _FakeComponentRepository()),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Second Stage · ID Necklace'), findsOneWidget);
+      expect(find.text('Second Stage · ID Primary'), findsOneWidget);
+    });
+
+    testWidgets(
+      'the label wraps rather than hiding the identifier on a phone',
+      (tester) async {
+        tester.view.devicePixelRatio = 1.0;
+        // About 320 px of label beside the action icons. The label below
+        // needs more than one line there whether the test font (every glyph
+        // a full em wide) or a real one loaded by another bundled test file
+        // draws it, so a one-line label always fails this.
+        tester.view.physicalSize = const Size(600, 800);
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          build([
+            part(
+              'c1',
+              gear(
+                'z1',
+                'HOG Zenith',
+                EquipmentType.secondStage,
+                brand: 'Halcyon',
+                model: 'Zenith Pro',
+                identifier: 'Necklace left',
+              ),
+              role: 'Second Stage',
+            ),
+          ], _FakeComponentRepository()),
+        );
+        await tester.pumpAndSettle();
+        // find.text matches an ellipsized line too, so ask the paragraph
+        // whether it had to cut the label short.
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.text('Second Stage · Halcyon Zenith Pro · ID Necklace left'),
+        );
+        expect(paragraph.didExceedMaxLines, isFalse);
+      },
+    );
+
+    testWidgets('a part with no role shows its type, then its identifier', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build([
+          part(
+            'c1',
+            gear('sw', 'Swift', EquipmentType.transmitter, identifier: 'Bill'),
+          ),
+        ], _FakeComponentRepository()),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Transmitter · ID Bill'), findsOneWidget);
+    });
+
+    testWidgets('brand and model show when they differ from the name', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build([
+          part(
+            'c1',
+            gear(
+              'd3',
+              'Yoke first',
+              EquipmentType.firstStage,
+              brand: 'HOG',
+              model: 'D3',
+              identifier: 'YOKE',
+            ),
+            role: 'First Stage',
+          ),
+        ], _FakeComponentRepository()),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('First Stage · HOG D3 · ID YOKE'), findsOneWidget);
+    });
+
+    testWidgets('identical parts are told apart by their serials', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build([
+          part(
+            'c1',
+            gear('h1', 'MP hose', EquipmentType.hose, serial: 'A1'),
+            role: 'Hose',
+          ),
+          part(
+            'c2',
+            gear('h2', 'MP hose', EquipmentType.hose, serial: 'B2'),
+            role: 'Hose',
+            order: 1,
+          ),
+        ], _FakeComponentRepository()),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Hose · S/N A1'), findsOneWidget);
+      expect(find.text('Hose · S/N B2'), findsOneWidget);
+    });
+
+    testWidgets('parts already told apart by their roles get no tie-break', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build([
+          part(
+            'c1',
+            gear('z1', 'HOG Zenith', EquipmentType.secondStage, serial: 'A1'),
+            role: 'Primary',
+          ),
+          part(
+            'c2',
+            gear('z2', 'HOG Zenith', EquipmentType.secondStage, serial: 'B2'),
+            role: 'Octopus',
+            order: 1,
+          ),
+        ], _FakeComponentRepository()),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Primary'), findsOneWidget);
+      expect(find.text('Octopus'), findsOneWidget);
+      expect(find.textContaining('S/N'), findsNothing);
+    });
+
+    testWidgets('a departed part keeps its badge beside the label', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build([
+          part(
+            'c1',
+            EquipmentItem(
+              id: 'old',
+              name: 'Old hose',
+              type: EquipmentType.hose,
+              status: EquipmentStatus.retired,
+              isActive: false,
+              attributes: [
+                EquipmentAttribute.curated(
+                  equipmentId: 'old',
+                  key: EquipmentAttrKeys.identifier,
+                  valueText: 'H1',
+                ),
+              ],
+            ),
+          ),
+        ], _FakeComponentRepository()),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Hose · ID H1'), findsOneWidget);
+      expect(find.text('Retired'), findsOneWidget);
+    });
+
+    testWidgets('parents already told apart by their rigs get no tie-break', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        build(
+          const [],
+          _FakeComponentRepository(),
+          partOf: [
+            parentEntry(
+              gear(
+                'ra1',
+                'Regulator Assembly',
+                EquipmentType.regulator,
+                serial: 'R1',
+              ),
+              role: 'Second Stage',
+              rigs: ['Backmount rig'],
+            ),
+            parentEntry(
+              gear(
+                'ra2',
+                'Regulator Assembly',
+                EquipmentType.regulator,
+                serial: 'R2',
+              ),
+              role: 'Second Stage',
+              rigs: ['Sidemount rig'],
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Second Stage, in Backmount rig'), findsOneWidget);
+      expect(find.text('Second Stage, in Sidemount rig'), findsOneWidget);
+      expect(find.textContaining('S/N'), findsNothing);
+    });
+
+    testWidgets('a parent assembly shows its identifier too', (tester) async {
+      await tester.pumpWidget(
+        build(
+          const [],
+          _FakeComponentRepository(),
+          partOf: [
+            parentEntry(
+              gear(
+                'ra1',
+                'Regulator Assembly',
+                EquipmentType.regulator,
+                identifier: 'Yoke',
+              ),
+              role: 'Second Stage',
+            ),
+            parentEntry(
+              gear(
+                'ra2',
+                'Regulator Assembly',
+                EquipmentType.regulator,
+                identifier: 'DIN',
+              ),
+              role: 'Second Stage',
+              rigs: ['Sidemount rig'],
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Second Stage · ID Yoke'), findsOneWidget);
+      expect(
+        find.text('Second Stage, in Sidemount rig · ID DIN'),
+        findsOneWidget,
+      );
     });
   });
 

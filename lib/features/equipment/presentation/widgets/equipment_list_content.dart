@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_default_view_empty_state.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_share.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_transfer.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -1271,6 +1272,28 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     required bool tagsEmptied,
   }) {
     final filter = ref.watch(effectiveEquipmentFilterProvider);
+
+    // The default view is the diver's choice (#2628) and can hide all they
+    // own; with no other filter set, that is the only cause left. Wishlist
+    // gear is not owned yet, and gear another diver shares is not theirs
+    // (ownerless gear is, as under the Mine filter), so a diver with only
+    // those still gets the add prompt.
+    final diverId = ref.watch(validatedCurrentDiverIdProvider).value;
+    final ownsHiddenGear =
+        ref
+            .watch(allEquipmentProvider)
+            .value
+            ?.any(
+              (e) =>
+                  e.status != EquipmentStatus.wanted &&
+                  (e.diverId == null ||
+                      diverId == null ||
+                      e.diverId == diverId),
+            ) ??
+        false;
+    if (!filter.hasActiveFilters && ownsHiddenGear) {
+      return const EquipmentDefaultViewEmptyState();
+    }
 
     // Blame the tags (issue #1942) when the category and its conditions left
     // items that none of the selected tags is on: a tag chip on a retired

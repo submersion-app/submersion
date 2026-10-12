@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/computer_mix_n
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_role_option.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/import_tag_fill.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -647,7 +648,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 .map(
                   (role) => DropdownMenuItem(
                     value: role,
-                    child: Text(role.localizedName(context.l10n)),
+                    child: TankRoleOption(role: role),
                   ),
                 )
                 .toList(),

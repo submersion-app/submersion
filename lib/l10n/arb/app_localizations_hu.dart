@@ -15172,6 +15172,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adja hozzá búvárfelszerelését a használat és szerviz köveTéséhez';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'Az alapnézet elrejti a többi felszerelésedet.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'Nincs felszerelés az alapnézetben';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'felszerelés';
 
   @override
@@ -15218,6 +15226,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs felszerelés ebben a kategóriában';
 
   @override
+  String get equipment_list_emptyState_showAll =>
+      'Összes felszerelés megjelenítése';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'Minden felszerelése naprakész a szervizzel!';
 
@@ -15238,7 +15250,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_list_filterAll => 'Összes felszerelés';
 
   @override
-  String get equipment_list_filterCurrent => 'Jelenlegi felszerelés';
+  String get equipment_list_filterCurrent => 'Alapnézet';
 
   @override
   String get equipment_list_filterServiceDue => 'Szerviz esedékes';
@@ -15277,6 +15289,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Állapot';
+
+  @override
+  String get equipment_filter_editDefault => 'Alapnézet szerkesztése';
 
   @override
   String get equipment_filter_section_tags => 'Címkék';
@@ -22132,6 +22147,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'Szerep';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'Felszerelés alapnézete';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'Súlyosság';
 
   @override
@@ -24718,6 +24737,16 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'Hol tárolod, szervizelteted vagy adtad kölcsön a felszerelésed';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'Szűrő nélkül a felszereléslista az ilyen állapotú felszereléseket mutatja.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title => 'Felszerelés alapnézete';
 
   @override
   String get settings_manage_currencyRules => 'Képesítések érvényessége';
@@ -29897,6 +29926,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Összes megtekintése';
+
+  @override
+  String get trips_picker_alreadyPacked => 'Már bepakolva';
 
   @override
   String get trips_picker_clearTooltip => 'Kiválasztás törlése';
@@ -46246,6 +46278,15 @@ class AppLocalizationsHu extends AppLocalizations {
     Object endDate,
   ) {
     return '$name, $startDate és $endDate között, kiválasztva';
+  }
+
+  @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, $startDate és $endDate között, már bepakolva';
   }
 
   @override
