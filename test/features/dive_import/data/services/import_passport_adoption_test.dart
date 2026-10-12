@@ -58,4 +58,38 @@ void main() {
     expect(await passports.getPassportId('a'), 'pp-1');
     expect(await passports.getPassportId('b'), isNull);
   });
+
+  test('one adoption that fails does not stop the others', () async {
+    final count = await adoptImportedPassportIds(
+      [
+        {'uddfId': 'equip_x', 'passportId': 'pp-boom'},
+        {'uddfId': 'equip_y', 'passportId': 'pp-2'},
+      ],
+      {'equip_x': 'a', 'equip_y': 'b'},
+      _ThrowingFor('pp-boom'),
+      diverId: 'd1',
+    );
+    expect(count, 1);
+    expect(await CylinderPassportRepository().getPassportId('b'), 'pp-2');
+  });
+}
+
+class _ThrowingFor extends CylinderPassportRepository {
+  _ThrowingFor(this.passportId);
+
+  final String passportId;
+
+  @override
+  Future<bool> adoptImportedPassportId({
+    required String equipmentId,
+    required String passportId,
+    String? diverId,
+  }) {
+    if (passportId == this.passportId) throw StateError('disk full');
+    return super.adoptImportedPassportId(
+      equipmentId: equipmentId,
+      passportId: passportId,
+      diverId: diverId,
+    );
+  }
 }

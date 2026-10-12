@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/data/repositories/service_schedule
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -97,6 +98,7 @@ void main() {
           'name': 'Scooter seals',
           'applicableTypes': ['other'],
           'defaultIntervalDays': 180,
+          'defaultIntervalHours': 12,
           'exposureIntervals': {'cycles': 40.0},
           'defaultCategory': 'replacement',
           'autoAttach': false,
@@ -114,6 +116,7 @@ void main() {
     expect(stored.name, 'Scooter seals');
     expect(stored.applicableTypes, [EquipmentType.other]);
     expect(stored.defaultIntervalDays, 180);
+    expect(stored.defaultIntervalHours, 12.0);
     expect(stored.exposureIntervals, {ExposureUnit.cycles: 40.0});
     expect(stored.defaultCategory, ServiceCategory.replacement);
     // A built-in resolves to itself; an unknown ref to nothing.
@@ -269,4 +272,76 @@ void main() {
       expect(await kindsOn(id), before);
     });
   });
+
+  test('a kind, clock or default clock that cannot be written is skipped, '
+      'and the rest still import', () async {
+    final resolver = await importServiceKinds(
+      [
+        {'id': 'k-boom', 'name': 'Boom'},
+        {'id': 'k-ok', 'name': 'Fine'},
+      ],
+      _KindsFailingOn('Boom'),
+      diverId: 'd1',
+    );
+    expect(resolver.resolve('k-boom'), isNull);
+    expect(resolver.resolve('k-ok'), isNotNull);
+
+    final item = await EquipmentRepository().createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'AL80',
+        type: EquipmentType.tank,
+        diverId: 'd1',
+      ),
+    );
+    final failing = _SchedulesFailing();
+    final count = await restoreServiceClocks(
+      [
+        {
+          'uddfId': 'equip_a',
+          'serviceSchedules': [
+            {'kindRef': 'o2-clean', 'intervalDays': 365},
+            {'kindRef': 'hydro', 'intervalDays': 1095},
+          ],
+        },
+      ],
+      {0},
+      {'equip_a': item.id},
+      const {},
+      failing,
+      resolver,
+    );
+    // The new o2-clean clock and the vip removal fail; hydro still lands.
+    expect(count, 1);
+    final after = {
+      for (final s in await schedules.getSchedulesForEquipment(item.id))
+        s.serviceKindId: s.intervalDays,
+    };
+    expect(after['hydro'], 1095);
+    expect(after.containsKey('vip'), isTrue);
+  });
+}
+
+class _KindsFailingOn extends ServiceKindRepository {
+  _KindsFailingOn(this.name);
+
+  final String name;
+
+  @override
+  Future<ServiceKind> createKind(ServiceKind kind) {
+    if (kind.name == name) throw StateError('disk full');
+    return super.createKind(kind);
+  }
+}
+
+/// Updates work; creating a new clock and removing a default one fail.
+class _SchedulesFailing extends ServiceScheduleRepository {
+  @override
+  Future<ServiceSchedule> createSchedule(
+    ServiceSchedule schedule, {
+    bool notify = true,
+  }) => throw StateError('disk full');
+
+  @override
+  Future<void> deleteSchedule(String id) => throw StateError('disk full');
 }

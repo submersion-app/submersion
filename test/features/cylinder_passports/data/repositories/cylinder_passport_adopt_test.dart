@@ -4,6 +4,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -122,5 +125,27 @@ void main() {
     );
     expect(await passports.getPassportId('bcd-1'), 'pp-g');
     expect((await CylinderFillRepository().getById('f2'))!.equipmentId, isNull);
+  });
+
+  test('adopting a tag keeps the item\'s other attributes', () async {
+    final equipment = EquipmentRepository();
+    await equipment.saveAttributes('tank-1', [
+      EquipmentAttribute.curated(
+        equipmentId: 'tank-1',
+        key: EquipmentAttrKeys.workingPressureBar,
+        valueNum: 232,
+      ),
+    ]);
+    await passports.adoptImportedPassportId(
+      equipmentId: 'tank-1',
+      passportId: 'pp-1',
+      diverId: 'd1',
+    );
+    final attributes = {
+      for (final a in await equipment.getAttributesForEquipment('tank-1'))
+        a.key: a.valueNum ?? a.valueText,
+    };
+    expect(attributes[EquipmentAttrKeys.workingPressureBar], 232);
+    expect(attributes[EquipmentAttrKeys.passportId], 'pp-1');
   });
 }
