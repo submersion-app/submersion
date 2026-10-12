@@ -89,6 +89,16 @@ void main() {
       expect(fmt(metric, FieldKind.durationSeconds, 0), '0s');
     });
 
+    test('a career total stays in hours and minutes', () {
+      // Divers count logged time in hours underwater, never days.
+      expect(
+        fmt(metric, FieldKind.totalDurationSeconds, 1150 * 3600 + 30 * 60),
+        '1150h 30m',
+      );
+      expect(fmt(metric, FieldKind.totalDurationSeconds, 2700), '45 min');
+      expect(fmt(metric, FieldKind.totalDurationSeconds, 42), '42s');
+    });
+
     test('a negative duration shows itself', () {
       expect(fmt(metric, FieldKind.durationSeconds, -30), '-30s');
     });

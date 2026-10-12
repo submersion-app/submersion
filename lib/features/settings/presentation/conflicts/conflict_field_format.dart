@@ -117,6 +117,10 @@ String _format(
       (number * 3600).round(),
       l10n,
     ),
+    FieldKind.totalDurationSeconds => _formatConflictTotal(
+      number.round(),
+      l10n,
+    ),
     _ => value.toString(),
   };
 }
@@ -146,6 +150,19 @@ DateTime? _wallClock(Object value) {
 /// 32.0 -> "32", 32.5 -> "32.5" ("32,5" under de).
 String _trim(double value) =>
     formatFixedForDisplay(value, value == value.roundToDouble() ? 0 : 1);
+
+/// A career total in seconds: hours and minutes from an hour up
+/// ("1150h 30m"), the elapsed form below.
+String _formatConflictTotal(int seconds, AppLocalizations l10n) {
+  if (seconds < Duration.secondsPerHour) {
+    return formatConflictSeconds(seconds, l10n);
+  }
+  final minutes = seconds ~/ Duration.secondsPerMinute;
+  return l10n.common_elapsed_hoursMinutes(
+    minutes ~/ Duration.minutesPerHour,
+    minutes % Duration.minutesPerHour,
+  );
+}
 
 /// A stored count of seconds as the exact elapsed time ("45 min", "1h 5m",
 /// "2d 2h 0m"): past a day the other screens drop a unit, which here would
