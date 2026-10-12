@@ -6,9 +6,9 @@ import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
-import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -19,7 +19,6 @@ import 'package:submersion/features/trips/presentation/helpers/trip_scan_actions
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_item_dialogs.dart';
 
@@ -44,20 +43,22 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Desktop redirect: If accessed directly (not embedded), redirect to master-detail view.
-    // Skip in table mode -- table view has no master-detail split to redirect into.
-    if (!widget.embedded &&
-        !_hasRedirected &&
-        ResponsiveBreakpoints.isMasterDetail(context)) {
-      final viewMode = ref.read(tripListViewModeProvider);
-      if (viewMode != ListViewMode.table) {
-        _hasRedirected = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            context.go('/trips?selected=${widget.tripId}');
-          }
-        });
-      }
+    // Desktop redirect: a root visit (deep link, sidebar) moves into the
+    // master-detail split. A pushed page, opened from a dive's details
+    // say, stays put: the redirect's go() would erase the page under it
+    // and its back arrow (#3292).
+    if (!_hasRedirected &&
+        shouldRedirectToMasterDetail(
+          context,
+          embedded: widget.embedded,
+          viewMode: ref.read(tripListViewModeProvider),
+        )) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/trips?selected=${widget.tripId}');
+        }
+      });
     }
 
     final tripAsync = ref.watch(tripWithStatsProvider(widget.tripId));

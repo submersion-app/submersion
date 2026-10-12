@@ -9,13 +9,12 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
-import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
-import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -49,20 +48,22 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Desktop redirect: If accessed directly (not embedded), redirect to master-detail view.
-    // Skip in table mode -- table view has no master-detail split to redirect into.
-    if (!widget.embedded &&
-        !_hasRedirected &&
-        ResponsiveBreakpoints.isMasterDetail(context)) {
-      final viewMode = ref.read(diveCenterListViewModeProvider);
-      if (viewMode != ListViewMode.table) {
-        _hasRedirected = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            context.go('/dive-centers?selected=${widget.centerId}');
-          }
-        });
-      }
+    // Desktop redirect: a root visit (deep link, sidebar) moves into the
+    // master-detail split. A pushed page, opened from a dive's details
+    // say, stays put: the redirect's go() would erase the page under it
+    // and its back arrow (#3292).
+    if (!_hasRedirected &&
+        shouldRedirectToMasterDetail(
+          context,
+          embedded: widget.embedded,
+          viewMode: ref.read(diveCenterListViewModeProvider),
+        )) {
+      _hasRedirected = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go('/dive-centers?selected=${widget.centerId}');
+        }
+      });
     }
 
     final centerAsync = ref.watch(diveCenterByIdProvider(widget.centerId));
