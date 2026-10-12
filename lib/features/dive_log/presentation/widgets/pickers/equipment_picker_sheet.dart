@@ -22,8 +22,13 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/max_width_fraction.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/shared_gear_note_line.dart';
 
-/// Equipment picker bottom sheet
-class EquipmentPickerSheet extends ConsumerWidget {
+/// Equipment picker bottom sheet.
+///
+/// Single-select with [onEquipmentSelected]: tapping a row picks it. With
+/// [onEquipmentConfirmed] it is multi-select instead (issue #2175): every
+/// row has a checkbox, as in the add-components sheet, and nothing reaches
+/// the caller until Add is pressed.
+class EquipmentPickerSheet extends ConsumerStatefulWidget {
   final ScrollController scrollController;
   final Set<String> selectedEquipmentIds;
 
@@ -42,7 +47,14 @@ class EquipmentPickerSheet extends ConsumerWidget {
   /// may well have used gear since retired. The planner, trips and the
   /// weight rig look ahead and leave it off.
   final bool offerLeftKit;
-  final void Function(EquipmentItem) onEquipmentSelected;
+
+  /// Called with the row that was tapped. The caller closes the sheet.
+  final void Function(EquipmentItem)? onEquipmentSelected;
+
+  /// Makes the sheet multi-select (issue #2175): called with every ticked
+  /// item, in the order ticked, when Add is pressed. The caller closes the
+  /// sheet. Cancel closes it without calling this.
+  final void Function(List<EquipmentItem>)? onEquipmentConfirmed;
 
   /// Replaces the default "Select Equipment" title, for a caller whose pick
   /// means something more specific (filling a tank from a cylinder).
@@ -63,11 +75,15 @@ class EquipmentPickerSheet extends ConsumerWidget {
     this.typeFilter,
     this.hideSpare = false,
     this.offerLeftKit = false,
-    required this.onEquipmentSelected,
+    this.onEquipmentSelected,
+    this.onEquipmentConfirmed,
     this.title,
     this.hint,
     this.overlapNote,
-  });
+  }) : assert(
+         (onEquipmentSelected == null) != (onEquipmentConfirmed == null),
+         'Pass onEquipmentSelected or onEquipmentConfirmed, not both',
+       );
 
   /// The caller's own constraints on what may be offered, before the
   /// diver's filter: the [typeFilter] and [hideSpare].
@@ -75,6 +91,65 @@ class EquipmentPickerSheet extends ConsumerWidget {
       equipment
           .where((e) => typeFilter == null || e.type == typeFilter)
           .where((e) => !hideSpare || e.status != EquipmentStatus.spare);
+
+  @override
+  ConsumerState<EquipmentPickerSheet> createState() =>
+      _EquipmentPickerSheetState();
+}
+
+class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
+  /// The ticked items by id, in the order ticked. Kept as items, not ids, so
+  /// a tick outlives its row being filtered out of the list.
+  Map<String, EquipmentItem> _picked = const {};
+
+  bool get _multiSelect => widget.onEquipmentConfirmed != null;
+
+  void _toggle(EquipmentItem item, bool checked) {
+    setState(() {
+      _picked = checked
+          ? {..._picked, item.id: item}
+          : {
+              for (final entry in _picked.entries)
+                if (entry.key != item.id) entry.key: entry.value,
+            };
+    });
+  }
+
+  /// One gear row: tap to pick, or a checkbox to tick when multi-select.
+  Widget _itemTile(BuildContext context, EquipmentItem item, Widget? subtitle) {
+    final avatar = CircleAvatar(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Icon(
+        equipmentTypeIcon(item.type),
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+    );
+    if (_multiSelect) {
+      return CheckboxListTile(
+        value: _picked.containsKey(item.id),
+        onChanged: (value) => _toggle(item, value == true),
+        secondary: avatar,
+        title: Text(item.name),
+        subtitle: subtitle,
+        controlAffinity: ListTileControlAffinity.trailing,
+      );
+    }
+    return ListTile(
+      leading: avatar,
+      title: Text(item.name),
+      subtitle: subtitle,
+      // Capped so a rollup label naming a long part cannot take the row
+      // from the title (issue #1981).
+      trailing: MaxWidthFraction(
+        fraction: kListTileTrailingMaxWidthFraction,
+        child: ServiceStatusIndicatorFor(
+          equipmentId: item.id,
+          density: ServiceIndicatorDensity.compact,
+        ),
+      ),
+      onTap: () => widget.onEquipmentSelected!(item),
+    );
+  }
 
   /// The type name leads when there is no type heading to say it, then the
   /// details that tell this item from its neighbours.
@@ -85,6 +160,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
     required bool showTypeLabel,
     required bool showOwner,
   }) {
+    final overlapNote = widget.overlapNote;
     final all = [
       if (showTypeLabel) item.type.localizedName(context.l10n),
       // Sold, Lost or Retired, as the equipment badges read it.
@@ -93,7 +169,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
     ];
     final text = all.isEmpty ? null : Text(all.join(' · '));
     final note = overlapNote?.call(item.id);
-    if (!showOwner && note == null) return text;
+    if (!showOwner && note == null && !_multiSelect) return text;
     // Another profile's shared gear names its owner (issue #2046). Below the
     // text, as on the equipment list, so the width-capped trailing column
     // keeps only the service indicator (issue #1981).
@@ -102,6 +178,13 @@ class EquipmentPickerSheet extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         ?text,
+        // The checkbox has the trailing slot, so the service status sits
+        // under the name, as in the add-components sheet.
+        if (_multiSelect)
+          ServiceStatusIndicatorFor(
+            equipmentId: item.id,
+            density: ServiceIndicatorDensity.compact,
+          ),
         if (showOwner)
           Padding(
             padding: const EdgeInsets.only(top: 4),
@@ -119,7 +202,11 @@ class EquipmentPickerSheet extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final selectedEquipmentIds = widget.selectedEquipmentIds;
+    final offerLeftKit = widget.offerLeftKit;
+    final hideSpare = widget.hideSpare;
+    final typeFilter = widget.typeFilter;
     // Active gear by default; retired items are reachable from the
     // Equipment page's Retired filter (#636), and from here through the
     // left-kit switch when the caller offers it (#3210).
@@ -142,15 +229,39 @@ class EquipmentPickerSheet extends ConsumerWidget {
         showLeftKit ||
         filter
             .apply(
-              _callerAllowed(
-                leftKit.where((e) => !selectedEquipmentIds.contains(e.id)),
-              ).toList(),
+              widget
+                  ._callerAllowed(
+                    leftKit.where((e) => !selectedEquipmentIds.contains(e.id)),
+                  )
+                  .toList(),
             )
             .isNotEmpty;
     // Shared gear (issue #2046) gets its own section and an owner chip.
     final multipleDivers = ref.watch(hasMultipleDiversProvider);
     final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
     final names = ref.watch(diverNamesByIdProvider).value ?? const {};
+
+    final listControls = [
+      IconButton(
+        icon: Badge(
+          // Only when something is narrowed, so the diver can see at a
+          // glance why gear they own is missing from the list.
+          isLabelVisible: filter.hasActiveFilters,
+          child: const Icon(Icons.filter_list),
+        ),
+        tooltip: context.l10n.equipment_filter_title,
+        onPressed: () => _showFilter(
+          context,
+          ref,
+          equipmentAsync.value ?? const <EquipmentItem>[],
+        ),
+      ),
+      IconButton(
+        icon: const Icon(Icons.sort),
+        tooltip: context.l10n.equipment_list_sortTooltip,
+        onPressed: () => showEquipmentArrangeSheet(context),
+      ),
+    ];
 
     return Column(
       children: [
@@ -164,44 +275,46 @@ class EquipmentPickerSheet extends ConsumerWidget {
               // 362px in French, whose title is 23 characters.
               Flexible(
                 child: Text(
-                  title ?? context.l10n.diveLog_equipmentPicker_title,
+                  widget.title ?? context.l10n.diveLog_equipmentPicker_title,
                   style: Theme.of(context).textTheme.titleLarge,
+                  // Two text buttons leave the title less room than three
+                  // icons did, so it wraps before it is cut short.
+                  maxLines: _multiSelect ? 2 : 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Badge(
-                      // Only when something is narrowed, so the diver can see
-                      // at a glance why gear they own is missing from the list.
-                      isLabelVisible: filter.hasActiveFilters,
-                      child: const Icon(Icons.filter_list),
+              if (_multiSelect)
+                _ConfirmButtons(
+                  count: _picked.length,
+                  onConfirm: () =>
+                      widget.onEquipmentConfirmed!(_picked.values.toList()),
+                )
+              else
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ...listControls,
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      tooltip: context.l10n.common_action_close,
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
-                    tooltip: context.l10n.equipment_filter_title,
-                    onPressed: () => _showFilter(
-                      context,
-                      ref,
-                      equipmentAsync.value ?? const <EquipmentItem>[],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.sort),
-                    tooltip: context.l10n.equipment_list_sortTooltip,
-                    onPressed: () => showEquipmentArrangeSheet(context),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    tooltip: context.l10n.common_action_close,
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         ),
-        if (hint case final hint?)
+        // Cancel and Add take the header, so filter and sort get their own
+        // row rather than squeezing the title off a 320dp phone.
+        if (_multiSelect)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: listControls,
+            ),
+          ),
+        if (widget.hint case final hint?)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: Text(
@@ -233,7 +346,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
               final unselected = equipmentList
                   .where((e) => !selectedEquipmentIds.contains(e.id))
                   .toList();
-              final offerable = _callerAllowed(unselected).toList();
+              final offerable = widget._callerAllowed(unselected).toList();
               final available = filter.apply(offerable);
 
               // Which axis to blame when nothing is left. Applying the type
@@ -342,7 +455,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
               ];
 
               return ListView.builder(
-                controller: scrollController,
+                controller: widget.scrollController,
                 itemCount: rows.length,
                 itemBuilder: (context, index) => switch (rows[index]) {
                   _SectionRow(:final title) => Padding(
@@ -358,18 +471,10 @@ class EquipmentPickerSheet extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: EquipmentGroupHeader(type: type),
                   ),
-                  _ItemRow(:final item, :final showTypeLabel) => ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                      child: Icon(
-                        equipmentTypeIcon(item.type),
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    title: Text(item.name),
-                    subtitle: _subtitle(
+                  _ItemRow(:final item, :final showTypeLabel) => _itemTile(
+                    context,
+                    item,
+                    _subtitle(
                       context,
                       labels[item.id]?.subtitleParts ?? const [],
                       item,
@@ -380,16 +485,6 @@ class EquipmentPickerSheet extends ConsumerWidget {
                         multipleDivers: multipleDivers,
                       ),
                     ),
-                    // Capped so a rollup label naming a long part cannot
-                    // take the row from the title (issue #1981).
-                    trailing: MaxWidthFraction(
-                      fraction: kListTileTrailingMaxWidthFraction,
-                      child: ServiceStatusIndicatorFor(
-                        equipmentId: item.id,
-                        density: ServiceIndicatorDensity.compact,
-                      ),
-                    ),
-                    onTap: () => onEquipmentSelected(item),
                   ),
                 },
               );
@@ -421,9 +516,11 @@ class EquipmentPickerSheet extends ConsumerWidget {
     // dive is excluded, and so is anything the caller's own constraints rule
     // out. Deriving them from the full active list would offer a chip (such
     // as Spare, when hidden) that could only ever produce an empty list.
-    final selectable = _callerAllowed(
-      equipment.where((e) => !selectedEquipmentIds.contains(e.id)),
-    ).toList();
+    final selectable = widget
+        ._callerAllowed(
+          equipment.where((e) => !widget.selectedEquipmentIds.contains(e.id)),
+        )
+        .toList();
     final presentTypes = selectable.map((e) => e.type).toSet();
     // The status each row reads, as the filter matches it (#3210).
     final presentStatuses = selectable.map((e) => e.effectiveStatus).toSet();
@@ -440,6 +537,44 @@ class EquipmentPickerSheet extends ConsumerWidget {
     );
     if (chosen == null) return;
     ref.read(equipmentPickerFilterProvider.notifier).state = chosen;
+  }
+}
+
+/// Cancel and "Add N", the multi-select header's buttons (issue #2175).
+class _ConfirmButtons extends StatelessWidget {
+  const _ConfirmButtons({required this.count, required this.onConfirm});
+
+  /// How many items are ticked; Add is disabled at zero.
+  final int count;
+  final VoidCallback onConfirm;
+
+  @override
+  Widget build(BuildContext context) {
+    // Never wider than the sheet's padded width: a long translation at a
+    // large text size shrinks the pair rather than overflowing the header.
+    final maxWidth = MediaQuery.sizeOf(context).width - 32;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(context.l10n.common_action_cancel),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: count == 0 ? null : onConfirm,
+              child: Text(
+                context.l10n.equipment_components_pickerConfirm(count),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
