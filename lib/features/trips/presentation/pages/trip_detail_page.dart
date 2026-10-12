@@ -9,6 +9,7 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -160,10 +161,12 @@ class _TripDetailContent extends ConsumerWidget {
         icon: const Icon(Icons.map_outlined),
         tooltip: context.l10n.trips_detail_tooltip_viewOnMap,
         onPressed: () {
-          ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-            tripId: trip.id,
+          openDiveList(
+            context,
+            ref,
+            DiveFilterState(tripId: trip.id),
+            map: true,
           );
-          context.go('/dives?view=map');
         },
       ),
       IconButton(
@@ -225,10 +228,12 @@ class _TripDetailContent extends ConsumerWidget {
             visualDensity: VisualDensity.compact,
             tooltip: context.l10n.trips_detail_tooltip_viewOnMap,
             onPressed: () {
-              ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-                tripId: trip.id,
+              openDiveList(
+                context,
+                ref,
+                DiveFilterState(tripId: trip.id),
+                map: true,
               );
-              context.go('/dives?view=map');
             },
           ),
           IconButton(

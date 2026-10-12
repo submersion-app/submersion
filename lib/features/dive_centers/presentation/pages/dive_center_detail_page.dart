@@ -15,6 +15,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -825,9 +826,11 @@ class _DivesSection extends ConsumerWidget {
                 onTap: diveCount > 0
                     ? () {
                         // Set the filter to this dive center and navigate to dive list
-                        ref.read(diveFilterProvider.notifier).state =
-                            DiveFilterState(diveCenterId: centerId);
-                        context.go('/dives');
+                        openDiveList(
+                          context,
+                          ref,
+                          DiveFilterState(diveCenterId: centerId),
+                        );
                       }
                     : null,
                 child: Padding(

@@ -29,6 +29,7 @@ import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:collection/collection.dart';
@@ -581,9 +582,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
                 child: InkWell(
                   onTap: count > 0
                       ? () {
-                          ref.read(diveFilterProvider.notifier).state =
-                              DiveFilterState(equipmentIds: [equipmentId]);
-                          context.go('/dives');
+                          openDiveList(
+                            context,
+                            ref,
+                            DiveFilterState(equipmentIds: [equipmentId]),
+                          );
                         }
                       : null,
                   borderRadius: BorderRadius.circular(8),

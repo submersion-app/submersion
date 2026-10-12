@@ -26,6 +26,7 @@ import 'package:submersion/features/site_scape/presentation/site_feature_sheet.d
 import 'package:submersion/features/site_scape/presentation/site_features_section.dart';
 import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 import 'package:submersion/features/site_scape/presentation/site_seascape_section.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -1320,10 +1321,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       child: TextButton.icon(
         key: const ValueKey('siteViewAllDivesButton'),
         onPressed: () {
-          ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-            siteId: site.id,
-          );
-          context.go('/dives');
+          openDiveList(context, ref, DiveFilterState(siteId: site.id));
         },
         icon: const Icon(Icons.list_alt, size: 18),
         label: Text(

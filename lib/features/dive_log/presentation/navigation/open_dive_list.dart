@@ -1,4 +1,9 @@
-import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 
 /// What a pushed dive list puts back when it goes away: the dive-list filter
 /// and highlighted dive that were in place before it opened.
@@ -11,4 +16,25 @@ class DiveListReturn {
 
   final DiveFilterState filter;
   final String? highlightedDiveId;
+}
+
+/// Shows the dives matching [filter] on a dive list pushed over the current
+/// page, so its back arrow returns here (#2784, #3292).
+///
+/// The filter is replaced rather than merged: a leftover date, depth or site
+/// filter would hide some of the dives the link promised. The filter and
+/// highlight in place before are handed to the pushed list, which puts them
+/// back when it goes away. [map] opens the list's map view.
+void openDiveList(
+  BuildContext context,
+  WidgetRef ref,
+  DiveFilterState filter, {
+  bool map = false,
+}) {
+  final returnTo = DiveListReturn(
+    filter: ref.read(diveFilterProvider),
+    highlightedDiveId: ref.read(highlightedDiveIdProvider),
+  );
+  ref.read(diveFilterProvider.notifier).state = filter;
+  context.push(map ? '/dives?view=map' : '/dives', extra: returnTo);
 }
