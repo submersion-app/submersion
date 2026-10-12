@@ -21002,6 +21002,18 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der letzte Eigentümer kann nicht herabgestuft werden.';
 
   @override
+  String get sharedLibrary_picker_none =>
+      'Keine Clubbibliothek hier erlaubt dir, Tauchplätze hinzuzufügen.';
+
+  @override
+  String get sharedLibrary_list_notConnected =>
+      'Auf diesem Gerät nicht verbunden';
+
+  @override
+  String get sharedLibrary_connect_exists =>
+      'Hier wurde inzwischen eine Bibliothek angelegt. Prüfe erneut, um ihr beizutreten.';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave =>
       'Ernenne vor dem Verlassen ein anderes Mitglied zum Eigentümer.';
 

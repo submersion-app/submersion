@@ -20892,6 +20892,18 @@ class AppLocalizationsNl extends AppLocalizations {
       'De laatste eigenaar kan niet worden gedegradeerd.';
 
   @override
+  String get sharedLibrary_picker_none =>
+      'Geen clubbibliotheek hier laat je duikplekken toevoegen.';
+
+  @override
+  String get sharedLibrary_list_notConnected =>
+      'Niet verbonden op dit apparaat';
+
+  @override
+  String get sharedLibrary_connect_exists =>
+      'Iemand heeft hier intussen een bibliotheek gemaakt. Controleer opnieuw om lid te worden.';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave =>
       'Maak een ander lid eigenaar voordat je vertrekt.';
 

@@ -21026,6 +21026,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'L\'ultimo proprietario non può essere retrocesso.';
 
   @override
+  String get sharedLibrary_picker_none =>
+      'Nessuna libreria del club qui ti consente di aggiungere siti.';
+
+  @override
+  String get sharedLibrary_list_notConnected =>
+      'Non collegata su questo dispositivo';
+
+  @override
+  String get sharedLibrary_connect_exists =>
+      'Nel frattempo qualcuno ha creato qui una libreria. Controlla di nuovo per unirti.';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave =>
       'Rendi proprietario un altro membro prima di uscire.';
 

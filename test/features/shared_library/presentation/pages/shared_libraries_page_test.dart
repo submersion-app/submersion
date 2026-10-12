@@ -71,4 +71,39 @@ void main() {
     expect(find.textContaining('Owner'), findsOneWidget);
     expect(find.textContaining('2 members'), findsOneWidget);
   });
+
+  testWidgets('a membership not connected on this device offers Connect', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await getBaseOverrides(),
+          sharedLibrariesProvider.overrideWith(
+            (ref) => Stream.value(const <SharedLibrary>[]),
+          ),
+          currentMembershipsProvider.overrideWith(
+            (ref) async => const [
+              SharedLibraryMembership(
+                id: 'ms',
+                diverId: 'd',
+                libraryId: 'L',
+                memberId: 'm',
+                displayName: 'Ann',
+                libraryName: 'Reef Club',
+                backendKind: 's3',
+                locationHint: 'Club bucket: reef',
+              ),
+            ],
+          ),
+        ],
+        locale: const Locale('en'),
+        child: const SharedLibrariesPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Reef Club'), findsOneWidget);
+    expect(find.text('Not connected on this device'), findsOneWidget);
+    expect(find.text('No club library connected yet.'), findsNothing);
+  });
 }

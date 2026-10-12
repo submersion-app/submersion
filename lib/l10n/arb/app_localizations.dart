@@ -33659,6 +33659,24 @@ abstract class AppLocalizations {
   /// **'The last owner cannot be demoted.'**
   String get sharedLibrary_members_lastOwner;
 
+  /// No description provided for @sharedLibrary_picker_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No club library here lets you add sites.'**
+  String get sharedLibrary_picker_none;
+
+  /// No description provided for @sharedLibrary_list_notConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected on this device'**
+  String get sharedLibrary_list_notConnected;
+
+  /// No description provided for @sharedLibrary_connect_exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Someone created a library here meanwhile. Check again to join it.'**
+  String get sharedLibrary_connect_exists;
+
   /// No description provided for @sharedLibrary_library_lastOwnerLeave.
   ///
   /// In en, this message translates to:

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -12,7 +13,7 @@ import '../../../../helpers/test_app.dart';
 /// Records role changes instead of touching storage; throws the last-owner
 /// StateError on demand.
 class _RecordingMembershipService extends SharedLibraryMembershipService {
-  _RecordingMembershipService({this.refuse = false})
+  _RecordingMembershipService({this.refuse = false, this.offline = false})
     : super(
         store: SharedLibraryStore(),
         transportFor: ({required account, required prefix}) =>
@@ -20,6 +21,7 @@ class _RecordingMembershipService extends SharedLibraryMembershipService {
       );
 
   final bool refuse;
+  final bool offline;
   final calls = <(String, String, SharedLibraryRole)>[];
 
   @override
@@ -29,7 +31,8 @@ class _RecordingMembershipService extends SharedLibraryMembershipService {
     required String memberId,
     required SharedLibraryRole role,
   }) async {
-    if (refuse) throw StateError('last owner');
+    if (refuse) throw LastOwnerDemoteError(libraryId);
+    if (offline) throw const CloudStorageException('Network unreachable');
     calls.add((actingMemberId, memberId, role));
   }
 }
@@ -140,6 +143,22 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Reader').last);
     await tester.pumpAndSettle();
-    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.text('The last owner cannot be demoted.'), findsOneWidget);
+  });
+
+  testWidgets('a storage failure says what went wrong', (tester) async {
+    await tester.pumpWidget(
+      await _page(
+        SharedLibraryRole.owner,
+        service: _RecordingMembershipService(offline: true),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PopupMenuButton<SharedLibraryRole>).last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Editor').last);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Network unreachable'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

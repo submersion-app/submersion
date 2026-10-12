@@ -21297,6 +21297,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن تخفيض رتبة المالك الأخير.';
 
   @override
+  String get sharedLibrary_picker_none =>
+      'لا توجد مكتبة نادٍ هنا تتيح لك إضافة مواقع.';
+
+  @override
+  String get sharedLibrary_list_notConnected => 'غير متصل على هذا الجهاز';
+
+  @override
+  String get sharedLibrary_connect_exists =>
+      'أنشأ أحدهم مكتبة هنا في الأثناء. تحقق مرة أخرى للانضمام إليها.';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave =>
       'اجعل عضوًا آخر مالكًا قبل المغادرة.';
 

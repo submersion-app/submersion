@@ -76,6 +76,16 @@ class SharedLibraryRoles extends Equatable {
 
 /// The role the UI honours: the listed role, capped at reader when the
 /// storage refused a write.
+/// The newest of [clocks], or null when there are none: the last edit of a
+/// site, which its attribution names.
+FieldClock? newestClockOf(Iterable<FieldClock> clocks) {
+  FieldClock? newest;
+  for (final c in clocks) {
+    if (newest == null || c.hlc.compareTo(newest.hlc) > 0) newest = c;
+  }
+  return newest;
+}
+
 SharedLibraryRole effectiveRole({
   required SharedLibraryRole listed,
   required bool readOnlyDetected,
@@ -193,6 +203,13 @@ class SharedLibraryMembership extends Equatable {
   final String libraryName;
   final String backendKind;
   final String locationHint;
+
+  /// The folder prefix [locationHint] names (`<account label>: <prefix>`),
+  /// to prefill Connect on a device that has not connected the library.
+  String get prefixHint {
+    final at = locationHint.indexOf(': ');
+    return at < 0 ? '' : locationHint.substring(at + 2);
+  }
 
   SharedLibraryMembership copyWith({
     String? displayName,

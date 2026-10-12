@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
+import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/shared_library/presentation/pages/shared_library_page.dart';
@@ -13,9 +16,12 @@ Future<Widget> _page(
   SharedLibraryRole role, {
   bool readOnly = false,
   String? error,
+  SharedLibraryMembershipService? service,
 }) async => testApp(
   overrides: [
     ...await getBaseOverrides(),
+    if (service != null)
+      sharedLibraryMembershipServiceProvider.overrideWithValue(service),
     sharedLibrariesProvider.overrideWith(
       (ref) => Stream.value([
         SharedLibrary(
@@ -145,4 +151,34 @@ void main() {
     expect(find.text('Reef'), findsNothing);
     expect(find.byType(SnackBar), findsNothing);
   });
+
+  testWidgets('a rename the storage refuses says so', (tester) async {
+    await tester.pumpWidget(
+      await _page(SharedLibraryRole.owner, service: _OfflineRename()),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ann'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Annie');
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Network unreachable'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+}
+
+class _OfflineRename extends SharedLibraryMembershipService {
+  _OfflineRename()
+    : super(
+        store: SharedLibraryStore(),
+        transportFor: ({required account, required prefix}) =>
+            throw UnimplementedError(),
+      );
+
+  @override
+  Future<void> rename({
+    required String libraryId,
+    required String diverId,
+    required String displayName,
+  }) async => throw const CloudStorageException('Network unreachable');
 }

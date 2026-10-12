@@ -686,10 +686,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
     final membership = await ref.read(
       currentMembershipProvider(site.sharedLibraryId!).future,
     );
-    final hint = membership?.locationHint ?? '';
-    final prefix = hint.contains(': ')
-        ? hint.substring(hint.indexOf(': ') + 2)
-        : '';
+    final prefix = membership?.prefixHint ?? '';
     if (!context.mounted) return;
     context.push(
       '/settings/club-libraries/connect?prefix=${Uri.encodeQueryComponent(prefix)}',

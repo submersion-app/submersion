@@ -9,13 +9,8 @@ import 'package:submersion/features/shared_library/presentation/widgets/library_
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The newest clock of a library site's state, or null when none.
-FieldClock? newestFieldClock(SharedSiteState? state) {
-  FieldClock? newest;
-  for (final c in state?.clocks.values ?? const <FieldClock>[]) {
-    if (newest == null || c.hlc.compareTo(newest.hlc) > 0) newest = c;
-  }
-  return newest;
-}
+FieldClock? newestFieldClock(SharedSiteState? state) =>
+    newestClockOf(state?.clocks.values ?? const <FieldClock>[]);
 
 /// A member's display name from the cache, or a shortened id.
 String memberDisplayName(Map<String, String> names, String memberId) {

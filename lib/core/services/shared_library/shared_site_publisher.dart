@@ -8,6 +8,7 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/site_detacher.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
 /// Moves sites into and out of a club library (issue #2567): push converts
@@ -108,7 +109,12 @@ class SharedSitePublisher {
   Future<void> deleteFromLibrary({
     required String siteId,
     required String diverId,
-  }) async {
+  }) =>
+      // Behind any library sync in flight, whose pull of this site would
+      // otherwise overwrite the tombstone.
+      SyncCoordinator.run(() => _deleteFromLibrary(siteId, diverId));
+
+  Future<void> _deleteFromLibrary(String siteId, String diverId) async {
     final row = await (_db.select(
       _db.diveSites,
     )..where((t) => t.id.equals(siteId))).getSingleOrNull();
@@ -138,10 +144,10 @@ class SharedSitePublisher {
   /// Wins a deleted site back: `deleted` is clocked false under the member
   /// and the next sync re-pulls the document (its fields still live in the
   /// library) and uploads the merged result.
-  Future<void> undelete({
-    required String siteId,
-    required String diverId,
-  }) async {
+  Future<void> undelete({required String siteId, required String diverId}) =>
+      SyncCoordinator.run(() => _undelete(siteId, diverId));
+
+  Future<void> _undelete(String siteId, String diverId) async {
     final existing = await _store.getSiteState(siteId);
     if (existing == null) {
       throw StateError('site $siteId has no library state to undelete');

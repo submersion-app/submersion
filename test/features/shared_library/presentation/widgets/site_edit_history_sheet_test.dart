@@ -52,9 +52,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Blue Hole'), findsOneWidget);
-    final hazards = tester.getTopLeft(find.text('hazards'));
-    final notes = tester.getTopLeft(find.text('notes'));
-    final name = tester.getTopLeft(find.text('name'));
+    final hazards = tester.getTopLeft(find.text('Hazards'));
+    final notes = tester.getTopLeft(find.text('Notes'));
+    final name = tester.getTopLeft(find.text('Name'));
     expect(hazards.dy, lessThan(notes.dy));
     expect(notes.dy, lessThan(name.dy));
     expect(find.textContaining('Bob'), findsOneWidget);

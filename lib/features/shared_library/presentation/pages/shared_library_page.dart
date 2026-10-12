@@ -3,12 +3,12 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/features/weight_presets/presentation/widgets/name_prompt_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -171,13 +171,22 @@ class SharedLibraryPage extends ConsumerWidget {
       initialValue: membership.displayName,
     );
     if (name == null || name == membership.displayName) return;
-    await ref
-        .read(sharedLibraryMembershipServiceProvider)
-        .rename(
-          libraryId: libraryId,
-          diverId: membership.diverId,
-          displayName: name,
-        );
+    try {
+      await ref
+          .read(sharedLibraryMembershipServiceProvider)
+          .rename(
+            libraryId: libraryId,
+            diverId: membership.diverId,
+            displayName: name,
+          );
+    } catch (e) {
+      // The member card lives in the library folder: offline, it fails.
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(libraryErrorText(l10n, e))));
+      }
+    }
     ref.invalidate(currentMembershipsProvider);
   }
 
@@ -291,11 +300,11 @@ class SharedLibraryPage extends ConsumerWidget {
       await ref
           .read(sharedLibraryMembershipServiceProvider)
           .leave(libraryId: library.id, diverId: diverId);
-    } on LastOwnerLeaveError {
+    } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.sharedLibrary_library_lastOwnerLeave)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(libraryErrorText(l10n, e))));
       return;
     }
     ref.invalidate(currentMembershipsProvider);

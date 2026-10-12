@@ -11,6 +11,7 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/core/services/shared_library/site_detacher.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 
 /// What a prefix holds, as read before joining or creating.
 class LibraryProbe {
@@ -43,6 +44,18 @@ typedef LibraryTransportFactory =
 class LastOwnerLeaveError extends StateError {
   LastOwnerLeaveError(String libraryId)
     : super('the only owner of $libraryId cannot leave its members');
+}
+
+/// A library already lives at the location a create was asked for.
+class LibraryExistsError extends StateError {
+  LibraryExistsError(String prefix)
+    : super('A library already exists at $prefix');
+}
+
+/// A role change would leave the library without an owner.
+class LastOwnerDemoteError extends StateError {
+  LastOwnerDemoteError(String libraryId)
+    : super('the last owner of $libraryId cannot be demoted');
 }
 
 class SharedLibraryMembershipService {
@@ -110,9 +123,7 @@ class SharedLibraryMembershipService {
     final t = await _transportFor(account: account, prefix: prefix);
     // A probe may be stale (another member created it meanwhile): writing
     // over a manifest would cut every existing member out.
-    if (await t.readManifest() != null) {
-      throw StateError('A library already exists at $prefix');
-    }
+    if (await t.readManifest() != null) throw LibraryExistsError(prefix);
     final libraryId = _uuid.v4();
     final memberId = await _store.memberIdForDiver(diverId);
     final now = DateTime.now().toUtc();
@@ -261,10 +272,12 @@ class SharedLibraryMembershipService {
   /// membership is tombstoned for the profile's other devices, the member
   /// card is deleted when the storage allows, and the library row goes
   /// when no other profile on this device belongs to it.
-  Future<void> leave({
-    required String libraryId,
-    required String diverId,
-  }) async {
+  Future<void> leave({required String libraryId, required String diverId}) =>
+      // Behind any library sync in flight: it would re-create the rows and
+      // states this removes.
+      SyncCoordinator.run(() => _leave(libraryId, diverId));
+
+  Future<void> _leave(String libraryId, String diverId) async {
     final membership = await _store.membership(
       diverId: diverId,
       libraryId: libraryId,
@@ -362,7 +375,7 @@ class SharedLibraryMembershipService {
     if (role != SharedLibraryRole.owner &&
         roles.owners.contains(memberId) &&
         roles.owners.length == 1) {
-      throw StateError('the last owner cannot be demoted');
+      throw LastOwnerDemoteError(libraryId);
     }
     final updated = roles.withRole(memberId, role);
     await t.writeRoles(updated);

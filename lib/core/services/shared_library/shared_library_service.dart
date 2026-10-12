@@ -341,7 +341,7 @@ class SharedLibraryService {
       clock.receive(c.hlc);
     }
     final merged = outcome.merged;
-    final newest = _newestClock(merged.clocks);
+    final newest = newestClockOf(merged.clocks.values);
     final base =
         state ?? SharedSiteState(siteId: siteId, libraryId: library.id);
 
@@ -408,14 +408,6 @@ class SharedLibraryService {
       );
     }
     return _bridge.build(state.siteId, state);
-  }
-
-  static FieldClock? _newestClock(Map<String, FieldClock> clocks) {
-    FieldClock? newest;
-    for (final c in clocks.values) {
-      if (newest == null || c.hlc.compareTo(newest.hlc) > 0) newest = c;
-    }
-    return newest;
   }
 
   /// Finishes the folder deletes that failed when a suggestion was handled

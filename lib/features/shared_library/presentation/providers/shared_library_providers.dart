@@ -229,36 +229,11 @@ final pendingIncomingSuggestionCountProvider =
       return list.length;
     });
 
-/// The active profile's own suggestions on [siteId], not yet handled.
-final outgoingSuggestionsForSiteProvider =
-    FutureProvider.family<List<SharedSiteSuggestion>, String>((
-      ref,
-      siteId,
-    ) async {
-      ref.watch(_suggestionTickProvider);
-      final store = ref.watch(sharedLibraryStoreProvider);
-      final result = <SharedSiteSuggestion>[];
-      for (final library in await store.getLibraries()) {
-        final mine = await store.suggestions(
-          library.id,
-          direction: SharedSiteSuggestion.outgoing,
-          siteId: siteId,
-        );
-        result.addAll(
-          mine.where((s) => s.status != SharedSiteSuggestion.withdrawn),
-        );
-      }
-      return result;
-    });
-
 /// Field name to (stored value, proposed value) for the review sheet.
-// no-tick: a one-shot diff computed when the sheet opens; it is rebuilt
-// with the sheet.
-final suggestionDiffProvider =
-    FutureProvider.family<Map<String, (Object?, Object?)>, String>((
-      ref,
-      suggestionId,
-    ) async {
+// no-tick: a one-shot diff computed when the sheet opens; auto-disposed with
+// the sheet, so the next opening compares against the site as it is then.
+final suggestionDiffProvider = FutureProvider.autoDispose
+    .family<Map<String, (Object?, Object?)>, String>((ref, suggestionId) async {
       final s = await ref
           .watch(sharedLibraryStoreProvider)
           .getSuggestion(suggestionId);

@@ -21088,6 +21088,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le dernier propriétaire ne peut pas être rétrogradé.';
 
   @override
+  String get sharedLibrary_picker_none =>
+      'Aucune bibliothèque de club ici ne vous permet d\'ajouter des sites.';
+
+  @override
+  String get sharedLibrary_list_notConnected =>
+      'Non connectée sur cet appareil';
+
+  @override
+  String get sharedLibrary_connect_exists =>
+      'Une bibliothèque a été créée ici entre-temps. Vérifiez à nouveau pour la rejoindre.';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave =>
       'Nommez un autre membre propriétaire avant de partir.';
 

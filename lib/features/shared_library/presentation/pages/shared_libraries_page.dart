@@ -54,7 +54,14 @@ class SharedLibrariesPage extends ConsumerWidget {
       for (final lib in libraries)
         if (memberOf.contains(lib.id)) lib,
     ];
-    if (visible.isEmpty) {
+    // A membership synced from the profile's other device, for a library
+    // this device has no credentials for yet.
+    final connected = {for (final lib in libraries) lib.id};
+    final elsewhere = [
+      for (final m in memberships)
+        if (!connected.contains(m.libraryId)) m,
+    ];
+    if (visible.isEmpty && elsewhere.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -80,9 +87,11 @@ class SharedLibrariesPage extends ConsumerWidget {
       );
     }
     return ListView.separated(
-      itemCount: visible.length,
+      itemCount: visible.length + elsewhere.length,
       separatorBuilder: (_, _) => const Divider(height: 1),
-      itemBuilder: (context, index) => _LibraryTile(library: visible[index]),
+      itemBuilder: (context, index) => index < visible.length
+          ? _LibraryTile(library: visible[index])
+          : _NotConnectedTile(membership: elsewhere[index - visible.length]),
     );
   }
 }
@@ -120,4 +129,24 @@ class _LibraryTile extends ConsumerWidget {
       onTap: () => context.push('/settings/club-libraries/${library.id}'),
     );
   }
+}
+
+/// A library the profile belongs to that this device has not connected:
+/// tapping opens Connect with the folder prefilled.
+class _NotConnectedTile extends StatelessWidget {
+  const _NotConnectedTile({required this.membership});
+
+  final SharedLibraryMembership membership;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    leading: const Icon(Icons.link_off),
+    title: Text(membership.libraryName),
+    subtitle: Text(context.l10n.sharedLibrary_list_notConnected),
+    trailing: const Icon(Icons.chevron_right),
+    onTap: () => context.push(
+      '/settings/club-libraries/connect?prefix='
+      '${Uri.encodeQueryComponent(membership.prefixHint)}',
+    ),
+  );
 }

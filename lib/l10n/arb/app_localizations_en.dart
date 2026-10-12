@@ -20713,6 +20713,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'The last owner cannot be demoted.';
 
   @override
+  String get sharedLibrary_picker_none =>
+      'No club library here lets you add sites.';
+
+  @override
+  String get sharedLibrary_list_notConnected => 'Not connected on this device';
+
+  @override
+  String get sharedLibrary_connect_exists =>
+      'Someone created a library here meanwhile. Check again to join it.';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave =>
       'Make another member an owner before you leave.';
 

@@ -20559,6 +20559,17 @@ class AppLocalizationsHe extends AppLocalizations {
       'אי אפשר להוריד בדרגה את הבעלים האחרון.';
 
   @override
+  String get sharedLibrary_picker_none =>
+      'אין כאן ספריית מועדון שמאפשרת לך להוסיף אתרים.';
+
+  @override
+  String get sharedLibrary_list_notConnected => 'לא מחוברת במכשיר זה';
+
+  @override
+  String get sharedLibrary_connect_exists =>
+      'מישהו יצר כאן ספרייה בינתיים. יש לבדוק שוב כדי להצטרף אליה.';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave =>
       'יש להגדיר חבר אחר כבעלים לפני היציאה.';
 

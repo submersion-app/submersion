@@ -19984,6 +19984,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_members_lastOwner => '无法降级最后一位所有者。';
 
   @override
+  String get sharedLibrary_picker_none => '这里没有允许你添加潜点的俱乐部资料库。';
+
+  @override
+  String get sharedLibrary_list_notConnected => '未在此设备上连接';
+
+  @override
+  String get sharedLibrary_connect_exists => '此期间已有人在这里创建了资料库。请重新检查以加入。';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave => '离开前，请先将另一位成员设为所有者。';
 
   @override

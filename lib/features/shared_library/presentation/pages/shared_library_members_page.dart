@@ -4,6 +4,7 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -80,11 +81,12 @@ class SharedLibraryMembersPage extends ConsumerWidget {
             memberId: memberId,
             role: role,
           );
-    } on StateError {
+    } catch (e) {
+      // setRole reads and writes roles.json, so it fails offline too.
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.sharedLibrary_members_lastOwner)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(libraryErrorText(l10n, e))));
     }
   }
 }

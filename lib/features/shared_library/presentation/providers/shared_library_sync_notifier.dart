@@ -119,23 +119,28 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
     final results = Map<String, SharedLibrarySyncResult>.from(
       state.lastResults,
     );
-    for (final m in memberships) {
-      if (!connected.contains(m.libraryId) || !mounted) continue;
-      state = state.copyWith(syncing: true, syncingLibraryId: m.libraryId);
-      final result = await SyncCoordinator.run(
-        () => service.sync(m.libraryId, diverId: diverId),
-      );
-      results[m.libraryId] = result;
-      if (!result.isHealthy) {
-        _log.warning(
-          'Library ${m.libraryId} sync ended ${result.status}: ${result.error}',
+    try {
+      for (final m in memberships) {
+        if (!connected.contains(m.libraryId) || !mounted) continue;
+        state = state.copyWith(syncing: true, syncingLibraryId: m.libraryId);
+        final result = await SyncCoordinator.run(
+          () => service.sync(m.libraryId, diverId: diverId),
         );
+        results[m.libraryId] = result;
+        if (!result.isHealthy) {
+          _log.warning(
+            'Library ${m.libraryId} sync ended ${result.status}: '
+            '${result.error}',
+          );
+        }
+        if (!mounted) return;
+        state = state.copyWith(lastResults: Map.unmodifiable(results));
       }
-      if (!mounted) return;
-      state = state.copyWith(lastResults: Map.unmodifiable(results));
-    }
-    if (mounted) {
-      state = state.copyWith(syncing: false, clearSyncingLibraryId: true);
+    } finally {
+      // A throw must not leave Sync now disabled until the app restarts.
+      if (mounted) {
+        state = state.copyWith(syncing: false, clearSyncingLibraryId: true);
+      }
     }
   }
 

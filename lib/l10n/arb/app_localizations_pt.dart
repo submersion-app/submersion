@@ -21028,6 +21028,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'O último proprietário não pode ser despromovido.';
 
   @override
+  String get sharedLibrary_picker_none =>
+      'Nenhuma biblioteca do clube aqui permite adicionar locais.';
+
+  @override
+  String get sharedLibrary_list_notConnected => 'Não ligada neste dispositivo';
+
+  @override
+  String get sharedLibrary_connect_exists =>
+      'Alguém criou uma biblioteca aqui entretanto. Verifique novamente para aderir.';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave =>
       'Torne outro membro proprietário antes de sair.';
 

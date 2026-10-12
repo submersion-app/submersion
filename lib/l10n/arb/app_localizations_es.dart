@@ -21031,6 +21031,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se puede degradar al último propietario.';
 
   @override
+  String get sharedLibrary_picker_none =>
+      'Ninguna biblioteca del club aquí te permite añadir sitios.';
+
+  @override
+  String get sharedLibrary_list_notConnected =>
+      'No conectada en este dispositivo';
+
+  @override
+  String get sharedLibrary_connect_exists =>
+      'Alguien ha creado una biblioteca aquí mientras tanto. Vuelve a comprobarlo para unirte.';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave =>
       'Haz propietario a otro miembro antes de salir.';
 

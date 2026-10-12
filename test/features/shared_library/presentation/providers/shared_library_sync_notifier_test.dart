@@ -133,4 +133,46 @@ void main() {
     await blocker;
     await expectLater(pending, completes);
   });
+
+  test('a failure while preparing a sync does not leave it syncing', () async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        sharedLibraryStoreProvider.overrideWithValue(_BrokenStore()),
+      ],
+    );
+    addTearDown(container.dispose);
+    final notifier = container.read(sharedLibrarySyncProvider.notifier);
+    await expectLater(notifier.syncAll(), throwsStateError);
+    expect(container.read(sharedLibrarySyncProvider).syncing, isFalse);
+  });
+}
+
+/// Lists one connected library, then fails when the sync reads it.
+class _BrokenStore extends SharedLibraryStore {
+  @override
+  Future<List<SharedLibraryMembership>> membershipsForDiver(
+    String diverId,
+  ) async => const [
+    SharedLibraryMembership(
+      id: 'ms',
+      diverId: 'd1',
+      libraryId: 'L',
+      memberId: 'm',
+      displayName: 'Ann',
+      libraryName: 'Club',
+      backendKind: 's3',
+    ),
+  ];
+
+  @override
+  Future<List<SharedLibrary>> getLibraries() async => const [
+    SharedLibrary(id: 'L', name: 'Club', connectedAccountId: 'a', prefix: 'p'),
+  ];
+
+  @override
+  Future<SharedLibrary?> getLibrary(String id) async =>
+      throw StateError('database closed');
 }

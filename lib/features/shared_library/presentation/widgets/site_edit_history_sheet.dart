@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_field_labels.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/site_attribution_line.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -53,7 +54,7 @@ class SiteEditHistorySheet extends ConsumerWidget {
                 for (final e in entries)
                   ListTile(
                     dense: true,
-                    title: Text(e.key),
+                    title: Text(libraryFieldLabel(l10n, e.key)),
                     subtitle: Text(
                       l10n.sharedLibrary_site_lastEdited(
                         memberDisplayName(names, e.value.memberId),

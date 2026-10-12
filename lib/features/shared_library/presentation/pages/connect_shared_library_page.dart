@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_sync_notifier.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Connect a club library (issue #2567): pick an S3 or WebDAV account,
@@ -60,7 +61,12 @@ class _ConnectSharedLibraryPageState
         error: (e, _) => Center(child: Text(e.toString())),
         data: (list) {
           if (list.isEmpty) return _noAccounts(context);
-          _account ??= list.first;
+          // The list rebuilds with new instances whenever an account
+          // changes: keep the chosen one by id, or the dropdown loses it.
+          _account = list.firstWhere(
+            (a) => a.id == _account?.id,
+            orElse: () => list.first,
+          );
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -193,7 +199,7 @@ class _ConnectSharedLibraryPageState
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      setState(() => _error = libraryErrorText(context.l10n, e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -239,7 +245,7 @@ class _ConnectSharedLibraryPageState
       context.pushReplacement('/settings/club-libraries/${library.id}');
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      setState(() => _error = libraryErrorText(context.l10n, e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
+import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -29,7 +31,48 @@ class _FakeMembershipService extends SharedLibraryMembershipService {
     required ConnectedAccount account,
     required String prefix,
   }) async => probes[prefix] ?? const LibraryProbe(exists: false);
+
+  @override
+  Future<SharedLibrary> create({
+    required ConnectedAccount account,
+    required String prefix,
+    required String name,
+    required String diverId,
+    required String displayName,
+  }) async => throw LibraryExistsError(prefix);
 }
+
+Widget _connectApp(
+  List<Override> base,
+  List<ConnectedAccount> Function() accounts,
+) => testApp(
+  overrides: [
+    ...base,
+    eligibleLibraryAccountsProvider.overrideWith((ref) async => accounts()),
+    sharedLibraryMembershipServiceProvider.overrideWithValue(
+      _FakeMembershipService(const {}),
+    ),
+    validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd'),
+    currentDiverProvider.overrideWith(
+      (ref) async => Diver(
+        id: 'd',
+        name: 'Ann',
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    ),
+  ],
+  locale: const Locale('en'),
+  child: const ConnectSharedLibraryPage(),
+);
+
+ConnectedAccount _bucket() => ConnectedAccount(
+  id: 'a',
+  kind: AccountKind.s3,
+  label: 'Bucket',
+  createdAt: DateTime.utc(2026),
+  updatedAt: DateTime.utc(2026),
+);
 
 void main() {
   testWidgets('probe routes to Join or Create', (tester) async {
@@ -115,5 +158,43 @@ void main() {
       find.text('Club libraries work with S3 and WebDAV accounts.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a create the storage refuses explains itself in words', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _connectApp(await getBaseOverrides(), () => [_bucket()]),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('library-prefix')), 'club');
+    await tester.tap(find.text('Check'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Create library'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text(
+        'Someone created a library here meanwhile. Check again to join it.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Bad state'), findsNothing);
+  });
+
+  testWidgets('a refreshed account list keeps the chosen account', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      // Every load builds new instances, as the repository does.
+      _connectApp(await getBaseOverrides(), () => [_bucket()]),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(ConnectSharedLibraryPage)),
+    );
+    container.invalidate(eligibleLibraryAccountsProvider);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Bucket'), findsOneWidget);
   });
 }

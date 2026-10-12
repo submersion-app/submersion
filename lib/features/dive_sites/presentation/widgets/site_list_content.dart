@@ -1327,15 +1327,9 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
         if (_mayPushToLibrary(s)) s.id,
     ];
     if (personal.isEmpty || !mounted) return BulkActionOutcome.cancelled;
+    // The picker explains an empty choice itself; null is also a cancel.
     final libraryId = await showLibraryPickerDialog(context, ref);
-    if (libraryId == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.sharedLibrary_list_empty)),
-        );
-      }
-      return BulkActionOutcome.cancelled;
-    }
+    if (libraryId == null) return BulkActionOutcome.cancelled;
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (diverId == null) return BulkActionOutcome.failed;
     final publisher = ref.read(sharedSitePublisherProvider);
@@ -1345,11 +1339,12 @@ class _SiteListContentState extends ConsumerState<SiteListContent> {
     ref.invalidate(sitesProvider);
     ref.invalidate(sitesWithCountsProvider);
     if (!mounted) return BulkActionOutcome.completed;
-    final libraries = await ref.read(sharedLibrariesProvider.future);
-    var name = '';
-    for (final l in libraries) {
-      if (l.id == libraryId) name = l.name;
-    }
+    // From the store: nothing on this page need be listening to the
+    // libraries stream, and a paused stream never yields.
+    final name =
+        (await ref.read(sharedLibraryStoreProvider).getLibrary(libraryId))
+            ?.name ??
+        '';
     if (!mounted) return BulkActionOutcome.completed;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.sharedLibrary_site_added(name))),

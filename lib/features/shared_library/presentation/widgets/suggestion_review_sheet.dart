@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
+import 'package:submersion/features/shared_library/presentation/widgets/library_field_labels.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_role_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -34,6 +37,7 @@ class SuggestionReviewSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final diff = ref.watch(suggestionDiffProvider(suggestion.id));
+    final units = UnitFormatter(ref.watch(settingsProvider));
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -81,17 +85,31 @@ class SuggestionReviewSheet extends ConsumerWidget {
                               Padding(
                                 padding: const EdgeInsets.all(4),
                                 child: Text(
-                                  e.key,
+                                  libraryFieldLabel(l10n, e.key),
                                   style: Theme.of(context).textTheme.labelLarge,
                                 ),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(4),
-                                child: Text(_render(e.value.$1)),
+                                child: Text(
+                                  libraryFieldValue(
+                                    l10n,
+                                    units,
+                                    e.key,
+                                    e.value.$1,
+                                  ),
+                                ),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(4),
-                                child: Text(_render(e.value.$2)),
+                                child: Text(
+                                  libraryFieldValue(
+                                    l10n,
+                                    units,
+                                    e.key,
+                                    e.value.$2,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -150,16 +168,4 @@ class SuggestionReviewSheet extends ConsumerWidget {
     padding: const EdgeInsets.all(4),
     child: Text(text, style: Theme.of(context).textTheme.labelLarge),
   );
-
-  static String _render(Object? value) {
-    if (value == null) return '';
-    if (value is List) {
-      return value
-          .map(
-            (v) => v is Map ? (v['name'] ?? v['type'] ?? '').toString() : '$v',
-          )
-          .join(', ');
-    }
-    return value.toString();
-  }
 }

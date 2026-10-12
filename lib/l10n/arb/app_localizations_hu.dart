@@ -20957,6 +20957,18 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az utolsó tulajdonos nem fokozható le.';
 
   @override
+  String get sharedLibrary_picker_none =>
+      'Itt egyik klubkönyvtárba sem adhatsz hozzá merülőhelyeket.';
+
+  @override
+  String get sharedLibrary_list_notConnected =>
+      'Ezen az eszközön nincs csatlakoztatva';
+
+  @override
+  String get sharedLibrary_connect_exists =>
+      'Közben valaki könyvtárat hozott létre itt. Ellenőrizd újra a csatlakozáshoz.';
+
+  @override
   String get sharedLibrary_library_lastOwnerLeave =>
       'Kilépés előtt tegyél meg egy másik tagot tulajdonosnak.';
 

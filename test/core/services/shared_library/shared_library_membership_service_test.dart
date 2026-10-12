@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart';
@@ -5,6 +7,7 @@ import 'package:submersion/core/services/shared_library/shared_library_membershi
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -39,7 +42,10 @@ void main() {
     );
   });
 
-  tearDown(tearDownTestDatabase);
+  tearDown(() async {
+    SyncCoordinator.reset();
+    await tearDownTestDatabase();
+  });
 
   test('probe, create, then a second profile joins', () async {
     expect(
@@ -354,5 +360,30 @@ void main() {
       await SharedLibraryStore().membership(diverId: 'd1', libraryId: lib.id),
       isNotNull,
     );
+  });
+
+  test('leave waits for a library sync in flight', () async {
+    final lib = await service.create(
+      account: account,
+      prefix: 'club',
+      name: 'Club',
+      diverId: 'd1',
+      displayName: 'Ann',
+    );
+    final gate = Completer<void>();
+    final syncing = SyncCoordinator.run(() => gate.future);
+    final leaving = service.leave(libraryId: lib.id, diverId: 'd1');
+    for (var i = 0; i < 5; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    expect(
+      await SharedLibraryStore().membership(diverId: 'd1', libraryId: lib.id),
+      isNotNull,
+      reason: 'the running sync would re-create what leave removes',
+    );
+    gate.complete();
+    await syncing;
+    await leaving;
+    expect(await SharedLibraryStore().getLibrary(lib.id), isNull);
   });
 }
