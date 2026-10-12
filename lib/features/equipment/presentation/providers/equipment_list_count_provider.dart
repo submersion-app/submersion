@@ -16,20 +16,25 @@ import 'package:submersion/shared/models/subtitle_text.dart';
 /// hides retired gear, so "3 of 40 items" counts against the 40 it shows
 /// unfiltered rather than a number that includes gear it never lists. Under
 /// All Equipment (#2590) the list does show every item, so the total does
-/// too; otherwise the shown count could exceed it.
+/// too; otherwise the shown count could exceed it. A service-due view reads
+/// the factory kit whatever the diver's default view (#2628), so it totals
+/// that kit.
 final equipmentListCountProvider = Provider<ListEntryCount?>((ref) {
   final filter = ref.watch(effectiveEquipmentFilterProvider);
+  final diverId = ref.watch(validatedCurrentDiverIdProvider).value;
   return listEntryCount(
     shown: ref.watch(filteredEquipmentProvider),
     isFiltered: filter.hasActiveFilters,
     total: () => narrowByIds(
       ref.watch(allEquipmentProvider),
-      ref.watch(
-        queryFilteredEquipmentIdsProvider((
-          filter: EquipmentFilterState(allStatuses: filter.allStatuses),
-          diverId: ref.watch(validatedCurrentDiverIdProvider).value,
-        )),
-      ),
+      filter.serviceDue != null
+          ? ref.watch(factoryKitEquipmentIdsProvider(diverId))
+          : ref.watch(
+              queryFilteredEquipmentIdsProvider((
+                filter: EquipmentFilterState(allStatuses: filter.allStatuses),
+                diverId: diverId,
+              )),
+            ),
       (e) => e.id,
     ),
   );

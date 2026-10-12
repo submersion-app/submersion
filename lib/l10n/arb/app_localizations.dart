@@ -3889,6 +3889,12 @@ abstract class AppLocalizations {
   /// **'This backup will be permanently deleted. This cannot be undone.'**
   String get backup_delete_dialog_content;
 
+  /// No description provided for @backup_delete_dialog_content_otherDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is only in your cloud storage, and nothing shows this device made it. It may be another device\'s only copy, or one this device made before a reinstall. Deleting it cannot be undone.'**
+  String get backup_delete_dialog_content_otherDevice;
+
   /// No description provided for @backup_delete_dialog_delete.
   ///
   /// In en, this message translates to:
@@ -12523,6 +12529,12 @@ abstract class AppLocalizations {
   /// **'Remove items to add different ones'**
   String get diveLog_equipmentPicker_removeToAdd;
 
+  /// No description provided for @diveLog_equipmentPicker_showLeftKit.
+  ///
+  /// In en, this message translates to:
+  /// **'Show retired and sold gear'**
+  String get diveLog_equipmentPicker_showLeftKit;
+
   /// No description provided for @diveLog_equipmentPicker_spareHint.
   ///
   /// In en, this message translates to:
@@ -16068,6 +16080,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get diveLog_tank_regulatorNone;
+
+  /// No description provided for @diveLog_tank_regulatorShowLeftKit.
+  ///
+  /// In en, this message translates to:
+  /// **'Show retired and sold regulators'**
+  String get diveLog_tank_regulatorShowLeftKit;
 
   /// No description provided for @diveLog_tank_tripCylinderLabel.
   ///
@@ -24647,6 +24665,18 @@ abstract class AppLocalizations {
   /// **'Add your diving equipment to track usage and service'**
   String get equipment_list_emptyState_addPrompt;
 
+  /// Empty Equipment list when the diver's default view (Settings > Manage > Default equipment view) hides every item they own
+  ///
+  /// In en, this message translates to:
+  /// **'Your default view hides the rest of your gear.'**
+  String get equipment_list_emptyState_defaultView_subtitle;
+
+  /// Heading of the empty Equipment list when the default view hides every item the diver owns
+  ///
+  /// In en, this message translates to:
+  /// **'No equipment in your default view'**
+  String get equipment_list_emptyState_defaultView_title;
+
   /// No description provided for @equipment_list_emptyState_filterText_equipment.
   ///
   /// In en, this message translates to:
@@ -24713,6 +24743,12 @@ abstract class AppLocalizations {
   /// **'No equipment in this category'**
   String get equipment_list_emptyState_noTypeMatch;
 
+  /// Button on the empty Equipment list that switches the status filter to All Equipment
+  ///
+  /// In en, this message translates to:
+  /// **'Show All Equipment'**
+  String get equipment_list_emptyState_showAll;
+
   /// No description provided for @equipment_list_emptyState_serviceDueUpToDate.
   ///
   /// In en, this message translates to:
@@ -24743,10 +24779,10 @@ abstract class AppLocalizations {
   /// **'All Equipment'**
   String get equipment_list_filterAll;
 
-  /// Equipment filter status chip for the default view: every item except retired and sold gear
+  /// Equipment filter status chip for the diver's default view: the statuses chosen in Settings > Manage > Default equipment view (issue #2628)
   ///
   /// In en, this message translates to:
-  /// **'Current Equipment'**
+  /// **'Default View'**
   String get equipment_list_filterCurrent;
 
   /// No description provided for @equipment_list_filterServiceDue.
@@ -24820,6 +24856,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get equipment_filter_section_status;
+
+  /// Button beside the Status heading in the equipment filter panel that opens the default equipment view settings
+  ///
+  /// In en, this message translates to:
+  /// **'Edit default'**
+  String get equipment_filter_editDefault;
 
   /// No description provided for @equipment_filter_section_tags.
   ///
@@ -33149,6 +33191,204 @@ abstract class AppLocalizations {
   /// **'Could not save navigation layout. Please try again.'**
   String get settings_navCustomization_saveError;
 
+  /// Nav shortcut label for the Planning no-fly calculator.
+  ///
+  /// In en, this message translates to:
+  /// **'No-fly time'**
+  String get navShortcut_noFly;
+
+  /// Nav shortcut label for the Planning CNS/OTU calculator.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS/OTU'**
+  String get navShortcut_cnsOtu;
+
+  /// Nav shortcut label for the dive records page.
+  ///
+  /// In en, this message translates to:
+  /// **'Records'**
+  String get navShortcut_records;
+
+  /// Nav shortcut label for the dive sites map.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites map'**
+  String get navShortcut_sitesMap;
+
+  /// Nav shortcut label for the map of where dives were logged.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive activity map'**
+  String get navShortcut_diveActivityMap;
+
+  /// Nav shortcut label for the dive centers map.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive centers map'**
+  String get navShortcut_diveCentersMap;
+
+  /// Nav shortcut label for the diver profile settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Diver profile'**
+  String get navShortcut_diverProfile;
+
+  /// Nav shortcut label for the cloud sync settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync'**
+  String get navShortcut_cloudSync;
+
+  /// Nav shortcut label for the offline maps settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline maps'**
+  String get navShortcut_offlineMaps;
+
+  /// Short nav bar label for the Deco Calculator shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Deco'**
+  String get navShortcut_short_deco;
+
+  /// Short nav bar label for the Gas Calculators shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas calcs'**
+  String get navShortcut_short_gasCalculators;
+
+  /// Short nav bar label for the Weight Calculator shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Weighting'**
+  String get navShortcut_short_weighting;
+
+  /// Short nav bar label for the Surface Interval tool shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface int.'**
+  String get navShortcut_short_surfaceInterval;
+
+  /// Short nav bar label for the Trimix blender shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Blender'**
+  String get navShortcut_short_blender;
+
+  /// Short nav bar label for the Air Consumption insights shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Air use'**
+  String get navShortcut_short_airUse;
+
+  /// Short nav bar label for the Time Patterns insights shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Patterns'**
+  String get navShortcut_short_patterns;
+
+  /// Short nav bar label for the Profile Analysis insights shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Profiles'**
+  String get navShortcut_short_profiles;
+
+  /// Short nav bar label for the dive activity map shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive map'**
+  String get navShortcut_short_diveMap;
+
+  /// Short nav bar label for the dive centers map shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Centers map'**
+  String get navShortcut_short_centersMap;
+
+  /// Short nav bar label for the Equipment Sets shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear sets'**
+  String get navShortcut_short_gearSets;
+
+  /// Short nav bar label for the Certification Wallet shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Cert wallet'**
+  String get navShortcut_short_certWallet;
+
+  /// Short nav bar label for the Emergency card shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get navShortcut_short_emergency;
+
+  /// Short nav bar label for the Backup & Restore shortcut; must fit one bottom-bar slot.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup'**
+  String get navShortcut_short_backup;
+
+  /// Short nav label for the shortcut to Insights > Species (marine life statistics); distinct from the Species section.
+  ///
+  /// In en, this message translates to:
+  /// **'Species stats'**
+  String get navShortcut_short_speciesStats;
+
+  /// Short nav label for the shortcut to Insights > Equipment (gear statistics); distinct from the Equipment section.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear stats'**
+  String get navShortcut_short_gearStats;
+
+  /// Button on the navigation layout page that opens the picker for adding a deep page to the nav.
+  ///
+  /// In en, this message translates to:
+  /// **'Add shortcut'**
+  String get settings_navCustomization_addShortcut;
+
+  /// Title of the sheet or dialog listing pages that can be added to the nav.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a shortcut'**
+  String get settings_navCustomization_shortcutPickerTitle;
+
+  /// Hint in the search field of the nav shortcut picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Search pages'**
+  String get settings_navCustomization_shortcutSearchHint;
+
+  /// Shown in the nav shortcut picker when the search matches nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching pages'**
+  String get settings_navCustomization_shortcutNoMatches;
+
+  /// Tooltip on a picker entry that is already in the nav layout being edited.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in this layout'**
+  String get settings_navCustomization_shortcutAlreadyAdded;
+
+  /// Tooltip on the button that removes a shortcut from the nav layout.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {destination}'**
+  String settings_navCustomization_removeShortcutLabel(String destination);
+
+  /// Picker group header for map, wallet and list views inside a section.
+  ///
+  /// In en, this message translates to:
+  /// **'Views'**
+  String get settings_navCustomization_group_views;
+
+  /// Picker group header for settings pages and tools such as the emergency card.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings and tools'**
+  String get settings_navCustomization_group_settingsAndTools;
+
   /// No description provided for @settings_backToSettings_tooltip.
   ///
   /// In en, this message translates to:
@@ -35706,6 +35946,12 @@ abstract class AppLocalizations {
   /// **'Role'**
   String get settings_conflict_field_equipmentComponents_role;
 
+  /// No description provided for @settings_conflict_field_equipmentDefaultStatuses.
+  ///
+  /// In en, this message translates to:
+  /// **'Default equipment view'**
+  String get settings_conflict_field_equipmentDefaultStatuses;
+
   /// No description provided for @settings_conflict_field_equipmentFindings_severity.
   ///
   /// In en, this message translates to:
@@ -37313,6 +37559,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Linked item'**
   String get settings_conflict_field_sourceItemId;
+
+  /// No description provided for @settings_conflict_field_sourceMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra data from the source'**
+  String get settings_conflict_field_sourceMetadata;
 
   /// No description provided for @settings_conflict_field_sourceRef.
   ///
@@ -40285,6 +40537,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Where your gear is kept, serviced or lent'**
   String get settings_manage_locations_subtitle;
+
+  /// Explanation at the top of the Default equipment view settings page (issue #2628)
+  ///
+  /// In en, this message translates to:
+  /// **'When no filter is set, the Equipment list shows gear with these statuses.'**
+  String get settings_equipmentDefaultView_intro;
+
+  /// Joins status names in the default equipment view summary, e.g. 'Active, Spare'
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get settings_equipmentDefaultView_listSeparator;
+
+  /// Title of the settings page, and its Settings > Manage row, choosing which statuses the Equipment list shows with no filter set
+  ///
+  /// In en, this message translates to:
+  /// **'Default equipment view'**
+  String get settings_equipmentDefaultView_title;
 
   /// Settings > Manage tile: the certification currency rule catalog
   ///
@@ -48071,6 +48341,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View All'**
   String get trips_photos_viewAll;
+
+  /// No description provided for @trips_picker_alreadyPacked.
+  ///
+  /// In en, this message translates to:
+  /// **'Already packed'**
+  String get trips_picker_alreadyPacked;
 
   /// No description provided for @trips_picker_clearTooltip.
   ///
@@ -57850,7 +58126,7 @@ abstract class AppLocalizations {
   /// No description provided for @safetySettings_cnsOtuHeader.
   ///
   /// In en, this message translates to:
-  /// **'Current CNS/OTU load'**
+  /// **'Current dive load'**
   String get safetySettings_cnsOtuHeader;
 
   /// No description provided for @safetySettings_noFlyPreset_standard.
@@ -57960,6 +58236,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.'**
   String get safetyHub_cnsOtu_noProfile_body;
+
+  /// No description provided for @safetyHub_cnsOtu_about_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About CNS and OTU'**
+  String get safetyHub_cnsOtu_about_title;
+
+  /// No description provided for @safetyHub_cnsOtu_about_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it\'s practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.'**
+  String get safetyHub_cnsOtu_about_body;
+
+  /// No description provided for @safetyHub_tissueLoading_about_title.
+  ///
+  /// In en, this message translates to:
+  /// **'About Tissue Loading'**
+  String get safetyHub_tissueLoading_about_title;
+
+  /// No description provided for @safetyHub_tissueLoading_about_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you\'re breathing. That\'s why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.'**
+  String get safetyHub_tissueLoading_about_body;
 
   /// No description provided for @safetyHub_noFly_category_single.
   ///
@@ -74173,6 +74473,16 @@ abstract class AppLocalizations {
     Object endDate,
   );
 
+  /// No description provided for @trips_picker_tileSemanticsPacked.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {startDate} to {endDate}, already packed'**
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  );
+
   /// No description provided for @divePlanner_quickPlan_subtitle.
   ///
   /// In en, this message translates to:
@@ -78820,6 +79130,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Newer database, kept when going back - {size}'**
   String backup_history_preDowngradeSubtitle(String size);
+
+  /// No description provided for @backup_history_cloudOnlySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'In cloud storage ({size})'**
+  String backup_history_cloudOnlySubtitle(String size);
 
   /// No description provided for @backup_history_manualSubtitle.
   ///

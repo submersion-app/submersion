@@ -5,6 +5,7 @@ import 'package:submersion/features/connections/domain/entities/graph_selection.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -64,10 +65,7 @@ class SelectionActions extends ConsumerWidget {
           onPressed: diveIds.isEmpty
               ? null
               : () {
-                  ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-                    diveIds: diveIds,
-                  );
-                  context.go('/dives');
+                  openDiveList(context, ref, DiveFilterState(diveIds: diveIds));
                 },
         ),
         if (secondary.isNotEmpty) ...[

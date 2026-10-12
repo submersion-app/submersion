@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
-import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -87,6 +86,10 @@ class CylindersCard extends ConsumerWidget {
                   )
                   .value ??
               const <String, TripCylinderTankLabel>{};
+    // Every tank names its role (issue #2901) except the default single
+    // back-gas cylinder of most dives, where the label says nothing new.
+    final showRoles =
+        dive.tanks.length != 1 || dive.tanks.single.role != TankRole.backGas;
 
     return Card(
       child: Padding(
@@ -111,6 +114,7 @@ class CylindersCard extends ConsumerWidget {
                     : null,
                 knownSerials: knownSerials,
                 slotLabel: slotLabels[entry.value.tripCylinderId],
+                showRole: showRoles,
               ),
             ),
             if (_canReassign(dive, tankPressures))
@@ -157,6 +161,7 @@ class CylindersCard extends ConsumerWidget {
     required String? sourceName,
     required Set<String> knownSerials,
     required TripCylinderTankLabel? slotLabel,
+    required bool showRole,
   }) {
     final theme = Theme.of(context);
     final serial = normalizeTransmitterSerial(tank.transmitterSerial);
@@ -226,9 +231,9 @@ class CylindersCard extends ConsumerWidget {
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: const Icon(MdiIcons.divingScubaTank),
+      leading: Icon(tank.role.icon),
       // The trailing rates take their width first, so on a narrow card
-      // (a phone, or half of a paired row) the chip drops under the name
+      // (a phone, or half of a paired row) the chips drop under the name
       // rather than overflowing beside it.
       title: Wrap(
         spacing: 6,
@@ -236,7 +241,13 @@ class CylindersCard extends ConsumerWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text('$tankTitle (${tank.gasMix.name})'),
-          if (tankLabel != null) _volumeChip(theme, tankLabel),
+          if (tankLabel != null) _outlinedChip(theme, tankLabel),
+          if (showRole)
+            _outlinedChip(
+              theme,
+              tank.role.localizedName(context.l10n),
+              key: Key('tank-role-${tank.id}'),
+            ),
         ],
       ),
       subtitle: Column(
@@ -342,9 +353,11 @@ class CylindersCard extends ConsumerWidget {
     );
   }
 
-  /// Small outlined chip carrying the preset/volume label (e.g. "AL80").
-  Widget _volumeChip(ThemeData theme, String label) {
+  /// Small outlined chip beside the tank name: the preset/volume label (e.g.
+  /// "AL80") or the tank's role.
+  Widget _outlinedChip(ThemeData theme, String label, {Key? key}) {
     return Container(
+      key: key,
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
         border: Border.all(color: theme.colorScheme.outlineVariant),

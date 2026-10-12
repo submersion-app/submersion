@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_ownership_event.dart';
@@ -55,10 +55,11 @@ class EquipmentHistoryCard extends ConsumerWidget {
               : null,
           onTap: diverId == activeDiverId && diverId != null
               ? () {
-                  ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-                    equipmentIds: [equipmentId],
+                  openDiveList(
+                    context,
+                    ref,
+                    DiveFilterState(equipmentIds: [equipmentId]),
                   );
-                  context.go('/dives');
                 }
               : null,
         ),

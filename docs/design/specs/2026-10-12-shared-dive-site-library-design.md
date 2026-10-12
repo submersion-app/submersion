@@ -137,7 +137,7 @@ one download.
 ## Local data model
 
 New tables in `lib/core/database/tables/shared_library_tables.dart`, one
-migration rung (285), with a `beforeOpen` backstop in a part file per the
+migration rung (287), with a `beforeOpen` backstop in a part file per the
 repository's rules.
 
 | Table | Synced | Columns |

@@ -37,14 +37,20 @@ class OtuLimitProgressRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              Expanded(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
+              // Not flexible: a short numeric readout laid out at its own
+              // width, so the label takes all the rest and the value stays
+              // at the right edge (an Expanded/Flexible pair splits 50/50).
               Text(
                 '${value.toStringAsFixed(0)} / ${limit.toStringAsFixed(0)} OTU '
                 '(${percent.toStringAsFixed(0)}%)',
@@ -57,10 +63,10 @@ class OtuLimitProgressRow extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           ClipRRect(
-            borderRadius: BorderRadius.circular(3),
+            borderRadius: BorderRadius.circular(5),
             child: LinearProgressIndicator(
               value: (percent / 100).clamp(0.0, 1.0),
-              minHeight: 6,
+              minHeight: 10,
               backgroundColor: colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),

@@ -370,7 +370,7 @@ class SyncData {
   final List<Map<String, dynamic>> equipmentLocationMoves;
   final List<Map<String, dynamic>> diveComputerConnections;
 
-  /// Club-library memberships per profile (v285, issue #2567).
+  /// Club-library memberships per profile (v287, issue #2567).
   final List<Map<String, dynamic>> sharedLibraryMemberships;
   final List<Map<String, dynamic>> mediaSpecies;
   final List<Map<String, dynamic>> siteFeatures;
@@ -9443,7 +9443,7 @@ class SyncDataSerializer {
         .toList();
   }
 
-  /// Club-library memberships (v285, issue #2567), incremental by hlc.
+  /// Club-library memberships (v287, issue #2567), incremental by hlc.
   Future<List<Map<String, dynamic>>> _exportSharedLibraryMemberships(
     String? hlcSince,
   ) async {

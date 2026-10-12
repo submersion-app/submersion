@@ -2482,6 +2482,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este backup será excluído permanentemente. Esta ação não pode ser desfeita.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Este backup está apenas no seu armazenamento na nuvem, e nada indica que este dispositivo o criou. Pode ser a única cópia de outro dispositivo, ou uma que este dispositivo criou antes de uma reinstalação. A exclusão não pode ser desfeita.';
+
+  @override
   String get backup_delete_dialog_delete => 'Excluir';
 
   @override
@@ -7915,6 +7919,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Remova itens para adicionar outros';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Mostrar equipamento aposentado e vendido';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Defina o status de um item como Ativo para adicioná-lo a um mergulho';
 
@@ -10034,6 +10042,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nenhum';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Mostrar reguladores aposentados e vendidos';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Cilindro da viagem';
@@ -15221,6 +15233,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Adicione seu equipamento de mergulho para acompanhar uso e manutenção';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'Sua visualização padrão oculta o restante dos seus equipamentos.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'Nenhum equipamento na sua visualização padrão';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'equipamento';
 
   @override
@@ -15267,6 +15287,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum equipamento nesta categoria';
 
   @override
+  String get equipment_list_emptyState_showAll =>
+      'Mostrar Todos os Equipamentos';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'Todo o seu equipamento está em dia com a manutenção!';
 
@@ -15287,7 +15311,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_list_filterAll => 'Todos os Equipamentos';
 
   @override
-  String get equipment_list_filterCurrent => 'Equipamentos Atuais';
+  String get equipment_list_filterCurrent => 'Visualização Padrão';
 
   @override
   String get equipment_list_filterServiceDue => 'Manutenção Pendente';
@@ -15326,6 +15350,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Status';
+
+  @override
+  String get equipment_filter_editDefault => 'Editar padrão';
 
   @override
   String get equipment_filter_section_tags => 'Etiquetas';
@@ -20690,6 +20717,111 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível salvar o layout de navegação. Tente novamente.';
 
   @override
+  String get navShortcut_noFly => 'Tempo sem voar';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'Recordes';
+
+  @override
+  String get navShortcut_sitesMap => 'Mapa de pontos de mergulho';
+
+  @override
+  String get navShortcut_diveActivityMap => 'Mapa de atividade de mergulho';
+
+  @override
+  String get navShortcut_diveCentersMap => 'Mapa de operadoras de mergulho';
+
+  @override
+  String get navShortcut_diverProfile => 'Perfil do mergulhador';
+
+  @override
+  String get navShortcut_cloudSync => 'Sincronização na nuvem';
+
+  @override
+  String get navShortcut_offlineMaps => 'Mapas offline';
+
+  @override
+  String get navShortcut_short_deco => 'Deco';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'Calc. gás';
+
+  @override
+  String get navShortcut_short_weighting => 'Lastro';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'Int. superfície';
+
+  @override
+  String get navShortcut_short_blender => 'Misturador';
+
+  @override
+  String get navShortcut_short_airUse => 'Consumo';
+
+  @override
+  String get navShortcut_short_patterns => 'Padrões';
+
+  @override
+  String get navShortcut_short_profiles => 'Perfis';
+
+  @override
+  String get navShortcut_short_diveMap => 'Mapa mergulhos';
+
+  @override
+  String get navShortcut_short_centersMap => 'Mapa operadoras';
+
+  @override
+  String get navShortcut_short_gearSets => 'Kits';
+
+  @override
+  String get navShortcut_short_certWallet => 'Carteira';
+
+  @override
+  String get navShortcut_short_emergency => 'Emergência';
+
+  @override
+  String get navShortcut_short_backup => 'Backup';
+
+  @override
+  String get navShortcut_short_speciesStats => 'Estat. espécies';
+
+  @override
+  String get navShortcut_short_gearStats => 'Estat. equipamento';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'Adicionar atalho';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => 'Novo atalho';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint =>
+      'Pesquisar páginas';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches =>
+      'Nenhuma página encontrada';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'Já está neste layout';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return 'Remover $destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'Visualizações';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'Configurações e ferramentas';
+
+  @override
   String get settings_backToSettings_tooltip => 'Voltar para configurações';
 
   @override
@@ -22344,6 +22476,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'Função';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'Visualização padrão dos equipamentos';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'Gravidade';
 
   @override
@@ -23244,6 +23380,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceItemId => 'Item vinculado';
+
+  @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Dados adicionais da origem';
 
   @override
   String get settings_conflict_field_sourceRef =>
@@ -24978,6 +25118,17 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'Onde o equipamento está guardado, em manutenção ou emprestado';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'Sem filtro, a lista de equipamentos mostra os equipamentos com estes status.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title =>
+      'Visualização padrão dos equipamentos';
 
   @override
   String get settings_manage_currencyRules => 'Validade das certificações';
@@ -30205,6 +30356,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Ver Todas';
+
+  @override
+  String get trips_picker_alreadyPacked => 'Já preparado';
 
   @override
   String get trips_picker_clearTooltip => 'Limpar seleção';
@@ -36471,7 +36625,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Voar depois de mergulhar';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Carga atual de CNS/OTU';
+  String get safetySettings_cnsOtuHeader => 'Carga de mergulho atual';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Padrão (12/18/24 h)';
@@ -36544,6 +36698,20 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Sem perfil de profundidade, não é possível calcular o CNS% e as OTU dele. Os totais abaixo não o incluem.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'Sobre CNS e OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'O seu CNS% (relógio de oxigênio) decai após o mergulho com uma meia-vida de 90 minutos -- praticamente volta a 0 depois de cerca de um dia.\n\nA OTU diária é reiniciada todas as noites à meia-noite. A OTU semanal é um total móvel dos últimos 7 dias: mergulhos mais antigos saem automaticamente do cálculo assim que ficam fora dessa janela.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'Sobre a carga tissular';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'O seu corpo tem 16 compartimentos teciduais que absorvem e liberam nitrogênio (e, em mergulhos com trimix ou rebreather, também hélio) em velocidades diferentes. Tecidos rápidos saturam e dessaturam depressa; tecidos lentos levam bem mais tempo para ambos.\n\nApós um mergulho com hélio, o nitrogênio e o hélio num mesmo compartimento podem mover-se brevemente em direções opostas: enquanto o hélio ainda está saindo, esse mesmo compartimento pode estar absorvendo um pouco de nitrogênio ao mesmo tempo, até que ambos os gases atinjam o equilíbrio com o ar que você respira. Por isso um compartimento pode mostrar brevemente \"Ongassing\" mesmo enquanto sua carga total continua caindo.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -46654,6 +46822,15 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, de $startDate a $endDate, já preparado';
+  }
+
+  @override
   String get divePlanner_quickPlan_subtitle =>
       'Crie um perfil de mergulho retangular simples';
 
@@ -49692,6 +49869,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Base de dados mais recente, guardada ao recuar - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'No armazenamento na nuvem ($size)';
   }
 
   @override

@@ -36,6 +36,12 @@ class EquipmentPickerSheet extends ConsumerWidget {
   /// the weight rig), where a shelf of spare hoses and O-rings would only
   /// bury the gear actually worn. The transmitter registry leaves it off.
   final bool hideSpare;
+
+  /// Offer a switch that adds retired and sold gear (#3210). Set by the
+  /// callers that log what a dive used, where a dive entered after the fact
+  /// may well have used gear since retired. The planner, trips and the
+  /// weight rig look ahead and leave it off.
+  final bool offerLeftKit;
   final void Function(EquipmentItem) onEquipmentSelected;
 
   /// Replaces the default "Select Equipment" title, for a caller whose pick
@@ -56,6 +62,7 @@ class EquipmentPickerSheet extends ConsumerWidget {
     required this.selectedEquipmentIds,
     this.typeFilter,
     this.hideSpare = false,
+    this.offerLeftKit = false,
     required this.onEquipmentSelected,
     this.title,
     this.hint,
@@ -80,6 +87,8 @@ class EquipmentPickerSheet extends ConsumerWidget {
   }) {
     final all = [
       if (showTypeLabel) item.type.localizedName(context.l10n),
+      // Sold, Lost or Retired, as the equipment badges read it.
+      if (item.hasLeftKit) item.effectiveStatus.localizedName(context.l10n),
       ...parts,
     ];
     final text = all.isEmpty ? null : Text(all.join(' · '));
@@ -111,11 +120,33 @@ class EquipmentPickerSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Only active gear belongs in the dive-edit picker; retired items are
-    // reachable from the Equipment page's Retired filter (#636).
-    final equipmentAsync = ref.watch(activeEquipmentProvider);
+    // Active gear by default; retired items are reachable from the
+    // Equipment page's Retired filter (#636), and from here through the
+    // left-kit switch when the caller offers it (#3210).
+    final activeAsync = ref.watch(activeEquipmentProvider);
+    // Retired and sold gear joins only on request (#3210); arranging sorts
+    // the combined list, so appending it is enough.
+    final leftKit = offerLeftKit
+        ? ref.watch(leftKitEquipmentProvider).value ?? const <EquipmentItem>[]
+        : const <EquipmentItem>[];
+    final showLeftKit =
+        offerLeftKit && ref.watch(equipmentPickerShowLeftKitProvider);
+    final equipmentAsync = showLeftKit
+        ? activeAsync.whenData((active) => [...active, ...leftKit])
+        : activeAsync;
     final arrangement = ref.watch(equipmentArrangementProvider);
     final filter = ref.watch(equipmentPickerFilterProvider);
+    // The switch only when it would add something the list then shows,
+    // after the diver's own filter too, or to switch it back.
+    final offersLeftKitSwitch =
+        showLeftKit ||
+        filter
+            .apply(
+              _callerAllowed(
+                leftKit.where((e) => !selectedEquipmentIds.contains(e.id)),
+              ).toList(),
+            )
+            .isNotEmpty;
     // Shared gear (issue #2046) gets its own section and an owner chip.
     final multipleDivers = ref.watch(hasMultipleDiversProvider);
     final activeDiverId = ref.watch(validatedCurrentDiverIdProvider).value;
@@ -180,6 +211,16 @@ class EquipmentPickerSheet extends ConsumerWidget {
               ),
             ),
           ),
+        if (offersLeftKitSwitch)
+          SwitchListTile(
+            key: const Key('equipment-picker-show-left-kit'),
+            dense: true,
+            title: Text(context.l10n.diveLog_equipmentPicker_showLeftKit),
+            value: showLeftKit,
+            onChanged: (value) =>
+                ref.read(equipmentPickerShowLeftKitProvider.notifier).state =
+                    value,
+          ),
         const Divider(height: 1),
         Expanded(
           child: equipmentAsync.when(
@@ -231,7 +272,12 @@ class EquipmentPickerSheet extends ConsumerWidget {
                       : typeMatches.isEmpty
                       ? context.l10n.equipment_list_emptyState_noTypeMatch
                       : context.l10n.equipment_list_emptyState_noStatusMatch,
-                  hint: equipmentList.isEmpty
+                  // With retired or sold gear behind the switch above, the
+                  // switch is the way forward, not adding or removing gear
+                  // (#3210).
+                  hint: offersLeftKitSwitch && !showLeftKit
+                      ? null
+                      : equipmentList.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_addFromTab
                       : unselected.isEmpty
                       ? context.l10n.diveLog_equipmentPicker_removeToAdd
@@ -379,7 +425,8 @@ class EquipmentPickerSheet extends ConsumerWidget {
       equipment.where((e) => !selectedEquipmentIds.contains(e.id)),
     ).toList();
     final presentTypes = selectable.map((e) => e.type).toSet();
-    final presentStatuses = selectable.map((e) => e.status).toSet();
+    // The status each row reads, as the filter matches it (#3210).
+    final presentStatuses = selectable.map((e) => e.effectiveStatus).toSet();
 
     final chosen = await showEquipmentPickerFilterSheet(
       context,

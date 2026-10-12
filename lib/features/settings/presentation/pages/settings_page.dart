@@ -15,6 +15,7 @@ import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
+import 'package:submersion/features/settings/presentation/widgets/equipment_default_view_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
@@ -2371,6 +2372,8 @@ class _ManageSectionContent extends StatelessWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/equipment/locations'),
                 ),
+                const Divider(height: 1),
+                const EquipmentDefaultViewTile(),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.auto_fix_high),

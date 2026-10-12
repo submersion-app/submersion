@@ -152,47 +152,57 @@ class _EntityReviewListState extends State<EntityReviewList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header row
+        // Header row. A Wrap, not a Row: on a phone the buttons left the
+        // count a sliver a few letters wide, so they move to a line of their
+        // own when the two do not fit side by side, and wrap among themselves
+        // at large text sizes (#3110).
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 4,
             children: [
-              Expanded(
-                child: Text(
-                  _itemCountText(
-                    l10n,
-                    nonDuplicateCount,
-                    duplicateCount,
-                    widget.selectedIndices.length,
-                  ),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              Text(
+                _itemCountText(
+                  l10n,
+                  nonDuplicateCount,
+                  duplicateCount,
+                  widget.selectedIndices.length,
+                ),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (widget.sortField != null && widget.onSortFieldChanged != null)
-                _SortMenuButton(
-                  sortField: widget.sortField!,
-                  sortAscending: widget.sortAscending,
-                  onSortFieldChanged: widget.onSortFieldChanged!,
-                ),
-              TextButton(
-                onPressed: widget.onSelectAll,
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(l10n.universalImport_action_selectAll),
-              ),
-              TextButton(
-                onPressed: widget.onDeselectAll,
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(l10n.universalImport_action_deselectAll),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (widget.sortField != null &&
+                      widget.onSortFieldChanged != null)
+                    _SortMenuButton(
+                      sortField: widget.sortField!,
+                      sortAscending: widget.sortAscending,
+                      onSortFieldChanged: widget.onSortFieldChanged!,
+                    ),
+                  TextButton(
+                    onPressed: widget.onSelectAll,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(l10n.universalImport_action_selectAll),
+                  ),
+                  TextButton(
+                    onPressed: widget.onDeselectAll,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(l10n.universalImport_action_deselectAll),
+                  ),
+                ],
               ),
             ],
           ),

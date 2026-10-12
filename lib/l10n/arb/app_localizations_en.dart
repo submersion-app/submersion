@@ -2458,6 +2458,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This backup will be permanently deleted. This cannot be undone.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'This backup is only in your cloud storage, and nothing shows this device made it. It may be another device\'s only copy, or one this device made before a reinstall. Deleting it cannot be undone.';
+
+  @override
   String get backup_delete_dialog_delete => 'Delete';
 
   @override
@@ -7795,6 +7799,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Remove items to add different ones';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Show retired and sold gear';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Set an item\'s status to Active to add it to a dive';
 
@@ -9875,6 +9883,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'None';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Show retired and sold regulators';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Trip cylinder';
@@ -15008,6 +15020,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add your diving equipment to track usage and service';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'Your default view hides the rest of your gear.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'No equipment in your default view';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'equipment';
 
   @override
@@ -15054,6 +15074,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'No equipment in this category';
 
   @override
+  String get equipment_list_emptyState_showAll => 'Show All Equipment';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'All your equipment is up to date on service!';
 
@@ -15074,7 +15097,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_list_filterAll => 'All Equipment';
 
   @override
-  String get equipment_list_filterCurrent => 'Current Equipment';
+  String get equipment_list_filterCurrent => 'Default View';
 
   @override
   String get equipment_list_filterServiceDue => 'Service Due';
@@ -15113,6 +15136,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Status';
+
+  @override
+  String get equipment_filter_editDefault => 'Edit default';
 
   @override
   String get equipment_filter_section_tags => 'Tags';
@@ -20384,6 +20410,109 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not save navigation layout. Please try again.';
 
   @override
+  String get navShortcut_noFly => 'No-fly time';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'Records';
+
+  @override
+  String get navShortcut_sitesMap => 'Sites map';
+
+  @override
+  String get navShortcut_diveActivityMap => 'Dive activity map';
+
+  @override
+  String get navShortcut_diveCentersMap => 'Dive centers map';
+
+  @override
+  String get navShortcut_diverProfile => 'Diver profile';
+
+  @override
+  String get navShortcut_cloudSync => 'Cloud sync';
+
+  @override
+  String get navShortcut_offlineMaps => 'Offline maps';
+
+  @override
+  String get navShortcut_short_deco => 'Deco';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'Gas calcs';
+
+  @override
+  String get navShortcut_short_weighting => 'Weighting';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'Surface int.';
+
+  @override
+  String get navShortcut_short_blender => 'Blender';
+
+  @override
+  String get navShortcut_short_airUse => 'Air use';
+
+  @override
+  String get navShortcut_short_patterns => 'Patterns';
+
+  @override
+  String get navShortcut_short_profiles => 'Profiles';
+
+  @override
+  String get navShortcut_short_diveMap => 'Dive map';
+
+  @override
+  String get navShortcut_short_centersMap => 'Centers map';
+
+  @override
+  String get navShortcut_short_gearSets => 'Gear sets';
+
+  @override
+  String get navShortcut_short_certWallet => 'Cert wallet';
+
+  @override
+  String get navShortcut_short_emergency => 'Emergency';
+
+  @override
+  String get navShortcut_short_backup => 'Backup';
+
+  @override
+  String get navShortcut_short_speciesStats => 'Species stats';
+
+  @override
+  String get navShortcut_short_gearStats => 'Gear stats';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'Add shortcut';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => 'Add a shortcut';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'Search pages';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches => 'No matching pages';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'Already in this layout';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return 'Remove $destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'Views';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'Settings and tools';
+
+  @override
   String get settings_backToSettings_tooltip => 'Back to settings';
 
   @override
@@ -21992,6 +22121,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'Role';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'Default equipment view';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'Severity';
 
   @override
@@ -22853,6 +22986,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceItemId => 'Linked item';
+
+  @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Extra data from the source';
 
   @override
   String get settings_conflict_field_sourceRef => 'Source file or device';
@@ -24555,6 +24692,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'Where your gear is kept, serviced or lent';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'When no filter is set, the Equipment list shows gear with these statuses.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title => 'Default equipment view';
 
   @override
   String get settings_manage_currencyRules => 'Certification currency';
@@ -29690,6 +29837,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'View All';
+
+  @override
+  String get trips_picker_alreadyPacked => 'Already packed';
 
   @override
   String get trips_picker_clearTooltip => 'Clear selection';
@@ -35872,7 +36022,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Flying after diving';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Current CNS/OTU load';
+  String get safetySettings_cnsOtuHeader => 'Current dive load';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standard (12/18/24 h)';
@@ -35945,6 +36095,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'About CNS and OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it\'s practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'About Tissue Loading';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'Your body has 16 tissue compartments that absorb and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nAfter a dive with helium, nitrogen and helium in a single compartment can briefly move in opposite directions: while helium is still releasing, the same compartment can simultaneously be absorbing a little nitrogen, until both gases reach equilibrium with the air you\'re breathing. That\'s why a compartment can briefly show \"Ongassing\" even while its overall load keeps dropping.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -45941,6 +46105,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, $startDate to $endDate, already packed';
+  }
+
+  @override
   String get divePlanner_quickPlan_subtitle =>
       'Create a simple rectangular dive profile';
 
@@ -48909,6 +49082,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Newer database, kept when going back - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'In cloud storage ($size)';
   }
 
   @override

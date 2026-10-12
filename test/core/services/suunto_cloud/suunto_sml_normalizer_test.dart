@@ -315,4 +315,38 @@ void main() {
     });
     expect(export.samples.single['DiveRoute'], {'X': 1.0, 'Y': 2.0, 'Z': 3.0});
   });
+
+  // #3047: the route quality fields ride in the same cloud Sample.
+  test('passes the route quality fields through from the cloud Sample', () {
+    final export = SuuntoSmlNormalizer.parse({
+      'Summary': {
+        'Samples': [
+          {
+            'Attributes': {
+              'suunto/sml': {
+                'Header': {'ActivityType': 51},
+              },
+            },
+          },
+        ],
+      },
+      'Data': {
+        'Samples': [
+          {
+            'TimeISO8601': '2026-04-19T10:00:00.000Z',
+            'Attributes': {
+              'suunto/sml': {
+                'Sample': {
+                  'DiveRouteQuality': 1,
+                  'QualityFeatures': [16, 0.1],
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+    expect(export.samples.single['DiveRouteQuality'], 1);
+    expect(export.samples.single['QualityFeatures'], [16, 0.1]);
+  });
 }

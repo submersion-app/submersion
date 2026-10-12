@@ -13,6 +13,7 @@ class SuuntoDiveRoute {
     required this.points,
     this.originLatitude,
     this.originLongitude,
+    this.sourceMetadata,
   });
 
   final List<NavTrackPoint> points;
@@ -21,6 +22,12 @@ class SuuntoDiveRoute {
   /// Null when the export carried no usable origin.
   final double? originLatitude;
   final double? originLongitude;
+
+  /// The export's route quality fields under their own names (issue
+  /// #3047): `DiveRouteQuality` and `QualityFeatures`. Their meaning is
+  /// undocumented, so they are kept as-is for later analysis. Null when the
+  /// export carried neither.
+  final Map<String, Object?>? sourceMetadata;
 }
 
 /// Reads `DiveRoute` samples into a [SuuntoDiveRoute].
@@ -34,6 +41,9 @@ class SuuntoDiveRoute {
 /// the dive's profile; -Z is only the fallback for an export without one.
 class SuuntoDiveRouteParser {
   const SuuntoDiveRouteParser._();
+
+  static const _qualityKey = 'DiveRouteQuality';
+  static const _featuresKey = 'QualityFeatures';
 
   /// Null when fewer than two usable points remain, or more than a track
   /// can store; the dive still imports either way.
@@ -89,7 +99,38 @@ class SuuntoDiveRouteParser {
       ]),
       originLatitude: originLatitude,
       originLongitude: originLongitude,
+      sourceMetadata: _sourceMetadata(samples),
     );
+  }
+
+  /// `DiveRouteQuality` (one number) and `QualityFeatures` (a list of
+  /// numbers, 12 so far), which sit on the first sample beside
+  /// `DiveRouteOrigin` (issue #3047). The first well-formed value of each
+  /// wins and a malformed one is left out; a non-finite number counts as
+  /// malformed, since JSON has no form to store it in.
+  static Map<String, Object?>? _sourceMetadata(
+    List<Map<String, dynamic>> samples,
+  ) {
+    num? quality;
+    List<num>? features;
+    for (final sample in samples) {
+      if (quality == null) {
+        final value = sample[_qualityKey];
+        if (value is num && value.isFinite) quality = value;
+      }
+      if (features == null) {
+        final value = sample[_featuresKey];
+        if (value is List && value.every((v) => v is num && v.isFinite)) {
+          features = List<num>.unmodifiable(value.cast<num>());
+        }
+      }
+      if (quality != null && features != null) break;
+    }
+    if (quality == null && features == null) return null;
+    return Map<String, Object?>.unmodifiable({
+      _qualityKey: ?quality,
+      _featuresKey: ?features,
+    });
   }
 
   /// The Depth channel linearly interpolated at [ms], holding the nearest

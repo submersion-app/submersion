@@ -2450,6 +2450,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'גיבוי זה יימחק לצמיתות. לא ניתן לבטל פעולה זו.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'גיבוי זה נמצא רק באחסון הענן שלך, ושום דבר לא מראה שמכשיר זה יצר אותו. ייתכן שזה העותק היחיד של מכשיר אחר, או גיבוי שמכשיר זה יצר לפני התקנה מחדש. לא ניתן לבטל את המחיקה.';
+
+  @override
   String get backup_delete_dialog_delete => 'מחיקה';
 
   @override
@@ -7745,6 +7749,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_equipmentPicker_removeToAdd => 'הסר פריטים להוספת אחרים';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'הצג ציוד שהוצא משימוש ושנמכר';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'שנה את סטטוס הפריט לפעיל כדי להוסיף אותו לצלילה';
 
@@ -9811,6 +9819,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'ללא';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'הצג וסתים שהוצאו משימוש ושנמכרו';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'מכל הטיול';
@@ -14912,6 +14924,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'הוסף את ציוד הצלילה שלך כדי לעקוב אחר שימוש וטיפול';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'תצוגת ברירת המחדל מסתירה את שאר הציוד שלך.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'אין ציוד בתצוגת ברירת המחדל שלך';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'ציוד';
 
   @override
@@ -14955,6 +14975,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_emptyState_noTypeMatch => 'אין ציוד בקטגוריה זו';
 
   @override
+  String get equipment_list_emptyState_showAll => 'הצגת כל הציוד';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'כל הציוד שלך מעודכן בטיפול!';
 
@@ -14975,7 +14998,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_filterAll => 'כל הציוד';
 
   @override
-  String get equipment_list_filterCurrent => 'ציוד נוכחי';
+  String get equipment_list_filterCurrent => 'תצוגת ברירת מחדל';
 
   @override
   String get equipment_list_filterServiceDue => 'טיפול נדרש';
@@ -15014,6 +15037,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'סטטוס';
+
+  @override
+  String get equipment_filter_editDefault => 'עריכת ברירת המחדל';
 
   @override
   String get equipment_filter_section_tags => 'תגיות';
@@ -20229,6 +20255,108 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לשמור את פריסת הניווט. נסה שוב.';
 
   @override
+  String get navShortcut_noFly => 'זמן איסור טיסה';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'שיאים';
+
+  @override
+  String get navShortcut_sitesMap => 'מפת אתרים';
+
+  @override
+  String get navShortcut_diveActivityMap => 'מפת פעילות צלילה';
+
+  @override
+  String get navShortcut_diveCentersMap => 'מפת מועדוני צלילה';
+
+  @override
+  String get navShortcut_diverProfile => 'פרופיל צולל';
+
+  @override
+  String get navShortcut_cloudSync => 'סנכרון ענן';
+
+  @override
+  String get navShortcut_offlineMaps => 'מפות לא מקוונות';
+
+  @override
+  String get navShortcut_short_deco => 'דקו';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'מחשבוני גז';
+
+  @override
+  String get navShortcut_short_weighting => 'משקולות';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'מרווח שטח';
+
+  @override
+  String get navShortcut_short_blender => 'מערבל';
+
+  @override
+  String get navShortcut_short_airUse => 'צריכה';
+
+  @override
+  String get navShortcut_short_patterns => 'דפוסים';
+
+  @override
+  String get navShortcut_short_profiles => 'פרופילים';
+
+  @override
+  String get navShortcut_short_diveMap => 'מפת צלילות';
+
+  @override
+  String get navShortcut_short_centersMap => 'מפת מועדונים';
+
+  @override
+  String get navShortcut_short_gearSets => 'ערכות';
+
+  @override
+  String get navShortcut_short_certWallet => 'ארנק';
+
+  @override
+  String get navShortcut_short_emergency => 'חירום';
+
+  @override
+  String get navShortcut_short_backup => 'גיבוי';
+
+  @override
+  String get navShortcut_short_speciesStats => 'סטטיסטיקת מינים';
+
+  @override
+  String get navShortcut_short_gearStats => 'סטטיסטיקת ציוד';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'הוסף קיצור דרך';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => 'קיצור דרך חדש';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'חיפוש דפים';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches => 'אין דפים תואמים';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'כבר נמצא בפריסה זו';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return 'הסר את $destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'תצוגות';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools => 'הגדרות וכלים';
+
+  @override
   String get settings_backToSettings_tooltip => 'חזרה להגדרות';
 
   @override
@@ -21810,6 +21938,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'תפקיד';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'תצוגת ברירת מחדל של הציוד';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'חומרה';
 
   @override
@@ -22657,6 +22789,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceItemId => 'פריט מקושר';
+
+  @override
+  String get settings_conflict_field_sourceMetadata => 'נתונים נוספים מהמקור';
 
   @override
   String get settings_conflict_field_sourceRef => 'קובץ או מכשיר המקור';
@@ -24350,6 +24485,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'היכן הציוד שלך מאוחסן, בטיפול או מושאל';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'כשאין מסנן, רשימת הציוד מציגה ציוד בסטטוסים אלה.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title => 'תצוגת ברירת מחדל של הציוד';
 
   @override
   String get settings_manage_currencyRules => 'תוקף הסמכות';
@@ -29447,6 +29592,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'הצג הכל';
+
+  @override
+  String get trips_picker_alreadyPacked => 'כבר נארז';
 
   @override
   String get trips_picker_clearTooltip => 'נקה בחירה';
@@ -35585,7 +35733,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'טיסה אחרי צלילה';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'עומס CNS/OTU נוכחי';
+  String get safetySettings_cnsOtuHeader => 'עומס הצלילה הנוכחי';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'רגיל (12/18/24 ש\')';
@@ -35657,6 +35805,20 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'ללא פרופיל עומק לא ניתן לחשב את ה-CNS% וה-OTU שלה. הסיכומים שלהלן אינם כוללים אותה.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'אודות CNS ו-OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'אחוז ה-CNS שלך (שעון החמצן) דועך לאחר הצלילה עם מחצית חיים של 90 דקות -- הוא חוזר כמעט לגמרי ל-0 אחרי כיום אחד בערך.\n\nה-OTU היומי מתאפס בכל לילה בחצות. ה-OTU השבועי הוא סכום מתגלגל של 7 הימים האחרונים: צלילות ישנות יותר נופלות אוטומטית מהחישוב ברגע שהן יוצאות מחלון הזמן הזה.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'אודות רוויית הרקמות';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'לגוף שלך יש 16 תאי רקמה הסופגים ומשחררים חנקן (ובצלילות טרימיקס או רה-ברית\'ר, גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות לוקחות הרבה יותר זמן לשני התהליכים.\n\nלאחר צלילה עם הליום, חנקן והליום באותו תא רקמה יכולים לנוע לרגע בכיוונים מנוגדים: בעוד ההליום עדיין משתחרר, אותו תא עשוי לספוג במקביל מעט חנקן, עד ששני הגזים מגיעים לשיווי משקל עם האוויר שאתה נושם. זו הסיבה שתא רקמה עשוי להציג לרגע \"Ongassing\" גם כאשר העומס הכולל שלו ממשיך לרדת.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -45678,6 +45840,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, מ-$startDate עד $endDate, כבר נארז';
+  }
+
+  @override
   String get divePlanner_quickPlan_subtitle => 'יצירת פרופיל צלילה מלבני פשוט';
 
   @override
@@ -48642,6 +48813,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'מסד נתונים חדש יותר, נשמר בעת החזרה - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'באחסון בענן ($size)';
   }
 
   @override

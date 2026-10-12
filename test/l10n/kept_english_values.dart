@@ -174,6 +174,7 @@ const Map<String, String> keptEnglishValues = {
   'media_photoPicker_files_itemCount@nl': _dutchItem,
   'media_siteAttachment_pageCount@fr': _sameWord,
   'media_timeInDive_fieldHint': _units,
+  'navShortcut_cnsOtu': _abbreviation,
   'navTrack_list_durationHours@de': _units,
   'navTrack_list_durationHours@es': _units,
   'navTrack_list_durationHours@fr': _units,

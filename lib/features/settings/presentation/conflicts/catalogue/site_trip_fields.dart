@@ -357,6 +357,10 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_source,
     FieldKind.shortText,
   ),
+  'sourceMetadata': ConflictField(
+    (l) => l.settings_conflict_field_sourceMetadata,
+    FieldKind.opaque,
+  ),
   'sourceRef': ConflictField(
     (l) => l.settings_conflict_field_sourceRef,
     FieldKind.shortText,

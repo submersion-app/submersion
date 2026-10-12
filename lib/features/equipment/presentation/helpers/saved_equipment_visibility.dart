@@ -6,7 +6,8 @@ import 'package:submersion/features/query/data/query_id_set_runner.dart';
 /// The list view that shows a just-saved item, or null when [filter], the
 /// view the list is on, already shows it (#3068).
 ///
-/// The default view leaves out wishlist, retired and sold gear, so saving a
+/// The default view (by default everything but wishlist, retired and sold
+/// gear; the diver can narrow it, #2628) can leave the item out, so saving a
 /// Wanted item from it used to look like the save had failed. The check runs
 /// the list's own compiled query rather than re-deriving its rules, so it
 /// sees every axis (status, category, tags, owner) exactly as the list does.
@@ -17,6 +18,9 @@ import 'package:submersion/features/query/data/query_id_set_runner.dart';
 /// [beforeQuery] runs with each query's tables before it does, as the
 /// list's `watchQueryIds` does: a service-due view reads a cache the save
 /// has just set refreshing, and must see the new verdicts, not the old.
+///
+/// [defaultStatuses] is the diver's default view (#2628), which both the
+/// list's unfiltered view and the default view offered here use.
 Future<EquipmentFilterState?> viewRevealingSavedEquipment({
   required QueryIdSetRunner runner,
   required EquipmentFilterState filter,
@@ -24,9 +28,14 @@ Future<EquipmentFilterState?> viewRevealingSavedEquipment({
   required String equipmentId,
   required EquipmentStatus status,
   Future<void> Function(Set<String> tablesTouched)? beforeQuery,
+  required Set<EquipmentStatus> defaultStatuses,
 }) async {
   Future<bool> shows(EquipmentFilterState view) async {
-    final compiled = compileEquipmentFilter(view, diverId: diverId);
+    final compiled = compileEquipmentFilter(
+      view,
+      diverId: diverId,
+      defaultStatuses: defaultStatuses,
+    );
     await beforeQuery?.call(compiled.tablesTouched);
     // Narrowed to the one row, so the check never lists the whole view.
     final owner = view.ownerScope(diverId);

@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
+import 'package:submersion/features/settings/presentation/pages/equipment_default_view_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -98,7 +99,7 @@ Future<void> _openSheet(
   await tester.pumpAndSettle();
 }
 
-/// Null is the default view, Current Equipment; [_allStatusesChip] is the
+/// Null is the default view, Default View; [_allStatusesChip] is the
 /// choice that shows every status (#2590).
 Finder _statusChip(EquipmentStatus? status) => find.byKey(
   ValueKey('equipment_filter_status_${status?.name ?? 'current'}'),
@@ -254,7 +255,7 @@ void main() {
       expect(
         find.descendant(
           of: _statusChip(null),
-          matching: find.text('Current Equipment'),
+          matching: find.text('Default View'),
         ),
         findsOneWidget,
       );
@@ -630,5 +631,24 @@ void main() {
       'equipment_filter_type_regulator',
       'equipment_filter_type_wetsuit',
     ]);
+  });
+
+  testWidgets('Edit default opens the default view settings over the panel', (
+    tester,
+  ) async {
+    _useTallSurface(tester);
+    final container = await _container();
+    addTearDown(container.dispose);
+    await _openSheet(tester, container);
+
+    await tester.tap(
+      find.byKey(const ValueKey('equipment_filter_editDefault')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(EquipmentDefaultViewPage), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byType(EquipmentFilterSheet), findsOneWidget);
   });
 }

@@ -61,7 +61,7 @@ void main() {
     'cns-otu': (
       embedded: const CnsOtuPage(embedded: true),
       page: const CnsOtuPage(),
-      title: 'Current CNS/OTU load',
+      title: 'Current dive load',
     ),
   };
 

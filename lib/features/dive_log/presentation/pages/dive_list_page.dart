@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_field.dart';
@@ -19,6 +21,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/safety_finding
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/dive_list_return_scope.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
@@ -64,7 +68,11 @@ String _tileUrl(double lat, double lng, int zoom, MapStyle style) {
 /// On desktop (>=800px): Shows a split view with list on left, detail/summary on right.
 /// On narrower screens (<800px): Shows the list with navigation to detail pages.
 class DiveListPage extends ConsumerStatefulWidget {
-  const DiveListPage({super.key});
+  const DiveListPage({super.key, this.returnTo});
+
+  /// Set when this list was pushed by `openDiveList`: what to put back when
+  /// it goes away. Null for the Dives tab itself.
+  final DiveListReturn? returnTo;
 
   @override
   ConsumerState<DiveListPage> createState() => _DiveListPageState();
@@ -101,7 +109,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
         if (isDesktop && viewMode != ListViewMode.table) {
           final state = GoRouterState.of(context);
           final currentPath = state.uri.path;
-          context.go('$currentPath?mode=new');
+          context.goInPlace('$currentPath?mode=new');
         } else {
           context.push('/dives/new');
         }
@@ -124,7 +132,6 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
   }
 
   void _toggleMapView() {
-    final router = GoRouter.of(context);
     final state = GoRouterState.of(context);
     final currentPath = state.uri.path;
     final selectedId = state.uri.queryParameters['selected'];
@@ -132,22 +139,27 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     if (_isMapView) {
       // Switch back to detail view
       if (selectedId != null) {
-        router.go('$currentPath?selected=$selectedId');
+        context.goInPlace('$currentPath?selected=$selectedId');
       } else {
-        router.go(currentPath);
+        context.goInPlace(currentPath);
       }
     } else {
       // Switch to map view
       if (selectedId != null) {
-        router.go('$currentPath?selected=$selectedId&view=map');
+        context.goInPlace('$currentPath?selected=$selectedId&view=map');
       } else {
-        router.go('$currentPath?view=map');
+        context.goInPlace('$currentPath?view=map');
       }
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => DiveListReturnScope(
+    returnTo: widget.returnTo,
+    child: _buildPage(context),
+  );
+
+  Widget _buildPage(BuildContext context) {
     // Clear mobile map selection when filters change to avoid stale state
     ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
       if (_mobileMapSelectedDiveId != null) {
@@ -195,19 +207,18 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             embedded: true,
             embeddedSiteId: siteId,
             onCloseEmbeddedSite: () {
-              final router = GoRouter.of(context);
               final state = GoRouterState.of(context);
               final params = Map<String, String>.from(
                 state.uri.queryParameters,
               );
               params.remove('site');
-              router.go(
+              context.goInPlace(
                 Uri(path: state.uri.path, queryParameters: params).toString(),
               );
             },
             onDeleted: () {
               final state = GoRouterState.of(context);
-              context.go(state.uri.path);
+              context.goInPlace(state.uri.path);
             },
           );
         },
@@ -365,6 +376,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
           onItemSelected: onItemSelected,
           selectedId: selectedId,
           showAppBar: false,
+          showBackButton: isPushedRoute(context),
           isMapViewActive: _isMapView,
           onMapViewToggle: _toggleMapView,
         ),
@@ -379,21 +391,19 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             embedded: true,
             embeddedSiteId: siteId,
             onCloseEmbeddedSite: () {
-              final router = GoRouter.of(context);
               final state = GoRouterState.of(context);
               final params = Map<String, String>.from(
                 state.uri.queryParameters,
               );
               params.remove('site');
-              router.go(
+              context.goInPlace(
                 Uri(path: state.uri.path, queryParameters: params).toString(),
               );
             },
             onDeleted: () {
               // Clear selection when dive is deleted
-              final router = GoRouter.of(context);
               final state = GoRouterState.of(context);
-              router.go(state.uri.path);
+              context.goInPlace(state.uri.path);
             },
           );
         },
@@ -405,7 +415,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
             // Exit map view and show detail pane for the selected dive
             final state = GoRouterState.of(context);
             final currentPath = state.uri.path;
-            context.go('$currentPath?selected=$diveId');
+            context.goInPlace('$currentPath?selected=$diveId');
           },
         ),
         editBuilder: (context, id, onSaved, onCancel) {
@@ -469,13 +479,18 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
 
     // Mobile: Check if map view is requested
     if (_isMapView) {
+      // A pushed map (a trip's "View on map") returns where it came from,
+      // labelled as a plain Back; the Dives tab's own map returns to its list.
+      final pushed = isPushedRoute(context);
       return Scaffold(
         appBar: AppBar(
           title: Text(context.l10n.diveLog_listPage_appBar_diveMap),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: context.l10n.diveLog_listPage_tooltip_backToDiveList,
-            onPressed: () => context.go('/dives'),
+            tooltip: pushed
+                ? MaterialLocalizations.of(context).backButtonTooltip
+                : context.l10n.diveLog_listPage_tooltip_backToDiveList,
+            onPressed: () => pushed ? context.pop() : context.go('/dives'),
           ),
           actions: [
             IconButton(

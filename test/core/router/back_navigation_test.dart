@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/router/back_navigation.dart';
+import 'package:submersion/core/router/shortcut_locations.dart';
 
 void main() {
   String? up(String location) => resolveUpLocation(Uri.parse(location));
@@ -101,6 +102,23 @@ void main() {
 
       test('bare slash falls back to the dashboard', () {
         expect(up('/'), '/dashboard');
+      });
+    });
+
+    group('nav shortcuts (#2936)', () {
+      test('a shortcut goes up to the dashboard, not to /shortcut', () {
+        expect(up('/shortcut/gas-blender'), kRootLocation);
+      });
+
+      test('a shortcut unwinds its drill-down query first', () {
+        expect(
+          up('/shortcut/insights-gas?selected=1'),
+          '/shortcut/insights-gas',
+        );
+      });
+
+      test('shortcutLocation builds the alias path', () {
+        expect(shortcutLocation('gas-blender'), '/shortcut/gas-blender');
       });
     });
   });

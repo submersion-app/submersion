@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/router/back_navigation.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -403,8 +404,15 @@ class _UnifiedImportWizardBodyState
     );
   }
 
+  /// Leaves the wizard. Opened from Transfer there is a page to pop back
+  /// to; opened as a nav shortcut (#2936) the wizard is the only page, so it
+  /// goes home, where system Back from any top-level page leads.
   void _close() {
-    context.pop();
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(kRootLocation);
+    }
   }
 
   void _navigateToDives() {

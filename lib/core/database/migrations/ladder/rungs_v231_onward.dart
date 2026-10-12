@@ -354,11 +354,24 @@ extension RungsFromV231 on AppDatabase {
       await _assertProfileMetricColorColumns();
     }
     if (from < 284) await reportProgress();
-    // v285: shared dive-site library tables and dive_sites.shared_library_id
-    // (issue #2567). Idempotent; re-asserted in beforeOpen.
+    // v285: nav_tracks.source_metadata (issue #3047). Column only, no
+    // backfill; re-asserted in beforeOpen through _assertNavTracksSchema.
     if (from < 285) {
-      await _assertSharedLibrarySchema();
+      await _assertNavTrackSourceMetadataColumn();
     }
     if (from < 285) await reportProgress();
+    // v286: diver_settings.equipment_default_statuses (issue #2628). Column
+    // only; re-asserted in beforeOpen.
+    if (from < 286) {
+      await _assertEquipmentDefaultStatusesColumn();
+    }
+    if (from < 286) await reportProgress();
+    // v287: shared dive-site library tables and dive_sites.shared_library_id
+    // (issue #2567). Idempotent; re-asserted in beforeOpen. Renumbered from
+    // 285 after #3047 and #2628 shipped 285 and 286.
+    if (from < 287) {
+      await _assertSharedLibrarySchema();
+    }
+    if (from < 287) await reportProgress();
   }
 }

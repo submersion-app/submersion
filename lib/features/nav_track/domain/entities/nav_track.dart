@@ -142,6 +142,12 @@ class NavTrack extends Equatable {
   /// Clockwise rotation in degrees.
   final double headingOffsetDeg;
 
+  /// Fields the source exported about the recording that nothing reads
+  /// yet, kept as-is under the export's own names (`nav_tracks.
+  /// source_metadata`, issue #3047): a Suunto route's `DiveRouteQuality`
+  /// and `QualityFeatures`. Null when the source carried none.
+  final Map<String, Object?>? sourceMetadata;
+
   /// Hydrated on demand; empty on a list row.
   final List<NavTrackPoint> points;
 
@@ -176,6 +182,7 @@ class NavTrack extends Equatable {
     this.endLongitude,
     this.trustFraction = 0,
     this.headingOffsetDeg = 0,
+    this.sourceMetadata,
     this.points = const [],
     required this.createdAt,
     required this.updatedAt,
@@ -234,6 +241,7 @@ class NavTrack extends Equatable {
     double? endLongitude,
     double? trustFraction,
     double? headingOffsetDeg,
+    Map<String, Object?>? sourceMetadata,
     List<NavTrackPoint>? points,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -266,6 +274,7 @@ class NavTrack extends Equatable {
       endLongitude: endLongitude ?? this.endLongitude,
       trustFraction: trustFraction ?? this.trustFraction,
       headingOffsetDeg: headingOffsetDeg ?? this.headingOffsetDeg,
+      sourceMetadata: sourceMetadata ?? this.sourceMetadata,
       points: points ?? this.points,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -301,6 +310,7 @@ class NavTrack extends Equatable {
     endLongitude,
     trustFraction,
     headingOffsetDeg,
+    sourceMetadata,
     points,
     createdAt,
     updatedAt,

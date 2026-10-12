@@ -2473,6 +2473,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze back-up wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'Deze back-up staat alleen in je cloudopslag en niets wijst erop dat dit apparaat hem heeft gemaakt. Het kan de enige kopie van een ander apparaat zijn, of een kopie die dit apparaat vóór een herinstallatie heeft gemaakt. Verwijderen kan niet ongedaan worden gemaakt.';
+
+  @override
   String get backup_delete_dialog_delete => 'Verwijderen';
 
   @override
@@ -7870,6 +7874,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verwijder items om andere toe te voegen';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'Uitrusting die uit gebruik of verkocht is tonen';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'Zet de status van een item op Actief om het aan een duik toe te voegen';
 
@@ -9971,6 +9979,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Geen';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'Ademautomaten die uit gebruik of verkocht zijn tonen';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'Fles van de reis';
@@ -15126,6 +15138,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voeg je duikuitrusting toe om gebruik en service bij te houden';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'Je standaardweergave verbergt de rest van je uitrusting.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'Geen uitrusting in je standaardweergave';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'uitrusting';
 
   @override
@@ -15172,6 +15192,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen uitrusting in deze categorie';
 
   @override
+  String get equipment_list_emptyState_showAll => 'Alle uitrusting tonen';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'Al je uitrusting is up-to-date met service!';
 
@@ -15192,7 +15215,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_list_filterAll => 'Alle uitrusting';
 
   @override
-  String get equipment_list_filterCurrent => 'Huidige uitrusting';
+  String get equipment_list_filterCurrent => 'Standaardweergave';
 
   @override
   String get equipment_list_filterServiceDue => 'Service nodig';
@@ -15231,6 +15254,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'Status';
+
+  @override
+  String get equipment_filter_editDefault => 'Standaard bewerken';
 
   @override
   String get equipment_filter_section_tags => 'Tags';
@@ -20558,6 +20584,111 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de navigatie-indeling niet opslaan. Probeer het opnieuw.';
 
   @override
+  String get navShortcut_noFly => 'Niet-vliegtijd';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'Records';
+
+  @override
+  String get navShortcut_sitesMap => 'Kaart van duikstekken';
+
+  @override
+  String get navShortcut_diveActivityMap => 'Kaart van duikactiviteit';
+
+  @override
+  String get navShortcut_diveCentersMap => 'Kaart van duikcentra';
+
+  @override
+  String get navShortcut_diverProfile => 'Duikersprofiel';
+
+  @override
+  String get navShortcut_cloudSync => 'Cloudsynchronisatie';
+
+  @override
+  String get navShortcut_offlineMaps => 'Offline kaarten';
+
+  @override
+  String get navShortcut_short_deco => 'Deco';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'Gascalc.';
+
+  @override
+  String get navShortcut_short_weighting => 'Lood';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'Oppervl.-int.';
+
+  @override
+  String get navShortcut_short_blender => 'Menger';
+
+  @override
+  String get navShortcut_short_airUse => 'Verbruik';
+
+  @override
+  String get navShortcut_short_patterns => 'Patronen';
+
+  @override
+  String get navShortcut_short_profiles => 'Profielen';
+
+  @override
+  String get navShortcut_short_diveMap => 'Duikkaart';
+
+  @override
+  String get navShortcut_short_centersMap => 'Centrakaart';
+
+  @override
+  String get navShortcut_short_gearSets => 'Sets';
+
+  @override
+  String get navShortcut_short_certWallet => 'Brevetten';
+
+  @override
+  String get navShortcut_short_emergency => 'Nood';
+
+  @override
+  String get navShortcut_short_backup => 'Back-up';
+
+  @override
+  String get navShortcut_short_speciesStats => 'Soortenstatistiek';
+
+  @override
+  String get navShortcut_short_gearStats => 'Uitrustingsstatistiek';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'Snelkoppeling toevoegen';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle =>
+      'Nieuwe snelkoppeling';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'Pagina\'s zoeken';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches =>
+      'Geen overeenkomende pagina\'s';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'Al in deze indeling';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return '$destination verwijderen';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'Weergaven';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'Instellingen en hulpmiddelen';
+
+  @override
   String get settings_backToSettings_tooltip => 'Terug naar instellingen';
 
   @override
@@ -22206,6 +22337,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'Rol';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'Standaardweergave van de uitrusting';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'Ernst';
 
   @override
@@ -23095,6 +23230,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceItemId => 'Gekoppeld item';
+
+  @override
+  String get settings_conflict_field_sourceMetadata =>
+      'Extra gegevens van de bron';
 
   @override
   String get settings_conflict_field_sourceRef => 'Bronbestand of -apparaat';
@@ -24812,6 +24951,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'Waar je uitrusting ligt, in onderhoud is of is uitgeleend';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'Zonder filter toont de uitrustingslijst uitrusting met deze statussen.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => ', ';
+
+  @override
+  String get settings_equipmentDefaultView_title =>
+      'Standaardweergave van de uitrusting';
 
   @override
   String get settings_manage_currencyRules => 'Geldigheid certificeringen';
@@ -29991,6 +30141,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'Alles bekijken';
+
+  @override
+  String get trips_picker_alreadyPacked => 'Al ingepakt';
 
   @override
   String get trips_picker_clearTooltip => 'Selectie wissen';
@@ -36228,7 +36381,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'Vliegen na het duiken';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'Huidige CNS/OTU-belasting';
+  String get safetySettings_cnsOtuHeader => 'Huidige duikbelasting';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'Standaard (12/18/24 u)';
@@ -36301,6 +36454,20 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'Zonder diepteprofiel kunnen CNS% en OTU ervan niet worden berekend. De totalen hieronder laten hem buiten beschouwing.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'Over CNS en OTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'Je CNS% (zuurstofklok) neemt na de duik af met een halveringstijd van 90 minuten -- na ongeveer een dag is deze vrijwel terug op 0.\n\nDe dagelijkse OTU wordt elke nacht om middernacht gereset. De wekelijkse OTU is een voortschrijdend totaal van de afgelopen 7 dagen: oudere duiken vallen automatisch uit de berekening zodra ze buiten dat venster vallen.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'Over weefselverzadiging';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'Je lichaam heeft 16 weefselcompartimenten die stikstof opnemen en afgeven (en bij trimix- of rebreatherduiken ook helium), elk met een eigen snelheid. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben voor beide veel meer tijd nodig.\n\nNa een duik met helium kunnen stikstof en helium in één compartiment kortstondig in tegengestelde richtingen bewegen: terwijl het helium nog afgeeft, kan datzelfde compartiment tegelijk wat stikstof opnemen, totdat beide gassen in evenwicht zijn met de lucht die je inademt. Daarom kan een compartiment even \"Ongassing\" tonen, terwijl de totale belasting toch blijft dalen.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -46346,6 +46513,15 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name, $startDate tot $endDate, al ingepakt';
+  }
+
+  @override
   String get divePlanner_quickPlan_subtitle =>
       'Maak een eenvoudig rechthoekig duikprofiel';
 
@@ -49367,6 +49543,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'Nieuwere database, bewaard bij het teruggaan - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'In cloudopslag ($size)';
   }
 
   @override

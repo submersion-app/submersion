@@ -448,6 +448,24 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setTrendGapThreshold(TrendGapThreshold value) async =>
       state = state.copyWith(trendGapThreshold: value);
   @override
+  Future<void> setEquipmentDefaultStatuses(Set<EquipmentStatus> value) async {
+    if (value.isEmpty) return;
+    state = state.copyWith(equipmentDefaultStatuses: value);
+  }
+
+  @override
+  Future<void> setEquipmentDefaultStatusIncluded(
+    EquipmentStatus status,
+    bool included,
+  ) async {
+    final current = state.equipmentDefaultStatuses;
+    final next = included ? {...current, status} : current.difference({status});
+    if (next.isNotEmpty) {
+      state = state.copyWith(equipmentDefaultStatuses: next);
+    }
+  }
+
+  @override
   Future<void> setProfileMetricColor(
     ProfileMetric metric,
     Color? color,

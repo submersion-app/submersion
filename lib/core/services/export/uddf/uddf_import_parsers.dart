@@ -1171,6 +1171,7 @@ class UddfImportParsers {
       );
     }
 
+    spec['taxonomyClass'] = getElementText(specElement, 'taxonomyclass');
     spec['description'] = getElementText(specElement, 'description');
 
     return spec;

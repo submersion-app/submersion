@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 
 /// Opens the dive list showing only the dives tagged [tagId] (#1833).
@@ -15,9 +15,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 /// hide some of the tag's dives, and the list would stop matching the dive
 /// count Manage Tags shows for the tag. The filter chip on the dive list
 /// clears it again.
+///
+/// The list is pushed over the dive the chip was on, so its back arrow
+/// returns to that dive (#3292).
 void openDivesWithTag(BuildContext context, WidgetRef ref, String tagId) {
-  ref.read(diveFilterProvider.notifier).state = DiveFilterState(
-    tagIds: [tagId],
-  );
-  context.go('/dives');
+  openDiveList(context, ref, DiveFilterState(tagIds: [tagId]));
 }

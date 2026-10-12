@@ -121,6 +121,55 @@ void main() {
       expect(repo.navPrimaryIds, withLegacyNavIds(movableNavIds));
       expect(container.read(navPhoneOrderNotifierProvider), movableNavIds);
     });
+
+    test('loads stored shortcuts and resolves them for the bar', () async {
+      final repo = FakeAppSettingsRepository()
+        ..navPrimaryIds = ['shortcut:gas-blender', 'dives', 'sites'];
+      final container = _container(repo);
+      addTearDown(container.dispose);
+
+      await _loaded(container, navPhoneOrderNotifierProvider);
+      final primary = container.read(navPrimaryDestinationsProvider(3));
+
+      expect(primary.map((d) => d.id), [
+        'dashboard',
+        'shortcut:gas-blender',
+        'dives',
+        'sites',
+        'more',
+      ]);
+      expect(primary[1].route, '/shortcut/gas-blender');
+    });
+
+    test('the rail resolves a stored shortcut too', () async {
+      final repo = FakeAppSettingsRepository()
+        ..navRailIds = ['shortcut:insights-gas', 'dives'];
+      final container = _container(repo);
+      addTearDown(container.dispose);
+
+      await _loaded(container, navRailOrderNotifierProvider);
+      final rail = container.read(navRailDestinationsProvider);
+
+      expect(rail.take(3).map((d) => d.id), [
+        'dashboard',
+        'shortcut:insights-gas',
+        'dives',
+      ]);
+    });
+
+    test('resetToDefaults drops shortcuts', () async {
+      final repo = FakeAppSettingsRepository()
+        ..navRailIds = ['shortcut:insights-gas', 'dives'];
+      final container = _container(repo);
+      addTearDown(container.dispose);
+
+      await _loaded(container, navRailOrderNotifierProvider);
+      await container
+          .read(navRailOrderNotifierProvider.notifier)
+          .resetToDefaults();
+
+      expect(container.read(navRailOrderNotifierProvider), movableNavIds);
+    });
   });
 
   group('phone and rail orders are independent', () {

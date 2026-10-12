@@ -12,6 +12,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_cancellat
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/unified_import_result.dart';
 import 'package:submersion/features/import_wizard/presentation/providers/import_wizard_providers.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/entity_review_list.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/review_step.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -205,9 +206,15 @@ void main() {
       await _pump(tester, _bundle(matches: _allMatched()));
 
       // Scroll the bulk "Skip all" row out of view, as a diver working
-      // through a long list would have.
+      // through a long list would have. The list's own scroll view: the
+      // scrollable tab bar above it is one too.
       await tester.drag(
-        find.byType(SingleChildScrollView).first,
+        find
+            .ancestor(
+              of: find.byType(EntityReviewList),
+              matching: find.byType(SingleChildScrollView),
+            )
+            .first,
         const Offset(0, -2000),
       );
       await tester.pumpAndSettle();

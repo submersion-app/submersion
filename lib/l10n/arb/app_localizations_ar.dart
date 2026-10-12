@@ -2540,6 +2540,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'سيتم حذف هذه النسخة الاحتياطية نهائياً. لا يمكن التراجع عن هذا الإجراء.';
 
   @override
+  String get backup_delete_dialog_content_otherDevice =>
+      'هذه النسخة الاحتياطية موجودة في التخزين السحابي فقط، ولا يوجد ما يثبت أن هذا الجهاز أنشأها. قد تكون النسخة الوحيدة لجهاز آخر، أو نسخة أنشأها هذا الجهاز قبل إعادة التثبيت. لا يمكن التراجع عن الحذف.';
+
+  @override
   String get backup_delete_dialog_delete => 'حذف';
 
   @override
@@ -8026,6 +8030,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'أزل عناصر لإضافة عناصر مختلفة';
 
   @override
+  String get diveLog_equipmentPicker_showLeftKit =>
+      'عرض المعدات المتقاعدة والمباعة';
+
+  @override
   String get diveLog_equipmentPicker_spareHint =>
       'غيّر حالة العنصر إلى نشط لإضافته إلى غطسة';
 
@@ -10157,6 +10165,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'لا شيء';
+
+  @override
+  String get diveLog_tank_regulatorShowLeftKit =>
+      'عرض منظمات التنفس المتقاعدة والمباعة';
 
   @override
   String get diveLog_tank_tripCylinderLabel => 'أسطوانة الرحلة';
@@ -15415,6 +15427,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'أضف معدات الغوص لتتبع الاستخدام والصيانة';
 
   @override
+  String get equipment_list_emptyState_defaultView_subtitle =>
+      'يخفي العرض الافتراضي بقية معداتك.';
+
+  @override
+  String get equipment_list_emptyState_defaultView_title =>
+      'لا توجد معدات في العرض الافتراضي';
+
+  @override
   String get equipment_list_emptyState_filterText_equipment => 'معدات';
 
   @override
@@ -15461,6 +15481,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد معدات في هذه الفئة';
 
   @override
+  String get equipment_list_emptyState_showAll => 'عرض جميع المعدات';
+
+  @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
       'جميع معداتك محدثة الصيانة!';
 
@@ -15481,7 +15504,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_filterAll => 'جميع المعدات';
 
   @override
-  String get equipment_list_filterCurrent => 'المعدات الحالية';
+  String get equipment_list_filterCurrent => 'العرض الافتراضي';
 
   @override
   String get equipment_list_filterServiceDue => 'الصيانة مستحقة';
@@ -15520,6 +15543,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_filter_section_status => 'الحالة';
+
+  @override
+  String get equipment_filter_editDefault => 'تعديل الافتراضي';
 
   @override
   String get equipment_filter_section_tags => 'الوسوم';
@@ -20949,6 +20975,110 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر حفظ تخطيط التنقل. حاول مرة أخرى.';
 
   @override
+  String get navShortcut_noFly => 'وقت حظر الطيران';
+
+  @override
+  String get navShortcut_cnsOtu => 'CNS/OTU';
+
+  @override
+  String get navShortcut_records => 'الأرقام القياسية';
+
+  @override
+  String get navShortcut_sitesMap => 'خريطة المواقع';
+
+  @override
+  String get navShortcut_diveActivityMap => 'خريطة نشاط الغوص';
+
+  @override
+  String get navShortcut_diveCentersMap => 'خريطة مراكز الغوص';
+
+  @override
+  String get navShortcut_diverProfile => 'ملف الغواص';
+
+  @override
+  String get navShortcut_cloudSync => 'المزامنة السحابية';
+
+  @override
+  String get navShortcut_offlineMaps => 'الخرائط غير المتصلة';
+
+  @override
+  String get navShortcut_short_deco => 'إزالة الضغط';
+
+  @override
+  String get navShortcut_short_gasCalculators => 'حاسبات الغاز';
+
+  @override
+  String get navShortcut_short_weighting => 'الأوزان';
+
+  @override
+  String get navShortcut_short_surfaceInterval => 'فترة السطح';
+
+  @override
+  String get navShortcut_short_blender => 'الخلاط';
+
+  @override
+  String get navShortcut_short_airUse => 'الاستهلاك';
+
+  @override
+  String get navShortcut_short_patterns => 'الأنماط';
+
+  @override
+  String get navShortcut_short_profiles => 'الملفات';
+
+  @override
+  String get navShortcut_short_diveMap => 'خريطة الغوص';
+
+  @override
+  String get navShortcut_short_centersMap => 'خريطة المراكز';
+
+  @override
+  String get navShortcut_short_gearSets => 'المجموعات';
+
+  @override
+  String get navShortcut_short_certWallet => 'المحفظة';
+
+  @override
+  String get navShortcut_short_emergency => 'الطوارئ';
+
+  @override
+  String get navShortcut_short_backup => 'النسخ الاحتياطي';
+
+  @override
+  String get navShortcut_short_speciesStats => 'إحصاءات الأنواع';
+
+  @override
+  String get navShortcut_short_gearStats => 'إحصاءات المعدات';
+
+  @override
+  String get settings_navCustomization_addShortcut => 'إضافة اختصار';
+
+  @override
+  String get settings_navCustomization_shortcutPickerTitle => 'اختصار جديد';
+
+  @override
+  String get settings_navCustomization_shortcutSearchHint => 'البحث في الصفحات';
+
+  @override
+  String get settings_navCustomization_shortcutNoMatches =>
+      'لا توجد صفحات مطابقة';
+
+  @override
+  String get settings_navCustomization_shortcutAlreadyAdded =>
+      'موجود بالفعل في هذا التخطيط';
+
+  @override
+  String settings_navCustomization_removeShortcutLabel(String destination) {
+    return 'إزالة $destination';
+  }
+
+  @override
+  String get settings_navCustomization_group_views => 'العروض';
+
+  @override
+  String get settings_navCustomization_group_settingsAndTools =>
+      'الإعدادات والأدوات';
+
+  @override
   String get settings_backToSettings_tooltip => 'العودة إلى الإعدادات';
 
   @override
@@ -22579,6 +22709,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_equipmentComponents_role => 'الدور';
 
   @override
+  String get settings_conflict_field_equipmentDefaultStatuses =>
+      'العرض الافتراضي للمعدات';
+
+  @override
   String get settings_conflict_field_equipmentFindings_severity => 'الخطورة';
 
   @override
@@ -23433,6 +23567,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_sourceItemId => 'عنصر مرتبط';
+
+  @override
+  String get settings_conflict_field_sourceMetadata =>
+      'بيانات إضافية من المصدر';
 
   @override
   String get settings_conflict_field_sourceRef => 'الملف أو الجهاز المصدر';
@@ -25169,6 +25307,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_manage_locations_subtitle =>
       'أين تُخزَّن معداتك أو تُصان أو تُعار';
+
+  @override
+  String get settings_equipmentDefaultView_intro =>
+      'عند عدم تعيين أي عامل تصفية، تعرض قائمة المعدات المعدات ذات هذه الحالات.';
+
+  @override
+  String get settings_equipmentDefaultView_listSeparator => '، ';
+
+  @override
+  String get settings_equipmentDefaultView_title => 'العرض الافتراضي للمعدات';
 
   @override
   String get settings_manage_currencyRules => 'صلاحية الشهادات';
@@ -30544,6 +30692,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_photos_viewAll => 'عرض الكل';
+
+  @override
+  String get trips_picker_alreadyPacked => 'مجهزة بالفعل';
 
   @override
   String get trips_picker_clearTooltip => 'مسح الاختيار';
@@ -36937,7 +37088,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safetySettings_noFlyHeader => 'الطيران بعد الغوص';
 
   @override
-  String get safetySettings_cnsOtuHeader => 'الحمل الحالي لـ CNS/OTU';
+  String get safetySettings_cnsOtuHeader => 'حمل الغطس الحالي';
 
   @override
   String get safetySettings_noFlyPreset_standard => 'قياسي (12/18/24 س)';
@@ -37010,6 +37161,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get safetyHub_cnsOtu_noProfile_body =>
       'لا يمكن حساب CNS% و OTU لها بدون بيانات العمق. المجاميع أدناه لا تشملها.';
+
+  @override
+  String get safetyHub_cnsOtu_about_title => 'حول CNS وOTU';
+
+  @override
+  String get safetyHub_cnsOtu_about_body =>
+      'تنخفض نسبة CNS% (ساعة الأكسجين) بعد الغطسة بعمر نصف 90 دقيقة — تعود عمليًا إلى 0 بعد نحو يوم واحد.\n\nيُعاد ضبط OTU اليومي كل ليلة عند منتصف الليل. أما OTU الأسبوعي فهو مجموع متجدد لآخر 7 أيام: تسقط الغطسات الأقدم تلقائيًا من الحساب بمجرد خروجها من هذا النطاق.';
+
+  @override
+  String get safetyHub_tissueLoading_about_title => 'حول تشبّع الأنسجة';
+
+  @override
+  String get safetyHub_tissueLoading_about_body =>
+      'يحتوي جسمك على 16 حجرة نسيجية تمتص وتطلق النيتروجين (وكذلك الهيليوم في غطسات التريميكس أو أجهزة إعادة التنفس) بسرعات مختلفة. الأنسجة السريعة تتشبّع وتتخلّص من التشبّع بسرعة؛ أما الأنسجة البطيئة فتحتاج وقتًا أطول بكثير لكليهما.\n\nبعد غطسة بالهيليوم، يمكن أن يتحرك النيتروجين والهيليوم في نفس الحجرة لفترة وجيزة باتجاهين متعاكسين: بينما لا يزال الهيليوم يتحرر، يمكن لنفس الحجرة أن تمتص القليل من النيتروجين في الوقت نفسه، حتى يصل الغازان إلى التوازن مع الهواء الذي تتنفسه. لهذا قد تُظهر الحجرة مؤقتًا \"Ongassing\" حتى وإن استمر حملها الإجمالي بالانخفاض.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -47268,6 +47433,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String trips_picker_tileSemanticsPacked(
+    Object name,
+    Object startDate,
+    Object endDate,
+  ) {
+    return '$name، من $startDate إلى $endDate، مجهزة بالفعل';
+  }
+
+  @override
   String get divePlanner_quickPlan_subtitle => 'أنشئ ملف غوص مستطيلاً بسيطاً';
 
   @override
@@ -50315,6 +50489,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String backup_history_preDowngradeSubtitle(String size) {
     return 'قاعدة بيانات أحدث، محفوظة عند الرجوع - $size';
+  }
+
+  @override
+  String backup_history_cloudOnlySubtitle(String size) {
+    return 'في التخزين السحابي ($size)';
   }
 
   @override

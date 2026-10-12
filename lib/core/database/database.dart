@@ -270,7 +270,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 285;
+  static const int currentSchemaVersion = 287;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1230,10 +1230,17 @@ class AppDatabase extends _$AppDatabase {
     // columns, so the floor stays at 280. Renumbered from 282, which PR #3133
     // holds, after #3296 shipped 283.
     284,
-    // v285: shared dive-site library tables and dive_sites.shared_library_id
-    // (issue #2567). New tables and a nullable column, so the floor stays
-    // at 280.
+    // v285: nav_tracks.source_metadata (issue #3047). Additive nullable
+    // column, so the floor stays at 280. Renumbered from 282, which PR
+    // #3133 holds; 283 and 284 shipped first.
     285,
+    // v286: diver_settings.equipment_default_statuses (issue #2628).
+    // Additive nullable column, so the floor stays at 280.
+    286,
+    // v287: shared dive-site library tables and dive_sites.shared_library_id
+    // (issue #2567). New tables and a nullable column, so the floor stays
+    // at 280. Renumbered from 285 after #3047 and #2628 shipped 285 and 286.
+    287,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

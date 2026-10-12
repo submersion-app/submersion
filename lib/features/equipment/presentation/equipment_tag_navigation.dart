@@ -11,8 +11,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 ///
 /// The filter is replaced rather than merged: a leftover category or
 /// attribute condition would hide some of the tag's items. The status axis
-/// returns to the default view, which hides retired and sold gear, as the
-/// list always does. The filter chip on the list clears the tag again.
+/// returns to the diver's default view (#2628), as the list always does. The filter chip on the list clears the tag again.
 void openEquipmentWithTag(BuildContext context, WidgetRef ref, String tagId) {
   ref.read(equipmentFilterProvider.notifier).state = EquipmentFilterState(
     tagIds: {tagId},

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/accessibility/not_while_typing_activator.dart';
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
@@ -247,9 +248,14 @@ class AppShortcuts {
         final container = ProviderScope.containerOf(context, listen: false);
         container.read(diveSearchBarOpenProvider.notifier).state = true;
         container.read(diveSearchFocusPendingProvider.notifier).state = true;
-        final uri = GoRouter.of(
-          context,
-        ).routerDelegate.currentConfiguration.uri;
+        // The page on top, not the reported location: a dive list pushed
+        // over a site (#3292) leaves the router reporting the site's URI,
+        // and a go('/dives') from there would erase the list.
+        final config = GoRouter.of(context).routerDelegate.currentConfiguration;
+        final top = config.matches.isEmpty
+            ? null
+            : leafMatch(config.matches.last);
+        final uri = top is ImperativeRouteMatch ? top.matches.uri : config.uri;
         // The phone map view (/dives?view=map) has no search row; wide
         // layouts show the list beside the map, so they stay put.
         final phoneMap =

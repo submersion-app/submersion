@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,7 @@ import 'package:submersion/features/trips/data/repositories/trip_equipment_repos
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -105,6 +108,98 @@ void main() {
     await tester.pumpAndSettle();
     expect(fake.packed.map((p) => p.$1), ['a']);
     expect(fake.packed.single.$2, ['tank']);
+  });
+
+  testWidgets('the picker marks the trips the cylinder is packed for and '
+      'leaves a slot-only trip pickable (issue #2654)', (tester) async {
+    final (l10n, fake) = await pump(
+      tester,
+      trips: [packed('a'), packed('b', slot: true, isPacked: false)],
+      allTrips: [trip('a'), trip('b')],
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    final sheet = find.byType(TripPickerSheet);
+    expect(tester.widget<TripPickerSheet>(sheet).packedTripIds, {'a'});
+    expect(
+      find.descendant(
+        of: sheet,
+        matching: find.text(l10n.trips_picker_alreadyPacked),
+      ),
+      findsOneWidget,
+    );
+    // A packed trip does nothing; the board-only trip packs.
+    await tester.tap(find.descendant(of: sheet, matching: find.text('Trip a')));
+    await tester.pumpAndSettle();
+    expect(fake.packed, isEmpty);
+    await tester.tap(find.descendant(of: sheet, matching: find.text('Trip b')));
+    await tester.pumpAndSettle();
+    expect(fake.packed.map((p) => p.$1), ['b']);
+  });
+
+  testWidgets('Pack for a trip tapped while the packed trips still load '
+      'marks them once they arrive', (tester) async {
+    final loading = Completer<List<PackedTrip>>();
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          equipmentTripsProvider('tank').overrideWith((ref) => loading.future),
+          allTripsProvider.overrideWith((ref) async => [trip('a')]),
+          tripEquipmentRepositoryProvider.overrideWithValue(_FakePacks()),
+        ],
+        child: const SingleChildScrollView(
+          child: PassportTripCard(equipmentId: 'tank'),
+        ),
+      ),
+    );
+    await tester.pump();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportTripCard)),
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pump();
+    // A second tap while waiting opens no second picker.
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pump();
+    loading.complete([packed('a')]);
+    await tester.pumpAndSettle();
+    expect(find.byType(TripPickerSheet), findsOneWidget);
+    expect(
+      tester
+          .widget<TripPickerSheet>(find.byType(TripPickerSheet))
+          .packedTripIds,
+      {'a'},
+    );
+  });
+
+  testWidgets('when the packed trips fail to load, the picker stays closed '
+      'and says so', (tester) async {
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          equipmentTripsProvider('tank').overrideWith(
+            (ref) => Future<List<PackedTrip>>.error(StateError('locked')),
+          ),
+          allTripsProvider.overrideWith((ref) async => [trip('a')]),
+          tripEquipmentRepositoryProvider.overrideWithValue(_FakePacks()),
+        ],
+        child: const SingleChildScrollView(
+          child: PassportTripCard(equipmentId: 'tank'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportTripCard)),
+    );
+    await tester.tap(find.text(l10n.passport_trip_assign));
+    await tester.pumpAndSettle();
+    expect(find.byType(TripPickerSheet), findsNothing);
+    expect(find.text(l10n.passport_trip_failed), findsOneWidget);
   });
 
   testWidgets('New trip packs for the trip it creates', (tester) async {
