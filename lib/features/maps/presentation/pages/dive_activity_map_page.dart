@@ -4,6 +4,7 @@ import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -61,6 +62,17 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
     super.dispose();
   }
 
+  /// Returns to the dive list that opened the map. That list may itself be
+  /// pushed over another page (a site's dives, say), which a go('/dives')
+  /// would erase along with its back arrow (#3292).
+  void _backToList(BuildContext context) {
+    if (isPushedRoute(context)) {
+      context.pop();
+    } else {
+      context.go('/dives');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final heatMapAsync = ref.watch(diveActivityHeatMapProvider);
@@ -81,7 +93,7 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
     return MapListScaffold(
       sectionKey: 'dives',
       title: context.l10n.diveLog_map_title,
-      onBackPressed: () => context.go('/dives'),
+      onBackPressed: () => _backToList(context),
       listPane: DiveListContent(
         showAppBar: false,
         isMapMode: true,
@@ -135,7 +147,7 @@ class _DiveActivityMapPageState extends ConsumerState<DiveActivityMapPage>
         IconButton(
           icon: const Icon(Icons.list),
           tooltip: context.l10n.diveLog_listPage_tooltip_listView,
-          onPressed: () => context.go('/dives'),
+          onPressed: () => _backToList(context),
         ),
         IconButton(
           icon: const Icon(Icons.my_location),
