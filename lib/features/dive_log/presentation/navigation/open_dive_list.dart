@@ -25,16 +25,38 @@ class DiveListReturn {
 /// filter would hide some of the dives the link promised. The filter and
 /// highlight in place before are handed to the pushed list, which puts them
 /// back when it goes away. [map] opens the list's map view.
+///
+/// A second tap that lands before the first push has drawn finds that list
+/// already on top, showing these dives, and opens nothing: one Back must
+/// still return here.
 void openDiveList(
   BuildContext context,
   WidgetRef ref,
   DiveFilterState filter, {
   bool map = false,
 }) {
+  final location = map ? '/dives?view=map' : '/dives';
+  if (_showingOnTop(context, location) &&
+      ref.read(diveFilterProvider) == filter) {
+    return;
+  }
   final returnTo = DiveListReturn(
     filter: ref.read(diveFilterProvider),
     highlightedDiveId: ref.read(highlightedDiveIdProvider),
   );
   ref.read(diveFilterProvider.notifier).state = filter;
-  context.push(map ? '/dives?view=map' : '/dives', extra: returnTo);
+  context.push(location, extra: returnTo);
+}
+
+/// Whether the top page of the stack is a pushed dive list at [location].
+bool _showingOnTop(BuildContext context, String location) {
+  final matches = GoRouter.of(
+    context,
+  ).routerDelegate.currentConfiguration.matches;
+  if (matches.isEmpty) return false;
+  var top = matches.last;
+  while (top is ShellRouteMatch && top.matches.isNotEmpty) {
+    top = top.matches.last;
+  }
+  return top is ImperativeRouteMatch && top.matches.uri.toString() == location;
 }

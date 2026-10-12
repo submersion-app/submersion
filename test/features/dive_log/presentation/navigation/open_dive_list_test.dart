@@ -112,4 +112,36 @@ void main() {
     expect(h.router.canPop(), isTrue);
     expect(h.container.read(diveFilterProvider).tripId, 't1');
   });
+
+  testWidgets('a double tap opens one list, so one Back returns', (
+    tester,
+  ) async {
+    final h = await pumpHarness(tester);
+
+    // Both taps land before the router rebuilds.
+    await tester.tap(find.text('Open'), warnIfMissed: false);
+    await tester.tap(find.text('Open'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    h.router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('Open'), findsOneWidget);
+    expect(h.router.canPop(), isFalse);
+  });
+
+  testWidgets('a different set of dives still opens on top', (tester) async {
+    final h = await pumpHarness(tester);
+
+    await tester.tap(find.text('Open'), warnIfMissed: false);
+    await tester.tap(find.text('Open map'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(h.locations, contains('/dives?view=map'));
+    h.router.pop();
+    await tester.pumpAndSettle();
+    expect(h.router.canPop(), isTrue, reason: 'the first list is underneath');
+    h.router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('Open'), findsOneWidget);
+  });
 }
