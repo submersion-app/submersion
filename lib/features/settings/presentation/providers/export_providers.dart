@@ -369,6 +369,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
         .getAll(diverId: diverId);
   }
 
+  /// The fills the validated diver can see, for the full UDDF backup
+  /// (issue #2651): the fills CSV's scope (passports spec 10.8).
+  Future<List<CylinderFill>> _diverFills() async {
+    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    if (diverId == null) return const [];
+    return _ref.read(cylinderFillRepositoryProvider).getAllVisibleTo(diverId);
+  }
+
   /// [_validatedDiverDives] with each dive's recorded profile, for the full
   /// UDDF backup. The dive list leaves profiles out, and the backup writes its
   /// samples and tank pressures from them (issue #1874); the workbook draws no
@@ -816,6 +824,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         components: components,
         serviceRecords: allServiceRecords,
         observations: await _diverObservations(),
+        fills: await _diverFills(),
         courses: courses,
         diveWeights: relations.diveWeights,
         diveGasSwitches: relations.diveGasSwitches,
@@ -1564,6 +1573,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         components: components,
         serviceRecords: allServiceRecords,
         observations: await _diverObservations(),
+        fills: await _diverFills(),
         courses: courses,
         diveWeights: relations.diveWeights,
         diveGasSwitches: relations.diveGasSwitches,
